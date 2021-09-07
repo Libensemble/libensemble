@@ -2,8 +2,8 @@ import sys
 import pytest
 import numpy as np
 from libensemble.resources.scheduler import (ResourceScheduler,
-                                             InsufficientResourcesException,
-                                             ResourceSchedulerException)
+                                             InsufficientFreeResources,
+                                             InsufficientResourcesError)
 
 class MyResources:
     """Simulate resources"""
@@ -54,9 +54,9 @@ def test_too_many_rsets():
     resources = MyResources(8, 2)
     sched = ResourceScheduler(user_resources=resources)
 
-    with pytest.raises(ResourceSchedulerException):
+    with pytest.raises(InsufficientResourcesError):
         rset_team = sched.assign_resources(rsets_req=10)
-        pytest.fail('Expected ResourceSchedulerException')
+        pytest.fail('Expected InsufficientResourcesError')
 
 
 def test_cannot_split_quick_return():
@@ -66,10 +66,10 @@ def test_cannot_split_quick_return():
     resources.fixed_assignment(([1, 0, 0, 0, 3, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=3)
         print(rset_team)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
 
 def test_schdule_find_gaps_1node():
@@ -89,9 +89,9 @@ def test_schdule_find_gaps_1node():
     assert rset_team == [2, 3, 4]
 
     # Check not enough slots
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=4)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
     rset_team = sched.assign_resources(rsets_req=2)
     assert rset_team == [5, 6]
@@ -120,9 +120,9 @@ def test_schdule_find_gaps_2nodes():
         assert rset_team == exp_out[i], \
             'Expected {}, Received rset_team {}'.format(exp_out[i], rset_team)
 
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=1)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
     del resources
 
@@ -188,9 +188,9 @@ def test_try1node_findon_3nodes():
     sched_options = {'split2fit': False}
     del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
 
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=3)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
     # Now free up resources on 1st group and call alloc again (new sched).
     resources.free_rsets(worker=1)
@@ -214,9 +214,9 @@ def test_try2nodes_findon_3nodes():
     # Simulate a new call to allocation function
     sched_options = {'split2fit': False}
     del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=12)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
     # Now free up resources on 3rd group and call alloc again (new sched).
     resources.free_rsets(worker=3)
@@ -232,9 +232,9 @@ def test_split2fit_even_required_fails():
     resources = MyResources(8, 2)
     resources.fixed_assignment(([1, 1, 1, 0, 2, 2, 0, 0]))
     sched = ResourceScheduler(user_resources=resources)
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=4)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
 
 
 def test_split2fit_even_required_various():
@@ -250,14 +250,14 @@ def test_split2fit_even_required_various():
     assert sched.rsets_free == 3
 
     # In same alloc - now try getting 4 rsets
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=4)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
     assert sched.rsets_free == 3
 
-    with pytest.raises(InsufficientResourcesException):
+    with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=3)
-        pytest.fail('Expected InsufficientResourcesException')
+        pytest.fail('Expected InsufficientFreeResources')
     assert sched.rsets_free == 3
 
     rset_team = sched.assign_resources(rsets_req=2)
