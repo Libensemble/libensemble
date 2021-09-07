@@ -235,6 +235,25 @@ def test_als_all_returned():
     assert als.all_returned(pt_filter=filter, low_bound=3), \
         "all_returned() should\'ve returned True with boolean filter and adjusted lower bound."
 
+def test_als_points_by_priority():
+    H_prio = H.copy()
+    H_prio['priority'] = np.array([1, 2, 1, 2, 1])
+    H_no_prio = H[[i for i in list(H.dtype.names) if i != 'priority']]
+    eval_pts = ~H_prio['given'] & ~H_prio['cancel_requested']  # should be same for no_prio
+
+    als = AllocSupport(W, H_prio)
+    assert all(i in als.points_by_priority(eval_pts, batch=True) for i in np.array([1, 3])), \
+        "points_by_priority() should\'ve returned a batch of higher-priority points."
+
+    assert als.points_by_priority(eval_pts) == 1, \
+        "points_by_priority() should\'ve returned a higher-priority index."
+
+    als = AllocSupport(W, H_no_prio)
+
+    assert als.points_by_priority(eval_pts) == 0, \
+        "points_by_priority() should\'ve simply returned the next point to evaluate."
+
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
 
@@ -246,3 +265,4 @@ if __name__ == "__main__":
     test_als_sim_work()
     test_als_gen_work()
     test_als_all_returned()
+    test_als_points_by_priority()
