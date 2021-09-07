@@ -22,6 +22,7 @@ import sys
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
+import urllib.request
 
 from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
@@ -45,8 +46,8 @@ lam_max = np.amax((la.eig(A.todense())[0]).real)
 
 eps = 1e-1
 
-# 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3: SVM w/ STOP_TAG
-for prob_id in range(0, 3):
+# 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3&4: SVM w/ STOP_TAG
+for prob_id in range(0, 4):
     persis_info = {}
     persis_info['A'] = A
 
@@ -61,7 +62,7 @@ for prob_id in range(0, 3):
     libE_specs['safe_mode'] = False
 
     if prob_id <= 1:
-        persis_info['print_progress'] = 0
+        persis_info['print_progress'] = 1
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
@@ -83,7 +84,11 @@ for prob_id in range(0, 3):
             persis_info['gen_params'] = {'df_i_eval': df}
 
     if prob_id >= 2:
-        persis_info['print_progress'] = 1
+        if prob_id == 3:
+            fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
+            urllib.request.urlretrieve(fname, "./wdbc.data")
+
+        persis_info['print_progress'] = 0
         sim_f = svm_eval
         m, n = 30, 15
         prob_name = 'SVM with l1 regularization'
