@@ -240,6 +240,7 @@ def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes, reps=1):
 
 
 #SH TODO: These are all >= 1 node per rset. And 1 worker per rset
+#         central_mode makes no difference in this test
 def test_get_local_resources_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
@@ -340,7 +341,7 @@ def test_get_local_resources_central_mode():
 
 
 # The main tests are same as above - note for when fixtures set up
-def test_get_local_nodelist_central_mode_remove_libE_proc():
+def test_get_local_resources_central_mode_remove_libE_proc():
     mynode = socket.gethostname()
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     with open('node_list', 'w') as f:
@@ -349,45 +350,112 @@ def test_get_local_nodelist_central_mode_remove_libE_proc():
             if i == 3:
                 f.write(mynode + '\n')
 
-    resources = Resources(central_mode=True)
-    resources.add_comm_info(libE_nodes=[mynode])
+    libE_specs = {'central_mode': True}
 
-    # Now mock up some more stuff - so consistent
+    gresources = GlobalResources(libE_specs)
+    gresources.add_comm_info(libE_nodes=[mynode])
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 8
+    # 8 Workers ---------------------------------------------------------------
+    nworkers = 8
     exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
                ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
-    for wrk in range(num_workers):
-        workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 4
-    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+    # Spoof current process as each worker and check nodelist and other worker resources.
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        exp_slots = {exp_out[wrk][0]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1)
+        del wresources
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 1
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+    # 4 Workers ---------------------------------------------------------------
+    nworkers = 4
+    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'],
+               ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 2)
+        del wresources
 
-    # Test the best_split algorithm
-    num_workers = 3
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+    # 1 Worker ----------------------------------------------------------------
+    nworkers = 1
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036',
+                'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
+
+    # Just write out this one as one worker.
+    exp_slots = {'knl-0020': [0], 'knl-0021': [0], 'knl-0022': [0],
+                 'knl-0036': [0], 'knl-0137': [0], 'knl-0138': [0],
+                 'knl-0139': [0], 'knl-1234': [0]}
+
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        # exp_slots - see above
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 8)
+        del wresources
+
+    # 3 Workers (Test the best_split algorithm) -------------------------------
+    nworkers = 3
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'],
+               ['knl-0036', 'knl-0137', 'knl-0138'],
+               ['knl-0139', 'knl-1234']]
+    for wrk in range(nworkers):
+        workerID = wrk + 1
+        exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+
+        # Trying to avoid generic algorithm
+        if len(wresources.local_nodelist)==3:
+            exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0], exp_out[wrk][2]: [0]}
+            nnodes = 3
+        else:
+            exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+            nnodes = 2
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
+
+    # 16 Workers --------------------------------------------------------------
+    # SH TODO - Prob. put this in separate test for multi rsets/workers per node.
+    # Multiple workers per node
+    nworkers = 16
+
+    # SH TODO:This is modified - maybe write out explicitly
+    exp_out = [['knl-0020'], ['knl-0020'], ['knl-0021'], ['knl-0021'],
+               ['knl-0022'], ['knl-0022'], ['knl-0036'], ['knl-0036'],
+               ['knl-0137'], ['knl-0137'], ['knl-0138'], ['knl-0138'],
+               ['knl-0139'], ['knl-0139'], ['knl-1234'], ['knl-1234']]
+
+    for wrk in range(nworkers):
+        workerID = wrk + 1
+
+        # If even worker have slot 1
+        if (workerID % 2) == 0:
+            myslot = 1
+        else:
+            myslot = 0
+        exp_slots = {exp_out[wrk][0]: [myslot]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1, 2)
 
     os.remove('node_list')
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
@@ -596,9 +664,9 @@ if __name__ == "__main__":
     #test_remove_libE_nodes()
 
     #test_get_local_nodelist_central_mode()
-    test_get_local_resources_central_mode()
+    #test_get_local_resources_central_mode()
 
-    #test_get_local_nodelist_central_mode_remove_libE_proc()
+    test_get_local_resources_central_mode_remove_libE_proc()
     #test_get_local_nodelist_distrib_mode_host_not_in_list()
     #test_get_local_nodelist_distrib_mode()
     #test_get_local_nodelist_distrib_mode_uneven_split()
