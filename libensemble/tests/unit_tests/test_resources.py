@@ -224,19 +224,22 @@ def test_remove_libE_nodes():
 #SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
 
 
-#SH TODO: These are all >= 1 node per rset.
-def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes):
+#SH TODO: These are all 1 worker per rset. Should name as such if stays that way.
+def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes, reps=1):
+    assert wres.workerID == wrk + 1, \
+        'worker.workerID does not match.  \nRet: {}\nExp: {}'.format(wres.workerID, wrk + 1)
+
     assert wres.local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
     assert wres.slots == exp_slots, "slots does not match expected"
     assert wres.local_node_count == nnodes, "local_node_count does not match expected"
     assert wres.num_workers == nworkers, 'num_workers does not match'
     assert wres.split_list == exp_out, 'split_list does not match'
     assert wres.slot_count == 1, 'slot_count does not match'
-    assert wres.local_rsets_list == [1] * nworkers, 'local_rsets_list does not match'
-    assert wres.rsets_per_node == 1, 'rsets_per_node does not match'
+    assert wres.local_rsets_list == [reps] * nworkers, 'local_rsets_list does not match'
+    assert wres.rsets_per_node == reps, 'rsets_per_node does not match'
 
 
-#SH TODO: These are all >= 1 node per rset.
+#SH TODO: These are all >= 1 node per rset. And 1 worker per rset
 def test_get_local_resources_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
@@ -269,7 +272,6 @@ def test_get_local_resources_central_mode():
         wresources.set_rset_team([wrk])
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 2)
         del wresources
-
 
     # 1 Worker ----------------------------------------------------------------
     nworkers = 1
@@ -309,8 +311,32 @@ def test_get_local_resources_central_mode():
             nnodes = 2
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
 
+    # 16 Workers --------------------------------------------------------------
+    # SH TODO - Prob. put this in separate test for multi rsets/workers per node.
+    # Multiple workers per node
+    nworkers = 16
+
+    # SH TODO:This is modified - maybe write out explicitly
+    exp_out = [['knl-0020'], ['knl-0020'], ['knl-0021'], ['knl-0021'],
+               ['knl-0022'], ['knl-0022'], ['knl-0036'], ['knl-0036'],
+               ['knl-0137'], ['knl-0137'], ['knl-0138'], ['knl-0138'],
+               ['knl-0139'], ['knl-0139'], ['knl-1234'], ['knl-1234']]
+
+    for wrk in range(nworkers):
+        workerID = wrk + 1
+
+        # If even worker have slot 1
+        if (workerID % 2) == 0:
+            myslot = 1
+        else:
+            myslot = 0
+        exp_slots = {exp_out[wrk][0]: [myslot]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1, 2)
 
     del os.environ["LIBE_RESOURCES_TEST_NODE_LIST"]
+
 
 
 # The main tests are same as above - note for when fixtures set up
