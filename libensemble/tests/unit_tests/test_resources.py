@@ -239,6 +239,7 @@ def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes, reps=1):
     assert wres.rsets_per_node == reps, 'rsets_per_node does not match'
 
 
+
 #SH TODO: These are all >= 1 node per rset. And 1 worker per rset
 #         central_mode makes no difference in this test
 def test_get_local_resources_central_mode():
@@ -418,6 +419,7 @@ def test_get_local_resources_central_mode_remove_libE_proc():
             exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
             nnodes = 2
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
+        del wresources
 
     # 16 Workers --------------------------------------------------------------
     # SH TODO - Prob. put this in separate test for multi rsets/workers per node.
@@ -442,20 +444,9 @@ def test_get_local_resources_central_mode_remove_libE_proc():
         wresources = WorkerResources(nworkers, gresources, workerID)
         wresources.set_rset_team([wrk])
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1, 2)
+        del wresources
 
     os.remove('node_list')
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
@@ -473,10 +464,7 @@ def test_get_local_nodelist_distrib_mode_host_not_in_list():
     wresources = WorkerResources(nworkers, gresources, workerID)
     wresources.set_rset_team([workerID-1])
     assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
-
-
-
-
+    del wresources
 
 
 def test_get_local_nodelist_distrib_mode():
@@ -489,51 +477,58 @@ def test_get_local_nodelist_distrib_mode():
             if i == 3:
                 f.write(mynode + '\n')
 
-    resources = Resources(central_mode=False)
+    libE_specs = {'central_mode': False}
+    gresources = GlobalResources(libE_specs)
+    gresources.add_comm_info(libE_nodes=[mynode])
 
     # Spoof current process as each worker and check nodelist.
-    num_workers = 8
-
-    # Test workerID not in local_nodelist [update: This should now work - check removed]
-    # workerID = 4
-    # try:
-    #     local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    # except:
-    #     assert 1
-    # else:
-    #     assert 0
-
+    nworkers = 8
     workerID = 5
     exp_node = mynode  # sname(mynode)
     exp_out = [exp_node]
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    exp_slots = {exp_node: [0]}
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
-    num_workers = 1
+    # Do the rest
+    exp_split = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
+                 [exp_node], ['knl-0137'], ['knl-0138'], ['knl-0139']]
+    _worker_asserts(wresources, exp_split, exp_slots, workerID-1, nworkers, 1)
+    del wresources
+
+    nworkers = 1
     workerID = 1
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', exp_node, 'knl-0137', 'knl-0138', 'knl-0139']
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    del wresources
 
-    num_workers = 4
+    nworkers = 4
     workerID = 3
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
     exp_out = [exp_node, 'knl-0137']
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    del wresources
 
     # Sub-node workers
-    num_workers = 16
-
+    nworkers = 16
     workerID = 9
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
     exp_out = [exp_node]
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    del wresources
 
     workerID = 10
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
     exp_out = [exp_node]
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
+    del wresources
 
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
     os.remove('node_list')
 
 
@@ -666,8 +661,8 @@ if __name__ == "__main__":
     #test_get_local_resources_central_mode()
 
     #test_get_local_resources_central_mode_remove_libE_proc()
-    test_get_local_nodelist_distrib_mode_host_not_in_list()
-    #test_get_local_nodelist_distrib_mode()
+    #test_get_local_nodelist_distrib_mode_host_not_in_list()
+    test_get_local_nodelist_distrib_mode()
     #test_get_local_nodelist_distrib_mode_uneven_split()
 
     #test_worker_resources()
