@@ -1,7 +1,8 @@
 import os
 import socket
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import Resources, WorkerResources, ResourcesException
+from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
+from libensemble.resources.worker_resources import  WorkerResources
 
 
 def setup_standalone_run():
@@ -45,7 +46,7 @@ def sname(name):
 
 # Tests ========================================================================================
 
-# Tests Resources.get_global_nodelist (This requires above tests to work)
+# Tests GlobalResources.get_global_nodelist (This requires above tests to work)
 def test_get_global_nodelist_frm_slurm():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0137-0139,1234]"
     exp_out = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
@@ -53,7 +54,7 @@ def test_get_global_nodelist_frm_slurm():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -66,7 +67,7 @@ def test_get_global_nodelist_frm_slurm_suffix():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -78,7 +79,7 @@ def test_get_global_nodelist_frm_slurm_single():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -90,7 +91,7 @@ def test_get_global_nodelist_frm_slurm_straight_list():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -103,7 +104,7 @@ def test_get_global_nodelist_frm_slurm_multigroup():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -115,7 +116,7 @@ def test_get_global_nodelist_frm_slurm_complex():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -127,7 +128,7 @@ def test_get_global_nodelist_frm_cobalt():
                                  nodelist_env_cobalt="LIBE_RESOURCES_TEST_NODE_LIST",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -139,7 +140,7 @@ def test_get_global_nodelist_frm_lsf():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="LIBE_RESOURCES_TEST_NODE_LIST",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -151,7 +152,7 @@ def test_get_global_nodelist_frm_lsf_shortform():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="LIBE_RESOURCES_TEST_NODE_LIST")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == exp_out, \
         "global_nodelist returned does not match expected. \nRet: {}\nExp: {}".format(global_nodelist, exp_out)
 
@@ -163,7 +164,7 @@ def test_get_global_nodelist_standalone():
                                  nodelist_env_cobalt="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist == [exp_node], "global_nodelist returned does not match expected"
 
 
@@ -174,7 +175,7 @@ def test_get_global_nodelist_frm_wrklst_file():
 
     open('node_list', 'w').close()
     try:
-        _ = Resources.get_global_nodelist(rundir=os.getcwd())
+        _ = GlobalResources.get_global_nodelist(rundir=os.getcwd())
     except ResourcesException as e:
         assert e.args[0] == 'Error. global_nodelist is empty'
     else:
@@ -185,7 +186,7 @@ def test_get_global_nodelist_frm_wrklst_file():
             f.write(node + '\n')
 
     # Do not specify env vars.
-    global_nodelist1 = Resources.get_global_nodelist(rundir=os.getcwd())
+    global_nodelist1 = GlobalResources.get_global_nodelist(rundir=os.getcwd())
     assert global_nodelist1 == exp_out, "global_nodelist returned does not match expected"
 
     # Specify env vars - should ignore
@@ -193,7 +194,7 @@ def test_get_global_nodelist_frm_wrklst_file():
                                  nodelist_env_cobalt="LIBE_RESOURCES_TEST_NODE_LIST",
                                  nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
                                  nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET")
-    global_nodelist2 = Resources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist2 = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
     assert global_nodelist2 == exp_out, "global_nodelist returned does not match expected"
     os.remove('node_list')
 
@@ -204,7 +205,7 @@ def test_remove_libE_nodes():
 
     # Add at beginning
     nodes_in = [mynode] + exp_out
-    nodes_out = Resources.remove_nodes(nodes_in, mynode)
+    nodes_out = GlobalResources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
     # Add twice in middle and at end
@@ -213,48 +214,103 @@ def test_remove_libE_nodes():
         nodes_in.append(node)
         if i == 1 or i == 4 or i == 6:
             nodes_in.append(mynode)
-    nodes_out = Resources.remove_nodes(nodes_in, mynode)
+    nodes_out = GlobalResources.remove_nodes(nodes_in, mynode)
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
 
-def test_get_local_nodelist_central_mode():
+#SH TODO: Need to break this up - where before got local_nodelist from static function
+#         Now need to separatly get split_list, local nodelist from split_list - and/or do
+#         together by setting up WorkerResources object.
+#SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
+
+
+#SH TODO: These are all >= 1 node per rset.
+def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes):
+    assert wres.local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+    assert wres.slots == exp_slots, "slots does not match expected"
+    assert wres.local_node_count == nnodes, "local_node_count does not match expected"
+    assert wres.num_workers == nworkers, 'num_workers does not match'
+    assert wres.split_list == exp_out, 'split_list does not match'
+    assert wres.slot_count == 1, 'slot_count does not match'
+    assert wres.local_rsets_list == [1] * nworkers, 'local_rsets_list does not match'
+    assert wres.rsets_per_node == 1, 'rsets_per_node does not match'
+
+
+#SH TODO: These are all >= 1 node per rset.
+def test_get_local_resources_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
-    resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=True)
+    resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
+    libE_specs = {'custom_info': resource_info,
+                  'central_mode': True}
+    gresources = GlobalResources(libE_specs)
 
-    # Now mock up some more stuff - so consistent
-
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 8
+    # 8 Workers ---------------------------------------------------------------
+    nworkers = 8
     exp_out = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
                ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
-    for wrk in range(num_workers):
-        workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 4
-    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+    # Spoof current process as each worker and check nodelist and other worker resources.
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        exp_slots = {exp_out[wrk][0]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1)
+        del wresources
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 1
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+    # 4 Workers ---------------------------------------------------------------
+    nworkers = 4
+    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'],
+               ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 2)
+        del wresources
 
-    # Test the best_split algorithm
-    num_workers = 3
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
-    for wrk in range(num_workers):
+
+    # 1 Worker ----------------------------------------------------------------
+    nworkers = 1
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036',
+                'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
+
+    # Just write out this one as one worker.
+    exp_slots = {'knl-0020': [0], 'knl-0021': [0], 'knl-0022': [0],
+                 'knl-0036': [0], 'knl-0137': [0], 'knl-0138': [0],
+                 'knl-0139': [0], 'knl-1234': [0]}
+
+    for wrk in range(nworkers):
         workerID = wrk + 1
-        local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-        assert local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
+        # exp_slots - see above
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 8)
+        del wresources
+
+    # 3 Workers (Test the best_split algorithm) -------------------------------
+    nworkers = 3
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'],
+               ['knl-0036', 'knl-0137', 'knl-0138'],
+               ['knl-0139', 'knl-1234']]
+    for wrk in range(nworkers):
+        workerID = wrk + 1
+        exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+        wresources = WorkerResources(nworkers, gresources, workerID)
+        wresources.set_rset_team([wrk])
+
+        # Trying to avoid generic algorithm
+        if len(wresources.local_nodelist)==3:
+            exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0], exp_out[wrk][2]: [0]}
+            nnodes = 3
+        else:
+            exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
+            nnodes = 2
+        _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
+
+
+    del os.environ["LIBE_RESOURCES_TEST_NODE_LIST"]
 
 
 # The main tests are same as above - note for when fixtures set up
@@ -498,27 +554,30 @@ def test_map_workerid_to_index():
 if __name__ == "__main__":
     setup_standalone_run()
 
-    test_get_global_nodelist_frm_slurm()
-    test_get_global_nodelist_frm_slurm_suffix()
-    test_get_global_nodelist_frm_slurm_single()
-    test_get_global_nodelist_frm_slurm_straight_list()
-    test_get_global_nodelist_frm_slurm_multigroup()
-    test_get_global_nodelist_frm_slurm_complex()
+    #test_get_global_nodelist_frm_slurm()
+    #test_get_global_nodelist_frm_slurm_suffix()
+    #test_get_global_nodelist_frm_slurm_single()
+    #test_get_global_nodelist_frm_slurm_straight_list()
+    #test_get_global_nodelist_frm_slurm_multigroup()
+    #test_get_global_nodelist_frm_slurm_complex()
 
-    test_get_global_nodelist_frm_cobalt()
-    test_get_global_nodelist_frm_lsf()
-    test_get_global_nodelist_frm_lsf_shortform()
-    test_get_global_nodelist_standalone()
+    #test_get_global_nodelist_frm_cobalt()
+    #test_get_global_nodelist_frm_lsf()
+    #test_get_global_nodelist_frm_lsf_shortform()
+    #test_get_global_nodelist_standalone()
 
-    test_get_global_nodelist_frm_wrklst_file()
-    test_remove_libE_nodes()
-    test_get_local_nodelist_central_mode()
-    test_get_local_nodelist_central_mode_remove_libE_proc()
-    test_get_local_nodelist_distrib_mode_host_not_in_list()
-    test_get_local_nodelist_distrib_mode()
-    test_get_local_nodelist_distrib_mode_uneven_split()
+    #test_get_global_nodelist_frm_wrklst_file()
+    #test_remove_libE_nodes()
 
-    test_worker_resources()
-    test_map_workerid_to_index()
+    #test_get_local_nodelist_central_mode()
+    test_get_local_resources_central_mode()
+
+    #test_get_local_nodelist_central_mode_remove_libE_proc()
+    #test_get_local_nodelist_distrib_mode_host_not_in_list()
+    #test_get_local_nodelist_distrib_mode()
+    #test_get_local_nodelist_distrib_mode_uneven_split()
+
+    #test_worker_resources()
+    #test_map_workerid_to_index()
 
     teardown_standalone_run()

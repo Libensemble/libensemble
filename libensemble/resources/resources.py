@@ -73,7 +73,7 @@ class Resources:
         self.worker_resources = None  # For Workers
 
     def set_worker_resources(self, num_workers, workerid):
-        self.worker_resources = WorkerResources(num_workers, self.glob_resources ,workerid)
+        self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
 
     def set_resource_manager(self, num_workers):
         self.resource_manager = ResourceManager(num_workers, self.glob_resources )
