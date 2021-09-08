@@ -64,6 +64,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
         for i in range(number_of_gen_points):
             x = opt.ask()
             H_o['x'][i] = x
+            H_o['resource_sets'][i] = 1
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -145,6 +146,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
             z, input_vector = opt.ask()
             H_o['x'][i] = input_vector
             H_o['z'][i] = z[0]
+            H_o['resource_sets'][i] = max(1, int(z[0]/2))
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -244,6 +246,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
             z, input_vector = opt.ask()
             H_o['x'][i] = input_vector
             H_o['z'][i] = z[0]
+            H_o['resource_sets'][i] = max(1, int(z[0]/2))
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
