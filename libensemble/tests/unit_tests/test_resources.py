@@ -460,24 +460,23 @@ def test_get_local_resources_central_mode_remove_libE_proc():
 
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
-    resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=False)
+    resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
+    libE_specs = {'custom_info': resource_info,
+                  'central_mode': False}
 
-    # Spoof current process as each worker and check nodelist.
-    num_workers = 4
+    gresources = GlobalResources(libE_specs)
+    nworkers = 4
     exp_out = ['knl-0022', 'knl-0036']
 
     # Test running distributed mode without current host in list.
     workerID = 2
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
+    assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
 
-    # Now this should work
-    assert local_nodelist == exp_out, "local_nodelist returned does not match expected"
-    # try:
-    #     local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    # except:
-    #     assert 1
-    # else:
-    #     assert 0
+
+
+
 
 
 def test_get_local_nodelist_distrib_mode():
@@ -666,8 +665,8 @@ if __name__ == "__main__":
     #test_get_local_nodelist_central_mode()
     #test_get_local_resources_central_mode()
 
-    test_get_local_resources_central_mode_remove_libE_proc()
-    #test_get_local_nodelist_distrib_mode_host_not_in_list()
+    #test_get_local_resources_central_mode_remove_libE_proc()
+    test_get_local_nodelist_distrib_mode_host_not_in_list()
     #test_get_local_nodelist_distrib_mode()
     #test_get_local_nodelist_distrib_mode_uneven_split()
 
