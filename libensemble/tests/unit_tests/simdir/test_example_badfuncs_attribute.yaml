@@ -1,0 +1,31 @@
+libE_specs:
+    use_persis_return: True
+    exit_criteria:
+        sim_max: 10
+
+sim_specs:
+    function: numpy.linalg.asdf
+    inputs:
+        - x_on_cube
+    outputs:
+        f:
+            type: float
+        fvec:
+            type: float
+            size: 3
+
+gen_specs:
+    function: numpy.random.uniform
+    outputs:
+        priority:
+            type: float
+        local_pt:
+            type: bool
+        local_min:
+            type: bool
+        num_active_runs:
+            type: int
+        x_on_cube:
+            type: float
+    user:
+        nu: 0
