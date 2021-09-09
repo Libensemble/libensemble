@@ -1,3 +1,4 @@
+import os
 import logging
 from collections import Counter
 from collections import OrderedDict
@@ -178,6 +179,37 @@ class WorkerResources(RSetResources):
         self.local_nodelist = []
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
+
+    # User convenience functions ----------------------------------------------
+
+    def get_slots_as_string(self, multiplier=1, delimiter=','):
+        """Returns list of slots as a string
+
+        :param multiplier: Optional int. Assume this many items per slot.
+        :param delimiter: Optional int. Delimiter for output string.
+        """
+
+        if self.slots_on_node is None:
+            logger.warning("Slots on node is None when requested as a string")
+            return None
+
+        n = multiplier
+        slot_list = [j for i in self.slots_on_node for j in range(i*n, (i+1)*n)]
+        slots = delimiter.join(map(str, slot_list))
+        return slots
+
+
+    def set_env_to_slots(self, env_var, multiplier=1, delimiter=','):
+        """Sets the given environment variable to slots
+
+        :param env_var: String. Name of environment variable to set.
+        :param multiplier: Optional int. Assume this many items per slot.
+        :param delimiter: Optional int. Delimiter for output string.
+        """
+
+        os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
+
+    # libEnsemble functions ---------------------------------------------------
 
     def set_rset_team(self, rset_team):
         """Update worker team and local attributes
