@@ -2,7 +2,7 @@ import os
 import socket
 from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
-from libensemble.resources.worker_resources import  WorkerResources
+from libensemble.resources.worker_resources import  ResourceManager, WorkerResources
 
 
 def setup_standalone_run():
@@ -631,29 +631,34 @@ def test_worker_resources():
 
 def test_map_workerid_to_index():
     num_workers = 4
-    zero_resource_list = []
 
+    zero_resource_list = []
+    index_list = ResourceManager.get_index_list(num_workers, zero_resource_list)
     for workerID in range(1, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        index = index_list[workerID-1]
         assert index == workerID - 1, "index incorrect. Received: " + str(index)
 
     zero_resource_list = [1]
+    index_list = ResourceManager.get_index_list(num_workers, zero_resource_list)
     for workerID in range(2, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        index = index_list[workerID-1]
         assert index == workerID - 2, "index incorrect. Received: " + str(index)
 
     zero_resource_list = [1, 2]
+    index_list = ResourceManager.get_index_list(num_workers, zero_resource_list)
     for workerID in range(3, num_workers+1):
-        index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+        index = index_list[workerID-1]
         assert index == workerID - 3, "index incorrect. Received: " + str(index)
 
     zero_resource_list = [1, 3]
+    index_list = ResourceManager.get_index_list(num_workers, zero_resource_list)
+
     workerID = 2
-    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+    index = index_list[workerID-1]
     assert index == 0, "index incorrect. Received: " + str(index)
 
     workerID = 4
-    index = WorkerResources.map_workerid_to_index(num_workers, workerID, zero_resource_list)
+    index = index_list[workerID-1]
     assert index == 1, "index incorrect. Received: " + str(index)
 
 
@@ -681,9 +686,9 @@ if __name__ == "__main__":
     #test_get_local_resources_central_mode_remove_libE_proc()
     #test_get_local_nodelist_distrib_mode_host_not_in_list()
     #test_get_local_nodelist_distrib_mode()
-    test_get_local_nodelist_distrib_mode_uneven_split()
+    #test_get_local_nodelist_distrib_mode_uneven_split()
 
-    #test_worker_resources()
-    #test_map_workerid_to_index()
+    ##test_worker_resources() # superceeded by other tests
+    test_map_workerid_to_index()
 
     teardown_standalone_run()
