@@ -170,6 +170,7 @@ class WorkerResources(RSetResources):
         self.even_slots = None
         self.slot_count = None
         self.slots_on_node = None
+        self.num_rsets = 0
 
         #SH TODO: Maybe call total_num_rsets or global_num_rsets - as its not rsets for this worker.
         #self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2  ######Now in baseclass
@@ -225,6 +226,7 @@ class WorkerResources(RSetResources):
 
         if rset_team != self.rset_team:  # Order matters
             self.rset_team = rset_team
+            self.num_rsets = len(rset_team)
             self.local_nodelist, self.slots = \
                 WorkerResources.get_local_nodelist(self.workerID, self.rset_team,
                                                    self.split_list, self.rsets_per_node)
