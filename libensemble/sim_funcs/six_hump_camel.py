@@ -74,16 +74,18 @@ def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info
     H_o = np.zeros(batch, dtype=sim_specs['out'])
     app = sim_specs['user'].get('app', 'helloworld')
     dry_run = sim_specs['user'].get('dry_run', False)  # dry_run only prints run lines in ensemble.log
-    core_multiplier = 1  # Only used if resource_sets is passed in H['in']
+    set_cores_by_rsets = True  # If True use rset count to set num procs, else use all available to this worker.
+    core_multiplier = 1  # Only used with set_cores_by_rsets as a multiplier.
 
     exctr = Executor.executor  # Get Executor
     task_states = []
     for i, x in enumerate(H['x']):
-        # If passing resource sets in, use that here (you can oversubscribe on node)
+        # If set_cores_by_rsets is set - set nprocs here (you can oversubscribe on node)
         # else let automatic resources set nodes/procs to use all available set.
         nprocs = None  # Will be as if argument is not present
-        if 'resource_sets' in sim_specs['in']:
-            nprocs = H['resource_sets'][i] * core_multiplier
+        if set_cores_by_rsets:
+            resources = Resources.resources.worker_resources
+            nprocs = resources.num_rsets * core_multiplier
             # print('nprocs is',nprocs,flush=True)
 
         inpt = None  # Will be as if argument is not present

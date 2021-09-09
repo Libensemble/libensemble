@@ -43,7 +43,7 @@ exctr.register_calc(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
 sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'resource_sets'],
+             'in': ['x'],
              'out': [('f', float)],
              'user': {'app': 'helloworld'}  # helloworld or six_hump_camel
              }
@@ -51,7 +51,7 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('priority', float),
-                     ('resource_sets', int),
+                     ('resource_sets', int),  # Set in gen func, resourced by alloc func.
                      ('x', float, n),
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': 5,
@@ -60,6 +60,8 @@ gen_specs = {'gen_f': gen_f,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
+
+
 
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [],
