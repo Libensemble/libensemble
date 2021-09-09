@@ -577,58 +577,6 @@ def test_get_local_nodelist_distrib_mode_uneven_split():
     os.remove('node_list')
 
 
-class Fake_comm():
-    def __init__(self, nworkers):
-        self.num_workers = nworkers
-
-    def get_num_workers(self):
-        return self.num_workers
-
-
-def test_worker_resources():
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
-    resources = Resources(nodelist_env_slurm="LIBE_RESOURCES_TEST_NODE_LIST", central_mode=True)
-
-    # One worker per node
-    exp_nodelist1 = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
-                     ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
-    num_workers = 8
-    comm = Fake_comm(num_workers)
-    for wrk in range(num_workers):
-        workerID = wrk + 1
-        worker = WorkerResources(workerID, comm, resources)
-        assert worker.num_workers == 8, 'worker.num_workers does not match'
-        assert worker.workerID == workerID, 'worker.workerID does not match'
-        assert worker.local_nodelist == exp_nodelist1[wrk], 'worker.local_nodelist does not match'
-        assert worker.local_node_count == 1, 'worker.local_node_count does not match'
-        assert worker.workers_on_node == 1, 'worker.workers_on_node does not match'
-
-    # Multiple nodes per worker
-    exp_nodelist2 = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036'], ['knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
-    num_workers = 2
-    comm2 = Fake_comm(num_workers)
-    for wrk in range(num_workers):
-        workerID = wrk + 1
-        worker = WorkerResources(workerID, comm2, resources)
-        assert worker.num_workers == 2, 'worker.num_workers does not match'
-        assert worker.workerID == workerID, 'worker.workerID does not match'
-        assert worker.local_nodelist == exp_nodelist2[wrk], 'worker.local_nodelist does not match'
-        assert worker.local_node_count == 4, 'worker.local_node_count does not match'
-        assert worker.workers_on_node == 1, 'worker.workers_on_node does not match'
-
-    # Multiple workers per node
-    num_workers = 16
-    comm3 = Fake_comm(num_workers)
-    for wrk in range(num_workers):
-        workerID = wrk + 1
-        worker = WorkerResources(workerID, comm3, resources)
-        assert worker.num_workers == 16, 'worker.num_workers does not match'
-        assert worker.workerID == workerID, 'worker.workerID does not match'
-        assert worker.local_nodelist == exp_nodelist1[wrk//2], 'worker.local_nodelist does not match'
-        assert worker.local_node_count == 1, 'worker.local_node_count does not match'
-        assert worker.workers_on_node == 2, 'worker.workers_on_node does not match'
-
-
 def test_map_workerid_to_index():
     num_workers = 4
 
@@ -665,30 +613,29 @@ def test_map_workerid_to_index():
 if __name__ == "__main__":
     setup_standalone_run()
 
-    #test_get_global_nodelist_frm_slurm()
-    #test_get_global_nodelist_frm_slurm_suffix()
-    #test_get_global_nodelist_frm_slurm_single()
-    #test_get_global_nodelist_frm_slurm_straight_list()
-    #test_get_global_nodelist_frm_slurm_multigroup()
-    #test_get_global_nodelist_frm_slurm_complex()
+    test_get_global_nodelist_frm_slurm()
+    test_get_global_nodelist_frm_slurm_suffix()
+    test_get_global_nodelist_frm_slurm_single()
+    test_get_global_nodelist_frm_slurm_straight_list()
+    test_get_global_nodelist_frm_slurm_multigroup()
+    test_get_global_nodelist_frm_slurm_complex()
 
-    #test_get_global_nodelist_frm_cobalt()
-    #test_get_global_nodelist_frm_lsf()
-    #test_get_global_nodelist_frm_lsf_shortform()
-    #test_get_global_nodelist_standalone()
+    test_get_global_nodelist_frm_cobalt()
+    test_get_global_nodelist_frm_lsf()
+    test_get_global_nodelist_frm_lsf_shortform()
+    test_get_global_nodelist_standalone()
 
-    #test_get_global_nodelist_frm_wrklst_file()
-    #test_remove_libE_nodes()
+    test_get_global_nodelist_frm_wrklst_file()
+    test_remove_libE_nodes()
 
     ##test_get_local_nodelist_central_mode()
-    #test_get_local_resources_central_mode()  # new name?
+    test_get_local_resources_central_mode()  # new name
 
-    #test_get_local_resources_central_mode_remove_libE_proc()
-    #test_get_local_nodelist_distrib_mode_host_not_in_list()
-    #test_get_local_nodelist_distrib_mode()
-    #test_get_local_nodelist_distrib_mode_uneven_split()
+    test_get_local_resources_central_mode_remove_libE_proc()
+    test_get_local_nodelist_distrib_mode_host_not_in_list()
+    test_get_local_nodelist_distrib_mode()
+    test_get_local_nodelist_distrib_mode_uneven_split()
 
-    ##test_worker_resources() # superceeded by other tests
     test_map_workerid_to_index()
 
     teardown_standalone_run()
