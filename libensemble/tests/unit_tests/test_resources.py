@@ -550,20 +550,30 @@ def test_get_local_nodelist_distrib_mode_uneven_split():
             if i == 4:
                 f.write(mynode + '\n')
 
-    resources = Resources(central_mode=False)
-    num_workers = 2
+    libE_specs = {'central_mode': False}
+    gresources = GlobalResources(libE_specs)
+    gresources.add_comm_info(libE_nodes=[mynode])
+    nworkers = 2
 
     # May not be at head of list - should perhaps be warning or enforced
     exp_out_w1 = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137']
     exp_out_w2 = [exp_node, 'knl-0138', 'knl-0139', 'knl-1234']
+    exp_split = [exp_out_w1, exp_out_w2]
 
     workerID = 2
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out_w2, "local_nodelist returned does not match expected"
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
+    exp_slots = {exp_node: [0], 'knl-0138': [0], 'knl-0139': [0], 'knl-1234': [0]}
+    _worker_asserts(wresources, exp_split, exp_slots, workerID-1, nworkers, 4)
+    del wresources
 
     workerID = 1
-    local_nodelist, _ = WorkerResources.get_local_nodelist(num_workers, workerID, resources)
-    assert local_nodelist == exp_out_w1, "local_nodelist returned does not match expected"
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    wresources.set_rset_team([workerID-1])
+    exp_slots = {'knl-0020': [0], 'knl-0021': [0], 'knl-0022': [0], 'knl-0036': [0], 'knl-0137': [0]}
+    _worker_asserts(wresources, exp_split, exp_slots, workerID-1, nworkers, 5)
+    del wresources
+
     os.remove('node_list')
 
 
@@ -666,12 +676,12 @@ if __name__ == "__main__":
     #test_remove_libE_nodes()
 
     ##test_get_local_nodelist_central_mode()
-    test_get_local_resources_central_mode()
+    #test_get_local_resources_central_mode()  # new name?
 
-    test_get_local_resources_central_mode_remove_libE_proc()
-    test_get_local_nodelist_distrib_mode_host_not_in_list()
-    test_get_local_nodelist_distrib_mode()
-    #test_get_local_nodelist_distrib_mode_uneven_split()
+    #test_get_local_resources_central_mode_remove_libE_proc()
+    #test_get_local_nodelist_distrib_mode_host_not_in_list()
+    #test_get_local_nodelist_distrib_mode()
+    test_get_local_nodelist_distrib_mode_uneven_split()
 
     #test_worker_resources()
     #test_map_workerid_to_index()
