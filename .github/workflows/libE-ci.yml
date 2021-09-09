@@ -111,14 +111,14 @@ jobs:
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Merge coverage, run Coveralls
           env:
@@ -213,7 +213,7 @@ jobs:
         - name: Run test
           run: |
            source balsamactivate test-balsam
-           ./libensemble/tests/run-tests.sh -r -y 'test_balsam*' -z -l
+           ./libensemble/tests/run-tests.sh -re -y 'test_balsam*' -z -l
 
         - name: Merge coverage, run Coveralls
           env:

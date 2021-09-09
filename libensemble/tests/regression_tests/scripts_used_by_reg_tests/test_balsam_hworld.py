@@ -6,6 +6,7 @@ from libensemble.tests.regression_tests.common import modify_Balsam_worker, modi
 
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3
+# TESTSUITE_EXTRA: true
 
 # This test is NOT submitted as a job to Balsam. script_test_balsam_hworld.py is
 #   the executable submitted to Balsam as a job. This test executes that job
