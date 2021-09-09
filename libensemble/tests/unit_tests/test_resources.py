@@ -224,20 +224,28 @@ def test_remove_libE_nodes():
 #SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
 
 
+def _assert_worker_attr(wres, attr, exp):
+    ret = getattr(wres, attr)
+    assert ret == exp, "{} returned does not match expected.  \nRet: {}\nExp: {}".format(attr, ret, exp)
+
+
 #SH TODO: These are all 1 worker per rset. Should name as such if stays that way.
-def _worker_asserts(wres, exp_out, exp_slots, wrk, nworkers, nnodes, reps=1):
-    assert wres.workerID == wrk + 1, \
-        'worker.workerID does not match.  \nRet: {}\nExp: {}'.format(wres.workerID, wrk + 1)
+def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 
-    assert wres.local_nodelist == exp_out[wrk], "local_nodelist returned does not match expected"
-    assert wres.slots == exp_slots, "slots does not match expected"
-    assert wres.local_node_count == nnodes, "local_node_count does not match expected"
-    assert wres.num_workers == nworkers, 'num_workers does not match'
-    assert wres.split_list == exp_out, 'split_list does not match'
-    assert wres.slot_count == 1, 'slot_count does not match'
-    assert wres.local_rsets_list == [reps] * nworkers, 'local_rsets_list does not match'
-    assert wres.rsets_per_node == reps, 'rsets_per_node does not match'
+    # Create dictionary of attributes and expected values
+    exp_dict = {'workerID': wrk + 1,
+                'local_nodelist': split_list[wrk],
+                'slots': exp_slots,
+                'local_node_count': nnodes,
+                'num_workers': nworkers,
+                'split_list': split_list,
+                'slot_count': 1,
+                'local_rsets_list': [reps] * nworkers,
+                'rsets_per_node': reps,
+                }
 
+    for attr, exp_val in exp_dict.items():
+        _assert_worker_attr(wres, attr, exp_val)
 
 
 #SH TODO: These are all >= 1 node per rset. And 1 worker per rset
@@ -657,11 +665,11 @@ if __name__ == "__main__":
     #test_get_global_nodelist_frm_wrklst_file()
     #test_remove_libE_nodes()
 
-    #test_get_local_nodelist_central_mode()
-    #test_get_local_resources_central_mode()
+    ##test_get_local_nodelist_central_mode()
+    test_get_local_resources_central_mode()
 
-    #test_get_local_resources_central_mode_remove_libE_proc()
-    #test_get_local_nodelist_distrib_mode_host_not_in_list()
+    test_get_local_resources_central_mode_remove_libE_proc()
+    test_get_local_nodelist_distrib_mode_host_not_in_list()
     test_get_local_nodelist_distrib_mode()
     #test_get_local_nodelist_distrib_mode_uneven_split()
 
