@@ -1,0 +1,57 @@
+libE_specs:
+    exit_criteria:
+        sim_max: 120
+    sim_dirs_make: True
+    sim_input_dir: ./sim
+    gen_dirs_make: True
+    gen_input_dir: ./gen
+
+sim_specs:
+    function: openmm_md_simf.run_openmm_sim_f
+    inputs:
+        - stage_id
+        - gen_dir_loc
+        - initial
+        - task_id
+    outputs:
+        sim_dir_loc:
+            type: "U70"
+        sim_cstat:
+            type: int
+    user:
+        sim_kill_minutes: 15
+        sim_length_ns: 1.0
+        poll_interval: 1
+        config_file: molecular_dynamics.yaml
+
+gen_specs:
+    function: keras_cvae_ml_genf.run_keras_cvae_ml_genf
+    outputs:
+        sim_id:
+            type: int
+        stage_id:
+            type: int
+        task_id:
+            type: int
+        initial:
+            type: bool
+        gen_dir_loc:
+            type: "U70"
+    user: # Each value with '12' should be identical
+        initial_sample_size: 12
+        outliers: 12
+        last_n_h5_files: 12
+        n_most_recent_h5_files: 12
+        skip_aggregation: True
+        aggregation_kill_minutes: 15
+        machine_learning_kill_minutes: 30
+        model_selection_kill_minutes: 15
+        agent_kill_minutes: 15
+
+alloc_specs:
+    function: libensemble.alloc_funcs.start_only_persistent.only_persistent_gens
+    outputs:
+        given_back:
+            type: bool
+    user:
+        init_sample_size: 12

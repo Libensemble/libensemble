@@ -9,8 +9,99 @@ if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 module will initiate manager/worker communications on a duplicate of that
 communicator. Otherwise, a duplicate of COMM_WORLD will be used.
 
-If an exception is encountered by the manager or workers, the history array
-is dumped to file, and MPI abort is called.
+In the vast majority of cases, programming with libEnsemble involves the creation
+of a *calling script*, a Python file where libEnsemble is parameterized via
+the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
+:ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
+outer libEnsemble routine ``libE()`` is imported and called with such dictionaries to initiate
+libEnsemble. A simple calling script (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`)
+may resemble:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from libensemble.tools import add_unique_random_streams
+
+    nworkers, is_manager, libE_specs, _ = parse_args()
+
+    libE_specs['save_every_k_gens'] = 20
+
+    gen_specs = {'gen_f': gen_random_sample,
+                 'out': [('x', float, (1,))],
+                 'user': {
+                    'lower': np.array([-3]),
+                    'upper': np.array([3]),
+                    'gen_batch_size': 5
+                    }
+                 }
+
+    sim_specs = {'sim_f': sim_find_sine,
+                 'in': ['x'],
+                 'out': [('y', float)]}
+
+    persis_info = add_unique_random_streams({}, nworkers+1)
+
+    exit_criteria = {'sim_max': 80}
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                libE_specs=libE_specs)
+
+This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
+the command line), and runs on laptops or supercomputers. If an exception is
+encountered by the manager or workers, the history array is dumped to file, and
+MPI abort is called.
+
+An alternative approach to parameterizing and interacting with libEnsemble via
+``Ensemble`` objects and ``yaml`` files is available. The equivalent of above
+resembles:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble import Ensemble
+
+    my_experiment = Ensemble()
+    my_experiment.from_yaml('my_parameters.yaml')
+
+    my_experiment.gen_specs['user']['lower'] = np.array([-3])
+    my_experiment.gen_specs['user']['upper'] = np.array([3])
+
+    H, persis_info, flag = my_experiment.run()
+
+The remaining parameters may be found in a ``yaml`` file that resembles:
+
+.. code-block:: yaml
+    :linenos:
+
+    libE_specs:
+        save_every_k_gens: 20
+        exit_criteria:
+            sim_max: 80
+
+    gen_specs:
+        function: generator.gen_random_sample
+        outputs:
+            x:
+                type: float
+                size: 1
+        user:
+            gen_batch_size: 5
+
+    sim_specs:
+        function: simulator.sim_find_sine
+        inputs:
+            - x
+        outputs:
+            y:
+                type: float
+
+
+See below for the complete traditional ``libE()`` API.
 """
 
 __all__ = ['libE']
