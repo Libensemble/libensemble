@@ -236,6 +236,7 @@ class History:
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
         H_1['last_given_time'] = np.inf
+        H_1['last_given_back_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...
