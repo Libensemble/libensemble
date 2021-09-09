@@ -138,10 +138,13 @@ def get_resources(resources, num_procs=None, num_nodes=None,
 
     rsets_per_node = _max_rsets_per_node(wresources)
 
+    # SH TODO: Evaluate situation when one rset is > 1 node.
 
-    # SH TODO: Consider changing cores_avail_per_node_per_rset to just cores_avail_per_rset
-    #          Evaluate situation when one rset is > 1 node.
-    cores_avail_per_node_per_rset = cores_avail_per_node//rsets_per_node
+    # SH TODO: Consider - may still be better to use best_split and construct.
+    # Advantage of cores per rset first is they will always get same no. per rset (double  rsets, double cores)
+    # Advantage of multiply first is less wasted cores.
+    cores_avail_per_node_per_worker = cores_avail_per_node//rsets_per_node * wresources.slot_count
+    # cores_avail_per_node_per_worker = int(cores_avail_per_node/rsets_per_node * wresources.slot_count)
 
     # SH TODO:This is when slots could be used to create a machinefile
     #         constrained by any options (num_nodes etc) they have entered.
@@ -149,21 +152,23 @@ def get_resources(resources, num_procs=None, num_nodes=None,
             "Uneven distribution of node resources not yet supported. Nodes and slots are: {}"
             .format(wresources.slots))
 
-    # If no decomposition supplied - use all available cores/nodes
-    if not num_procs and not num_nodes and not ranks_per_node:
-        num_nodes = local_node_count
-        ranks_per_node = cores_avail_per_node_per_rset * wresources.slot_count
-        logger.debug("No decomposition supplied - "
-                     "using all available resource. "
-                     "Nodes: {}  ranks_per_node {}".
-                     format(num_nodes, ranks_per_node))
+    if not num_procs and not ranks_per_node:
+        rassert(cores_avail_per_node_per_worker > 0,
+                "There is less than one core per resource set. "
+                "Provide num_procs or num_nodes/ranks_per_node to oversubsribe")
+        ranks_per_node = cores_avail_per_node_per_worker
+        if not num_nodes:
+            # If no decomposition supplied - use all available cores/nodes
+            num_nodes = local_node_count
+            logger.debug("No decomposition supplied - "
+                         "using all available resource. "
+                         "Nodes: {}  ranks_per_node {}".
+                         format(num_nodes, ranks_per_node))
     elif not num_nodes and not ranks_per_node:
-        if num_procs <= cores_avail_per_node_per_rset * wresources.slot_count:
+        if num_procs <= cores_avail_per_node_per_worker:
             num_nodes = 1
         else:
             num_nodes = local_node_count
-    elif not num_procs and not ranks_per_node:
-        ranks_per_node = cores_avail_per_node_per_rset * wresources.slot_count
     elif not num_procs and not num_nodes:
         num_nodes = local_node_count
 
@@ -187,10 +192,10 @@ def get_resources(resources, num_procs=None, num_nodes=None,
                 "Requested {}. Only {} available".
                 format(ranks_per_node, cores_avail_per_node))
 
-        rassert(ranks_per_node <= cores_avail_per_node_per_rset * wresources.slot_count,
+        rassert(ranks_per_node <= cores_avail_per_node_per_worker,
                 "Not enough processors per worker to honor arguments. "
                 "Requested {}. Only {} available".
-                format(ranks_per_node, cores_avail_per_node_per_rset))
+                format(ranks_per_node, cores_avail_per_node_per_worker))
 
         rassert(num_procs <= (cores_avail_per_node * local_node_count),
                 "Not enough procs to honor arguments. "
