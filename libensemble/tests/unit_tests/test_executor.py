@@ -7,7 +7,7 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.resources.resources import ResourcesException
+from libensemble.resources.mpi_resources import MPIResourcesException
 from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
 
@@ -363,7 +363,7 @@ def test_procs_and_machinefile_logic():
     # Testing num_procs not num_nodes*ranks_per_node (should fail)
     try:
         task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
-    except ResourcesException as e:
+    except MPIResourcesException as e:
         assert e.args[0] == 'num_procs does not equal num_nodes*ranks_per_node'
     else:
         assert 0
@@ -378,7 +378,7 @@ def test_procs_and_machinefile_logic():
     # Testing nothing given (should fail)
     try:
         task = exctr.submit(calc_type='sim', app_args=args_for_sim)
-    except ResourcesException as e:
+    except MPIResourcesException as e:
         assert e.args[0] == 'Need num_procs, num_nodes/ranks_per_node, or machinefile'
     else:
         assert 0
