@@ -13,23 +13,29 @@ class AllocException(Exception):
 
 
 class AllocSupport:
-    """A helper class to be created/destroyed each time allocation function is called."""
+    """A helper class to assist with writing allocation functions, containing methods for
+    common operations like populating work units, determining which workers are available,
+    evaluating what values need to be distributed to workers, and others.
+    Note that since the ``alloc_f`` is called periodically by the Manager, this
+    class instance (if used) will be recreated/destroyed on each loop."""
 
     gen_counter = 0
 
     def __init__(self, W, H, persis_info={}, scheduler_opts={}, user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance
 
-        H and W are passed in for convenience on init. They are used read-only.
+        ``W`` and ``H`` are passed in on initiation. They are referenced by the various methods,
+        but are never modified.
 
-        By default, the libEnsemble initiated resource module is used, and the built-in
-        libEnsemble scheduler.
+        By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
+        module and the built-in libEnsemble scheduler.
 
         :param W: A :doc:`Worker array<../data_structures/worker_array>`
         :param H: A :doc:`history array<../data_structures/history_array>`
+        :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
-        :param user_resources: Optional, A user supplied resources object.
-        :param user_scheduler: Optional, A user supplied user_scheduler object.
+        :param user_resources: Optional, A user supplied ``resources`` object.
+        :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
         """
 
         self.W = W
@@ -44,14 +50,16 @@ class AllocSupport:
 
 
     def assign_resources(self, rsets_req):
-        """Schedule resource sets to a work item if possible.
+        """Schedule resource sets to a work record if possible.
 
-        Returns a list of resource set ids.
-
-        Raises the exception InsufficientFreeResources if the
-        required resources are not currently available, or the
-        InsufficientResourcesError if the required resoures
+        Raises ``InsufficientFreeResources`` if the
+        required resources are not currently available, or
+        ``InsufficientResourcesError`` if the required resources
         do not exist.
+
+        :param rsets_req: Int. Number of resource sets to request.
+        :returns: List of Integers. Resource set indices assigned.
+
         """
 
         rset_team = None
@@ -62,13 +70,13 @@ class AllocSupport:
 
     # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
-        """Returns available workers as a list, filtered by the given options`.
+        """Returns available workers as a list of IDs, filtered by the given options.
 
-        :param persistent: Optional int. If specified, only return workers with given persis_state.
-        :param active_recv: Optional Boolean. Only return workers with given active_recv. Default False.
-        :param zero_resource_workers: Optional Boolean. If specified, only return workers with given zrw value.
+        :param persistent: Optional int. Only return workers with given ``persis_state`` (1 for sim, 2 for gen).
+        :param active_recv: Optional Boolean. Only return workers with given active_recv state.
+        :param zero_resource_workers: Optional Boolean. If specified, only return workers that require no resources
 
-        If there are no zero resource workers defined, then the zero_resource_workers argument will
+        If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
 
@@ -109,38 +117,32 @@ class AllocSupport:
 
 
     def count_gens(self):
-        """Return the number of active generators in a set of workers.
-
-        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
-        """
+        """Returns the number of active generators."""
         return sum(self.W['active'] == EVAL_GEN_TAG)
 
 
     def test_any_gen(self):
-        """Return True if a generator worker is active.
-
-        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
-        """
+        """Returns ``True`` if a generator worker is active."""
         return any(self.W['active'] == EVAL_GEN_TAG)
 
 
     def count_persis_gens(self):
-        """Return the number of active persistent generators in a set of workers.
-
-        :param self.W: :doc:`Worker array<../data_structures/worker_array>`
-        """
+        """Return the number of active persistent generators."""
         return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
 
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
-        """Add sim work record to given Work array.
+        """Add sim work record to given ``Work`` dictionary.
 
-        :param Work: :doc:`Work dictionary<../data_structures/worker_dict>`
+        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Worker ID.
-        :param H_fields: Which fields from  to send
-        :param persis_info: current persis_info dictionary
+        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H_rows: Which rows of ``H`` to send. Oftentimes, these are non-given, non-cancelled points (``~H['given'] & ~H['cancel_requested']``)
+        :param persis_info: Current :ref:`persis_info<datastruct-persis-info>` dictionary
 
-        :returns: None
+        :returns: None, but ``Work`` is updated.
+
+        Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
         """
 
         #Should distinguish that it is persis_info for this worker (e.g. wpersis_info ?)
@@ -179,13 +181,17 @@ class AllocSupport:
 
     # SH TODO: Find/extract commonaility of sim/gen_work.
     def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
-        """Add gen work record to given Work array.
-        :param Work: :doc:`Work dictionary<../data_structures/worker_dict>`
-        :param wid: Worker ID.
-        :param H_fields: Which fields from  to send
-        :param persis_info: current persis_info dictionary
+        """Add gen work record to given ``Work`` dictionary.
 
-        :returns: None
+        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
+        :param wid: Worker ID.
+        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H_rows: Which rows of ``H`` to send.
+        :param persis_info: Current :ref:`persis_info<datastruct-persis-info>` dictionary
+
+        :returns: None, but ``Work`` is updated.
+
+        Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
         """
 
         # Honor rset_team if passed (do we want to check those rsets have been assigned?)
@@ -253,11 +259,11 @@ class AllocSupport:
 
 
     def all_returned(self, pt_filter=None, low_bound=None):
-        """Check if all expected points have returned from sim
+        """Returns ``True`` if all expected points have returned from sim
 
-        :param pt_filter: Optional boolean array filtering expected returned points in H: Default: None
-        :param low_bound: Optional lower_bound for testing all returned.
-        :returns: Boolean. True if all expected points have been returned
+        :param pt_filter: Optional boolean array filtering expected returned points in H.
+        :param low_bound: Optional lower bound for testing all returned.
+        :returns: True if all expected points have been returned
         """
         # Faster not to slice when whole array
         if low_bound is not None:
@@ -279,7 +285,13 @@ class AllocSupport:
 
 
     def points_by_priority(self, points_avail, batch=False):
-        """Return indices of points to give by priority"""
+        """Returns indices of points to give by priority
+
+        :param points_avail: Indices of points that are available to give
+        :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
+        :returns: An array of point indices to give.
+        """
+
         if 'priority' in self.H.dtype.fields:
             priorities = self.H['priority'][points_avail]
             if batch:

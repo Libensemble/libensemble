@@ -83,24 +83,6 @@ available within the ``libensemble.tools.alloc_support`` module:
 .. .. currentmodule:: libensemble.tools.alloc_support
 .. .. autofunction:: gen_work
 
-Note that these two functions *append* an entry in-place to the Work dictionary
-and additional parameters are appended to ``libE_info``.
-
-In practice, the structure of many allocation functions resemble::
-
-    Work = {}
-    ...
-    for ID in avail_worker_ids(W):
-        ...
-        if some_condition:
-            sim_work(Work, ID, chosen_H_fields, chosen_H_rows, persis_info)
-            ...
-
-        if another_condition:
-            gen_work(Work, ID, chosen_H_fields, chosen_H_rows, persis_info)
-            ...
-
-    return Work, persis_info
 
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
@@ -115,24 +97,12 @@ the data available to other user functions.
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle
 
-The final three functions available in the ``alloc_support`` module
-are primarily for evaluating running generators:
-
-.. .. currentmodule:: libensemble.tools.alloc_support
-.. .. autofunction:: test_any_gen
-..
-.. .. currentmodule:: libensemble.tools.alloc_support
-.. .. autofunction:: count_gens
-..
-.. .. currentmodule:: libensemble.tools.alloc_support
-.. .. autofunction:: count_persis_gens
-
 Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function used by libEnsemble if one isn't specified is
 ``give_sim_work_first``. During its worker ID loop, it checks if there's unallocated
-work and assigns simulations for that work if so. Otherwise, it initializes
+work and assigns simulations for that work. Otherwise, it initializes
 generators for up to ``'num_active_gens'`` instances. Other settings like
-``batch_mode`` and blocking of non-active workers is also supported. See
+``batch_mode`` is also supported. See
 :ref:`here<gswf_label>` for more information about ``give_sim_work_first``.
 
 For a shorter, simpler example, here is the ``fast_alloc`` allocation function:
