@@ -126,6 +126,9 @@ class AllocSupport:
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
 
+         Includes evaluation of required resources if the worker is not in a
+         persistent state.
+
         :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Int. Worker ID.
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
@@ -142,16 +145,12 @@ class AllocSupport:
 
         if self.manage_resources and rset_team is None:
             if self.W[wid-1]['persis_state']:
-                # IF in persistent state - do not give more resources.
                 libE_info['rset_team'] = []
             else:
                 num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))
-
-                # If more than one group (node) required, finds even split, or allocates whole nodes
                 rset_team = self.assign_resources(num_rsets_req)
-
-                # print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
                 libE_info['rset_team'] = rset_team
+                # print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
@@ -163,6 +162,9 @@ class AllocSupport:
 
     def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given ``Work`` dictionary.
+
+         Includes evaluation of required resources if the worker is not in a
+         persistent state.
 
         :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Worker ID.
@@ -176,12 +178,10 @@ class AllocSupport:
         """
 
         # Honor rset_team if passed
-        rset_team = libE_info.get('rset_team', None)
+        rset_team = libE_info.get('rset_team', None)  # Honor rset_team if passed
 
         if self.manage_resources and rset_team is None:
             if self.W[wid-1]['persis_state']:
-                # IF in persistent state - do not give more resources.
-                # SH TODO: This should be done with sim also - but add when adding persistent sims...
                 libE_info['rset_team'] = []
             else:
                 gen_resources = self.persis_info.get('gen_resources', 0)
@@ -234,7 +234,6 @@ class AllocSupport:
         :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
-
         if 'priority' in self.H.dtype.fields:
             priorities = self.H['priority'][points_avail]
             if batch:
