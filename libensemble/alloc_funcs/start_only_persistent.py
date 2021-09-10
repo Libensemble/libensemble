@@ -41,7 +41,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     sched_opts = user.get('scheduler_opts', {})
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
-    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
+    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: alloc_specs or gen_specs?
 
     support = AllocSupport(W, H, persis_info, sched_opts)
     gen_count = support.count_persis_gens()

@@ -2,6 +2,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
+
 def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Starts up to gen_count number of persistent generators.
@@ -40,7 +41,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 
             support.gen_work(Work, wid, ['like'], inds_to_send_back,
-                     persis_info.get(wid), persistent=True)
+                             persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):

@@ -30,7 +30,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: Should this be alloc_specs not gen_specs?
+    batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: alloc_specs or gen_specs?
     gen_in = gen_specs.get('in', [])
 
     support = AllocSupport(W, H, persis_info, sched_opts)

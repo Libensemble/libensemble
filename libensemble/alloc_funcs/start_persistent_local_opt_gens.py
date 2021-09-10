@@ -44,7 +44,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[i] = {'rand_stream': persis_info[i]['rand_stream']}
 
     # If wid is idle, but in persistent mode, and its calculated values have
-    ## returned, give them back to i. Otherwise, give nothing to wid
+    # returned, give them back to i. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         gen_inds = (H['gen_worker'] == wid)
         if support.all_returned(gen_inds):
