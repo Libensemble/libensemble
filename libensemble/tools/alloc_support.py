@@ -52,20 +52,13 @@ class AllocSupport:
     def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible.
 
-        Raises the exception InsufficientFreeResources if the
-        required resources are not currently available, or the
-        InsufficientResourcesError if the required resoures
+        Raises ``InsufficientFreeResources`` if the
+        required resources are not currently available, or
+        ``InsufficientResourcesError`` if the required resources
         do not exist.
 
         :param rsets_req: Int. Number of resource sets to request.
         :returns: List of Integers. Resource set indices assigned.
-
-        Returns
-        -------
-
-        rset_team: :obj:`int`
-
-            Requested resource sets, ready for a sim or gen work order
 
         """
 
@@ -77,9 +70,9 @@ class AllocSupport:
 
     # SH TODO: Decision on these functions - Keep as is / make static / init with W (use self.W)
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
-        """Returns available workers as a list if IDs, filtered by the given options.
+        """Returns available workers as a list of IDs, filtered by the given options.
 
-        :param persistent: Optional int. Only return workers with given persis_state (1 for sim, 2 for gen).
+        :param persistent: Optional int. Only return workers with given ``persis_state`` (1 for sim, 2 for gen).
         :param active_recv: Optional Boolean. Only return workers with given active_recv state. Default False.
         :param zero_resource_workers: Optional Boolean. If specified, only return workers that require no resources
 
@@ -129,7 +122,7 @@ class AllocSupport:
 
 
     def test_any_gen(self):
-        """Returns True if a generator worker is active."""
+        """Returns ``True`` if a generator worker is active."""
         return any(self.W['active'] == EVAL_GEN_TAG)
 
 
@@ -139,7 +132,7 @@ class AllocSupport:
 
 
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
-        """Add sim work record to given Work array.
+        """Add sim work record to given ``Work`` dictionary.
 
         :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Worker ID.
@@ -188,7 +181,7 @@ class AllocSupport:
 
     # SH TODO: Find/extract commonaility of sim/gen_work.
     def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
-        """Add gen work record to given Work array.
+        """Add gen work record to given Work dictionary.
 
         :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Worker ID.
@@ -266,7 +259,7 @@ class AllocSupport:
 
 
     def all_returned(self, pt_filter=None, low_bound=None):
-        """Check if all expected points have returned from sim
+        """Returns ``True`` if all expected points have returned from sim
 
         :param pt_filter: Optional boolean array filtering expected returned points in H.
         :param low_bound: Optional lower_bound for testing all returned.
@@ -292,7 +285,7 @@ class AllocSupport:
 
 
     def points_by_priority(self, points_avail, batch=False):
-        """Return indices of points to give by priority
+        """Returns indices of points to give by priority
 
         :param points_avail: Indices of points that are available to give
         :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
