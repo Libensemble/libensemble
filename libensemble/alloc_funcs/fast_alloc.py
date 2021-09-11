@@ -52,4 +52,5 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_count += 1
             persis_info['total_gen_calls'] += 1
 
+    del support
     return Work, persis_info

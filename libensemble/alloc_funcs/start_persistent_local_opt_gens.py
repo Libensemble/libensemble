@@ -97,4 +97,6 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             support.gen_work(Work, wid, gen_specs['in'], [], persis_info[wid], rset_team=[])
             gen_count += 1
 
+    del support
+
     return Work, persis_info

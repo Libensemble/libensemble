@@ -48,4 +48,5 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_flag = False
             persis_info['total_gen_calls'] += 1
 
+    del support
     return Work, persis_info

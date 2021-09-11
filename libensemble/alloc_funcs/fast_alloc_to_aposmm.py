@@ -66,4 +66,5 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             persis_info['last_worker'] = wid
             persis_info['last_size'] = len(H)
 
+    del support
     return Work, persis_info
