@@ -55,8 +55,8 @@ if comms == 'mpi':
 
 
 # Mock up system
-mpi_customizer = {'mpi_runner': 'srun',    # Select runner: mpich, openmpi, aprun, srun, jsrun
-              'runner_name': 'srun'}  # Runner name: Replaces run command if not None
+mpi_customizer = {'mpi_runner': 'srun',   # Select runner: mpich, openmpi, aprun, srun, jsrun
+                  'runner_name': 'srun'}  # Runner name: Replaces run command if not None
 
 
 custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)

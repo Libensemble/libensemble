@@ -68,9 +68,7 @@ def setup_executor():
         exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
-        #exctr = MPIExecutor()
         exctr = MPIExecutor()
-
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 

@@ -5,6 +5,7 @@ from libensemble.resources.scheduler import (ResourceScheduler,
                                              InsufficientFreeResources,
                                              InsufficientResourcesError)
 
+
 class MyResources:
     """Simulate resources"""
 
@@ -45,7 +46,7 @@ class MyResources:
     def fixed_assignment(self, assignment):
         """Set the given assignment along with other coupled information"""
         self.rsets['assigned'] = assignment
-        self.rsets_free = np.count_nonzero(self.rsets['assigned']==0)
+        self.rsets_free = np.count_nonzero(self.rsets['assigned'] == 0)
 
 
 def test_too_many_rsets():
@@ -55,7 +56,7 @@ def test_too_many_rsets():
     sched = ResourceScheduler(user_resources=resources)
 
     with pytest.raises(InsufficientResourcesError):
-        rset_team = sched.assign_resources(rsets_req=10)
+        rset_team = sched.assign_resources(rsets_req=10)  # noqa F841
         pytest.fail('Expected InsufficientResourcesError')
 
 
@@ -186,7 +187,7 @@ def test_try1node_findon_3nodes():
 
     # Simulate a new call to allocation function
     sched_options = {'split2fit': False}
-    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)  # noqa E702
 
     with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=3)
@@ -194,7 +195,7 @@ def test_try1node_findon_3nodes():
 
     # Now free up resources on 1st group and call alloc again (new sched).
     resources.free_rsets(worker=1)
-    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)  # noqa E702
     rset_team = sched.assign_resources(rsets_req=3)
     assert rset_team == [0, 1, 2], 'rsets found {}'.format(rset_team)
     del resources
@@ -213,14 +214,14 @@ def test_try2nodes_findon_3nodes():
 
     # Simulate a new call to allocation function
     sched_options = {'split2fit': False}
-    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)  # noqa E702
     with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=12)
         pytest.fail('Expected InsufficientFreeResources')
 
     # Now free up resources on 3rd group and call alloc again (new sched).
     resources.free_rsets(worker=3)
-    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+    del sched; sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)  # noqa E702
     rset_team = sched.assign_resources(rsets_req=12)
     assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], 'rsets found {}'.format(rset_team)
     del resources
@@ -233,7 +234,7 @@ def test_split2fit_even_required_fails():
     resources.fixed_assignment(([1, 1, 1, 0, 2, 2, 0, 0]))
     sched = ResourceScheduler(user_resources=resources)
     with pytest.raises(InsufficientFreeResources):
-        rset_team = sched.assign_resources(rsets_req=4)
+        rset_team = sched.assign_resources(rsets_req=4)  # noqa F841
         pytest.fail('Expected InsufficientFreeResources')
 
 
@@ -246,7 +247,7 @@ def test_split2fit_even_required_various():
     assert sched.rsets_free == 5
 
     rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [4,5], 'rsets found {}'.format(rset_team)
+    assert rset_team == [4, 5], 'rsets found {}'.format(rset_team)
     assert sched.rsets_free == 3
 
     # In same alloc - now try getting 4 rsets
@@ -261,7 +262,7 @@ def test_split2fit_even_required_various():
     assert sched.rsets_free == 3
 
     rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [6,7], 'rsets found {}'.format(rset_team)
+    assert rset_team == [6, 7], 'rsets found {}'.format(rset_team)
     assert sched.rsets_free == 1
 
 

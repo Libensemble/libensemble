@@ -91,24 +91,12 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 # Tests ========================================================================================
 def test_hist_init_1():
     hist, _, _, _, _ = setup.hist_setup1()
-
-    #print(type(hist.H.dtype.names))
-    #print(hist.H.dtype.names)
-    #print('')
-    #print(wrs.dtype.names)
-
-    #import pdb;pdb.set_trace()
-    result = tuple(set(hist.H.dtype.names) - set(wrs.dtype.names))
-    #print('Missing',result)
-
-    #print(hist.H['given_back'])
-    #print(hist.H['last_given_back_time'])
-
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
     assert hist.given_count == 0
     assert hist.index == 0
     assert hist.returned_count == 0
     assert hist.given_back_count == 0
+
 
 def test_hist_init_1A_H0():
     hist, _, _, _, _ = setup.hist_setup1(sim_max=2, H0_in=wrs_H0)

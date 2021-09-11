@@ -1,8 +1,9 @@
 import os
 import socket
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
-from libensemble.resources.worker_resources import  ResourceManager, WorkerResources
+from libensemble.resources.resources import GlobalResources, ResourcesException
+# from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
+from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
 
 def setup_standalone_run():
@@ -218,10 +219,10 @@ def test_remove_libE_nodes():
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
 
-#SH TODO: Need to break this up - where before got local_nodelist from static function
-#         Now need to separatly get split_list, local nodelist from split_list - and/or do
-#         together by setting up WorkerResources object.
-#SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
+# SH TODO: Need to break this up - where before got local_nodelist from static function
+#          Now need to separately get split_list, local nodelist from split_list - and/or do
+#          together by setting up WorkerResources object.
+# SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
 
 
 def _assert_worker_attr(wres, attr, exp):
@@ -229,7 +230,7 @@ def _assert_worker_attr(wres, attr, exp):
     assert ret == exp, "{} returned does not match expected.  \nRet: {}\nExp: {}".format(attr, ret, exp)
 
 
-#SH TODO: These are all 1 worker per rset. Should name as such if stays that way.
+# SH TODO: These are all 1 worker per rset. Should name as such if stays that way.
 def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 
     # Create dictionary of attributes and expected values
@@ -248,8 +249,8 @@ def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
         _assert_worker_attr(wres, attr, exp_val)
 
 
-#SH TODO: These are all >= 1 node per rset. And 1 worker per rset
-#         central_mode makes no difference in this test
+# SH TODO: These are all >= 1 node per rset. And 1 worker per rset
+#          central_mode makes no difference in this test
 def test_get_local_resources_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
@@ -313,7 +314,7 @@ def test_get_local_resources_central_mode():
         wresources.set_rset_team([wrk])
 
         # Trying to avoid generic algorithm
-        if len(wresources.local_nodelist)==3:
+        if len(wresources.local_nodelist) == 3:
             exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0], exp_out[wrk][2]: [0]}
             nnodes = 3
         else:
@@ -346,7 +347,6 @@ def test_get_local_resources_central_mode():
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1, 2)
 
     del os.environ["LIBE_RESOURCES_TEST_NODE_LIST"]
-
 
 
 # The main tests are same as above - note for when fixtures set up
@@ -420,7 +420,7 @@ def test_get_local_resources_central_mode_remove_libE_proc():
         wresources.set_rset_team([wrk])
 
         # Trying to avoid generic algorithm
-        if len(wresources.local_nodelist)==3:
+        if len(wresources.local_nodelist) == 3:
             exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0], exp_out[wrk][2]: [0]}
             nnodes = 3
         else:
@@ -628,7 +628,7 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_wrklst_file()
     test_remove_libE_nodes()
 
-    ##test_get_local_nodelist_central_mode()
+    # test_get_local_nodelist_central_mode()
     test_get_local_resources_central_mode()  # new name
 
     test_get_local_resources_central_mode_remove_libE_proc()
