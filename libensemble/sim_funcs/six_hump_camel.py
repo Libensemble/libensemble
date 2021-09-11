@@ -27,7 +27,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
     if resources.even_slots:  # Need same slots on each node
-        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES") # Use convenience function.
+        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
         num_nodes = resources.local_node_count
         cores_per_node = resources.slot_count  # One CPU per GPU
         print('CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'

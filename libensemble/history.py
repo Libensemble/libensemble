@@ -166,8 +166,6 @@ class History:
             self.H['last_given_back_time'][q_inds] = t
             self.given_back_count += len(q_inds)
 
-
-
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
         Updates the history (in place) when new points have been returned from a gen

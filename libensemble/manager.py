@@ -188,7 +188,6 @@ class Manager:
             self.W['worker_group'] = False  # SH TODO: Remove when all alloc funcs updated.
 
             for wrk in self.W:
-                # SH TODO: I still don't like the extra dereference - maybe an options named tuple with zrw/central_mode etc...
                 if wrk['worker_id'] in self.resources.glob_resources.zero_resource_workers:
                     wrk['zero_resource_worker'] = True
 
@@ -316,6 +315,12 @@ class Manager:
 
         man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
 
+    def _freeup_resources(self, w):
+        """Free up resources assigned to the worker"""
+
+        if self.resources:
+            self.resources.resource_manager.free_rsets(w)
+
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker
         """
@@ -361,7 +366,6 @@ class Manager:
         elif Work['tag'] == EVAL_GEN_TAG:
             self.hist.update_history_to_gen(work_rows)
 
-
     # --- Handle incoming messages from workers
 
     @staticmethod
@@ -405,12 +409,6 @@ class Manager:
         if 'save_every_k_gens' in self.libE_specs:
             self._save_every_k_gens()
         return persis_info
-
-    def _freeup_resources(self, w):
-        """Free up resources assigned to the worker"""
-
-        if self.resources:
-            self.resources.resource_manager.free_rsets(w)
 
     def _update_state_on_worker_msg(self, persis_info, D_recv, w):
         """Updates history and worker info on worker message
