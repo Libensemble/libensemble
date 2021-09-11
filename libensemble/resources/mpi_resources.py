@@ -2,12 +2,10 @@
 Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
-#SH TODO - if no class - maybe call mpi_utils....
-
 import os
 import logging
 import subprocess
-#from libensemble.resources.resources import Resources, ResourcesException
+
 
 class MPIResourcesException(Exception):
     "Resources module exception."
@@ -23,7 +21,6 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-# SH TODO: Actually should these be in HWResrouces (or maybe MPIResources - but used for cores per node probe...
 def get_MPI_runner():
     var = get_MPI_variant()
     if var in ['mpich', 'openmpi']:
@@ -57,7 +54,7 @@ def get_MPI_variant():
     try:
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
         try_mpich = subprocess.Popen(['mpirun', '-npernode'], stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                     stderr=subprocess.STDOUT)
         stdout, _ = try_mpich.communicate()
         if 'unrecognized argument npernode' in stdout.decode():
             return 'mpich'

@@ -11,7 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class WorkerResourcesException(Exception):
-    "Worker resources module exception."
+    """Worker resources exception."""
+
+
+class ResourceManagerException(Exception):
+    """Resource Manager exception."""
 
 
 class ResourceManager(RSetResources):
@@ -41,25 +45,22 @@ class ResourceManager(RSetResources):
 
         """
         super().__init__(num_workers, resources)
-
-        # SH May change name from index_list - something like "default_mapping"
-        # SH Should default mapping use 1 resource set each or divide up?
         self.index_list = ResourceManager.get_index_list(self.num_workers, resources.zero_resource_workers)
-        #print('index list:', self.index_list)  # SH TODO: Remove when done testing
+        # print('index list:', self.index_list)  # SH TODO: Remove when done testing
 
-        #SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
+        # SH TODO: Need to update to allow uneven distribution of rsets to nodes
         self.rsets = np.zeros(self.num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
         self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
-        unique, counts = np.unique(self.rsets['group'], return_counts=True)
         self.rsets_free = self.num_rsets
 
         # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
+        unique, counts = np.unique(self.rsets['group'], return_counts=True)
         self.group_sizes = dict(zip(unique, counts))
         self.ngroups_by_size = Counter(counts)
         self.even_groups = True if len(self.ngroups_by_size) == 1 else False
-        #print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
+        # print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))  # SH TODO: Remove
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
@@ -71,27 +72,23 @@ class ResourceManager(RSetResources):
                     self.rsets['assigned'][rset_team[i]] = worker_id
                     self.rsets_free -= 1
                 elif wid != worker_id:
-                    # Raise error if rsets are already assigned to a different worker.
-                    raise WorkerResourcesException("Error: Attempting to assign rsets {} already assigned to workers: {}".
+                    ResourceManagerException("Error: Attempting to assign rsets {}"
+                                             " already assigned to workers: {}".
                                              format(rset_team, rteam))
-
             # print('resource ids assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
             # print('resource worker assignment', self.rsets['assigned'])  # SH TODO: Remove
             # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
-
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
             self.rsets['assigned'] = 0
-            #self.num_assigned = 0
             self.rsets_free = self.num_rsets
         else:
             rsets_to_free = np.where(self.rsets['assigned'] == worker)[0]
             self.rsets['assigned'][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
-            #print('\nWorker {} returned - freed up rsets {}'.format(worker, rsets_to_free))
-
+            # print('\nWorker {} returned - freed up rsets {}'.format(worker, rsets_to_free))  # SH TODO: Remove
         # print('resources assigned', np.where(self.rsets['assigned'])[0])  # SH TODO: Remove
         # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])  # SH TODO: Remove
 
@@ -139,7 +136,6 @@ class WorkerResources(RSetResources):
     :ivar int workers_per_node: The number of workers per node (if using subnode workers)
     """
 
-    #def __init__(self, workerID, comm, resources):
     def __init__(self, num_workers, resources, workerID):
 
         """Initializes a new WorkerResources instance
@@ -161,9 +157,6 @@ class WorkerResources(RSetResources):
 
         """
         super().__init__(num_workers, resources)
-
-        #self.num_workers = comm.get_num_workers()
-
         self.workerID = workerID
         self.rset_team = None
         self.slots = None
@@ -171,11 +164,6 @@ class WorkerResources(RSetResources):
         self.slot_count = None
         self.slots_on_node = None
         self.num_rsets = 0
-
-        #SH TODO: Maybe call total_num_rsets or global_num_rsets - as its not rsets for this worker.
-        #self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2  ######Now in baseclass
-
-        ######do i need this??? - use below - but when restrucutre resources - will be all better
         self.zero_resource_workers = resources.zero_resource_workers
         self.local_nodelist = []
         self.local_node_count = len(self.local_nodelist)
@@ -198,7 +186,6 @@ class WorkerResources(RSetResources):
         slot_list = [j for i in self.slots_on_node for j in range(i*n, (i+1)*n)]
         slots = delimiter.join(map(str, slot_list))
         return slots
-
 
     def set_env_to_slots(self, env_var, multiplier=1, delimiter=','):
         """Sets the given environment variable to slots
@@ -261,56 +248,6 @@ class WorkerResources(RSetResources):
                 self.slots_on_node = None  # SH TODO: What should this be
                 self.slot_count = None  # SH TODO: Could be list of lengths
 
-
-    # Will work out rset siblings - not just yet - or mayb can use get_rsets_by_group
-    #@staticmethod
-    #def get_num_siblings_by_rset(split_list):
-        #group = 1
-        #num_siblings_by_rset = []
-        #node = split_list[0]
-
-        #for i in range(len(split_list)):
-            #if split_list[i] == node:
-                #group_list.append(group)
-            #else:
-                #node = split_list[i]
-                #group += 1
-                #group_list.append(group)
-        #return group_list
-
-    # Not used currently
-    #@staticmethod
-    #def get_rsets_by_group(split_list):
-        #"""Returns a dictionary where key is groupID and values
-        #are a list of resource set IDs (indices into rsets array).
-        #"""
-        #rsets_by_group = {}
-        #group = 0
-        #loc_nodes = None
-        #for i in range(len(split_list)):
-            #if split_list[i] == loc_nodes:
-                #rsets_by_group[group].append(i)
-            #else:
-                #loc_nodes = split_list[i]
-                #group += 1
-                #rsets_by_group[group] = [i]
-        #return rsets_by_group
-
-
-    # Not used currently
-    #@staticmethod
-    #def map_workerid_to_index(num_workers, workerID, zero_resource_list):
-        #"""Map WorkerID to index into a nodelist"""
-        #index = workerID - 1
-        #if zero_resource_list:
-            #for i in range(1, num_workers+1):
-                #if i in zero_resource_list:
-                    #index -= 1
-                #if index < i:
-                    #return index
-            #raise WorkerResourcesException("Error mapping workerID {} to nodelist index {}".format(workerID, index))
-        #return index
-
     @staticmethod
     def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):
         """Returns the list of nodes available to the current worker"""
@@ -343,7 +280,7 @@ class WorkerResources(RSetResources):
             mynodes = split_list[index]
             # If rset has > 1 node, then all nodes just have a single slot (slot 0).
             if len(mynodes) > 1:
-                for node in  mynodes:
+                for node in mynodes:
                     slots[node].append(0)
             else:
                 mynode = split_list[index][0]

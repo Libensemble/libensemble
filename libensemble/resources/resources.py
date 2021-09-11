@@ -14,9 +14,6 @@ This module detects and returns system resources
 import os
 import socket
 import logging
-import numpy as np
-from collections import Counter
-from collections import OrderedDict
 from libensemble.resources import node_resources
 from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.env_resources import EnvResources
@@ -76,7 +73,7 @@ class Resources:
         self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
 
     def set_resource_manager(self, num_workers):
-        self.resource_manager = ResourceManager(num_workers, self.glob_resources )
+        self.resource_manager = ResourceManager(num_workers, self.glob_resources)
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
@@ -152,7 +149,7 @@ class GlobalResources:
         if self.central_mode:
             logger.debug('Running in central mode')
 
-        resource_info = libE_specs.get('custom_info', {})  #resource_spec???
+        resource_info = libE_specs.get('custom_info', {})
         cores_on_node = resource_info.get('cores_on_node', None)
         node_file = resource_info.get('node_file', None)
         nodelist_env_slurm = resource_info.get('nodelist_env_slurm', None)
@@ -170,8 +167,8 @@ class GlobalResources:
 
         self.global_nodelist = \
             GlobalResources.get_global_nodelist(node_file=node_file,
-                                            rundir=self.top_level_dir,
-                                            env_resources=self.env_resources)
+                                                rundir=self.top_level_dir,
+                                                env_resources=self.env_resources)
 
         self.shortnames = GlobalResources.is_nodelist_shortnames(self.global_nodelist)
         if self.shortnames:
@@ -194,7 +191,6 @@ class GlobalResources:
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
 
-
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
 
@@ -210,7 +206,6 @@ class GlobalResources:
                 self.global_nodelist = GlobalResources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove central_mode or add nodes")
-
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):

@@ -36,13 +36,11 @@ class RSetResources():
         # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.num_rsets, resources)
 
-
     @staticmethod
     def best_split(a, n):
         """Creates the most even split of list a into n parts and return list of lists"""
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
 
     @staticmethod
     def get_rsets_on_a_node(num_rsets, resources):
@@ -54,7 +52,6 @@ class RSetResources():
         # Round up if theres a remainder
         rsets_per_node = num_rsets//num_nodes + (num_rsets % num_nodes > 0)
         return rsets_per_node
-
 
     @staticmethod
     def get_workers2assign2(num_workers, resources):
@@ -110,7 +107,6 @@ class RSetResources():
         logger.debug("split_list is {}".format(split_list))
         return split_list, local_rsets_list
 
-
     # SH TODO This has become redundant wrapper - if stays that way can remove
     @staticmethod
     def get_partitioned_nodelist(num_rsets, resources):
@@ -120,5 +116,5 @@ class RSetResources():
         Also self.global_nodelist will have already removed non-application nodes
         """
         split_list, local_rsets_list = RSetResources.get_split_list(num_rsets, resources)
-        #print('local_rsets_list', local_rsets_list, flush=True)
+        # print('local_rsets_list', local_rsets_list, flush=True)   # SH TODO: Remove
         return split_list, local_rsets_list
