@@ -64,7 +64,7 @@ custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logica
 
 libE_specs['central_mode'] = True
 libE_specs['allow_oversubscribe'] = False
-libE_specs['custom_info'] = custom_resources
+libE_specs['resource_info'] = custom_resources
 
 # Create executor and register sim to it.
 exctr = MPIExecutor(custom_info=mpi_customizer)

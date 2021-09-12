@@ -170,8 +170,13 @@ same resource set) for simulation instances:
 Overriding Auto-detection
 -------------------------
 
-libEnsemble detects node-lists, MPI runners, and the number of cores on the node through various
-means. When using the MPI Executor it is possible to override the detected information using the
+libEnsemble automatically detects system information. This includes resource information, such as
+available nodes and the number of cores on the node, and information about available MPI runners.
+
+System detection for resources can be overriden using the :ref:`resource_info<resource_info>`
+libE_specs option.
+
+When using the MPI Executor it is possible to override the detected information using the
 :ref:`custom_info<customizer>` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 Instructions for Specific Platforms

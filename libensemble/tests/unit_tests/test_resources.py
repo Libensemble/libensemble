@@ -254,7 +254,7 @@ def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 def test_get_local_resources_central_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
-    libE_specs = {'custom_info': resource_info,
+    libE_specs = {'resource_info': resource_info,
                   'central_mode': True}
     gresources = GlobalResources(libE_specs)
 
@@ -460,7 +460,7 @@ def test_get_local_resources_central_mode_remove_libE_proc():
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
-    libE_specs = {'custom_info': resource_info,
+    libE_specs = {'resource_info': resource_info,
                   'central_mode': False}
 
     gresources = GlobalResources(libE_specs)

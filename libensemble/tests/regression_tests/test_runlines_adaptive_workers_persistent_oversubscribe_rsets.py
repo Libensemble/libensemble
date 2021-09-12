@@ -90,8 +90,8 @@ if is_manager:
 if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
 
-libE_specs['custom_info'] = {'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-                             'node_file': node_file}     # Name of file containing a node-list
+libE_specs['resource_info'] = {'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+                               'node_file': node_file}     # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}

@@ -105,12 +105,12 @@ Specifications for libEnsemble::
             Distributed mode means workers share nodes with applications.
         'zero_resource_workers' [list of ints]:
             List of workers that require no resources.
-        'custom_info' [dict]:
+        'resource_info' [dict]:
             Provide resource information which overrides information detected by 'auto_resources'.
             The allowable fields are given below in 'Overriding Auto-detection'
 
 .. Cant put link in the codeblock as it is
-..         'custom_info' [dict]:
+..         'resource_info' [dict]:
 ..             Provide resource information which overrides information detected by 'auto_resources'.
 ..             The allowable fields are given in :ref:`Overriding Auto-detection`
 
@@ -152,7 +152,7 @@ For example::
     customizer = {cores_on_node': (16, 64),
                   'node_file': 'libe_nodes'}
 
-    libE_specs['custom_info'] = customizer
+    libE_specs['resource_info'] = customizer
 
 
 .. note::

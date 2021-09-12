@@ -52,7 +52,7 @@ if comms == 'mpi':
 # Mock up system
 custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
                     'node_file': node_file}      # Name of file containing a node-list
-libE_specs['custom_info'] = custom_resources
+libE_specs['resource_info'] = custom_resources
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': nworkers*rounds}

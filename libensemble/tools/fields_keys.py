@@ -67,7 +67,7 @@ allowed_libE_spec_keys = ['abort_on_exception',             #
                           'auto_resources',                 #
                           'central_mode',                   #
                           'comms',                          #
-                          'custom_info',                    #
+                          'resource_info',                  #
                           'disable_log_files',              #
                           'final_fields',                   #
                           'ip',                             #

@@ -3,11 +3,11 @@ This module detects and returns system resources
 
 """
 
-# SH TODO: Do we need custom_info options in libE_specs for resources, and another as argument
+# SH TODO: Do we need resource_info options in libE_specs for resources, and another as argument
 #          to MPIExecutor for MPIExecutor configuration?
 #          E.g. mpi_runner_type, runner_name, subgroup_launch
-#          Alternative - do Executor same way as this (init in libE), and then can uses combined custom_info again!
-#          Also will need to update docs/tests with new custom_info options.
+#          Alternative - do Executor same way as this (init in libE), and then can uses combined resource_info again!
+#          Also will need to update docs/tests with new resource_info options.
 #          Remove debugging comments/commented out code + check/update docstrings
 #          Deal with unbalanced cases, and if not, return meaningful error message
 
@@ -149,7 +149,7 @@ class GlobalResources:
         if self.central_mode:
             logger.debug('Running in central mode')
 
-        resource_info = libE_specs.get('custom_info', {})
+        resource_info = libE_specs.get('resource_info', {})
         cores_on_node = resource_info.get('cores_on_node', None)
         node_file = resource_info.get('node_file', None)
         nodelist_env_slurm = resource_info.get('nodelist_env_slurm', None)

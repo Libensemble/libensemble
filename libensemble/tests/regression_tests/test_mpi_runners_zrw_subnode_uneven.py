@@ -57,7 +57,7 @@ nnodes = 2
 # Mock up system
 custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
                     'node_file': node_file}      # Name of file containing a node-list
-libE_specs['custom_info'] = custom_resources
+libE_specs['resource_info'] = custom_resources
 
 if is_manager:
     create_node_file(num_nodes=nnodes, name=node_file)
