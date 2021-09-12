@@ -26,8 +26,6 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             persis_info['next_to_give'] += 1
 
         if persis_info['next_to_give'] < len(H):
-
-            # SH TODO: Why is [persis_info['next_to_give']] a list? And no random stream right (for sim)
             try:
                 support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
             except InsufficientFreeResources:

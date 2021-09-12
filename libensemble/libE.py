@@ -216,6 +216,8 @@ def libE(sim_specs, gen_specs, exit_criteria,
     if H0 is None:
         H0 = np.empty(0)
 
+    Resources.init_resources(libE_specs)
+
     # Set default comms
     if 'comms' not in libE_specs:
         libE_specs['comms'] = 'mpi'
@@ -225,9 +227,6 @@ def libE(sim_specs, gen_specs, exit_criteria,
                   'local': libE_local}
 
     comms_type = libE_specs.get('comms')
-
-    # SH TODO: As this is in libE, could just set up in comm specific routines below, is it worth keeping two stages?
-    Resources.init_resources(libE_specs)
 
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
@@ -319,7 +318,6 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
     if libE_specs['mpi_comm'] == mpi_comm_null:
         return [], persis_info, 3  # Process not in mpi_comm
 
-    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     with DupComm(libE_specs['mpi_comm']) as mpi_comm:
@@ -412,7 +410,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     nworkers = libE_specs['nworkers']
 
-    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     resources = Resources.resources
@@ -483,14 +480,9 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
     "Main routine for TCP multiprocessing launch of libE."
 
-    # SH TODO: Re-enable check_inputs - and discuss/document new libE_specs option names
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     is_worker = True if 'workerID' in libE_specs else False
-
-    # SH TODO: Need to determine resources should work with TCP
-    #          If auto_resources is set to False, perhaps should be default with TCP, then
-    #          then resources will be None
     nworkers = libE_specs['nworkers']
     resources = Resources.resources
     if resources is not None:

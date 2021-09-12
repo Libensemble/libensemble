@@ -33,8 +33,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         # Give sim work if possible
         if persis_info['next_to_give'] < len(H):
-
-            # SH TODO: Why is [persis_info['next_to_give']] a list? And no random stream right (for sim)
             try:
                 support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
             except InsufficientFreeResources:
