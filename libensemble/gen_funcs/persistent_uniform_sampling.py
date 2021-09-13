@@ -84,3 +84,36 @@ def uniform_random_sample_with_different_resources(H, persis_info, gen_specs, li
             b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
+    """
+    This generation function is similar in structure to persistent_uniform,
+    but uses a count to test exiting on a threshold value. This principle can
+    be used with a supporting allocation function (e.g. start_only_persistent)
+    to shutdown an ensemble when a condition is met.
+
+    .. seealso::
+        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
+    """
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+    n = len(lb)
+    b = gen_specs['user']['initial_batch_size']
+    shutdown_limit = gen_specs['user']['shutdown_limit']
+    f_count = 0
+
+    # Send batches until manager sends stop tag
+    tag = None
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs['out'])
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        if hasattr(calc_in, '__len__'):
+            b = len(calc_in)
+        f_count += b
+        if f_count >= shutdown_limit:
+            print('Reached threshold.', f_count, flush=True)
+            break  # End the persistent gen
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
