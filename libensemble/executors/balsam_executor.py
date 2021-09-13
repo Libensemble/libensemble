@@ -18,7 +18,7 @@ import logging
 import time
 import datetime
 
-from libensemble.resources import mpi_resources
+# from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -196,12 +196,12 @@ class BalsamMPIExecutor(MPIExecutor):
         registry and configuration attributes
         """
 
-        if not central_mode:
-            logger.warning("Balsam does not currently support distributed mode - running in central mode")
-            central_mode = True
-
-        if custom_info:
-            logger.warning("The Balsam executor does not support custom_info - ignoring")
+        # if not central_mode:
+        #     logger.warning("Balsam does not currently support distributed mode - running in central mode")
+        #     central_mode = True
+        #
+        # if custom_info:
+        #     logger.warning("The Balsam executor does not support custom_info - ignoring")
 
         super().__init__(custom_info)
 
