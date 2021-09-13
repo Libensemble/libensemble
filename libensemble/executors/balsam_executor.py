@@ -196,13 +196,6 @@ class BalsamMPIExecutor(MPIExecutor):
         registry and configuration attributes
         """
 
-        # if not central_mode:
-        #     logger.warning("Balsam does not currently support distributed mode - running in central mode")
-        #     central_mode = True
-        #
-        # if custom_info:
-        #     logger.warning("The Balsam executor does not support custom_info - ignoring")
-
         super().__init__(custom_info)
 
         self.workflow_name = "libe_workflow"
@@ -282,15 +275,6 @@ class BalsamMPIExecutor(MPIExecutor):
             jassert(num_procs or num_nodes or ranks_per_node,
                     "No procs/nodes provided - aborting")
 
-        # Extra_args analysis not done here - could pick up self.mpi_runner but possible
-        # that Balsam finds a different runner.
-        # if self.auto_resources:
-        #     num_procs, num_nodes, ranks_per_node = \
-        #         self.resources.get_resources(
-        #             num_procs=num_procs,
-        #             num_nodes=num_nodes, ranks_per_node=ranks_per_node,
-        #             hyperthreads=hyperthreads)
-        # else:
         num_procs, num_nodes, ranks_per_node = \
             mpi_resources.task_partition(num_procs, num_nodes, ranks_per_node)
 
