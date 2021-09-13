@@ -3,16 +3,19 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-# SH TODO: Check/update docstring
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     This allocation function will give simulation work if possible, but
-    otherwise start up to one persistent generator. By default, evaluation
-    results are given back to the generator once all generated points have
-    been returned from the simulation evaluation. If alloc_specs['user']['async_return']
-    is set to True, then any returned points are given back to the generator.
+    otherwise start up to ``alloc_specs['user']['num_active_gens']``
+    persistent generators (defaulting to one).
 
-    If the single persistent generator has exited, then ensemble shutdown is triggered.
+    By default, evaluation results are given back to the generator once
+    all generated points have been returned from the simulation evaluation.
+    If ``alloc_specs['user']['async_return']`` is set to True, then any
+    returned points are given back to the generator.
+
+    If any of the persistent generators has exited, then ensemble shutdown
+    is triggered.
 
     **User options**:
 
@@ -20,6 +23,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     init_sample_size: int, optional
         Initial sample size - always return in batch. Default: 0
+
+    num_active_gens: int, optional
+        Maximum number of persistent generators to start. Default: 1
 
     async_return: boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
@@ -34,6 +40,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
         `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
         `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
+        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
     """
 
     # Initialize alloc_specs['user'] as user.
@@ -53,9 +60,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # gen_specs['persis_in']
     gen_return_fields = sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')]
 
-    # SH TODO: Generalize this
-    if persis_info.get('gen_started') and gen_count == 0:
-        # The one persistent worker is done. Exiting
+    if gen_count < persis_info.get('num_gens_started', 0):
+        # When a persistent worker is done, trigger a shutdown (returning exit condition of 1)
         return Work, persis_info, 1
 
     # Give evaluated results back to a running persistent gen
@@ -85,20 +91,19 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         points_to_evaluate[sim_ids_to_send] = False
 
-    # A separate loop/section as now need zero_resource_workers for gen.
+    # Start persistent gens if no worker to give out. Uses zero_resource_workers if defined.
     if not np.any(points_to_evaluate):
         avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
 
-        # SH TODO: So we don't really need a loop here for this, but general case would allow multiple gens
         for wid in avail_workers:
-            if gen_count == 0:
-                # Finally, call a persistent generator as there is nothing else to do.
+            if gen_count < user.get('num_active_gens', 1):
+                # Finally, start a persistent generator as there is nothing else to do.
                 try:
                     support.gen_work(Work, wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
                                      persistent=True, active_recv=active_recv_gen)
                 except InsufficientFreeResources:
                     break
-                persis_info['gen_started'] = True
+                persis_info['num_gens_started'] = persis_info.get('num_gens_started', 0) + 1
                 gen_count += 1
 
     del support
