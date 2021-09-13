@@ -18,7 +18,7 @@ import logging
 import time
 import datetime
 
-# from libensemble.resources import mpi_resources
+from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -255,6 +255,9 @@ class BalsamMPIExecutor(MPIExecutor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
+    def set_resources(self, resources):
+        self.resources = resources
+
     def submit(self, calc_type=None, app_name=None, num_procs=None,
                num_nodes=None, ranks_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
@@ -279,9 +282,6 @@ class BalsamMPIExecutor(MPIExecutor):
             jassert(num_procs or num_nodes or ranks_per_node,
                     "No procs/nodes provided - aborting")
 
-        def set_resources(self, resources):
-            self.resources = resources
-
         # Extra_args analysis not done here - could pick up self.mpi_runner but possible
         # that Balsam finds a different runner.
         # if self.auto_resources:
@@ -291,8 +291,8 @@ class BalsamMPIExecutor(MPIExecutor):
         #             num_nodes=num_nodes, ranks_per_node=ranks_per_node,
         #             hyperthreads=hyperthreads)
         # else:
-        #     num_procs, num_nodes, ranks_per_node = \
-        #         mpi_resources.task_partition(num_procs, num_nodes, ranks_per_node)
+        num_procs, num_nodes, ranks_per_node = \
+            mpi_resources.task_partition(num_procs, num_nodes, ranks_per_node)
 
         if stdout is not None or stderr is not None:
             logger.warning("Balsam does not currently accept a stdout "
