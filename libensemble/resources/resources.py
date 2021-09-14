@@ -34,6 +34,11 @@ class Resources:
 
     This is intialized when the executor is created with auto_resources set to true.
 
+    **Class Attributes:**
+
+    :cvar Resources: resources: The resources object is stored here and can be retrieved in user functions.
+
+
     **Object Attributes:**
 
     These are set on initialization.
@@ -70,9 +75,11 @@ class Resources:
         self.worker_resources = None  # For Workers
 
     def set_worker_resources(self, num_workers, workerid):
+        """Initiate the worker resources component of resources"""
         self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
 
     def set_resource_manager(self, num_workers):
+        """Initiate the resource manager component of resources"""
         self.resource_manager = ResourceManager(num_workers, self.glob_resources)
 
     def add_comm_info(self, libE_nodes):

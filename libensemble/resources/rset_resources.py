@@ -5,23 +5,36 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-# SH TODO: Change class name
-# Its really about rset (resource set) assignment - workers is only used as a default way to set rsets
-# possible class names: RSETResources/SplitResources
 # unlesss resource sets is set explicitly. This class maps rsets to hardware resources.
 class RSetResources():
+    """A class that creates a fixed mapping of resource sets to the available resources.
+
+    **Object Attributes:**
+
+    These are set on initialisation and include inherited.
+    ``rsets`` below is used to abbreviate ``resource sets``.
+
+    :ivar int num_workers: Total number of workers
+    :ivar int num_workers_2assign2: The number of workers that will be assigned resource sets.
+    :ivar int total_num_rsets: The total number of resource sets.
+    :ivar list split_list: A list of lists, where each element is the list of nodes for a given rset.
+    :ivar list local_rsets_list: A list over rsets, where each element is the number of rsets that share the node.
+    :ivar int rsets_per_node: The number of rsets per node (if an rset > 1 node, this will be 1)
+    """
 
     def __init__(self, num_workers, resources):
         """Initializes a new RSetResources instance
 
-        Determines the compute resources available for current worker, including
-        node list and cores/hardware threads available within nodes.
+        Determines the compute resources available for each resource set.
+
+        Unless resource sets is set explicitly, the number of resource sets is the number of workers,
+        excluding any workers defined as zero resource workers.
 
         Parameters
         ----------
 
-        comm: Comm
-            The Comm object for manager/worker communications
+        num_workers: int
+            The total number of workers
 
         resources: Resources
             A Resources object containing global nodelist and intranode information
@@ -29,12 +42,13 @@ class RSetResources():
         """
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
-        self.num_rsets = resources.num_resource_sets or self.num_workers_2assign2
-        self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.num_rsets, resources)
+        self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
+        self.split_list, self.local_rsets_list = \
+            RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
 
         # SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
         # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
-        self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.num_rsets, resources)
+        self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
 
     @staticmethod
     def best_split(a, n):

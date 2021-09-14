@@ -49,11 +49,11 @@ class ResourceManager(RSetResources):
         # print('index list:', self.index_list)  # SH TODO: Remove when done testing
 
         # SH TODO: Need to update to allow uneven distribution of rsets to nodes
-        self.rsets = np.zeros(self.num_rsets, dtype=ResourceManager.rset_dtype)
+        self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
         self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
-        self.rsets_free = self.num_rsets
+        self.rsets_free = self.total_num_rsets
 
         # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets['group'], return_counts=True)
@@ -83,7 +83,7 @@ class ResourceManager(RSetResources):
         """Free up assigned resource sets"""
         if worker is None:
             self.rsets['assigned'] = 0
-            self.rsets_free = self.num_rsets
+            self.rsets_free = self.total_num_rsets
         else:
             rsets_to_free = np.where(self.rsets['assigned'] == worker)[0]
             self.rsets['assigned'][rsets_to_free] = 0
@@ -127,13 +127,46 @@ class WorkerResources(RSetResources):
 
     **Object Attributes:**
 
-    These are set on initialisation.
+    These attributes may be updated as the ensemble progresses.
 
-    :ivar int num_workers: Total number of workers
-    :ivar int workerID: workerID
-    :ivar list local_nodelist: A list of all nodes assigned to this worker
-    :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number)
-    :ivar int workers_per_node: The number of workers per node (if using subnode workers)
+    ``rsets`` below is used to abbreviate ``resource sets``.
+
+    :ivar int workerID: workerID for this worker.
+    :ivar list local_nodelist: A list of all nodes assigned to this worker.
+    :ivar list rset_team: List of rset IDs currently assigned to this worker.
+    :ivar int num_rsets: The number of resource sets assigned to this worker.
+    :ivar dict slots: A dictionary with a list of slot IDs for each node.
+    :ivar bool even_slots: Determines if the slots evenly divide amongst nodes.
+    :ivar int slot_count: The number of slots per node if even_slots is True, else None.
+    :ivar list slots_on_node: A list of slots IDs if even_slots is True, else None.
+    :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number).
+    :ivar int rsets_per_node: The number of rsets per node (if a rset > 1 node, will be 1).
+
+    The worker_resources attribtues can be queried, and convenience functions
+    called, via the resources class attribute. For example:
+
+    With resources imported:
+
+    .. code-block:: python
+
+        from libensemble.resources.resources import Resources
+
+    A user function (sim/gen) may do:
+
+    .. code-block:: python
+
+        resources = Resources.resources.worker_resources
+        num_nodes = resources.local_node_count
+        cores_per_node = resources.slot_count  # One CPU per GPU
+        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
+
+    Note that **slots** are resource sets enumerated on a node (starting with zero).
+    If a resource set has more than one node, then each node is considered to have slot zero.
+
+    If ``even_slots`` is True, then the attributes ``slot_count`` and ``slots_on_node``
+    can be used for simplicity, Otherwise, the ``slots`` dictionary can be used to get
+    information for each node.
+
     """
 
     def __init__(self, num_workers, resources, workerID):
@@ -158,14 +191,14 @@ class WorkerResources(RSetResources):
         """
         super().__init__(num_workers, resources)
         self.workerID = workerID
+        self.local_nodelist = []
         self.rset_team = None
+        self.num_rsets = 0
         self.slots = None
         self.even_slots = None
         self.slot_count = None
         self.slots_on_node = None
-        self.num_rsets = 0
         self.zero_resource_workers = resources.zero_resource_workers
-        self.local_nodelist = []
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
 
@@ -193,6 +226,23 @@ class WorkerResources(RSetResources):
         :param env_var: String. Name of environment variable to set.
         :param multiplier: Optional int. Assume this many items per slot.
         :param delimiter: Optional int. Delimiter for output string.
+
+        Example  in a sim function
+        --------------------------
+
+        With resources imported:
+
+        .. code-block:: python
+
+            from libensemble.resources.resources import Resources
+
+        Obtain worker resoruces:
+
+        .. code-block:: python
+
+            resources = Resources.resources.worker_resources
+            resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+
         """
 
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)

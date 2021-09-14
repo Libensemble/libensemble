@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_MPI_runner():
+    """ Return whether ``mpirun`` is openmpi or mpich """
     var = get_MPI_variant()
     if var in ['mpich', 'openmpi']:
         return 'mpirun'
@@ -71,7 +72,8 @@ def get_MPI_variant():
 
 def task_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
     """Takes provided nprocs/nodes/ranks and outputs working
-    configuration of procs/nodes/ranks or error"""
+    configuration of procs/nodes/ranks or error
+    """
 
     # Convert to int if string is provided
     num_procs = int(num_procs) if num_procs else None
@@ -211,7 +213,8 @@ def create_machinefile(resources, machinefile=None, num_procs=None,
                        num_nodes=None, ranks_per_node=None,
                        hyperthreads=False):
     """Creates a machinefile based on user-supplied config options,
-    completed by detected machine resources"""
+    completed by detected machine resources
+    """
 
     machinefile = machinefile or 'machinefile'
     if os.path.isfile(machinefile):
