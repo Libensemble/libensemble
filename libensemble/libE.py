@@ -216,8 +216,6 @@ def libE(sim_specs, gen_specs, exit_criteria,
     if H0 is None:
         H0 = np.empty(0)
 
-    Resources.init_resources(libE_specs)
-
     # Set default comms
     if 'comms' not in libE_specs:
         libE_specs['comms'] = 'mpi'
@@ -229,6 +227,13 @@ def libE(sim_specs, gen_specs, exit_criteria,
     comms_type = libE_specs.get('comms')
 
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
+
+    # Not supported with TCP
+    if comms_type == 'tcp':
+        libE_specs['auto_resources'] = False
+
+    Resources.init_resources(libE_specs)
+
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
 
