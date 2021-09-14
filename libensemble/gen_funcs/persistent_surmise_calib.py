@@ -10,7 +10,7 @@ from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, recv_mgr_worker_msg, send_mgr_worker_msg
 
 
 def build_emulator(theta, x, fevals):
@@ -179,7 +179,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                           obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
-                tag, Work, calc_in = get_mgr_worker_msg(comm)
+                tag, Work, calc_in = recv_mgr_worker_msg(comm)
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
 
