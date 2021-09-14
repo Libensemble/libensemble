@@ -72,7 +72,7 @@ def submit_application(exctr, user, app_type, output_path, task_config):
 
     args = '-c ' + os.path.join(os.getcwd(), task_config)
     task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
-                        num_procs=1, num_nodes=1, ranks_per_node=1)
+                        num_procs=1, num_nodes=1, procs_per_node=1)
 
     calc_status = exctr.polling_loop(task, timeout=user[app_type + '_kill_minutes']*60, delay=1)
     os.chdir(start)

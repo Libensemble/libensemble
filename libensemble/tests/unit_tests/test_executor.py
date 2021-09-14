@@ -353,22 +353,22 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs = num_nodes*ranks_per_node (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
+    # Testing num_procs = num_nodes*procs_per_node (shouldn't fail)
+    task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs not num_nodes*ranks_per_node (should fail)
+    # Testing num_procs not num_nodes*procs_per_node (should fail)
     try:
-        task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
+        task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
     except ResourcesException as e:
-        assert e.args[0] == 'num_procs does not equal num_nodes*ranks_per_node'
+        assert e.args[0] == 'num_procs does not equal num_nodes*procs_per_node'
     else:
         assert 0
 
     # Testing no num_procs (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
+    task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -378,18 +378,18 @@ def test_procs_and_machinefile_logic():
     try:
         task = exctr.submit(calc_type='sim', app_args=args_for_sim)
     except ResourcesException as e:
-        assert e.args[0] == 'Need num_procs, num_nodes/ranks_per_node, or machinefile'
+        assert e.args[0] == 'Need num_procs, num_nodes/procs_per_node, or machinefile'
     else:
         assert 0
 
     # Testing no num_nodes (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=2, ranks_per_node=2, app_args=args_for_sim)
+    task = exctr.submit(calc_type='sim', num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing no ranks_per_node (shouldn't fail)
+    # Testing no procs_per_node (shouldn't fail)
     task = exctr.submit(calc_type='sim', num_nodes=1, num_procs=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)

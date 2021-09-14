@@ -182,7 +182,7 @@ class MPIExecutor(Executor):
                 break
 
     def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, ranks_per_node=None, machinefile=None,
+               num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=None):
@@ -206,7 +206,7 @@ class MPIExecutor(Executor):
         num_nodes: int, optional
             The number of nodes on which to submit the task
 
-        ranks_per_node: int, optional
+        procs_per_node: int, optional
             The ranks per node for this task
 
         machinefile: string, optional
@@ -240,7 +240,7 @@ class MPIExecutor(Executor):
         extra_args: String, optional
             Additional command line arguments to supply to MPI runner. If
             arguments are recognised as those used in auto_resources
-            (num_procs, num_nodes, ranks_per_node) they will be used in
+            (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.
 
@@ -252,7 +252,7 @@ class MPIExecutor(Executor):
 
 
         Note that if some combination of num_procs, num_nodes, and
-        ranks_per_node is provided, these will be honored if
+        procs_per_node is provided, these will be honored if
         possible. If resource detection is on and these are omitted,
         then the available resources will be divided among workers.
         """
@@ -272,7 +272,7 @@ class MPIExecutor(Executor):
                            "executor - runs in-place")
 
         mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
-                                                  ranks_per_node, machinefile,
+                                                  procs_per_node, machinefile,
                                                   hyperthreads, extra_args,
                                                   self.auto_resources,
                                                   self.resources,

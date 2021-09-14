@@ -271,7 +271,7 @@ class BalsamMPIExecutor(MPIExecutor):
         logger.debug("Added App {}".format(app.name))
 
     def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, ranks_per_node=None, machinefile=None,
+               num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
                hyperthreads=False, dry_run=False, wait_on_run=False,
                extra_args=''):
@@ -291,20 +291,20 @@ class BalsamMPIExecutor(MPIExecutor):
         # Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(num_procs or num_nodes or ranks_per_node,
+            jassert(num_procs or num_nodes or procs_per_node,
                     "No procs/nodes provided - aborting")
 
         # Extra_args analysis not done here - could pick up self.mpi_runner but possible
         # that Balsam finds a different runner.
         if self.auto_resources:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 self.resources.get_resources(
                     num_procs=num_procs,
-                    num_nodes=num_nodes, ranks_per_node=ranks_per_node,
+                    num_nodes=num_nodes, procs_per_node=procs_per_node,
                     hyperthreads=hyperthreads)
         else:
-            num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
+            num_procs, num_nodes, procs_per_node = \
+                MPIResources.task_partition(num_procs, num_nodes, procs_per_node)
 
         if stdout is not None or stderr is not None:
             logger.warning("Balsam does not currently accept a stdout "
@@ -324,7 +324,7 @@ class BalsamMPIExecutor(MPIExecutor):
                          'application': app.gname,
                          'args': task.app_args,
                          'num_nodes': num_nodes,
-                         'ranks_per_node': ranks_per_node,
+                         'procs_per_node': procs_per_node,
                          'mpi_flags': extra_args}
 
         if stage_inout is not None:
@@ -349,7 +349,7 @@ class BalsamMPIExecutor(MPIExecutor):
 
             logger.info("Added task to Balsam database {}: "
                         "nodes {} ppn {}".
-                        format(task.name, num_nodes, ranks_per_node))
+                        format(task.name, num_nodes, procs_per_node))
 
             # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)

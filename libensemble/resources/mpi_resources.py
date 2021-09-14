@@ -22,46 +22,46 @@ class MPIResources(Resources):
     """Manages resources provided to MPI tasks launched from workers."""
 
     @staticmethod
-    def task_partition(num_procs, num_nodes, ranks_per_node, machinefile=None):
+    def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):
         """Takes provided nprocs/nodes/ranks and outputs working
         configuration of procs/nodes/ranks or error"""
 
         # Convert to int if string is provided
         num_procs = int(num_procs) if num_procs else None
         num_nodes = int(num_nodes) if num_nodes else None
-        ranks_per_node = int(ranks_per_node) if ranks_per_node else None
+        procs_per_node = int(procs_per_node) if procs_per_node else None
 
         # If machinefile is provided - ignore everything else
         if machinefile:
-            if num_procs or num_nodes or ranks_per_node:
+            if num_procs or num_nodes or procs_per_node:
                 logger.warning("Machinefile provided - overriding "
-                               "procs/nodes/ranks_per_node")
+                               "procs/nodes/procs_per_node")
             return None, None, None
 
         if not num_procs:
-            rassert(num_nodes and ranks_per_node,
-                    "Need num_procs, num_nodes/ranks_per_node, or machinefile")
-            num_procs = num_nodes * ranks_per_node
+            rassert(num_nodes and procs_per_node,
+                    "Need num_procs, num_nodes/procs_per_node, or machinefile")
+            num_procs = num_nodes * procs_per_node
 
         elif not num_nodes:
-            ranks_per_node = ranks_per_node or num_procs
-            num_nodes = num_procs//ranks_per_node
+            procs_per_node = procs_per_node or num_procs
+            num_nodes = num_procs//procs_per_node
 
-        elif not ranks_per_node:
-            ranks_per_node = num_procs//num_nodes
+        elif not procs_per_node:
+            procs_per_node = num_procs//num_nodes
 
-        rassert(num_procs == num_nodes*ranks_per_node,
-                "num_procs does not equal num_nodes*ranks_per_node")
-        return num_procs, num_nodes, ranks_per_node
+        rassert(num_procs == num_nodes*procs_per_node,
+                "num_procs does not equal num_nodes*procs_per_node")
+        return num_procs, num_nodes, procs_per_node
 
     def get_resources(self, num_procs=None, num_nodes=None,
-                      ranks_per_node=None, hyperthreads=False):
+                      procs_per_node=None, hyperthreads=False):
         """Reconciles user-supplied options with available worker
         resources to produce run configuration.
 
         Detects resources available to worker, checks whether an existing
         user-supplied config is valid, and fills in any missing config
-        information (i.e., num_procs/num_nodes/ranks_per_node)
+        information (i.e., num_procs/num_nodes/procs_per_node)
 
         User-supplied config options are honored, and an exception is
         raised if these are infeasible.
@@ -78,27 +78,27 @@ class MPIResources(Resources):
         rassert(node_list, "Node list is empty - aborting")
 
         # If no decomposition supplied - use all available cores/nodes
-        if not num_procs and not num_nodes and not ranks_per_node:
+        if not num_procs and not num_nodes and not procs_per_node:
             num_nodes = local_node_count
-            ranks_per_node = cores_avail_per_node_per_worker
+            procs_per_node = cores_avail_per_node_per_worker
             logger.debug("No decomposition supplied - "
                          "using all available resource. "
-                         "Nodes: {}  ranks_per_node {}".
-                         format(num_nodes, ranks_per_node))
-        elif not num_nodes and not ranks_per_node:
+                         "Nodes: {}  procs_per_node {}".
+                         format(num_nodes, procs_per_node))
+        elif not num_nodes and not procs_per_node:
             if num_procs <= cores_avail_per_node_per_worker:
                 num_nodes = 1
             else:
                 num_nodes = local_node_count
-        elif not num_procs and not ranks_per_node:
-            ranks_per_node = cores_avail_per_node_per_worker
+        elif not num_procs and not procs_per_node:
+            procs_per_node = cores_avail_per_node_per_worker
         elif not num_procs and not num_nodes:
             num_nodes = local_node_count
 
         # Checks config is consistent and sufficient to express
         # - does not check actual resources
-        num_procs, num_nodes, ranks_per_node = \
-            MPIResources.task_partition(num_procs, num_nodes, ranks_per_node)
+        num_procs, num_nodes, procs_per_node = \
+            MPIResources.task_partition(num_procs, num_nodes, procs_per_node)
 
         rassert(num_nodes <= local_node_count,
                 "Not enough nodes to honor arguments. "
@@ -106,15 +106,15 @@ class MPIResources(Resources):
                 format(num_nodes, local_node_count))
 
         if not self.allow_oversubscribe:
-            rassert(ranks_per_node <= cores_avail_per_node,
+            rassert(procs_per_node <= cores_avail_per_node,
                     "Not enough processors on a node to honor arguments. "
                     "Requested {}. Only {} available".
-                    format(ranks_per_node, cores_avail_per_node))
+                    format(procs_per_node, cores_avail_per_node))
 
-            rassert(ranks_per_node <= cores_avail_per_node_per_worker,
+            rassert(procs_per_node <= cores_avail_per_node_per_worker,
                     "Not enough processors per worker to honor arguments. "
                     "Requested {}. Only {} available".
-                    format(ranks_per_node, cores_avail_per_node_per_worker))
+                    format(procs_per_node, cores_avail_per_node_per_worker))
 
             rassert(num_procs <= (cores_avail_per_node * local_node_count),
                     "Not enough procs to honor arguments. "
@@ -126,10 +126,10 @@ class MPIResources(Resources):
                            "than available. {} nodes used. {} nodes available".
                            format(num_nodes, local_node_count))
 
-        return num_procs, num_nodes, ranks_per_node
+        return num_procs, num_nodes, procs_per_node
 
     def create_machinefile(self, machinefile=None, num_procs=None,
-                           num_nodes=None, ranks_per_node=None,
+                           num_nodes=None, procs_per_node=None,
                            hyperthreads=False):
         """Creates a machinefile based on user-supplied config options,
         completed by detected machine resources"""
@@ -143,15 +143,15 @@ class MPIResources(Resources):
 
         node_list = self.worker_resources.local_nodelist
         logger.debug("Creating machinefile with {} nodes and {} ranks per node".
-                     format(num_nodes, ranks_per_node))
+                     format(num_nodes, procs_per_node))
 
         with open(machinefile, 'w') as f:
             for node in node_list[:num_nodes]:
-                f.write((node + '\n') * ranks_per_node)
+                f.write((node + '\n') * procs_per_node)
 
         built_mfile = (os.path.isfile(machinefile)
                        and os.path.getsize(machinefile) > 0)
-        return built_mfile, num_procs, num_nodes, ranks_per_node
+        return built_mfile, num_procs, num_nodes, procs_per_node
 
     def get_hostlist(self, num_nodes=None):
         """Creates a hostlist based on user-supplied config options,

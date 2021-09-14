@@ -70,7 +70,7 @@ resource sets as follows:
 
 - num_nodes (int, optional) – The number of nodes on which to submit the run.
 
-- ranks_per_node (int, optional) – The number of resource sets per node.
+- procs_per_node (int, optional) – The number of resource sets per node.
 
 It is recommended that the user defines a resource set as the minimal configuration
 of CPU cores/processes and GPUs. These can be added to the ``extra_args`` option

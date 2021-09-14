@@ -15,7 +15,7 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
     """
     Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
     ``gen_specs['user']['lb']``. Also randomly requests a different ``number_of_nodes``
-    and ``ranks_per_node`` to be used in the evaluation of the generated point.
+    and ``procs_per_node`` to be used in the evaluation of the generated point.
 
     .. seealso::
         `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
@@ -32,14 +32,14 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
             x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
             H_o['x'][i] = x
             H_o['num_nodes'][i] = 1
-            H_o['ranks_per_node'][i] = 16
+            H_o['procs_per_node'][i] = 16
             H_o['priority'] = 1
 
     else:
         H_o = np.zeros(1, dtype=gen_specs['out'])
         H_o['x'] = len(H)*np.ones(n)
         H_o['num_nodes'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_num_nodes']+1)
-        H_o['ranks_per_node'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_ranks_per_node']+1)
+        H_o['procs_per_node'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_procs_per_node']+1)
         H_o['priority'] = 10*H_o['num_nodes']
 
     return H_o, persis_info

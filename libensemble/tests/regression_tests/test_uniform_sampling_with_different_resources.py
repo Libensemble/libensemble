@@ -58,7 +58,7 @@ exctr.register_app(full_path=sim_app, calc_type='sim')
 
 n = 2
 sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'num_nodes', 'ranks_per_node'],
+             'in': ['x', 'num_nodes', 'procs_per_node'],
              'out': [('f', float)],
              'user': {'nodelist': libE_machinefile}
              }
@@ -67,11 +67,11 @@ gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
              'out': [('priority', float),
                      ('num_nodes', int),
-                     ('ranks_per_node', int),
+                     ('procs_per_node', int),
                      ('x', float, n),
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': 5,
-                      'max_ranks_per_node': 8,
+                      'max_procs_per_node': 8,
                       'give_all_with_same_priority': True,
                       'max_num_nodes': nworkers,  # Used in uniform_random_sample_with_different_nodes_and_ranks,
                       'lb': np.array([-3, -2]),

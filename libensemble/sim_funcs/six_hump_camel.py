@@ -42,7 +42,7 @@ def six_hump_camel_with_different_ranks_and_nodes(H, persis_info, sim_specs, lib
         with open(machinefilename, 'w') as f:
             for rank in ranks_involved:
                 b = sim_specs['user']['nodelist'][rank] + '\n'
-                f.write(b*H['ranks_per_node'][i])
+                f.write(b*H['procs_per_node'][i])
 
         out_name = 'helloworld_sim_id=' + str(libE_info['H_rows'][i]) + \
                    '_resource_set='+'_'.join([str(r) for r in ranks_involved])
