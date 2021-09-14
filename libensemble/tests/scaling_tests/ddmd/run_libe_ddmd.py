@@ -51,7 +51,7 @@ ddmd_apps = {'molecular_dynamics': run_openmm.__file__,
 exctr = MPIExecutor()
 
 for app in ddmd_apps:
-    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
+    exctr.register_app(full_path=ddmd_apps[app], app_name=app)
 
 # Specify directory structure where user functions will be called
 ensemble_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_').split('.')[0])

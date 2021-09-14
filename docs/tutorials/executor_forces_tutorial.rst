@@ -61,7 +61,7 @@ generation functions and call libEnsemble. Create a Python file containing:
 
     # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), 'forces.x')
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.

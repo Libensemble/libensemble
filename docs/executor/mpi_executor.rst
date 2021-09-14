@@ -11,7 +11,7 @@ MPI Executor
   .. automethod:: __init__
 
 ..  :member-order: bysource
-..  :members: __init__, register_calc, submit, manager_poll
+..  :members: __init__, register_app, submit, manager_poll
 
 Class-specific Attributes
 -------------------------

@@ -58,7 +58,7 @@ customizer = {'mpi_runner': 'srun',    # Select runner: mpich, openmpi, aprun, s
 # Create executor and register sim to it.
 exctr = MPIExecutor(central_mode=True, auto_resources=True,
                     allow_oversubscribe=False, custom_info=customizer)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 n = 2
 sim_specs = {'sim_f': sim_f,

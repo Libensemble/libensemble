@@ -194,7 +194,7 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
                   'node_file': node_file}      # Name of file containing a node-list
 
     exctr = MPIExecutor(central_mode=True, auto_resources=True, allow_oversubscribe=False, custom_info=customizer)
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
     test_list = test_list_base + test_list_exargs
     sim_specs['user'] = {'tests': test_list, 'expect': exp_list, 'nodes_per_worker': nodes_per_worker, 'persis_gens': 0}

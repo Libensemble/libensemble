@@ -375,7 +375,7 @@ class Executor:
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
-    def register_calc(self, full_path, app_name=None, calc_type=None, desc=None):
+    def register_app(self, full_path, app_name=None, calc_type=None, desc=None):
         """Registers a user application to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either

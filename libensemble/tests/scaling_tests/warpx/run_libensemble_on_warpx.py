@@ -68,7 +68,7 @@ sim_app = machine_specs['sim_app']
 n = 4
 
 exctr = MPIExecutor(central_mode=True)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters
 # (and their sizes). Here, the 'user' field is for the user's (in this case,

@@ -43,7 +43,7 @@ if USE_BALSAM:
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 

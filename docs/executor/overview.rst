@@ -43,7 +43,7 @@ In calling function::
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()
 
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 .. note::
     The *Executor* set up in the calling script is stored as a class attribute and
@@ -102,7 +102,7 @@ equivalent lines in the above example would be:
 
 Calling script::
 
-    exctr.register_calc(full_path='/path/to/my/exe', app_name='forces_app')
+    exctr.register_app(full_path='/path/to/my/exe', app_name='forces_app')
 
 User sim func::
 

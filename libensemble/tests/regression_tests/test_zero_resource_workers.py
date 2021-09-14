@@ -68,7 +68,7 @@ customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, aprun, 
 exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True,
                     auto_resources=True, allow_oversubscribe=False,
                     custom_info=customizer)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
 if nworkers < 2:

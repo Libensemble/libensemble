@@ -70,22 +70,22 @@ def setup_executor():
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor(auto_resources=False)
 
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
 def setup_serial_executor():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
     exctr = Executor()
-    exctr.register_calc(full_path=serial_app, calc_type='sim')
+    exctr.register_app(full_path=serial_app, calc_type='sim')
 
 
 def setup_executor_startups():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
     exctr = Executor()
-    exctr.register_calc(full_path=c_startup, app_name='c_startup')
-    exctr.register_calc(full_path=py_startup, app_name='py_startup')
+    exctr.register_app(full_path=c_startup, app_name='c_startup')
+    exctr.register_app(full_path=py_startup, app_name='py_startup')
 
 
 def setup_executor_noapp():
@@ -112,7 +112,7 @@ def setup_executor_fakerunner():
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(auto_resources=False, custom_info=customizer)
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
 # -----------------------------------------------------------------------------
@@ -481,7 +481,7 @@ def test_launch_as_gen():
     else:
         assert 0
 
-    exctr.register_calc(full_path=sim_app, calc_type='gen')
+    exctr.register_app(full_path=sim_app, calc_type='gen')
     task = exctr.submit(calc_type='gen', num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -607,8 +607,8 @@ def test_register_apps():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()  # This registers an app my_simtask.x (default sim)
     exctr = Executor.executor
-    exctr.register_calc(full_path='/path/to/fake_app1.x', app_name='fake_app1')
-    exctr.register_calc(full_path='/path/to/fake_app2.py', app_name='fake_app2')
+    exctr.register_app(full_path='/path/to/fake_app1.x', app_name='fake_app1')
+    exctr.register_app(full_path='/path/to/fake_app2.py', app_name='fake_app2')
 
     # Check selected attributes
     app = exctr.get_app('my_simtask.x')
