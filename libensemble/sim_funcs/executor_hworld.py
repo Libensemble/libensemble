@@ -99,7 +99,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     if use_balsam:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
                             hyperthreads=True, machinefile='notused', stdout='notused',
-                            wait_on_run=True)
+                            wait_on_start=True)
     else:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
 
@@ -130,7 +130,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
         task = exctr.submit(app_name='sim_hump_camel_dry_run', num_procs=cores, app_args=args_for_sim,
                             hyperthreads=True, machinefile='notused', stdout='notused',
-                            wait_on_run=True, dry_run=True, stage_inout=os.getcwd())
+                            wait_on_start=True, dry_run=True, stage_inout=os.getcwd())
 
         task.poll()
         task.wait()

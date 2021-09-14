@@ -217,15 +217,15 @@ execution.
         # Submit our simulation for execution.
         if cores:
             task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
-                                stdout='out.txt', stderr='err.txt', wait_on_run=True)
+                                stdout='out.txt', stderr='err.txt', wait_on_start=True)
         else:
             task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt',
-                                stderr='err.txt', wait_on_run=True)
+                                stderr='err.txt', wait_on_start=True)
 
 In each executor ``submit()`` routine, we define the type of calculation being
 performed, optionally the number of processors to run the task on, additional
 arguments for the simulation code, and files for ``stdout`` and ``stderr``
-output. The ``wait_on_run`` argument pauses ``sim_f`` execution until the task
+output. The ``wait_on_start`` argument pauses ``sim_f`` execution until the task
 is confirmed to be running. See the :doc:`docs<../executor/mpi_executor>`
 for more information about these and other options.
 

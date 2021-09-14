@@ -81,11 +81,11 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Machinefile only used here for exception testing
     if cores:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
-                            stdout='out.txt', stderr='err.txt', wait_on_run=True,
+                            stdout='out.txt', stderr='err.txt', wait_on_start=True,
                             machinefile=machinefile)
     else:
         task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt',
-                            stderr='err.txt', wait_on_run=True, hyperthreads=True,
+                            stderr='err.txt', wait_on_start=True, hyperthreads=True,
                             machinefile=machinefile)  # Auto-partition
 
     # Stat file to check for bad runs

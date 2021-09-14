@@ -62,7 +62,7 @@ def run_openmm_sim_f(H, persis_info, sim_specs, libE_info):
 
     # Submit the molecular_dynamics app that was registered with the Executor.
     #  Only one process needed since bulk work presumably done on GPU.
-    task = exctr.submit(app_name='molecular_dynamics', app_args=args, wait_on_run=True,
+    task = exctr.submit(app_name='molecular_dynamics', app_args=args, wait_on_start=True,
                         num_procs=1, num_nodes=1, procs_per_node=1)
 
     # Periodically poll our running task, then ensure the task created the expected output.

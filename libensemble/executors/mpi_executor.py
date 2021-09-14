@@ -142,7 +142,7 @@ class MPIExecutor(Executor):
         if serial_setup:
             self._serial_setup()
 
-    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_run):
+    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_start):
         """ Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
@@ -164,8 +164,8 @@ class MPIExecutor(Executor):
                 retry = True
                 retry_count += 1
             else:
-                if (wait_on_run):
-                    self._wait_on_run(task, self.fail_time)
+                if (wait_on_start):
+                    self._wait_on_start(task, self.fail_time)
 
                 if task.state == 'FAILED':
                     logger.warning('task {} failed within fail_time on '
@@ -184,7 +184,7 @@ class MPIExecutor(Executor):
     def submit(self, calc_type=None, app_name=None, num_procs=None,
                num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_run=False,
+               hyperthreads=False, dry_run=False, wait_on_start=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
@@ -233,7 +233,7 @@ class MPIExecutor(Executor):
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_run: boolean, optional
+        wait_on_start: boolean, optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
@@ -293,7 +293,7 @@ class MPIExecutor(Executor):
             task._set_complete(dry_run=True)
         else:
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_run)
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
             if not task.timer.timing:
                 task.timer.start()

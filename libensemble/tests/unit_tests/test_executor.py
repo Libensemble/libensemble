@@ -230,14 +230,14 @@ def test_launch_and_wait_timeout():
     assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-def test_launch_wait_on_run():
-    """ Test of launching task with wait_on_run """
+def test_launch_wait_on_start():
+    """ Test of launching task with wait_on_start """
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(task.state)
     exctr.poll(task)
     if not task.finished:
@@ -598,7 +598,7 @@ def test_retries_run_fail():
     exctr.retry_delay_incr = 0.05
     cores = NCORES
     args_for_sim = 'sleep 0 Fail'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
@@ -641,7 +641,7 @@ def test_serial_exes():
     setup_serial_executor()
     exctr = Executor.executor
     args_for_sim = 'sleep 0.1'
-    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_start=True)
     task.wait()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
@@ -677,7 +677,7 @@ if __name__ == "__main__":
     test_launch_and_poll()
     test_launch_and_wait()
     test_launch_and_wait_timeout()
-    test_launch_wait_on_run()
+    test_launch_wait_on_start()
     test_kill_on_file()
     test_kill_on_timeout()
     test_kill_on_timeout_polling_loop_method()
