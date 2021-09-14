@@ -29,7 +29,7 @@ cores_per_task = 1
 sim_app = './my_simtask.x'
 sim_app2 = six_hump_camel.__file__
 
-exctr = BalsamMPIExecutor(auto_resources=False, central_mode=False, custom_info={'not': 'used'})
+exctr = BalsamMPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 exctr.register_calc(full_path=sim_app2, app_name='sim_hump_camel_dry_run')
