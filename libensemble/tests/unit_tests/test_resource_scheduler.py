@@ -14,22 +14,22 @@ class MyResources:
 
     # Basic layout
     def __init__(self, num_rsets, num_groups):
-        self.num_rsets = num_rsets
+        self.total_num_rsets = num_rsets
         self.num_groups = num_groups
-        self.rsets_per_node = num_rsets//num_groups
+        self.rsets_per_node = self.total_num_rsets//num_groups
         self.even_groups = True
-        self.rsets = np.zeros(self.num_rsets, dtype=MyResources.rset_dtype)
+        self.rsets = np.zeros(self.total_num_rsets, dtype=MyResources.rset_dtype)
         self.rsets['assigned'] = 0
-        for i in range(num_rsets):
+        for i in range(self.total_num_rsets):
             self.rsets['group'][i] = i // self.rsets_per_node
-        self.rsets_free = self.num_rsets
+        self.rsets_free = self.total_num_rsets
         print(self.rsets)
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
             self.rsets['assigned'] = 0
-            self.rsets_free = self.num_rsets
+            self.rsets_free = self.total_num_rsets
         else:
             for rset, wid in enumerate(self.rsets['assigned']):
                 if wid == worker:

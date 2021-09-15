@@ -64,9 +64,9 @@ class ResourceScheduler:
 
         # SH TODO: Remove commented print statements
 
-        if rsets_req > self.resources.num_rsets:
+        if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
-                                             .format(rsets_req, self.resources.num_rsets))
+                                             .format(rsets_req, self.resources.total_num_rsets))
 
         if rsets_req > self.rsets_free:
             raise InsufficientFreeResources
