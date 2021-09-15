@@ -138,6 +138,10 @@ class AllocSupport:
         :returns: None, but ``Work`` is updated.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
+
+        if rset_team is passed as an additional parameter, it will be honored, assuming that
+        any resource checking has already been done.
+
         """
 
         # Honor rset_team if passed
@@ -175,6 +179,10 @@ class AllocSupport:
         :returns: None, but ``Work`` is updated.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
+
+        if rset_team is passed as an additional parameter, it will be honored, and assume that
+        any resource checking has already been done. For example, passing ``rset_team=[]``, would
+        ensure that no resources are assigned.
         """
 
         # Honor rset_team if passed
@@ -191,8 +199,9 @@ class AllocSupport:
                 # print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
 
         # Must come after resources - as that may exit with InsufficientFreeResources
-        AllocSupport.gen_counter += 1  # Count total gens
-        libE_info['gen_count'] = AllocSupport.gen_counter
+        if not self.W[wid-1]['persis_state']:
+            AllocSupport.gen_counter += 1  # Count total gens
+            libE_info['gen_count'] = AllocSupport.gen_counter
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
