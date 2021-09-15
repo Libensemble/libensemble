@@ -233,6 +233,16 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # start up gens
         if is_first_iter and gen_count < user['num_gens']:
+
+            # Checking resources first before call to gen_work
+            rset_team = None
+            if support.manage_resources:
+                gen_resources = support.persis_info.get('gen_resources', 0)
+                try:
+                    rset_team = support.assign_resources(gen_resources)
+                except InsufficientFreeResources:
+                    break
+
             A = persis_info['A']
 
             gen_count += 1
@@ -251,11 +261,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'params': persis_info.get('gen_params', {})})
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
-            try:
-                support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
-                                 persis_info.get(wid), persistent=True)
-            except InsufficientFreeResources:
-                break
+            support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
+                             persis_info.get(wid), persistent=True, rset_team=rset_team)
 
         # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
@@ -270,6 +277,15 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if persis_info['next_to_give'] >= len(H):
                 break
 
+            # Checking resources first before call to sim_work
+            rset_team = None
+            if support.manage_resources:
+                num_rsets_req = (np.max(H[persis_info['next_to_give']]['resource_sets']))
+                try:
+                    rset_team = support.assign_resources(num_rsets_req)
+                except InsufficientFreeResources:
+                    break
+
             gen_id = H[persis_info['next_to_give']]['gen_worker']
             [l_H_ids, r_H_ids] = persis_info[gen_id]['curr_H_ids']
 
@@ -278,13 +294,13 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                     persis_info['next_to_give'], l_H_ids)
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
-            try:
-                support.sim_work(Work, wid,
-                                 sim_specs['in'],
-                                 np.arange(l_H_ids, r_H_ids),
-                                 persis_info.get(wid))
-            except InsufficientFreeResources:
-                break
+
+            support.sim_work(Work, wid,
+                             sim_specs['in'],
+                             np.arange(l_H_ids, r_H_ids),
+                             persis_info.get(wid),
+                             rset_team=rset_team)
+
             # we can safely assume the rows are contiguous due to (!!)
             persis_info['next_to_give'] += (r_H_ids - l_H_ids)
 
