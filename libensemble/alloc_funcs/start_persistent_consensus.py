@@ -270,7 +270,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             # skip points that are not sim work or are already done
             while persis_info['next_to_give'] < len(H) and \
                     (H[persis_info['next_to_give']]['given'] or
-                     H[persis_info['next_to_give']]['consensus_pt']):
+                     H[persis_info['next_to_give']]['consensus_pt'] or
+                     H[persis_info['next_to_give']]['cancel_requested']):
 
                 persis_info['next_to_give'] += 1
 
