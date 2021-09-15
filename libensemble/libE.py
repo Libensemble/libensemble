@@ -488,25 +488,16 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     is_worker = True if 'workerID' in libE_specs else False
-    nworkers = libE_specs['nworkers']
-    resources = Resources.resources
-    if resources is not None:
-        local_host = [socket.gethostname()]
-        resources.add_comm_info(libE_nodes=local_host)
 
     exctr = Executor.executor
     if exctr is not None:
         # TCP does not currently support auto_resources but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
-        exctr.set_resources(resources)
         exctr.add_comm_info(serial_setup=not is_worker)
 
     if is_worker:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
         return [], persis_info, []
-
-    if resources is not None:
-        resources.set_resource_manager(nworkers)
 
     return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                         persis_info, alloc_specs, libE_specs, H0)
@@ -564,8 +555,6 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     ip = libE_specs.get('ip', None) or get_ip()
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
-
-    osx_set_mp_method()
 
     osx_set_mp_method()
 
