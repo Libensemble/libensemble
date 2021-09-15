@@ -127,7 +127,7 @@ class WorkerResources(RSetResources):
 
     **Object Attributes:**
 
-    These attributes may be updated as the ensemble progresses.
+    Some of these attributes may be updated as the ensemble progresses.
 
     ``rsets`` below is used to abbreviate ``resource sets``.
 

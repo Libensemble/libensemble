@@ -96,6 +96,17 @@ its capabilities.
   initiated in a single Python file referred to as a *calling script*. ``sim_f``
   and ``gen_f`` functions are also commonly configured and parameterized here.
 
+* **User function**: A generator, simulator, or allocation function. These
+  functions are python functions that govern the libEnsemble workflow. They
+  must implement the API for each respective user function, but otherwise can
+  be created or modified by the user. libEnsemble comes with many examples of
+  each type of user function.
+
+* **Executor**: The executor can be used within user functions to provide a
+  simple, portable interface for running and managing user tasks (applications).
+  There are multiple executors including the ``MPIExecutor`` and ``BalsamMPIExecutor``.
+  The base ``Executor`` class allows local sub-processing of serial tasks.
+
 * **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be
   launched. When using the libEnsemble Executor, a *submitted* task is executed
   immediately or queued for execution.
@@ -110,3 +121,18 @@ its capabilities.
   for example, in order to efficiently maintain and update data structures instead of
   communicating them between manager and worker. These calculations
   and the workers assigned to them are referred to as *persistent*.
+
+* **Resource Manager** libEnsemble has a built-in resource manager that can detect
+  (or be provided with) a set of resources (e.g. a node-list). The resources are
+  divided up amongst workers (using *resource sets*), and can be dynamically
+  reassigned.
+
+* **Resource Set**: The smallest unit of resources that can be assigned (and
+  dynamically reassigned) to workers. By default it is the provisioned resources
+  divided by the number of workers (excluding any workers given in the
+  ``zero_resource_workers`` libE_specs option). However, it can also be set
+  directly by the ``num_resource_sets`` libE_specs option.
+
+* **Slot**: The ``resource sets`` enumerated on a node (starting with zero). If
+  a resource set has more than one node, then each node is considered to have slot
+  zero.
