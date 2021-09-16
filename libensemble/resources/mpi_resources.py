@@ -142,7 +142,7 @@ class MPIResources(Resources):
                 logger.warning("Could not remove existing machinefile: {}".format(e))
 
         node_list = self.worker_resources.local_nodelist
-        logger.debug("Creating machinefile with {} nodes and {} ranks per node".
+        logger.debug("Creating machinefile with {} nodes and {} processes per node".
                      format(num_nodes, procs_per_node))
 
         with open(machinefile, 'w') as f:
