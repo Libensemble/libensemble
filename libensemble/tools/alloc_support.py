@@ -38,9 +38,8 @@ class AllocSupport:
         :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
         """
         self.W = W
-        self.H = H
         self.persis_info = persis_info
-        self.manage_resources = 'resource_sets' in H.dtype.names
+        self.manage_resources = sched_opts.get('use_resource_sets', False) 
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
@@ -123,7 +122,7 @@ class AllocSupport:
         """Return the number of active persistent generators."""
         return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
-    def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
+    def sim_work(self, Work, wid, H_fields, H_rows, persis_info, H=None, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
 
          Includes evaluation of required resources if the worker is not in a
@@ -134,6 +133,7 @@ class AllocSupport:
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
+        :param H: optional. History array, needed only for resource sets
 
         :returns: None, but ``Work`` is updated.
 
@@ -151,7 +151,7 @@ class AllocSupport:
             if self.W[wid-1]['persis_state']:
                 libE_info['rset_team'] = []
             else:
-                num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))
+                num_rsets_req = (np.max(H[H_rows]['resource_sets']))
                 rset_team = self.assign_resources(num_rsets_req)
                 libE_info['rset_team'] = rset_team
                 # print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
@@ -211,7 +211,7 @@ class AllocSupport:
                      'tag': EVAL_GEN_TAG,
                      'libE_info': libE_info}
 
-    def all_returned(self, pt_filter=None, low_bound=None):
+    def all_returned(self, H_in, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have returned from sim
 
         :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
@@ -220,9 +220,9 @@ class AllocSupport:
         """
         # Faster not to slice when whole array
         if low_bound is not None:
-            H = self.H[low_bound:]
+            H = H_in[low_bound:]
         else:
-            H = self.H
+            H = H_in
 
         if pt_filter is None:
             pfilter = True  # Scalar expansion
@@ -236,15 +236,15 @@ class AllocSupport:
         excluded_points = H['cancel_requested'] & ~H['given']
         return np.all(H['returned'][pfilter & ~excluded_points])
 
-    def points_by_priority(self, points_avail, batch=False):
+    def points_by_priority(self, H, points_avail, batch=False):
         """Returns indices of points to give by priority
 
         :param points_avail: Indices of points that are available to give
         :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
-        if 'priority' in self.H.dtype.fields:
-            priorities = self.H['priority'][points_avail]
+        if 'priority' in H.dtype.fields:
+            priorities = H['priority'][points_avail]
             if batch:
                 q_inds = (priorities == np.max(priorities))
             else:
