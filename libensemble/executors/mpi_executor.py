@@ -207,7 +207,7 @@ class MPIExecutor(Executor):
             The number of nodes on which to submit the task
 
         procs_per_node: int, optional
-            The ranks per node for this task
+            The processes per node for this task
 
         machinefile: string, optional
             Name of a machinefile for this task to use
