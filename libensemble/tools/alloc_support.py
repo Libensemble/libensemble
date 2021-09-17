@@ -123,6 +123,17 @@ class AllocSupport:
         """Return the number of active persistent generators."""
         return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
+    def _update_rset_team(self, libE_info, wid, H_rows=None):
+        if self.manage_resources and not libE_info.get('rset_team'):
+            if self.W[wid-1]['persis_state']:
+                return []  # Even if empty list, presence of non-None rset_team stops manager giving default resources
+            else:
+                if H_rows is not None:
+                    num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))  # sim rsets
+                else:
+                    num_rsets_req = self.persis_info.get('gen_resources', 0)
+                return self.assign_resources(num_rsets_req)
+
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
 
@@ -143,19 +154,7 @@ class AllocSupport:
         any resource checking has already been done.
 
         """
-
-        # Honor rset_team if passed
-        rset_team = libE_info.get('rset_team', None)
-
-        if self.manage_resources and rset_team is None:
-            if self.W[wid-1]['persis_state']:
-                libE_info['rset_team'] = []
-            else:
-                num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))
-                rset_team = self.assign_resources(num_rsets_req)
-                libE_info['rset_team'] = rset_team
-                # print('resource team {} for SIM assigned to worker {}'.format(rset_team, wid), flush=True)
-
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid, H_rows=H_rows)
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
@@ -185,20 +184,8 @@ class AllocSupport:
         ensure that no resources are assigned.
         """
 
-        # Honor rset_team if passed
-        rset_team = libE_info.get('rset_team', None)  # Honor rset_team if passed
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid)
 
-        if self.manage_resources and rset_team is None:
-            if self.W[wid-1]['persis_state']:
-                libE_info['rset_team'] = []
-            else:
-                gen_resources = self.persis_info.get('gen_resources', 0)
-                rset_team = self.assign_resources(gen_resources)
-                # Even if empty list, presence of non-None rset_team stops manager giving default resources
-                libE_info['rset_team'] = rset_team
-                # print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
-
-        # Must come after resources - as that may exit with InsufficientFreeResources
         if not self.W[wid-1]['persis_state']:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info['gen_count'] = AllocSupport.gen_counter
