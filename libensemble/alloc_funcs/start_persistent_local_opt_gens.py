@@ -51,7 +51,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             Work[wid] = support.gen_work(wid, gen_return_fields, last_ind,
-                             persis_info[wid], persistent=True)
+                                         persis_info[wid], persistent=True)
             persis_info[wid]['run_order'].append(last_ind)
 
     for wid in support.avail_worker_ids(persistent=False):
@@ -69,7 +69,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
             try:
                 Work[wid] = support.gen_work(wid, gen_return_fields, ind,
-                                 persis_info[wid], persistent=True)
+                                             persis_info[wid], persistent=True)
             except InsufficientFreeResources:
                 break
             H['started_run'][ind] = 1

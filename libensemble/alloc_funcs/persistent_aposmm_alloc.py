@@ -58,7 +58,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             if np.any(returned_but_not_given):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, persis_info['fields_to_give_back'],
-                                 point_ids, persis_info.get(wid), persistent=True)
+                                             point_ids, persis_info.get(wid), persistent=True)
                 returned_but_not_given[point_ids] = False
 
     for wid in support.avail_worker_ids(persistent=False):
@@ -79,7 +79,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             persis_info.get(wid)['nworkers'] = len(W)
             try:
                 Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
-                                 persis_info.get(wid), persistent=True)
+                                             persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             persis_info['gen_started'] = True  # Must set after - incase break on resources

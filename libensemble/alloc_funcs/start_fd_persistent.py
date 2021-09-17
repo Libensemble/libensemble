@@ -64,7 +64,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # SH TODO - MAYBE UNNEC - COULD ASSUME ZERO RESOURCES WITH rset_team=[]
             try:
                 Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
-                                 persistent=True)
+                                             persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1

@@ -72,7 +72,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             if async_return or support.all_returned(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_return_fields, point_ids, persis_info.get(wid),
-                                 persistent=True, active_recv=active_recv_gen)
+                                             persistent=True, active_recv=active_recv_gen)
                 returned_but_not_given[point_ids] = False
 
     # SH TODO: Now the give_sim_work_first bit
@@ -100,7 +100,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 # Finally, start a persistent generator as there is nothing else to do.
                 try:
                     Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
-                                     persistent=True, active_recv=active_recv_gen)
+                                                 persistent=True, active_recv=active_recv_gen)
                 except InsufficientFreeResources:
                     break
                 persis_info['num_gens_started'] = persis_info.get('num_gens_started', 0) + 1

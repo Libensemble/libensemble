@@ -208,8 +208,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 fsum += H[consensus_ids_in_H[i0]]['f_i']
 
             Work[wid] = support.gen_work(wid, ['x', 'gen_worker'],
-                             np.atleast_1d(neighbor_consensus_ids_in_H),
-                             persis_info.get(wid), persistent=True)
+                                         np.atleast_1d(neighbor_consensus_ids_in_H),
+                                         persis_info.get(wid), persistent=True)
 
             persis_info[wid].update({'curr_H_ids': []})
             persis_info[wid].update({'at_consensus': False})
@@ -262,7 +262,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
             Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
-                             persis_info.get(wid), persistent=True, rset_team=rset_team)
+                                         persis_info.get(wid), persistent=True, rset_team=rset_team)
 
         # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
@@ -296,11 +296,10 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
 
-            Work[wid] = support.sim_work(wid, H,
-                             sim_specs['in'],
-                             np.arange(l_H_ids, r_H_ids),
-                             persis_info.get(wid),
-                             rset_team=rset_team)
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'],
+                                         np.arange(l_H_ids, r_H_ids),
+                                         persis_info.get(wid),
+                                         rset_team=rset_team)
 
             # we can safely assume the rows are contiguous due to (!!)
             persis_info['next_to_give'] += (r_H_ids - l_H_ids)
