@@ -124,20 +124,15 @@ class AllocSupport:
         return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
     def _update_rset_team(self, libE_info, wid, H_rows=None):
-        rset_team = libE_info.get('rset_team', None)  # Honor rset_team if passed
-        if self.manage_resources and rset_team is None:
+        if self.manage_resources and not libE_info.get('rset_team'):
             if self.W[wid-1]['persis_state']:
-                libE_info['rset_team'] = []
+                return []  # Even if empty list, presence of non-None rset_team stops manager giving default resources
             else:
                 if H_rows is not None:
-                    parsed_resources = (np.max(self.H[H_rows]['resource_sets']))
+                    num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))  # sim rsets
                 else:
-                    parsed_resources = self.persis_info.get('gen_resources', 0)
-                rset_team = self.assign_resources(parsed_resources)
-                # Even if empty list, presence of non-None rset_team stops manager giving default resources
-                libE_info['rset_team'] = rset_team
-                # print('resource team {} for GEN assigned to worker {}'.format(rset_team, wid), flush=True)
-        return libE_info
+                    num_rsets_req = self.persis_info.get('gen_resources', 0)
+                return self.assign_resources(num_rsets_req)
 
     def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
@@ -159,7 +154,7 @@ class AllocSupport:
         any resource checking has already been done.
 
         """
-        libE_info = self._update_rset_team(libE_info, wid, H_rows=H_rows)
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid, H_rows=H_rows)
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
@@ -189,7 +184,7 @@ class AllocSupport:
         ensure that no resources are assigned.
         """
 
-        libE_info = self._update_rset_team(libE_info, wid)
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid)
 
         if not self.W[wid-1]['persis_state']:
             AllocSupport.gen_counter += 1  # Count total gens
