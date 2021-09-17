@@ -12,6 +12,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np

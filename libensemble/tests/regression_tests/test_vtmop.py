@@ -21,6 +21,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS:
 # TESTSUITE_NPROCS:
+# TESTSUITE_EXTRA: true
 
 import numpy as np
 import os
