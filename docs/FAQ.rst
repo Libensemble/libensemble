@@ -42,7 +42,7 @@ This can happen when libEnsemble tries to create ensemble or simulation director
 that already exist.
 
 To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
-option in :doc:`libE_specs<history_output>` to some unique value.
+option in :doc:`libE_specs<history_output_logging>` to some unique value.
 Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
@@ -145,7 +145,7 @@ If libEnsemble aborts on an exception, the History array and ``persis_info``
 dictionaries will be dumped. This can be suppressed by
 setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
-See :doc:`here<history_output>` for more information about these files.
+See :doc:`here<history_output_logging>` for more information about these files.
 
 macOS-Specific Errors
 ---------------------
