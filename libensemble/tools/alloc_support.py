@@ -211,12 +211,11 @@ class AllocSupport:
                      'tag': EVAL_GEN_TAG,
                      'libE_info': libE_info}
 
-    def all_returned(self, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have returned from sim
+    def _filter_points(self, pt_filter, low_bound):
+        """Returns H and pt_filter filted by lower bound
 
         :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
         :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have been returned
         """
         # Faster not to slice when whole array
         if low_bound is not None:
@@ -231,10 +230,46 @@ class AllocSupport:
                 pfilter = pt_filter[low_bound:]
             else:
                 pfilter = pt_filter
+        return H, pfilter
 
-        # Exclude cancelled points that were not already given out
+    def all_given(self, pt_filter=None, low_bound=None):
+        """Returns ``True`` if all expected points have been given to sim
+
+        Excludes cancelled points.
+
+        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
+        :param low_bound: Optional lower bound for testing all returned.
+        :returns: True if all expected points have been returned
+        """
+        H, pfilter = self._filter_points(pt_filter, low_bound)
+        excluded_points = H['cancel_requested']
+        return np.all(H['given'][pfilter & ~excluded_points])
+
+    def all_returned(self, pt_filter=None, low_bound=None):
+        """Returns ``True`` if all expected points have returned from sim
+
+        Excludes cancelled points that were not already given out.
+
+        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
+        :param low_bound: Optional lower bound for testing all returned.
+        :returns: True if all expected points have been returned
+        """
+        H, pfilter = self._filter_points(pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['given']
         return np.all(H['returned'][pfilter & ~excluded_points])
+
+    def all_given_back(self, pt_filter=None, low_bound=None):
+        """Returns ``True`` if all expected points have been given back to gen.
+
+        Excludes cancelled points that were not already given out.
+
+        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
+        :param low_bound: Optional lower bound for testing all returned.
+        :returns: True if all expected points have been returned
+        """
+        H, pfilter = self._filter_points(pt_filter, low_bound)
+        excluded_points = H['cancel_requested'] & ~H['given']
+        return np.all(H['given_back'][pfilter & ~excluded_points])
 
     def points_by_priority(self, points_avail, batch=False):
         """Returns indices of points to give by priority
