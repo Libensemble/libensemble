@@ -203,7 +203,7 @@ class BalsamMPIExecutor(MPIExecutor):
 
         self.workflow_name = "libe_workflow"
 
-    def _serial_setup(self):
+    def serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
