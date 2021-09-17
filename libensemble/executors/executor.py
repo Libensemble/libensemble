@@ -343,10 +343,8 @@ class Executor:
         self.comm = None
         Executor.executor = self
 
-    def _serial_setup(self):
-        pass  # To be overloaded
-
-    def add_comm_info(self, serial_setup):
+    def serial_setup(self):
+        """Set up to be called by only one process"""
         pass  # To be overloaded
 
     @property

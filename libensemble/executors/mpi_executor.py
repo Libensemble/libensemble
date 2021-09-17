@@ -103,15 +103,6 @@ class MPIExecutor(Executor):
     def set_resources(self, resources):
         self.resources = resources
 
-    # SH TODO: Change name as just serial setup now.
-    def add_comm_info(self, serial_setup):
-        """Adds comm-specific information to executor.
-
-        Updates resources information if auto_resources is true.
-        """
-        if serial_setup:
-            self._serial_setup()
-
     def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_run):
         """ Launch task with retry mechanism"""
         retry_count = 0
