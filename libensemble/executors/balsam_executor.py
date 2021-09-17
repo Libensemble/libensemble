@@ -196,6 +196,9 @@ class BalsamMPIExecutor(MPIExecutor):
         registry and configuration attributes
         """
 
+        if custom_info:
+            logger.warning("The Balsam executor does not support custom_info - ignoring")
+
         super().__init__(custom_info)
 
         self.workflow_name = "libe_workflow"

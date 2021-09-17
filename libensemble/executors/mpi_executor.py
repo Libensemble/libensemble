@@ -9,7 +9,6 @@ See the executor API below for optional arguments.
 """
 
 # SH TODO: Update add_comm_info - change name as only does serial setup (+look at set_worker_info)
-#          Correct all docstrings, arg lists and comments (eg. remove auto_resources).
 
 import os
 import logging
@@ -37,25 +36,48 @@ class MPIExecutor(Executor):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
-        registry and configuration attributes. A registry object must
-        have been created.
+        registry and configuration attributes.
 
-        This is typically created in the user calling script. If
-        auto_resources is true, an evaluation of system resources is
-        performed during this call.
+        This is typically created in the user calling script. The
+        MPIExecutor will use system resource information supplied by
+        the libEsnemble resource manager when submitting tasks.
 
         Parameters
         ----------
 
-        allow_oversubscribe: boolean, optional
-            If true, the Executor will permit submission of tasks with a
-            higher processor count than the CPUs available to the worker as
-            detected by auto_resources. Larger node counts are not allowed.
-            When auto_resources is off, this argument is ignored.
-
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually
-            auto-detected. See :ref:`custom_info<customizer>`
+            auto-detected. See below.
+
+
+        The MPIExecutor automatically detects MPI runners and launch
+        mechanisms. However it is possible to override the detected
+        information using the ``custom_info`` argument. This takes
+        a dictionary of values.
+
+        The allowable fields are::
+
+            'mpi_runner' [string]:
+                Select runner: 'mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'custom'
+                All except 'custom' relate to runner classes in libEnsemble.
+                Custom allows user to define their own run-lines but without parsing
+                arguments or making use of auto-resources.
+            'runner_name' [string]:
+                Runner name: Replaces run command if present. All runners have a default
+                except for 'custom'.
+            'subgroup_launch' [Boolean]:
+                Whether MPI runs should be initiatied in a new process group. This needs
+                to be correct for kills to work correctly. Use the standalone test at
+                libensemble/tests/standalone_tests/kill_test to determine correct value
+                for a system.
+
+        For example::
+
+            customizer = {'mpi_runner': 'mpich',
+                          'runner_name': 'wrapper -x mpich'}
+
+            from libensemble.executors.mpi_executor import MPIExecutor
+            exctr = MPIExecutor(custom_info=customizer)
 
         """
 

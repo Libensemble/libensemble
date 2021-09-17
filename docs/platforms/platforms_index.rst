@@ -177,7 +177,7 @@ System detection for resources can be overriden using the :ref:`resource_info<re
 libE_specs option.
 
 When using the MPI Executor it is possible to override the detected information using the
-:ref:`custom_info<customizer>` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 Instructions for Specific Platforms
 -----------------------------------
