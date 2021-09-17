@@ -85,10 +85,11 @@ Specifications for libEnsemble::
             List of fields in H that the manager will return to persistent
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
-        'auto_resources' [boolean]:
-            Autodetect available nodes and processor resources and assign to workers for
-            running tasks.
-            Default: True
+        'disable_resource_manager' [boolean]:
+            Disable the built-in resource manager. If this is True, then resource detection
+            and/or assignment of resources to workers is disabled. This also means that
+            any entries in the ``resource_info`` option will be ignored.
+            Default: False
         'num_resource_sets' [int]:
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding
@@ -106,8 +107,10 @@ Specifications for libEnsemble::
         'zero_resource_workers' [list of ints]:
             List of workers that require no resources.
         'resource_info' [dict]:
-            Provide resource information which overrides information detected by 'auto_resources'.
+            Provide resource information which overrides information detected. .
             The allowable fields are given below in 'Overriding Auto-detection'
+            Note that if the option ``disable_resource_manager`` is set then
+            this option is ignord.
 
 .. Cant put link in the codeblock as it is
 ..         'resource_info' [dict]:
@@ -131,21 +134,23 @@ The allowable fields are::
     'nodelist_env_slurm' [String]:
             The environment variable giving a node list in Slurm format
             (Default: Uses SLURM_NODELIST).  Note: This is queried only if
-            a node_list file is not provided and auto_resources=True.
+            a node_list file is not provided and the resource manager is
+            enabled (default).
     'nodelist_env_cobalt' [String]:
             The environment variable giving a node list in Cobalt format
             (Default: Uses COBALT_PARTNAME) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
+            if a node_list file is not provided and the resource manager
+            is enabled (default).
     'nodelist_env_lsf' [String]:
             The environment variable giving a node list in LSF format
             (Default: Uses LSB_HOSTS) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
+            if a node_list file is not provided and the resource manager
+            is enabled (default).
     'nodelist_env_lsf_shortform' [String]:
             The environment variable giving a node list in LSF short-form
             format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
-            if a node_list file is not provided and auto_resources=True.
+            if a node_list file is not provided and the resource manager is
+            enabled (default).
 
 For example::
 

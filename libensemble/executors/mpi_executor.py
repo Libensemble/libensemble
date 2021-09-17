@@ -200,7 +200,7 @@ class MPIExecutor(Executor):
 
         extra_args: String, optional
             Additional command line arguments to supply to MPI runner. If
-            arguments are recognised as those used in auto_resources
+            arguments are recognised as MPI resource configuration
             (num_procs, num_nodes, ranks_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.

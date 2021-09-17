@@ -3,13 +3,7 @@ This module detects and returns system resources
 
 """
 
-# SH TODO: Do we need resource_info options in libE_specs for resources, and another as argument
-#          to MPIExecutor for MPIExecutor configuration?
-#          E.g. mpi_runner_type, runner_name, subgroup_launch
-#          Alternative - do Executor same way as this (init in libE), and then can uses combined resource_info again!
-#          Also will need to update docs/tests with new resource_info options.
-#          Remove debugging comments/commented out code + check/update docstrings
-#          Deal with unbalanced cases, and if not, return meaningful error message
+# SH TODO: Deal with unbalanced cases, and if not, return meaningful error message
 
 import os
 import socket
@@ -32,23 +26,26 @@ class ResourcesException(Exception):
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    This is intialized when the executor is created with auto_resources set to true.
+    A resources instance is always intialized unless ``libE_specs['disable_resource_manager']`` is True.
 
     **Class Attributes:**
 
     :cvar Resources: resources: The resources object is stored here and can be retrieved in user functions.
 
-
     **Object Attributes:**
 
     These are set on initialization.
 
-    :ivar string top_level_dir: Directory where searches for node_list file
-    :ivar EnvResources env_resources: An object storing environment variables used by resources
-    :ivar list global_nodelist: A list of all nodes available for running user applications
-    :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
-    :ivar int physical_cores_avail_per_node: Physical cores available on a node
-    :ivar WorkerResources worker_resources: An object that can contain worker specific resources
+    :ivar string top_level_dir: Directory where searches for node_list file.
+    :ivar GlobalResources glob_resources: Maintains resources available to libEnsemble.
+
+    The following are set up after manager/worker fork.
+
+    The resource manager is set up only on the manaager, while the worker resources object is set
+    up on workers.
+
+    :ivar ResourceManager resource_manager: An object that manages resource set assignment to workers.
+    :ivar WorkerResources worker_resources: An object that contains worker specific resources.
     """
 
     resources = None
@@ -59,9 +56,9 @@ class Resources:
     def init_resources(cls, libE_specs):
         """Initiate resource management"""
 
-        # If auto_resources is False, then Resources.resources will remain None.
-        auto_resources = libE_specs.get('auto_resources', True)
-        if auto_resources:
+        # If disable_resource_manager is True, then Resources.resources will remain None.
+        disable_resource_manager = libE_specs.get('disable_resource_manager', False)
+        if not disable_resource_manager:
             top_level_dir = os.getcwd()  # SH TODO: Do we want as libE_specs option.
             # SH TODO: Should we recreate or re-use if exists
             if Resources.resources is None:
@@ -91,6 +88,20 @@ class Resources:
 
 
 class GlobalResources:
+    """
+    **Object Attributes:**
+
+    These are set on initialization.
+    :ivar string top_level_dir: Directory where searches for node_list file
+    :ivar EnvResources env_resources: An object storing environment variables used by resources
+    :ivar list global_nodelist: A list of all nodes available for running user applications
+    :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
+    :ivar int physical_cores_avail_per_node: Physical cores available on a node
+    :ivar list zero_resource_workers: A list of workerIDs to have no resources.
+    :ivar boolean central_mode: Whether to remove libE nodes from global nodelist.
+    :ivar int num_resource_sets: The number of resource sets if supplied by the user.
+    """
+
     def __init__(self, libE_specs, top_level_dir=None):
 
         """Initializes a new Resources instance
@@ -130,19 +141,19 @@ class GlobalResources:
 
         nodelist_env_slurm: String, optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
-            Note: This is queried only if a node_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided.
 
         nodelist_env_cobalt: String, optional
             The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
-            Note: This is queried only if a node_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided.
 
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
-            Note: This is queried only if a node_list file is not provided and auto_resources=True.
+            Note: This is queried only if a node_list file is not provided.
 
         nodelist_env_lsf_shortform: String, optional
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS)
-            Note: This is only queried if a node_list file is not provided and auto_resources=True.
+            Note: This is only queried if a node_list file is not provided.
 
         """
         self.top_level_dir = top_level_dir

@@ -52,11 +52,11 @@ Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True`
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
 
-Automatic partitioning of resources can be disabled if you want to oversubscribe
-(often if testing on a local machine) by configuring the Executor with
-``auto_resources=False``. For example::
+It is possible that you have set `allow_oversubscribe` to False when setting
+up the Executor. Also, the resource manager can be completely disabled
+with::
 
-    exctr = MPIExecutor(auto_resources=False)
+    libE_specs['disable_resource_manager'] = True
 
 Note that the Executor ``submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.

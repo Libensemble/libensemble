@@ -31,7 +31,7 @@ from libensemble.tests.regression_tests.common import build_simfunc
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['auto_resources'] = False
+libE_specs['disable_resource_manager'] = True
 
 
 USE_BALSAM = False
@@ -41,14 +41,14 @@ logical_cores = multiprocessing.cpu_count()
 cores_all_tasks = nworkers*cores_per_task
 
 if cores_all_tasks > logical_cores:
-    use_auto_resources = False
-    mess_resources = 'Oversubscribing - auto_resources set to False'
+    disable_resource_manager = True
+    mess_resources = 'Oversubscribing - Resource manager disabled'
 elif libE_specs.get('comms', False) == 'tcp':
-    use_auto_resources = False
-    mess_resources = 'TCP comms does not support auto_resources. Auto_resources set to False'
+    disable_resource_manager = True
+    mess_resources = 'TCP comms does not support resource management. Resource manager disabled'
 else:
-    use_auto_resources = True
-    mess_resources = 'Auto_resources set to True'
+    disable_resource_manager = False
+    mess_resources = 'Resource manager enabled'
 
 if is_manager:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))

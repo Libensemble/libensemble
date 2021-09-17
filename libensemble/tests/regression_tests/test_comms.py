@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs['auto_resources'] = False
+libE_specs['disable_resource_manager'] = True
 exctr = MPIExecutor()
 
 array_size = int(1e6)  # Size of large array in sim_specs

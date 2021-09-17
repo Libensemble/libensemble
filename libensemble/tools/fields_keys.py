@@ -64,7 +64,7 @@ libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
 allowed_libE_spec_keys = ['abort_on_exception',             #
                           'allow_oversubscribe',            #
                           'authkey',                        #
-                          'auto_resources',                 #
+                          'disable_resource_manager',       #
                           'central_mode',                   #
                           'comms',                          #
                           'resource_info',                  #

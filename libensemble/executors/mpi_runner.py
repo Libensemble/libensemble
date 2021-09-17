@@ -216,7 +216,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.subgroup_launch = True
         self.mfile_support = False
 
-        # TODO: Add multiplier to auto_resources checks (for -c/-a)
+        # TODO: Add multiplier to resources checks (for -c/-a)
         self.arg_nprocs = ('--np', '-n')
         self.arg_nnodes = ('--LIBE_NNODES_ARG_EMPTY',)
         self.arg_ppn = ('-r',)

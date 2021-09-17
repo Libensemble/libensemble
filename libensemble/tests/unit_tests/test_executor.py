@@ -60,7 +60,6 @@ def build_simfuncs():
 
 
 # This would typically be in the user calling script
-# Cannot test auto_resources here - as no workers set up.
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
@@ -331,7 +330,7 @@ def test_get_task():
 
 @pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
-    """ Test of supplying various input configurations when auto_resources is False."""
+    """ Test of supplying various input configurations."""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
 
     # Note: Could test task_partition routine directly - without launching tasks...

@@ -129,12 +129,12 @@ as follows::
 
             cat $COBALT_NODEFILE > node_list
 
-Resource detection can be disabled by initializing the Executor with the argument
-``auto_resources=False``, and users' can simply supply run
+Resource detection can be disabled by setting the libE_specs option
+``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
 configuration on the Executor submit line. This will usually work sufficiently on systems that
 have application level scheduling (e.g: ``aprun``, ``jsrun``) as these will slot each run into
 available nodes where possible. ``jsrun`` can also queue runs. However, on
-other cluster and multi-node systems, if auto-resources is disabled, then runs without
+other cluster and multi-node systems, if built-in resource manager is disabled, then runs without
 a hostlist or machinefile supplied may be undesirably scheduled to the same nodes.
 
 Zero-resource workers

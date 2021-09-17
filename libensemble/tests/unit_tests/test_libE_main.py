@@ -84,7 +84,7 @@ def test_manager_exception():
             abortMock.side_effect = Exception
             # Need fake MPI to get past the Manager only check and dump history
             with pytest.raises(Exception):
-                libE_specs = {'mpi_comm': fake_mpi, 'auto_resources': False}
+                libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
                 libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
                 pytest.fail('Expected exception')
             assert os.path.isfile(hfile_abort), "History file not dumped"
@@ -111,7 +111,7 @@ def test_exception_raising_manager_with_abort():
     will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
     with pytest.raises(MPIAbortException):
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-        libE_specs = {'mpi_comm': fake_mpi, 'auto_resources': False}
+        libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
         libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
         pytest.fail('Expected MPIAbortException exception')
 
@@ -121,7 +121,7 @@ def test_exception_raising_manager_no_abort():
 
     Manager should raise MPISendException when fakeMPI tries to send message, which
     will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
-    libE_specs = {'abort_on_exception': False, 'mpi_comm': fake_mpi, 'auto_resources': False}
+    libE_specs = {'abort_on_exception': False, 'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(LoggedException):
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
         libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
@@ -132,7 +132,7 @@ def test_exception_raising_manager_no_abort():
 # missing, only that it's a list - needs updating in future.
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
-    libE_specs = {'mpi_comm': fake_mpi, 'auto_resources': False}
+    libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(KeyError):
         H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1},
                        libE_specs=libE_specs)
