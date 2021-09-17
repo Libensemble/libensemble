@@ -46,7 +46,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            support.gen_work(Work, wid, gen_return_fields, inds_to_send, persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, gen_return_fields, inds_to_send, persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -54,7 +54,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(points_to_evaluate)[0][0]  # oldest point
             try:
-                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
@@ -63,7 +63,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Finally, call a persistent generator as there is nothing else to do.
             # SH TODO - MAYBE UNNEC - COULD ASSUME ZERO RESOURCES WITH rset_team=[]
             try:
-                support.gen_work(Work, wid, gen_specs['in'], [], persis_info.get(wid),
+                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
                                  persistent=True)
             except InsufficientFreeResources:
                 break

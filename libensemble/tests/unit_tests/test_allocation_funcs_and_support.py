@@ -150,7 +150,7 @@ def test_als_sim_work():
     persis_info = add_unique_random_streams({}, 5)
     als = AllocSupport(W, H)
     Work = {}
-    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+    Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
     assert Work[1]['H_fields'] == ['x'], \
         "H_fields were not assigned to Work dict correctly."
 
@@ -170,7 +170,7 @@ def test_als_sim_work():
     W_ps['persis_state'] = np.array([1, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     Work = {}
-    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
+    Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
 
     assert not len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be empty for persistent workers."
@@ -178,7 +178,7 @@ def test_als_sim_work():
     initialize_resources()
     als = AllocSupport(W, H)
     Work = {}
-    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+    Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
 
     assert len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be assigned in libE_info"
@@ -190,7 +190,7 @@ def test_als_gen_work():
     persis_info = add_unique_random_streams({}, 5)
     als = AllocSupport(W, H)
     Work = {}
-    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1])
+    Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1])
     assert Work[1]['H_fields'] == ['sim_id'], \
         "H_fields were not assigned to Work dict correctly."
 
@@ -210,7 +210,7 @@ def test_als_gen_work():
     W_ps['persis_state'] = np.array([2, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     Work = {}
-    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1], persistent=True)
+    Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1], persistent=True)
 
     assert not len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be empty for persistent workers."
@@ -219,7 +219,7 @@ def test_als_gen_work():
     persis_info['gen_resources'] = 1
     als = AllocSupport(W, H, persis_info=persis_info)
     Work = {}
-    als.gen_work(Work, 1, ['sim_id'], range(0, 5), persis_info[1])
+    Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1])
 
     assert len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be assigned in libE_info"

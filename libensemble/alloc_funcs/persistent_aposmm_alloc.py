@@ -57,7 +57,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
             if np.any(returned_but_not_given):
                 point_ids = np.where(returned_but_not_given)[0]
-                support.gen_work(Work, wid, persis_info['fields_to_give_back'],
+                Work[wid] = support.gen_work(wid, persis_info['fields_to_give_back'],
                                  point_ids, persis_info.get(wid), persistent=True)
                 returned_but_not_given[point_ids] = False
 
@@ -69,7 +69,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
             try:
-                support.sim_work(Work, wid, H, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1
@@ -78,7 +78,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info.get(wid)['nworkers'] = len(W)
             try:
-                support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
+                Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
                                  persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break

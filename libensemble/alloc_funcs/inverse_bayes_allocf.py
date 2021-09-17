@@ -40,7 +40,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
                 k = H['batch'][-1]
                 H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
 
-            support.gen_work(Work, wid, ['like'], inds_to_send_back,
+            Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back,
                              persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
@@ -53,7 +53,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             sim_ids_to_send = np.nonzero(points_to_evaluate)[0][sim_inds]
 
             try:
-                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, [])
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, [])
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
@@ -63,7 +63,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             # Finally, generate points since there is nothing else to do.
             # SH TODO - MAYBE UNNEC - COULD ASSUME ZERO RESOURCES WITH rset_team=[]
             try:
-                support.gen_work(Work, wid, gen_specs['in'], [], persis_info.get(wid),
+                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
                                  persistent=True)
             except InsufficientFreeResources:
                 break

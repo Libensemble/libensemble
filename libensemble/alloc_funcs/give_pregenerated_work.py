@@ -28,7 +28,7 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
 
         # Give sim work
         try:
-            support.sim_work(Work, i, H, sim_specs['in'], [persis_info['next_to_give']], [])
+            Work[i] = support.sim_work(i, H, sim_specs['in'], [persis_info['next_to_give']], [])
         except InsufficientFreeResources:
             break
         persis_info['next_to_give'] += 1

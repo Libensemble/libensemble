@@ -207,7 +207,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if print_obj:
                 fsum += H[consensus_ids_in_H[i0]]['f_i']
 
-            support.gen_work(Work, wid, ['x', 'gen_worker'],
+            Work[wid] = support.gen_work(wid, ['x', 'gen_worker'],
                              np.atleast_1d(neighbor_consensus_ids_in_H),
                              persis_info.get(wid), persistent=True)
 
@@ -261,7 +261,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'params': persis_info.get('gen_params', {})})
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
-            support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
+            Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
                              persis_info.get(wid), persistent=True, rset_team=rset_team)
 
         # give sim work when task available
@@ -296,7 +296,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
 
-            support.sim_work(Work, wid, H,
+            Work[wid] = support.sim_work(wid, H,
                              sim_specs['in'],
                              np.arange(l_H_ids, r_H_ids),
                              persis_info.get(wid),

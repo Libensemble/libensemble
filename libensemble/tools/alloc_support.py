@@ -133,20 +133,19 @@ class AllocSupport:
                     num_rsets_req = self.persis_info.get('gen_resources', 0)
                 return self.assign_resources(num_rsets_req)
 
-    def sim_work(self, Work, wid, H, H_fields, H_rows, persis_info, **libE_info):
+    def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
 
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Int. Worker ID.
         :param H: :doc:`History aray<..data_structures/hist`. For parsing out requested resource sets.
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
-        :returns: None, but ``Work`` is updated.
+        :returns: a Work entry
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -159,12 +158,12 @@ class AllocSupport:
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
-        Work[wid] = {'H_fields': H_fields,
-                     'persis_info': persis_info,
-                     'tag': EVAL_SIM_TAG,
-                     'libE_info': libE_info}
+        return {'H_fields': H_fields,
+                'persis_info': persis_info,
+                'tag': EVAL_SIM_TAG,
+                'libE_info': libE_info}
 
-    def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
+    def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given ``Work`` dictionary.
 
          Includes evaluation of required resources if the worker is not in a
@@ -176,7 +175,7 @@ class AllocSupport:
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
-        :returns: None, but ``Work`` is updated.
+        :returns: A Work entry
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -194,10 +193,10 @@ class AllocSupport:
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
-        Work[wid] = {'H_fields': H_fields,
-                     'persis_info': persis_info,
-                     'tag': EVAL_GEN_TAG,
-                     'libE_info': libE_info}
+        return {'H_fields': H_fields,
+                'persis_info': persis_info,
+                'tag': EVAL_GEN_TAG,
+                'libE_info': libE_info}
 
     def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound

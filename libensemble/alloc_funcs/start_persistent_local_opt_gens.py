@@ -50,7 +50,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         if support.all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
-            support.gen_work(Work, wid, gen_return_fields, last_ind,
+            Work[wid] = support.gen_work(wid, gen_return_fields, last_ind,
                              persis_info[wid], persistent=True)
             persis_info[wid]['run_order'].append(last_ind)
 
@@ -68,7 +68,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             # Start at the best possible starting point
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
             try:
-                support.gen_work(Work, wid, gen_return_fields, ind,
+                Work[wid] = support.gen_work(wid, gen_return_fields, ind,
                                  persis_info[wid], persistent=True)
             except InsufficientFreeResources:
                 break
@@ -85,7 +85,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 q_inds_logical = points_to_evaluate
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]  # oldest point
             try:
-                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, [])
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, [])
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
@@ -94,7 +94,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
               and not np.any(np.logical_and(W['active'] == EVAL_GEN_TAG,
                                             W['persis_state'] == 0))):
             # Finally, generate points since there is nothing else to do (no resource sets req.)
-            support.gen_work(Work, wid, gen_specs['in'], [], persis_info[wid], rset_team=[])
+            Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info[wid], rset_team=[])
             gen_count += 1
 
     del support
