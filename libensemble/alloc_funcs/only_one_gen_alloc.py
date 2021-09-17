@@ -27,14 +27,14 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         if persis_info['next_to_give'] < len(H):
             try:
-                support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
+                support.sim_work(Work, wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1
 
         elif not support.test_any_gen() and gen_flag:
 
-            if not support.all_returned():
+            if not support.all_returned(H):
                 break
 
             # Give gen work

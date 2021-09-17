@@ -41,9 +41,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):
-            sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
+            sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
             try:
-                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
@@ -54,7 +54,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_returned():
+            if user.get('batch_mode') and not support.all_returned(H):
                 break
 
             # Give gen work

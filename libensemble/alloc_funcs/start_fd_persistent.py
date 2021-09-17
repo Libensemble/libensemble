@@ -54,7 +54,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(points_to_evaluate)[0][0]  # oldest point
             try:
-                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False

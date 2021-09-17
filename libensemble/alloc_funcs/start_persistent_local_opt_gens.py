@@ -47,7 +47,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # returned, give them back to i. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         gen_inds = (H['gen_worker'] == wid)
-        if support.all_returned(gen_inds):
+        if support.all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             support.gen_work(Work, wid, gen_return_fields, last_ind,
@@ -85,7 +85,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 q_inds_logical = points_to_evaluate
             sim_ids_to_send = np.nonzero(q_inds_logical)[0][0]  # oldest point
             try:
-                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, [])
+                support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, [])
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False

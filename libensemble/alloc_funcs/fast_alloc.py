@@ -34,7 +34,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # Give sim work if possible
         if persis_info['next_to_give'] < len(H):
             try:
-                support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
+                support.sim_work(Work, wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1

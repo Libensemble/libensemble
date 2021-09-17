@@ -27,9 +27,9 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     Work = {}
 
     if persis_info.get('first_call', True):
-        assert support.all_given(), "Initial points in H have never been given."
-        assert support.all_returned(), "Initial points in H have never been returned."
-        assert support.all_given_back(), "Initial points in H have never been given back to gen."
+        assert support.all_given(H), "Initial points in H have never been given."
+        assert support.all_returned(H), "Initial points in H have never been returned."
+        assert support.all_given_back(H), "Initial points in H have never been given back to gen."
 
         # SH TODO: gen_specs['persis_in']
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
@@ -69,7 +69,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
             try:
-                support.sim_work(Work, wid, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
+                support.sim_work(Work, wid, H, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1

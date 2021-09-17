@@ -69,7 +69,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         gen_inds = (H['gen_worker'] == wid)
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_returned(gen_inds):
+            if async_return or support.all_returned(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
                                  persistent=True, active_recv=active_recv_gen)
@@ -83,9 +83,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if not np.any(points_to_evaluate):
             break
 
-        sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
+        sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
         try:
-            support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+            support.sim_work(Work, wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
         except InsufficientFreeResources:
             break
 

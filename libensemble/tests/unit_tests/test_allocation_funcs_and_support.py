@@ -150,7 +150,7 @@ def test_als_sim_work():
     persis_info = add_unique_random_streams({}, 5)
     als = AllocSupport(W, H)
     Work = {}
-    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
     assert Work[1]['H_fields'] == ['x'], \
         "H_fields were not assigned to Work dict correctly."
 
@@ -170,7 +170,7 @@ def test_als_sim_work():
     W_ps['persis_state'] = np.array([1, 0, 0, 0])
     als = AllocSupport(W_ps, H)
     Work = {}
-    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
+    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
 
     assert not len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be empty for persistent workers."
@@ -178,7 +178,7 @@ def test_als_sim_work():
     initialize_resources()
     als = AllocSupport(W, H)
     Work = {}
-    als.sim_work(Work, 1, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
+    als.sim_work(Work, 1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
 
     assert len(Work[1]['libE_info']['rset_team']), \
         "Resource set should be assigned in libE_info"
@@ -235,44 +235,44 @@ def test_als_all_given():
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
 
-    assert not als.all_given(), \
+    assert not als.all_given(H_some_gvn), \
         "all_given() should\'ve returned False on incomplete sim results."
 
-    assert als.all_given(low_bound=3), \
+    assert als.all_given(H_some_gvn, low_bound=3), \
         "all_given() should\'ve returned True with adjusted lower bound."
 
-    assert not als.all_given(pt_filter=myfilter1), \
+    assert not als.all_given(H_some_gvn, pt_filter=myfilter1), \
         "all_given() should\'ve returned False based on boolean filter."
 
-    assert als.all_given(pt_filter=myfilter1, low_bound=3), \
+    assert als.all_given(H_some_gvn, pt_filter=myfilter1, low_bound=3), \
         "all_given() should\'ve returned True with boolean filter and adjusted lower bound."
 
-    assert als.all_given(pt_filter=myfilter2), \
+    assert als.all_given(H_some_gvn, pt_filter=myfilter2), \
         "all_given() should\'ve returned True based on boolean filter."
 
     # Now cancel a point
     H_some_gvn['cancel_requested'] = np.array([False, True, False, False, False])
 
-    assert not als.all_given(), \
-        "all_given() should\'ve returned False on incomplete sim results."
+    assert not als.all_given(H_some_gvn), \
+        "all_given(H_some_gvn) should\'ve returned False on incomplete sim results."
 
-    assert als.all_given(pt_filter=myfilter1), \
-        "all_given() should\'ve returned True based on boolean filter and cancelled."
+    assert als.all_given(H_some_gvn, pt_filter=myfilter1), \
+        "all_given(H_some_gvn) should\'ve returned True based on boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvn['cancel_requested'] = np.array([False, True, True, False, False])
 
-    assert als.all_given(), \
-        "all_given() should\'ve returned True as cancelled point ignored."
+    assert als.all_given(H_some_gvn), \
+        "all_given(H_some_gvn) should\'ve returned True as cancelled point ignored."
 
     # Now cancel a different point
     H_some_gvn['cancel_requested'] = np.array([False, False, True, False, False])
 
-    assert not als.all_given(), \
-        "all_given() should\'ve returned False on incomplete sim results."
+    assert not als.all_given(H_some_gvn), \
+        "all_given(H_some_gvn) should\'ve returned False on incomplete sim results."
 
-    assert als.all_given(low_bound=2), \
-        "all_given() should\'ve returned True with cancelled and adjusted lower bound."
+    assert als.all_given(H_some_gvn, low_bound=2), \
+        "all_given(H_some_gvn) should\'ve returned True with cancelled and adjusted lower bound."
 
 
 def test_als_all_returned():
@@ -283,49 +283,49 @@ def test_als_all_returned():
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
 
-    assert not als.all_returned(), \
+    assert not als.all_returned(H_some_rtn), \
         "all_returned() should\'ve returned False on incomplete sim results."
 
-    assert als.all_returned(low_bound=3), \
+    assert als.all_returned(H_some_rtn, low_bound=3), \
         "all_returned() should\'ve returned True with adjusted lower bound."
 
-    assert not als.all_returned(pt_filter=myfilter1), \
+    assert not als.all_returned(H_some_rtn, pt_filter=myfilter1), \
         "all_returned() should\'ve returned False based on boolean filter."
 
-    assert als.all_returned(pt_filter=myfilter1, low_bound=3), \
+    assert als.all_returned(H_some_rtn, pt_filter=myfilter1, low_bound=3), \
         "all_returned() should\'ve returned True with boolean filter and adjusted lower bound."
 
-    assert als.all_returned(pt_filter=myfilter2), \
+    assert als.all_returned(H_some_rtn, pt_filter=myfilter2), \
         "all_returned() should\'ve returned True based on boolean filter."
 
     # Now cancel a point
     H_some_rtn['cancel_requested'] = np.array([False, True, False, False, False])
 
-    assert not als.all_returned(), \
+    assert not als.all_returned(H_some_rtn), \
         "all_returned() should\'ve returned False on incomplete sim results."
 
-    assert als.all_returned(pt_filter=myfilter1), \
+    assert als.all_returned(H_some_rtn, pt_filter=myfilter1), \
         "all_returned() should\'ve returned True based on boolean filter and cancelled."
 
     # Now cancel more points
     H_some_rtn['cancel_requested'] = np.array([False, True, True, False, False])
 
-    assert als.all_returned(), \
+    assert als.all_returned(H_some_rtn), \
         "all_returned() should\'ve returned True as cancelled point ignored."
 
     # Now cancel a different point
     H_some_rtn['cancel_requested'] = np.array([False, False, True, False, False])
 
-    assert not als.all_returned(), \
+    assert not als.all_returned(H_some_rtn), \
         "all_returned() should\'ve returned False on incomplete sim results."
 
-    assert als.all_returned(low_bound=2), \
+    assert als.all_returned(H_some_rtn, low_bound=2), \
         "all_returned() should\'ve returned True with cancelled and adjusted lower bound."
 
     # But if the cancelled point is already given, we still expect it back.
     H_some_rtn['given'] = np.array([False, False, True, False, False])
 
-    assert not als.all_returned(low_bound=2), \
+    assert not als.all_returned(H_some_rtn, low_bound=2), \
         "all_returned() should\'ve returned False with given cancelled and adjusted lower bound."
 
 
@@ -337,49 +337,49 @@ def test_als_all_given_back():
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
 
-    assert not als.all_given_back(), \
+    assert not als.all_given_back(H_some_gvnbk), \
         "all_given_back() should\'ve returned False on incomplete sim results."
 
-    assert als.all_given_back(low_bound=3), \
+    assert als.all_given_back(H_some_gvnbk, low_bound=3), \
         "all_given_back() should\'ve returned True with adjusted lower bound."
 
-    assert not als.all_given_back(pt_filter=myfilter1), \
+    assert not als.all_given_back(H_some_gvnbk, pt_filter=myfilter1), \
         "all_given_back() should\'ve returned False based on boolean filter."
 
-    assert als.all_given_back(pt_filter=myfilter1, low_bound=3), \
+    assert als.all_given_back(H_some_gvnbk, pt_filter=myfilter1, low_bound=3), \
         "all_given_back() should\'ve returned True with boolean filter and adjusted lower bound."
 
-    assert als.all_given_back(pt_filter=myfilter2), \
+    assert als.all_given_back(H_some_gvnbk, pt_filter=myfilter2), \
         "all_given_back() should\'ve returned True based on boolean filter."
 
     # Now cancel a point
     H_some_gvnbk['cancel_requested'] = np.array([False, True, False, False, False])
 
-    assert not als.all_given_back(), \
+    assert not als.all_given_back(H_some_gvnbk), \
         "all_given_back() should\'ve returned False on incomplete sim results."
 
-    assert als.all_given_back(pt_filter=myfilter1), \
+    assert als.all_given_back(H_some_gvnbk, pt_filter=myfilter1), \
         "all_given_back() should\'ve returned True based on boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvnbk['cancel_requested'] = np.array([False, True, True, False, False])
 
-    assert als.all_given_back(), \
+    assert als.all_given_back(H_some_gvnbk), \
         "all_given_back() should\'ve returned True as cancelled point ignored."
 
     # Now cancel a different point
     H_some_gvnbk['cancel_requested'] = np.array([False, False, True, False, False])
 
-    assert not als.all_given_back(), \
+    assert not als.all_given_back(H_some_gvnbk), \
         "all_given_back() should\'ve returned False on incomplete sim results."
 
-    assert als.all_given_back(low_bound=2), \
+    assert als.all_given_back(H_some_gvnbk, low_bound=2), \
         "all_given_back() should\'ve returned True with cancelled and adjusted lower bound."
 
     # But if the cancelled point is already given, we still expect it back.
     H_some_gvnbk['given'] = np.array([False, False, True, False, False])
 
-    assert not als.all_given_back(low_bound=2), \
+    assert not als.all_given_back(H_some_gvnbk, low_bound=2), \
         "all_given_back() should\'ve returned False with given cancelled and adjusted lower bound."
 
 
@@ -390,15 +390,15 @@ def test_als_points_by_priority():
     eval_pts = ~H_prio['given'] & ~H_prio['cancel_requested']  # should be same for no_prio
 
     als = AllocSupport(W, H_prio)
-    assert all(i in als.points_by_priority(eval_pts, batch=True) for i in np.array([1, 3])), \
+    assert all(i in als.points_by_priority(H_prio, eval_pts, batch=True) for i in np.array([1, 3])), \
         "points_by_priority() should\'ve returned a batch of higher-priority points."
 
-    assert als.points_by_priority(eval_pts) == 1, \
+    assert als.points_by_priority(H_prio, eval_pts) == 1, \
         "points_by_priority() should\'ve returned a higher-priority index."
 
     als = AllocSupport(W, H_no_prio)
 
-    assert als.points_by_priority(eval_pts) == 0, \
+    assert als.points_by_priority(H_no_prio, eval_pts) == 0, \
         "points_by_priority() should\'ve simply returned the next point to evaluate."
 
 

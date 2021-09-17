@@ -108,7 +108,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 next_row = persis_info['need_to_give'].pop()
                 i = idle_workers[0]
                 try:
-                    support.sim_work(Work, i, sim_specs['in'], [next_row], [])
+                    support.sim_work(Work, i, H, sim_specs['in'], [next_row], [])
                 except InsufficientFreeResources:
                     persis_info['need_to_give'].add(next_row)
                     break

@@ -296,7 +296,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
 
-            support.sim_work(Work, wid,
+            support.sim_work(Work, wid, H,
                              sim_specs['in'],
                              np.arange(l_H_ids, r_H_ids),
                              persis_info.get(wid),
