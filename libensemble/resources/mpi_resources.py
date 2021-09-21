@@ -185,7 +185,7 @@ def get_resources(resources, num_procs=None, num_nodes=None,
             "Requested {}. Only {} available".
             format(num_nodes, local_node_count))
 
-    if gresources.enforce_proc_core_bounds:
+    if gresources.enforce_worker_core_bounds:
         rassert(ranks_per_node <= cores_avail_per_node,
                 "Not enough processors on a node to honor arguments. "
                 "Requested {}. Only {} available".

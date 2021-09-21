@@ -134,7 +134,7 @@ class GlobalResources:
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 
-        enforce_proc_core_bounds: boolean, optional
+        enforce_worker_core_bounds: boolean, optional
             If True, then libEnsemble's executor will raise an exception on detecting that
             the worker has been instructed to launch tasks with the number of requested processes
             being excessive to the number of cores allocated to that worker, or not enough
@@ -168,7 +168,7 @@ class GlobalResources:
         self.num_resource_sets = libE_specs.get('num_resource_sets', None)
 
         # SH TODO: Where to set this - put back here for now as easier than passing via executor.
-        self.enforce_proc_core_bounds = libE_specs.get('enforce_proc_core_bounds', True)
+        self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', True)
 
         if self.central_mode:
             logger.debug('Running in central mode')

@@ -35,7 +35,7 @@ comms = libE_specs['comms']
 
 libE_specs['zero_resource_workers'] = [1]
 libE_specs['central_mode'] = True
-libE_specs['enforce_proc_core_bounds'] = False
+libE_specs['enforce_worker_core_bounds'] = False
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_mpi_runners_zrw_subnode_uneven_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'

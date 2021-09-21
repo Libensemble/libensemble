@@ -62,7 +62,7 @@ libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + \
     libE_spec_gen_dir_keys
 
 allowed_libE_spec_keys = ['abort_on_exception',             #
-                          'enforce_proc_core_bounds',       #
+                          'enforce_worker_core_bounds',     #
                           'authkey',                        #
                           'disable_resource_manager',       #
                           'central_mode',                   #

@@ -35,7 +35,7 @@ sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
 libE_specs['central_mode'] = True
-libE_specs['enforce_proc_core_bounds'] = False
+libE_specs['enforce_worker_core_bounds'] = False
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
