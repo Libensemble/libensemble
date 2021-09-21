@@ -16,8 +16,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names
 
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
     gen_count = support.count_persis_gens()
 

@@ -56,7 +56,7 @@ def test_decide_work_and_resources():
 
 def test_als_init_normal():
 
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     assert als.manage_resources, \
         "AllocSupport instance should be managing resources for sim_work and gen_work."
 
@@ -68,7 +68,7 @@ def test_als_init_normal():
 def test_als_init_withresources():
     initialize_resources()
 
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     assert isinstance(als.resources, Resources), \
         "AllocSupport instance didn\'t get assigned a Resources object."
     assert isinstance(als.sched, ResourceScheduler), \
@@ -79,12 +79,12 @@ def test_als_init_withresources():
 
 def test_als_assign_resources():
 
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     assert not als.assign_resources(4), \
         "AllocSupport instance shouldn\'t assign resources if not assigned a Scheduler"
 
     initialize_resources()
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     assert len(als.assign_resources(4)), \
         "AllocSupport didn\'t return a resource set team."
 
@@ -92,20 +92,20 @@ def test_als_assign_resources():
 
 
 def test_als_worker_ids():
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     assert als.avail_worker_ids() == [1, 2, 3, 4], \
         "avail_worker_ids() didn\'t return expected available worker list."
 
     W_ps = W.copy()
     W_ps['persis_state'] = np.array([2, 0, 0, 0])
-    als = AllocSupport(W_ps, H)
+    als = AllocSupport(W_ps, True)
     assert als.avail_worker_ids(persistent=2) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
 
     W_ar = W.copy()
     W_ar['active_recv'] = np.array([1, 0, 0, 0])
     W_ar['persis_state'] = np.array([2, 0, 0, 0])
-    als = AllocSupport(W_ar, H)
+    als = AllocSupport(W_ar, True)
     assert als.avail_worker_ids(persistent=2, active_recv=True) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
 
@@ -119,13 +119,13 @@ def test_als_worker_ids():
     W_ar = W.copy()
     W_ar['active_recv'] = np.array([1, 0, 0, 0])
     W_ar['persis_state'] = np.array([2, 0, 0, 0])
-    als = AllocSupport(W_ar, H)
+    als = AllocSupport(W_ar, True)
     assert als.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=True) == [1], \
         "avail_worker_ids() didn\'t return expected persistent worker list."
 
     W_zrw = W.copy()
     W_zrw['zero_resource_worker'] = np.array([1, 0, 0, 0])
-    als = AllocSupport(W_zrw, H)
+    als = AllocSupport(W_zrw, True)
     assert als.avail_worker_ids(zero_resource_workers=True) == [1], \
         "avail_worker_ids() didn\'t return expected zero resource worker list."
 
@@ -133,7 +133,7 @@ def test_als_worker_ids():
 def test_als_evaluate_gens():
     W_gens = W.copy()
     W_gens['active'] = np.array([2, 0, 2, 0])
-    als = AllocSupport(W_gens, H)
+    als = AllocSupport(W_gens, True)
     assert als.count_gens() == 2, \
         "count_gens() didn't return correct number of active generators"
 
@@ -148,7 +148,7 @@ def test_als_evaluate_gens():
 
 def test_als_sim_work():
     persis_info = add_unique_random_streams({}, 5)
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     Work = {}
     Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
     assert Work[1]['H_fields'] == ['x'], \
@@ -168,7 +168,7 @@ def test_als_sim_work():
 
     W_ps = W.copy()
     W_ps['persis_state'] = np.array([1, 0, 0, 0])
-    als = AllocSupport(W_ps, H)
+    als = AllocSupport(W_ps, True)
     Work = {}
     Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
 
@@ -176,7 +176,7 @@ def test_als_sim_work():
         "Resource set should be empty for persistent workers."
 
     initialize_resources()
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     Work = {}
     Work[1] = als.sim_work(1, H, ['x'], np.array([0, 1, 2, 3, 4]), persis_info[1])
 
@@ -188,7 +188,7 @@ def test_als_sim_work():
 
 def test_als_gen_work():
     persis_info = add_unique_random_streams({}, 5)
-    als = AllocSupport(W, H)
+    als = AllocSupport(W, True)
     Work = {}
     Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1])
     assert Work[1]['H_fields'] == ['sim_id'], \
@@ -208,7 +208,7 @@ def test_als_gen_work():
 
     W_ps = W.copy()
     W_ps['persis_state'] = np.array([2, 0, 0, 0])
-    als = AllocSupport(W_ps, H)
+    als = AllocSupport(W_ps, True)
     Work = {}
     Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1], persistent=True)
 
@@ -217,7 +217,7 @@ def test_als_gen_work():
 
     initialize_resources()
     persis_info['gen_resources'] = 1
-    als = AllocSupport(W, H, persis_info=persis_info)
+    als = AllocSupport(W, True, persis_info=persis_info)
     Work = {}
     Work[1] = als.gen_work(1, ['sim_id'], range(0, 5), persis_info[1])
 
@@ -230,7 +230,7 @@ def test_als_gen_work():
 def test_als_all_given():
     H_some_gvn = H.copy()
     H_some_gvn['given'] = np.array([True, False, False, True, True])
-    als = AllocSupport(W, H_some_gvn)
+    als = AllocSupport(W, True)
 
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
@@ -278,7 +278,7 @@ def test_als_all_given():
 def test_als_all_returned():
     H_some_rtn = H.copy()
     H_some_rtn['returned'] = np.array([True, False, False, True, True])
-    als = AllocSupport(W, H_some_rtn)
+    als = AllocSupport(W, True)
 
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
@@ -332,7 +332,7 @@ def test_als_all_returned():
 def test_als_all_given_back():
     H_some_gvnbk = H.copy()
     H_some_gvnbk['given_back'] = np.array([True, False, False, True, True])
-    als = AllocSupport(W, H_some_gvnbk)
+    als = AllocSupport(W, True)
 
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
@@ -389,7 +389,7 @@ def test_als_points_by_priority():
     H_no_prio = H[[i for i in list(H.dtype.names) if i != 'priority']]
     eval_pts = ~H_prio['given'] & ~H_prio['cancel_requested']  # should be same for no_prio
 
-    als = AllocSupport(W, H_prio)
+    als = AllocSupport(W, True)
     assert all(i in als.points_by_priority(H_prio, eval_pts, batch=True) for i in np.array([1, 3])), \
         "points_by_priority() should\'ve returned a batch of higher-priority points."
 

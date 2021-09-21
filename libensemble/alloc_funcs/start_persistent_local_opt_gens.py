@@ -23,8 +23,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names
 
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
     gen_count = support.count_persis_gens()
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']

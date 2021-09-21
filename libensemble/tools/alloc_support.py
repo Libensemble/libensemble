@@ -21,7 +21,8 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, H, persis_info={}, scheduler_opts={}, user_resources=None, user_scheduler=None):
+    def __init__(self, W, manage_resources=False, persis_info={}, scheduler_opts={},
+                 user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance
 
         ``W`` is. They are referenced by the various methods,
@@ -31,7 +32,7 @@ class AllocSupport:
         module and the built-in libEnsemble scheduler.
 
         :param W: A :doc:`Worker array<../data_structures/worker_array>`
-        :param H: A :doc:`history array<../data_structures/history_array>`. Used here to determine resource management
+        :param manage_resources: Optional, Boolean for if to assign resource sets when creating work units
         :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
@@ -39,7 +40,7 @@ class AllocSupport:
         """
         self.W = W
         self.persis_info = persis_info
-        self.manage_resources = 'resource_sets' in H.dtype.names
+        self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:

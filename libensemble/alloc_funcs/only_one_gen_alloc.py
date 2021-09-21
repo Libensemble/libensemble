@@ -13,7 +13,8 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
 
     Work = {}
     gen_flag = True
