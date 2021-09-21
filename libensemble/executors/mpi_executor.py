@@ -28,10 +28,6 @@ class MPIExecutor(Executor):
     """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
-    # SH TODO: Whether to still be custom_info or separate variables as now quite limited.
-    #          only reason not to is prob that it may make people use them unnecesarily.
-    #          I think allow_oversubscribe should stay as MPIExecutor variable
-    #  __init__(self, allow_oversubscribe=True, custom_info={}):
     def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
