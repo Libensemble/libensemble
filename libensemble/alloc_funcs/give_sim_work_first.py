@@ -33,7 +33,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: alloc_specs or gen_specs?
     gen_in = gen_specs.get('in', [])
 
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     gen_count = support.count_gens()
     Work = {}
 
@@ -41,9 +42,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):
-            sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
+            sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
             try:
-                support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
@@ -54,13 +55,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_returned():
+            if user.get('batch_mode') and not support.all_returned(H):
                 break
 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
             try:
-                support.gen_work(Work, wid, gen_in, return_rows, persis_info.get(wid))
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             gen_count += 1

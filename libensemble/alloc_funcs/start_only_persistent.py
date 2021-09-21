@@ -46,11 +46,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
     batch_give = gen_specs['user'].get('give_all_with_same_priority', False)  # SH TODO: alloc_specs or gen_specs?
 
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     gen_count = support.count_persis_gens()
     Work = {}
 
@@ -69,10 +70,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         gen_inds = (H['gen_worker'] == wid)
         returned_but_not_given = np.logical_and.reduce((H['returned'], ~H['given_back'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_returned(gen_inds):
+            if async_return or support.all_returned(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
-                support.gen_work(Work, wid, gen_return_fields, point_ids, persis_info.get(wid),
-                                 persistent=True, active_recv=active_recv_gen)
+                Work[wid] = support.gen_work(wid, gen_return_fields, point_ids, persis_info.get(wid),
+                                             persistent=True, active_recv=active_recv_gen)
                 returned_but_not_given[point_ids] = False
 
     # SH TODO: Now the give_sim_work_first bit
@@ -83,9 +84,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if not np.any(points_to_evaluate):
             break
 
-        sim_ids_to_send = support.points_by_priority(points_avail=points_to_evaluate, batch=batch_give)
+        sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
         try:
-            support.sim_work(Work, wid, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
         except InsufficientFreeResources:
             break
 
@@ -99,8 +100,8 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             if gen_count < user.get('num_active_gens', 1):
                 # Finally, start a persistent generator as there is nothing else to do.
                 try:
-                    support.gen_work(Work, wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
-                                     persistent=True, active_recv=active_recv_gen)
+                    Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
+                                                 persistent=True, active_recv=active_recv_gen)
                 except InsufficientFreeResources:
                     break
                 persis_info['num_gens_started'] = persis_info.get('num_gens_started', 0) + 1

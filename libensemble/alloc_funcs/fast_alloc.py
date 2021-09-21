@@ -20,7 +20,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
 
     gen_count = support.count_gens()
     Work = {}
@@ -34,7 +36,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # Give sim work if possible
         if persis_info['next_to_give'] < len(H):
             try:
-                support.sim_work(Work, wid, sim_specs['in'], [persis_info['next_to_give']], [])
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1
@@ -44,7 +46,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
             try:
-                support.gen_work(Work, wid, gen_in, return_rows, persis_info.get(wid))
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             gen_count += 1

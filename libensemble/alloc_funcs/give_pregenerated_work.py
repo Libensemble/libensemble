@@ -12,7 +12,8 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
 
     # Unless already defined, initialize next_to_give to be the first point in H
@@ -28,7 +29,7 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
 
         # Give sim work
         try:
-            support.sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+            Work[i] = support.sim_work(i, H, sim_specs['in'], [persis_info['next_to_give']], [])
         except InsufficientFreeResources:
             break
         persis_info['next_to_give'] += 1

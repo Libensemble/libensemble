@@ -65,7 +65,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     gen_count = support.count_persis_gens()
     Work = {}
     is_first_iter = False
@@ -110,11 +111,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
-                support.gen_work(Work, wid,
-                                 ['x', 'f_i', 'gradf_i'],
-                                 sims_to_ret_to_gen,
-                                 persis_info.get(wid),
-                                 persistent=True)
+                Work[wid] = support.gen_work(wid, ['x', 'f_i', 'gradf_i'],
+                                             sims_to_ret_to_gen, persis_info.get(wid),
+                                             persistent=True)
 
                 persis_info[wid].update({'curr_H_ids': []})
 
@@ -207,9 +206,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             if print_obj:
                 fsum += H[consensus_ids_in_H[i0]]['f_i']
 
-            support.gen_work(Work, wid, ['x', 'gen_worker'],
-                             np.atleast_1d(neighbor_consensus_ids_in_H),
-                             persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, ['x', 'gen_worker'],
+                                         np.atleast_1d(neighbor_consensus_ids_in_H),
+                                         persis_info.get(wid), persistent=True)
 
             persis_info[wid].update({'curr_H_ids': []})
             persis_info[wid].update({'at_consensus': False})
@@ -261,8 +260,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'params': persis_info.get('gen_params', {})})
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
-            support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
-                             persis_info.get(wid), persistent=True, rset_team=rset_team)
+            Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
+                                         persis_info.get(wid), persistent=True, rset_team=rset_team)
 
         # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
@@ -296,11 +295,10 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
 
-            support.sim_work(Work, wid,
-                             sim_specs['in'],
-                             np.arange(l_H_ids, r_H_ids),
-                             persis_info.get(wid),
-                             rset_team=rset_team)
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'],
+                                         np.arange(l_H_ids, r_H_ids),
+                                         persis_info.get(wid),
+                                         rset_team=rset_team)
 
             # we can safely assume the rows are contiguous due to (!!)
             persis_info['next_to_give'] += (r_H_ids - l_H_ids)

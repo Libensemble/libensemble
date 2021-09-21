@@ -21,26 +21,26 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, H, persis_info={}, scheduler_opts={}, user_resources=None, user_scheduler=None):
+    def __init__(self, W, manage_resources=False, persis_info={}, scheduler_opts={},
+                 user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance
 
-        ``W`` and ``H`` are passed in on initiation. They are referenced by the various methods,
+        ``W`` is. They are referenced by the various methods,
         but are never modified.
 
         By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
         module and the built-in libEnsemble scheduler.
 
         :param W: A :doc:`Worker array<../data_structures/worker_array>`
-        :param H: A :doc:`history array<../data_structures/history_array>`
+        :param manage_resources: Optional, Boolean for if to assign resource sets when creating work units
         :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
         :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
         """
         self.W = W
-        self.H = H
         self.persis_info = persis_info
-        self.manage_resources = 'resource_sets' in H.dtype.names
+        self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
         self.sched = None
         if self.resources is not None:
@@ -123,30 +123,30 @@ class AllocSupport:
         """Return the number of active persistent generators."""
         return sum(self.W['persis_state'] == EVAL_GEN_TAG)
 
-    def _update_rset_team(self, libE_info, wid, H_rows=None):
+    def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         if self.manage_resources and not libE_info.get('rset_team'):
             if self.W[wid-1]['persis_state']:
-                return []  # Even if empty list, presence of non-None rset_team stops manager giving default resources
+                return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
-                if H_rows is not None:
-                    num_rsets_req = (np.max(self.H[H_rows]['resource_sets']))  # sim rsets
+                if H is not None and H_rows is not None:
+                    num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
                 else:
                     num_rsets_req = self.persis_info.get('gen_resources', 0)
                 return self.assign_resources(num_rsets_req)
 
-    def sim_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
+    def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
 
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
         :param wid: Int. Worker ID.
+        :param H: :doc:`History aray<..data_structures/hist`. For parsing out requested resource sets.
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
-        :returns: None, but ``Work`` is updated.
+        :returns: a Work entry
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -154,16 +154,17 @@ class AllocSupport:
         any resource checking has already been done.
 
         """
-        libE_info['rset_team'] = self._update_rset_team(libE_info, wid, H_rows=H_rows)
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid,
+                                                        H=H, H_rows=H_rows)  # to parse out resource_sets
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
-        Work[wid] = {'H_fields': H_fields,
-                     'persis_info': persis_info,
-                     'tag': EVAL_SIM_TAG,
-                     'libE_info': libE_info}
+        return {'H_fields': H_fields,
+                'persis_info': persis_info,
+                'tag': EVAL_SIM_TAG,
+                'libE_info': libE_info}
 
-    def gen_work(self, Work, wid, H_fields, H_rows, persis_info, **libE_info):
+    def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given ``Work`` dictionary.
 
          Includes evaluation of required resources if the worker is not in a
@@ -175,7 +176,7 @@ class AllocSupport:
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
-        :returns: None, but ``Work`` is updated.
+        :returns: A Work entry
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -193,12 +194,12 @@ class AllocSupport:
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = np.atleast_1d(H_rows)
 
-        Work[wid] = {'H_fields': H_fields,
-                     'persis_info': persis_info,
-                     'tag': EVAL_GEN_TAG,
-                     'libE_info': libE_info}
+        return {'H_fields': H_fields,
+                'persis_info': persis_info,
+                'tag': EVAL_GEN_TAG,
+                'libE_info': libE_info}
 
-    def _filter_points(self, pt_filter, low_bound):
+    def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound
 
         :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
@@ -206,9 +207,9 @@ class AllocSupport:
         """
         # Faster not to slice when whole array
         if low_bound is not None:
-            H = self.H[low_bound:]
+            H = H_in[low_bound:]
         else:
-            H = self.H
+            H = H_in
 
         if pt_filter is None:
             pfilter = True  # Scalar expansion
@@ -219,7 +220,7 @@ class AllocSupport:
                 pfilter = pt_filter
         return H, pfilter
 
-    def all_given(self, pt_filter=None, low_bound=None):
+    def all_given(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have been given to sim
 
         Excludes cancelled points.
@@ -228,11 +229,11 @@ class AllocSupport:
         :param low_bound: Optional lower bound for testing all returned.
         :returns: True if all expected points have been returned
         """
-        H, pfilter = self._filter_points(pt_filter, low_bound)
+        H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested']
         return np.all(H['given'][pfilter & ~excluded_points])
 
-    def all_returned(self, pt_filter=None, low_bound=None):
+    def all_returned(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have returned from sim
 
         Excludes cancelled points that were not already given out.
@@ -241,11 +242,11 @@ class AllocSupport:
         :param low_bound: Optional lower bound for testing all returned.
         :returns: True if all expected points have been returned
         """
-        H, pfilter = self._filter_points(pt_filter, low_bound)
+        H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['given']
         return np.all(H['returned'][pfilter & ~excluded_points])
 
-    def all_given_back(self, pt_filter=None, low_bound=None):
+    def all_given_back(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have been given back to gen.
 
         Excludes cancelled points that were not already given out.
@@ -254,19 +255,19 @@ class AllocSupport:
         :param low_bound: Optional lower bound for testing all returned.
         :returns: True if all expected points have been returned
         """
-        H, pfilter = self._filter_points(pt_filter, low_bound)
+        H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['given']
         return np.all(H['given_back'][pfilter & ~excluded_points])
 
-    def points_by_priority(self, points_avail, batch=False):
+    def points_by_priority(self, H, points_avail, batch=False):
         """Returns indices of points to give by priority
 
         :param points_avail: Indices of points that are available to give
         :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
-        if 'priority' in self.H.dtype.fields:
-            priorities = self.H['priority'][points_avail]
+        if 'priority' in H.dtype.fields:
+            priorities = H['priority'][points_avail]
             if batch:
                 q_inds = (priorities == np.max(priorities))
             else:

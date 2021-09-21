@@ -22,14 +22,15 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     sched_opts = user.get('scheduler_opts', {})
 
     init_sample_size = gen_specs['user']['initial_sample_size']
-    support = AllocSupport(W, H, persis_info, sched_opts)
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     gen_count = support.count_persis_gens()
     Work = {}
 
     if persis_info.get('first_call', True):
-        assert support.all_given(), "Initial points in H have never been given."
-        assert support.all_returned(), "Initial points in H have never been returned."
-        assert support.all_given_back(), "Initial points in H have never been given back to gen."
+        assert support.all_given(H), "Initial points in H have never been given."
+        assert support.all_returned(H), "Initial points in H have never been returned."
+        assert support.all_given_back(H), "Initial points in H have never been given back to gen."
 
         # SH TODO: gen_specs['persis_in']
         persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
@@ -57,8 +58,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
             if np.any(returned_but_not_given):
                 point_ids = np.where(returned_but_not_given)[0]
-                support.gen_work(Work, wid, persis_info['fields_to_give_back'],
-                                 point_ids, persis_info.get(wid), persistent=True)
+                Work[wid] = support.gen_work(wid, persis_info['fields_to_give_back'],
+                                             point_ids, persis_info.get(wid), persistent=True)
                 returned_but_not_given[point_ids] = False
 
     for wid in support.avail_worker_ids(persistent=False):
@@ -69,7 +70,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
             try:
-                support.sim_work(Work, wid, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             persis_info['next_to_give'] += 1
@@ -78,8 +79,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info.get(wid)['nworkers'] = len(W)
             try:
-                support.gen_work(Work, wid, gen_specs['in'], range(len(H)),
-                                 persis_info.get(wid), persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
+                                             persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             persis_info['gen_started'] = True  # Must set after - incase break on resources
