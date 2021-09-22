@@ -36,7 +36,7 @@ def get_MPI_variant():
     Returns
     -------
     mpi_variant: string:
-        MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi'
+        MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi' or 'srun'
 
     """
 

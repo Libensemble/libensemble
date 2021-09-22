@@ -68,7 +68,6 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     H_o = np.zeros(b*m, dtype=gen_specs['out'])
     for i in range(0, b):
         x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
-
         H_o['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1))
         H_o['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
         H_o['obj_component'][i*m:(i+1)*m] = np.arange(0, m)
