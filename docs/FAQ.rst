@@ -17,37 +17,38 @@ make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers:
 
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
-This error occurs when the manager is waiting although no workers are busy.
-Note that a worker can be in a persistent state but is marked as inactive
-when it has returned data to the manager and is ready to receive.
+This error occurs when the manager is waiting although all workers are idle.
+Note that a worker can be in a persistent state but is marked as idle
+when it has returned data to the manager and is ready to receive work.
 
-Some causes are:
+Some possible causes of this error are:
 
-An MPI libEnsemble run was initiated with only one process, resulting in one
-manager but no workers. This may also occur with two processes if you are using
-a persistent generator. The generator will occupy the one worker, leaving none
-to run simulation functions.
+- An MPI libEnsemble run was initiated with only one process, resulting in one
+  manager but no workers. Similarly, the error may arise when running with only
+  two processes when using a persistent generator. The generator will occupy the
+  one worker, leaving none to run simulation functions.
 
-An error in the allocation function, whereby a wait has been requested on all
-evaluations to be returned - before starting a new generator, but this condition
-is not returning True even though all scheduled evaluations have returned. This
-can be due to incorrect implementation (e.g it has not considered points that
-are cancelled or paused or in some other state that prevents the allocation
-function from sending them out to workers).
+- An error in the allocation function. For example, perhaps the allocation
+  waiting for all requested evaluations to be returned (e.g, before starting a
+  new generator), but this condition
+  is not returning True even though all scheduled evaluations have returned. This
+  can be due to incorrect implementation (e.g., it has not considered points that
+  are cancelled or paused or in some other state that prevents the allocation
+  function from sending them out to workers).
 
-A persistent worker (usually a generator) has sent a message back to the manager
-but is still performing work and may return further points. In this case, consider
-starting the generator in :ref:`active_recv<gen_active_recv>` mode. This can be
-specified in the allocation function, and will cause the worker maintain its
-active status.
+- A persistent worker (usually a generator) has sent a message back to the manager
+  but is still performing work and may return further points. In this case, consider
+  starting the generator in :ref:`active_recv<gen_active_recv>` mode. This can be
+  specified in the allocation function, and will cause the worker maintain its
+  active status.
 
-A persistent worker has requested resources that prevents any simulations from
-taking place. By default, persistent workers hold onto resources even when not
-active. This may require the worker to return from persistent mode.
+- A persistent worker has requested resources that prevents any simulations from
+  taking place. By default, persistent workers hold onto resources even when not
+  active. This may require the worker to return from persistent mode.
 
-When returning points to a persistent generator (often the top code block in
-allocation functions). Eg. ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
-Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True``.
+- When returning points to a persistent generator (often the top code block in
+  allocation functions). For example, ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
+  Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True``.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
