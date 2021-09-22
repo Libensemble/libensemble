@@ -52,7 +52,7 @@ Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True`
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
 
-It is possible that you have set `allow_oversubscribe` to False when setting
+It is possible that you have set `enforce_worker_core_bounds` to True when setting
 up the Executor. Also, the resource manager can be completely disabled
 with::
 
