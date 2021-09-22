@@ -102,8 +102,8 @@ The libEnsemble resource manager works out the resources available to each worke
 but unlike some other systems, ``jsrun`` on Summit dynamically schedules runs to
 available slots across and within nodes. It can also queue tasks. This allows variable
 size runs to easily be handled on Summit. If oversubsciption to the `jsrun` system
-is desired, then libEnsemble's resource manager can be disabled.E.g: In the
-calling script::
+is desired, then libEnsemble's resource manager can be disabled in the
+calling script via::
 
     libE_specs['disable_resource_manager'] = True
 

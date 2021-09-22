@@ -16,8 +16,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     If alloc_specs['user']['give_all_with_same_priority'] is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
-    Workers performing sims will be assigned resources given by the resource_sets
-    field of H if it exists, else defaulting to one. Workers performing gens are
+    Workers performing sims will be assigned resources given in H['resource_sets']
+    this field exists, else defaulting to one. Workers performing gens are
     assigned resource_sets given by persis_info['gen_resources'] or zero.
 
     This is the default allocation function if one is not defined.

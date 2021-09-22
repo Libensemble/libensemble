@@ -97,8 +97,8 @@ its capabilities.
   and ``gen_f`` functions are also commonly configured and parameterized here.
 
 * **User function**: A generator, simulator, or allocation function. These
-  functions are python functions that govern the libEnsemble workflow. They
-  must implement the API for each respective user function, but otherwise can
+  are python functions that govern the libEnsemble workflow. They
+  must conform to the libEnsemble API for each respective user function, but otherwise can
   be created or modified by the user. libEnsemble comes with many examples of
   each type of user function.
 
@@ -123,7 +123,7 @@ its capabilities.
   and the workers assigned to them are referred to as *persistent*.
 
 * **Resource Manager** libEnsemble has a built-in resource manager that can detect
-  (or be provided with) a set of resources (e.g. a node-list). The resources are
+  (or be provided with) a set of resources (e.g., a node-list). Resources are
   divided up amongst workers (using *resource sets*), and can be dynamically
   reassigned.
 

@@ -115,7 +115,7 @@ be run. This approach allows multiple applications to be registered.
 The MPIExecutor autodetects system criteria such as the appropriate MPI launcher
 and mechanisms to poll and kill tasks. It also has access to the resource manager,
 which partitions resources amongst workers, ensuring that runs utilise different
-resources (e.g. nodes). Furthermore, the MPIExecutor offers resilience via the
+resources (e.g., nodes). Furthermore, the MPIExecutor offers resilience via the
 feature of re-launching tasks that fail because of system factors.
 
 Various back-end mechanisms may be used by the Executor to best interact

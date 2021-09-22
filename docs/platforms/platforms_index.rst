@@ -135,10 +135,10 @@ as follows::
 
             cat $COBALT_NODEFILE > node_list
 
-Resource detection can be disabled by setting the libE_specs option
+Resource detection can be disabled by setting 
 ``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
-configuration on the Executor submit line. This will usually work sufficiently on
-systems that have application level scheduling (e.g: ``aprun``, ``jsrun``) as these
+configuration options on the Executor submit line. This will usually work sufficiently on
+systems that have application-level scheduling (e.g., ``aprun``, ``jsrun``) as these
 will slot each run into available nodes where possible. ``jsrun`` can also queue
 runs. However, on other cluster and multi-node systems, if the built-in resource
 manager is disabled, then runs without a hostlist or machinefile supplied may be
@@ -177,13 +177,13 @@ same resource set) for simulation instances:
 Overriding Auto-detection
 -------------------------
 
-libEnsemble automatically detects system information. This includes resource information, such as
+libEnsemble can automatically detect system information. This includes resource information, such as
 available nodes and the number of cores on the node, and information about available MPI runners.
 
 System detection for resources can be overriden using the :ref:`resource_info<resource_info>`
 libE_specs option.
 
-When using the MPI Executor it is possible to override the detected information using the
+When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 Instructions for Specific Platforms
