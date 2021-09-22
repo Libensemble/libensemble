@@ -20,7 +20,7 @@ import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_resources as sim_f
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams

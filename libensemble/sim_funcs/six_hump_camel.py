@@ -1,7 +1,7 @@
 """
 This module contains various versions that evaluate the six hump camel function.
 """
-__all__ = ['six_hump_camel_CUDA_variable_resources', 'six_hump_camel_with_different_resources',
+__all__ = ['six_hump_camel_CUDA_variable_resources', 'six_hump_camel_with_variable_resources',
            'six_hump_camel', 'six_hump_camel_simple']
 
 # import subprocess
@@ -59,7 +59,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
 # SH TODO: Should we move this to below
 #          Check/update docstring
-def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info):
+def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
     performs a system call with a given number of nodes and ranks per node
