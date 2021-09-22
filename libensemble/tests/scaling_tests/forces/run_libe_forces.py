@@ -39,10 +39,10 @@ if not os.path.isfile('forces.x'):
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+    exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+    exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.

@@ -63,7 +63,7 @@ custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logica
                     'node_file': node_file}      # Name of file containing a node-list
 
 libE_specs['central_mode'] = True
-libE_specs['allow_oversubscribe'] = False
+libE_specs['enforce_worker_core_bounds'] = False
 libE_specs['resource_info'] = custom_resources
 
 # Create executor and register sim to it.

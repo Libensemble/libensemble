@@ -94,8 +94,8 @@ Specifications for libEnsemble::
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding
             zero_resource_workers).
-        'allow_oversubscribe' [boolean]:
-            If true, the Executor will permit submission of tasks with a
+        'enforce_worker_core_bounds' [boolean]:
+            If false, the Executor will permit submission of tasks with a
             higher processor count than the CPUs available to the worker as
             detected by auto_resources. Larger node counts are not allowed.
             When auto_resources is off, this argument is ignored.
