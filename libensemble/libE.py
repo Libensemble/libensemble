@@ -228,9 +228,9 @@ def libE(sim_specs, gen_specs, exit_criteria,
 
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
 
-    # Not supported with TCP
+    # Resource management not supported with TCP
     if comms_type == 'tcp':
-        libE_specs['auto_resources'] = False
+        libE_specs['disable_resource_manager'] = True
 
     Resources.init_resources(libE_specs)
 
@@ -492,7 +492,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
     exctr = Executor.executor
     if exctr is not None:
-        # TCP does not currently support auto_resources but when does, assume
+        # TCP does not currently support resource_management but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
         if not is_worker:
             exctr.serial_setup()
