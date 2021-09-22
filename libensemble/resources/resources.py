@@ -166,7 +166,7 @@ class GlobalResources:
         self.central_mode = libE_specs.get('central_mode', False)
         self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
         self.num_resource_sets = libE_specs.get('num_resource_sets', None)
-        self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', True)
+        self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', False)
 
         if self.central_mode:
             logger.debug('Running in central mode')
