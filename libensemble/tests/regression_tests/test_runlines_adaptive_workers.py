@@ -52,7 +52,6 @@ gen_specs = {'gen_f': gen_f,
                      ('x', float, n),
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': 5,
-                      'give_all_with_same_priority': True,  # SH TODO: Really an alloc option
                       'max_resource_sets': 4,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
@@ -61,6 +60,7 @@ gen_specs = {'gen_f': gen_f,
 alloc_specs = {'alloc_f': give_sim_work_first,
                'out': [('allocated', bool)],
                'user': {'batch_mode': False,
+                        'give_all_with_same_priority': True,
                         'num_active_gens': 1}
                }
 

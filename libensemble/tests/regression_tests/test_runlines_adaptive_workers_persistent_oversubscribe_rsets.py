@@ -69,14 +69,13 @@ gen_specs = {'gen_f': gen_f,
                      ('x', float, n),
                      ('x_on_cube', float, n)],
              'user': {'initial_batch_size': nworkers-1,
-                      'give_all_with_same_priority': False,  # SH TODO: Really an alloc option
-                      'async': False,                        # SH TODO: Really an alloc option
                       'max_resource_sets': max_rsets,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
 alloc_specs = {'alloc_f': alloc_f,
+               'user': {'give_all_with_same_priority': False},
                'out': [],
                }
 

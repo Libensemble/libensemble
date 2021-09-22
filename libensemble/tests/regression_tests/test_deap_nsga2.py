@@ -67,8 +67,10 @@ gen_specs = {'gen_f': gen_f,
                       'indpb': 0.8/ind_size}  # end user
              }  # end gen specs
 
-# libE Allocation function
-alloc_specs = {'out': [], 'alloc_f': alloc_f}
+alloc_specs = {'alloc_f': alloc_f,
+               'user': {'give_all_with_same_priority': False},
+               'out': [],
+               }
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls

@@ -51,14 +51,13 @@ gen_specs = {'gen_f': gen_f,
                      ('resource_sets', int),
                      ('x', float, n)],
              'user': {'initial_batch_size': nworkers-1,
-                      'give_all_with_same_priority': False,  # SH TODO: Really an alloc option
-                      'async': False,                        # SH TODO: Really an alloc option
                       'max_resource_sets': nworkers-1,  # Any sim created can req. 1 worker up to all.
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
 alloc_specs = {'alloc_f': alloc_f,
+               'user': {'give_all_with_same_priority': False},
                'out': []}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
