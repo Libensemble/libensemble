@@ -11,7 +11,7 @@ In practice, most ``gen_f`` function definitions written by users resemble::
     def my_generator(H, persis_info, gen_specs, libE_info):
 
 Where :doc:`H<../data_structures/history_array>` is a selection of the
-:doc:`History array<../history_output>`, determined by sim IDs from the
+:doc:`History array<../history_output_logging>`, determined by sim IDs from the
 ``alloc_f``, :doc:`persis_info<../data_structures/persis_info>` is a dictionary
 containing state information, :doc:`gen_specs<../data_structures/gen_specs>` is a
 dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``

@@ -46,7 +46,7 @@ evaluations.
 As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
 for the known true theta, which in this case is the center of a unit hypercube. These values
 are therefore stored at the start of libEnsemble's
-main :doc:`History array<../history_output>` array, and have associated ``sim_id``'s.
+main :doc:`History array<../history_output_logging>` array, and have associated ``sim_id``'s.
 
 The generator function ``gen_f`` then samples an initial batch of parameters
 :math:`(\theta_1, \ldots, \theta_n)` and constructs a surrogate model.
@@ -117,7 +117,7 @@ and receive messages from the Manager.
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
 its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
-A new, separate local :doc:`History array<../history_output>` is defined with the
+A new, separate local :doc:`History array<../history_output_logging>` is defined with the
 selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
