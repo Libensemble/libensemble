@@ -97,8 +97,9 @@ Specifications for libEnsemble::
         'enforce_worker_core_bounds' [boolean]:
             If false, the Executor will permit submission of tasks with a
             higher processor count than the CPUs available to the worker as
-            detected by auto_resources. Larger node counts are not allowed.
-            When auto_resources is off, this argument is ignored.
+            detected by the resource manager. Larger node counts are not allowed.
+            When the libE_specs option `disable_resource_manager` is True,
+            this argument is ignored.
         'central_mode' [boolean]:
             If true, then running in central mode, otherwise in distributed
             mode. Central mode means libE processes (manager and workers) are
@@ -111,14 +112,6 @@ Specifications for libEnsemble::
             The allowable fields are given below in 'Overriding Auto-detection'
             Note that if the option ``disable_resource_manager`` is set then
             this option is ignord.
-
-.. Cant put link in the codeblock as it is
-..         'resource_info' [dict]:
-..             Provide resource information which overrides information detected by 'auto_resources'.
-..             The allowable fields are given in :ref:`Overriding Auto-detection`
-
-.. See :ref:`Overriding Auto-detection`
-.. and see :ref:`resource_info<resource_info>`
 
 .. _resource_info:
 
