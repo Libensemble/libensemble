@@ -59,12 +59,11 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     return H_o, persis_info
 
 
-# SH TODO: Check/update docstring
 def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info):
     """
-    Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
-    performs a system call with a given number of nodes and ranks per node
-    using a machinefile (to show one way of evaluating a compiled simulation).
+    Evaluates the six hump camel for a collection of points given in ``H['x']``
+    via the executor, supporting variable sized simulations/resources, as
+    determined by the generator.
 
     .. seealso::
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
