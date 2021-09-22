@@ -171,11 +171,9 @@ def get_resources(resources, num_procs=None, num_nodes=None,
         num_nodes = local_node_count
 
     # Checks config is consistent and sufficient to express
-    # - does not check actual resources
     num_procs, num_nodes, ranks_per_node = \
         task_partition(num_procs, num_nodes, ranks_per_node)
 
-    # SH TODO: Remove
     # print('cores per rset {}.  slot count {}  ranks_per_node {}'.\
     # format(cores_avail_per_node_per_rset, wresources.slot_count, ranks_per_node),flush=True)
 
