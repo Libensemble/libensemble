@@ -66,7 +66,7 @@ def six_hump_camel_with_different_resources(H, persis_info, sim_specs, libE_info
     using a machinefile (to show one way of evaluating a compiled simulation).
 
     .. seealso::
-        `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     batch = len(H['x'])
