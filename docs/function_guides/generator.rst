@@ -117,6 +117,8 @@ the tag from the manager, it should return with an additional tag::
 See :doc:`calc_status<../data_structures/calc_status>` for more information about
 the message tags.
 
+.. _gen_active_recv:
+
 Active receive mode
 -------------------
 

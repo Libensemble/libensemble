@@ -330,7 +330,6 @@ class Executor:
         This is typically created in the user calling script.
 
         """
-        self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
         self.default_apps = {'sim': None, 'gen': None}
         self.apps = {}
@@ -341,10 +340,8 @@ class Executor:
         self.comm = None
         Executor.executor = self
 
-    def _serial_setup(self):
-        pass  # To be overloaded
-
-    def add_comm_info(self, libE_nodes, serial_setup):
+    def serial_setup(self):
+        """Set up to be called by only one process"""
         pass  # To be overloaded
 
     @property
@@ -374,6 +371,10 @@ class Executor:
                 "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
+
+    def set_resources(self, resources):
+        # Does not use resources
+        pass
 
     def register_calc(self, full_path, app_name=None, calc_type=None, desc=None):
         """Registers a user application to libEnsemble.

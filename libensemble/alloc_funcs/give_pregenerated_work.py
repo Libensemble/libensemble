@@ -1,4 +1,4 @@
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -10,23 +10,32 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
+
     # Unless already defined, initialize next_to_give to be the first point in H
     persis_info['next_to_give'] = persis_info.get('next_to_give', 0)
 
     if persis_info['next_to_give'] >= len(H):
         return Work, persis_info, 1
 
-    for i in avail_worker_ids(W):
+    for i in support.avail_worker_ids():
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         # Give sim work
-        sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+        try:
+            Work[i] = support.sim_work(i, H, sim_specs['in'], [persis_info['next_to_give']], [])
+        except InsufficientFreeResources:
+            break
         persis_info['next_to_give'] += 1
 
         if persis_info['next_to_give'] >= len(H):
             break
 
+    del support
     return Work, persis_info

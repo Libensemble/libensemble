@@ -24,6 +24,7 @@ from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
 from libensemble.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
+from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING
 from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
@@ -149,7 +150,7 @@ class Manager:
                     ('active', int),
                     ('persis_state', int),
                     ('active_recv', int),
-                    ('blocked', bool)]
+                    ('zero_resource_worker', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
                  sim_specs, gen_specs, exit_criteria,
@@ -179,6 +180,11 @@ class Manager:
              (1, 'stop_val', self.term_test_stop_val)]
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
+        self.resources = Resources.resources
+        if self.resources is not None:
+            for wrk in self.W:
+                if wrk['worker_id'] in self.resources.glob_resources.zero_resource_workers:
+                    wrk['zero_resource_worker'] = True
 
         try:
             temp_EnsembleDirectory.make_copyback_check()
@@ -215,7 +221,8 @@ class Manager:
         elif ('sim_max' in self.exit_criteria
               and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
             # To avoid starting more sims if sim_max is an exit criteria
-            logger.info("Ignoring the alloc_f request for more sims than sim_max.")
+            if logged:
+                logger.info("Ignoring the alloc_f request for more sims than sim_max.")
             return 1
         else:
             return 0
@@ -286,10 +293,40 @@ class Manager:
                 "Allocation function requested invalid fields {}" \
                 "be sent to worker={}.".format(diff_fields, w)
 
+    def _set_resources(self, Work, w):
+        """Check rsets given in Work match rsets assigned in resources.
+
+        If rsets are not assigned, then assign using default mapping
+        """
+        man_resources = self.resources.resource_manager
+        rset_req = Work['libE_info'].get('rset_team')
+
+        if rset_req is None:
+            rset_team = []
+            default_rset = man_resources.index_list[w-1]
+            if default_rset is not None:
+                rset_team.append(default_rset)
+            Work['libE_info']['rset_team'] = rset_team
+
+        man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
+
+    def _freeup_resources(self, w):
+        """Free up resources assigned to the worker"""
+
+        if self.resources:
+            self.resources.resource_manager.free_rsets(w)
+
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker
         """
+
+        logger.debug("Manager sending work unit to worker {}".format(w))
+
+        if self.resources:
+            self._set_resources(Work, w)
+
         self.wcomms[w-1].send(Work['tag'], Work)
+
         work_rows = Work['libE_info']['H_rows']
         work_name = calc_type_strings[Work['tag']]
         logger.debug("Manager sending {} work to worker {}. Rows {}".
@@ -317,16 +354,12 @@ class Manager:
             else:
                 assert 'active_recv' not in Work['libE_info'], \
                     "active_recv worker must also be persistent"
-        if 'blocking' in Work['libE_info']:
-            for w_i in Work['libE_info']['blocking']:
-                assert self.W[w_i-1]['active'] == 0, \
-                    "Active worker being blocked; aborting"
-                self.W[w_i-1]['blocked'] = 1
-                self.W[w_i-1]['active'] = 1
 
+        work_rows = Work['libE_info']['H_rows']
         if Work['tag'] == EVAL_SIM_TAG:
-            work_rows = Work['libE_info']['H_rows']
             self.hist.update_history_x_out(work_rows, w)
+        elif Work['tag'] == EVAL_GEN_TAG:
+            self.hist.update_history_to_gen(work_rows)
 
     # --- Handle incoming messages from workers
 
@@ -378,8 +411,10 @@ class Manager:
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         Manager._check_received_calc(D_recv)
+
         if w not in self.persis_pending and not self.W[w-1]['active_recv']:
             self.W[w-1]['active'] = 0
+
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG,
                            FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get('calc_out', None)
@@ -398,6 +433,7 @@ class Manager:
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w-1]['active'] = 0
+            self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
@@ -408,12 +444,8 @@ class Manager:
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
                 # Now a waiting, persistent worker
                 self.W[w-1]['persis_state'] = calc_type
-
-        if 'libE_info' in D_recv and 'blocking' in D_recv['libE_info']:
-            # Now done blocking these workers
-            for w_i in D_recv['libE_info']['blocking']:
-                self.W[w_i-1]['blocked'] = 0
-                self.W[w_i-1]['active'] = 0
+            else:
+                self._freeup_resources(w)
 
         if 'persis_info' in D_recv and len(D_recv['persis_info']):
             persis_info[w].update(D_recv['persis_info'])
@@ -519,6 +551,9 @@ class Manager:
         if self.safe_mode:
             assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
+        if self.safe_mode:
+            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
+
         if len(output) == 2:
             output = output + ((0,))
 
@@ -539,7 +574,7 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0) and not self.term_test():
+                if any(self.W['active'] == 0) and not self.work_giving_term_test(logged=False):
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
                     if flag:

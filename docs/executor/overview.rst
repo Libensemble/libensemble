@@ -121,11 +121,26 @@ which launches the ``forces.x`` application as an MPI task.
     **"jobs"** within Balsam, including within Balsam's database and when
     describing the state of a completed submission.
 
+Note that applications can also be registered to the Executor using a name. The
+equivalent lines in the above example would be:
+
+Calling script::
+
+    exctr.register_calc(full_path='/path/to/my/exe', app_name='forces_app')
+
+User sim func::
+
+    task = exctr.submit(app_name='forces_app', num_procs=8, app_args='input.txt',
+                        stdout='out.txt', stderr='err.txt')
+
+The ``app_name`` can be any identfier, while ``full_path`` is the application to
+be run. This approach allows multiple applications to be registered.
+
 The ``MPIExecutor`` autodetects system criteria such as the appropriate MPI launcher
 and mechanisms to poll and kill tasks. It also has access to the resource manager,
 which partitions resources amongst workers, ensuring that runs utilize different
-resources (e.g. nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
-feature of re-launching tasks that fail because of system factors.
+resources (e.g., nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
+feature of re-launching tasks that fail to start because of system factors.
 
 Various back-end mechanisms may be used by the Executor to best interact
 with each system, including proxy launchers or task management systems such as

@@ -31,6 +31,9 @@ from libensemble.tests.regression_tests.common import build_simfunc
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+libE_specs['disable_resource_manager'] = True
+
+
 USE_BALSAM = False
 
 cores_per_task = 1
@@ -38,14 +41,14 @@ logical_cores = multiprocessing.cpu_count()
 cores_all_tasks = nworkers*cores_per_task
 
 if cores_all_tasks > logical_cores:
-    use_auto_resources = False
-    mess_resources = 'Oversubscribing - auto_resources set to False'
+    disable_resource_manager = True
+    mess_resources = 'Oversubscribing - Resource manager disabled'
 elif libE_specs.get('comms', False) == 'tcp':
-    use_auto_resources = False
-    mess_resources = 'TCP comms does not support auto_resources. Auto_resources set to False'
+    disable_resource_manager = True
+    mess_resources = 'TCP comms does not support resource management. Resource manager disabled'
 else:
-    use_auto_resources = True
-    mess_resources = 'Auto_resources set to True'
+    disable_resource_manager = False
+    mess_resources = 'Resource manager enabled'
 
 if is_manager:
     print('\nCores req: {} Cores avail: {}\n  {}\n'.format(cores_all_tasks, logical_cores, mess_resources))
@@ -57,10 +60,10 @@ sim_app2 = six_hump_camel.__file__
 
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor(auto_resources=use_auto_resources)
+    exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(auto_resources=use_auto_resources)
+    exctr = MPIExecutor()
 exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 

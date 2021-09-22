@@ -1,6 +1,5 @@
 import numpy as np
-
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens, all_returned
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -13,13 +12,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     Allows for a ``alloc_specs['user']['batch_mode']`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
-    Allows for ``blocking`` of workers that are not active, for example, so
-    their resources can be used for a different simulation evaluation.
-
     Can give points in highest priority, if ``'priority'`` is a field in ``H``.
-    If gen_specs['user']['give_all_with_same_priority'] is set to True, then
+    If alloc_specs['user']['give_all_with_same_priority'] is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
+    Workers performing sims will be assigned resources given in H['resource_sets']
+    this field exists, else defaulting to one. Workers performing gens are
+    assigned resource_sets given by persis_info['gen_resources'] or zero.
 
     This is the default allocation function if one is not defined.
 
@@ -27,60 +26,44 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
+    # Initialize alloc_specs['user'] as user.
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    batch_give = user.get('give_all_with_same_priority', False)
+    gen_in = gen_specs.get('in', [])
+
+    manage_resources = 'resource_sets' in H.dtype.names
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    gen_count = support.count_gens()
     Work = {}
-    gen_count = count_gens(W)
-    avail_set = set(W['worker_id'][np.logical_and(~W['blocked'],
-                                                  W['active'] == 0)])
 
-    task_avail = ~H['given'] & ~H['cancel_requested']
-    for i in avail_worker_ids(W):
+    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    for wid in support.avail_worker_ids():
 
-        if i not in avail_set:
-            continue
-
-        if np.any(task_avail):
-            # Pick all high priority, oldest high priority, or just oldest point
-            if 'priority' in H.dtype.fields:
-                priorities = H['priority'][task_avail]
-                if gen_specs['user'].get('give_all_with_same_priority'):
-                    q_inds = (priorities == np.max(priorities))
-                else:
-                    q_inds = np.argmax(priorities)
-            else:
-                q_inds = 0
-
-            # Get sim ids (indices) and check resources needed
-            sim_ids_to_send = np.nonzero(task_avail)[0][q_inds]  # oldest point(s)
-            nodes_needed = (np.max(H[sim_ids_to_send]['num_nodes'])
-                            if 'num_nodes' in H.dtype.names else 1)
-            if nodes_needed > len(avail_set):
+        if np.any(points_to_evaluate):
+            sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
+            try:
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+            except InsufficientFreeResources:
                 break
-
-            # Assign points to worker and remove from task_avail list.
-            sim_work(Work, i, sim_specs['in'], sim_ids_to_send, persis_info.get(i))
-            task_avail[sim_ids_to_send] = False
-
-            # Update resource records
-            avail_set.remove(i)
-            if nodes_needed > 1:
-                workers_to_block = list(avail_set)[:nodes_needed-1]
-                avail_set.difference_update(workers_to_block)
-                Work[i]['libE_info']['blocking'] = workers_to_block
-
+            points_to_evaluate[sim_ids_to_send] = False
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
+            if gen_count >= user.get('num_active_gens', gen_count+1):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if alloc_specs['user'].get('batch_mode') and not all_returned(H):
+            if user.get('batch_mode') and not support.all_returned(H):
                 break
 
             # Give gen work
-            gen_count += 1
-            gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
+            try:
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
+            gen_count += 1
 
+    del support
     return Work, persis_info

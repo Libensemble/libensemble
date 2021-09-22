@@ -30,6 +30,9 @@ rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
+libE_specs['central_mode'] = True
+libE_specs['enforce_worker_core_bounds'] = True
+
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
 logger.set_filename(log_file)
@@ -45,6 +48,11 @@ if is_manager:
 
 if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
+
+# Mock up system
+custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                    'node_file': node_file}      # Name of file containing a node-list
+libE_specs['resource_info'] = custom_resources
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': nworkers*rounds}
@@ -128,16 +136,17 @@ exp_rename_mpich = \
      'inst -dummy mpich -hosts node-1,node-2 -np 8 --xarg 1 --ppn 4 /path/to/fakeapp.x --testid mp2',
      ]
 
-exp_openmpi = \
-    ['mpirun -host node-1 -np 2 -npernode 2 --xarg 1 /path/to/fakeapp.x --testid base1',
-     'mpirun -host node-1,node-2 -np 32 -npernode 16 /path/to/fakeapp.x --testid base2',
-     'mpirun -host node-1,node-2 -np 32 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base3',
-     'mpirun -host node-1,node-2 -np 128 -npernode 64 --xarg 1 /path/to/fakeapp.x --testid base4',
-     'mpirun -host node-1 -np 16 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base5',
-     'mpirun -host node-1,node-2 -np 16 -npernode 8 --xarg 1 /path/to/fakeapp.x --testid base6',
-     'mpirun -host node-1 -np 16 --xarg 1 -npernode 16 /path/to/fakeapp.x --testid ompi1',
-     'mpirun -host node-1,node-2 -np 8 --xarg 1 -npernode 4 /path/to/fakeapp.x --testid ompi2',
-     ]
+# openmpi requires machinefiles (-host requires
+# exp_openmpi = \
+#    ['mpirun -host node-1 -np 2 -npernode 2 --xarg 1 /path/to/fakeapp.x --testid base1',
+#    'mpirun -host node-1,node-2 -np 32 -npernode 16 /path/to/fakeapp.x --testid base2',
+#    'mpirun -host node-1,node-2 -np 32 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base3',
+#    'mpirun -host node-1,node-2 -np 128 -npernode 64 --xarg 1 /path/to/fakeapp.x --testid base4',
+#    'mpirun -host node-1 -np 16 -npernode 16 --xarg 1 /path/to/fakeapp.x --testid base5',
+#    'mpirun -host node-1,node-2 -np 16 -npernode 8 --xarg 1 /path/to/fakeapp.x --testid base6',
+#    'mpirun -host node-1 -np 16 --xarg 1 -npernode 16 /path/to/fakeapp.x --testid ompi1',
+#    'mpirun -host node-1,node-2 -np 8 --xarg 1 -npernode 4 /path/to/fakeapp.x --testid ompi2',
+#    ]
 
 exp_aprun = \
     ['aprun -L node-1 -n 2 -N 2 --xarg 1 /path/to/fakeapp.x --testid base1',
@@ -187,13 +196,10 @@ exp_custom = ['myrunner --xarg 1 /path/to/fakeapp.x --testid base1',
 # Loop here for mocking different systems.
 def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
-    # Mock up system
-    customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
-                  'runner_name': runner_name,  # Runner name: Replaces run command if not None
-                  'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-                  'node_file': node_file}      # Name of file containing a node-list
+    mpi_customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
+                      'runner_name': runner_name}  # Runner name: Replaces run command if not None
 
-    exctr = MPIExecutor(central_mode=True, auto_resources=True, allow_oversubscribe=False, custom_info=customizer)
+    exctr = MPIExecutor(custom_info=mpi_customizer)
     exctr.register_calc(full_path=sim_app, calc_type='sim')
 
     test_list = test_list_base + test_list_exargs
@@ -203,7 +209,8 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
     H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 
-for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
+# for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
+for run_set in ['mpich', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
 
     # Could use classes, pref in separate data_set module
     runner_name = None  # Use default
@@ -213,10 +220,10 @@ for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'c
         test_list_exargs = eargs_mpich
         exp_list = exp_mpich
 
-    if run_set == 'openmpi':
-        runner = 'openmpi'
-        test_list_exargs = eargs_openmpi
-        exp_list = exp_openmpi
+#    if run_set == 'openmpi':
+#        runner = 'openmpi'
+#        test_list_exargs = eargs_openmpi
+#        exp_list = exp_openmpi
 
     if run_set == 'aprun':
         runner = 'aprun'

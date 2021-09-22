@@ -5,20 +5,42 @@ function.
 """
 import numpy as np
 
-__all__ = ['uniform_random_sample_with_different_nodes_and_ranks',
+__all__ = ['uniform_random_sample',
+           'uniform_random_sample_with_variable_resources',
            'uniform_random_sample_obj_components',
            'latin_hypercube_sample',
-           'uniform_random_sample']
+           'uniform_random_sample_cancel']
 
 
-def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_specs, _):
+def uniform_random_sample(H, persis_info, gen_specs, _):
     """
-    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``. Also randomly requests a different ``number_of_nodes``
-    and ``ranks_per_node`` to be used in the evaluation of the generated point.
+    Generates ``gen_specs['user']['gen_batch_size']`` points uniformly over the domain
+    defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
 
     .. seealso::
-        `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa
+        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
+    """
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+
+    n = len(lb)
+    b = gen_specs['user']['gen_batch_size']
+
+    H_o = np.zeros(b, dtype=gen_specs['out'])
+
+    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+
+    return H_o, persis_info
+
+
+def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
+    """
+    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
+    ``gen_specs['user']['lb']``. Also randomly requests a different number of resource
+    sets to be used in the evaluation of the generated points after the initial batch.
+
+    .. seealso::
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
@@ -29,18 +51,20 @@ def uniform_random_sample_with_different_nodes_and_ranks(H, persis_info, gen_spe
 
         H_o = np.zeros(b, dtype=gen_specs['out'])
         for i in range(0, b):
+            # x= i*np.ones(n)
             x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
             H_o['x'][i] = x
-            H_o['num_nodes'][i] = 1
-            H_o['ranks_per_node'][i] = 16
+            H_o['resource_sets'][i] = 1
             H_o['priority'] = 1
 
     else:
         H_o = np.zeros(1, dtype=gen_specs['out'])
-        H_o['x'] = len(H)*np.ones(n)
-        H_o['num_nodes'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_num_nodes']+1)
-        H_o['ranks_per_node'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_ranks_per_node']+1)
-        H_o['priority'] = 10*H_o['num_nodes']
+        # SH TODO: x values - either random or a basic count
+        # H_o['x'] = len(H)*np.ones(n)
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub)
+        H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1)
+        H_o['priority'] = 10*H_o['resource_sets']
+        # print('Created sim for {} workers'.format(H_o['resource_sets']), flush=True)
 
     return H_o, persis_info
 
@@ -64,33 +88,11 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     H_o = np.zeros(b*m, dtype=gen_specs['out'])
     for i in range(0, b):
         x = persis_info['rand_stream'].uniform(lb, ub, (1, n))
-
         H_o['x'][i*m:(i+1)*m, :] = np.tile(x, (m, 1))
         H_o['priority'][i*m:(i+1)*m] = persis_info['rand_stream'].uniform(0, 1, m)
         H_o['obj_component'][i*m:(i+1)*m] = np.arange(0, m)
 
         H_o['pt_id'][i*m:(i+1)*m] = len(H)//m+i
-
-    return H_o, persis_info
-
-
-def uniform_random_sample(H, persis_info, gen_specs, _):
-    """
-    Generates ``gen_specs['user']['gen_batch_size']`` points uniformly over the domain
-    defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
-
-    .. seealso::
-        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
-    """
-    ub = gen_specs['user']['ub']
-    lb = gen_specs['user']['lb']
-
-    n = len(lb)
-    b = gen_specs['user']['gen_batch_size']
-
-    H_o = np.zeros(b, dtype=gen_specs['out'])
-
-    H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
 
     return H_o, persis_info
 

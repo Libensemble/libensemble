@@ -46,7 +46,7 @@ def get_mgr_worker_msg(comm):
     data_tag, calc_in = comm.recv()
     # Check for unexpected STOP (e.g. error between sending Work info and rows)
     if data_tag in [STOP_TAG, PERSIS_STOP]:
-        logger.debug('Persistent gen received signal {} from manager while expecting work rows'.format(tag))
+        logger.debug('Persistent gen received signal {} from manager while expecting work rows'.format(data_tag))
         comm.push_to_buffer(data_tag, calc_in)
         return data_tag, calc_in, None  # calc_in is signal identifier
     logger.debug('Persistent gen received work rows from manager')

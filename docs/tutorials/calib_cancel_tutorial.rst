@@ -205,12 +205,12 @@ prepared for irregular sending /receiving of data.
 .. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
 ..
 ..     # Loop through available simulation workers
-..     for i in avail_worker_ids(W, persistent=False):
+..     for i in support.avail_worker_ids(persistent=False):
 ..
 ..         if np.any(task_avail):
 ..             if 'priority' in H.dtype.fields:
 ..                 priorities = H['priority'][task_avail]
-..                 if gen_specs['user'].get('give_all_with_same_priority'):
+..                 if alloc_specs['user'].get('give_all_with_same_priority'):
 ..                     indexes = (priorities == np.max(priorities))
 ..                 else:
 ..                     indexes = np.argmax(priorities)

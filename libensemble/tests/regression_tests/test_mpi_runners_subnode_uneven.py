@@ -55,14 +55,19 @@ if comms == 'mpi':
 
 
 # Mock up system
-customizer = {'mpi_runner': 'srun',    # Select runner: mpich, openmpi, aprun, srun, jsrun
-              'runner_name': 'srun',  # Runner name: Replaces run command if not None
-              'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-              'node_file': node_file}      # Name of file containing a node-list
+mpi_customizer = {'mpi_runner': 'srun',   # Select runner: mpich, openmpi, aprun, srun, jsrun
+                  'runner_name': 'srun'}  # Runner name: Replaces run command if not None
+
+
+custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                    'node_file': node_file}      # Name of file containing a node-list
+
+libE_specs['central_mode'] = True
+libE_specs['enforce_worker_core_bounds'] = True
+libE_specs['resource_info'] = custom_resources
 
 # Create executor and register sim to it.
-exctr = MPIExecutor(central_mode=True, auto_resources=True,
-                    allow_oversubscribe=False, custom_info=customizer)
+exctr = MPIExecutor(custom_info=mpi_customizer)
 exctr.register_calc(full_path=sim_app, calc_type='sim')
 
 n = 2
@@ -114,9 +119,12 @@ for i in range(nsim_workers):
     exp_tasks.append(ntasks)
     exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(ntasks) + srun_p4)
 
+
 test_list = test_list_base
 exp_list = exp_srun
-sim_specs['user'] = {'tests': test_list, 'expect': exp_list}
+sim_specs['user'] = {'tests': test_list,
+                     'expect': exp_list,
+                     'offset_for_schedular': True}
 
 
 # Perform the run
