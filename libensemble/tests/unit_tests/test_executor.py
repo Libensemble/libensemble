@@ -7,7 +7,7 @@ import sys
 import time
 import pytest
 import socket
-from libensemble.resources.resources import ResourcesException
+from libensemble.resources.mpi_resources import MPIResourcesException
 from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
 
@@ -60,16 +60,14 @@ def build_simfuncs():
 
 
 # This would typically be in the user calling script
-# Cannot test auto_resources here - as no workers set up.
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor(auto_resources=False)
+        exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor(auto_resources=False)
-
+        exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
@@ -92,10 +90,10 @@ def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor(auto_resources=False)
+        exctr = BalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor(auto_resources=False)
+        exctr = MPIExecutor()
         if exctr.workerID is not None:
             sys.exit("Something went wrong in creating Executor")
 
@@ -111,7 +109,7 @@ def setup_executor_fakerunner():
                   'subgroup_launch': True}
 
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(auto_resources=False, custom_info=customizer)
+    exctr = MPIExecutor(custom_info=customizer)
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
@@ -332,7 +330,7 @@ def test_get_task():
 
 @pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
-    """ Test of supplying various input configurations when auto_resources is False."""
+    """ Test of supplying various input configurations."""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
 
     # Note: Could test task_partition routine directly - without launching tasks...
@@ -362,7 +360,7 @@ def test_procs_and_machinefile_logic():
     # Testing num_procs not num_nodes*procs_per_node (should fail)
     try:
         task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
-    except ResourcesException as e:
+    except MPIResourcesException as e:
         assert e.args[0] == 'num_procs does not equal num_nodes*procs_per_node'
     else:
         assert 0
@@ -377,7 +375,7 @@ def test_procs_and_machinefile_logic():
     # Testing nothing given (should fail)
     try:
         task = exctr.submit(calc_type='sim', app_args=args_for_sim)
-    except ResourcesException as e:
+    except MPIResourcesException as e:
         assert e.args[0] == 'Need num_procs, num_nodes/procs_per_node, or machinefile'
     else:
         assert 0

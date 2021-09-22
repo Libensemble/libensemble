@@ -58,7 +58,7 @@ gen_specs = {'gen_f': gen_f_batched,
              'out': [('x', float, num_dimensions)],
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
 
 grid_files = []
 

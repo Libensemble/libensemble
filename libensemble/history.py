@@ -77,6 +77,7 @@ class History:
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
         H['last_given_time'][-L:] = np.inf
+        H['last_given_back_time'][-L:] = np.inf
 
         self.H = H
         # self.offset = 0
@@ -85,8 +86,9 @@ class History:
         self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
-
         self.returned_count = np.sum(H['returned'])
+        self.given_back_count = np.sum(H['given_back'])
+        self.given_back_warned = False
 
     def update_history_f(self, D, safe_mode):
         """
@@ -139,6 +141,27 @@ class History:
         self.H['sim_worker'][q_inds] = sim_worker
 
         self.given_count += len(q_inds)
+
+    def update_history_to_gen(self, q_inds):
+        """Updates the history (in place) when points are given back to the gen"""
+        q_inds = np.atleast_1d(q_inds)
+        t = time.time()
+
+        if q_inds.size > 0:
+            if np.all(self.H['returned'][q_inds]):
+                self.H['given_back'][q_inds] = True
+
+            elif np.any(self.H['returned'][q_inds]):  # sporadic returned points need updating
+                for ind in q_inds[self.H['returned'][q_inds]]:
+                    self.H['given_back'][ind] = True
+
+            if self.offset and not self.given_back_warned:  # Using H0
+                logger.manager_warning(
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
+                self.given_back_warned = True
+
+            self.H['last_given_back_time'][q_inds] = t
+            self.given_back_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
@@ -208,6 +231,7 @@ class History:
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
         H_1['last_given_time'] = np.inf
+        H_1['last_given_back_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

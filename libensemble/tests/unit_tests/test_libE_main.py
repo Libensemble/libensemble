@@ -8,6 +8,7 @@ from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from mpi4py import MPI
+from libensemble.resources.resources import Resources
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
 from numpy import inf
@@ -49,10 +50,17 @@ class Fake_MPI:
 
 fake_mpi = Fake_MPI()
 
-libE_specs = {'mpi_comm': MPI.COMM_WORLD}
 alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
 hfile_abort = 'libE_history_at_abort_0.npy'
 pfile_abort = 'libE_persis_info_at_abort_0.pickle'
+
+
+# Run by pytest before each function
+def setup_function(function):
+    print("setup_function function:%s" % function.__name__)
+    if Resources.resources is not None:
+        del Resources.resources
+        Resources.resources = None
 
 
 def remove_file_if_exists(filename):
@@ -76,7 +84,8 @@ def test_manager_exception():
             abortMock.side_effect = Exception
             # Need fake MPI to get past the Manager only check and dump history
             with pytest.raises(Exception):
-                libE(sim_specs, gen_specs, exit_criteria, libE_specs={'mpi_comm': fake_mpi})
+                libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
+                libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
                 pytest.fail('Expected exception')
             assert os.path.isfile(hfile_abort), "History file not dumped"
             assert os.path.isfile(pfile_abort), "Pickle file not dumped"
@@ -85,8 +94,8 @@ def test_manager_exception():
 
             # Test that History and Pickle files NOT created when disabled
             with pytest.raises(Exception):
-                libE(sim_specs, gen_specs, exit_criteria,
-                     libE_specs={'mpi_comm': fake_mpi, 'save_H_and_persis_on_abort': False})
+                libE_specs = {'mpi_comm': fake_mpi, 'save_H_and_persis_on_abort': False}
+                libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
                 pytest.fail('Expected exception')
             assert not os.path.isfile(hfile_abort), "History file dumped"
             assert not os.path.isfile(pfile_abort), "Pickle file dumped"
@@ -102,7 +111,8 @@ def test_exception_raising_manager_with_abort():
     will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
     with pytest.raises(MPIAbortException):
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-        libE(sim_specs, gen_specs, exit_criteria, libE_specs={'mpi_comm': fake_mpi})
+        libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
+        libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
         pytest.fail('Expected MPIAbortException exception')
 
 
@@ -111,8 +121,7 @@ def test_exception_raising_manager_no_abort():
 
     Manager should raise MPISendException when fakeMPI tries to send message, which
     will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
-    libE_specs['abort_on_exception'] = False
-    libE_specs['mpi_comm'] = fake_mpi
+    libE_specs = {'abort_on_exception': False, 'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(LoggedException):
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
         libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
@@ -123,14 +132,16 @@ def test_exception_raising_manager_no_abort():
 # missing, only that it's a list - needs updating in future.
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
+    libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(KeyError):
         H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1},
-                       libE_specs={'mpi_comm': fake_mpi})
+                       libE_specs=libE_specs)
         pytest.fail('Expected KeyError exception')
 
 
 def test_proc_not_in_communicator():
     """Checking proc not in communicator returns exit status of 3"""
+    libE_specs = {}
     libE_specs['mpi_comm'], mpi_comm_null = mpi_comm_excl()
     H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]},
                       {'sim_max': 1}, libE_specs=libE_specs)
@@ -159,7 +170,6 @@ def test_checking_inputs_noworkers():
     # Don't take more points than there is space in history.
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     H0 = np.empty(0)
-
     # Should fail because only got a manager
     libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)

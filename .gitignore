@@ -10,6 +10,7 @@ libensemble.egg-info
 docs/_build
 x.log
 
+.vscode
 build/
 
 dist/

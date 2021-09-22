@@ -39,10 +39,10 @@ if not os.path.isfile('forces.x'):
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+    exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+    exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
@@ -74,7 +74,7 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              }
 
 if PERSIS_GEN:
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+    alloc_specs = {'alloc_f': alloc_f, 'out': []}
 else:
     alloc_specs = {'alloc_f': alloc_f,
                    'out': [('allocated', bool)],

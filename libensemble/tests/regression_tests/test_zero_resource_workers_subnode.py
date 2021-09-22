@@ -32,8 +32,10 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 rounds = 1
 sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
-libE_specs['zero_resource_workers'] = [1]
 
+libE_specs['zero_resource_workers'] = [1]
+libE_specs['central_mode'] = True
+libE_specs['enforce_worker_core_bounds'] = True
 
 # To allow visual checking - log file not used in test
 log_file = 'ensemble_zrw_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers) + '.log'
@@ -53,25 +55,20 @@ comms = libE_specs['comms']
 node_file = 'nodelist_zero_resource_workers_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers)
 nnodes = int(nsim_workers*nodes_per_worker)
 
+# Mock up system
+custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
+                    'node_file': node_file}      # Name of file containing a node-list
+libE_specs['resource_info'] = custom_resources
+
 if is_manager:
     create_node_file(num_nodes=nnodes, name=node_file)
 
 if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
 
-
-# Mock up system
-customizer = {'mpi_runner': 'srun',    # Select runner: mpich, openmpi, aprun, srun, jsrun
-              'runner_name': 'srun',  # Runner name: Replaces run command if not None
-              'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-              'node_file': node_file}      # Name of file containing a node-list
-
 # Create executor and register sim to it.
-exctr = MPIExecutor(zero_resource_workers=in_place, central_mode=True,
-                    auto_resources=True, allow_oversubscribe=False,
-                    custom_info=customizer)
+exctr = MPIExecutor(custom_info={'mpi_runner': 'srun'})
 exctr.register_app(full_path=sim_app, calc_type='sim')
-
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -85,12 +82,12 @@ sim_specs = {'sim_f': sim_f,
 gen_specs = {'gen_f': gen_f,
              'in': [],
              'out': [('x', float, (n,))],
-             'user': {'gen_batch_size': 20,
+             'user': {'initial_batch_size': 20,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': []}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers)*rounds}
 

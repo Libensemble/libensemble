@@ -18,7 +18,7 @@ import logging
 import time
 import datetime
 
-from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -189,40 +189,21 @@ class BalsamMPIExecutor(MPIExecutor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
-    def __init__(self, auto_resources=True,
-                 allow_oversubscribe=True,
-                 central_mode=True,
-                 zero_resource_workers=[],
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None,
-                 custom_info={}):
+    def __init__(self, custom_info={}):
         """Instantiate a new BalsamMPIExecutor instance.
 
         A new BalsamMPIExecutor object is created with an application
         registry and configuration attributes
         """
 
-        if not central_mode:
-            logger.warning("Balsam does not currently support distributed mode - running in central mode")
-            central_mode = True
-
         if custom_info:
             logger.warning("The Balsam executor does not support custom_info - ignoring")
 
-        super().__init__(auto_resources,
-                         allow_oversubscribe,
-                         central_mode,
-                         zero_resource_workers,
-                         nodelist_env_slurm,
-                         nodelist_env_cobalt,
-                         nodelist_env_lsf,
-                         nodelist_env_lsf_shortform)
+        super().__init__(custom_info)
 
         self.workflow_name = "libe_workflow"
 
-    def _serial_setup(self):
+    def serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
         BalsamMPIExecutor.del_apps()
         BalsamMPIExecutor.del_tasks()
@@ -270,6 +251,9 @@ class BalsamMPIExecutor(MPIExecutor):
         app.save()
         logger.debug("Added App {}".format(app.name))
 
+    def set_resources(self, resources):
+        self.resources = resources
+
     def submit(self, calc_type=None, app_name=None, num_procs=None,
                num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
@@ -294,17 +278,8 @@ class BalsamMPIExecutor(MPIExecutor):
             jassert(num_procs or num_nodes or procs_per_node,
                     "No procs/nodes provided - aborting")
 
-        # Extra_args analysis not done here - could pick up self.mpi_runner but possible
-        # that Balsam finds a different runner.
-        if self.auto_resources:
-            num_procs, num_nodes, procs_per_node = \
-                self.resources.get_resources(
-                    num_procs=num_procs,
-                    num_nodes=num_nodes, procs_per_node=procs_per_node,
-                    hyperthreads=hyperthreads)
-        else:
-            num_procs, num_nodes, procs_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes, procs_per_node)
+        num_procs, num_nodes, procs_per_node = \
+            mpi_resources.task_partition(num_procs, num_nodes, procs_per_node)
 
         if stdout is not None or stderr is not None:
             logger.warning("Balsam does not currently accept a stdout "

@@ -29,7 +29,7 @@ def teardown_module(module):
 
 def test_task_funcs():
     dummyappname = os.getcwd() + '/myapp.x'
-    exctr = MPIExecutor(auto_resources=False)
+    exctr = MPIExecutor()
     exctr.register_app(full_path=dummyappname, calc_type='gen', desc='A dummy calc')
     exctr.register_app(full_path=dummyappname, calc_type='sim', desc='A dummy calc')
 

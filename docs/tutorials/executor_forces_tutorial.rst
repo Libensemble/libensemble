@@ -53,7 +53,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
 
     # Create executor and register sim to it
-    exctr = MPIExecutor()  # Use auto_resources=False to oversubscribe
+    exctr = MPIExecutor()
 
     # Create empty simulation input directory
     if not os.path.isdir('./sim'):

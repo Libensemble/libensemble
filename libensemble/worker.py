@@ -21,6 +21,7 @@ from libensemble.output_directory import EnsembleDirectory
 
 from libensemble.utils.timer import Timer
 from libensemble.executors.executor import Executor
+from libensemble.resources.resources import Resources
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
@@ -134,6 +135,7 @@ class Worker:
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
+        Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
@@ -158,14 +160,34 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_executor(workerID, comm):
-        "Optional - sets worker ID in the executor, return if set"
-        exctr = Executor.executor
-        if isinstance(exctr, Executor):
-            exctr.set_worker_info(comm, workerID)
+    def _set_rset_team(rset_team):
+        resources = Resources.resources
+        if isinstance(resources, Resources):
+            resources.worker_resources.set_rset_team(rset_team)
             return True
         else:
-            logger.info("No executor set on worker {}".format(workerID))
+            return False
+
+    @staticmethod
+    def _set_executor(workerID, comm):
+        "Sets worker ID in the executor, return True if set"
+        exctr = Executor.executor
+        if isinstance(exctr, Executor):
+            exctr.set_worker_info(comm, workerID)  # When merge update
+            return True
+        else:
+            logger.debug("No xecutor set on worker {}".format(workerID))
+            return False
+
+    @staticmethod
+    def _set_resources(workerID, comm):
+        "Sets worker ID in the resources, return True if set"
+        resources = Resources.resources
+        if isinstance(resources, Resources):
+            resources.set_worker_resources(comm.get_num_workers(), workerID)
+            return True
+        else:
+            logger.debug("No resources set on worker {}".format(workerID))
             return False
 
     def _handle_calc(self, Work, calc_in):
@@ -290,7 +312,9 @@ class Worker:
         # Call user function
         libE_info['comm'] = self.comm
         libE_info['workerID'] = self.workerID
-        # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
+        libE_info['rset_team'] = libE_info.get('rset_team', [])
+        Worker._set_rset_team(libE_info['rset_team'])
+
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
         del libE_info['comm']
 
