@@ -15,10 +15,10 @@ al = {'alloc_f': give_sim_work_first, 'out': []}
 libE_specs = {'mpi_comm': MPI.COMM_WORLD}
 H0 = []
 
-W = np.array([(1, 0, 0, 0, 0, False), (2, 0, 0, 0, 0, False),
-              (3, 0, 0, 0, 0, False), (4, 0, 0, 0, 0, False)],
+W = np.array([(1, 0, 0, 0, False), (2, 0, 0, 0, False),
+              (3, 0, 0, 0, False), (4, 0, 0, 0, False)],
              dtype=[('worker_id', '<i8'), ('active', '<i8'), ('persis_state', '<i8'),
-                    ('worker_group', '<i8'), ('active_recv', '<i8'), ('zero_resource_worker', '?')])
+                    ('active_recv', '<i8'), ('zero_resource_worker', '?')])
 
 H = np.array([(False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49, 0.88], np.inf, 0., 0, False, False, [0., 0.], 1.6e09, np.inf),
               (False, np.inf, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.99, -0.79], np.inf, 0., 1, False, False, [0., 0.], 1.6e09, np.inf),

@@ -146,11 +146,9 @@ Posting kill messages for all workers.
 class Manager:
     """Manager class for libensemble."""
 
-    # SH TODO: May add other fields when have gen/sim pools, that specialize worker.
     worker_dtype = [('worker_id', int),
                     ('active', int),
                     ('persis_state', int),
-                    ('worker_group', int),  # SH TODO: to be removed - now an rset attribute.
                     ('active_recv', int),
                     ('zero_resource_worker', bool)]
 
@@ -184,9 +182,6 @@ class Manager:
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         if self.resources is not None:
-            # self.W['worker_group'] = self.resources.resource_manager.group_list
-            self.W['worker_group'] = False  # SH TODO: Remove when all alloc funcs updated.
-
             for wrk in self.W:
                 if wrk['worker_id'] in self.resources.glob_resources.zero_resource_workers:
                     wrk['zero_resource_worker'] = True
