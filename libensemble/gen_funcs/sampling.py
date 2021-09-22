@@ -5,19 +5,17 @@ function.
 """
 import numpy as np
 
-__all__ = ['uniform_random_sample_with_different_resources',
+__all__ = ['uniform_random_sample_with_variable_resources',
            'uniform_random_sample_obj_components',
            'latin_hypercube_sample',
            'uniform_random_sample']
 
 
-# SH TODO: Consider name of function (maybe variable_resources)
-#          and check/update docstring
-def uniform_random_sample_with_different_resources(H, persis_info, gen_specs, _):
+def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     """
     Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``. Also randomly requests a different ``number_of_nodes``
-    and ``ranks_per_node`` to be used in the evaluation of the generated point.
+    ``gen_specs['user']['lb']``. Also randomly requests a different number of resource
+    sets to be used in the evaluation of the generated points after the initial batch.
 
     .. seealso::
         `test_uniform_sampling_with_different_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py>`_ # noqa

@@ -21,11 +21,7 @@ import pkg_resources
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_different_resources as sim_f
-
-
-from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_different_resources as gen_f
-# from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
-
+from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -77,7 +73,7 @@ alloc_specs = {'alloc_f': alloc_f,
                'out': [],
                }
 
-# comms = libE_specs['disable_resource_manager'] = True #SH TCP testing
+# comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
 
 comms = libE_specs['comms']
 node_file = 'nodelist_adaptive_workers_persistent_ovsub_rsets_comms_' + str(comms) + '_wrks_' + str(nworkers)
