@@ -91,13 +91,13 @@ class GlobalResources:
 
     These are set on initialization.
     :ivar string top_level_dir: Directory where searches for node_list file
-    :ivar EnvResources env_resources: An object storing environment variables used by resources
-    :ivar list global_nodelist: A list of all nodes available for running user applications
+    :ivar EnvResources env_resources: Object storing environment variables used by resources
+    :ivar list global_nodelist: list of all nodes available for running user applications
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
     :ivar int physical_cores_avail_per_node: Physical cores available on a node
-    :ivar list zero_resource_workers: A list of workerIDs to have no resources.
+    :ivar list zero_resource_workers: List of workerIDs to have no resources.
     :ivar boolean central_mode: Whether to remove libE nodes from global nodelist.
-    :ivar int num_resource_sets: The number of resource sets if supplied by the user.
+    :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
     def __init__(self, libE_specs, top_level_dir=None):
@@ -133,8 +133,8 @@ class GlobalResources:
             this will be auto-detected.
 
         enforce_worker_core_bounds: boolean, optional
-            If True, then libEnsemble's executor will raise an exception on detecting that
-            the worker has been instructed to launch tasks with the number of requested processes
+            If True, then libEnsemble's executor will raise an exception if it detects that
+            a worker has been instructed to launch tasks with the number of requested processes
             being excessive to the number of cores allocated to that worker, or not enough
             processes were requested to satisfy allocated cores.
 

@@ -71,7 +71,7 @@ Specifications for libEnsemble::
         'authkey' [string]:
             TCP Only: Authkey
         'safe_mode' [boolean]:
-            Prevents user functions from overwritting protected libE fields, but requires
+            Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.
             Default: True
         'kill_canceled_sims' [boolean]:
@@ -86,7 +86,7 @@ Specifications for libEnsemble::
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
         'disable_resource_manager' [boolean]:
-            Disable the built-in resource manager. If this is True, then resource detection
+            Disable the built-in resource manager. If this is True, automatic resource detection
             and/or assignment of resources to workers is disabled. This also means that
             any entries in the ``resource_info`` option will be ignored.
             Default: False
@@ -109,10 +109,10 @@ Specifications for libEnsemble::
         'zero_resource_workers' [list of ints]:
             List of workers that require no resources.
         'resource_info' [dict]:
-            Provide resource information which overrides information detected. .
+            Provide resource information that will override automatically detected resources.
             The allowable fields are given below in 'Overriding Auto-detection'
-            Note that if the option ``disable_resource_manager`` is set then
-            this option is ignord.
+            Note that if ``disable_resource_manager`` is set then
+            this option is ignored.
 
 .. _resource_info:
 
