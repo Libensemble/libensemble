@@ -1,8 +1,9 @@
 """
 This module contains various versions that evaluate the six hump camel function.
 """
-__all__ = ['six_hump_camel_CUDA_variable_resources', 'six_hump_camel_with_variable_resources',
-           'six_hump_camel', 'six_hump_camel_simple']
+__all__ = ['six_hump_camel', 'six_hump_camel_simple',
+           'six_hump_camel_with_variable_resources',
+           'six_hump_camel_CUDA_variable_resources']
 
 # import subprocess
 import os
@@ -14,51 +15,51 @@ from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
 
 
-def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
-    """Launches an app setting GPU resources
-
-    The standard test apps do not run on GPU, but demonstrates accessing resource
-    information to set CUDA_VISIBLE_DEVICES, and typical run configuration.
+def six_hump_camel(H, persis_info, sim_specs, _):
     """
-    x = H['x'][0]
+    Evaluates the six hump camel function for a collection of points given in ``H['x']``.
+    Additionally evaluates the gradient if ``'grad'`` is a field in
+    ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
+    defined.
+
+    .. seealso::
+        `test_old_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
+    """
+
+    batch = len(H['x'])
+    H_o = np.zeros(batch, dtype=sim_specs['out'])
+
+    for i, x in enumerate(H['x']):
+        H_o['f'][i] = six_hump_camel_func(x)
+
+        if 'grad' in H_o.dtype.names:
+            H_o['grad'][i] = six_hump_camel_grad(x)
+
+        if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
+            time.sleep(sim_specs['user']['pause_time'])
+
+    return H_o, persis_info
+
+
+def six_hump_camel_simple(x, persis_info, sim_specs, _):
+    """
+    Evaluates the six hump camel function for a single point ``x``.
+
+    .. seealso::
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
+    """
+
     H_o = np.zeros(1, dtype=sim_specs['out'])
 
-    # Interrogate resources available to this worker
-    resources = Resources.resources.worker_resources
-    if resources.even_slots:  # Need same slots on each node
-        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
-        num_nodes = resources.local_node_count
-        cores_per_node = resources.slot_count  # One CPU per GPU
-        print('CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'
-              .format(os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node), flush=True)
-    else:
-        # Unless use a matching sub-set, but usually you probably don't want this
-        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
+    H_o['f'] = six_hump_camel_func(x[0][0])
 
-    # Create application input file
-    inpt = ' '.join(map(str, x))
-    exctr = Executor.executor  # Get Executor
+    if 'pause_time' in sim_specs['user']:
+        time.sleep(sim_specs['user']['pause_time'])
 
-    # Launch application via system MPI runner, using assigned resources.
-    task = exctr.submit(app_name='six_hump_camel',
-                        app_args=inpt,
-                        num_nodes=num_nodes,
-                        ranks_per_node=cores_per_node,
-                        stdout='out.txt',
-                        stderr='err.txt')
-
-    task.wait()  # Wait for run to complete
-
-    # Access app output
-    with open('out.txt') as f:
-        H_o['f'] = float(f.readline().strip())  # Read just first line
-
-    calc_status = WORKER_DONE if task.state == 'FINISHED' else 'FAILED'
-    return H_o, persis_info, calc_status
+    return H_o, persis_info
 
 
-# SH TODO: Should we move this to below
-#          Check/update docstring
+# SH TODO: Check/update docstring
 def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel for a collection of points given in ``H['x']`` but also
@@ -123,48 +124,47 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
     return H_o, persis_info, calc_status
 
 
-def six_hump_camel(H, persis_info, sim_specs, _):
+def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
+    """Launches an app setting GPU resources
+
+    The standard test apps do not run on GPU, but demonstrates accessing resource
+    information to set CUDA_VISIBLE_DEVICES, and typical run configuration.
     """
-    Evaluates the six hump camel function for a collection of points given in ``H['x']``.
-    Additionally evaluates the gradient if ``'grad'`` is a field in
-    ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
-    defined.
-
-    .. seealso::
-        `test_old_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
-    """
-
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
-
-    for i, x in enumerate(H['x']):
-        H_o['f'][i] = six_hump_camel_func(x)
-
-        if 'grad' in H_o.dtype.names:
-            H_o['grad'][i] = six_hump_camel_grad(x)
-
-        if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
-            time.sleep(sim_specs['user']['pause_time'])
-
-    return H_o, persis_info
-
-
-def six_hump_camel_simple(x, persis_info, sim_specs, _):
-    """
-    Evaluates the six hump camel function for a single point ``x``.
-
-    .. seealso::
-        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
-    """
-
+    x = H['x'][0]
     H_o = np.zeros(1, dtype=sim_specs['out'])
 
-    H_o['f'] = six_hump_camel_func(x[0][0])
+    # Interrogate resources available to this worker
+    resources = Resources.resources.worker_resources
+    if resources.even_slots:  # Need same slots on each node
+        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
+        num_nodes = resources.local_node_count
+        cores_per_node = resources.slot_count  # One CPU per GPU
+        print('CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'
+              .format(os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node), flush=True)
+    else:
+        # Unless use a matching sub-set, but usually you probably don't want this
+        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
 
-    if 'pause_time' in sim_specs['user']:
-        time.sleep(sim_specs['user']['pause_time'])
+    # Create application input file
+    inpt = ' '.join(map(str, x))
+    exctr = Executor.executor  # Get Executor
 
-    return H_o, persis_info
+    # Launch application via system MPI runner, using assigned resources.
+    task = exctr.submit(app_name='six_hump_camel',
+                        app_args=inpt,
+                        num_nodes=num_nodes,
+                        ranks_per_node=cores_per_node,
+                        stdout='out.txt',
+                        stderr='err.txt')
+
+    task.wait()  # Wait for run to complete
+
+    # Access app output
+    with open('out.txt') as f:
+        H_o['f'] = float(f.readline().strip())  # Read just first line
+
+    calc_status = WORKER_DONE if task.state == 'FINISHED' else 'FAILED'
+    return H_o, persis_info, calc_status
 
 
 def six_hump_camel_func(x):

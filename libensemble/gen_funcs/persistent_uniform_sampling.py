@@ -3,6 +3,10 @@ import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
+__all__ = ['persistent_uniform',
+           'uniform_random_sample_with_variable_resources',
+           'persistent_request_shutdown']
+
 
 def persistent_uniform(H, persis_info, gen_specs, libE_info):
     """
