@@ -1,4 +1,4 @@
-from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources import mpi_resources
 from libensemble.executors.executor import jassert
 import argparse
 import logging
@@ -71,10 +71,21 @@ class MPIRunner:
             ranks_per_node = None
         return num_procs, num_nodes, ranks_per_node
 
+    def express_spec(self, task, num_procs, num_nodes,
+                     ranks_per_node, machinefile,
+                     hyperthreads, extra_args,
+                     resources, workerID):
+
+        hostlist = None
+        machinefile = None
+        # Always use host lists (unless uneven mapping)
+        hostlist = mpi_resources.get_hostlist(resources, num_nodes)
+        return hostlist, machinefile
+
     def get_mpi_specs(self, task, num_procs, num_nodes,
                       ranks_per_node, machinefile,
                       hyperthreads, extra_args,
-                      auto_resources, resources, workerID):
+                      resources, workerID):
         "Form the mpi_specs dictionary."
 
         # Return auto_resource variables inc. extra_args additions
@@ -88,30 +99,19 @@ class MPIRunner:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
 
-        if machinefile is None and auto_resources:
+        if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
-                resources.get_resources(num_procs, num_nodes,
-                                        ranks_per_node, hyperthreads)
-
-            # Use hostlist if full nodes, otherwise machinefile
-            full_node = resources.worker_resources.workers_on_node == 1
-            if full_node or not self.mfile_support:
-                hostlist = resources.get_hostlist(num_nodes)
-            else:
-                machinefile = "machinefile_autogen"
-                if workerID is not None:
-                    machinefile += "_for_worker_{}".format(workerID)
-                machinefile += "_task_{}".format(task.id)
-                mfile_created, num_procs, num_nodes, ranks_per_node = \
-                    resources.create_machinefile(
-                        machinefile, num_procs, num_nodes,
-                        ranks_per_node, hyperthreads)
-                jassert(mfile_created, "Auto-creation of machinefile failed")
-
+                mpi_resources.get_resources(resources, num_procs, num_nodes,
+                                            ranks_per_node, hyperthreads)
+            hostlist, machinefile = \
+                self.express_spec(task, num_procs, num_nodes,
+                                  ranks_per_node, machinefile,
+                                  hyperthreads, extra_args,
+                                  resources, workerID)
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes,
-                                            ranks_per_node, machinefile)
+                mpi_resources.task_partition(num_procs, num_nodes,
+                                             ranks_per_node, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:
@@ -156,6 +156,28 @@ class OPENMPI_MPIRunner(MPIRunner):
                             '-host {hostlist}', '-np {num_procs}',
                             '-npernode {ranks_per_node}', '{extra_args}']
 
+    def express_spec(self, task, num_procs, num_nodes,
+                     ranks_per_node, machinefile,
+                     hyperthreads, extra_args,
+                     resources, workerID):
+
+        hostlist = None
+        machinefile = None
+        # Use machine files for OpenMPI
+        # as "-host" requires entry for every rank
+
+        machinefile = "machinefile_autogen"
+        if workerID is not None:
+            machinefile += "_for_worker_{}".format(workerID)
+        machinefile += "_task_{}".format(task.id)
+        mfile_created, num_procs, num_nodes, ranks_per_node = \
+            mpi_resources.create_machinefile(resources, machinefile,
+                                             num_procs, num_nodes,
+                                             ranks_per_node, hyperthreads)
+        jassert(mfile_created, "Auto-creation of machinefile failed")
+
+        return hostlist, machinefile
+
 
 class APRUN_MPIRunner(MPIRunner):
 
@@ -194,7 +216,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.subgroup_launch = True
         self.mfile_support = False
 
-        # TODO: Add multiplier to auto_resources checks (for -c/-a)
+        # TODO: Add multiplier to resources checks (for -c/-a)
         self.arg_nprocs = ('--np', '-n')
         self.arg_nnodes = ('--LIBE_NNODES_ARG_EMPTY',)
         self.arg_ppn = ('-r',)
@@ -204,7 +226,7 @@ class JSRUN_MPIRunner(MPIRunner):
     def get_mpi_specs(self, task, num_procs, num_nodes,
                       ranks_per_node, machinefile,
                       hyperthreads, extra_args,
-                      auto_resources, resources, workerID):
+                      resources, workerID):
 
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
@@ -218,16 +240,16 @@ class JSRUN_MPIRunner(MPIRunner):
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
-        if machinefile is None and auto_resources:
+        if machinefile is None and resources is not None:
             num_procs, num_nodes, ranks_per_node = \
-                resources.get_resources(num_procs, num_nodes,
-                                        ranks_per_node, hyperthreads)
+                mpi_resources.get_resources(resources, num_procs, num_nodes,
+                                            ranks_per_node, hyperthreads)
 
             # TODO: Create ERF file if mapping worker to resources req.
         else:
             num_procs, num_nodes, ranks_per_node = \
-                MPIResources.task_partition(num_procs, num_nodes,
-                                            ranks_per_node, machinefile)
+                mpi_resources.task_partition(num_procs, num_nodes,
+                                             ranks_per_node, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:

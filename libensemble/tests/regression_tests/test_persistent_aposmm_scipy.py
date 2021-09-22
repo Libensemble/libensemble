@@ -62,7 +62,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
 
 
 exit_criteria = {'sim_max': 2000}

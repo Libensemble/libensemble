@@ -196,7 +196,7 @@ elif generator_type == 'aposmm':
         # Allocator function, decides what a worker should do.
         # We use a LibEnsemble allocator.
         'alloc_f': alloc_f,
-        'out': [('given_back', bool)],
+        'out': [],
         'user': {}}
 
 else:

@@ -47,6 +47,7 @@ per-file-ignores =
 
         # Ignoring linelength in test_history.py
         libensemble/tests/unit_tests/test_history.py:E501
+        libensemble/tests/unit_tests/test_allocation_funcs_and_support.py:E501
 
         # Allow undefined name '__version__'
         setup.py:F821

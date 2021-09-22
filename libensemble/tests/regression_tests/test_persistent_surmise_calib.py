@@ -82,7 +82,7 @@ if __name__ == '__main__':
                  }
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
+                   'out': [],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,    # True = Return results to gen as they come in (after sample)
                             'active_recv_gen': True  # Persistent gen can handle irregular communications

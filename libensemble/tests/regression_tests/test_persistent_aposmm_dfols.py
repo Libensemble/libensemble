@@ -63,7 +63,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': 2*np.ones(n)}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

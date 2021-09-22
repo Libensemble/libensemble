@@ -43,7 +43,7 @@ In calling function::
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()
 
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_calc(full_path=sim_app, app_name='sim1')
 
 .. note::
     The *Executor* set up in the calling script is stored as a class attribute and
@@ -58,7 +58,7 @@ In user sim func::
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
 
-    task = exctr.submit(calc_type='sim', num_procs=8, app_args='input.txt',
+    task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
                         stdout='out.txt', stderr='err.txt')
 
     timeout_sec = 600
@@ -113,12 +113,10 @@ The ``app_name`` can be any identfier, while ``full_path`` is the application to
 be run. This approach allows multiple applications to be registered.
 
 The MPIExecutor autodetects system criteria such as the appropriate MPI launcher
-and mechanisms to poll and kill tasks. It will also partition resources amongst
-workers, ensuring that runs utilise different resources (e.g. nodes). The
-``zero_resource_workers`` list option specifies workers that will not need
-resources (e.g. a persistent generator might run on worker 1).
-Furthermore, the MPIExecutor offers resilience via the feature of re-launching
-tasks that fail because of system factors.
+and mechanisms to poll and kill tasks. It also has access to the resource manager,
+which partitions resources amongst workers, ensuring that runs utilise different
+resources (e.g., nodes). Furthermore, the MPIExecutor offers resilience via the
+feature of re-launching tasks that fail to start because of system factors.
 
 Various back-end mechanisms may be used by the Executor to best interact
 with each system, including proxy launchers or task management systems such as

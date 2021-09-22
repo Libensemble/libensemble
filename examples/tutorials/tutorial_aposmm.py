@@ -34,7 +34,7 @@ gen_specs = {'gen_f': aposmm,          # APOSMM generator function
              }
 
 alloc_specs = {'alloc_f': persistent_aposmm_alloc,
-               'out': [('given_back', bool)], 'user': {}}
+               'out': [], 'user': {}}
 
 exit_criteria = {'sim_max': 2000}
 persis_info = add_unique_random_streams({}, nworkers + 1)

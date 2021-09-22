@@ -67,47 +67,55 @@ gen_specs = {'gen_f': gen_f,
                       'indpb': 0.8/ind_size}  # end user
              }  # end gen specs
 
-# libE Allocation function
-alloc_specs = {'out': [('given_back', bool)], 'alloc_f': alloc_f}
+alloc_specs = {'alloc_f': alloc_f,
+               'user': {'give_all_with_same_priority': False},
+               'out': [],
+               }
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
 # For deap, this should be pop_size*number of generations+1
 exit_criteria = {'sim_max': pop_size*(ngen+1)}
 
-for run in range(2):
+for run in range(3):
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    if run == 1:
-        # Test loading in a previous set of (x,f)-pairs, or (individual, fitness_values)-pairs
+    # Number of points in the sample
+    num_samp = 100
 
-        # Number of points in the sample
-        num_samp = 100
+    H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
+                                   ('fitness_values', float, num_obj), ('sim_id', int), ('returned', bool),
+                                   ('given_back', bool), ('given', bool)])
 
-        H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
-                                       ('fitness_values', float, num_obj), ('sim_id', int), ('returned', bool),
-                                       ('given_back', bool), ('given', bool)])
+    # Mark these points as already have been given to be evaluated, and returned, but not given_back.
+    H0['generation'][:] = 1
+    # Give these points sim_ids
+    H0['sim_id'] = range(num_samp)
+
+    # "Load in" the points and their function values. (In this script, we are
+    # actually evaluating them, but in many cases, they are available from past
+    # evaluations
+    np.random.seed(0)
+    H0['individual'] = np.random.uniform(lb, ub, (num_samp, len(lb)))
+    for i, x in enumerate(H0['individual']):
+        H_dummy = np.zeros(1, dtype=[('individual', float, ind_size)])
+        H_dummy['individual'] = x
+        objs = deap_six_hump(H_dummy, {}, sim_specs, {})
+        H0['fitness_values'][i] = objs[0]
+
+    if run == 0:
 
         # Mark these points as already have been given to be evaluated, and returned, but not given_back.
-        H0[['given', 'given_back', 'returned']] = True
-        H0['generation'][:] = 1
-        # Give these points sim_ids
-        H0['sim_id'] = range(num_samp)
+        H0[['given', 'returned']] = True
+        H0['given_back'][:] = False
 
-        # "Load in" the points and their function values. (In this script, we are
-        # actually evaluating them, but in many cases, they are available from past
-        # evaluations
-        np.random.seed(0)
-        H0['individual'] = np.random.uniform(lb, ub, (num_samp, len(lb)))
-        for i, x in enumerate(H0['individual']):
-            H_dummy = np.zeros(1, dtype=[('individual', float, ind_size)])
-            H_dummy['individual'] = x
-            objs = deap_six_hump(H_dummy, {}, sim_specs, {})
-            H0['fitness_values'][i] = objs[0]
+    elif run == 1:
+        H0[['given', 'returned', 'given_back']] = False
 
         # Testing use_persis_return capabilities
         libE_specs['use_persis_return'] = True
+
     else:
         H0 = None
 
