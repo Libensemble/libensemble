@@ -138,8 +138,7 @@ def get_resources(resources, num_procs=None, num_nodes=None,
     rsets_per_node = _max_rsets_per_node(wresources)
 
     # SH TODO: Evaluate situation when one rset is > 1 node.
-
-    # SH TODO: Consider - may still be better to use best_split and construct.
+    #          Consider - may still be better to use best_split and construct.
     # Advantage of cores per rset first is they will always get same no. per rset (double  rsets, double cores)
     # Advantage of multiply first is less wasted cores.
     cores_avail_per_node_per_worker = cores_avail_per_node//rsets_per_node * wresources.slot_count

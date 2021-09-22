@@ -11,7 +11,7 @@ __all__ = ['uniform_random_sample_with_different_resources',
            'uniform_random_sample']
 
 
-# SH TODO: Consider name of function (maybe adaptive_resources?)
+# SH TODO: Consider name of function (maybe variable_resources)
 #          and check/update docstring
 def uniform_random_sample_with_different_resources(H, persis_info, gen_specs, _):
     """

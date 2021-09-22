@@ -433,7 +433,7 @@ class Manager:
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w-1]['active'] = 0
-            self._freeup_resources(w)  # SH TODO - check persistent pending does not screw this up
+            self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)

@@ -46,7 +46,6 @@ class RSetResources():
         self.split_list, self.local_rsets_list = \
             RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
 
-        # SH TODO: Need to update to make uneven distribution of rsets to nodes work as does on develop
         # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
 
@@ -130,5 +129,5 @@ class RSetResources():
         Also self.global_nodelist will have already removed non-application nodes
         """
         split_list, local_rsets_list = RSetResources.get_split_list(num_rsets, resources)
-        # print('local_rsets_list', local_rsets_list, flush=True)   # SH TODO: Remove
+        # print('local_rsets_list', local_rsets_list, flush=True)
         return split_list, local_rsets_list

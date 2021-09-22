@@ -3,8 +3,6 @@ This module detects and returns system resources
 
 """
 
-# SH TODO: Deal with unbalanced cases, and if not, return meaningful error message
-
 import os
 import socket
 import logging
@@ -59,7 +57,7 @@ class Resources:
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get('disable_resource_manager', False)
         if not disable_resource_manager:
-            top_level_dir = os.getcwd()  # SH TODO: Do we want as libE_specs option.
+            top_level_dir = os.getcwd()
             # SH TODO: Should we recreate or re-use if exists
             if Resources.resources is None:
                 Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)

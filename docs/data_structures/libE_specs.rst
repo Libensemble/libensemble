@@ -99,12 +99,13 @@ Specifications for libEnsemble::
             higher processor count than the CPUs available to the worker as
             detected by the resource manager. Larger node counts are not allowed.
             When the libE_specs option `disable_resource_manager` is True,
-            this argument is ignored.
+            this argument is ignored. Default: False
         'central_mode' [boolean]:
             If true, then running in central mode, otherwise in distributed
             mode. Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
+            Default: False
         'zero_resource_workers' [list of ints]:
             List of workers that require no resources.
         'resource_info' [dict]:
