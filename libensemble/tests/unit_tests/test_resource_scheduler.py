@@ -130,8 +130,6 @@ def test_schdule_find_gaps_2nodes():
 
 def test_across_nodes_even_split():
     """Tests assignment over two nodes"""
-    # SH TODO: This will depend on some scheduling option whether to
-    #          find equal split if possible or to fill nodes first if possible.
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
     sched = ResourceScheduler(user_resources=resources)
@@ -152,8 +150,6 @@ def test_across_nodes_even_split():
 
 def test_across_nodes_roundup_option():
     """Tests assignment over two nodes"""
-    # SH TODO: This will depend on some scheduling option whether to
-    #         roundup for an equal split if possible.
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
     sched = ResourceScheduler(user_resources=resources)
@@ -265,8 +261,6 @@ def test_split2fit_even_required_various():
     assert rset_team == [6, 7], 'rsets found {}'.format(rset_team)
     assert sched.rsets_free == 1
 
-
-# SH TODO: Further tests for testing uneven splits - and uneven sized resource sets.
 
 if __name__ == "__main__":
     test_too_many_rsets()

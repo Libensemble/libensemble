@@ -11,9 +11,6 @@ also provided to access and interrogate files in the ``task``'s working director
 
 """
 
-# SH TODO: Consider allowing executor to be setup and configured with libE_specs options in the same
-#          way as resources (instead of having to be created in user calling script).
-
 import os
 import sys
 import logging

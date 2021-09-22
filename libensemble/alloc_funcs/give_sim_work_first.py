@@ -2,7 +2,6 @@ import numpy as np
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-# SH TODO: Check/update docstring
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     """
     Decide what should be given to workers. This allocation function gives any

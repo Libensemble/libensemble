@@ -78,7 +78,7 @@ class MPIRunner:
 
         hostlist = None
         machinefile = None
-        # Always use host lists (SH TODO: unless uneven mapping)
+        # Always use host lists (unless uneven mapping)
         hostlist = mpi_resources.get_hostlist(resources, num_nodes)
         return hostlist, machinefile
 

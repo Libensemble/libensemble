@@ -62,7 +62,6 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
-            # SH TODO - MAYBE UNNEC - COULD ASSUME ZERO RESOURCES WITH rset_team=[]
             try:
                 Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
                                              persistent=True)

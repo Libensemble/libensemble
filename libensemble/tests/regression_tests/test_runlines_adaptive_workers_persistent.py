@@ -15,8 +15,6 @@
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 10
 
-# SH TODO: Still to automate checking of actual run-lines
-
 import numpy as np
 import pkg_resources
 

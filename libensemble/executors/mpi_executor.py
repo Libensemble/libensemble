@@ -8,8 +8,6 @@ In order to create an MPI executor, the calling script should contain ::
 See the executor API below for optional arguments.
 """
 
-# SH TODO: Update add_comm_info - change name as only does serial setup (+look at set_worker_info)
-
 import os
 import logging
 import time

@@ -219,18 +219,12 @@ def test_remove_libE_nodes():
     assert nodes_out == exp_out, "nodelist returned does not match expected"
 
 
-# SH TODO: Need to break this up - where before got local_nodelist from static function
-#          Now need to separately get split_list, local nodelist from split_list - and/or do
-#          together by setting up WorkerResources object.
-# SH TODO  Note: already a test_worker_resources below that does this sort of test - maybe combine????
-
-
 def _assert_worker_attr(wres, attr, exp):
     ret = getattr(wres, attr)
     assert ret == exp, "{} returned does not match expected.  \nRet: {}\nExp: {}".format(attr, ret, exp)
 
 
-# SH TODO: These are all 1 worker per rset. Should name as such if stays that way.
+# SH TODO: These are all 1 worker per rset. Should name as such.
 def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 
     # Create dictionary of attributes and expected values
@@ -323,7 +317,7 @@ def test_get_local_resources_central_mode():
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
 
     # 16 Workers --------------------------------------------------------------
-    # SH TODO - Prob. put this in separate test for multi rsets/workers per node.
+    # SH TODO - May put this in separate test for multi rsets/workers per node.
     # Multiple workers per node
     nworkers = 16
 
@@ -430,7 +424,7 @@ def test_get_local_resources_central_mode_remove_libE_proc():
         del wresources
 
     # 16 Workers --------------------------------------------------------------
-    # SH TODO - Prob. put this in separate test for multi rsets/workers per node.
+    # SH TODO - May put this in separate test for multi rsets/workers per node.
     # Multiple workers per node
     nworkers = 16
 

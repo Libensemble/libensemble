@@ -14,7 +14,6 @@ from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
 
 
-# SH TODO: Resource variable names are subject to change
 def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
     """Launches an app setting GPU resources
 

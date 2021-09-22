@@ -148,9 +148,6 @@ class History:
         t = time.time()
 
         if q_inds.size > 0:
-            # SH TODO; Question - do we need to check self.H['returned'] == True before setting given_back ??
-            #          What about H0 points...
-
             if np.all(self.H['returned'][q_inds]):
                 self.H['given_back'][q_inds] = True
 

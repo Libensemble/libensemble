@@ -166,8 +166,6 @@ class GlobalResources:
         self.central_mode = libE_specs.get('central_mode', False)
         self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
         self.num_resource_sets = libE_specs.get('num_resource_sets', None)
-
-        # SH TODO: Where to set this - put back here for now as easier than passing via executor.
         self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', True)
 
         if self.central_mode:

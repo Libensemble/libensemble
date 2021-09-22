@@ -25,7 +25,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
 
     for wid in support.avail_worker_ids():
         # Skip any cancelled points
-        # SH TODO - IF USING PAUSED - this might want to check not paused also
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 

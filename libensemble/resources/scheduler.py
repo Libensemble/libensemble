@@ -205,10 +205,9 @@ class ResourceScheduler:
                 if extend:
                     rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
                     rsets_req = num_groups_req * rsets_req_per_group
-                    # SH TODO log here (atleast in debug)
-                    logger.info('Increasing resource requirement to obtain an even partition of resource sets'
-                                '\nto nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
-                                format(rsets_req, num_groups_req, rsets_req_per_group))
+                    logger.debug('Increasing resource requirement to obtain an even partition of resource sets'
+                                 '\nto nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
+                                 format(rsets_req, num_groups_req, rsets_req_per_group))
                 else:
                     rsets_req_per_group = max_grpsize
         else:

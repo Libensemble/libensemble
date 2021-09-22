@@ -47,7 +47,7 @@ sim_specs = {'sim_f': sim_f,
 
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id'],
-             'out': [('priority', float),  # SH TODO: Not yet in start_only_persistent (will be merged in).
+             'out': [('priority', float),
                      ('resource_sets', int),
                      ('x', float, n)],
              'user': {'initial_batch_size': nworkers-1,

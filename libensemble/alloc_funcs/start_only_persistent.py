@@ -76,7 +76,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                                              persistent=True, active_recv=active_recv_gen)
                 returned_but_not_given[point_ids] = False
 
-    # SH TODO: Now the give_sim_work_first bit
+    # Now the give_sim_work_first part
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
     for wid in avail_workers:
