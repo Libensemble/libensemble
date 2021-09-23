@@ -179,8 +179,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
                           'ub': np.array([2, 1])}    # Upper bound of search domain
                  }
 
-    alloc_specs = {'alloc_f': persistent_aposmm_alloc,
-                   'out': [('given_back', bool)], 'user': {}}
+    alloc_specs = {'alloc_f': persistent_aposmm_alloc}
 
 ``gen_specs['user']`` fields above that are required for APOSMM are:
 

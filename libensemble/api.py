@@ -127,6 +127,8 @@ class Ensemble:
     def _get_outputs(loaded, type):
         """ Extracts output parameters from loaded yaml dict """
         outputs = loaded[type + '_specs'].get('outputs')
+        if not outputs:
+            return []
         fields = [i for i in outputs]
         field_params = [i for i in outputs.values()]
         results = []

@@ -158,7 +158,6 @@ The allocation function used in this example is the *only_persistent_gens* funct
 .. code-block:: python
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,
                             'active_recv_gen': True
