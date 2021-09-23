@@ -152,7 +152,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     task = exctr.submit(app_name='six_hump_camel',
                         app_args=inpt,
                         num_nodes=num_nodes,
-                        ranks_per_node=cores_per_node,
+                        procs_per_node=cores_per_node,
                         stdout='out.txt',
                         stderr='err.txt')
 

@@ -356,7 +356,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
-    "Manager routine run at rank 0."
+    "Manager routine runs on rank 0."
 
     from libensemble.comms.mpi import MainMPIComm
 
@@ -381,7 +381,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
-    "Worker routine run at ranks > 0."
+    "Worker routines run on ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
     comm = MainMPIComm(libE_comm)

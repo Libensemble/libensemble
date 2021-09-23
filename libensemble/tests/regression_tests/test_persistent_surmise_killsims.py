@@ -67,7 +67,7 @@ if __name__ == '__main__':
         build_borehole()
 
     exctr = Executor()  # Run serial sub-process in place
-    exctr.register_calc(full_path=sim_app, app_name='borehole')
+    exctr.register_app(full_path=sim_app, app_name='borehole')
 
     # Subprocess variant creates input and output files for each sim
     libE_specs['sim_dirs_make'] = True  # To keep all - make sim dirs

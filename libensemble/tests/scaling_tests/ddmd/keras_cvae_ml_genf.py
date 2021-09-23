@@ -7,7 +7,7 @@ import json
 import numpy as np
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG)
-from libensemble.tools.gen_support import get_mgr_worker_msg, send_mgr_worker_msg
+from libensemble.tools.gen_support import recv_mgr_worker_msg, send_mgr_worker_msg
 
 
 def get_stage(persis_info):
@@ -71,8 +71,8 @@ def submit_application(exctr, user, app_type, output_path, task_config):
     os.chdir(output_path)
 
     args = '-c ' + os.path.join(os.getcwd(), task_config)
-    task = exctr.submit(app_name=app_type, app_args=args, wait_on_run=True,
-                        num_procs=1, num_nodes=1, ranks_per_node=1)
+    task = exctr.submit(app_name=app_type, app_args=args, wait_on_start=True,
+                        num_procs=1, num_nodes=1, procs_per_node=1)
 
     calc_status = exctr.polling_loop(task, timeout=user[app_type + '_kill_minutes']*60, delay=1)
     os.chdir(start)
@@ -184,7 +184,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             initial_complete = True
         else:
             # Wait for batch of MD results
-            tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
+            tag, Work, calc_in = recv_mgr_worker_msg(libE_info['comm'])
             if tag in [STOP_TAG, PERSIS_STOP]:  # Generator instructed to stop
                 break
 

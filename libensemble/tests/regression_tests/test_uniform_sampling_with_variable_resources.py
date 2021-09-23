@@ -38,8 +38,8 @@ six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 's
 
 # Sim can run either helloworld or six_hump_camel
 exctr = MPIExecutor()
-exctr.register_calc(full_path=hello_world_app, app_name='helloworld')
-exctr.register_calc(full_path=six_hump_camel_app, app_name='six_hump_camel')
+exctr.register_app(full_path=hello_world_app, app_name='helloworld')
+exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
 sim_specs = {'sim_f': sim_f,

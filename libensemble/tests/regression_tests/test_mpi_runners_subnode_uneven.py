@@ -62,13 +62,13 @@ mpi_customizer = {'mpi_runner': 'srun',   # Select runner: mpich, openmpi, aprun
 custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
                     'node_file': node_file}      # Name of file containing a node-list
 
-libE_specs['central_mode'] = True
+libE_specs['dedicated_mode'] = True
 libE_specs['enforce_worker_core_bounds'] = True
 libE_specs['resource_info'] = custom_resources
 
 # Create executor and register sim to it.
 exctr = MPIExecutor(custom_info=mpi_customizer)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 n = 2
 sim_specs = {'sim_f': sim_f,

@@ -244,12 +244,12 @@ def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 
 
 # SH TODO: These are all >= 1 node per rset. And 1 worker per rset
-#          central_mode makes no difference in this test
-def test_get_local_resources_central_mode():
+#          dedicated_mode makes no difference in this test
+def test_get_local_resources_dedicated_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
     libE_specs = {'resource_info': resource_info,
-                  'central_mode': True}
+                  'dedicated_mode': True}
     gresources = GlobalResources(libE_specs)
 
     # 8 Workers ---------------------------------------------------------------
@@ -344,7 +344,7 @@ def test_get_local_resources_central_mode():
 
 
 # The main tests are same as above - note for when fixtures set up
-def test_get_local_resources_central_mode_remove_libE_proc():
+def test_get_local_resources_dedicated_mode_remove_libE_proc():
     mynode = socket.gethostname()
     nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     with open('node_list', 'w') as f:
@@ -353,7 +353,7 @@ def test_get_local_resources_central_mode_remove_libE_proc():
             if i == 3:
                 f.write(mynode + '\n')
 
-    libE_specs = {'central_mode': True}
+    libE_specs = {'dedicated_mode': True}
 
     gresources = GlobalResources(libE_specs)
     gresources.add_comm_info(libE_nodes=[mynode])
@@ -455,7 +455,7 @@ def test_get_local_nodelist_distrib_mode_host_not_in_list():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
     libE_specs = {'resource_info': resource_info,
-                  'central_mode': False}
+                  'dedicated_mode': False}
 
     gresources = GlobalResources(libE_specs)
     nworkers = 4
@@ -479,7 +479,7 @@ def test_get_local_nodelist_distrib_mode():
             if i == 3:
                 f.write(mynode + '\n')
 
-    libE_specs = {'central_mode': False}
+    libE_specs = {'dedicated_mode': False}
     gresources = GlobalResources(libE_specs)
     gresources.add_comm_info(libE_nodes=[mynode])
 
@@ -544,7 +544,7 @@ def test_get_local_nodelist_distrib_mode_uneven_split():
             if i == 4:
                 f.write(mynode + '\n')
 
-    libE_specs = {'central_mode': False}
+    libE_specs = {'dedicated_mode': False}
     gresources = GlobalResources(libE_specs)
     gresources.add_comm_info(libE_nodes=[mynode])
     nworkers = 2
@@ -622,10 +622,10 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_wrklst_file()
     test_remove_libE_nodes()
 
-    # test_get_local_nodelist_central_mode()
-    test_get_local_resources_central_mode()  # new name
+    # test_get_local_nodelist_dedicated_mode()
+    test_get_local_resources_dedicated_mode()  # new name
 
-    test_get_local_resources_central_mode_remove_libE_proc()
+    test_get_local_resources_dedicated_mode_remove_libE_proc()
     test_get_local_nodelist_distrib_mode_host_not_in_list()
     test_get_local_nodelist_distrib_mode()
     test_get_local_nodelist_distrib_mode_uneven_split()

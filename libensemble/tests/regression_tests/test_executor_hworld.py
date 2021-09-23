@@ -64,8 +64,8 @@ if USE_BALSAM:
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor()
-exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
-exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
+exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
+exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
 # if nworkers == 3:
 #    CalcInfo.keep_worker_stat_files = True # Testing this functionality

@@ -48,7 +48,7 @@ sim_app = "helloworld.py"
 
 # For host code
 num_nodes = 1
-ranks_per_node = 4
+procs_per_node = 4
 
 job_list = ['test_balsam_1__runjobs.py',
             'test_balsam_2__workerkill.py',
@@ -84,7 +84,7 @@ for job in job_list:
                 workflow="libe_workflow",
                 application=app_name,
                 num_nodes=num_nodes,
-                ranks_per_node=ranks_per_node,
+                procs_per_node=procs_per_node,
                 stage_out_url="local:" + work_dir,
                 stage_out_files=job_name + ".out")
 

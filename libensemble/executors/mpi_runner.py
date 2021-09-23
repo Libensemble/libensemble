@@ -41,11 +41,11 @@ class MPIRunner:
         parser = argparse.ArgumentParser(description='Parse extra_args', allow_abbrev=False)
         parser.add_argument(*nprocs, type=int, dest='num_procs', default=None)
         parser.add_argument(*nnodes, type=int, dest='num_nodes', default=None)
-        parser.add_argument(*ppn, type=int, dest='ranks_per_node', default=None)
+        parser.add_argument(*ppn, type=int, dest='procs_per_node', default=None)
         args, _ = parser.parse_known_args(p_args)
         return args
 
-    def _parse_extra_args(self, num_procs, num_nodes, ranks_per_node,
+    def _parse_extra_args(self, num_procs, num_nodes, procs_per_node,
                           hyperthreads, extra_args):
 
         splt_extra_args = extra_args.split()
@@ -56,23 +56,23 @@ class MPIRunner:
             num_procs = p_args.num_procs
         if num_nodes is None:
             num_nodes = p_args.num_nodes
-        if ranks_per_node is None:
-            ranks_per_node = p_args.ranks_per_node
+        if procs_per_node is None:
+            procs_per_node = p_args.procs_per_node
 
         extra_args = ' '.join(splt_extra_args)
-        return num_procs, num_nodes, ranks_per_node, p_args
+        return num_procs, num_nodes, procs_per_node, p_args
 
-    def _rm_replicated_args(self, num_procs, num_nodes, ranks_per_node, p_args):
+    def _rm_replicated_args(self, num_procs, num_nodes, procs_per_node, p_args):
         if p_args.num_procs is not None:
             num_procs = None
         if p_args.num_nodes is not None:
             num_nodes = None
-        if p_args.ranks_per_node is not None:
-            ranks_per_node = None
-        return num_procs, num_nodes, ranks_per_node
+        if p_args.procs_per_node is not None:
+            procs_per_node = None
+        return num_procs, num_nodes, procs_per_node
 
     def express_spec(self, task, num_procs, num_nodes,
-                     ranks_per_node, machinefile,
+                     procs_per_node, machinefile,
                      hyperthreads, extra_args,
                      resources, workerID):
 
@@ -83,15 +83,15 @@ class MPIRunner:
         return hostlist, machinefile
 
     def get_mpi_specs(self, task, num_procs, num_nodes,
-                      ranks_per_node, machinefile,
+                      procs_per_node, machinefile,
                       hyperthreads, extra_args,
                       resources, workerID):
         "Form the mpi_specs dictionary."
 
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
-            num_procs, num_nodes, ranks_per_node, p_args = \
-                self._parse_extra_args(num_procs, num_nodes, ranks_per_node,
+            num_procs, num_nodes, procs_per_node, p_args = \
+                self._parse_extra_args(num_procs, num_nodes, procs_per_node,
                                        hyperthreads, extra_args=extra_args)
 
         hostlist = None
@@ -100,28 +100,28 @@ class MPIRunner:
             machinefile = None
 
         if machinefile is None and resources is not None:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 mpi_resources.get_resources(resources, num_procs, num_nodes,
-                                            ranks_per_node, hyperthreads)
+                                            procs_per_node, hyperthreads)
             hostlist, machinefile = \
                 self.express_spec(task, num_procs, num_nodes,
-                                  ranks_per_node, machinefile,
+                                  procs_per_node, machinefile,
                                   hyperthreads, extra_args,
                                   resources, workerID)
         else:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 mpi_resources.task_partition(num_procs, num_nodes,
-                                             ranks_per_node, machinefile)
+                                             procs_per_node, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 self._rm_replicated_args(num_procs, num_nodes,
-                                         ranks_per_node, p_args)
+                                         procs_per_node, p_args)
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,
-                'ranks_per_node': ranks_per_node,
+                'procs_per_node': procs_per_node,
                 'extra_args': extra_args,
                 'machinefile': machinefile,
                 'hostlist': hostlist}
@@ -139,7 +139,7 @@ class MPICH_MPIRunner(MPIRunner):
         self.mpi_command = [self.run_command, '--env {env}',
                             '-machinefile {machinefile}',
                             '-hosts {hostlist}', '-np {num_procs}',
-                            '--ppn {ranks_per_node}', '{extra_args}']
+                            '--ppn {procs_per_node}', '{extra_args}']
 
 
 class OPENMPI_MPIRunner(MPIRunner):
@@ -154,10 +154,10 @@ class OPENMPI_MPIRunner(MPIRunner):
         self.mpi_command = [self.run_command, '-x {env}',
                             '-machinefile {machinefile}',
                             '-host {hostlist}', '-np {num_procs}',
-                            '-npernode {ranks_per_node}', '{extra_args}']
+                            '-npernode {procs_per_node}', '{extra_args}']
 
     def express_spec(self, task, num_procs, num_nodes,
-                     ranks_per_node, machinefile,
+                     procs_per_node, machinefile,
                      hyperthreads, extra_args,
                      resources, workerID):
 
@@ -170,10 +170,10 @@ class OPENMPI_MPIRunner(MPIRunner):
         if workerID is not None:
             machinefile += "_for_worker_{}".format(workerID)
         machinefile += "_task_{}".format(task.id)
-        mfile_created, num_procs, num_nodes, ranks_per_node = \
+        mfile_created, num_procs, num_nodes, procs_per_node = \
             mpi_resources.create_machinefile(resources, machinefile,
                                              num_procs, num_nodes,
-                                             ranks_per_node, hyperthreads)
+                                             procs_per_node, hyperthreads)
         jassert(mfile_created, "Auto-creation of machinefile failed")
 
         return hostlist, machinefile
@@ -190,7 +190,7 @@ class APRUN_MPIRunner(MPIRunner):
         self.arg_ppn = ('-N',)
         self.mpi_command = [self.run_command, '-e {env}',
                             '-L {hostlist}', '-n {num_procs}',
-                            '-N {ranks_per_node}', '{extra_args}']
+                            '-N {procs_per_node}', '{extra_args}']
 
 
 class SRUN_MPIRunner(MPIRunner):
@@ -205,7 +205,7 @@ class SRUN_MPIRunner(MPIRunner):
         self.mpi_command = [self.run_command, '-w {hostlist}',
                             '--ntasks {num_procs}',
                             '--nodes {num_nodes}',
-                            '--ntasks-per-node {ranks_per_node}',
+                            '--ntasks-per-node {procs_per_node}',
                             '{extra_args}']
 
 
@@ -221,48 +221,48 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ('--LIBE_NNODES_ARG_EMPTY',)
         self.arg_ppn = ('-r',)
         self.mpi_command = [self.run_command, '-n {num_procs}',
-                            '-r {ranks_per_node}', '{extra_args}']
+                            '-r {procs_per_node}', '{extra_args}']
 
     def get_mpi_specs(self, task, num_procs, num_nodes,
-                      ranks_per_node, machinefile,
+                      procs_per_node, machinefile,
                       hyperthreads, extra_args,
                       resources, workerID):
 
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
-            num_procs, num_nodes, ranks_per_node, p_args = \
-                self._parse_extra_args(num_procs, num_nodes, ranks_per_node,
+            num_procs, num_nodes, procs_per_node, p_args = \
+                self._parse_extra_args(num_procs, num_nodes, procs_per_node,
                                        hyperthreads, extra_args=extra_args)
 
-        rm_rpn = True if ranks_per_node is None and num_nodes is None else False
+        rm_rpn = True if procs_per_node is None and num_nodes is None else False
 
         hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning('User machinefile ignored - not supported by {}'.format(self.run_command))
             machinefile = None
         if machinefile is None and resources is not None:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 mpi_resources.get_resources(resources, num_procs, num_nodes,
-                                            ranks_per_node, hyperthreads)
+                                            procs_per_node, hyperthreads)
 
             # TODO: Create ERF file if mapping worker to resources req.
         else:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 mpi_resources.task_partition(num_procs, num_nodes,
-                                             ranks_per_node, machinefile)
+                                             procs_per_node, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:
-            num_procs, num_nodes, ranks_per_node = \
+            num_procs, num_nodes, procs_per_node = \
                 self._rm_replicated_args(num_procs, num_nodes,
-                                         ranks_per_node, p_args)
+                                         procs_per_node, p_args)
 
         if rm_rpn:
-            ranks_per_node = None
+            procs_per_node = None
 
         return {'num_procs': num_procs,
                 'num_nodes': num_nodes,
-                'ranks_per_node': ranks_per_node,
+                'procs_per_node': procs_per_node,
                 'extra_args': extra_args,
                 'machinefile': machinefile,
                 'hostlist': hostlist}

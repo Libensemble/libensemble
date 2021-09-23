@@ -34,7 +34,7 @@ sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
 libE_specs['zero_resource_workers'] = [1]
-libE_specs['central_mode'] = True
+libE_specs['dedicated_mode'] = True
 libE_specs['enforce_worker_core_bounds'] = True
 
 # To allow visual checking - log file not used in test
@@ -71,7 +71,7 @@ mpi_customizer = {'mpi_runner': 'mpich',    # Select runner: mpich, openmpi, apr
 
 # Create executor and register sim to it.
 exctr = MPIExecutor(custom_info=mpi_customizer)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")

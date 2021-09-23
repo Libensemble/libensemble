@@ -50,14 +50,14 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
                             app_args=app_args,
                             stdout='out.txt',
                             stderr='err.txt',
-                            wait_on_run=True)
+                            wait_on_start=True)
     else:
         task = exctr.submit(calc_type='sim',
                             num_procs=machine_specs['cores'],
                             app_args=app_args,
                             stdout='out.txt',
                             stderr='err.txt',
-                            wait_on_run=True)
+                            wait_on_start=True)
 
     # Periodically check the status of the simulation
     poll_interval = 1  # secs

@@ -11,7 +11,7 @@ def sendrecv_mgr_worker_msg(comm, output):
     :returns: message tag, Work dictionary, calc_in array
     """
     send_mgr_worker_msg(comm, output)
-    return get_mgr_worker_msg(comm)
+    return recv_mgr_worker_msg(comm)
 
 
 def send_mgr_worker_msg(comm, output):
@@ -30,7 +30,7 @@ def send_mgr_worker_msg(comm, output):
     comm.send(EVAL_GEN_TAG, D)
 
 
-def get_mgr_worker_msg(comm):
+def recv_mgr_worker_msg(comm):
     """Get message to worker from manager.
 
     :param comm: libEnsemble communicator object

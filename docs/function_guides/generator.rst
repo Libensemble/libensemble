@@ -85,11 +85,11 @@ This function call typically resembles::
 Note that ``send_mgr_worker_msg()`` has no return.
 
 .. currentmodule:: libensemble.tools.gen_support
-.. autofunction:: get_mgr_worker_msg
+.. autofunction:: recv_mgr_worker_msg
 
 This function call typically resembles::
 
-    tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
+    tag, Work, calc_in = recv_mgr_worker_msg(libE_info['comm'])
 
     if tag in [STOP_TAG, PERSIS_STOP]:
         cleanup()
