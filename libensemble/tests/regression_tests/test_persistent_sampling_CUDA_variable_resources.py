@@ -36,7 +36,7 @@ if libE_specs['comms'] == 'tcp':
 # Get paths for applications to run
 six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'six_hump_camel.py')
 exctr = MPIExecutor()
-exctr.register_calc(full_path=six_hump_camel_app, app_name='six_hump_camel')
+exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
 sim_specs = {'sim_f': sim_f,

@@ -43,7 +43,7 @@ else:
 
 sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
 exctr = MPIExecutor()
-exctr.register_calc(full_path=sim_app, app_name='helloworld')
+exctr.register_app(full_path=sim_app, app_name='helloworld')
 
 n = 2
 sim_specs = {'sim_f': sim_f,
