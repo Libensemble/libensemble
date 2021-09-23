@@ -62,7 +62,7 @@ mpi_customizer = {'mpi_runner': 'srun',   # Select runner: mpich, openmpi, aprun
 custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
                     'node_file': node_file}      # Name of file containing a node-list
 
-libE_specs['central_mode'] = True
+libE_specs['dedicated_mode'] = True
 libE_specs['enforce_worker_core_bounds'] = True
 libE_specs['resource_info'] = custom_resources
 

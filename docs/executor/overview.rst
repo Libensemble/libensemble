@@ -125,7 +125,7 @@ an existing resource pool. However, submissions to a batch scheduler may be
 supported in future Executors.
 
 See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
-diagrams, how common Executor options such as ``central_mode`` affect the
+diagrams, how common Executor options such as ``dedicated_mode`` affect the
 run configuration on clusters and supercomputers.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/

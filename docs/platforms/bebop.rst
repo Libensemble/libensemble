@@ -76,7 +76,7 @@ With your nodes allocated, queue your job to start with four MPI ranks::
 the workers to launch calculations with the Executor or a launch command.
 This is an example of running in :doc:`centralized<platforms_index>` mode, and,
 if using the :doc:`Executor<../executor/mpi_executor>`, it should
-be initiated with ``central_mode=True``
+be initiated with ``dedicated_mode=True``
 
 .. note::
     When performing a :doc:`distributed<platforms_index>` MPI libEnsemble run

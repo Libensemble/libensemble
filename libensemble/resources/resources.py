@@ -80,7 +80,7 @@ class Resources:
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
 
-        Removes libEnsemble nodes from nodelist if in central_mode.
+        Removes libEnsemble nodes from nodelist if in dedicated_mode.
         """
         self.glob_resources.add_comm_info(libE_nodes)
 
@@ -96,7 +96,7 @@ class GlobalResources:
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
     :ivar int physical_cores_avail_per_node: Physical cores available on a node
     :ivar list zero_resource_workers: List of workerIDs to have no resources.
-    :ivar boolean central_mode: Whether to remove libE nodes from global nodelist.
+    :ivar boolean dedicated_mode: Whether to remove libE nodes from global nodelist.
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
@@ -115,7 +115,7 @@ class GlobalResources:
         top_level_dir: string, optional
             Directory libEnsemble runs in (default is current working directory)
 
-        central_mode: boolean, optional
+        dedicated_mode: boolean, optional
             If true, then running in central mode, otherwise distributed.
             Central mode means libE processes (manager and workers) are grouped together and
             do not share nodes with applications. Distributed mode means Workers share nodes
@@ -161,12 +161,12 @@ class GlobalResources:
 
         """
         self.top_level_dir = top_level_dir
-        self.central_mode = libE_specs.get('central_mode', False)
+        self.dedicated_mode = libE_specs.get('dedicated_mode', False)
         self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
         self.num_resource_sets = libE_specs.get('num_resource_sets', None)
         self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', False)
 
-        if self.central_mode:
+        if self.dedicated_mode:
             logger.debug('Running in central mode')
 
         resource_info = libE_specs.get('resource_info', {})
@@ -214,7 +214,7 @@ class GlobalResources:
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
 
-        Removes libEnsemble nodes from nodelist if in central_mode.
+        Removes libEnsemble nodes from nodelist if in dedicated_mode.
         """
         if self.shortnames:
             self.libE_nodes = self.env_resources.shortnames(libE_nodes)
@@ -222,10 +222,10 @@ class GlobalResources:
             self.libE_nodes = libE_nodes
         libE_nodes_in_list = list(filter(lambda x: x in self.libE_nodes, self.global_nodelist))
         if libE_nodes_in_list:
-            if self.central_mode and len(self.global_nodelist) > 1:
+            if self.dedicated_mode and len(self.global_nodelist) > 1:
                 self.global_nodelist = GlobalResources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
-                    logger.warning("Warning. Node-list for tasks is empty. Remove central_mode or add nodes")
+                    logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):

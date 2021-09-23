@@ -65,7 +65,7 @@ allowed_libE_spec_keys = ['abort_on_exception',             #
                           'enforce_worker_core_bounds',     #
                           'authkey',                        #
                           'disable_resource_manager',       #
-                          'central_mode',                   #
+                          'dedicated_mode',                   #
                           'comms',                          #
                           'resource_info',                  #
                           'disable_log_files',              #

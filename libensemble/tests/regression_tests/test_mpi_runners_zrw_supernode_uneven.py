@@ -32,7 +32,7 @@ sim_app = '/path/to/fakeapp.x'
 comms = libE_specs['comms']
 
 libE_specs['zero_resource_workers'] = [1]
-libE_specs['central_mode'] = True
+libE_specs['dedicated_mode'] = True
 libE_specs['enforce_worker_core_bounds'] = True
 
 # To allow visual checking - log file not used in test
