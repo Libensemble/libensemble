@@ -9,8 +9,8 @@ This `gen_f` is meant to be used with the `alloc_f` function
 """
 
 import numpy as np
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 # import dragonfly Gaussian Process functions
 from dragonfly.exd.domains import EuclideanDomain
@@ -32,6 +32,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     # Number of points to generate initially
     number_of_gen_points = gen_specs['user']['gen_batch_size']
@@ -68,7 +69,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_and_receive(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])
@@ -99,6 +100,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     # Fidelity range.
     fidel_range = gen_specs['user']['range']
@@ -150,7 +152,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_and_receive(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])
@@ -182,6 +184,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     # Multifidelity settings.
     cost_func = gen_specs['user']['cost_func']
@@ -250,7 +253,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_and_receive(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])
