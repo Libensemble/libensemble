@@ -92,7 +92,7 @@ for app in ddmd_apps:
     gen_specs['out'].append((app + '_cstat', int))
 
 # Parameterize the provided allocation function
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
+alloc_specs = {'alloc_f': alloc_f,
                'user': {'init_sample_size': MD_BATCH_SIZE}}
 
 # Specify when libEnsemble should shut down

@@ -50,7 +50,8 @@ class History:
         L = exit_criteria.get('sim_max', 100)
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        specs = [sim_specs, alloc_specs, gen_specs]
+        dtype_list = list(set(libE_fields + sum([k.get('out', []) for k in specs if k], [])))
         H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
         if len(H0):

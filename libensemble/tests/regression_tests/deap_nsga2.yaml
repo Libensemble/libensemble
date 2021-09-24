@@ -36,12 +36,10 @@ gen_specs:
             - 2.0
         pop_size: 100
         indiv_size: 2
-        give_all_with_same_priority: True
         cxpb: 0.8
         eta: 20.0
 
 alloc_specs:
     function: libensemble.alloc_funcs.start_only_persistent.only_persistent_gens
-    outputs:
-        given_back:
-            type: bool
+    user:
+        give_all_with_same_priority: True
