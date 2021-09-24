@@ -1,24 +1,27 @@
-Resource manager
-================
+Dynamic Assignment of Resources
+===============================
+
+.. SH TODO Add link to a section on scheduler
+.. SH TODO Add link to detection of resources section (an dhow to override)
+.. SH TODO Add link to a section on worker resources as can be used in sim
+
 
 Overview
 --------
 
 libEnsemble comes with built-in resource management. This entails the detection of available resources (e.g. nodelists and core counts), and the allocation of resources to workers.
 
-By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's MPIExecutor is aware of these supplied resources, and if not given any of num_nodes, num_procs or procs_per_node in the submit function, it will try to use all nodes and CPU cores available to the worker.
+By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources, and if not given any of num_nodes, num_procs or procs_per_node in the submit function, it will try to use all nodes and CPU cores available to the worker.
 
 Detected resources can be overridden using the libE_specs option ``resource_info``.
+
+.. SH TODO: How to combine (or not) this with what is in HPC systems section - which includes showing what env vars is searched on slurm, cobalt etc...
 
 
 Variable resource assignment
 ----------------------------
 
-In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the zero_resource_workers libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. It is expected that ``num_resource_sets`` >= ``num_workers``. Also, this can be set on the command line as a convenience.
-
-.. code-block:: bash
-
-    python run_ensemble.py --ncomms local --nworkers 5 --nresource_sets 8
+In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. It is expected that ``num_resource_sets`` >= ``num_workers``.
 
 If there are more resource sets than nodes, then the resource sets on each node will be given a slot number, enumerated from zero. E.g.~ If there are three slots on a node, they will have slot numbers 0, 1 and 2.
 
@@ -31,14 +34,6 @@ For example, lets say a given system has four GPUs per node, and the user has ru
 
 Variable Size simulations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. SH TODO Update graphics to use text where can instead of pictures for code - and maybe inline table for H array
-
-.. SH TODO - remove repitition here - and try to move out advanced details - maybe to an advanced section
-
-.. SH TODO - put a link to the presentation (which will also be in docs) somewhere here
-
-.. SH TODO - link to examples test/sim and gen - eg. CUDA regression test
 
 A dynamic assignment of resources to simulation workers can be achieved by the convention of using a field in the history array called ``resource_sets``. While this is technically a user space field, the allocation functions are set up to read this field, check available resources, and assign resource sets to workers, along with the work request (simulation).
 
@@ -77,7 +72,7 @@ The particular nodes and slots assigned to each worker will follow the libEnsenb
 
 In the user's simulation function, the resources supplied to the worker can be interogated directly via the resources class attribute. Note also that libEnsembles executors (e.g.~ the MPIExecutor **link**) is aware of these supplied resources, and if not given any of num_nodes,num_procs or procs_per_node in the submit function, it will try to use all nodes and CPU cores available.
 
-`six_hump_camel.py`_ has two example of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
+`six_hump_camel.py`_ has two examples of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
 
 For example, in *six_hump_camel_CUDA_variable_resources*, the environment variable ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
@@ -102,15 +97,16 @@ while worker five would set::
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For all support allocation functions, setting the ``persis_info['gen_resources']`` to an integer value will provide resource sets to generators when they are started, with the default to provide no resources. This could be set in the calling script or inside the allocation function.
+For all supporting allocation functions, setting the ``persis_info['gen_resources']`` to an integer value will provide resource sets to generators when they are started, with the default to provide no resources. This could be set in the calling script or inside the allocation function.
 
 Note that persistent workers maintain their resources until coming out of persistent state.
 
-.. SH TODO: Something small on writing allocation functions with resources - e.g. how set in sim/gen_work how rset_team overrides and can call assign_resources directly??
 
+Example scenarios
+-----------------
 
-Example scenario
-^^^^^^^^^^^^^^^^
+Persistent generator
+^^^^^^^^^^^^^^^^^^^^
 
 You have *one* persistent generator and want *eight* workers for running concurrent simulations. In this case you can run with *nine* workers.
 
@@ -127,7 +123,43 @@ Using the two node example above, initial worker mapping in this example will be
 .. image:: ../images/variable_resources_persis_gen1.png
 
 
-.. SH TODO Add example where --nresource_sets sets it 4 and workers 9 and use image from presentation and move command line from near the top to here. Should also show the example where 2 gpus per resource set (or 2 slots per node) - with multipler....
+Using large resource sets
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Note that resource_sets and slot numbers are based on workers by default. If you halved the workers in this example you would have the following (each resource set has twice the CPUs and GPUs).
+
+.. image:: ../images/variable_resources_larger_rsets1.png
+
+To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier`` argument in the ``set_env_to_slots`` function:
+
+.. code-block:: python
+    :emphasize-lines: 2
+
+    resources = Resources.resources.worker_resources
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
+
+
+Setting more resource sets that workers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Resource sets can be set to more than the number of corresponding workers. In this
+example there are 5 workers (one for the gen) and 8 resource sets. The additional
+resources will be used for larger simulations.
+
+.. image:: ../images/variable_resources_more_rsets1.png
+
+This could be acheived by setting::
+
+    ``libE_specs['num_resource_sets'] = 8`
+
+and running on 5 workers.
+
+Also, this can be set on the command line as a convenience.
+
+.. code-block:: bash
+
+    python run_ensemble.py --ncomms local --nworkers 5 --nresource_sets 8
+
 
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
 
