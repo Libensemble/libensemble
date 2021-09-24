@@ -2,6 +2,7 @@ import numpy as np
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 __all__ = ['persistent_uniform',
            'uniform_random_sample_with_variable_resources',
