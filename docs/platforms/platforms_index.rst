@@ -46,7 +46,7 @@ The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from th
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``central_mode=True`` is used when initializing the Executor, then any node
+If the argument ``dedicated_mode=True`` is used when initializing the Executor, then any node
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
@@ -61,7 +61,7 @@ or::
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided amongst the workers for submitted applications. If the same run was
-performed without ``central_mode=True``, runs could be submitted to all 5 nodes. The number of workers
+performed without ``dedicated_mode=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 
 To launch libEnsemble distributed requires a less trivial libEnsemble run script.
@@ -110,9 +110,13 @@ the :doc:`examples<example_scripts>`.
 Mapping Tasks to Resources
 --------------------------
 
-The :doc:`MPI Executor<../executor/mpi_executor>` can detect system resources,
-and partition these to workers. Node-lists are detected by an environment variable on the
-following systems:
+.. The :doc:`resource manager<../?/?>`can detect system resources, and partition
+
+The resource manager can detect system resources, and partition
+these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`, for example,
+accesses the resources available to the current worker when launching tasks.
+
+Node-lists are detected by an environment variable on the following systems:
 
 ===========  ===========================
 Scheduler       Nodelist Env. variable
@@ -122,26 +126,29 @@ COBALT          COBALT_PARTNAME
 LSF             LSB_HOSTS/LSB_MCPU_HOSTS
 ===========  ===========================
 
-These environment variable names can be modified when intitializing the Executor.
+These environment variable names can be modified via the  :ref:`resource_info<resource_info>`
+libE_specs option.
+
 On other systems you may have to supply a node list in a file called **node_list**
 in your run directory. For example, on Cooley_ the session node list can be obtained
 as follows::
 
             cat $COBALT_NODEFILE > node_list
 
-Resource detection can be disabled by initializing the Executor with the argument
-``auto_resources=False``, and users' can simply supply run
-configuration on the Executor submit line. This will usually work sufficiently on systems that
-have application level scheduling (e.g: ``aprun``, ``jsrun``) as these will slot each run into
-available nodes where possible. ``jsrun`` can also queue runs. However, on
-other cluster and multi-node systems, if auto-resources is disabled, then runs without
-a hostlist or machinefile supplied may be undesirably scheduled to the same nodes.
+Resource detection can be disabled by setting 
+``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
+configuration options on the Executor submit line. This will usually work sufficiently on
+systems that have application-level scheduling (e.g., ``aprun``, ``jsrun``) as these
+will slot each run into available nodes where possible. ``jsrun`` can also queue
+runs. However, on other cluster and multi-node systems, if the built-in resource
+manager is disabled, then runs without a hostlist or machinefile supplied may be
+undesirably scheduled to the same nodes.
 
 Zero-resource workers
 ~~~~~~~~~~~~~~~~~~~~~
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be wasteful since those
+are still automatically assigned system resources. This can be wasteful if those
 workers only run ``gen_f`` routines in-place and don't use the Executor to submit
 applications to allocated nodes:
 
@@ -156,7 +163,7 @@ system resources assigned. For example, when using a single instance of Persiste
 :doc:`APOSMM<../examples/aposmm>` as your ``gen_f``, the Executor definition
 may resemble::
 
-    exctr = MPIExecutor(central_mode=True, zero_resource_workers=[1])
+    exctr = MPIExecutor(dedicated_mode=True, zero_resource_workers=[1])
 
 Worker 1 will now not be allocated resources. Note that additional worker
 processes can be added to take advantage of the free resources (if using the
@@ -170,9 +177,14 @@ same resource set) for simulation instances:
 Overriding Auto-detection
 -------------------------
 
-libEnsemble detects node-lists, MPI runners, and the number of cores on the node through various
-means. When using the MPI Executor it is possible to override the detected information using the
-:ref:`custom_info<customizer>` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+libEnsemble can automatically detect system information. This includes resource information, such as
+available nodes and the number of cores on the node, and information about available MPI runners.
+
+System detection for resources can be overriden using the :ref:`resource_info<resource_info>`
+libE_specs option.
+
+When using the MPI Executor, it is possible to override the detected information using the
+`custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
 Instructions for Specific Platforms
 -----------------------------------

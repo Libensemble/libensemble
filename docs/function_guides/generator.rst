@@ -11,7 +11,7 @@ In practice, most ``gen_f`` function definitions written by users resemble::
     def my_generator(H, persis_info, gen_specs, libE_info):
 
 Where :doc:`H<../data_structures/history_array>` is a selection of the
-:doc:`History array<../history_output>`, determined by sim IDs from the
+:doc:`History array<../history_output_logging>`, determined by sim IDs from the
 ``alloc_f``, :doc:`persis_info<../data_structures/persis_info>` is a dictionary
 containing state information, :doc:`gen_specs<../data_structures/gen_specs>` is a
 dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``
@@ -85,11 +85,11 @@ This function call typically resembles::
 Note that ``send_mgr_worker_msg()`` has no return.
 
 .. currentmodule:: libensemble.tools.gen_support
-.. autofunction:: get_mgr_worker_msg
+.. autofunction:: recv_mgr_worker_msg
 
 This function call typically resembles::
 
-    tag, Work, calc_in = get_mgr_worker_msg(libE_info['comm'])
+    tag, Work, calc_in = recv_mgr_worker_msg(libE_info['comm'])
 
     if tag in [STOP_TAG, PERSIS_STOP]:
         cleanup()
@@ -116,6 +116,8 @@ the tag from the manager, it should return with an additional tag::
 
 See :doc:`calc_status<../data_structures/calc_status>` for more information about
 the message tags.
+
+.. _gen_active_recv:
 
 Active receive mode
 -------------------

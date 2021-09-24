@@ -46,7 +46,7 @@ else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor()
 
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # Alternative to IF could be using eg. fstring to specify: e.g:
 # EXECUTOR = 'Balsam'

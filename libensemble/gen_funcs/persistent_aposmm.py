@@ -16,7 +16,7 @@ from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, Co
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import send_mgr_worker_msg
-from libensemble.tools.gen_support import get_mgr_worker_msg
+from libensemble.tools.gen_support import recv_mgr_worker_msg
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
@@ -167,7 +167,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 if user_specs.get('standalone'):
                     tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
                 else:
-                    tag, Work, calc_in = get_mgr_worker_msg(comm)
+                    tag, Work, calc_in = recv_mgr_worker_msg(comm)
 
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     clean_up_and_stop(local_opters)

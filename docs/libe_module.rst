@@ -1,5 +1,5 @@
-The Main libE Module
-====================
+Main libE Module - Calling Script
+=================================
 
 .. automodule:: libE
    :members:

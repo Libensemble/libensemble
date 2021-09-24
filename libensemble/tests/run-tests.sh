@@ -18,6 +18,8 @@ export REG_TEST_LIST=test_*.py #unordered # override with -y
 export REG_USE_PYTEST=false
 export REG_TEST_OUTPUT_EXT=std.out #/dev/null
 export REG_STOP_ON_FAILURE=false
+export REG_RUN_LARGEST_TEST_ONLY=true
+export RUN_EXTRA=false
 #-----------------------------------------------------------------------------------------
 
 # Test Directories - all relative to project root dir
@@ -189,7 +191,7 @@ export RUN_TCP=false
 
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcsurmltz] [-p <2|3>] [-n <string>] [-a <string>]" 1>&2;
+  echo "  $0 [-hcszurmlte] [-p <2|3>] [-A <string>] [-n <string>] [-a <string>] [-y <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
@@ -201,6 +203,7 @@ usage() {
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
+  echo "  -e              Run extra regression tests that require additional dependencies"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -A {-flag arg}  Supply arguments to python"
@@ -213,7 +216,7 @@ usage() {
   exit 1
 }
 
-while getopts ":p:n:a:y:A:hcszurmlt" opt; do
+while getopts ":p:n:a:y:A:hcszurmlte" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -254,6 +257,10 @@ while getopts ":p:n:a:y:A:hcszurmlt" opt; do
     t)
       echo "Running only the TCP regression tests"
       export RUN_TCP=true
+      ;;
+    e)
+      echo "Running extra regression tests with additional dependencies"
+      export RUN_EXTRA=true
       ;;
     m)
       echo "Running only the MPI regression tests"
@@ -452,12 +459,19 @@ if [ "$root_found" = true ]; then
     for TEST_SCRIPT in $REG_TEST_LIST
     do
       COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
+      IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+
+      if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
+        continue
+      fi
+
       for LAUNCHER in $COMMS_LIST
       do
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
-        for NPROCS in ${NPROCS_LIST:(-1)}
+        if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+        for NPROCS in ${NPROCS_LIST}
         do
           NWORKERS=$((NPROCS-1))
 
@@ -587,8 +601,16 @@ if [ "$root_found" = true ]; then
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
-        fi;
+        else
 
+          # Still need to move reg cov results to COV_MERGE_DIR
+          cd $ROOT_DIR/$COV_MERGE_DIR
+          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+
+          coverage combine .cov_reg_out
+          coverage html
+          echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+        fi;
       fi;
     fi;
 

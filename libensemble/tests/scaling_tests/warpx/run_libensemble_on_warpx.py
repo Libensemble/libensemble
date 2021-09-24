@@ -67,8 +67,8 @@ sim_app = machine_specs['sim_app']
 # that LibEnsemble will vary in order to minimize a single output parameter.
 n = 4
 
-exctr = MPIExecutor(central_mode=True)
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr = MPIExecutor(dedicated_mode=True)
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # State the objective function, its arguments, output, and necessary parameters
 # (and their sizes). Here, the 'user' field is for the user's (in this case,
@@ -196,7 +196,7 @@ elif generator_type == 'aposmm':
         # Allocator function, decides what a worker should do.
         # We use a LibEnsemble allocator.
         'alloc_f': alloc_f,
-        'out': [('given_back', bool)],
+        'out': [],
         'user': {}}
 
 else:

@@ -1,4 +1,4 @@
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
@@ -18,27 +18,39 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    Work = {}
-    gen_count = count_gens(W)
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names
 
-    for i in avail_worker_ids(W):
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+
+    gen_count = support.count_gens()
+    Work = {}
+    gen_in = gen_specs.get('in', [])
+
+    for wid in support.avail_worker_ids():
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         # Give sim work if possible
         if persis_info['next_to_give'] < len(H):
-
-            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+            try:
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
+            except InsufficientFreeResources:
+                break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count+1):
 
             # Give gen work
-            persis_info['total_gen_calls'] += 1
-            gen_count += 1
-            gen_in = gen_specs.get('in', [])
             return_rows = range(len(H)) if gen_in else []
-            gen_work(Work, i, gen_in, return_rows, persis_info.get(i))
+            try:
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
+            gen_count += 1
+            persis_info['total_gen_calls'] += 1
 
+    del support
     return Work, persis_info

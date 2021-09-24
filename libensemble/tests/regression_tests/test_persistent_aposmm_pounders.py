@@ -12,6 +12,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -68,7 +69,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': ub}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

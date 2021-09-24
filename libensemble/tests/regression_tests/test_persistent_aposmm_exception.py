@@ -13,6 +13,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -66,7 +67,7 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
 
 
 exit_criteria = {'sim_max': 1000}

@@ -71,12 +71,12 @@ Specifications for libEnsemble::
         'authkey' [string]:
             TCP Only: Authkey
         'safe_mode' [boolean]:
-            Prevents user functions from overwritting protected libE fields, but requires
+            Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.
             Default: True
         'kill_canceled_sims' [boolean]:
-            Will libE try to kill sims that user functions mark 'cancel_requested' as True. 
-            If False, the manager avoid this moderate overhead. 
+            Will libE try to kill sims that user functions mark 'cancel_requested' as True.
+            If False, the manager avoid this moderate overhead.
             Default: True
         'use_persis_return' [boolean]:
             Adds persistent function H return to managers history array.
@@ -85,6 +85,74 @@ Specifications for libEnsemble::
             List of fields in H that the manager will return to persistent
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
+        'disable_resource_manager' [boolean]:
+            Disable the built-in resource manager. If this is True, automatic resource detection
+            and/or assignment of resources to workers is disabled. This also means that
+            any entries in the ``resource_info`` option will be ignored.
+            Default: False
+        'num_resource_sets' [int]:
+            The total number of resource sets. Resources will be divided into this number.
+            Default: None. If None, resources will be divided by workers (excluding
+            zero_resource_workers).
+        'enforce_worker_core_bounds' [boolean]:
+            If false, the Executor will permit submission of tasks with a
+            higher processor count than the CPUs available to the worker as
+            detected by the resource manager. Larger node counts are not allowed.
+            When the libE_specs option `disable_resource_manager` is True,
+            this argument is ignored. Default: False
+        'dedicated_mode' [boolean]:
+            If true, then running in central mode, otherwise in distributed
+            mode. Central mode means libE processes (manager and workers) are
+            grouped together and do not share nodes with applications.
+            Distributed mode means workers share nodes with applications.
+            Default: False
+        'zero_resource_workers' [list of ints]:
+            List of workers that require no resources.
+        'resource_info' [dict]:
+            Provide resource information that will override automatically detected resources.
+            The allowable fields are given below in 'Overriding Auto-detection'
+            Note that if ``disable_resource_manager`` is set then
+            this option is ignored.
+
+.. _resource_info:
+
+Overriding Auto-detection
+-------------------------
+
+The allowable fields are::
+
+    'cores_on_node' [tuple (int,int)]:
+        Tuple (physical cores, logical cores) on nodes.
+    'node_file' [string]:
+        Name of file containing a node-list. Default is 'node_list'.
+    'nodelist_env_slurm' [String]:
+            The environment variable giving a node list in Slurm format
+            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
+            a node_list file is not provided and the resource manager is
+            enabled (default).
+    'nodelist_env_cobalt' [String]:
+            The environment variable giving a node list in Cobalt format
+            (Default: Uses COBALT_PARTNAME) Note: This is queried only
+            if a node_list file is not provided and the resource manager
+            is enabled (default).
+    'nodelist_env_lsf' [String]:
+            The environment variable giving a node list in LSF format
+            (Default: Uses LSB_HOSTS) Note: This is queried only
+            if a node_list file is not provided and the resource manager
+            is enabled (default).
+    'nodelist_env_lsf_shortform' [String]:
+            The environment variable giving a node list in LSF short-form
+            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
+            if a node_list file is not provided and the resource manager is
+            enabled (default).
+
+For example::
+
+    customizer = {cores_on_node': (16, 64),
+                  'node_file': 'libe_nodes'}
+
+    libE_specs['resource_info'] = customizer
+
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

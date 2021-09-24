@@ -11,7 +11,7 @@ def sendrecv_mgr_worker_msg(comm, output):
     :returns: message tag, Work dictionary, calc_in array
     """
     send_mgr_worker_msg(comm, output)
-    return get_mgr_worker_msg(comm)
+    return recv_mgr_worker_msg(comm)
 
 
 def send_mgr_worker_msg(comm, output):
@@ -30,7 +30,7 @@ def send_mgr_worker_msg(comm, output):
     comm.send(EVAL_GEN_TAG, D)
 
 
-def get_mgr_worker_msg(comm):
+def recv_mgr_worker_msg(comm):
     """Get message to worker from manager.
 
     :param comm: libEnsemble communicator object
@@ -46,7 +46,7 @@ def get_mgr_worker_msg(comm):
     data_tag, calc_in = comm.recv()
     # Check for unexpected STOP (e.g. error between sending Work info and rows)
     if data_tag in [STOP_TAG, PERSIS_STOP]:
-        logger.debug('Persistent gen received signal {} from manager while expecting work rows'.format(tag))
+        logger.debug('Persistent gen received signal {} from manager while expecting work rows'.format(data_tag))
         comm.push_to_buffer(data_tag, calc_in)
         return data_tag, calc_in, None  # calc_in is signal identifier
     logger.debug('Persistent gen received work rows from manager')

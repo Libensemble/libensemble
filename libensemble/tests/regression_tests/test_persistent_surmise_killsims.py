@@ -22,6 +22,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
+# TESTSUITE_EXTRA: true
 
 # Requires:
 #   Install Surmise package
@@ -66,7 +67,7 @@ if __name__ == '__main__':
         build_borehole()
 
     exctr = Executor()  # Run serial sub-process in place
-    exctr.register_calc(full_path=sim_app, app_name='borehole')
+    exctr.register_app(full_path=sim_app, app_name='borehole')
 
     # Subprocess variant creates input and output files for each sim
     libE_specs['sim_dirs_make'] = True  # To keep all - make sim dirs
@@ -100,7 +101,7 @@ if __name__ == '__main__':
                  }
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
+                   'out': [],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,    # True = Return results to gen as they come in (after sample)
                             'active_recv_gen': True  # Persistent gen can handle irregular communications

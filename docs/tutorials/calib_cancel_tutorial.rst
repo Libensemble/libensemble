@@ -46,7 +46,7 @@ evaluations.
 As a convenience for testing, the ``observed`` data values are modelled by calling the ``sim_f``
 for the known true theta, which in this case is the center of a unit hypercube. These values
 are therefore stored at the start of libEnsemble's
-main :doc:`History array<../history_output>` array, and have associated ``sim_id``'s.
+main :doc:`History array<../history_output_logging>` array, and have associated ``sim_id``'s.
 
 The generator function ``gen_f`` then samples an initial batch of parameters
 :math:`(\theta_1, \ldots, \theta_n)` and constructs a surrogate model.
@@ -117,7 +117,7 @@ and receive messages from the Manager.
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
 its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
-A new, separate local :doc:`History array<../history_output>` is defined with the
+A new, separate local :doc:`History array<../history_output_logging>` is defined with the
 selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
 then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
 helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
@@ -158,7 +158,6 @@ The allocation function used in this example is the *only_persistent_gens* funct
 .. code-block:: python
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,
                             'active_recv_gen': True
@@ -205,12 +204,12 @@ prepared for irregular sending /receiving of data.
 .. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
 ..
 ..     # Loop through available simulation workers
-..     for i in avail_worker_ids(W, persistent=False):
+..     for i in support.avail_worker_ids(persistent=False):
 ..
 ..         if np.any(task_avail):
 ..             if 'priority' in H.dtype.fields:
 ..                 priorities = H['priority'][task_avail]
-..                 if gen_specs['user'].get('give_all_with_same_priority'):
+..                 if alloc_specs['user'].get('give_all_with_same_priority'):
 ..                     indexes = (priorities == np.max(priorities))
 ..                 else:
 ..                     indexes = np.argmax(priorities)

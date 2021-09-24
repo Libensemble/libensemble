@@ -22,6 +22,7 @@
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
+# TESTSUITE_EXTRA: true
 
 # Requires:
 #   Install Surmise package
@@ -81,7 +82,7 @@ if __name__ == '__main__':
                  }
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
+                   'out': [],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,    # True = Return results to gen as they come in (after sample)
                             'active_recv_gen': True  # Persistent gen can handle irregular communications

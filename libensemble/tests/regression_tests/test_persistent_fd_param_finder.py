@@ -11,6 +11,7 @@
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -52,7 +53,7 @@ gen_specs = {'gen_f': gen_f,
              }
 shutil.copy('./scripts_used_by_reg_tests/ECnoise.m', './')
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

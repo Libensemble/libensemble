@@ -13,7 +13,7 @@ import logging
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.resources.mpi_resources import MPIResources
+from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
 
@@ -26,76 +26,56 @@ class MPIExecutor(Executor):
     """The MPI executor can create, poll and kill runnable MPI tasks
     """
 
-    def __init__(self, auto_resources=True,
-                 allow_oversubscribe=True,
-                 central_mode=False,
-                 zero_resource_workers=[],
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None,
-                 custom_info={}):
+    def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
         A new Executor MPIExecutor is created with an application
-        registry and configuration attributes. A registry object must
-        have been created.
+        registry and configuration attributes.
 
-        This is typically created in the user calling script. If
-        auto_resources is true, an evaluation of system resources is
-        performed during this call.
+        This is typically created in the user calling script. The
+        MPIExecutor will use system resource information supplied by
+        the libEsnemble resource manager when submitting tasks.
 
         Parameters
         ----------
 
-        auto_resources: boolean, optional
-            Autodetect available processor resources and assign to tasks
-            if not explicitly provided on submission.
-
-        allow_oversubscribe: boolean, optional
-            If true, the Executor will permit submission of tasks with a
-            higher processor count than the CPUs available to the worker as
-            detected by auto_resources. Larger node counts are not allowed.
-            When auto_resources is off, this argument is ignored.
-
-        central_mode: boolean, optional
-            If true, then running in central mode, otherwise in distributed
-            mode. Central mode means libE processes (manager and workers) are
-            grouped together and do not share nodes with applications.
-            Distributed mode means workers share nodes with applications.
-
-        zero_resource_workers: list of ints, optional
-            List of workers that require no resources.
-
-        nodelist_env_slurm: String, optional
-            The environment variable giving a node list in Slurm format
-            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
-            a node_list file is not provided and auto_resources=True.
-
-        nodelist_env_cobalt: String, optional
-            The environment variable giving a node list in Cobalt format
-            (Default: Uses COBALT_PARTNAME) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
-
-        nodelist_env_lsf: String, optional
-            The environment variable giving a node list in LSF format
-            (Default: Uses LSB_HOSTS) Note: This is queried only
-            if a node_list file is not provided and
-            auto_resources=True.
-
-        nodelist_env_lsf_shortform: String, optional
-            The environment variable giving a node list in LSF short-form
-            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
-            if a node_list file is not provided and auto_resources=True.
-
         custom_info: dict, optional
             Provide custom overrides to selected variables that are usually
-            auto-detected. See :ref:`custom_info<customizer>`
+            auto-detected. See below.
+
+
+        The MPIExecutor automatically detects MPI runners and launch
+        mechanisms. However it is possible to override the detected
+        information using the ``custom_info`` argument. This takes
+        a dictionary of values.
+
+        The allowable fields are::
+
+            'mpi_runner' [string]:
+                Select runner: 'mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'custom'
+                All except 'custom' relate to runner classes in libEnsemble.
+                Custom allows user to define their own run-lines but without parsing
+                arguments or making use of auto-resources.
+            'runner_name' [string]:
+                Runner name: Replaces run command if present. All runners have a default
+                except for 'custom'.
+            'subgroup_launch' [Boolean]:
+                Whether MPI runs should be initiatied in a new process group. This needs
+                to be correct for kills to work correctly. Use the standalone test at
+                libensemble/tests/standalone_tests/kill_test to determine correct value
+                for a system.
+
+        For example::
+
+            customizer = {'mpi_runner': 'mpich',
+                          'runner_name': 'wrapper -x mpich'}
+
+            from libensemble.executors.mpi_executor import MPIExecutor
+            exctr = MPIExecutor(custom_info=customizer)
 
         """
+
         Executor.__init__(self)
-        self.auto_resources = auto_resources
 
         # MPI launch settings
         self.max_launch_attempts = 5
@@ -106,43 +86,18 @@ class MPIExecutor(Executor):
         mpi_runner_type = custom_info.get('mpi_runner', None)
         runner_name = custom_info.get('runner_name', None)
         subgroup_launch = custom_info.get('subgroup_launch', None)
-        cores_on_node = custom_info.get('cores_on_node', None)
-        node_file = custom_info.get('node_file', None)
 
         if not mpi_runner_type:
-            mpi_runner_type = MPIResources.get_MPI_variant()
-
+            mpi_runner_type = get_MPI_variant()
         self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
-
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
-
         self.resources = None
-        if self.auto_resources:
-            self.resources = \
-                MPIResources(top_level_dir=self.top_level_dir,
-                             central_mode=central_mode,
-                             zero_resource_workers=zero_resource_workers,
-                             allow_oversubscribe=allow_oversubscribe,
-                             launcher=self.mpi_runner.run_command,
-                             cores_on_node=cores_on_node,
-                             node_file=node_file,
-                             nodelist_env_slurm=nodelist_env_slurm,
-                             nodelist_env_cobalt=nodelist_env_cobalt,
-                             nodelist_env_lsf=nodelist_env_lsf,
-                             nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
 
-    def add_comm_info(self, libE_nodes, serial_setup):
-        """Adds comm-specific information to executor.
+    def set_resources(self, resources):
+        self.resources = resources
 
-        Updates resources information if auto_resources is true.
-        """
-        if self.auto_resources:
-            self.resources.add_comm_info(libE_nodes=libE_nodes)
-        if serial_setup:
-            self._serial_setup()
-
-    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_run):
+    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_start):
         """ Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
@@ -164,8 +119,8 @@ class MPIExecutor(Executor):
                 retry = True
                 retry_count += 1
             else:
-                if (wait_on_run):
-                    self._wait_on_run(task, self.fail_time)
+                if (wait_on_start):
+                    self._wait_on_start(task, self.fail_time)
 
                 if task.state == 'FAILED':
                     logger.warning('task {} failed within fail_time on '
@@ -182,9 +137,9 @@ class MPIExecutor(Executor):
                 break
 
     def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, ranks_per_node=None, machinefile=None,
+               num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_run=False,
+               hyperthreads=False, dry_run=False, wait_on_start=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
@@ -206,8 +161,8 @@ class MPIExecutor(Executor):
         num_nodes: int, optional
             The number of nodes on which to submit the task
 
-        ranks_per_node: int, optional
-            The ranks per node for this task
+        procs_per_node: int, optional
+            The processes per node for this task
 
         machinefile: string, optional
             Name of a machinefile for this task to use
@@ -233,14 +188,14 @@ class MPIExecutor(Executor):
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_run: boolean, optional
+        wait_on_start: boolean, optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
         extra_args: String, optional
             Additional command line arguments to supply to MPI runner. If
-            arguments are recognised as those used in auto_resources
-            (num_procs, num_nodes, ranks_per_node) they will be used in
+            arguments are recognised as MPI resource configuration
+            (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.
 
@@ -252,7 +207,7 @@ class MPIExecutor(Executor):
 
 
         Note that if some combination of num_procs, num_nodes, and
-        ranks_per_node is provided, these will be honored if
+        procs_per_node is provided, these will be honored if
         possible. If resource detection is on and these are omitted,
         then the available resources will be divided among workers.
         """
@@ -272,9 +227,8 @@ class MPIExecutor(Executor):
                            "executor - runs in-place")
 
         mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
-                                                  ranks_per_node, machinefile,
+                                                  procs_per_node, machinefile,
                                                   hyperthreads, extra_args,
-                                                  self.auto_resources,
                                                   self.resources,
                                                   self.workerID)
 
@@ -293,7 +247,7 @@ class MPIExecutor(Executor):
             task._set_complete(dry_run=True)
         else:
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_run)
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
             if not task.timer.timing:
                 task.timer.start()
@@ -305,5 +259,3 @@ class MPIExecutor(Executor):
     def set_worker_info(self, comm, workerid=None):
         """Sets info for this executor"""
         super().set_worker_info(comm, workerid)
-        if self.workerID and self.auto_resources:
-            self.resources.set_worker_resources(self.workerID, comm)

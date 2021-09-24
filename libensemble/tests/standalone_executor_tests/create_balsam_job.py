@@ -77,7 +77,7 @@ job = dag.add_job(name='job_' + script_basename,
                   application=app_name,
                   # application_args=job.app_args,
                   num_nodes=1,
-                  ranks_per_node=1,
+                  procs_per_node=1,
                   stage_in_url="local:/" + stage_in,
                   stage_out_url="local:/" + stage_in,  # same as in
                   stage_out_files="*.out")

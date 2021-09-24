@@ -4,39 +4,26 @@ A persistent generator using the uncertainty quantification capabilities in
 """
 
 import numpy as np
-import Tasmanian
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
 from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
 
 
-def sparse_grid(H, persis_info, gen_specs, libE_info):
+def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     """
-    This generator,  mirrors the Tasmanian
-    `sparse grid example <https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_grids_04.py>`_
-    loops over the given precisions, producing a grid of points
-    at which the `sim_f` should be evaluated. The points are communicated to the
-    manager, who coordinates their evaluation. After function values are
-    returned, they are used to update the model; the model is evaluated at a
-    point of interest.
+    Implements batched construction for a Tasmanian sparse grid,
+    using the loop described in Tasmanian Example 09:
+    `sparse grid example <https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_grids_09.py>`_
+
     """
     U = gen_specs['user']
+    grid = U['tasmanian_init']()  # initialize the grid
+    allowed_refinements = ['setAnisotropicRefinement', 'setSurplusRefinement', 'none']
+    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
+        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
-    iNumInputs = U['NumInputs']
-    iNumOutputs = U['NumOutputs']
-    precisions = U['precisions']
-    aPointOfInterest = U['x0']
-
-    tag = None
-
-    persis_info['aResult'] = {}
-
-    for prec in precisions:
-        # Generate Tasmanian grid
-        grid = Tasmanian.makeGlobalGrid(iNumInputs, iNumOutputs, prec,
-                                        "iptotal", "clenshaw-curtis")
+    while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
 
-        # Return the points of that need to be evaluated to the manager
         H0 = np.zeros(len(aPoints), dtype=gen_specs['out'])
         H0['x'] = aPoints
 
@@ -47,14 +34,24 @@ def sparse_grid(H, persis_info, gen_specs, libE_info):
         aModelValues = calc_in['f']
 
         # Update surrogate on grid
-        t = aModelValues.reshape((aModelValues.shape[0], iNumOutputs))
+        t = aModelValues.reshape((aModelValues.shape[0], grid.getNumOutputs()))
         t = t.flatten()
         t = np.atleast_2d(t).T
         grid.loadNeededPoints(t)
 
-        # Evaluate grid
-        aResult = grid.evaluate(aPointOfInterest)
+        if 'tasmanian_checkpoint_file' in U:
+            grid.write(U['tasmanian_checkpoint_file'])
 
-        persis_info['aResult'][prec] = aResult
+        # set refinement, using user['refinement'] to pick the refinement strategy
+        if U['refinement'] == 'setAnisotropicRefinement':
+            assert 'sType' in U
+            assert 'iMinGrowth' in U
+            assert 'iOutput' in U
+            grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
+        elif U['refinement'] == 'setSurplusRefinement':
+            assert 'fTolerance' in U
+            assert 'iOutput' in U
+            assert 'sCriteria' in U
+            grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
 
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG

@@ -9,7 +9,7 @@ Resources Module
 
   .. automethod:: __init__
 
-.. autoclass:: WorkerResources
+.. autoclass:: GlobalResources
   :member-order: bysource
   :members:
 

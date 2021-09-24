@@ -11,11 +11,11 @@ from libensemble.executors.mpi_executor import MPIExecutor
 nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
 
 # Create executor and register sim to it
-exctr = MPIExecutor(auto_resources=False)  # Use auto_resources=False to oversubscribe
+exctr = MPIExecutor()
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), 'forces.x')
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # State the sim_f, its arguments, output, and parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,         # sim_f, imported above

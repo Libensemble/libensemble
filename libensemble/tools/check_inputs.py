@@ -117,7 +117,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         # Set up dummy history to see if it agrees with H0
 
         # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        specs = [sim_specs, alloc_specs, gen_specs]
+        dtype_list = list(set(libE_fields + sum([k.get('out', []) for k in specs if k], [])))
         Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
 
         fields = H0.dtype.names

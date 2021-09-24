@@ -9,8 +9,99 @@ if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 module will initiate manager/worker communications on a duplicate of that
 communicator. Otherwise, a duplicate of COMM_WORLD will be used.
 
-If an exception is encountered by the manager or workers, the history array
-is dumped to file, and MPI abort is called.
+In the vast majority of cases, programming with libEnsemble involves the creation
+of a *calling script*, a Python file where libEnsemble is parameterized via
+the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
+:ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
+outer libEnsemble routine ``libE()`` is imported and called with such dictionaries to initiate
+libEnsemble. A simple calling script (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`)
+may resemble:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from libensemble.tools import add_unique_random_streams
+
+    nworkers, is_manager, libE_specs, _ = parse_args()
+
+    libE_specs['save_every_k_gens'] = 20
+
+    gen_specs = {'gen_f': gen_random_sample,
+                 'out': [('x', float, (1,))],
+                 'user': {
+                    'lower': np.array([-3]),
+                    'upper': np.array([3]),
+                    'gen_batch_size': 5
+                    }
+                 }
+
+    sim_specs = {'sim_f': sim_find_sine,
+                 'in': ['x'],
+                 'out': [('y', float)]}
+
+    persis_info = add_unique_random_streams({}, nworkers+1)
+
+    exit_criteria = {'sim_max': 80}
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                libE_specs=libE_specs)
+
+This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
+the command line), and runs on laptops or supercomputers. If an exception is
+encountered by the manager or workers, the history array is dumped to file, and
+MPI abort is called.
+
+An alternative approach to parameterizing and interacting with libEnsemble via
+``Ensemble`` objects and ``yaml`` files is available. The equivalent of above
+resembles:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble import Ensemble
+
+    my_experiment = Ensemble()
+    my_experiment.from_yaml('my_parameters.yaml')
+
+    my_experiment.gen_specs['user']['lower'] = np.array([-3])
+    my_experiment.gen_specs['user']['upper'] = np.array([3])
+
+    H, persis_info, flag = my_experiment.run()
+
+The remaining parameters may be found in a ``yaml`` file that resembles:
+
+.. code-block:: yaml
+    :linenos:
+
+    libE_specs:
+        save_every_k_gens: 20
+        exit_criteria:
+            sim_max: 80
+
+    gen_specs:
+        function: generator.gen_random_sample
+        outputs:
+            x:
+                type: float
+                size: 1
+        user:
+            gen_batch_size: 5
+
+    sim_specs:
+        function: simulator.sim_find_sine
+        inputs:
+            - x
+        outputs:
+            y:
+                type: float
+
+
+See below for the complete traditional ``libE()`` API.
 """
 
 __all__ = ['libE']
@@ -33,6 +124,7 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
 from libensemble.tools.check_inputs import check_inputs
 
@@ -135,6 +227,13 @@ def libE(sim_specs, gen_specs, exit_criteria,
     comms_type = libE_specs.get('comms')
 
     assert comms_type in libE_funcs, "Unknown comms type: {}".format(comms_type)
+
+    # Resource management not supported with TCP
+    if comms_type == 'tcp':
+        libE_specs['disable_resource_manager'] = True
+
+    Resources.init_resources(libE_specs)
+
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria,
                                   persis_info, alloc_specs, libE_specs, H0)
 
@@ -230,14 +329,23 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
         rank = mpi_comm.Get_rank()
         is_manager = (rank == 0)
 
-        exctr = Executor.executor
-        if exctr is not None:
+        resources = Resources.resources
+        if resources is not None:
             local_host = socket.gethostname()
             libE_nodes = list(set(mpi_comm.allgather(local_host)))
-            exctr.add_comm_info(libE_nodes=libE_nodes, serial_setup=is_manager)
+            resources.add_comm_info(libE_nodes=libE_nodes)
+            nworkers = mpi_comm.Get_size() - 1
+
+        exctr = Executor.executor
+        if exctr is not None:
+            exctr.set_resources(resources)
+            if is_manager:
+                exctr.serial_setup()
 
         # Run manager or worker code, depending
         if is_manager:
+            if resources is not None:
+                resources.set_resource_manager(nworkers)
             return libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria,
                                     persis_info, alloc_specs, libE_specs, H0)
 
@@ -248,7 +356,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
-    "Manager routine run at rank 0."
+    "Manager routine runs on rank 0."
 
     from libensemble.comms.mpi import MainMPIComm
 
@@ -273,7 +381,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
-    "Worker routine run at ranks > 0."
+    "Worker routines run on ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
     comm = MainMPIComm(libE_comm)
@@ -307,12 +415,18 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     "Main routine for thread/process launch of libE."
 
     nworkers = libE_specs['nworkers']
+
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+
+    resources = Resources.resources
+    if resources is not None:
+        local_host = [socket.gethostname()]
+        resources.add_comm_info(libE_nodes=local_host)
 
     exctr = Executor.executor
     if exctr is not None:
-        local_host = [socket.gethostname()]
-        exctr.add_comm_info(libE_nodes=local_host, serial_setup=True)
+        exctr.set_resources(resources)
+        exctr.serial_setup()
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -326,13 +440,19 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 
+    # Set manager resources after the forkpoint.
+    if resources is not None:
+        resources.set_resource_manager(nworkers)
+
     if not libE_specs.get('disable_log_files', False):
-        manager_logging_config()
+        close_logs = manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         "Handler to clean up comms team."
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
+        if close_logs is not None:  # logger remains set between multiple libE calls
+            close_logs()
 
     # Run generic manager
     return manager(wcomms, sim_specs, gen_specs, exit_criteria,
@@ -372,12 +492,12 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
     exctr = Executor.executor
     if exctr is not None:
-        local_host = [socket.gethostname()]
-        # TCP does not currently support auto_resources but when does, assume
+        # TCP does not currently support resource_management but when does, assume
         # each TCP worker is in a different resource pool (only knowing local_host)
-        exctr.add_comm_info(libE_nodes=local_host, serial_setup=not is_worker)
+        if not is_worker:
+            exctr.serial_setup()
 
-    if 'workerID' in libE_specs:
+    if is_worker:
         libE_tcp_worker(sim_specs, gen_specs, libE_specs)
         return [], persis_info, []
 
