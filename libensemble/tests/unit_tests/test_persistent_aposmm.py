@@ -75,7 +75,7 @@ def test_standalone_persistent_aposmm():
                           'ub': np.array([3, 2])}
                  }
     H = []
-    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, {})
+    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert np.sum(H['returned']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
     assert persis_info.get('run_order'), "Standalone persistent_aposmm didn't do any localopt runs"
@@ -99,7 +99,7 @@ def test_standalone_persistent_aposmm():
 
     H = []
     persis_info = {'rand_stream': np.random.RandomState(1), 'nworkers': 3}
-    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, {})
+    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert np.sum(H['returned']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
