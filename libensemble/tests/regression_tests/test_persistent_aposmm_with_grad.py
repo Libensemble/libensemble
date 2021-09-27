@@ -48,8 +48,11 @@ sim_specs = {'sim_f': sim_f,
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
 
+gen_in = ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min']
+
 gen_specs = {'gen_f': gen_f,
-             'persis_in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min'],
+             'in': gen_in,
+             'persis_in': gen_in,
              'out': gen_out,
              'user': {'initial_sample_size': 0,  # Don't need to do evaluations because the sampling already done below
                       'localopt_method': 'LD_MMA',
