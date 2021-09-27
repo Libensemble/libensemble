@@ -110,6 +110,7 @@ gen_specs['user']['rk_const'] = 4.90247
 gen_specs['user'].pop('sample_points')
 gen_specs['user']['localopt_method'] = 'scipy_Nelder-Mead'
 sim_specs['out'] = [('f', float)]
+gen_specs['persis_in'].remove('grad')
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
