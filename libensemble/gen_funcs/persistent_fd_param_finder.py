@@ -73,7 +73,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
     iters = np.ones_like(noise_h_mat)
 
-    tag, Work, calc_in = ps.send_and_receive(H0)
+    tag, Work, calc_in = ps.send_recv(H0)
 
     # import matlab.engine
     # eng = matlab.engine.start_matlab()
@@ -131,7 +131,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             break
 
         H0 = build_H0(x_f_pairs_new, gen_specs, noise_h_mat)
-        tag, Work, calc_in = ps.send_and_receive(H0)
+        tag, Work, calc_in = ps.send_recv(H0)
 
     persis_info['Fnoise'] = Fnoise
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG

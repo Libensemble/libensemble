@@ -62,7 +62,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # Send back x to the manager, then receive info or stop tag
         H_o = add_to_Out(np.zeros(1, dtype=gen_specs['out']), x, 0,
                          gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
             raise nlopt.forced_stop
 

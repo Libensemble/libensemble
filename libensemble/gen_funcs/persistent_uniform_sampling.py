@@ -31,7 +31,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
 
@@ -68,7 +68,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o['priority'] = 1
 
     # Send batches until manager sends stop tag
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         # H_o['x'] = len(H)*np.ones(n)
@@ -76,7 +76,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1, b)
         H_o['priority'] = 10*H_o['resource_sets']
         print('Created {} sims, with worker_teams req. of size(s) {}'.format(b, H_o['resource_sets']), flush=True)
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
 
         if calc_in is not None:
             b = len(calc_in)
@@ -107,7 +107,7 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
         f_count += b

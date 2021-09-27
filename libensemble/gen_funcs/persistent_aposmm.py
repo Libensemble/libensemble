@@ -167,7 +167,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 if user_specs.get('standalone'):
                     tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
                 else:
-                    tag, Work, calc_in = ps.receive()
+                    tag, Work, calc_in = ps.recv()
 
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     clean_up_and_stop(local_opters)

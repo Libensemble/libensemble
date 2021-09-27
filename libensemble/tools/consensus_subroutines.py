@@ -35,7 +35,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['get_grad'][:] = False
     H_o = np.reshape(H_o, newshape=(-1,))
 
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [PERSIS_STOP, STOP_TAG]:
         return
@@ -50,7 +50,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['eval_pt'][0] = True
     H_o['consensus_pt'][0] = True
 
-    ps.send_and_receive(H_o)
+    ps.send_recv(H_o)
 
 
 def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
@@ -77,7 +77,7 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     H_o['get_grad'][:] = get_grad
     H_o = np.reshape(H_o, newshape=(-1,))      # unfold into 1d array
 
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [STOP_TAG, PERSIS_STOP]:
         return tag, None
@@ -150,7 +150,7 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     H_o['consensus_pt'][0] = True
     ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return tag, None
 
@@ -196,7 +196,7 @@ def get_consensus_gradient(x, gen_specs, libE_info):
     H_o['consensus_pt'][0] = True
     ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [PERSIS_STOP, STOP_TAG]:
         return tag, np.zeros(len(x))

@@ -147,7 +147,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     H_o = gen_truevals(x, gen_specs)
     obs_offset = len(H_o)
 
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -159,7 +159,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
     theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
-    tag, Work, calc_in = ps.send_and_receive(H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     # -------------------------------------------------------------------------
 
     fevals = None
@@ -180,7 +180,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                           obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
-                tag, Work, calc_in = ps.receive()
+                tag, Work, calc_in = ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
 
@@ -217,7 +217,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             # n_thetas = step_add_theta
             H_o = np.zeros(n_x*(len(new_theta)), dtype=gen_specs['out'])
             load_H(H_o, x, new_theta, set_priorities=True)
-            tag, Work, calc_in = ps.send_and_receive(H_o)
+            tag, Work, calc_in = ps.send_recv(H_o)
 
             # Determine evaluations to cancel
             c_obviate = info['obviatesugg']

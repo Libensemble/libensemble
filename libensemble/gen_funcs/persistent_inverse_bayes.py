@@ -33,7 +33,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
                 H_o['prop'][row] = np.random.randn()
 
         # Send data and get next assignment
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             w = H_o['prior'] + calc_in['like'] - H_o['prop']
 

@@ -69,7 +69,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])
@@ -152,7 +152,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])
@@ -253,7 +253,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
-        tag, Work, calc_in = ps.send_and_receive(H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             # Check how many simulations have returned
             n = len(calc_in['f'])

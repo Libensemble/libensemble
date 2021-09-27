@@ -27,7 +27,7 @@ class PersistentSupport:
         logger.debug('Persistent {} function sending data message to manager'.format(self.calc_str))
         self.comm.send(self.calc_type, D)
 
-    def receive(self):
+    def recv(self):
         """Get message to worker from manager.
 
         :returns: message tag, Work dictionary, calc_in array
@@ -49,11 +49,11 @@ class PersistentSupport:
         logger.debug('Persistent {} received work rows from manager'.format(self.calc_str))
         return tag, Work, calc_in
 
-    def send_and_receive(self, output):
+    def send_recv(self, output):
         """Send message from worker to manager and receive response.
 
         :param output: Output array to be sent to manager
         :returns: message tag, Work dictionary, calc_in array
         """
         self.send(output)
-        return self.receive()
+        return self.recv()

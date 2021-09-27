@@ -29,7 +29,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
         H0['x'] = aPoints
 
         # Receive values from manager
-        tag, Work, calc_in = ps.send_and_receive(H0)
+        tag, Work, calc_in = ps.send_recv(H0)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
         aModelValues = calc_in['f']
