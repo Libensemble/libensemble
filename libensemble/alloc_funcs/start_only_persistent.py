@@ -58,9 +58,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     # Asynchronous return to generator
     async_return = user.get('async_return', False) and sum(H['returned']) >= init_sample_size
 
-    # gen_specs['persis_in']
-    gen_return_fields = sim_specs['in'] + [n[0] for n in sim_specs['out']] + [('sim_id')]
-
     if gen_count < persis_info.get('num_gens_started', 0):
         # When a persistent worker is done, trigger a shutdown (returning exit condition of 1)
         return Work, persis_info, 1
@@ -72,7 +69,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         if np.any(returned_but_not_given):
             if async_return or support.all_returned(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
-                Work[wid] = support.gen_work(wid, gen_return_fields, point_ids, persis_info.get(wid),
+                Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
                                              persistent=True, active_recv=active_recv_gen)
                 returned_but_not_given[point_ids] = False
 
@@ -100,7 +97,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             if gen_count < user.get('num_active_gens', 1):
                 # Finally, start a persistent generator as there is nothing else to do.
                 try:
-                    Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)), persis_info.get(wid),
+                    Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)), persis_info.get(wid),
                                                  persistent=True, active_recv=active_recv_gen)
                 except InsufficientFreeResources:
                     break

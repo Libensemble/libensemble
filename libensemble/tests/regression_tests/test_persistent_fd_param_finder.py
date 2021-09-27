@@ -40,7 +40,7 @@ sim_specs = {'sim_f': sim_f,
 
 # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
 gen_specs = {'gen_f': gen_f,
-             'in': ['n_ind', 'f_ind', 'x_ind'],
+             'persis_in': ['x', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
              'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
              'user': {'x0': x0,
                       'f0': f0,
@@ -53,7 +53,7 @@ gen_specs = {'gen_f': gen_f,
              }
 shutil.copy('./scripts_used_by_reg_tests/ECnoise.m', './')
 
-alloc_specs = {'alloc_f': alloc_f, 'out': []}
+alloc_specs = {'alloc_f': alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

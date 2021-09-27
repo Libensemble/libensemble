@@ -49,7 +49,7 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['f'] + [n[0] for n in gen_out],
              'out': gen_out,
              'user': {'initial_sample_size': 100,
                       'localopt_method': 'dfols',
@@ -63,7 +63,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': 2*np.ones(n)}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

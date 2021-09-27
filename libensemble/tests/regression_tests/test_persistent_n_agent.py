@@ -154,7 +154,6 @@ for prob_id in range(6):
                  }
 
     gen_specs = {'gen_f': gen_f,
-                 'in': [],
                  'out': [('x', float, (n,)),
                          ('f_i', float),
                          ('eval_pt', bool),       # eval point
@@ -167,7 +166,6 @@ for prob_id in range(6):
                  }
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [],
                    'user': {'m': m, 'num_gens': num_gens},
                    }
 

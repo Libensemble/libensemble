@@ -260,7 +260,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'params': persis_info.get('gen_params', {})})
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
-            Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
+            Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)),
                                          persis_info.get(wid), persistent=True, rset_team=rset_team)
 
         # give sim work when task available

@@ -33,7 +33,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         assert support.all_given_back(H), "Initial points in H have never been given back to gen."
 
         # SH TODO: gen_specs['persis_in']
-        persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
+        persis_info['fields_to_give_back'] = gen_specs['persis_in']
 
         if 'grad' in [n[0] for n in sim_specs['out']]:
             persis_info['fields_to_give_back'] += ['grad']
@@ -79,7 +79,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info.get(wid)['nworkers'] = len(W)
             try:
-                Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)),
                                              persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break

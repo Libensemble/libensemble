@@ -54,11 +54,11 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float)]}
 
 gen_specs = {'gen_f': gen_f_batched,
-             'in': ['x', 'f'],
+             'persis_in': ['x', 'f'],
              'out': [('x', float, num_dimensions)],
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f}
 
 grid_files = []
 

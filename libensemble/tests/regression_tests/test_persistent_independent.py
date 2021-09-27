@@ -49,7 +49,6 @@ sim_specs = {'sim_f': sim_f,
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
-             'in': [],
              'out': [('x', float, (n,)),
                      ('f_i', float),
                      ('eval_pt', bool),       # eval point
@@ -63,7 +62,6 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'out': [],
                'user': {'m': m, 'num_gens': num_gens},
                }
 

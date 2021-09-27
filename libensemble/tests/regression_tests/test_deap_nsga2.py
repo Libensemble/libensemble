@@ -55,6 +55,7 @@ sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is bei
 # State the generating function, its arguments, output, and necessary parameters.
 gen_specs = {'gen_f': gen_f,
              'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
+             'persis_in': ['fitness_values', 'sim_id'],
              'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
              'user': {'lb': lb,
                       'ub': ub,

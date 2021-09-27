@@ -57,7 +57,7 @@ sim_specs = {'sim_f': sim_f,
              }
 
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
+             'persis_in': ['f', 'x', 'sim_id'],
              'out': [('priority', float),
                      ('resource_sets', int),
                      ('x', float, n),
@@ -69,9 +69,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': False},
-               'out': [],
-               }
+               'user': {'give_all_with_same_priority': False}}
 
 # comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
 

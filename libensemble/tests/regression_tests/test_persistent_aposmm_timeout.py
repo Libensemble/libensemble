@@ -38,7 +38,7 @@ gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
            ('local_min', bool), ('local_pt', bool)]
 
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['f'] + [n[0] for n in gen_out],
              'out': gen_out,
              'user': {'initial_sample_size': 100,
                       'localopt_method': 'LN_BOBYQA',
@@ -52,7 +52,7 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
+alloc_specs = {'alloc_f': alloc_f}
 
 # Setting a very high sim_max value and a short elapsed_wallclock_time so timeout will occur
 exit_criteria = {'sim_max': 50000, 'elapsed_wallclock_time': 5}

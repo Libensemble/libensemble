@@ -31,7 +31,7 @@ sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_out += [('x', float, 2), ('x_on_cube', float, 2)]
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['x', 'f'],
              'out': gen_out,
              'user': {'localopt_method': 'LN_BOBYQA',
                       'xtol_rel': 1e-4,
