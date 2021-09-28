@@ -54,7 +54,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float)]}
 
 gen_specs = {'gen_f': gen_f_batched,
-             'persis_in': ['x', 'f'],
+             'persis_in': ['x', 'f', 'sim_id'],
              'out': [('x', float, num_dimensions)],
              }
 
