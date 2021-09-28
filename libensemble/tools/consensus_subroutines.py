@@ -8,8 +8,8 @@ your neighbors' $x$ values.
 import nlopt
 import numpy as np
 import scipy.sparse as spp
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def print_final_score(x, f_i_idxs, gen_specs, libE_info):
@@ -25,6 +25,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     - gen_specs, libE_info :
         Used to communicate
     """
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     # evaluate { f_i(x) } first
     H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
@@ -34,7 +35,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['get_grad'][:] = False
     H_o = np.reshape(H_o, newshape=(-1,))
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [PERSIS_STOP, STOP_TAG]:
         return
@@ -49,7 +50,7 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     H_o['eval_pt'][0] = True
     H_o['consensus_pt'][0] = True
 
-    sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    ps.send_recv(H_o)
 
 
 def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
@@ -67,6 +68,7 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     - get_grad : bool
         True if we want gradient, otherwise returns function eval
     """
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
     H_o['x'][:] = x
@@ -75,7 +77,7 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     H_o['get_grad'][:] = get_grad
     H_o = np.reshape(H_o, newshape=(-1,))      # unfold into 1d array
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [STOP_TAG, PERSIS_STOP]:
         return tag, None
@@ -146,8 +148,9 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'][0] = x
     H_o['consensus_pt'][0] = True
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return tag, None
 
@@ -191,8 +194,9 @@ def get_consensus_gradient(x, gen_specs, libE_info):
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'][0] = x
     H_o['consensus_pt'][0] = True
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
 
     if tag in [PERSIS_STOP, STOP_TAG]:
         return tag, np.zeros(len(x))

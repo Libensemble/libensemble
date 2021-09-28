@@ -8,8 +8,8 @@ __all__ = ['uniform_or_localopt']
 
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 import nlopt
 
@@ -49,7 +49,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     order receive function values for points of interest.
     """
 
-    comm = libE_info['comm']
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     def nlopt_obj_fun(x, grad):
 
@@ -62,7 +62,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
         # Send back x to the manager, then receive info or stop tag
         H_o = add_to_Out(np.zeros(1, dtype=gen_specs['out']), x, 0,
                          gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
             raise nlopt.forced_stop
 

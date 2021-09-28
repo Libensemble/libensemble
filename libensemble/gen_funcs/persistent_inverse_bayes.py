@@ -1,7 +1,7 @@
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
@@ -10,9 +10,9 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(lb)
-    comm = libE_info['comm']
     subbatch_size = gen_specs['user']['subbatch_size']
     num_subbatches = gen_specs['user']['num_subbatches']
+    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
 
     # Receive information from the manager (or a STOP_TAG)
     batch = -1
@@ -33,7 +33,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
                 H_o['prop'][row] = np.random.randn()
 
         # Send data and get next assignment
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if calc_in is not None:
             w = H_o['prior'] + calc_in['like'] - H_o['prop']
 
