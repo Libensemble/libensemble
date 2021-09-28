@@ -68,7 +68,7 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float, num_objs)]}
 
 # Set up the generator
-gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f above).
+gen_specs = {'gen_f': gen_f,  # Set the gen to VTMOP (aliased to gen_f above).
              'in': ['x', 'f'],
              'out': [('x', float, num_dims)],
              'user': {
@@ -80,14 +80,14 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
                  'ub': upper_bounds,
                  # Is this the beginning of a new run?
                  'new_run': True,
-                 # inb specifies the size of the initial search
+                 # isnb specifies the size of the initial search
                  # and should generally be a large number. However, if a
                  # precomputed database is available, then the initial search
                  # could be skipped. If 0 is given, then the initial search is
                  # skipped. Setting first_batch_size to 0 without supplying an
                  # initial database will cause an error since the surrogates
                  # cannot be fit without sufficient data.
-                 'inb': 1000,
+                 'isnb': 1000,
                  # snb is the number of points used to search
                  # each local trust region (using Latin hypercube design).
                  # This should be a multiple of the number of concurrent

@@ -3,8 +3,9 @@ Wrapper for the VTMOP genfuncs drivers, for solving multiobjective
 optimization problems with arbitrary number of objectives.
 """
 import numpy as np
+import ctypes
 from sys import float_info
-from libensemble.gen_funcs import vtmop_libe
+from libensemble.gen_funcs.vtmop_libe import vtmop_libe_mod
 
 def vtmop_gen(H, persis_info, gen_specs, _):
     """
@@ -168,77 +169,74 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     # First get the problem dimensions and data
     d = np.int32(gen_specs['user']['d'])            # design dimension
     p = np.int32(gen_specs['user']['p'])            # objective dimension
-    ub = np.float64(gen_specs['user']['ub'])        # upper bounds
-    lb = np.float64(gen_specs['user']['lb'])        # lower bounds
+    ub = np.asarray(gen_specs['user']['ub'], dtype=ctypes.c_double, order='f')
+    lb = np.asarray(gen_specs['user']['lb'], dtype=ctypes.c_double, order='f')
     new_run = np.bool(gen_specs['user']['new_run']) # Are we starting a new run?
-    inb = np.int32(gen_specs['user']['inb'])        # first iteration batch size
+    isnb = np.int32(gen_specs['user']['isnb'])      # first iter batch size
     snb = np.int32(gen_specs['user']['snb'])        # search batch size
     onb = np.int32(gen_specs['user']['onb'])        # preferred opt batch size
     # Check for any optional inputs
     lopt_budget = np.int32(2500)
     if 'lopt_budget' in gen_specs['user'].keys():
         lopt_budget = gen_specs['user']['lopt_budget']
-    decay = np.float64(0.5)
+    decay = ctypes.c_double(0.5)
     if 'decay' in gen_specs['user'].keys():
-        decay = np.float64(gen_specs['user']['decay'])
-    eps = np.float64(np.sqrt(float_info.epsilon))
+        decay = ctypes.c_double(gen_specs['user']['decay'])
+    eps = ctypes.c_double(np.sqrt(float_info.epsilon))
     if 'eps' in gen_specs['user'].keys():
-        eps = np.float64(gen_specs['user']['eps'])
-    des_tol = np.float64(np.sqrt(eps))
+        eps = ctypes.c_double(gen_specs['user']['eps'])
+    des_tol = ctypes.c_double(np.sqrt(eps))
     if 'des_tol' in gen_specs['user'].keys():
-        des_tol = np.float64(gen_specs['user']['des_tol'])
-    epsw = np.float64(np.sqrt(np.sqrt(float_info.epsilon)))
+        des_tol = ctypes.c_double(gen_specs['user']['des_tol'])
+    epsw = ctypes.c_double(np.sqrt(np.sqrt(float_info.epsilon)))
     if 'epsw' in gen_specs['user'].keys():
-        epsw = np.float64(gen_specs['user']['epsw'])
-    obj_tol = np.float64(np.sqrt(eps))
+        epsw = ctypes.c_double(gen_specs['user']['epsw'])
+    obj_tol = ctypes.c_double(np.sqrt(eps))
     if 'obj_tol' in gen_specs['user'].keys():
-        obj_tol = np.float64(gen_specs['user']['obj_tol'])
-    obj_bounds = np.zeros((p, 2), dtype=np.float64)
+        obj_tol = ctypes.c_double(gen_specs['user']['obj_tol'])
+    obj_bounds = np.zeros((p, 2), dtype=ctypes.c_double, order='f')
     obj_bounds[:, 0] = -float_info.max
     obj_bounds[:, 1] = float_info.max
     if 'obj_bounds' in gen_specs['user'].keys():
         obj_bounds = np.asarray(gen_specs['user']['obj_bounds'],
-                                dtype=np.float64)
-    trust_radf = np.float64(0.2)
+                                dtype=ctypes.c_double)
+    trust_radf = ctypes.c_double(0.2)
+    trust_radf_float = 0.2
     if 'trust_radf' in gen_specs['user'].keys():
-        trust_radf = np.float64(gen_specs['user']['trust_radf'])
-    min_radf = np.float64(0.1 * trust_radf)
+        trust_radf = ctypes.c_double(gen_specs['user']['trust_radf'])
+        trust_radf_float = float(gen_specs['user']['trust_radf'])
+    min_radf = ctypes.c_double(0.1 * trust_radf_float)
     if 'min_radf' in gen_specs['user'].keys():
-        min_radf = np.float64(gen_specs['user']['min_radf'])
+        min_radf = ctypes.c_double(gen_specs['user']['min_radf'])
     pmode = np.bool(False)
     if 'pmode' in gen_specs['user'].keys():
         pmode = np.bool(gen_specs['user']['pmode'])
 
-    # Initialize a vtmop object
-    vtmop_libe = vtmop_libe_mod()
-
     # If this is the beginning of a new run? Reinitialize VTMOP
     if new_run:
-        [ierror] = vtmop_libe.vtmop_libe_init(d, p, lb, ub, lopt_budget,
-                                              decay, des_tol, eps, epsw,
-                                              obj_tol, min_radf, trust_radf,
-                                              obj_bounds, pmode)
+        ierror = vtmop_libe_mod.vtmop_libe_init(d, p, lb, ub, lopt_budget,
+                                            decay, des_tol, eps, epsw,
+                                            obj_tol, min_radf, trust_radf,
+                                            obj_bounds, pmode)
         if ierror != 0:
             return
         else:
             gen_specs['user']['new_run'] = np.bool(False)
 
     # Copy the history arrays
-    n = H['f'].size[0]
-    des_pts = np.zeros((d, n), dtype=float64, order='f')
-    des_pts = H['x'].T
-    obj_pts = np.zeros((p, n), dtype=float64, order='f')
-    obj_pts = H['f'].T
+    n = H['f'].shape[0]
+    des_pts = np.asarray(H['x'].T, dtype=ctypes.c_double, order='f')
+    obj_pts = np.asarray(H['f'].T, dtype=ctypes.c_double, order='f')
 
     # Generate a batch
-    [lbatch, batchx, ierr] = vtmop_libe.vtmop_libe_generate(d, p, lb, ub,
-                                                            des_pts,
-                                                            obj_pts,
-                                                            isnb, snb,
-                                                            onb, obj_bounds)
+    lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p, lb, ub,
+                                                          des_pts,
+                                                          obj_pts,
+                                                          isnb, snb,
+                                                          onb, obj_bounds)
 
     # Read record
-    Out = np.zeros(b, dtype=gen_specs['out'])
+    Out = np.zeros(lbatch, dtype=gen_specs['out'])
     for i in range(0, lbatch):
         Out['x'][i, :] = batchx[:, i]
 
