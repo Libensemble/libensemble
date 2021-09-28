@@ -212,7 +212,12 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     if 'pmode' in gen_specs['user'].keys():
         pmode = np.bool(gen_specs['user']['pmode'])
 
-    # If this is the beginning of a new run? Reinitialize VTMOP
+    # Copy the history arrays
+    n = H['f'].shape[0]
+    des_pts = np.asarray(H['x'].T, dtype=ctypes.c_double, order='f')
+    obj_pts = np.asarray(H['f'].T, dtype=ctypes.c_double, order='f')
+
+    # Is this the beginning of a new run? Reinitialize VTMOP
     if new_run:
         ierror = vtmop_libe_mod.vtmop_libe_init(d, p, lb, ub, lopt_budget,
                                             decay, des_tol, eps, epsw,
@@ -223,17 +228,32 @@ def vtmop_gen(H, persis_info, gen_specs, _):
         else:
             gen_specs['user']['new_run'] = np.bool(False)
 
-    # Copy the history arrays
-    n = H['f'].shape[0]
-    des_pts = np.asarray(H['x'].T, dtype=ctypes.c_double, order='f')
-    obj_pts = np.asarray(H['f'].T, dtype=ctypes.c_double, order='f')
-
-    # Generate a batch
-    lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p, lb, ub,
-                                                          des_pts,
-                                                          obj_pts,
-                                                          isnb, snb,
-                                                          onb, obj_bounds)
+        # Get the first batch right away
+        lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p, lb, ub,
+                                                                  des_pts,
+                                                                  obj_pts,
+                                                                  isnb, snb,
+                                                                  onb,
+                                                                  obj_bounds)
+        # If lbatch is 0, immediately generate the second batch
+        if lbatch == 0:
+            lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p,
+                                                                      lb, ub,
+                                                                      des_pts,
+                                                                      obj_pts,
+                                                                      isnb,
+                                                                      snb,
+                                                                      onb,
+                                                                      obj_bounds)
+    # Is this a resuming run? Just generate a batch of points
+    else:
+        # Generate a batch
+        lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p, lb, ub,
+                                                                  des_pts,
+                                                                  obj_pts,
+                                                                  isnb, snb,
+                                                                  onb,
+                                                                  obj_bounds)
 
     # Read record
     Out = np.zeros(lbatch, dtype=gen_specs['out'])
