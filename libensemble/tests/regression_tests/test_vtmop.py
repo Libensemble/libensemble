@@ -72,38 +72,41 @@ gen_specs = {'gen_f': gen_f,  # Set the generator to VTMOP (aliased to gen_f abo
              'in': ['x', 'f'],
              'out': [('x', float, num_dims)],
              'user': {
-                 # Set the number of objectives. The number of design variables
-                 # is inferred based on the length of lb.
-                 'num_obj': num_objs,
+                 # Set the problem dimensions (must match lb and ub).
+                 'd': num_dims,
+                 'p': num_objs,
                  # Set the bound constraints.
                  'lb': lower_bounds,
                  'ub': upper_bounds,
-                 # search_batch_size is the number of points used to search
-                 # each local trust region (using Latin hypercube design).
-                 # This should be a multiple of the number of concurrent
-                 # function evaluations and on the order of 4*d (where d is
-                 # the number of design variables)
-                 'search_batch_size': int(np.ceil(4*num_dims/nworkers)*nworkers),
-                 # opt_batch_size is the preferred number of candidate designs.
-                 # When the actual number of candidates is not a multiple of
-                 # opt_batch_size, additional candidates are randomly generated
-                 # to pad out the batch (if possible). This should be the exact
-                 # number of concurrent simulations used.
-                 'opt_batch_size': nworkers,
-                 # first_batch_size specifies the size of the initial search
+                 # Is this the beginning of a new run?
+                 'new_run': True,
+                 # inb specifies the size of the initial search
                  # and should generally be a large number. However, if a
                  # precomputed database is available, then the initial search
                  # could be skipped. If 0 is given, then the initial search is
                  # skipped. Setting first_batch_size to 0 without supplying an
                  # initial database will cause an error since the surrogates
                  # cannot be fit without sufficient data.
-                 'first_batch_size': 1000,
+                 'inb': 1000,
+                 # snb is the number of points used to search
+                 # each local trust region (using Latin hypercube design).
+                 # This should be a multiple of the number of concurrent
+                 # function evaluations and on the order of 4*d (where d is
+                 # the number of design variables)
+                 'snb': int(np.ceil(4*num_dims/nworkers)*nworkers),
+                 # onb is the preferred number of candidate designs.
+                 # When the actual number of candidates is not a multiple of
+                 # opt_batch_size, additional candidates are randomly generated
+                 # to pad out the batch (if possible). This should be the exact
+                 # number of concurrent simulations used.
+                 'onb': nworkers,
+
+                 # Other optional arguments below:
+
                  # Set the trust region radius as a fraction of ub[:]-lb[:].
                  # This setting is problem dependent. A good starting place
                  # would be between 0.1 and 0.2.
-                 'trust_rad': 0.1,
-                 # Are you reloading from a checkpoint?
-                 'use_chkpt': False},
+                 'trust_radf': 0.1},
              }
 
 # Set up the allocator
