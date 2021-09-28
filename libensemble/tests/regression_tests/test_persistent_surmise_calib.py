@@ -68,7 +68,7 @@ if __name__ == '__main__':
                ('priority', int), ('obs', float, n_x), ('obsvar', float, n_x)]
 
     gen_specs = {'gen_f': gen_f,
-                 'persis_in': [o[0] for o in gen_out]+['f', 'returned'],
+                 'persis_in': [o[0] for o in gen_out]+['f', 'returned', 'sim_id'],
                  'out': gen_out,
                  'user': {'n_init_thetas': n_init_thetas,        # Num thetas in initial batch
                           'num_x_vals': n_x,                     # Num x points to create
