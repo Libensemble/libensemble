@@ -427,7 +427,7 @@ class vtmop_libe_mod:
             batchx = numpy.array(ctypes.cast(batchx, ctypes.POINTER(ctypes.c_double*batchx_size)).contents, copy=False)
             batchx = batchx.reshape(batchx_dim_2.value,batchx_dim_1.value).T
         elif (batchx_size == 0):
-            batchx = numpy.zeros(batchx_dim_2.value,batchx_dim_1.value, dtype=ctypes.c_double, order='F')
+            batchx = numpy.zeros((batchx_dim_2.value,batchx_dim_1.value), dtype=ctypes.c_double, order='F')
         else:
             batchx = None
         

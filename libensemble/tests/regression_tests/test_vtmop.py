@@ -145,12 +145,12 @@ for run in range(3):
         # Run for 200 more evaluations or 300 seconds
         exit_criteria = {'sim_max': 200, 'elapsed_wallclock_time': 300}
 
-        gen_specs['user']['first_batch_size'] = 0
-        gen_specs['user']['use_chkpt'] = False  # Need to set this as it can be overwritten within the libE call.
+        gen_specs['user']['isnb'] = 0
+        gen_specs['user']['new_run'] = True  # Need to set this as it can be overwritten within the libE call.
 
     elif run == 2:
         # In the third run, we restart VTMOP by loading in the history array saved in run==1
-        gen_specs['user']['use_chkpt'] = True
+        gen_specs['user']['new_run'] = False
 
         # Inelegant way to have the manager copy over the VTMOP checkpoint
         # file, and have every worker get the H value from the run==1 case to
