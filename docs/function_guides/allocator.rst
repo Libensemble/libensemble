@@ -8,11 +8,12 @@ by the libEnsemble's manager instead of a worker.
 
 Most ``alloc_f`` function definitions written by users resemble::
 
-    def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+    def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
 
 Where :doc:`W<../data_structures/worker_array>` is an array containing information
-about each worker's state, and ``H`` is the *trimmed* History array,
-containing rows initialized by the generator.
+about each worker's state, ``H`` is the *trimmed* History array,
+containing rows initialized by the generator, and ``libE_info`` is a set of selected
+statistics about the evaluation of the contents of ``H``.
 
 Inside an ``alloc_f``, a :doc:`Work dictionary<../data_structures/work_dict>` is
 instantiated::

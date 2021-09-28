@@ -9,7 +9,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Many distributed optimization algorithms require two non-local, (e.g., not
     elementwise addition or multiplication) operations: evaluate gradients and

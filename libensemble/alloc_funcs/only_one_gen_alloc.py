@@ -1,7 +1,7 @@
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``

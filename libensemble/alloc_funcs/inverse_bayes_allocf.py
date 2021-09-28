@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Starts up to gen_count number of persistent generators.
     These persistent generators produce points (x) in batches and subbatches.

@@ -2,7 +2,7 @@ import numpy as np
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are

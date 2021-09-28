@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start a persistent APOSMM generator.  If all points requested by

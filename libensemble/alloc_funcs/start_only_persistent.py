@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to ``alloc_specs['user']['num_active_gens']``
