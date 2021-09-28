@@ -87,7 +87,7 @@ if __name__ == '__main__':
                ('priority', int), ('obs', float, n_x), ('obsvar', float, n_x)]
 
     gen_specs = {'gen_f': gen_f,
-                 'in': [o[0] for o in gen_out]+['f', 'returned'],
+                 'persis_in': [o[0] for o in gen_out]+['f', 'returned', 'sim_id'],
                  'out': gen_out,
                  'user': {'n_init_thetas': n_init_thetas,        # Num thetas in initial batch
                           'num_x_vals': n_x,                     # Num x points to create
@@ -101,7 +101,6 @@ if __name__ == '__main__':
                  }
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,    # True = Return results to gen as they come in (after sample)
                             'active_recv_gen': True  # Persistent gen can handle irregular communications

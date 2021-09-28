@@ -38,7 +38,7 @@ sim_specs = {'sim_f': sim_f,
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['x', 'f', 'grad', 'sim_id'],
              'out': gen_out,
              'user': {'xtol_rel': 1e-4,
                       'lb': np.array([-3, -2]),

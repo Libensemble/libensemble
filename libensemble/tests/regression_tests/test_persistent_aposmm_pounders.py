@@ -55,7 +55,7 @@ lb = (-2-np.pi/10)*np.ones(n)
 ub = 2*np.ones(n)
 
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['f', 'fvec'] + [n[0] for n in gen_out],
              'out': gen_out,
              'user': {'initial_sample_size': 100,
                       'localopt_method': 'pounders',
@@ -69,7 +69,7 @@ gen_specs = {'gen_f': gen_f,
                       'ub': ub}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'batch_mode': True, 'num_active_gens': 1}}
+alloc_specs = {'alloc_f': alloc_f, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

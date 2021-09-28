@@ -34,14 +34,14 @@ sim_specs = {'sim_f': sim_f,
              'out': [('f', float), ('grad', float, n)]}
 
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['x', 'f', 'grad', 'sim_id'],
              'out': [('x', float, (n,))],
              'user': {'initial_batch_size': 20,
                       'lb': np.array([-3, -2]),
                       'ub': np.array([3, 2])}
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': []}
+alloc_specs = {'alloc_f': alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 for i in persis_info:

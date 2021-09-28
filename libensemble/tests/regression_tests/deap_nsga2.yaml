@@ -19,6 +19,10 @@ gen_specs:
         - generation
         - individual
         - fitness_values
+    persistent_inputs:
+        - individual
+        - fitness_values
+        - sim_id
     outputs:
         individual:
             type: float

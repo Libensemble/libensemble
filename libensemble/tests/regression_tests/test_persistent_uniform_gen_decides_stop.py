@@ -44,7 +44,7 @@ sim_specs = {'sim_f': sim_f,
              }
 
 gen_specs = {'gen_f': gen_f,
-             'in': [],
+             'persis_in': ['f', 'x', 'sim_id'],
              'out': [('x', float, (n,))],
              'user': {'initial_batch_size': nworkers,
                       'shutdown_limit': 10,  # Iterations on a gen before it triggers a shutdown.
@@ -53,7 +53,6 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'out': [],
                'user': {'async_return': True, 'num_active_gens': ngens}
                }
 

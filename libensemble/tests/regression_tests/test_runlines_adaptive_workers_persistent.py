@@ -53,7 +53,7 @@ sim_specs = {'sim_f': sim_f,
              }
 
 gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
+             'persis_in': ['x', 'f', 'sim_id'],
              'out': [('priority', float),
                      ('resource_sets', int),
                      ('x', float, n),
@@ -65,9 +65,7 @@ gen_specs = {'gen_f': gen_f,
              }
 
 alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': False},
-               'out': [],
-               }
+               'user': {'give_all_with_same_priority': False}}
 
 comms = libE_specs['comms']
 node_file = 'nodelist_adaptive_workers_persistent_comms_' + str(comms) + '_wrks_' + str(nworkers)
