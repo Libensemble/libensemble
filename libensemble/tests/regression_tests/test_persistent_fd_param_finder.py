@@ -40,7 +40,7 @@ sim_specs = {'sim_f': sim_f,
 
 # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
 gen_specs = {'gen_f': gen_f,
-             'persis_in': ['x', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
+             'persis_in': ['x', 'f_val', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
              'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
              'user': {'x0': x0,
                       'f0': f0,
