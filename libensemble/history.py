@@ -81,15 +81,18 @@ class History:
         H['last_given_back_time'][-L:] = np.inf
 
         self.H = H
-        # self.offset = 0
-        self.offset = len(H0)
-        self.index = self.offset
+        self.using_H0 = len(H0) > 0
+        self.index = len(H0)
         self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
         self.returned_count = np.sum(H['returned'])
         self.given_back_count = np.sum(H['given_back'])
         self.given_back_warned = False
+
+        self.given_offset = self.given_count
+        self.returned_offset = self.returned_count
+        self.given_back_offset = self.given_back_count
 
     def update_history_f(self, D, safe_mode):
         """
@@ -156,7 +159,7 @@ class History:
                 for ind in q_inds[self.H['returned'][q_inds]]:
                     self.H['given_back'][ind] = True
 
-            if self.offset and not self.given_back_warned:  # Using H0
+            if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
                     "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
                 self.given_back_warned = True
