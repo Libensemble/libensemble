@@ -534,9 +534,9 @@ class Manager:
 
     # --- Main loop
 
-    def _get_alloc_libE_info(self, H, persis_info):
-        return {'sum_returned': sum(H['returned']),
-                'exit_criteria': self.exit_criteria,
+    def _get_alloc_libE_info(self):
+        "Selected statistics useful for alloc_f"
+        return {'exit_criteria': self.exit_criteria,
                 'given_count': self.hist.given_count,
                 'returned_count': self.hist.returned_count,
                 'given_back_count': self.hist.given_back_count}
@@ -553,9 +553,8 @@ class Manager:
                 saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
-        alloc_libE_info = self._get_alloc_libE_info(H, persis_info)
         output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs,
-                         persis_info, alloc_libE_info)
+                         persis_info, self._get_alloc_libE_info())
 
         if self.safe_mode:
             assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
