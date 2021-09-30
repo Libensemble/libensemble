@@ -21,6 +21,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
+    if libE_info.get('work_given_tripped', False):
+        return {}, persis_info
+
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names

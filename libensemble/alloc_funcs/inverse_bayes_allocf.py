@@ -14,6 +14,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     The first time called there are no persis_w 1st for loop is not done
     """
 
+    if libE_info.get('work_given_tripped', False):
+        return {}, persis_info
+
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names

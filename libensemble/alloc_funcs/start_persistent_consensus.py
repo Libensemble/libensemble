@@ -62,6 +62,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     If the user wants a function evaluation, then set `get_grad` to False instead.
     """
 
+    if libE_info.get('work_given_tripped', False):
+        return {}, persis_info
+
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
