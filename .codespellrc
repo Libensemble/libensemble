@@ -1,0 +1,4 @@
+[codespell]
+skip = *.xml,*.bib,lapack.f,test_allocation_funcs_and_support.py
+quiet-level = 10
+ignore-words=.spell
