@@ -278,7 +278,7 @@ def readin_csv(fname):
     -------
     - labels : np.ndarray, (m,)
         1D with the label of each vector
-    - data : np.ndarray (2D), (m, n)
+    - datas : np.ndarray (2D), (m, n)
         2D array (matrix) with the collection of dataset
     """
     n = 569
@@ -292,24 +292,24 @@ def readin_csv(fname):
         m = 30
         np.random.seed(0)
         label = 2*np.random.randint(low=0, high=1, size=m)-1
-        data = (5*np.random.random(size=(n, m))).astype('int')
+        datas = (5*np.random.random(size=(n, m))).astype('int')
 
-        return label, data
+        return label, datas
 
     label = np.zeros(n, dtype='int')
-    data = np.zeros((n, 30))
+    datas = np.zeros((n, 30))
     i = 0
 
     for line in fp.readlines():
         line = line.rsplit()[0]
         data = line.split(',')
         label[i] = data[1] == 'M'
-        data[i, :] = [float(val) for val in data[2:32]]
+        datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
 
     assert i == n, 'Expected {} datapoints, recorded {}'.format(n, i)
 
-    return label, data
+    return label, datas
 
 
 def gm_opt(b, m):
