@@ -1,6 +1,6 @@
 MODULE DELSPARSE_MOD
 ! This module contains the REAL_PRECISION R8 data type for 64-bit arithmetic
-! and interface blocks for the DELAUNAYSPARSES and DELAUNAYSPARSEP 
+! and interface blocks for the DELAUNAYSPARSES and DELAUNAYSPARSEP
 ! subroutines for computing the Delaunay simplices containing interpolation
 ! points Q in R^D given data points PTS.
 USE REAL_PRECISION
@@ -21,7 +21,7 @@ INTERFACE
       INTEGER, INTENT(OUT) :: IERR(:)
       REAL(KIND=R8), INTENT(IN), OPTIONAL:: INTERP_IN(:,:)
       REAL(KIND=R8), INTENT(OUT), OPTIONAL :: INTERP_OUT(:,:)
-      REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP 
+      REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP
       REAL(KIND=R8), INTENT(OUT), OPTIONAL :: RNORM(:)
       INTEGER, INTENT(IN), OPTIONAL :: IBUDGET
       LOGICAL, INTENT(IN), OPTIONAL :: CHAIN
@@ -42,7 +42,7 @@ INTERFACE
       INTEGER, INTENT(OUT) :: IERR(:)
       REAL(KIND=R8), INTENT(IN), OPTIONAL:: INTERP_IN(:,:)
       REAL(KIND=R8), INTENT(OUT), OPTIONAL :: INTERP_OUT(:,:)
-      REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP 
+      REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP
       REAL(KIND=R8), INTENT(OUT), OPTIONAL :: RNORM(:)
       INTEGER, INTENT(IN), OPTIONAL :: IBUDGET
       LOGICAL, INTENT(IN), OPTIONAL :: CHAIN
@@ -188,7 +188,7 @@ SUBROUTINE DELAUNAYSPARSES( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR, &
 !    which therefore must also be present. If both INTERP_IN and INTERP_OUT
 !    are omitted, only the containing simplices and convex combination
 !    weights are returned.
-! 
+!
 ! INTERP_OUT(1:IR,1:M) contains real valued response vectors for each
 !    interpolation point in Q on output. The first dimension of INTERP_OUT
 !    must match the first dimension of INTERP_IN, and the second dimension
@@ -198,15 +198,15 @@ SUBROUTINE DELAUNAYSPARSES( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR, &
 !    that interpolation point.  Therefore, if INTERP_OUT is present, then
 !    INTERP_IN must also be present.  If both are omitted, only the
 !    simplices and convex combination weights are returned.
-! 
+!
 ! EPS contains the real working precision for the problem on input. By default,
 !    EPS is assigned \sqrt{\mu} where \mu denotes the unit roundoff for the
 !    machine. In general, any values that differ by less than EPS are judged
 !    as equal, and any weights that are greater than -EPS are judged as
 !    nonnegative.  EPS cannot take a value less than the default value of
 !    \sqrt{\mu}. If any value less than \sqrt{\mu} is supplied, the default
-!    value will be used instead automatically. 
-! 
+!    value will be used instead automatically.
+!
 ! EXTRAP contains the real maximum extrapolation distance (relative to the
 !    diameter of PTS) on input. Interpolation at a point outside the convex
 !    hull of PTS is done by projecting that point onto the convex hull, and
@@ -216,19 +216,19 @@ SUBROUTINE DELAUNAYSPARSES( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR, &
 !    of 2 will be returned. Note that computing the projection can be
 !    expensive. Setting EXTRAP=0 will cause all extrapolation points to be
 !    ignored without ever computing a projection. By default, EXTRAP=0.1
-!    (extrapolate by up to 10% of the diameter of PTS). 
-! 
+!    (extrapolate by up to 10% of the diameter of PTS).
+!
 ! RNORM(1:M) contains the real unscaled projection (2-norm) distances from
 !    any projection computations on output. If not present, these distances
 !    are still computed for each extrapolation point, but are never returned.
-! 
+!
 ! IBUDGET on input contains the integer budget for performing flips while
 !    iterating toward the simplex containing each interpolation point in
 !    Q. This prevents DELAUNAYSPARSES from falling into an infinite loop when
 !    an inappropriate value of EPS is given with respect to the problem
 !    conditioning.  By default, IBUDGET=50000. However, for extremely
 !    high-dimensional problems and pathological inputs, the default value
-!    may be insufficient. 
+!    may be insufficient.
 !
 ! CHAIN is a logical input argument that determines whether a new first
 !    simplex should be constructed for each interpolation point
@@ -264,11 +264,11 @@ SUBROUTINE DELAUNAYSPARSES( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR, &
 ! (Hanson and Haskell).  The module REAL_PRECISION from HOMPACK90 (ACM TOMS
 ! Algorithm 777) is used for the real data type. The REAL_PRECISION module,
 ! DELAUNAYSPARSES, and DWNNLS and its dependencies comply with the Fortran
-! 2008 standard.  
-! 
+! 2008 standard.
+!
 ! Primary Author: Tyler H. Chang
 ! Last Update: March, 2020
-! 
+!
 USE REAL_PRECISION, ONLY : R8
 IMPLICIT NONE
 
@@ -284,10 +284,10 @@ INTEGER, INTENT(OUT) :: IERR(:)
 ! Optional arguments.
 REAL(KIND=R8), INTENT(IN), OPTIONAL:: INTERP_IN(:,:)
 REAL(KIND=R8), INTENT(OUT), OPTIONAL :: INTERP_OUT(:,:)
-REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP 
+REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP
 REAL(KIND=R8), INTENT(OUT), OPTIONAL :: RNORM(:)
 INTEGER, INTENT(IN), OPTIONAL :: IBUDGET
-LOGICAL, INTENT(IN), OPTIONAL :: CHAIN 
+LOGICAL, INTENT(IN), OPTIONAL :: CHAIN
 LOGICAL, INTENT(IN), OPTIONAL :: EXACT
 
 ! Local copies of optional input arguments.
@@ -312,8 +312,8 @@ REAL(KIND=R8) :: SIDE1, SIDE2 ! Signs (+/-1) denoting sides of a facet.
 INTEGER :: IPIV(D) ! Pivot indices.
 INTEGER :: SEED(D+1) ! Copy of the SEED simplex. Only used if CHAIN = .TRUE.
 REAL(KIND=R8) :: AT(D,D) ! The transpose of A, the linear coefficient matrix.
-REAL(KIND=R8) :: B(D) ! The RHS of a linear system. 
-REAL(KIND=R8) :: CENTER(D) ! The circumcenter of a simplex. 
+REAL(KIND=R8) :: B(D) ! The RHS of a linear system.
+REAL(KIND=R8) :: CENTER(D) ! The circumcenter of a simplex.
 REAL(KIND=R8) :: LQ(D,D) ! Holds LU or QR factorization of AT.
 REAL(KIND=R8) :: PLANE(D+1) ! The hyperplane containing a facet.
 REAL(KIND=R8) :: PRGOPT_DWNNLS(1) ! Options array for DWNNLS.
@@ -392,7 +392,7 @@ ELSE
    IBUDGETL = 50000 ! Default value for budget.
 END IF
 IF (PRESENT(EXTRAP)) THEN
-   EXTRAPL = EXTRAP 
+   EXTRAPL = EXTRAP
    IF (EXTRAPL < 0) THEN ! Check that the extrapolation distance is legal.
       IERR(:) = 27; RETURN; END IF
 ELSE
@@ -460,7 +460,7 @@ OUTER : DO MI = 1, M
       ! Rebuild the linear system.
       DO J=1,D
          AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-         B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+         B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
       END DO
    END IF
 
@@ -489,7 +489,7 @@ OUTER : DO MI = 1, M
       ELSE
          DO J=1,D
             AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-            B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+            B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
          END DO
       END IF
 
@@ -530,7 +530,7 @@ OUTER : DO MI = 1, M
                   ! There is no other direction to flip, so Q(:,MI) must be
                   ! within EPSL of the current simplex.
                   ! Project Q(:,MI) onto the current simplex.
-                  
+
                   ! Since at least one projection has already been done,
                   ! the work arrays have already been allocated.
                   PRGOPT_DWNNLS(1) = 1.0_R8
@@ -568,7 +568,7 @@ OUTER : DO MI = 1, M
                ELSE
                   DO J=1,D
                      AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-                     B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+                     B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
                   END DO
                END IF
                ! Compute another simplex (try to flip again).
@@ -592,7 +592,7 @@ OUTER : DO MI = 1, M
             IERR(MI) = 2; CYCLE OUTER
          END IF
 
-         ! Otherwise, restore the previous simplex and continue with the 
+         ! Otherwise, restore the previous simplex and continue with the
          ! projected value.
          SIMPS(D+1,MI) = ITMP
          AT(:,D) = PTS(:,ITMP) - PTS(:,SIMPS(1,MI))
@@ -604,7 +604,7 @@ OUTER : DO MI = 1, M
    END DO INNER
 
    ! Check for budget violation conditions.
-   IF (K > IBUDGETL) THEN 
+   IF (K > IBUDGETL) THEN
       SIMPS(:,MI) = 0; WEIGHTS(:,MI) = 0  ! Zero all output values.
       ! Set the error flag and skip this point.
       IERR(MI) = 60; CYCLE OUTER
@@ -653,7 +653,7 @@ SUBROUTINE MAKEFIRSTSIMP()
 !
 ! X = CENTER - P_1
 !
-! is given by the minimum norm solution to the underdetermined linear system 
+! is given by the minimum norm solution to the underdetermined linear system
 !
 ! A X = B, where
 !
@@ -746,7 +746,7 @@ DO I = 2, D
    IF (SIMPS(I+1,MI) .EQ. 0) THEN; IERR(MI) = 31; RETURN; END IF
    ! If all operations were successful, add the best P* to the linear system.
    AT(:,I) = PTS(:,SIMPS(I+1,MI)) - PTS(:,SIMPS(1,MI))
-   B(I) = DDOT(D, AT(:,I), 1, AT(:,I), 1) / 2.0_R8 
+   B(I) = DDOT(D, AT(:,I), 1, AT(:,I), 1) / 2.0_R8
 END DO
 IERR(MI) = 0 ! Set error flag to 'success' for a normal return.
 RETURN
@@ -771,15 +771,15 @@ SUBROUTINE MAKESIMPLEX()
 ! A^T = [ P_2 - P_1, P_3 - P_1, ..., P_D - P_1, P* - P_1 ] and
 ! B = [ <A_{1.},A_{1.}>/2, <A_{2.},A_{2.}>/2, ..., <A_{D.},A_{D.}>/2 ]^T.
 !
-! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the 
+! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the
 ! candidate P* that satisfies both of the following:
 !
-! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI) 
+! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI)
 ! must be on the same side of PLANE.
 !
 ! 2) The circumball about CENTER must not contain any points in PTS in its
 ! interior (Delaunay property).
-! 
+!
 ! The above are necessary and sufficient conditions for flipping the
 ! Delaunay simplex, given that F is indeed a Delaunay facet.
 !
@@ -1089,7 +1089,7 @@ END SUBROUTINE RESCALE
 END SUBROUTINE DELAUNAYSPARSES
 
 
-SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  & 
+SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
   INTERP_IN, INTERP_OUT, EPS, EXTRAP, RNORM, IBUDGET, CHAIN, EXACT, &
   PMODE )
 ! This is a parallel implementation of an algorithm for efficiently performing
@@ -1218,7 +1218,7 @@ SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
 !    which therefore must also be present. If both INTERP_IN and INTERP_OUT
 !    are omitted, only the containing simplices and convex combination
 !    weights are returned.
-! 
+!
 ! INTERP_OUT(1:IR,1:M) contains real valued response vectors for each
 !    interpolation point in Q on output. The first dimension of INTERP_OU
 !    must match the first dimension of INTERP_IN, and the second dimension
@@ -1228,15 +1228,15 @@ SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
 !    that interpolation point.  Therefore, if INTERP_OUT is present, then
 !    INTERP_IN must also be present.  If both are omitted, only the
 !    simplices and convex combination weights are returned.
-! 
+!
 ! EPS contains the real working precision for the problem on input. By
 !    default, EPS is assigned \sqrt{\mu} where \mu denotes the unit roundoff
 !    for the machine. In general, any values that differ by less than EPS
 !    are judged as equal, and any weights that are greater than -EPS are
 !    judged as nonnegative.  EPS cannot take a value less than the default
 !    value of \sqrt{\mu}. If any value less than \sqrt{\mu} is supplied,
-!    the default value will be used instead automatically. 
-! 
+!    the default value will be used instead automatically.
+!
 ! EXTRAP contains the real maximum extrapolation distance (relative to the
 !    diameter of PTS) on input. Interpolation at a point outside the convex
 !    hull of PTS is done by projecting that point onto the convex hull, and
@@ -1246,19 +1246,19 @@ SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
 !    of 2 will be returned. Note that computing the projection can be
 !    expensive. Setting EXTRAP=0 will cause all extrapolation points to be
 !    ignored without ever computing a projection. By default, EXTRAP=0.1
-!    (extrapolate by up to 10% of the diameter of PTS). 
-! 
+!    (extrapolate by up to 10% of the diameter of PTS).
+!
 ! RNORM(1:M) contains the real unscaled projection (2-norm) distances from
 !    any projection computations on output. If not present, these distances
 !    are still computed for each extrapolation point, but are never returned.
-! 
+!
 ! IBUDGET on input contains the integer budget for performing flips while
 !    iterating toward the simplex containing each interpolation point in Q.
 !    This prevents DELAUNAYSPARSEP from falling into an infinite loop when
 !    an inappropriate value of EPS is given with respect to the problem
 !    conditioning.  By default, IBUDGET=50000. However, for extremely
 !    high-dimensional problems and pathological inputs, the default value
-!    may be insufficient. 
+!    may be insufficient.
 !
 ! CHAIN is a logical input argument that determines whether a new first
 !    simplex should be constructed for each interpolation point
@@ -1306,11 +1306,11 @@ SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
 ! (Hanson and Haskell).  The module REAL_PRECISION from HOMPACK90 (ACM TOMS
 ! Algorithm 777) is used for the real data type. The REAL_PRECISION module,
 ! DELAUNAYSPARSEP, and DWNNLS and its dependencies comply with the Fortran
-! 2008 standard.  
-! 
+! 2008 standard.
+!
 ! Primary Author: Tyler H. Chang
 ! Last Update: March, 2020
-! 
+!
 USE REAL_PRECISION, ONLY : R8
 IMPLICIT NONE
 
@@ -1326,10 +1326,10 @@ INTEGER, INTENT(OUT) :: IERR(:)
 ! Optional arguments.
 REAL(KIND=R8), INTENT(IN), OPTIONAL:: INTERP_IN(:,:)
 REAL(KIND=R8), INTENT(OUT), OPTIONAL :: INTERP_OUT(:,:)
-REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP 
+REAL(KIND=R8), INTENT(IN), OPTIONAL:: EPS, EXTRAP
 REAL(KIND=R8), INTENT(OUT), OPTIONAL :: RNORM(:)
 INTEGER, INTENT(IN), OPTIONAL :: IBUDGET, PMODE
-LOGICAL, INTENT(IN), OPTIONAL :: CHAIN 
+LOGICAL, INTENT(IN), OPTIONAL :: CHAIN
 LOGICAL, INTENT(IN), OPTIONAL :: EXACT
 
 ! Local copies of optional input arguments.
@@ -1358,8 +1358,8 @@ REAL(KIND=R8) :: SIDE1, SIDE2 ! Signs (+/-1) denoting sides of a facet.
 INTEGER :: IPIV(D) ! Pivot indices.
 INTEGER :: SEED(D+1) ! Copy of the SEED simplex. Only used if CHAIN = .TRUE.
 REAL(KIND=R8) :: AT(D,D) ! The transpose of A, the linear coefficient matrix.
-REAL(KIND=R8) :: B(D) ! The RHS of a linear system. 
-REAL(KIND=R8) :: CENTER(D) ! The circumcenter of a simplex. 
+REAL(KIND=R8) :: B(D) ! The RHS of a linear system.
+REAL(KIND=R8) :: CENTER(D) ! The circumcenter of a simplex.
 REAL(KIND=R8) :: CENTER_PRIV(D) ! Private copy of CENTER.
 REAL(KIND=R8) :: LQ(D,D) ! Holds LU or QR factorization of AT.
 REAL(KIND=R8) :: PLANE(D+1) ! The hyperplane containing a facet.
@@ -1439,7 +1439,7 @@ ELSE
    IBUDGETL = 50000 ! Default value for budget.
 END IF
 IF (PRESENT(EXTRAP)) THEN
-   EXTRAPL = EXTRAP 
+   EXTRAPL = EXTRAP
    IF (EXTRAPL < 0) THEN ! Check that the extrapolation distance is legal.
       IERR(:) = 27; RETURN; END IF
 ELSE
@@ -1565,7 +1565,7 @@ OUTER : DO MI = 1, M
 !
 ! X = CENTER - P_1
 !
-! is given by the minimum norm solution to the underdetermined linear system 
+! is given by the minimum norm solution to the underdetermined linear system
 !
 ! A X = B, where
 !
@@ -1762,7 +1762,7 @@ DO I = 2, D
    END IF
    ! If all operations were successful, add the best P* to the linear system.
    AT(:,I) = PTS(:,SIMPS(I+1,MI)) - PTS(:,SIMPS(1,MI))
-   B(I) = DDOT(D, AT(:,I), 1, AT(:,I), 1) / 2.0_R8 
+   B(I) = DDOT(D, AT(:,I), 1, AT(:,I), 1) / 2.0_R8
 END DO
 ! RETURN
 ! END SUBROUTINE MAKEFIRSTSIMP
@@ -1777,7 +1777,7 @@ END DO
       ! Rebuild the linear system.
       DO J=1,D
          AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-         B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+         B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
       END DO
    END IF
 
@@ -1787,7 +1787,7 @@ END DO
       ! If chaining is on, save each good simplex as the next seed.
       IF (CHAINL) SEED(:) = SIMPS(:,MI)
 
- 
+
 !******************************************************************************
 ! Due to OpenMP's handling of variable scope, the parallel implementation of
 ! the subroutine PTINSIMP() has been in-lined here.
@@ -1930,7 +1930,7 @@ END IF
       ELSE
          DO J=1,D
             AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-            B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+            B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
          END DO
       END IF
 
@@ -1961,15 +1961,15 @@ END IF
 ! A^T = [ P_2 - P_1, P_3 - P_1, ..., P_D - P_1, P* - P_1 ] and
 ! B = [ <A_{1.},A_{1.}>/2, <A_{2.},A_{2.}>/2, ..., <A_{D.},A_{D.}>/2 ]^T.
 !
-! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the 
+! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the
 ! candidate P* that satisfies both of the following:
 !
-! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI) 
+! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI)
 ! must be on the same side of PLANE.
 !
 ! 2) The circumball about CENTER must not contain any points in PTS in its
 ! interior (Delaunay property).
-! 
+!
 ! The above are necessary and sufficient conditions for flipping the
 ! Delaunay simplex, given that F is indeed a Delaunay facet.
 !
@@ -2215,7 +2215,7 @@ END IF
                   ! There is no other direction to flip, so Q(:,MI) must be
                   ! within EPSL of the current simplex.
                   ! Project Q(:,MI) onto the current simplex.
-                  
+
                   ! Since at least one projection has already been done,
                   ! the work arrays have already been allocated.
                   PRGOPT_DWNNLS(1) = 1.0_R8
@@ -2261,7 +2261,7 @@ END IF
                ELSE
                   DO J=1,D
                      AT(:,J) = PTS(:,SIMPS(J+1,MI)) - PTS(:,SIMPS(1,MI))
-                     B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8 
+                     B(J) = DDOT(D, AT(:,J), 1, AT(:,J), 1) / 2.0_R8
                   END DO
                END IF
                ! Compute another simplex (try to flip again).
@@ -2291,15 +2291,15 @@ END IF
 ! A^T = [ P_2 - P_1, P_3 - P_1, ..., P_D - P_1, P* - P_1 ] and
 ! B = [ <A_{1.},A_{1.}>/2, <A_{2.},A_{2.}>/2, ..., <A_{D.},A_{D.}>/2 ]^T.
 !
-! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the 
+! Then CENTER = X + P_1 and RADIUS = \| X \|.  P_{D+1} will be given by the
 ! candidate P* that satisfies both of the following:
 !
-! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI) 
+! 1) Let PLANE denote the hyperplane containing F. Then P_{D+1} and Q(:,MI)
 ! must be on the same side of PLANE.
 !
 ! 2) The circumball about CENTER must not contain any points in PTS in its
 ! interior (Delaunay property).
-! 
+!
 ! The above are necessary and sufficient conditions for flipping the
 ! Delaunay simplex, given that F is indeed a Delaunay facet.
 !
@@ -2618,7 +2618,7 @@ RNORML = DNRM2(D, PROJ(:) - Q(:,MI), 1)
             CYCLE OUTER
          END IF
 
-         ! Otherwise, restore the previous simplex and continue with the 
+         ! Otherwise, restore the previous simplex and continue with the
          ! projected value.
          SIMPS(D+1,MI) = ITMP
          AT(:,D) = PTS(:,ITMP) - PTS(:,SIMPS(1,MI))
@@ -2630,7 +2630,7 @@ RNORML = DNRM2(D, PROJ(:) - Q(:,MI), 1)
    END DO INNER
 
    ! Check for budget violation conditions.
-   IF (K > IBUDGETL) THEN 
+   IF (K > IBUDGETL) THEN
       SIMPS(:,MI) = 0; WEIGHTS(:,MI) = 0  ! Zero all output values.
       ! Set the error flag and skip this point.
       !$OMP CRITICAL(CHECK_IERR)
@@ -2674,7 +2674,7 @@ IF (ALLOCATED(IWORK_DWNNLS)) DEALLOCATE(IWORK_DWNNLS)
 IF (ALLOCATED(WORK_DWNNLS))  DEALLOCATE(WORK_DWNNLS)
 IF (ALLOCATED(W_DWNNLS))     DEALLOCATE(W_DWNNLS)
 IF (ALLOCATED(X_DWNNLS))     DEALLOCATE(X_DWNNLS)
-!$OMP END PARALLEL 
+!$OMP END PARALLEL
 ! End of Level 1 parallel region.
 
 ! Free dynamic work arrays.
@@ -2687,7 +2687,7 @@ CONTAINS    ! Internal subroutines and functions.
 SUBROUTINE RESCALE(MINDIST, DIAMETER, SCALE)
 ! Rescale and transform data to be centered at the origin with unit
 ! radius.
-! 
+!
 ! The parallel implementation of this subroutine exploits parallelism
 ! over loops of length N. For nested loops, this subroutine follows
 ! the OpenMP recommendation of a static schedule with a fixed chunk

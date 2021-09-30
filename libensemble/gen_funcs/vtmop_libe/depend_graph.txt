@@ -2,7 +2,7 @@ This file shows the dependency graph for the VTMOP_LIBE_MOD package.
 
 X --> Y indicates that the file Y requires a module or procedure defined in X.
 
-                _______________________ 
+                _______________________
                |   _________________   |
                |  |                 |  |
                |  |  VTMOP_LIBE_MOD |  |

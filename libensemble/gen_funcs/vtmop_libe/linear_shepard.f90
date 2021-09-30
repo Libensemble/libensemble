@@ -1,10 +1,10 @@
 !
 ! Updated on 6/3/2013
 ! by Layne Watson
-! 
+!
 
 MODULE LINEAR_SHEPARD_MOD
-INTERFACE 
+INTERFACE
    SUBROUTINE DGELSS(M, N, NRHS, A, LDA, B, LDB, SIGMA, RCOND, RANK, &
         WORK, LWORK, INFO)
      USE REAL_PRECISION
@@ -20,16 +20,16 @@ END INTERFACE
 PRIVATE
 PUBLIC LSHEP, LSHEPVAL, RIPPLE
 CONTAINS
-    
+
 SUBROUTINE LSHEP ( M, N, X, F, A, RW, IER, RLSHEP )
-! This subroutine computes a set of parameters defining a function that 
-! interpolates N data values F(i) at scattered nodes X(i) in M dimensions. The 
+! This subroutine computes a set of parameters defining a function that
+! interpolates N data values F(i) at scattered nodes X(i) in M dimensions. The
 ! interpolant may be evaluated at an arbitrary point by the function LSHEPVAL.
-! The interpolation scheme is a modified linear Shepard method, and 
-! can use either the Shepard weighted least squares fit or robust 
+! The interpolation scheme is a modified linear Shepard method, and
+! can use either the Shepard weighted least squares fit or robust
 ! M-estimation for each local approximation.
 !
-! Input parameters:  
+! Input parameters:
 !   M is the dimension of the data.
 !   N is the number of nodes.
 !   X(M, N) contains the coordinates of the nodes.
@@ -37,21 +37,21 @@ SUBROUTINE LSHEP ( M, N, X, F, A, RW, IER, RLSHEP )
 ! Output parameters:
 !   A(M, N) contains the coefficients of the local fits.
 !   RW(N) is an array containing the radius of influence for each point.
-!   IER 
+!   IER
 !   = 0, if no errors were encountered.
 !   = 1, if N is too small relative to M.
 !   = 2, if any least squares problem is rank deficient, in which
 !        case an SVD based minimum norm solution is returned; the
 !        local fit should still be reasonable.
 !   = 3, if the IRLS subroutine returns an error, meaning the IRLS
-!        iteration has failed, and the returned local fit may 
+!        iteration has failed, and the returned local fit may
 !        be bad.
 ! Optional input:
-!   RLSHEP specifies by its presence that robust M-estimation is to be used to 
+!   RLSHEP specifies by its presence that robust M-estimation is to be used to
 !          compute the local approximation.
 USE REAL_PRECISION
 IMPLICIT NONE
-    
+
 INTEGER, INTENT(IN) :: M, N
 REAL(KIND=R8), DIMENSION(M,N), INTENT(IN) :: X
 REAL(KIND=R8), DIMENSION(N), INTENT(IN) :: F
@@ -60,48 +60,48 @@ REAL(KIND=R8), DIMENSION(N), INTENT(OUT) :: RW
 INTEGER, INTENT(OUT) :: IER
 LOGICAL, OPTIONAL :: RLSHEP
 
-! Local variables.         
-INTEGER :: FUNC  ! IRLS influence function switch, 1 = Huber, 2 = Tukey's 
+! Local variables.
+INTEGER :: FUNC  ! IRLS influence function switch, 1 = Huber, 2 = Tukey's
                  ! bisquare.
 INTEGER :: IER1  ! error indicator for IRLS subroutine.
 INTEGER :: INFO  ! error indicator for DGELSS.
-INTEGER :: ITER  ! number of iterations the IRLS algorithm will perform. 
+INTEGER :: ITER  ! number of iterations the IRLS algorithm will perform.
 INTEGER :: I, J, K  ! loop control variables.
 INTEGER :: LWORK ! length of the work array WORK for DGELSS.
 INTEGER :: NP    ! number of nodes used for the local fit.
 INTEGER :: RANK  ! rank of the array (used for DGELSS).
-INTEGER, DIMENSION(N-1) :: IDIST ! index array for DIST. 
+INTEGER, DIMENSION(N-1) :: IDIST ! index array for DIST.
 REAL(KIND=R8) :: DIAM  ! diameter of the whole date set.
 REAL(KIND=R8) :: MAR   ! the median absolute residual.
 REAL(KIND=R8) :: RCOND ! reciprocal condition number used in DGELSS.
 REAL(KIND=R8) :: RP    ! least squares fit radius R_p.
-REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: BETA_IN 
+REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: BETA_IN
                ! variable used in DGELSS.
-REAL(KIND=R8), DIMENSION(N-1) :: DIST ! array that stores all the distances. 
-REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: OMEGA   
+REAL(KIND=R8), DIMENSION(N-1) :: DIST ! array that stores all the distances.
+REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: OMEGA
                ! weights used for linear least squares fit.
-REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: RES   
+REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2)) :: RES
                ! the residuals from the linear fit.
 REAL(KIND=R8), DIMENSION(M) :: SIGMA   ! array used for DGELSS.
-REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (3*M+1)/2)) :: WORK  
+REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (3*M+1)/2)) :: WORK
                ! work array of length LWORK for DGELSS.
-REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2), M) :: ALPHA, ALPHA_IN 
+REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2), M) :: ALPHA, ALPHA_IN
 REAL(KIND=R8), DIMENSION(MIN(N-1, (3*M+1)/2), 1) :: BETA
-               ! variables used in DGELSS. 
+               ! variables used in DGELSS.
 
 IER = 0
-! Check the validity of M and N.    
+! Check the validity of M and N.
 IF ( ( M < 1 ) .OR. ( N <= (M + 1) ) ) THEN
    IER = 1
    RETURN
 END IF
 ! Set the number of nodes used in local linear fit.
-NP = MIN( N - 1,  (3 * M + 1) / 2 ) 
+NP = MIN( N - 1,  (3 * M + 1) / 2 )
 ! Set the RCOND parameter used in DGELSS.
 RCOND = NP * EPSILON( 1.0_R8 )
 ! Set the LWORK parameter used in DGELSS.
 LWORK = 3 * M + 2 * NP
-! Calculate RW and A. 
+! Calculate RW and A.
 DIAM = 0.0_R8
 DO K = 1, N
    J = 0
@@ -114,7 +114,7 @@ DO K = 1, N
    END DO
    DIAM = MAX( DIAM, MAXVAL( DIST(1:N-1) ) )
    CALL SORT( DIST, IDIST, NP, N - 1 )
-   DIST(1:NP) = SQRT( DIST(1:NP) ) 
+   DIST(1:NP) = SQRT( DIST(1:NP) )
    BETA_IN(1:NP) = F(IDIST(1:NP)) - F(K)
    DO I = 1, NP
       ALPHA_IN(I, 1:M) = X(1:M, IDIST(I)) - X(1:M, K)
@@ -124,7 +124,7 @@ DO K = 1, N
       OMEGA(1:NP) = 1.0_R8
    ELSE
       RP = 1.1_R8 * RW(K)
-      OMEGA(1:NP) =  (RP - DIST(1:NP)) / (RP * DIST(1:NP)) 
+      OMEGA(1:NP) =  (RP - DIST(1:NP)) / (RP * DIST(1:NP))
    END IF
    BETA(1:NP,1) = OMEGA(1:NP) * BETA_IN(1:NP)
    DO I = 1, NP
@@ -181,8 +181,8 @@ END SUBROUTINE LSHEP
 
 SUBROUTINE IRLS( M, N,  S, ITER, FUNC, OMEGA, BETA, BETA_IN, ALPHA, &
            ALPHA_IN, RES, NP, IER )
-! IRLS returns the coefficients of the linear least squares fit at the current 
-! node using robust M-estimation. For Tukey's bisquare influence function, 
+! IRLS returns the coefficients of the linear least squares fit at the current
+! node using robust M-estimation. For Tukey's bisquare influence function,
 ! there is an additional convergence test.
 !
 ! Input parameters:
@@ -199,7 +199,7 @@ SUBROUTINE IRLS( M, N,  S, ITER, FUNC, OMEGA, BETA, BETA_IN, ALPHA, &
 !  OMEGA stores the final weights.
 !  BETA stores the coefficients of the linear fit using robust M-estimation.
 !  NP is the size of OMEGA(:) and BETA(:,1).
-!  IER 
+!  IER
 !   = 0, if no errors were encountered.
 !   = 1, if any least squares problem is rank deficient.
 !   = 2, if the bisquare IRLS did not converge.
@@ -207,7 +207,7 @@ SUBROUTINE IRLS( M, N,  S, ITER, FUNC, OMEGA, BETA, BETA_IN, ALPHA, &
 USE REAL_PRECISION
 IMPLICIT NONE
 INTEGER, INTENT(IN) :: M, N
-REAL(KIND=R8), INTENT(INOUT) :: S 
+REAL(KIND=R8), INTENT(INOUT) :: S
 INTEGER, INTENT(IN) :: ITER, FUNC
 REAL(KIND=R8), INTENT(OUT), DIMENSION(:) :: OMEGA
 REAL(KIND=R8), INTENT(OUT), DIMENSION(:,:) :: BETA
@@ -215,10 +215,10 @@ REAL(KIND=R8), INTENT(IN), DIMENSION(:) :: BETA_IN
 REAL(KIND=R8), INTENT(OUT), DIMENSION(:,:) :: ALPHA
 REAL(KIND=R8), INTENT(IN), DIMENSION(:,:) :: ALPHA_IN
 REAL(KIND=R8), INTENT(INOUT), DIMENSION(:) :: RES
-INTEGER, INTENT(IN) :: NP 
+INTEGER, INTENT(IN) :: NP
 INTEGER, INTENT(OUT) :: IER
 
-! Local variables.  
+! Local variables.
 INTEGER :: I,J     ! loop control variables.
 INTEGER:: INFO   ! error code from DGELSS.
 INTEGER :: LWORK ! size of work array for DGELSS.
@@ -227,8 +227,8 @@ REAL(KIND=R8) :: RCOND ! reciprocal condition number used in DGELSS.
 REAL(KIND=R8), DIMENSION(M) :: SIGMA ! array used for DGELSS.
 REAL(KIND=R8) :: ERR_NEW      ! objective function value after bisquare IRLS.
 REAL(KIND=R8) :: ERR_OLD      ! objective function value before bisquare IRLS.
-REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (5*M+1)/2)) :: WORK 
-REAL(KIND=R8), PARAMETER, DIMENSION(2) :: TUNING = (/1.0_R8, 3.0_R8/)       
+REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (5*M+1)/2)) :: WORK
+REAL(KIND=R8), PARAMETER, DIMENSION(2) :: TUNING = (/1.0_R8, 3.0_R8/)
                ! tuning parameters for influence functions.
 IF ((FUNC /= 1) .AND. (FUNC /= 2)) THEN
     IER=3
@@ -238,7 +238,7 @@ S = TUNING(FUNC) * S
 ! Set the RCOND parameter used in DGELSS.
 RCOND = NP * EPSILON( 1.0_R8 )
 ! Set the LWORK parameter used in DGELSS.
-LWORK = 3 * M + 2 * NP 
+LWORK = 3 * M + 2 * NP
 IF ( FUNC ==  2 ) THEN
    ERR_OLD = SUM( 1.0_R8 - (MAX( 0.0_R8, 1.0_R8 - (RES(1:NP) /  S)**2 ))**3 )
 END IF
@@ -263,7 +263,7 @@ DO I = 1, ITER
    DO J = 1, NP
       ALPHA(J, 1:M) = OMEGA(J) * ALPHA_IN(J, 1:M)
    END DO
-   CALL DGELSS( NP, M, 1, ALPHA(1:NP,1:M), NP, BETA(1:NP,1), NP, SIGMA, & 
+   CALL DGELSS( NP, M, 1, ALPHA(1:NP,1:M), NP, BETA(1:NP,1), NP, SIGMA, &
         RCOND, RANK, WORK, LWORK, INFO )
    IF ( RANK < M ) THEN
       IER = 1
@@ -283,7 +283,7 @@ RETURN
 END SUBROUTINE IRLS
 
 FUNCTION MAD( RES, NP )
-! The function MAD computes the median absolute deviation (MAD) scaled 
+! The function MAD computes the median absolute deviation (MAD) scaled
 ! estimate for robust M-estimation from the residual array RES.
 USE REAL_PRECISION
 IMPLICIT NONE
@@ -291,15 +291,15 @@ REAL(KIND=R8), DIMENSION(:), INTENT(IN) :: RES
 INTEGER, INTENT(IN)::NP
 REAL(KIND=R8) :: MAD
 
-! Local variables.  
+! Local variables.
 INTEGER :: NMID
 REAL(KIND=R8) :: FACTOR, MED
-  
+
 FACTOR = 1.0_R8 / 0.6745_R8
 NMID = NP / 2
 IF ( MOD(NP, 2) == 0 ) THEN
    MED = (QUANTILE( RES(:), NMID ) + QUANTILE( RES(:), NMID + 1 )) / 2.0_R8
-   MAD = FACTOR * (QUANTILE( ABS( RES(:) - MED ), NMID ) + & 
+   MAD = FACTOR * (QUANTILE( ABS( RES(:) - MED ), NMID ) + &
         QUANTILE( ABS( RES(:) - MED ), NMID + 1 )) / 2.0_R8
 ELSE
    MED = QUANTILE( RES(:), NMID + 1 )
@@ -336,9 +336,9 @@ RETURN
 END FUNCTION QUANTILE
 
 SUBROUTINE SORT( DIST, IDIST, NUM, LENGTH )
-! The subroutine SORT sorts the real array DIST of length LENGTH in ascending 
-! order for the smallest NUM elements. IDIST stores the original label for 
-! each element in array DIST. 
+! The subroutine SORT sorts the real array DIST of length LENGTH in ascending
+! order for the smallest NUM elements. IDIST stores the original label for
+! each element in array DIST.
 ! Local variables.
 USE REAL_PRECISION
 IMPLICIT NONE
@@ -346,29 +346,29 @@ REAL(KIND=R8), INTENT(INOUT), DIMENSION(:)::DIST
 INTEGER, INTENT(INOUT), DIMENSION(:)::IDIST
 INTEGER :: I, ITEMP, J, LENGTH, NUM
 REAL(KIND=R8) :: TEMP
-  
+
 DO I = 2, LENGTH
    DO J = 1, MIN( I-1, NUM )
       IF ( DIST(I) < DIST(J) ) THEN
          TEMP = DIST(I)
          ITEMP = IDIST(I)
-         DIST(J+1:I) = DIST(J:I-1) 
+         DIST(J+1:I) = DIST(J:I-1)
          IDIST(J+1:I) = IDIST(J:I-1)
          DIST(J) = TEMP
          IDIST(J) = ITEMP
-         EXIT 
+         EXIT
       END IF
    END DO
 END DO
-END SUBROUTINE SORT  
+END SUBROUTINE SORT
 
 
 FUNCTION LSHEPVAL( XP, M, N, X, F, A, RW, IER )
-! LSHEPVAL returns the linear Shepard approximation at the point XP, using the 
+! LSHEPVAL returns the linear Shepard approximation at the point XP, using the
 ! local linear approximations computed by LSHEP.
 !
 ! Input parameters:
-!  XP is the point at which the linear Shepard interpolant function 
+!  XP is the point at which the linear Shepard interpolant function
 !     approximation function is to be evaluated.
 !  M is the dimension of the data.
 !  N is the number of interpolation points.
@@ -379,28 +379,28 @@ FUNCTION LSHEPVAL( XP, M, N, X, F, A, RW, IER )
 !  RW contains the radius of influence about each interpolation node returned
 !    by LSHEP.
 ! Output parameter:
-!  IER 
+!  IER
 !   = 0, normal returns.
-!   = 1, if the point XP is outside the radius of influence RW(i) for all 
-!        nodes, in which case LSHEPVAL is computed using the original Shepard 
+!   = 1, if the point XP is outside the radius of influence RW(i) for all
+!        nodes, in which case LSHEPVAL is computed using the original Shepard
 !        algorithm with the M+1 closest points.
 !   = 2, if the hyperplane normals of the local approximations with positive
-!        weights are significantly different. For a nonlinear underlying 
-!        function f(x), e.g., quadratic f(x), very different normals are 
-!        typical. For a piecewise linear underlying function f(x), IER = 2 
-!        signals a potentially large error in LSHEPVAL, since local 
+!        weights are significantly different. For a nonlinear underlying
+!        function f(x), e.g., quadratic f(x), very different normals are
+!        typical. For a piecewise linear underlying function f(x), IER = 2
+!        signals a potentially large error in LSHEPVAL, since local
 !        approximations from different facets of f(x) have been used.
 USE REAL_PRECISION
 IMPLICIT NONE
 
 INTEGER, INTENT(IN)  :: M, N
-REAL(KIND=R8), DIMENSION(M), INTENT(IN) :: XP 
+REAL(KIND=R8), DIMENSION(M), INTENT(IN) :: XP
 REAL(KIND=R8), DIMENSION(M, N), INTENT(IN) :: X
 REAL(KIND=R8), DIMENSION(N), INTENT(IN) :: F
 REAL(KIND=R8), DIMENSION(M, N), INTENT(IN) :: A
 REAL(KIND=R8), DIMENSION(N), INTENT(IN) :: RW
 INTEGER, INTENT(OUT):: IER
-REAL(KIND=R8) :: LSHEPVAL 
+REAL(KIND=R8) :: LSHEPVAL
 
 ! Local variables.
 INTEGER :: I   ! number of nodal functions used in Shepard approximation.
@@ -409,13 +409,13 @@ INTEGER :: K   ! loop control variable.
 INTEGER, DIMENSION(M+1) :: ID ! data indices in the original Shepard scheme.
 REAL(KIND=R8) :: DIST ! distance between XP and the interpolation nodes.
 REAL(KIND=R8) :: TEMP ! temporary real variable.
-REAL(KIND=R8) :: W    ! weight value, depends on D.    
+REAL(KIND=R8) :: W    ! weight value, depends on D.
 REAL(KIND=R8), DIMENSION(M+1) :: D ! weights in the original Shepard scheme.
 REAL(KIND=R8), DIMENSION(M+1) :: SLOPE ! the hyperplane normal of the Shepard
                ! approximation function.
-REAL(KIND=R8), DIMENSION(M+1, N) :: SSLOPE ! the hyperplane normals of the 
-               ! local approximations with positive weights.  
-REAL(KIND=R8), DIMENSION(N) :: SW   ! weight values. 
+REAL(KIND=R8), DIMENSION(M+1, N) :: SSLOPE ! the hyperplane normals of the
+               ! local approximations with positive weights.
+REAL(KIND=R8), DIMENSION(N) :: SW   ! weight values.
 REAL(KIND=R8), DIMENSION(N) :: SWC  ! nodal (linear) function values.
 
 IER = 0
@@ -446,17 +446,17 @@ DO K = 1, N
       END IF
    END IF
 END DO
-! I = 0 iff the point XP is not within the radius RW(K) of X(:,K) for all K; 
+! I = 0 iff the point XP is not within the radius RW(K) of X(:,K) for all K;
 ! IER = 1.
 IF ( I == 0 ) THEN
    D = D**2
    LSHEPVAL = DOT_PRODUCT( D / SUM( D ), F(ID) )
-   IER = 1 
+   IER = 1
    RETURN
 ELSE
    SW(1:I) = SW(1:I) / SUM( SW(1:I) )
    LSHEPVAL = DOT_PRODUCT( SW(1:I), SWC(1:I) )
-! Return IER = 2 iff the angle between two local approximation hyperplanes is 
+! Return IER = 2 iff the angle between two local approximation hyperplanes is
 ! too large.
    SLOPE(1:M+1) = MATMUL( SSLOPE(1:M+1, 1:I), SW(1:I) )
    SLOPE(:) = SLOPE(:) / SQRT( DOT_PRODUCT( SLOPE(:), SLOPE(:) ) )
@@ -474,15 +474,15 @@ END FUNCTION LSHEPVAL
 
 SUBROUTINE RIPPLE( M, N, X, F, A, RW, IER )
 ! The subroutine RIPPLE, residual initiated polynomial-time piecewise linear
-! estimation, computes a set of parameters defining a function that 
-! interpolates N data values F(i) at scattered nodes X(i) in M dimensions. 
-! The interpolant may be evaluated at an arbitrary point by the function 
+! estimation, computes a set of parameters defining a function that
+! interpolates N data values F(i) at scattered nodes X(i) in M dimensions.
+! The interpolant may be evaluated at an arbitrary point by the function
 ! LSHEPVAL.
 ! The interpolation scheme is a modified linear Shepard method.
-! The time complexity of the algorithm RIPPLE is between the robust 
+! The time complexity of the algorithm RIPPLE is between the robust
 ! M-estimation and LMS estimation.
 !
-! Input parameters:  
+! Input parameters:
 !   M is the dimension of the data.
 !   N is the number of nodes.
 !   X(M, N) contains the coordinates of the nodes.
@@ -490,13 +490,13 @@ SUBROUTINE RIPPLE( M, N, X, F, A, RW, IER )
 ! Output parameters:
 !   A(M, N) contains the coefficients of the local fits.
 !   RW(N) is an array containing the radius of influence for each point.
-!   IER 
+!   IER
 !   = 0, if no errors were encountered.
 !   = 1, if N is too small relative to M.
 !   = 2, if the IRLS subroutine returns an error.
 USE REAL_PRECISION
 IMPLICIT NONE
-    
+
 INTEGER, INTENT(IN) :: M, N
 REAL(KIND=R8), DIMENSION(M,N), INTENT(IN) :: X
 REAL(KIND=R8), DIMENSION(N), INTENT(IN) :: F
@@ -505,7 +505,7 @@ REAL(KIND=R8), DIMENSION(N), INTENT(OUT) :: RW
 INTEGER, INTENT(OUT) :: IER
 
 ! Local variables
-INTEGER :: FUNC ! IRLS influence function switch, 1 = Huber, 2 = Tukey's 
+INTEGER :: FUNC ! IRLS influence function switch, 1 = Huber, 2 = Tukey's
                 ! bisquare.
 INTEGER :: IER1 ! error indicator for IRLS subroutine.
 INTEGER :: INFO ! error indicator for DGELSS.
@@ -515,9 +515,9 @@ INTEGER :: LWORK ! length of the work array WORK for DGELSS.
 INTEGER :: NP    ! number of nodes used for the local fit.
 INTEGER :: RANK  ! rank of array (used for DGELSS).
 INTEGER, DIMENSION(N-1) :: IDIST    ! index array for DIST.
-INTEGER, DIMENSION(MIN(N-1, (3*M+1)/2), M+3) :: D 
+INTEGER, DIMENSION(MIN(N-1, (3*M+1)/2), M+3) :: D
                     ! distance matrix of indices.
-INTEGER, DIMENSION(N, MIN(N-1, (3*M+5)/2)) :: S   
+INTEGER, DIMENSION(N, MIN(N-1, (3*M+5)/2)) :: S
                     ! set of indices close to X(:, K).
 REAL(KIND=R8) :: DIAM  ! diameter of the whole date set.
 REAL(KIND=R8) :: LSE   ! the least squares error.
@@ -526,19 +526,19 @@ REAL(KIND=R8) :: RCOND ! reciprocal condition number used in DGELSS.
 REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2)) :: BETA_IN
                ! variables used for DGELSS.
 REAL(KIND=R8), DIMENSION(N-1) :: DIST  ! array that stores all distances.
-REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2)) :: OMEGA 
-               ! weights used for least squares fit.  
-REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2)) :: RES   
+REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2)) :: OMEGA
+               ! weights used for least squares fit.
+REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2)) :: RES
                ! the residuals from the linear fit.
 REAL(KIND=R8), DIMENSION(M) :: SIGMA ! array used for DGELSS.
-REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (5*M+1)/2)) :: WORK 
+REAL(KIND=R8), DIMENSION(3*M+2*MIN(N-1, (5*M+1)/2)) :: WORK
                ! work array for DGELSS.
-REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2), M):: ALPHA, ALPHA_IN  
+REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2), M):: ALPHA, ALPHA_IN
 REAL(KIND=R8), DIMENSION(MIN(N-1, (5*M+1)/2), 1) :: BETA
                ! variables used for DGELSS.
 
 IER = 0
-! Check the validity of M and N.    
+! Check the validity of M and N.
 IF ( ( M < 1 ) .OR. ( N <= (M + 3) ) ) THEN
    IER = 1
    RETURN
@@ -554,17 +554,17 @@ DO K = 1, N
          DIST(J) = DOT_PRODUCT( X(:, I) - X(:, K), X(:, I) - X(:, K) )
          IDIST(J) = I
       END IF
-   END DO 
+   END DO
    DIAM = MAX( DIAM, MAXVAL( DIST(1:N-1) ) )
    CALL SORT( DIST, IDIST, NP, N - 1 )
    S(K, 1:NP) = IDIST(1:NP)
 END DO
 ! Compute the local linear approximation.
 DO K = 1, N
-   NP = MIN( N - 1,  (3 * M + 1) / 2 ) 
+   NP = MIN( N - 1,  (3 * M + 1) / 2 )
    D(1:NP, 1) = S(K, 1:NP)
    DO J = 2, M + 3
-      DO I = 1, NP 
+      DO I = 1, NP
          DO L = 1, J
             IF ( ALL( S(D(I, J-1), L) /= D(I, 1:J-1) ) .AND. &
                  S(D(I, J-1), L) /= K )  D(I, J) = S(D(I, J-1), L)
@@ -589,11 +589,11 @@ DO K = 1, N
             BETA(1:L-1,1) = BETA_IN(1:L-1)
             BETA(L:I-2,1) = BETA_IN(L+1:I-1)
             BETA(I-1:M+1,1) = BETA_IN(I+1:M+3)
-            CALL DGELSS( M+1,M,1,ALPHA(1:M+1,1:M),M+1,BETA(1:M+1,1),M+1, & 
-                 SIGMA, RCOND, RANK, WORK, LWORK, INFO ) 
+            CALL DGELSS( M+1,M,1,ALPHA(1:M+1,1:M),M+1,BETA(1:M+1,1),M+1, &
+                 SIGMA, RCOND, RANK, WORK, LWORK, INFO )
             IF ( ABS( BETA(M+1,1) ) < LSE )  THEN
                LSE = ABS( BETA(M+1,1) )
-               A(1:M, K) = BETA(1:M,1)   
+               A(1:M, K) = BETA(1:M,1)
                IDIST(1:L-1) = D(J, 1:L-1)
                IDIST(L:I-2) = D(J, L+1:I-1)
                IDIST(I-1:M+1) = D(J, I+1:M+3)
@@ -614,10 +614,10 @@ DO K = 1, N
    DO I = 1, NP
       ALPHA_IN(I, 1:M) = X(1:M, S(K, I)) - X(1:M, K)
    END DO
-   RW(K) = DOT_PRODUCT( ALPHA_IN(NP, :), ALPHA_IN(NP, :) ) 
+   RW(K) = DOT_PRODUCT( ALPHA_IN(NP, :), ALPHA_IN(NP, :) )
    CALL SORT( DIST, IDIST, M + 1, M + 1 )
    DO I = 1, M + 1
-      IF ( DIST(I) > RW(K) .OR. ( DIST(I) == RW(K) .AND. ALL( IDIST(I) & 
+      IF ( DIST(I) > RW(K) .OR. ( DIST(I) == RW(K) .AND. ALL( IDIST(I) &
            /= S(K, 1: MIN( N - 1, (3 * M + 1) / 2 )) ) ) ) THEN
          NP = NP + 1
          BETA_IN(NP) = F(IDIST(I)) - F(K)
@@ -643,7 +643,7 @@ DO K = 1, N
    IF ( IER1 /= 0 ) THEN
       IER = 2
       CYCLE
-   ELSE 
+   ELSE
       A(1:M, K) = BETA(1:M,1)
    END IF
 ! Adjust RW(K) according to the weights.
@@ -654,14 +654,14 @@ DO K = 1, N
                  / 2.0_R8
          ELSE
             RW(K) = (SQRT( DOT_PRODUCT( ALPHA_IN(I-1, :), ALPHA_IN(I-1, :) ) )&
-                 + SQRT( DOT_PRODUCT( ALPHA_IN(I, :), ALPHA_IN(I, :) ) )) & 
+                 + SQRT( DOT_PRODUCT( ALPHA_IN(I, :), ALPHA_IN(I, :) ) )) &
                  / 2.0_R8
          END IF
          EXIT
       END IF
    END DO
 END DO
-RW(1:N) = MIN( SQRT( DIAM ) / 2.0_R8, RW(1:N) )    
+RW(1:N) = MIN( SQRT( DIAM ) / 2.0_R8, RW(1:N) )
 RETURN
 END SUBROUTINE RIPPLE
 

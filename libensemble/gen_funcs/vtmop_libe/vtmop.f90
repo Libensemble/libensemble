@@ -1,4 +1,3 @@
-
 ! Module and subroutines implementing an adaptive weighting scheme for
 ! generating uniformly spaced points on the Pareto front for multiobjective
 ! optimization problems.
@@ -163,7 +162,7 @@ INTERFACE
       REAL(KIND=R8), INTENT(OUT) :: V(:)
       INTEGER, INTENT(OUT) :: IERR
    END SUBROUTINE VTMOP_MOD_SEVAL_INT
-   
+
    ! Surrogate function fitting interface.
    SUBROUTINE VTMOP_MOD_SFIT_INT(D, P, N, X_VALS, Y_VALS, FIRST, PARALLEL, &
                                  DES_TOL, SCALE_FACT, SHIFT_FACT, IERR)
@@ -195,12 +194,12 @@ SUBROUTINE VTMOP_INIT( VTMOP, D, P, LB, UB, IERR, LOPT_BUDGET, DECAY,     &
                        EVAL_SURROGATES, PMODE, ICHKPT )
 ! This subroutine initializes a VTMOP object for tracking the adaptive
 ! weighting scheme described in
-! 
+!
 ! Deshpande, Shubhangi, Layne T. Watson, and Robert A. Canfield.
 ! "Multiobjective optimization using an adaptive weighting scheme."
 ! Optimization Methods and Software 31.1 (2016): 110-133.
-! 
-! 
+!
+!
 ! On input:
 !
 ! D is the dimension of the design space.
@@ -476,7 +475,7 @@ ELSE
    VTMOP%DECAY = 0.5_R8
    IF(PRESENT(DECAY)) THEN
       ! The decay rate must be between EPS and 1-EPS.
-      IF(DECAY > 1.0_R8 - VTMOP%EPS .OR. DECAY < VTMOP%EPS) THEN 
+      IF(DECAY > 1.0_R8 - VTMOP%EPS .OR. DECAY < VTMOP%EPS) THEN
          IERR = 124; RETURN; END IF
       VTMOP%DECAY = DECAY
    END IF
@@ -569,12 +568,12 @@ END SUBROUTINE VTMOP_INIT
 SUBROUTINE VTMOP_LTR( VTMOP, DES_PTS, OBJ_PTS, LTR_LB, LTR_UB, IERR )
 ! This subroutine identifies the most isolated point, builds a local
 ! trust region (LTR), and chooses the adaptive weights, as described in
-! 
+!
 ! Deshpande, Shubhangi, Layne T. Watson, and Robert A. Canfield.
 ! "Multiobjective optimization using an adaptive weighting scheme."
 ! Optimization Methods and Software 31.1 (2016): 110-133.
-! 
-! 
+!
+!
 ! On input:
 !
 ! VTMOP is an object of derived data type VTMOP_TYPE, which carries meta data
@@ -980,12 +979,12 @@ SUBROUTINE VTMOP_OPT( VTMOP, LTR_LB, LTR_UB, DES_PTS, OBJ_PTS, CAND_PTS, IERR )
 ! This subroutine fits and optimizes P surrogate models within the current
 ! local trust region (LTR), over the adaptive weights in the VTMOP object,
 ! as described in
-! 
+!
 ! Deshpande, Shubhangi, Layne T. Watson, and Robert A. Canfield.
 ! "Multiobjective optimization using an adaptive weighting scheme."
 ! Optimization Methods and Software 31.1 (2016): 110-133.
-! 
-! 
+!
+!
 ! On input:
 !
 ! VTMOP is an object of derived data type VTMOP_TYPE, which carries meta data
@@ -1257,8 +1256,8 @@ SUBROUTINE VTMOP_FINALIZE( VTMOP, DES_PTS, OBJ_PTS, M, PARETO_F, EFFICIENT_X, &
 ! This subroutine finalizes a multiobjective optimization problem, by
 ! computing the entire weakly Pareto set, and freeing all dynamic memory
 ! allocated to the VTMOP object.
-! 
-! 
+!
+!
 ! On input:
 !
 ! VTMOP is an object of derived data type VTMOP_TYPE, which carries meta data
@@ -1624,7 +1623,7 @@ OPEN(VTMOP_CHKPTUNIT, FILE=VTMOP_CHKPTFILE, FORM="unformatted", ACTION="read", &
 IF (IERR .NE. 0) THEN
    IERR = 940; RETURN; END IF
 ! Read in the problem dimensions.
-READ(VTMOP_CHKPTUNIT, IOSTAT=IERR) VTMOP%D, VTMOP%P 
+READ(VTMOP_CHKPTUNIT, IOSTAT=IERR) VTMOP%D, VTMOP%P
 IF (IERR .NE. 0) THEN
    IERR = 941; CLOSE(VTMOP_CHKPTUNIT); RETURN; END IF
 ! Read in the problem parameters.
@@ -1638,7 +1637,7 @@ ALLOCATE(VTMOP%LB(VTMOP%D), VTMOP%UB(VTMOP%D), STAT=IERR)
 IF (IERR .NE. 0) THEN
    IERR = 950; CLOSE(VTMOP_CHKPTUNIT); RETURN; END IF
 ! Read in the bound constraints.
-READ(VTMOP_CHKPTUNIT, IOSTAT=IERR) VTMOP%LB(1:VTMOP%D), VTMOP%UB(1:VTMOP%D) 
+READ(VTMOP_CHKPTUNIT, IOSTAT=IERR) VTMOP%LB(1:VTMOP%D), VTMOP%UB(1:VTMOP%D)
 IF (IERR .NE. 0) THEN
    IERR = 941; CLOSE(VTMOP_CHKPTUNIT); RETURN; END IF
 ! Initialize the iteration data.
@@ -1856,7 +1855,7 @@ SUBROUTINE VTMOP_RECOVER_DATA(DBN, DBX, DBF, IERR, DB_SIZE)
 !         993 : There was an issue allocating the local memory.
 !         994 : The number of recovered data points exceeds the budget.
 !
-! 
+!
 ! Optional arguments:
 !
 ! DB_SIZE, when present, specifies the amount of memory to allocate for
@@ -1910,7 +1909,7 @@ IF (IERR .NE. 0) THEN
 DBN = 0
 DO WHILE(.TRUE.)
    READ(VTMOP_DATAUNIT, IOSTAT=IERR) DES_PT, OBJ_PT
-   IF (IERR .NE. 0) THEN ! A read error occurred. This must be EOF. 
+   IF (IERR .NE. 0) THEN ! A read error occurred. This must be EOF.
       IERR = 0; EXIT; END IF
    ! If the database is at capacity, return an error.
    IF (DBN .GE. DB_SIZEL) THEN
@@ -2045,7 +2044,7 @@ SUBROUTINE LSHEP_FIT(D, P, N, X_VALS, Y_VALS, FIRST, PARALLEL, DES_TOL, &
 ! If there are any missing values (marked as NaN values) in Y_VALS, then
 ! these entries appear in LSHEP_TABOO(:,:).
 !
-! 
+!
 USE LINEAR_SHEPARD_MOD
 USE IEEE_ARITHMETIC
 IMPLICIT NONE
@@ -2414,7 +2413,7 @@ SUBROUTINE LH_DESIGN(D, LB, UB, N_PTS, CAND_PTS, IERR, TOL, XI)
 !
 ! UB(1:D) contains the upper bound constraints for the design space or the
 !    current LTR.
-! 
+!
 ! N_PTS is an integer specifying the size of the requested design.
 !
 !
@@ -2447,7 +2446,7 @@ SUBROUTINE LH_DESIGN(D, LB, UB, N_PTS, CAND_PTS, IERR, TOL, XI)
 ! XI(1:D) is an initial point in the design space, to include in the Latin
 !    hypercube design. When supplied, N_PTS additional points are generated,
 !    with the understanding that XI has already been evaluated.
-! 
+!
 USE QNSTOPS_MOD, ONLY : LATINDESIGN
 IMPLICIT NONE
 ! Parameter list.
@@ -2614,14 +2613,14 @@ SUBROUTINE DELAUNAYGRAPH(D, N, PTS, GRAPH, IERR, EPS, IBUDGET, PMODE)
 !    as equal, and any weights that are greater than -EPS are judged as
 !    nonnegative.  EPS cannot take a value less than the default value of
 !    \sqrt{\mu}. If any value less than \sqrt{\mu} is supplied, the default
-!    value will be used instead automatically. 
-! 
+!    value will be used instead automatically.
+!
 ! IBUDGET contains the integer budget for performing flips while
 !    iterating toward the simplex containing each interpolation point in Q.
 !    This prevents DelaunayFan from falling into an infinite loop when
 !    supplied with degenerate or near degenerate data.  By default,
 !    IBUDGET=50000. However, for extremely high-dimensional problems and
-!    pathological data sets, the default value may be insufficient. 
+!    pathological data sets, the default value may be insufficient.
 !
 ! PMODE is a logical value specifying whether to compute the Delaunay graph
 !    serially (using DELAUNAYSPARSES) or in parallel (using DELAUNAYSPARSEP).
@@ -2697,7 +2696,7 @@ IF(PMODEL) THEN
    ! Compute the Delaunay simplices containing the midpoints in parallel.
    CALL DELAUNAYSPARSEP( D, N, PTS, N*(N-1)/2, Q, SIMPS, WEIGHTS, IERR_LIST, &
                          EPS=EPSL, IBUDGET=IBUDGETL, EXACT=.FALSE., PMODE=1 )
-ELSE   
+ELSE
    ! Compute the Delaunay simplices containing the midpoints serially.
    CALL DELAUNAYSPARSES( D, N, PTS, N*(N-1)/2, Q, SIMPS, WEIGHTS, IERR_LIST, &
                          EPS=EPSL, IBUDGET=IBUDGETL, EXACT=.FALSE. )

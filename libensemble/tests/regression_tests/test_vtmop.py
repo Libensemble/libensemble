@@ -19,8 +19,8 @@
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS:
-# TESTSUITE_NPROCS:
+# TESTSUITE_COMMS: local
+# TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
 
 import numpy as np
