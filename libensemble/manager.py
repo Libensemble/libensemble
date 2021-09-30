@@ -214,19 +214,6 @@ class Manager:
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
 
-    def work_giving_term_test(self, logged=True):
-        b = self.term_test()
-        if b:
-            return b
-        elif ('sim_max' in self.exit_criteria
-              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset):
-            # To avoid starting more sims if sim_max is an exit criteria
-            if logged:
-                logger.info("Ignoring the alloc_f request for more sims than sim_max.")
-            return 1
-        else:
-            return 0
-
     def term_test(self, logged=True):
         """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
@@ -538,13 +525,16 @@ class Manager:
         "Selected statistics useful for alloc_f"
 
         libE_info = {'exit_criteria': self.exit_criteria,
+                     'elapsed_time': self.elapsed(),
                      'given_count': self.hist.given_count,
                      'returned_count': self.hist.returned_count,
                      'given_back_count': self.hist.given_back_count}
 
-        for retval, key, testf in self.term_tests:
-            if key in self.exit_criteria:
-                libE_info[key + '_tripped'] = testf(self.exit_criteria[key])
+        if 'sim_max' in self.exit_criteria:
+            libE_info['work_given_tripped'] = \
+                self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+
+        return libE_info
 
     def _alloc_work(self, H, persis_info):
         """
@@ -587,15 +577,13 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0) and not self.work_giving_term_test(logged=False):
+                if any(self.W['active'] == 0):
                     Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
                                                                persis_info)
                     if flag:
                         break
 
                     for w in Work:
-                        if self.work_giving_term_test():
-                            break
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)
