@@ -526,6 +526,7 @@ class Manager:
 
         libE_info = {'exit_criteria': self.exit_criteria,
                      'elapsed_time': self.elapsed(),
+                     'manager_kill_canceled_sims': self.kill_canceled_sims,
                      'given_count': self.hist.given_count,
                      'returned_count': self.hist.returned_count,
                      'given_back_count': self.hist.given_back_count}
