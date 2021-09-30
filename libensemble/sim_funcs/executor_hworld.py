@@ -38,7 +38,7 @@ def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
         # print('Checking output file for error at time:', task.runtime)
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
-                print("Found (deliberate) Error in ouput file - cancelling "
+                print("Found (deliberate) Error in output file - cancelling "
                       "task {} on worker {}".format(task.id, exctr.workerID))
                 exctr.kill(task)
                 calc_status = WORKER_KILL_ON_ERR
@@ -49,7 +49,7 @@ def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
         print('Task {} done on worker {}'.format(task.id, exctr.workerID))
         # Fill in calc_status if not already
         if calc_status == UNSET_TAG:
-            if task.state == 'FINISHED':  # Means finished succesfully
+            if task.state == 'FINISHED':  # Means finished successfully
                 calc_status = WORKER_DONE
             elif task.state == 'FAILED':
                 calc_status = TASK_FAILED

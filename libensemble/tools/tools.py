@@ -48,7 +48,7 @@ _USER_CALC_DIR_WARNING = \
      "Resolve this by ensuring libE_specs['ensemble_dir_path'] is unique for each run." +
      '\n' + 79*'*' + '\n\n')
 
-# ==================== Warning that persistent return data is not uesd ==========
+# ==================== Warning that persistent return data is not used ==========
 
 _PERSIS_RETURN_WARNING = \
     ('\n' + 79*'*' + '\n' +

@@ -557,7 +557,7 @@ class Executor:
         -------
 
         task: obj: Task
-            The lauched task object
+            The launched task object
 
         """
 

@@ -64,7 +64,7 @@ if [[ $USE_NODE_LIST = "false" ]]; then
 fi;
 
 # Put in a timestamp
-echo Starting executation at: `date`
+echo Starting execution at: `date`
 
 # To use srun
 export SLURM_HOSTFILE=machinefile.$SLURM_JOBID

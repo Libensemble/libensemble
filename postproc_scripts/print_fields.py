@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 
 desc = "Script to print selected fields of a libEnsemble history array from a file"
-exmple = '''examples:
+example = '''examples:
  ./print_fields.py out1.npy --fields sim_id x f returned
 
  If no fields are supplied the whole array is printed.
@@ -18,7 +18,7 @@ exmple = '''examples:
 
 np.set_printoptions(linewidth=1)
 
-parser = argparse.ArgumentParser(description=desc, epilog=exmple,
+parser = argparse.ArgumentParser(description=desc, epilog=example,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-f', '--fields', nargs='+', default=[])
 parser.add_argument('-c', '--condition', nargs='+', default=[])

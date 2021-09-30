@@ -236,7 +236,7 @@ class WorkerResources(RSetResources):
 
             from libensemble.resources.resources import Resources
 
-        Obtain worker resoruces:
+        Obtain worker resources:
 
         .. code-block:: python
 

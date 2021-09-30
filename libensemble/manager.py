@@ -486,7 +486,7 @@ class Manager:
                 for w in kill_on_workers:
                     self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H['kill_sent'][kill_ids] = True
-                    # SH*** Still expecting return? Currrently yes.... else set returned and inactive sim here.
+                    # SH*** Still expecting return? Currently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 

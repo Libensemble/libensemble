@@ -80,7 +80,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
                 # Check output file for error
                 if task.stdout_exists():
                     if 'Error' in task.read_stdout():
-                        print("Found (deliberate) Error in ouput file - "
+                        print("Found (deliberate) Error in output file - "
                               "cancelling task {}".format(task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
@@ -98,7 +98,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
     for task in task_list:
         if task.finished:
             if task.state == 'FINISHED':
-                print('Task {0} finished succesfully. Status: {1}'.
+                print('Task {0} finished successfully. Status: {1}'.
                       format(task.id, task.state))
             elif task.state == 'FAILED':
                 print('Task {0} failed. Status: {1}'.
@@ -126,7 +126,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
 exctr = Executor.executor
 
 
-print('\nTest 1 - 3 tasks should complete succesfully with status FINISHED :\n')
+print('\nTest 1 - 3 tasks should complete successfully with status FINISHED :\n')
 
 task_list = []
 cores = 4

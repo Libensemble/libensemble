@@ -211,7 +211,7 @@ def get_consensus_gradient(x, gen_specs, libE_info):
 def get_k_reach_chain_matrix(n, k):
     """ Constructs adjacency matrix for a chain matrix where the ith vertex can
         reach vertices that are at most @k distances from them (does not wrap around),
-        where the distance is based on the absoluate difference between vertices'
+        where the distance is based on the absolute difference between vertices'
         indexes.
     """
     assert 1 <= k <= n-1
@@ -278,7 +278,7 @@ def readin_csv(fname):
     -------
     - labels : np.ndarray, (m,)
         1D with the label of each vector
-    - datas : np.ndarray (2D), (m, n)
+    - data : np.ndarray (2D), (m, n)
         2D array (matrix) with the collection of dataset
     """
     n = 569
@@ -292,24 +292,24 @@ def readin_csv(fname):
         m = 30
         np.random.seed(0)
         label = 2*np.random.randint(low=0, high=1, size=m)-1
-        datas = (5*np.random.random(size=(n, m))).astype('int')
+        data = (5*np.random.random(size=(n, m))).astype('int')
 
-        return label, datas
+        return label, data
 
     label = np.zeros(n, dtype='int')
-    datas = np.zeros((n, 30))
+    data = np.zeros((n, 30))
     i = 0
 
     for line in fp.readlines():
         line = line.rsplit()[0]
         data = line.split(',')
         label[i] = data[1] == 'M'
-        datas[i, :] = [float(val) for val in data[2:32]]
+        data[i, :] = [float(val) for val in data[2:32]]
         i += 1
 
     assert i == n, 'Expected {} datapoints, recorded {}'.format(n, i)
 
-    return label, datas
+    return label, data
 
 
 def gm_opt(b, m):

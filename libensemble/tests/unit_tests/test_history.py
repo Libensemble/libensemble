@@ -448,7 +448,7 @@ def test_update_history_f_vec():
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
-    # Update two further consecutive points but with sub_array fvec componenets
+    # Update two further consecutive points but with sub_array fvec components
     size = 2
     sim_ids = [3, 4]  # First row to be filled
     calc_out = np.zeros(size, dtype=[('f', float), ('fvec', float, 2)])  # Only two values

@@ -74,7 +74,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                                              persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
-            persis_info['gen_started'] = True  # Must set after - incase break on resources
+            persis_info['gen_started'] = True  # Must set after - in case break on resources
 
     del support
     return Work, persis_info

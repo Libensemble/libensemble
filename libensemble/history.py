@@ -29,7 +29,7 @@ class History:
         Index where libEnsemble should start filling in H
 
     :ivar int given_count:
-        Number of points given to sim fuctions (according to H)
+        Number of points given to sim functions (according to H)
 
     :ivar int returned_count:
         Number of points evaluated  (according to H)

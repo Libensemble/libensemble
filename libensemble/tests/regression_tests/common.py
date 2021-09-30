@@ -85,7 +85,7 @@ def modify_Balsam_worker():
 
 def modify_Balsam_pyCoverage():
     # Tracking line coverage through our tests requires running the Python module
-    #   'coverage' directly. Balsam explicitely configures Python runs with
+    #   'coverage' directly. Balsam explicitly configures Python runs with
     #   'python [script].py args' with no current capability for specifying
     #   modules. This hack specifies the coverage module and some options.
     import balsam

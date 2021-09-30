@@ -22,7 +22,7 @@ To run forces as a standalone executable on N procs:
 
 ### Running with libEnsemble.
 
-A random sample of seeds is taken and used as imput to the sim func (forces miniapp).
+A random sample of seeds is taken and used as input to the sim func (forces miniapp).
 
 Modify build_forces.sh for target platform and run to build forces.x:
 

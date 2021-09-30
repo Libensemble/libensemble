@@ -69,7 +69,7 @@ sim_specs = {'sim_f': six_hump_camel,  # Function whose output is being minimize
 # end_sim_specs_rst_tag
 
 
-# Note that it is unusual to specifiy cancel_requested as gen_specs['out']. It is here
+# Note that it is unusual to specify cancel_requested as gen_specs['out']. It is here
 # so that cancellations are combined with regular generator outputs for testing purposes.
 # For a typical use case see test_persistent_surmise_calib.py.
 gen_specs = {'gen_f': uniform_random_sample_cancel,  # Function generating sim_f input

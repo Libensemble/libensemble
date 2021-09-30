@@ -295,7 +295,7 @@ Using cancellations to kill running simulations
 If a generated point is cancelled by the generator before it has been given to a worker for evaluation,
 then it will never be given. If it has already returned from simulation, then results can be returned,
 but the ``cancel_requested`` field remains as True. However, if the simulation is running when the manager
-recevies the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
+receives the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
 by a user function, otherwise it will be ignored. To demonstrate this, the test ``test_persistent_surmise_killsims.py``
 captures and processes this signal from the manager.
 
