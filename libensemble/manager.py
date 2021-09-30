@@ -536,10 +536,15 @@ class Manager:
 
     def _get_alloc_libE_info(self):
         "Selected statistics useful for alloc_f"
-        return {'exit_criteria': self.exit_criteria,
-                'given_count': self.hist.given_count,
-                'returned_count': self.hist.returned_count,
-                'given_back_count': self.hist.given_back_count}
+
+        libE_info = {'exit_criteria': self.exit_criteria,
+                     'given_count': self.hist.given_count,
+                     'returned_count': self.hist.returned_count,
+                     'given_back_count': self.hist.given_back_count}
+
+        for retval, key, testf in self.term_tests:
+            if key in self.exit_criteria:
+                libE_info[key + '_tripped'] = testf(self.exit_criteria[key])
 
     def _alloc_work(self, H, persis_info):
         """
