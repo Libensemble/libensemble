@@ -191,8 +191,8 @@ class Manager:
         except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
             self._kill_workers()
-            raise ManagerException('Manager errored on initialization',
-                                   'Ensemble directory already existed and wasn\'t empty.', e)
+            raise ManagerException("Manager errored on initialization",
+                                   "Ensemble directory already existed and wasn't empty.", e)
 
     # --- Termination logic routines
 
