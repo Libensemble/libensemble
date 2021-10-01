@@ -419,7 +419,6 @@ class Manager:
                            FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
-                # SH TODO update other examples
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get('use_persis_return_gen', False):
                     self.hist.update_history_x_in(w, final_data, self.safe_mode)
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get('use_persis_return_sim', False):
