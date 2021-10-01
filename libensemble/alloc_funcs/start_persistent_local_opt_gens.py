@@ -21,7 +21,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
-    if libE_info['sim_max_given'] or not any(W['active'] == 0):
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
         return {}, persis_info
 
     user = alloc_specs.get('user', {})

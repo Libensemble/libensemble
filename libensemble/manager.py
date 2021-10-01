@@ -530,15 +530,14 @@ class Manager:
     def _get_alloc_libE_info(self):
         "Selected statistics useful for alloc_f"
 
-        libE_info = {'exit_criteria': self.exit_criteria,
-                     'elapsed_time': self.elapsed(),
-                     'manager_kill_canceled_sims': self.kill_canceled_sims,
-                     'given_count': self.hist.given_count,
-                     'returned_count': self.hist.returned_count,
-                     'given_back_count': self.hist.given_back_count,
-                     'sim_max_given': self._sim_max_given()}
-
-        return libE_info
+        return {'any_idle_workers': any(self.W['active'] == 0),
+                'exit_criteria': self.exit_criteria,
+                'elapsed_time': self.elapsed(),
+                'manager_kill_canceled_sims': self.kill_canceled_sims,
+                'given_count': self.hist.given_count,
+                'returned_count': self.hist.returned_count,
+                'given_back_count': self.hist.given_back_count,
+                'sim_max_given': self._sim_max_given()}
 
     def _alloc_work(self, H, persis_info):
         """
