@@ -8,19 +8,16 @@ F77 = gfortran -std=legacy -fopenmp
 # Set the build flags here
 COMP = -c
 # List of object files
-OBJS = vtmop.o linear_shepard.o shared_modules.o \
+OBJS = vtmop_libe.o vtmop.o linear_shepard.o shared_modules.o \
        delsparse.o slatec.o qnstop.o lapack.o blas.o
 
-# Build the generator and initializer functions for libEnsemble
-all : vtmop_generator vtmop_initializer
+# Build and test the generator and initializer functions for libEnsemble
+all : $(OBJS)
 
-# Generator function
-vtmop_generator : vtmop_generator.f90 $(OBJS) 
-	$(F90) vtmop_generator.f90 $(OBJS) $(LIBS) -o vtmop_generator
+# libE interface
+vtmop_libe.o : vtmop_libe.f90 vtmop.o
+	$(F90) $(COMP) vtmop_libe.f90 -o vtmop_libe.o
 
-# Initializer function
-vtmop_initializer : vtmop_initializer.f90 $(OBJS) 
-	$(F90) vtmop_initializer.f90 $(OBJS) $(LIBS) -o vtmop_initializer
 
 # Main VTMOP library
 vtmop.o : vtmop.f90 delsparse.o linear_shepard.o qnstop.o
@@ -56,4 +53,4 @@ blas.o : blas.f
 
 # Clean command
 clean :
-	rm -f *.o *.mod vtmop_generator vtmop_initializer
+	rm -f *.o *.mod *.so

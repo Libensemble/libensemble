@@ -29,7 +29,7 @@ populated internally:
 * ``given`` [bool]: True if this ``gen_f`` output been given to a libEnsemble
   worker to be evaluated by a ``sim_f``.
 
-* ``given_time`` [float]: Time this entry 
+* ``given_time`` [float]: Time this entry
   was *first* given to a worker to be evaluated by a ``sim_f``.
 
 * ``last_given_time`` [float]: Time this entry
@@ -54,5 +54,5 @@ populated internally:
 Other than ``'sim_id'`` and ``cancel_requested``, protected fields cannot be
 overwritten by user functions unless ``libE_specs['safe_mode']`` is set to ``False``.
 
-.. warning:: 
-  Adjusting values in protected fields may crash libEnsemble.  
+.. warning::
+  Adjusting values in protected fields may crash libEnsemble.
