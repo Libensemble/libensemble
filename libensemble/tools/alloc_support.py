@@ -1,5 +1,5 @@
 import numpy as np
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, PERSIS_STOP
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources  # noqa: F401
 
