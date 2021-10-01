@@ -11,7 +11,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    if libE_info.get('sim_max_given', False):
+    if libE_info['sim_max_given'] or not any(W['active'] == 0):
         return {}, persis_info
 
     user = alloc_specs.get('user', {})

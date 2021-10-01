@@ -521,6 +521,12 @@ class Manager:
 
     # --- Main loop
 
+    def _sim_max_given(self):
+        if 'sim_max' in self.exit_criteria:
+            return self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+        else:
+            return False
+
     def _get_alloc_libE_info(self):
         "Selected statistics useful for alloc_f"
 
@@ -529,11 +535,8 @@ class Manager:
                      'manager_kill_canceled_sims': self.kill_canceled_sims,
                      'given_count': self.hist.given_count,
                      'returned_count': self.hist.returned_count,
-                     'given_back_count': self.hist.given_back_count}
-
-        if 'sim_max' in self.exit_criteria:
-            libE_info['sim_max_given'] = \
-                self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+                     'given_back_count': self.hist.given_back_count,
+                     'sim_max_given': self._sim_max_given()}
 
         return libE_info
 
@@ -578,19 +581,18 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0):
-                    Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
-                                                               persis_info)
-                    if flag:
-                        break
+                Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
+                                                           persis_info)
+                if flag:
+                    break
 
-                    for w in Work:
-                        if self._get_alloc_libE_info().get('sim_max_given', False):
-                            break
-                        self._check_work_order(Work[w], w)
-                        self._send_work_order(Work[w], w)
-                        self._update_state_on_alloc(Work[w], w)
-                assert self.term_test() or any(self.W['active'] != 0), \
+                for w in Work:
+                    if self._sim_max_given():
+                        break
+                    self._check_work_order(Work[w], w)
+                    self._send_work_order(Work[w], w)
+                    self._update_state_on_alloc(Work[w], w)
+            assert self.term_test() or any(self.W['active'] != 0), \
                     "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
             report_worker_exc(e)

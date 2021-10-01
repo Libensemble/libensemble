@@ -62,7 +62,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     If the user wants a function evaluation, then set `get_grad` to False instead.
     """
 
-    if libE_info.get('sim_max_given', False):
+    if libE_info['sim_max_given'] or not any(W['active'] == 0):
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.

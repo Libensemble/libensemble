@@ -14,7 +14,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     The first time called there are no persis_w 1st for loop is not done
     """
 
-    if libE_info.get('sim_max_given', False):
+    if libE_info['sim_max_given'] or not any(W['active'] == 0):
         return {}, persis_info
 
     user = alloc_specs.get('user', {})

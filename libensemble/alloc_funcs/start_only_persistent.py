@@ -43,7 +43,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
     """
 
-    if libE_info.get('sim_max_given', False):
+    if libE_info['sim_max_given'] or not any(W['active'] == 0):
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
