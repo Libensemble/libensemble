@@ -1,6 +1,0 @@
-vtmop.f90
-delsparse.f90
-linear_shepard.f90
-*.mod
-vtmop_generator
-vtmop_initializer
