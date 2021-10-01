@@ -80,7 +80,6 @@ available within the ``libensemble.tools.alloc_support`` module:
 
   .. automethod:: __init__
 
-
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
 

@@ -131,5 +131,5 @@ Returns:
   :doc:`(example)<data_structures/persis_info>`
 
   **stop_flag**: :obj:`int`, optional
-  Set to 1 to request libEnsemble manager to stop giving additional work after 
+  Set to 1 to request libEnsemble manager to stop giving additional work after
   receiving existing work
