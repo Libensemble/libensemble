@@ -202,11 +202,11 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.returned_count >= sim_max + self.hist.offset
+        return self.hist.returned_count >= sim_max + self.hist.returned_offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
-        return self.hist.index >= gen_max + self.hist.offset
+        return self.hist.index >= gen_max + self.hist.given_back_offset
 
     def term_test_stop_val(self, stop_val):
         """Checks against stop value criterion"""
@@ -219,7 +219,7 @@ class Manager:
         if b:
             return b
         elif ('sim_max' in self.exit_criteria
-              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.offset):
+              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset):
             # To avoid starting more sims if sim_max is an exit criteria
             if logged:
                 logger.info("Ignoring the alloc_f request for more sims than sim_max.")

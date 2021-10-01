@@ -135,7 +135,7 @@ as follows::
 
             cat $COBALT_NODEFILE > node_list
 
-Resource detection can be disabled by setting 
+Resource detection can be disabled by setting
 ``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
 configuration options on the Executor submit line. This will usually work sufficiently on
 systems that have application-level scheduling (e.g., ``aprun``, ``jsrun``) as these

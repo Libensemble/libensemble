@@ -153,7 +153,6 @@ For example::
 
     libE_specs['resource_info'] = customizer
 
-
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or
     scratch storage. This may produce performance benefits on I/O heavy simulations.

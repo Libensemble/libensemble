@@ -69,7 +69,6 @@ available within the ``libensemble.tools.alloc_support`` module:
 
   .. automethod:: __init__
 
-
 .. .. autofunction:: avail_worker_ids
 
 .. SH TODO - how to incorporate - if we need this paragraph.
@@ -82,7 +81,6 @@ available within the ``libensemble.tools.alloc_support`` module:
 ..
 .. .. currentmodule:: libensemble.tools.alloc_support
 .. .. autofunction:: gen_work
-
 
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
