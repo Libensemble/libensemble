@@ -98,9 +98,20 @@ routine can be found in ``libE_info``, passed into the allocation function::
                   'elapsed_time': float,               # Time elapsed since start of routine
                   'manager_kill_canceled_sims': bool,  # True if manager is canceling simulations
                   'given_count': int,                  # Total number of points given for simulation function evaluation
-                  'returned_count': int,               # Total number of points returned after simulation function evaluation
+                  'returned_count': int,               # Total number of points returned from simulation function evaluations
                   'given_back_count': int,             # Total number of evaluated points given back to a generator function
                   'sim_max_given': bool}               # True if the maximum number of simulations has been performed
+
+Besides the initial allocation function check, the remaining values above are useful
+for very efficient control over how work is distributed to workers, especially for
+authors of persistent generator functions. Generators that construct models based
+on *all evaluated points*, for example, may need simulation work units at the end
+of a routine to be returned to the generator anyway.
+
+Alternatively, users can track a routine's runtime inside their allocation function
+and detect impending timeouts, then pack up cleanup work requests, or even mark
+points for cancellation if the corresponding generator and simulator functions accept
+such signals from the manager.
 
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle
