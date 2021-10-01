@@ -14,16 +14,6 @@
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 
-# SH TODO: Regarding a persistent sim test
-# Should it insist on sending sims to particular workers (why is it persistent....)
-# - Or use active_recv mode to send back intermediate data.
-
-# Need to test final H data return (as with gens).
-# Should alloc setup all persistent workers at start
-#  - Whether need to specify in alloc: eg. give me a list of persistent sims
-#    - (then all persis allocs need updating to ask for persis gen only)
-# Determine test pass condition
-
 import sys
 import numpy as np
 
@@ -34,13 +24,12 @@ from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-from libensemble import logger
-logger.set_level('DEBUG')
-
+# from libensemble import logger
+# logger.set_level('DEBUG')
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-# libE_specs['use_persis_return_sim'] = True
+libE_specs['zero_resource_workers'] = [1]  # Only necessary if sims use resources.
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -61,8 +50,8 @@ gen_specs = {'gen_f': gen_f,
                       }
              }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
-alloc_specs['user'] = {'stop_frequency': 10}
+alloc_specs = {'alloc_f': alloc_f}
+# alloc_specs['user'] = {'stop_frequency': 10}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

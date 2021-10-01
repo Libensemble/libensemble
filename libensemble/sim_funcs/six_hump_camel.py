@@ -174,9 +174,9 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
     Similar to ``six_hump_camel``, but runs in persistent mode.
     """
 
-    ps = PersistentSupport(libE_info['comm'], EVAL_SIM_TAG)
+    ps = PersistentSupport(libE_info, EVAL_SIM_TAG)
 
-    # Could start with a work item to process - or just start and wait for data
+    # Either start with a work item to process - or just start and wait for data
     if H.size > 0:
         tag = None
         Work = None
@@ -186,6 +186,7 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
 
+        # calc_in: This should either be a function (unpack_work ?) or included/unpacked in ps.recv/ps.send_recv.
         if Work is not None:
             persis_info = Work.get('persis_info', persis_info)
             libE_info = Work.get('libE_info', libE_info)
@@ -193,18 +194,9 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
         # Call standard six_hump_camel sim
         H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
 
-        # SH Must return correct libE_info as this contains H_rows for H on manager.
-        # SH Or can libE_info received be stored in support function?
-        tag, Work, calc_in = ps.send_recv(H_o, libE_info=libE_info)
+        tag, Work, calc_in = ps.send_recv(H_o)
 
-    if calc_in is not None:
-        # If PERSIS_STOP signal came with data, run calculation now.
-        H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
-        final_return = H_o
-    else:
-        final_return = None
-
-    return final_return, persis_info, FINISHED_PERSISTENT_SIM_TAG
+    return None, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel_func(x):

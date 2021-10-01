@@ -199,20 +199,6 @@ class AllocSupport:
                 'tag': EVAL_GEN_TAG,
                 'libE_info': libE_info}
 
-    def stop_persis_worker(Work, i, H_fields, H_rows, persis_info, **libE_info):
-        """Create a work record for a persistent worker along with a request to leave persistent mode.
-
-        Parameters match the ``gen_work`` function.
-        A resource check is not required as the worker is already persistent.
-        """
-
-        H_fields = AllocSupport._check_H_fields(H_fields)
-        libE_info['H_rows'] = np.atleast_1d(H_rows)
-        return {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': PERSIS_STOP,
-                'libE_info': libE_info}
-
     def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound
 

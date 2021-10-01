@@ -24,7 +24,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['initial_batch_size']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None

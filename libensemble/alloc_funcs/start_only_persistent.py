@@ -14,6 +14,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     If ``alloc_specs['user']['async_return']`` is set to True, then any
     returned points are given back to the generator.
 
+    If any workers are marked as zero_resource_workers, then these will only
+    be used for generators.
+
     If any of the persistent generators has exited, then ensemble shutdown
     is triggered.
 
@@ -120,6 +123,9 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     If ``alloc_specs['user']['async_return']`` is set to True, then any
     returned points are given back to the generator.
 
+    If any workers are marked as zero_resource_workers, then these will only
+    be used for generators.
+
     If any of the persistent generators has exited, then ensemble shutdown
     is triggered.
 
@@ -188,19 +194,12 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             break
 
         sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
-
-        # Stop all persistent sims periodically.
-        if np.sum(H['returned']) >= persis_info.get('last_stop', 0) + user.get('stop_frequency', np.inf):
-            persis_info['last_stop'] = np.sum(H['returned'])
-            Work[wid] = support.stop_persis_worker(wid, sim_specs['in'], sim_ids_to_send,
-                                                   persis_info.get(wid), persistent=True)
-        else:
-            try:
-                # Note that resources will not change if worker is already persistent.
-                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send,
-                                             persis_info.get(wid), persistent=True)
-            except InsufficientFreeResources:
-                break
+        try:
+            # Note that resources will not change if worker is already persistent.
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send,
+                                         persis_info.get(wid), persistent=True)
+        except InsufficientFreeResources:
+            break
 
         points_to_evaluate[sim_ids_to_send] = False
 

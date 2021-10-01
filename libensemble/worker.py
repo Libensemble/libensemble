@@ -316,7 +316,9 @@ class Worker:
         Worker._set_rset_team(libE_info['rset_team'])
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
-        del libE_info['comm']
+
+        if 'comm' in libE_info:
+            del libE_info['comm']
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
