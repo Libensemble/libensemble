@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     deap_test.gen_specs['user'].update({
         'weights': w,
-        'indpb': 0.8/ind_size
+        'indpb': 0.8/ind_size,
     })
 
     lb = deap_test.gen_specs['user']['lb']
@@ -54,9 +54,10 @@ if __name__ == "__main__":
             # Number of points in the sample
             num_samp = 100
 
-            H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
-                                           ('fitness_values', float, 2), ('sim_id', int), ('returned', bool),
-                                           ('given_back', bool), ('given', bool)])
+            H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, 2),
+                                 ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+
+            H0 = np.zeros(num_samp, dtype=H0_dtype)
 
             # Mark these points as already have been given to be evaluated, and returned, but not given_back.
             H0[['given', 'given_back', 'returned']] = True

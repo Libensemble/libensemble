@@ -49,14 +49,12 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 num_dimensions = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f_batched,
-             'persis_in': ['x', 'f', 'sim_id'],
-             'out': [('x', float, num_dimensions)],
-             }
+gen_specs = {
+    'gen_f': gen_f_batched,
+    'persis_in': ['x', 'f', 'sim_id'],
+    'out': [('x', float, num_dimensions)], }
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -78,9 +76,9 @@ for run in range(3):
     # tasmanian_init has to be a method that returns an initialized TasmanianSparseGrid object
     # tasmanian_checkpoint_file will be overwritten between each step of the iterative refinement
     #   the final grid will also be stored in the file
-    gen_specs['user'] = {'tasmanian_init': tasmanian_init_global if run < 2 else tasmanian_init_localp,
-                         'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run)
-                         }
+    gen_specs['user'] = {
+        'tasmanian_init': tasmanian_init_global if run < 2 else tasmanian_init_localp,
+        'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run)}
 
     # setup the refinement criteria
     if run == 0:
@@ -99,8 +97,7 @@ for run in range(3):
         gen_specs['user']['sCriteria'] = 'classic'
         gen_specs['user']['iOutput'] = 0
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
         grid_files.append(gen_specs['user']['tasmanian_checkpoint_file'])

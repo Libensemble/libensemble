@@ -37,8 +37,7 @@ def worker_main(mpi_comm):
 
 def manager_main(mpi_comm):
     "Manager main routine"
-    worker_comms = [
-        MPIComm(mpi_comm, r) for r in range(1, mpi_comm.Get_size())]
+    worker_comms = [MPIComm(mpi_comm, r) for r in range(1, mpi_comm.Get_size())]
     for comm in worker_comms:
         try:
             okay_flag = True
@@ -82,12 +81,12 @@ def check_ranks(mpi_comm, test_exp, test_num):
 all_ranks = list(range(MPI.COMM_WORLD.Get_size()))
 
 tests = {1: MPI.COMM_WORLD.Dup,
-         2: mpi_comm_excl}
+         2: mpi_comm_excl, }
 
 test_exp = {1: all_ranks,
-            2: [-1] + all_ranks[:-1]}
+            2: [-1] + all_ranks[:-1], }
 
-for test_num in range(1, len(tests)+1):
+for test_num in range(1, len(tests) + 1):
     mpi_comm = tests[test_num]()
     if check_ranks(mpi_comm, test_exp, test_num):
         is_manager = (mpi_comm.Get_rank() == 0)

@@ -36,33 +36,26 @@ ngens = 2
 if ngens >= nworkers:
     sys.exit("You number of generators must be less than the number of workers -- aborting...")
 
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {'uniform_random_pause_ub': 0.5}, }
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {'uniform_random_pause_ub': 0.5}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f', 'x', 'sim_id'],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': nworkers,
+        'shutdown_limit': 10,  # Iterations on a gen before it triggers a shutdown.
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f', 'x', 'sim_id'],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': nworkers,
-                      'shutdown_limit': 10,  # Iterations on a gen before it triggers a shutdown.
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
-
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'async_return': True, 'num_active_gens': ngens}
-               }
+alloc_specs = {'alloc_f': alloc_f, 'user': {'async_return': True, 'num_active_gens': ngens}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 50, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     [_, counts] = np.unique(H['gen_time'], return_counts=True)

@@ -26,13 +26,14 @@ n = 2
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x', float, 2)],
-             'user': {'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'initial_sample': 100}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'out': [('x', float, 2)],
+    'user': {
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'initial_sample': 100}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -44,8 +45,7 @@ exit_criteria = {'elapsed_wallclock_time': 10}
 # Perform the run
 return_flag = 1
 try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 except LoggedException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0

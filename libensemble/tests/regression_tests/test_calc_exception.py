@@ -30,13 +30,14 @@ def six_hump_camel_err(H, persis_info, sim_specs, _):
 
 sim_specs = {'sim_f': six_hump_camel_err, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, 2)],
-             'user': {'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': 10}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, 2)],
+    'user': {
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': 10}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -47,8 +48,7 @@ libE_specs['abort_on_exception'] = False
 # Perform the run
 return_flag = 1
 try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 except LoggedException as e:
     print("Caught deliberate exception: {}".format(e))
     return_flag = 0

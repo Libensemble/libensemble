@@ -23,6 +23,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 import libensemble.gen_funcs
+
 libensemble.gen_funcs.rc.aposmm_optimizers = 'scipy'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
@@ -42,31 +43,30 @@ if nworkers < 2:
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float)]}
+             'out': [('f', float)], }
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool)]
+           ('local_min', bool), ('local_pt', bool), ]
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f'] + [n[0] for n in gen_out],
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'sample_points': np.round(minima, 1),
-                      'localopt_method': 'scipy_Nelder-Mead',
-                      'opt_return_codes': [0],
-                      'nu': 1e-8,
-                      'mu': 1e-8,
-                      'dist_to_bound_multiple': 0.01,
-                      'max_active_runs': 6,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f'] + [n[0] for n in gen_out],
+    'out': gen_out,
+    'user': {
+        'initial_sample_size': 100,
+        'sample_points': np.round(minima, 1),
+        'localopt_method': 'scipy_Nelder-Mead',
+        'opt_return_codes': [0],
+        'nu': 1e-8,
+        'mu': 1e-8,
+        'dist_to_bound_multiple': 0.01,
+        'max_active_runs': 6,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 alloc_specs = {'alloc_f': alloc_f}
 
-
 exit_criteria = {'sim_max': 2000}
-
 
 for run in range(2):
     persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -78,8 +78,7 @@ for run in range(2):
         sim_specs['out'] = [('f', float), ('grad', float, n)]
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
         print('[Manager]:', H[np.where(H['local_min'])]['x'])

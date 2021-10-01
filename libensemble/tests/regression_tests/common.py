@@ -63,9 +63,9 @@ def modify_Balsam_worker():
     #   worker setup so multiple workers can be run on a single node.
     import balsam
 
-    new_lines = ["        for idx in range(10):\n",
-                 "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
-                 "            self.workers.append(w)\n"]
+    new_lines = [
+        "        for idx in range(10):\n", "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
+        "            self.workers.append(w)\n"]
 
     workerfile = 'worker.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/launcher'

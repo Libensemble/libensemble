@@ -39,32 +39,26 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {}
-             }
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {}, }
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f', 'x', 'sim_id'],
-             'out': [('priority', float),
-                     ('resource_sets', int),
-                     ('x', float, n)],
-             'user': {'initial_batch_size': nworkers-1,
-                      'max_resource_sets': nworkers-1,  # Any sim created can req. 1 worker up to all.
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f', 'x', 'sim_id'],
+    'out': [('priority', float), ('resource_sets', int), ('x', float, n)],
+    'user': {
+        'initial_batch_size': nworkers - 1,
+        'max_resource_sets': nworkers - 1,  # Any sim created can req. 1 worker up to all.
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': False}}
+alloc_specs = {'alloc_f': alloc_f, 'user': {'give_all_with_same_priority': False}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
+                            alloc_specs=alloc_specs)
 
 if is_manager:
     assert flag == 0

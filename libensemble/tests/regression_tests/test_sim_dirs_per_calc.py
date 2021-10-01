@@ -41,22 +41,21 @@ libE_specs['sim_dir_copy_files'] = [dir_to_copy]
 libE_specs['sim_dir_symlink_files'] = [dir_to_symlink]
 libE_specs['ensemble_copy_back'] = True
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f,
-             'out': [('x', float, (1,))],
-             'user': {'gen_batch_size': 20,
-                      'lb': np.array([-3]),
-                      'ub': np.array([3]),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'out': [('x', float, (1, ))],
+    'user': {
+        'gen_batch_size': 20,
+        'lb': np.array([-3]),
+        'ub': np.array([3]), }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 21}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
@@ -70,9 +69,10 @@ if is_manager:
     for base, files, _ in os.walk(c_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
-            input_copied.append(all([os.path.basename(j) in files for j in
-                                    libE_specs['sim_dir_copy_files'] +
-                                    libE_specs['sim_dir_symlink_files']]))
+            input_copied.append(
+                all([
+                    os.path.basename(j) in files
+                    for j in libE_specs['sim_dir_copy_files'] + libE_specs['sim_dir_symlink_files']]))
 
     assert all(input_copied), \
         'Exact input files not copied or symlinked to each calculation directory'

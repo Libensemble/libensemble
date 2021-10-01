@@ -47,33 +47,35 @@ ub = [3.0, 2.0]
 w = (-1.0, -1.0)  # Must be a tuple
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is being minimized
-             'in': ['individual'],  # These keys will be given to the above function
-             'out': [('fitness_values', float, num_obj)]  # This output is being minimized
-             }  # end of sim spec
+sim_specs = {
+    'sim_f': deap_six_hump,  # This is the function whose output is being minimized
+    'in': ['individual'],  # These keys will be given to the above function
+    'out': [('fitness_values', float, num_obj)]  # This output is being minimized
+}  # end of sim spec
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
-             'persis_in': ['fitness_values', 'sim_id'],
-             'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
-             'user': {'lb': lb,
-                      'ub': ub,
-                      'weights': w,
-                      'pop_size': pop_size,
-                      'indiv_size': ind_size,
-                      'cxpb': 0.8,  # probability two individuals are crossed
-                      'eta': 20.0,  # large eta = low variation in children
-                      'indpb': 0.8/ind_size}  # end user
-             }  # end gen specs
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
+    'persis_in': ['fitness_values', 'sim_id'],
+    'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
+    'user': {
+        'lb': lb,
+        'ub': ub,
+        'weights': w,
+        'pop_size': pop_size,
+        'indiv_size': ind_size,
+        'cxpb': 0.8,  # probability two individuals are crossed
+        'eta': 20.0,  # large eta = low variation in children
+        'indpb': 0.8 / ind_size}  # end user
+}  # end gen specs
 
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': True}}
+alloc_specs = {'alloc_f': alloc_f, 'user': {'give_all_with_same_priority': True}}
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
 # For deap, this should be pop_size*number of generations+1
-exit_criteria = {'sim_max': pop_size*(ngen+1)}
+exit_criteria = {'sim_max': pop_size * (ngen + 1)}
 
 for run in range(3):
 
@@ -82,9 +84,9 @@ for run in range(3):
     # Number of points in the sample
     num_samp = 100
 
-    H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
-                                   ('fitness_values', float, num_obj), ('sim_id', int), ('returned', bool),
-                                   ('given_back', bool), ('given', bool)])
+    H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, num_obj),
+                         ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+    H0 = np.zeros(num_samp, dtype=H0_dtype)
 
     # Mark these points as already have been given to be evaluated, and returned, but not given_back.
     H0['generation'][:] = 1

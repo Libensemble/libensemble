@@ -29,21 +29,20 @@ libE_specs['profile'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'out': [('x', float, (1,))],
-             'user': {'gen_batch_size': 500,
-                      'lb': np.array([-3]),
-                      'ub': np.array([3]),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'out': [('x', float, (1, ))],
+    'user': {
+        'gen_batch_size': 500,
+        'lb': np.array([-3]),
+        'ub': np.array([3]), }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 501}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     assert len(H) >= 501
@@ -52,7 +51,7 @@ if is_manager:
     assert 'manager.prof' in os.listdir(), 'Expected manager profile not found after run'
     os.remove('manager.prof')
 
-    prof_files = ['worker_{}.prof'.format(i+1) for i in range(nworkers)]
+    prof_files = ['worker_{}.prof'.format(i + 1) for i in range(nworkers)]
 
     # Ensure profile writes complete before checking
     time.sleep(0.5)

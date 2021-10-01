@@ -41,29 +41,32 @@ eps = 1e-2
 # Even though we do not use consensus matrix, we still need to pass into alloc
 A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'obj_component', 'get_grad'],
-             'out': [('f_i', float), ('gradf_i', float, (n,)),
-                     ],
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x', 'obj_component', 'get_grad'],
+    'out': [
+        ('f_i', float),
+        ('gradf_i', float, (n, )), ], }
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
-gen_specs = {'gen_f': gen_f,
-             'out': [('x', float, (n,)),
-                     ('f_i', float),
-                     ('eval_pt', bool),       # eval point
-                     ('consensus_pt', bool),  # does not require a sim
-                     ('obj_component', int),  # which {f_i} to eval
-                     ('get_grad', bool),
-                     ],
-             'user': {'lb': np.array([-1.2, 1]*(n//2)),
-                      'ub': np.array([-1.2, 1]*(n//2)),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'out': [
+        ('x', float, (n, )),
+        ('f_i', float),
+        ('eval_pt', bool),  # eval point
+        ('consensus_pt', bool),  # does not require a sim
+        ('obj_component', int),  # which {f_i} to eval
+        ('get_grad', bool), ],
+    'user': {
+        'lb': np.array([-1.2, 1] * (n // 2)),
+        'ub': np.array([-1.2, 1] * (n // 2)), }}
 
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'m': m, 'num_gens': num_gens},
-               }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'user': {
+        'm': m,
+        'num_gens': num_gens}, }
 
 persis_info = {}
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
@@ -71,8 +74,7 @@ persis_info['gen_params'] = ({'eps': eps})
 persis_info['sim_params'] = ({'const': 1})
 persis_info['A'] = A
 
-
-assert n == 2*m, "@n must be double of @m"
+assert n == 2 * m, "@n must be double of @m"
 
 # Perform the run
 libE_specs['safe_mode'] = False
@@ -88,8 +90,7 @@ for i in range(2):
         if is_manager:
             print('=== Testing independent optimize w/ stoppage ===', flush=True)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
         print('=== End algorithm ===', flush=True)
@@ -112,4 +113,4 @@ for i in range(2):
             f_i = eval_H[last_eval_idx]['f_i']
             F += f_i
 
-        assert F-fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F-fstar, eps, fstar)
+        assert F - fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F - fstar, eps, fstar)

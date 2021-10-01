@@ -27,21 +27,22 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-num_pts = 30*(nworkers)
+num_pts = 30 * (nworkers)
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('large', float, 1000000)], 'user': {}}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, (2,))],
-             'user': {'gen_batch_size': num_pts,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2, ))],
+    'user': {
+        'gen_batch_size': num_pts,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 2*num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2 * num_pts, 'elapsed_wallclock_time': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
@@ -61,17 +62,16 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
 
         if time == 0:
             sim_specs['user'].pop('pause_time')
-            gen_specs['user']['gen_batch_size'] = num_pts//2
+            gen_specs['user']['gen_batch_size'] = num_pts // 2
 
         persis_info['next_to_give'] = 0
         persis_info['total_gen_calls'] = 1
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                    persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_manager:
             assert flag == 0
-            assert len(H) == 2*num_pts
+            assert len(H) == 2 * num_pts
 
         del H
         gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.

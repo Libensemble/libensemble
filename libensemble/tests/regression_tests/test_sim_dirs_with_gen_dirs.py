@@ -35,8 +35,7 @@ dir_to_symlink_gen = gen_input_dir + '/symlink_this_gen'
 c_ensemble = './ensemble_combined_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
 print('creating ensemble dir: ', c_ensemble, flush=True)
 
-for dir in [sim_input_dir, dir_to_copy_sim, dir_to_symlink_sim,
-            gen_input_dir, dir_to_copy_gen, dir_to_symlink_gen]:
+for dir in [sim_input_dir, dir_to_copy_sim, dir_to_symlink_sim, gen_input_dir, dir_to_copy_gen, dir_to_symlink_gen]:
     if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
@@ -56,20 +55,19 @@ libE_specs['ensemble_copy_back'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'out': [('x', float, (1,))],
-             'user': {'gen_batch_size': 20,
-                      'lb': np.array([-3]),
-                      'ub': np.array([3]),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'out': [('x', float, (1, ))],
+    'user': {
+        'gen_batch_size': 20,
+        'lb': np.array([-3]),
+        'ub': np.array([3]), }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 21}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 
 def check_copied(type):
@@ -77,9 +75,10 @@ def check_copied(type):
     for base, files, _ in os.walk(c_ensemble):
         basedir = base.split('/')[-1]
         if basedir.startswith(type):
-            input_copied.append(all([os.path.basename(j) in files for j in
-                                    libE_specs[type + '_dir_copy_files'] +
-                                    libE_specs[type + '_dir_symlink_files']]))
+            input_copied.append(
+                all([
+                    os.path.basename(j) in files
+                    for j in libE_specs[type + '_dir_copy_files'] + libE_specs[type + '_dir_symlink_files']]))
 
     assert all(input_copied), \
         'All input files not copied or symlinked to each {} calc dir'.format(type)

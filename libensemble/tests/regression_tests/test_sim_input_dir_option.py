@@ -40,20 +40,19 @@ libE_specs['ensemble_copy_back'] = True
 
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
-gen_specs = {'gen_f': gen_f,
-             'out': [('x', float, (1,))],
-             'user': {'gen_batch_size': 20,
-                      'lb': np.array([-3]),
-                      'ub': np.array([3]),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'out': [('x', float, (1, ))],
+    'user': {
+        'gen_batch_size': 20,
+        'lb': np.array([-3]),
+        'ub': np.array([3]), }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'sim_max': 21}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     assert os.path.isdir(o_ensemble), \

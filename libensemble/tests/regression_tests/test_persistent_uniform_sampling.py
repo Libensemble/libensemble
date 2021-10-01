@@ -29,17 +29,16 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('grad', float, n)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('grad', float, n)], }
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['x', 'f', 'grad', 'sim_id'],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': 20,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['x', 'f', 'grad', 'sim_id'],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': 20,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -51,8 +50,7 @@ exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
 
 libE_specs['kill_canceled_sims'] = False
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert len(np.unique(H['gen_time'])) == 2

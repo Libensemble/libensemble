@@ -30,18 +30,18 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
 
 gen_out += [('x', float, 2), ('x_on_cube', float, 2)]
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['x', 'f'],
-             'out': gen_out,
-             'user': {'localopt_method': 'LN_BOBYQA',
-                      'xtol_rel': 1e-4,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': 2,
-                      'dist_to_bound_multiple': 0.5,
-                      'localopt_maxeval': 4
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['x', 'f'],
+    'out': gen_out,
+    'user': {
+        'localopt_method': 'LN_BOBYQA',
+        'xtol_rel': 1e-4,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': 2,
+        'dist_to_bound_multiple': 0.5,
+        'localopt_maxeval': 4}}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
@@ -54,8 +54,7 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert flag == 0

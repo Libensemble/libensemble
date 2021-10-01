@@ -31,8 +31,7 @@ gen_specs = {}
 n_samp = 1000
 n = 8
 
-H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('f', float, 8), ('sim_id', int),
-                             ('given', bool), ('returned', bool)])
+H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('f', float, 8), ('sim_id', int), ('given', bool), ('returned', bool)])
 
 np.random.seed(0)
 H0['x'] = gen_borehole_input(n_samp)
@@ -48,9 +47,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
 exit_criteria = {'sim_max': len(H0)}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            alloc_specs=alloc_specs, libE_specs=libE_specs,
-                            H0=H0)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
 if is_manager:
     assert len(H) == len(H0)

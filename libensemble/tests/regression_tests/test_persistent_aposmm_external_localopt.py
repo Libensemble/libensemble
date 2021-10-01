@@ -31,6 +31,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 import libensemble.gen_funcs
+
 libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
@@ -52,21 +53,22 @@ if nworkers < 2:
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float)]}
+             'out': [('f', float)], }
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool)]
+           ('local_min', bool), ('local_pt', bool), ]
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f'] + [n[0] for n in gen_out],
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'sample_points': np.round(minima, 1),
-                      'localopt_method': 'external_localopt',
-                      'max_active_runs': 6,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f'] + [n[0] for n in gen_out],
+    'out': gen_out,
+    'user': {
+        'initial_sample_size': 100,
+        'sample_points': np.round(minima, 1),
+        'localopt_method': 'external_localopt',
+        'max_active_runs': 6,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 shutil.copy('./scripts_used_by_reg_tests/call_matlab_octave_script.m', './')
 shutil.copy('./scripts_used_by_reg_tests/wrapper_obj_fun.m', './')
 
@@ -77,8 +79,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 500}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     print('[Manager]:', H[np.where(H['local_min'])]['x'])

@@ -27,19 +27,22 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['save_every_k_sims'] = 400
 libE_specs['save_every_k_gens'] = 300
 
-sim_specs = {'sim_f': six_hump_camel,  # Function whose output is being minimized
-             'in': ['x'],              # Keys to be given to sim_f
-             'out': [('f', float)],    # Name of the outputs from sim_f
-             }
+sim_specs = {
+    'sim_f': six_hump_camel,  # Function whose output is being minimized
+    'in': ['x'],  # Keys to be given to sim_f
+    'out': [('f', float)],  # Name of the outputs from sim_f
+}
 # end_sim_specs_rst_tag
 
-gen_specs = {'gen_f': uniform_random_sample,     # Function generating sim_f input
-             'out': [('x', float, (2,))],        # Tell libE gen_f output, type, size
-             'user': {'gen_batch_size': 500,     # Used by this specific gen_f
-                      'lb': np.array([-3, -2]),  # Used by this specific gen_f
-                      'ub': np.array([3, 2])     # Used by this specific gen_f
-                      }
-             }
+gen_specs = {
+    'gen_f': uniform_random_sample,  # Function generating sim_f input
+    'out': [('x', float, (2, ))],  # Tell libE gen_f output, type, size
+    'user': {
+        'gen_batch_size': 500,  # Used by this specific gen_f
+        'lb': np.array([-3, -2]),  # Used by this specific gen_f
+        'ub':
+            np.array([3, 2])  # Used by this specific gen_f
+    }}
 # end_gen_specs_rst_tag
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -47,8 +50,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'gen_max': 501, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     assert flag == 0

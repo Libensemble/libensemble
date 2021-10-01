@@ -44,14 +44,15 @@ nodes_per_worker = 2.5
 # For varying size test - relate node count to nworkers
 in_place = libE_specs['zero_resource_workers']
 n_gens = len(in_place)
-nsim_workers = nworkers-n_gens
+nsim_workers = nworkers - n_gens
 comms = libE_specs['comms']
 node_file = 'nodelist_mpi_runners_zrw_supernode_uneven_comms_' + str(comms) + '_wrks_' + str(nworkers)
-nnodes = int(nsim_workers*nodes_per_worker)
+nnodes = int(nsim_workers * nodes_per_worker)
 
 # Mock up system
-custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-                    'node_file': node_file}      # Name of file containing a node-list
+custom_resources = {
+    'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+    'node_file': node_file}  # Name of file containing a node-list
 libE_specs['resource_info'] = custom_resources
 
 if is_manager:
@@ -65,26 +66,29 @@ exctr = MPIExecutor(custom_info={'mpi_runner': 'srun'})
 exctr.register_app(full_path=sim_app, calc_type='sim')
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': 20,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': 20,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': (nsim_workers)*rounds}
+exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 # Each worker has either 3 or 2 nodes. Basic test list for portable options
-test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
-                  ]
+test_list_base = [
+    {
+        'testid': 'base1'},  # Give no config and no extra_args
+]
 
 # Example: On 3 workers, runlines should be ...
 # (one workers has 3 nodes, the other 2 - does not split 2.5 nodes each).
@@ -101,8 +105,8 @@ exp_tasks = []
 exp_srun = []
 
 # Hard coding an example for 2 nodes to avoid replicating general logic in libEnsemble.
-low_npw = nnodes//nsim_workers
-high_npw = nnodes//nsim_workers + 1
+low_npw = nnodes // nsim_workers
+high_npw = nnodes // nsim_workers + 1
 
 nodelist = []
 for i in range(1, nnodes + 1):
@@ -110,13 +114,13 @@ for i in range(1, nnodes + 1):
 
 inode = 0
 for i in range(nsim_workers):
-    if i < (nsim_workers//2):
+    if i < (nsim_workers // 2):
         npw = high_npw
     else:
         npw = low_npw
-    nodename = ','.join(nodelist[inode:inode+npw])
+    nodename = ','.join(nodelist[inode:inode + npw])
     inode += npw
-    ntasks = 16*npw
+    ntasks = 16 * npw
     loc_nodes = npw
     exp_tasks.append(ntasks)
     exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(loc_nodes) + srun_p4)
@@ -125,10 +129,7 @@ test_list = test_list_base
 exp_list = exp_srun
 sim_specs['user'] = {'tests': test_list, 'expect': exp_list, 'persis_gens': n_gens}
 
-
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
-
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 # All asserts are in sim func

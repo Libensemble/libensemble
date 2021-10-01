@@ -19,6 +19,7 @@ import sys
 import numpy as np
 
 import libensemble.gen_funcs
+
 libensemble.gen_funcs.rc.aposmm_optimizers = ['nlopt', 'scipy']
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
@@ -28,7 +29,6 @@ from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 if nworkers < 2:
@@ -37,27 +37,26 @@ if nworkers < 2:
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
-             'out': [('f', float)]}
+             'out': [('f', float)], }
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool)]
+           ('local_min', bool), ('local_pt', bool), ]
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f'] + [n[0] for n in gen_out],
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'localopt_method': 'LN_BOBYQA',
-                      'xtol_abs': 1e-8,
-                      'ftol_abs': 1e-8,
-                      'lb': np.array([0, -np.pi/2]),
-                      'ub': np.array([2*np.pi, 3*np.pi/2]),
-                      'periodic': True,
-                      'print': True
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f'] + [n[0] for n in gen_out],
+    'out': gen_out,
+    'user': {
+        'initial_sample_size': 100,
+        'localopt_method': 'LN_BOBYQA',
+        'xtol_abs': 1e-8,
+        'ftol_abs': 1e-8,
+        'lb': np.array([0, -np.pi / 2]),
+        'ub': np.array([2 * np.pi, 3 * np.pi / 2]),
+        'periodic': True,
+        'print': True}}
 
 alloc_specs = {'alloc_f': alloc_f}
-
 
 exit_criteria = {'sim_max': 1000}
 
@@ -71,8 +70,7 @@ for run in range(2):
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
         assert persis_info[1].get('run_order'), "Run_order should have been given back"
