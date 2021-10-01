@@ -70,8 +70,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
         inds = time.time() - H['last_given_time'][rows] > user['cancel_sims_time']
         to_request_cancel = rows[inds]
-        H[to_request_cancel]['cancel_requested'] = True
-        print("Marked to cancel:", to_request_cancel)
+        for row in to_request_cancel:
+            H[row]['cancel_requested'] = True
 
     del support
     return Work, persis_info

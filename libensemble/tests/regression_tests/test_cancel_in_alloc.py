@@ -1,6 +1,9 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Runs libEnsemble in order to test the ability of an allocation function to
+# cancel long-running simulations. In this case, the simulation has a run-time
+# in seconds that is drawn uniformly from [0,10] and any time the allocation
+# function is called and a sim_id has been evaluated for more than 5 seconds,
+# it is cancelled. 
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_cancel_in_alloc.py
@@ -54,7 +57,5 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                             libE_specs=libE_specs, alloc_specs=alloc_specs)
 
 if is_manager:
-    eprint(flag)
-    eprint(H['cancel_requested'])
-    assert flag == 2
+    assert np.any(H['cancel_requested']) and np.any(H['kill_sent']), "This test should have requested a cancellation and had a kill sent"
     save_libE_output(H, persis_info, __file__, nworkers)
