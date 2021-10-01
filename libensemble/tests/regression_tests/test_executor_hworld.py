@@ -71,11 +71,12 @@ exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 # else:
 #    CalcInfo.keep_worker_stat_files = False # Testing this functionality
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_task},
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('cstat', int)],
+    'user': {
+        'cores': cores_per_task}, }
 
 gen_specs = {
     'gen_f': gen_f,

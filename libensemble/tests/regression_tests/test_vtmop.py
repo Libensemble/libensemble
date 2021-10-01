@@ -63,7 +63,10 @@ lower_bounds = lower * np.ones(num_dims)
 upper_bounds = upper * np.ones(num_dims)
 
 # Set up the simulator
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float, num_objs)], }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float, num_objs)], }
 
 # Set up the generator
 gen_specs = {
@@ -130,7 +133,7 @@ for run in range(3):
 
         # Initialize H0
         H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
-                         ('given', bool)]
+                    ('given', bool)]
         H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = X
         H0['sim_id'] = range(size)
@@ -170,9 +173,9 @@ for run in range(3):
 
         # Initialize H0 with values from H (from the run==1 case)
         size = sum(H['returned'])
-        H0_dtype =[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
-        ('given', bool)] 
-        H0 = np.zeros( size, dtype=H0_dtype)
+        H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
+                    ('given', bool)]
+        H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = H['x'][:size]
         H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True

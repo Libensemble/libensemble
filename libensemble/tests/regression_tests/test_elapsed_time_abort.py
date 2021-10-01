@@ -25,11 +25,12 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {'pause_time': 2},
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'pause_time': 2}, }
 
 gen_specs = {
     'gen_f': gen_f,
@@ -40,10 +41,12 @@ gen_specs = {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': give_sim_work_first,
-               'out': [],
-               'user': {'batch_mode': False,
-                        'num_active_gens': 2},}
+alloc_specs = {
+    'alloc_f': give_sim_work_first,
+    'out': [],
+    'user': {
+        'batch_mode': False,
+        'num_active_gens': 2}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

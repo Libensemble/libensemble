@@ -31,9 +31,10 @@ array_size = int(1e6)  # Size of large array in sim_specs
 rounds = 2  # Number of work units for each worker
 sim_max = nworkers * rounds
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('arr_vals', float, array_size), ('scal_val', float)], }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('arr_vals', float, array_size), ('scal_val', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

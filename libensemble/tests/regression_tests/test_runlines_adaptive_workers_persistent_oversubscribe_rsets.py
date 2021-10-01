@@ -49,7 +49,12 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='helloworld')
 
 n = 2
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {'dry_run': True}, }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'dry_run': True}, }
 
 gen_specs = {
     'gen_f': gen_f,
@@ -61,7 +66,10 @@ gen_specs = {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f, 'user': {'give_all_with_same_priority': False}, }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'user': {
+        'give_all_with_same_priority': False}, }
 
 # comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
 

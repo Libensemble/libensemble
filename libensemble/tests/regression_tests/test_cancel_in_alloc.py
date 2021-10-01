@@ -32,8 +32,8 @@ sim_specs = {
     "sim_f": sim_f,
     "in": ["x"],
     "out": [("f", float)],
-    "user": {"uniform_random_pause_ub": 10}
-    }
+    "user": {
+        "uniform_random_pause_ub": 10}, }
 
 gen_specs = {
     "gen_f": gen_f,

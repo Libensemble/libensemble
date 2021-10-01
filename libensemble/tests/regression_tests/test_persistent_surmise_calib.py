@@ -58,10 +58,19 @@ if __name__ == '__main__':
     # Stop after max_emul_runs runs of the emulator
     max_evals = init_sample_size + max_add_thetas * n_x
 
-    sim_specs = {'sim_f': sim_f, 'in': ['x', 'thetas'], 'out': [('f', float)], 'user': {'num_obs': n_x}, }
+    sim_specs = {
+        'sim_f': sim_f,
+        'in': ['x', 'thetas'],
+        'out': [('f', float)],
+        'user': {
+            'num_obs': n_x}, }
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('priority', int), ('obs', float, n_x),
-               ('obsvar', float, n_x), ]
+    gen_out = [
+        ('x', float, ndims),
+        ('thetas', float, nparams),
+        ('priority', int),
+        ('obs', float, n_x),
+        ('obsvar', float, n_x), ]
 
     gen_specs = {
         'gen_f': gen_f,

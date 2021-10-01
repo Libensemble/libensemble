@@ -30,7 +30,12 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {'uniform_random_pause_ub': 0.5}, }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'uniform_random_pause_ub': 0.5}, }
 
 gen_specs = {
     'gen_f': gen_f,
@@ -41,7 +46,11 @@ gen_specs = {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'async_return': True}, }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'out': [],
+    'user': {
+        'async_return': True}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

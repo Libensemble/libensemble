@@ -48,8 +48,12 @@ sim_specs = {
     'user': {
         'combine_component_func': lambda x: np.sum(np.power(x, 2))}}
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool), ]
+gen_out = [
+    ('x', float, n),
+    ('x_on_cube', float, n),
+    ('sim_id', int),
+    ('local_min', bool),
+    ('local_pt', bool), ]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 lb = (-2 - np.pi / 10) * np.ones(n)

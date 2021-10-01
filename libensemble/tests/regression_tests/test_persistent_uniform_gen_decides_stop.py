@@ -36,7 +36,12 @@ ngens = 2
 if ngens >= nworkers:
     sys.exit("You number of generators must be less than the number of workers -- aborting...")
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], 'user': {'uniform_random_pause_ub': 0.5}, }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'uniform_random_pause_ub': 0.5}, }
 
 gen_specs = {
     'gen_f': gen_f,
@@ -48,7 +53,11 @@ gen_specs = {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f, 'user': {'async_return': True, 'num_active_gens': ngens}, }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'user': {
+        'async_return': True,
+        'num_active_gens': ngens}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

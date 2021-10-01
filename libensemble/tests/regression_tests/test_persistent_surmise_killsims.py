@@ -83,8 +83,12 @@ if __name__ == '__main__':
             'num_obs': n_x,
             'init_sample_size': init_sample_size}}
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams), ('priority', int), ('obs', float, n_x),
-               ('obsvar', float, n_x), ]
+    gen_out = [
+        ('x', float, ndims),
+        ('thetas', float, nparams),
+        ('priority', int),
+        ('obs', float, n_x),
+        ('obsvar', float, n_x), ]
 
     gen_specs = {
         'gen_f': gen_f,

@@ -85,7 +85,7 @@ for run in range(3):
     num_samp = 100
 
     H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, num_obj),
-                         ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+                ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
     H0 = np.zeros(num_samp, dtype=H0_dtype)
 
     # Mark these points as already have been given to be evaluated, and returned, but not given_back.

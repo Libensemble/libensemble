@@ -32,7 +32,10 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('grad', float, n)], }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('grad', float, n)], }
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {

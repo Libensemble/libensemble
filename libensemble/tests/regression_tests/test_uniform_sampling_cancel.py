@@ -87,15 +87,34 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_max = 500
 exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
 
-aspec1 = {'alloc_f': gswf, 'out': [], 'user': {'batch_mode': True, 'num_active_gens': 1}, }
+aspec1 = {
+    'alloc_f': gswf,
+    'out': [],
+    'user': {
+        'batch_mode': True,
+        'num_active_gens': 1}, }
 
-aspec2 = {'alloc_f': gswf, 'out': [], 'user': {'batch_mode': True, 'num_active_gens': 2}, }
+aspec2 = {
+    'alloc_f': gswf,
+    'out': [],
+    'user': {
+        'batch_mode': True,
+        'num_active_gens': 2}, }
 
-aspec3 = {'alloc_f': fast_gswf, 'out': [], 'user': {}, }
+aspec3 = {
+    'alloc_f': fast_gswf,
+    'out': [],
+    'user': {}, }
 
-aspec4 = {'alloc_f': ensure_one_active_gen, 'out': [], 'user': {}, }
+aspec4 = {
+    'alloc_f': ensure_one_active_gen,
+    'out': [],
+    'user': {}, }
 
-aspec5 = {'alloc_f': give_pregenerated_sim_work, 'out': [], 'user': {}, }
+aspec5 = {
+    'alloc_f': give_pregenerated_sim_work,
+    'out': [],
+    'user': {}, }
 
 allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 

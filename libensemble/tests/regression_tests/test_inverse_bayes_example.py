@@ -51,7 +51,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 val = gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches'] * gen_specs['user']['num_batches']
 exit_criteria = {
     'sim_max': val,
-    'elapsed_wallclock_time': 300}
+    'elapsed_wallclock_time': 300, }
 
 alloc_specs = {'out': [], 'alloc_f': alloc_f}
 

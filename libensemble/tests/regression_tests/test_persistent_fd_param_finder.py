@@ -34,7 +34,10 @@ f0 = noisy_function(x0)
 n = len(x0)
 p = len(f0)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x', 'f_ind'], 'out': [('f_val', float)], }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x', 'f_ind'],
+    'out': [('f_val', float)], }
 
 # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
 gen_specs = {

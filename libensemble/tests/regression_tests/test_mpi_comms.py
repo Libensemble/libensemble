@@ -80,11 +80,13 @@ def check_ranks(mpi_comm, test_exp, test_num):
 # Run Tests
 all_ranks = list(range(MPI.COMM_WORLD.Get_size()))
 
-tests = {1: MPI.COMM_WORLD.Dup,
-         2: mpi_comm_excl, }
+tests = {
+    1: MPI.COMM_WORLD.Dup,
+    2: mpi_comm_excl, }
 
-test_exp = {1: all_ranks,
-            2: [-1] + all_ranks[:-1], }
+test_exp = {
+    1: all_ranks,
+    2: [-1] + all_ranks[:-1], }
 
 for test_num in range(1, len(tests) + 1):
     mpi_comm = tests[test_num]()

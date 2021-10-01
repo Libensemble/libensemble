@@ -39,8 +39,7 @@ if __name__ == "__main__":
 
     deap_test.gen_specs['user'].update({
         'weights': w,
-        'indpb': 0.8/ind_size,
-    })
+        'indpb': 0.8 / ind_size, })
 
     lb = deap_test.gen_specs['user']['lb']
     ub = deap_test.gen_specs['user']['ub']
@@ -55,7 +54,7 @@ if __name__ == "__main__":
             num_samp = 100
 
             H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, 2),
-                                 ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+                        ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
 
             H0 = np.zeros(num_samp, dtype=H0_dtype)
 

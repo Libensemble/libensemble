@@ -42,22 +42,24 @@ def write_uniform_gen_func(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
-uniform_or_localopt_gen_out = [('priority', float),
-                               ('local_pt', bool),
-                               ('known_to_aposmm', bool),
-                               ('dist_to_unit_bounds', float),
-                               ('dist_to_better_l', float),
-                               ('dist_to_better_s', float),
-                               ('ind_of_better_l', int),
-                               ('ind_of_better_s', int),
-                               ('started_run', bool),
-                               ('num_active_runs', int),
-                               ('local_min', bool), ]
+uniform_or_localopt_gen_out = [
+    ('priority', float),
+    ('local_pt', bool),
+    ('known_to_aposmm', bool),
+    ('dist_to_unit_bounds', float),
+    ('dist_to_better_l', float),
+    ('dist_to_better_s', float),
+    ('ind_of_better_l', int),
+    ('ind_of_better_s', int),
+    ('started_run', bool),
+    ('num_active_runs', int),
+    ('local_min', bool), ]
 
 aposmm_gen_out = copy.deepcopy(uniform_or_localopt_gen_out)
-aposmm_gen_out += [('sim_id', int),
-                   ('paused', bool),
-                   ('pt_id', int), ]  # Identify the same point evaluated by different sim_f's or components
+aposmm_gen_out += [
+    ('sim_id', int),
+    ('paused', bool),
+    ('pt_id', int), ]  # Identify the same point evaluated by different sim_f's or components
 
 # give_sim_work_first persis_info
 persis_info_1 = {
