@@ -47,8 +47,8 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send,
-                                         persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid),
+                                         persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -64,8 +64,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             try:
-                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info.get(wid),
-                                             persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1

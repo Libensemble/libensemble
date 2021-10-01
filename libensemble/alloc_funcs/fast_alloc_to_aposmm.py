@@ -40,7 +40,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < user.get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count + 1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')

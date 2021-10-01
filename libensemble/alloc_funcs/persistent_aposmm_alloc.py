@@ -44,16 +44,15 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
     # If any persistent worker's calculated values have returned, give them back.
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
-        if (persis_info.get('sample_done') or
-           sum(H['returned']) >= init_sample_size + persis_info['samples_in_H0']):
+        if (persis_info.get('sample_done') or sum(H['returned']) >= init_sample_size + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 
             returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
             if np.any(returned_but_not_given):
                 point_ids = np.where(returned_but_not_given)[0]
-                Work[wid] = support.gen_work(wid, gen_specs['persis_in'],
-                                             point_ids, persis_info.get(wid), persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
+                                             persistent=True)
                 returned_but_not_given[point_ids] = False
 
     for wid in support.avail_worker_ids(persistent=False):
@@ -73,8 +72,8 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info.get(wid)['nworkers'] = len(W)
             try:
-                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)),
-                                             persis_info.get(wid), persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)), persis_info.get(wid),
+                                             persistent=True)
             except InsufficientFreeResources:
                 break
             persis_info['gen_started'] = True  # Must set after - incase break on resources

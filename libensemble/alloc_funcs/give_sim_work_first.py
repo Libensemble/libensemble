@@ -54,7 +54,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= user.get('num_active_gens', gen_count+1):
+            if gen_count >= user.get('num_active_gens', gen_count + 1):
                 break
 
             # Do not start gen instances in batch mode if workers still working

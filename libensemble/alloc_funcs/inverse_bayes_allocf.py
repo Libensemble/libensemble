@@ -37,15 +37,13 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             # Then give back everything in the last batch
             batch_ids = H['batch'][inds_generated_by_wid]
             last_batch_inds = (batch_ids == np.max(batch_ids))
-            inds_to_send_back = np.where(np.logical_and(inds_generated_by_wid,
-                                                        last_batch_inds))[0]
+            inds_to_send_back = np.where(np.logical_and(inds_generated_by_wid, last_batch_inds))[0]
             if H['batch'][-1] > 0:
-                n = gen_specs['user']['subbatch_size']*gen_specs['user']['num_subbatches']
+                n = gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches']
                 k = H['batch'][-1]
-                H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
+                H['weight'][(n * (k - 1)):(n * k)] = H['weight'][(n * k):(n * (k + 1))]
 
-            Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back,
-                                         persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back, persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -66,8 +64,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
             # Finally, generate points since there is nothing else to do.
             try:
-                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
-                                             persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1

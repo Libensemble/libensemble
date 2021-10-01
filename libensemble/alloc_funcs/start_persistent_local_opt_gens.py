@@ -51,8 +51,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         if support.all_returned(H, gen_inds):
             last_time_pos = np.argmax(H['given_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
-            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], last_ind,
-                                         persis_info[wid], persistent=True)
+            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], last_ind, persis_info[wid], persistent=True)
             persis_info[wid]['run_order'].append(last_ind)
 
     for wid in support.avail_worker_ids(persistent=False):
@@ -69,8 +68,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             # Start at the best possible starting point
             ind = starting_inds[np.argmin(H['f'][starting_inds])]
             try:
-                Work[wid] = support.gen_work(wid, gen_specs['persis_in'], ind,
-                                             persis_info[wid], persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs['persis_in'], ind, persis_info[wid], persistent=True)
             except InsufficientFreeResources:
                 break
             H['started_run'][ind] = 1
@@ -91,9 +89,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 break
             points_to_evaluate[sim_ids_to_send] = False
 
-        elif (gen_count == 0
-              and not np.any(np.logical_and(W['active'] == EVAL_GEN_TAG,
-                                            W['persis_state'] == 0))):
+        elif (gen_count == 0 and not np.any(np.logical_and(W['active'] == EVAL_GEN_TAG, W['persis_state'] == 0))):
             # Finally, generate points since there is nothing else to do (no resource sets req.)
             Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info[wid], rset_team=[])
             gen_count += 1
