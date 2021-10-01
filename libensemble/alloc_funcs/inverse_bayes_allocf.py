@@ -71,5 +71,5 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             except InsufficientFreeResources:
                 break
             gen_count += 1
-    del support
+
     return Work, persis_info

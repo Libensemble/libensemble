@@ -107,5 +107,4 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
                 persis_info['num_gens_started'] = persis_info.get('num_gens_started', 0) + 1
                 gen_count += 1
 
-    del support
     return Work, persis_info, 0

@@ -310,7 +310,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             break
 
     persis_info.update({'last_H_len': len(H)})
-    del support
 
     return Work, persis_info, 0
 

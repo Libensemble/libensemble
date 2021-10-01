@@ -68,5 +68,4 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
             gen_count += 1
 
-    del support
     return Work, persis_info
