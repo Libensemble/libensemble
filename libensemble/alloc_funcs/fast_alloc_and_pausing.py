@@ -152,5 +152,4 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
             idle_workers = []
 
-    del support
     return Work, persis_info

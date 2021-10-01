@@ -40,5 +40,4 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
         if persis_info['next_to_give'] >= len(H):
             break
 
-    del support
     return Work, persis_info

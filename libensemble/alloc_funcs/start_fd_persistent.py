@@ -70,5 +70,4 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
                 break
             gen_count += 1
 
-    del support
     return Work, persis_info, 0
