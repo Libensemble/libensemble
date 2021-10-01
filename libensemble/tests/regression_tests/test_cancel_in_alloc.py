@@ -24,7 +24,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams, eprint
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -53,8 +53,10 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {"sim_max": 10, "elapsed_wallclock_time": 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                            libE_specs=libE_specs, alloc_specs=alloc_specs)
 
 if is_manager:
-    assert np.any(H["cancel_requested"]) and np.any(H["kill_sent"]), "This test should have requested a cancellation and had a kill sent"
+    assert np.any(H["cancel_requested"]) and np.any(H["kill_sent"]), \
+        "This test should have requested a cancellation and had a kill sent"
     save_libE_output(H, persis_info, __file__, nworkers)
