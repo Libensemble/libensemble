@@ -142,7 +142,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     try:
         user_specs = gen_specs['user']
-        ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+        ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
         local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass = initialize_children(user_specs)
         if user_specs['initial_sample_size'] != 0:
