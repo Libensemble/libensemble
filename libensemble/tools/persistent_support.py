@@ -27,10 +27,14 @@ class PersistentSupport:
         :returns: None
         """
         if 'comm' in self.libE_info:
-            del self.libE_info['comm']
+            # Need to make copy before remove comm as original could be reused
+            libE_info = dict(self.libE_info)
+            libE_info.pop('comm')
+        else:
+            libE_info = self.libE_info
 
         D = {'calc_out': output,
-             'libE_info': self.libE_info,
+             'libE_info': libE_info,
              'calc_status': calc_status,
              'calc_type': self.calc_type
              }
