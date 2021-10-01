@@ -27,11 +27,18 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
+    user = alloc_specs.get('user', {})
+
     if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        if 'cancel_sims_time' in user:
+            rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
+            inds = time.time() - H['last_given_time'][rows] > user['cancel_sims_time']
+            to_request_cancel = rows[inds]
+            for row in to_request_cancel:
+                H[row]['cancel_requested'] = True
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
-    user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     batch_give = user.get('give_all_with_same_priority', False)
     gen_in = gen_specs.get('in', [])
@@ -68,12 +75,5 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             except InsufficientFreeResources:
                 break
             gen_count += 1
-
-    if 'cancel_sims_time' in user:
-        rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
-        inds = time.time() - H['last_given_time'][rows] > user['cancel_sims_time']
-        to_request_cancel = rows[inds]
-        for row in to_request_cancel:
-            H[row]['cancel_requested'] = True
 
     return Work, persis_info
