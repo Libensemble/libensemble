@@ -532,7 +532,7 @@ class Manager:
                      'given_back_count': self.hist.given_back_count}
 
         if 'sim_max' in self.exit_criteria:
-            libE_info['work_given_tripped'] = \
+            libE_info['sim_max_given'] = \
                 self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
 
         return libE_info
@@ -585,6 +585,8 @@ class Manager:
                         break
 
                     for w in Work:
+                        if self._get_alloc_libE_info().get('sim_max_given', False):
+                            break
                         self._check_work_order(Work[w], w)
                         self._send_work_order(Work[w], w)
                         self._update_state_on_alloc(Work[w], w)

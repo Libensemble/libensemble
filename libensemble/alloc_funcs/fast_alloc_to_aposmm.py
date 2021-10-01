@@ -15,7 +15,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         `test_old_aposmm_with_gradients.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
 
-    if libE_info.get('work_given_tripped', False):
+    if libE_info.get('sim_max_given', False):
         return {}, persis_info
 
     user = alloc_specs.get('user', {})
