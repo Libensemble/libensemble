@@ -558,9 +558,6 @@ class Manager:
         if self.safe_mode:
             assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
 
-        if self.safe_mode:
-            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
-
         if len(output) == 2:
             output = output + ((0,))
 
