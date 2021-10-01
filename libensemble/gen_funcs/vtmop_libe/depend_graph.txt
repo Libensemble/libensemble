@@ -1,15 +1,18 @@
-This file shows the dependency graph for the VTMOP_MOD package and drivers.
+This file shows the dependency graph for the VTMOP_LIBE_MOD package.
 
 X --> Y indicates that the file Y requires a module or procedure defined in X.
 
-    _____________________      _______________________
-   |                     |    |                       |
-   | vtmop_generator.f90 |    | vtmop_initializer.f90 |
-   |_____________________|    |_______________________|
+                _______________________
+               |   _________________   |
+               |  |                 |  |
+               |  |  VTMOP_LIBE_MOD |  |
+               |  |_________________|  |
+               |                       |
+               |     vtmop_libe.f90    |
+               |_______________________|
 
-             ^                          ^
-             |                          |
-             ----------------------------
+                           ^
+                           |
                    ________|_______
                   |   ___________  |
                   |  |           | |
