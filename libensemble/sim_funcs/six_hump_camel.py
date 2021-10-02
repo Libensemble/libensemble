@@ -196,7 +196,14 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
 
         tag, Work, calc_in = ps.send_recv(H_o)
 
-    return None, persis_info, FINISHED_PERSISTENT_SIM_TAG
+    final_return = None
+
+    # Overwrite final point - for testing only
+    calc_in = np.ones(1, dtype=[('x', float, (2,))])
+    H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
+    final_return = H_o
+
+    return final_return, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel_func(x):

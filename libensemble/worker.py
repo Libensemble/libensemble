@@ -317,6 +317,12 @@ class Worker:
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
+        if self.comm.get_last_work_dict() is not None:
+            Work = self.comm.get_last_work_dict()
+
+        if 'libE_info' in Work:
+            libE_info = Work['libE_info']
+
         if 'comm' in libE_info:
             del libE_info['comm']
 

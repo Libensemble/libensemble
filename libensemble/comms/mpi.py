@@ -97,6 +97,16 @@ class MPIComm(Comm):
     def get_num_workers(self):
         return self.mpi_comm.Get_size() - 1
 
+    def reset_last_work_dict(self):
+        self.last_work_dict = None
+
+    def set_last_work_dict(self, work):
+        self.last_work_dict = work
+        #print('setting', self.last_work_dict)
+
+    def get_last_work_dict(self):
+        print('getting', self.last_work_dict)
+        return self.last_work_dict
 
 class MainMPIComm(MPIComm):
     """MPI communicator used by the workers and managers for the moment."""
