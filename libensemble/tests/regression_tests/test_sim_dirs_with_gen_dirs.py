@@ -53,7 +53,10 @@ libE_specs['gen_dir_symlink_files'] = [dir_to_symlink_gen]
 
 libE_specs['ensemble_copy_back'] = True
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

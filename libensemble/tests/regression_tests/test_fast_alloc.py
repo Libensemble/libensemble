@@ -28,7 +28,11 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 num_pts = 30 * (nworkers)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('large', float, 1000000)], 'user': {}}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('large', float, 1000000)],
+    'user': {}, }
 
 gen_specs = {
     'gen_f': gen_f,

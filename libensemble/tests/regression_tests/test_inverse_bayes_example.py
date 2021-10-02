@@ -31,7 +31,10 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('like', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('like', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

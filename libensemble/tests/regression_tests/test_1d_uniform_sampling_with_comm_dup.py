@@ -38,7 +38,10 @@ world = MPI.COMM_WORLD
 if not is_manager:
     world.isend(world.Get_rank(), dest=0, tag=0)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

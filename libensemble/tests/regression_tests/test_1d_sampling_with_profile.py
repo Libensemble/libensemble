@@ -27,7 +27,10 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['profile'] = True
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

@@ -38,7 +38,10 @@ libE_specs['sim_dirs_make'] = False
 libE_specs['sim_dir_symlink_files'] = ['./test_sim_input_dir_option.py']  # to cover FileExistsError catch
 libE_specs['ensemble_copy_back'] = True
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

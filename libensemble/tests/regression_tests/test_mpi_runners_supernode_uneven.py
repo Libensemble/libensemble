@@ -121,7 +121,9 @@ for i in range(nsim_workers):
 
 test_list = test_list_base
 exp_list = exp_srun
-sim_specs['user'] = {'tests': test_list, 'expect': exp_list}
+sim_specs['user'] = {
+    'tests': test_list,
+    'expect': exp_list, }
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

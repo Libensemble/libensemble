@@ -24,7 +24,10 @@ from libensemble.tools import parse_args, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float, 8)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float, 8)], }
 
 gen_specs = {}
 

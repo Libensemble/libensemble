@@ -247,7 +247,11 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
     test_list = test_list_base + test_list_exargs
-    sim_specs['user'] = {'tests': test_list, 'expect': exp_list, 'nodes_per_worker': nodes_per_worker, 'persis_gens': 0}
+    sim_specs['user'] = {
+        'tests': test_list,
+        'expect': exp_list,
+        'nodes_per_worker': nodes_per_worker,
+        'persis_gens': 0, }
 
     # Perform the run
     H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

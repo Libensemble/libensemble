@@ -34,7 +34,10 @@ libE_specs['sim_dirs_make'] = True
 libE_specs['ensemble_dir_path'] = e_ensemble
 libE_specs['abort_on_exception'] = False
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,
