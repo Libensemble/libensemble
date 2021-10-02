@@ -1,5 +1,5 @@
 # """
-# Tests libEnsemble's capability to abort after a certain amount of elapsed time. 
+# Tests libEnsemble's capability to abort after a certain amount of elapsed time.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_6-hump_camel_elapsed_time_abort.py

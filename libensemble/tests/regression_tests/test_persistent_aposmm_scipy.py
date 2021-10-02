@@ -1,5 +1,5 @@
 # """
-# Runs libEnsemble with APOSMM and SciPy local optimization routines. 
+# Runs libEnsemble with APOSMM and SciPy local optimization routines.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py

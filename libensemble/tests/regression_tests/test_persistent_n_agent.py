@@ -7,16 +7,16 @@
 #    - Linear regression with l2 regularization
 #    - Logistic regression with l2 regularization
 #    - PYCUTEst functions (https://jfowkes.github.io/pycutest/_build/html/index.html)
-# 
+#
 # You can specify which problem to test by setting @prob_id in {0,1,2,3,4,5}.
-# 
+#
 # This call script uses distributed gradient-tracking (https://doi.org/10.1109/TCNS.2020.3024321)
 # to solve the following problems. To test, run using, for any p >= 6,
 #    mpiexec -np p python3 test_persistent_n_agent.py
 #    python3 test_persistent_n_agent.py --nworkers p --comms local
-# 
+#
 # The number gens will be 4.
-# 
+#
 # Note that this library makes use the NLOPT library to obtain the optimal value
 # for regression testing. To test PYCUTEst, make sure to install the necessary
 # files. Refer to tools/pycute_interface on more details. To ignore this library,

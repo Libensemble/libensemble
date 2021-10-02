@@ -1,9 +1,9 @@
 # """
 # Runs libEnsemble on a generator function that first does uniform sampling,
-# then starts persistent local optimization runs. 
+# then starts persistent local optimization runs.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py 
+#    mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
 #    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
 #    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
 #

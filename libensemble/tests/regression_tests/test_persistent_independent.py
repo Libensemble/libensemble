@@ -2,7 +2,7 @@
 # Tests the persistent_independent_optimize generator function.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_independent.py 
+#    mpiexec -np 4 python3 test_persistent_independent.py
 #    python3 test_persistent_independent.py --nworkers 3 --comms local
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.

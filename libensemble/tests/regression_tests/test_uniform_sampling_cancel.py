@@ -3,7 +3,7 @@
 # some points.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_uniform_sampling_cancel.py 
+#    mpiexec -np 4 python3 test_uniform_sampling_cancel.py
 #    python3 test_uniform_sampling_cancel.py --nworkers 3 --comms local
 #    python3 test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
 #

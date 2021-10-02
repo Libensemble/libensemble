@@ -1,8 +1,8 @@
 # """
-# Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer. 
+# Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_tao_blmvm.py 
+#    mpiexec -np 4 python3 test_persistent_aposmm_tao_blmvm.py
 #    python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms local
 #    python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms tcp
 #

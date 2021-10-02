@@ -26,7 +26,10 @@ from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_o
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_out += [('x', float, 2), ('x_on_cube', float, 2)]
 gen_specs = {
@@ -42,7 +45,12 @@ gen_specs = {
         'dist_to_bound_multiple': 0.5,
         'localopt_maxeval': 4}}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 'num_active_gens': 1}, }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'out': gen_out,
+    'user': {
+        'batch_mode': True,
+        'num_active_gens': 1}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

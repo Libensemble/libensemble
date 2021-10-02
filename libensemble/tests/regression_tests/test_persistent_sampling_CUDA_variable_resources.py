@@ -2,7 +2,7 @@
 # Tests CUDA variable resource detection in libEnsemble
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_sampling_CUDA_variable_resources.py 
+#    mpiexec -np 4 python3 test_persistent_sampling_CUDA_variable_resources.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """

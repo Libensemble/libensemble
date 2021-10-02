@@ -2,7 +2,7 @@
 # Runs libEnsemble with APOSMM with an NLopt local optimizer that uses gradient information from the sim_f
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_with_grad.py 
+#    mpiexec -np 4 python3 test_persistent_aposmm_with_grad.py
 #    python3 test_persistent_aposmm_with_grad.py --nworkers 3 --comms local
 #    python3 test_persistent_aposmm_with_grad.py --nworkers 3 --comms tcp
 #

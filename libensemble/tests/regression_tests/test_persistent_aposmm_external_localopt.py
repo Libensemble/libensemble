@@ -8,7 +8,7 @@
 #
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_external_localopt.py 
+#    mpiexec -np 4 python3 test_persistent_aposmm_external_localopt.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 #

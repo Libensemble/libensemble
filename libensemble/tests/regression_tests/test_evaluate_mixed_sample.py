@@ -1,6 +1,6 @@
 # """
 # Tests libEnsemble's capability to take in an existing sample of points with
-# sim_f values and do additional evaluations. 
+# sim_f values and do additional evaluations.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_evaluate_mixed_sample.py

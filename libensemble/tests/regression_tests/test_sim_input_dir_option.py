@@ -3,7 +3,7 @@
 # Tests sim_input_dir capabilities
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_sim_input_dir_option.py 
+#    mpiexec -np 4 python3 test_sim_input_dir_option.py
 #    python3 test_sim_input_dir_option.py --nworkers 3 --comms local
 #    python3 test_sim_input_dir_option.py --nworkers 3 --comms tcp
 #
