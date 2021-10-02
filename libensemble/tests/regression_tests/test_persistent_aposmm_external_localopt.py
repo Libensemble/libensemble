@@ -1,19 +1,17 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Test the use for APOSMM with an external local optimization method.
+# Points are passed to/from the localopt method using files with run-specific
+# hashes. These hashes are currently generated using uuid, which may not be
+# thread safe on some systems (e.g., Travis-CI). This was resolved by not using
+# 'local' communication; we therefore recommend using 'mpi' communication when
+# using persistent_aposmm with an external localopt # method.
+#
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
+#    mpiexec -np 4 python3 test_persistent_aposmm_external_localopt.py 
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 #
-# This test uses an external local optimization method within a persistent
-# APOSMM instance. Points are passed to/from the localopt method using files
-# with run-specific hashes. These hashes are currently generated using uuid,
-# which may not be thread safe on some systems (e.g., Travis-CI). This was
-# resolved by not using 'local' communication; we therefore recommend using
-# 'mpi' communication when using persistent_aposmm with an external localopt
-# method.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

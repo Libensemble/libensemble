@@ -1,5 +1,5 @@
 # """
-# Runs libEnsemble to test communications
+# Runs libEnsemble to test basic worker/manager communications
 # Scale up array_size and number of workers as required
 #
 # Execute via one of the following commands (e.g. 3 workers):

@@ -1,5 +1,9 @@
 """
-This module contains various versions that evaluate the six hump camel function.
+This module contains various versions that evaluate the six-hump camel function.
+
+Six-hump camel function is documented here:
+  https://www.sfu.ca/~ssurjano/camel6.html
+
 """
 __all__ = ['six_hump_camel', 'six_hump_camel_simple',
            'six_hump_camel_with_variable_resources',

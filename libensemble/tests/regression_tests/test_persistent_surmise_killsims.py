@@ -1,5 +1,5 @@
 # """
-# Tests killing of cancelled simulation that are in progress..
+# Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_surmise_killsims.py

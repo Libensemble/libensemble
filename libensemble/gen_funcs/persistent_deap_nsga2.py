@@ -4,6 +4,8 @@ function. The evaluation of the fitness of the current population's members
 occurs in `evaluate_pop`, where the points are communicated to the libEnsemble
 manager; the manager coordinates their evaluation and then returns their
 `fitness_values`.
+
+https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
 """
 
 __all__ = ['deap_nsga2', 'evaluate_pop', 'nsga2_toolbox']

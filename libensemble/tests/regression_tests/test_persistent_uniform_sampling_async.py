@@ -1,9 +1,9 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Tests libEnsemble's generator function requesting/receiving sim_f evaluations
+# asynchronouslyl
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_uniform_sampling_async.py
+#    mpiexec -np 4 python3 test_persistent_uniform_sampling_async.py 
 #    python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms local
 #    python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
 #

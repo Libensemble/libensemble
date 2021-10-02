@@ -1,10 +1,10 @@
 # """
-# Runs libEnsemble with the persistent generator that finds an appropriate
-# finite-difference parameter for the sim_f mapping from R^n to R^p around the
-# point x.
+# Runs libEnsemble with the fd_param_finder persistent gen_f, which finds an
+# appropriate finite-difference parameter for the sim_f mapping from R^n to R^p
+# around the point x.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_fd_param_finder.py
+#    mpiexec -np 4 python3 test_persistent_fd_param_finder.py 
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

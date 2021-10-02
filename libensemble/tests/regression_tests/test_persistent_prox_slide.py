@@ -1,17 +1,18 @@
-"""
-Runs libEnsemble on variety of non-smooth convex terms, including:
-   - Geometric median
-   - SVM with l1 regularization
+# """
+# Tests libEnsemble prox-slide distributed optimization generator function on a
+# variety of cases, including:
+#    - Geometric median
+#    - SVM with l1 regularization
 
-You can specify which problem to test by setting @prob_id in {0,1}.
+# You can specify which problem to test by setting @prob_id in {0,1}.
 
-This call script uses proximal gradient sliding (https://doi.org/10.1007/s10107-015-0955-5)
-to solve the following problems. To test, run using, for any p >= 6,
-   mpiexec -np p python3 test_persistent_prox_slide.py
-   python3 test_persistent_prox_slide.py --nworkers p --comms local
+# This call script uses proximal gradient sliding (https://doi.org/10.1007/s10107-015-0955-5)
+# to solve the following problems. To test, run using, for any p >= 6,
+#    mpiexec -np p python3 test_persistent_prox_slide.py
+#    python3 test_persistent_prox_slide.py --nworkers p --comms local
 
-The number gens will be 4.
-"""
+# The number gens will be 4.
+# """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local

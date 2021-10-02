@@ -1,9 +1,9 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Tests libEnsemble with a uniform sample that is also requesting cancellation of
+# some points.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_uniform_sampling_cancel.py
+#    mpiexec -np 4 python3 test_uniform_sampling_cancel.py 
 #    python3 test_uniform_sampling_cancel.py --nworkers 3 --comms local
 #    python3 test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
 #

@@ -25,7 +25,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['save_every_k_gens'] = 300
 libE_specs['safe_mode'] = False
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)], }
 
 gen_specs = {
     'gen_f': gen_f,

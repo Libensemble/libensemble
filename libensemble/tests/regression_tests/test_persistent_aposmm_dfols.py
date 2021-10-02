@@ -1,10 +1,12 @@
 # """
-# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+# Runs libEnsemble with APOSMM+DFOLS on the chwirut least-squares problem.
 # All 214 residual calculations for a given point are performed as a single
 # simulation evaluation.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_chwirut_pounders.py
+#    mpiexec -np 4 python3 test_persistent_aposmm_dfols.py 
+#    python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms local
+#    python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """

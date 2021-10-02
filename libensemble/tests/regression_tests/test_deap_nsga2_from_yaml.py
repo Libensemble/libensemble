@@ -1,7 +1,6 @@
-# Example using NSGA2 as a libE generator function:
+# Example using NSGA2 as a libE generator function using the libE yaml interface
+# For more about NSGA2, see
 # https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
-#
-# """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
