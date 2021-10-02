@@ -5,6 +5,10 @@
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_fd_param_finder.py
+#
+# When running with the above command, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator. 
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

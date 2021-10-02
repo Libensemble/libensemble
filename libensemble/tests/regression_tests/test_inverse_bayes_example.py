@@ -9,7 +9,9 @@
 # Debugging:
 #    mpiexec -np 4 xterm -e "python3 inverse_bayes_example.py"
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator. 
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
