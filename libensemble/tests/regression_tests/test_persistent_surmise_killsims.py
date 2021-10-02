@@ -8,7 +8,7 @@
 #
 # When running with the above commands, the number of concurrent evaluations of
 # the objective function will be 2, as one of the three workers will be the
-# persistent generator. 
+# persistent generator.
 #
 # This test is a smaller variant of test_persistent_surmise_calib.py, but which
 # subprocesses a compiled version of the borehole simulation. A delay is

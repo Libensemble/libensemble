@@ -12,7 +12,7 @@
 #
 # When running with the above command, the number of concurrent evaluations of
 # the objective function will be 2, as one of the three workers will be the
-# persistent generator. 
+# persistent generator.
 #
 # """
 

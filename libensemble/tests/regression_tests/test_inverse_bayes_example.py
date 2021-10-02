@@ -11,7 +11,7 @@
 #
 # When running with the above commands, the number of concurrent evaluations of
 # the objective function will be 2, as one of the three workers will be the
-# persistent generator. 
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh

@@ -8,7 +8,7 @@
 #
 # When running with the above commands, the number of concurrent evaluations of
 # the objective function will be 2, as one of the three workers will be the
-# persistent generator. 
+# persistent generator.
 #
 # This test uses the Surmise package to perform a Borehole Calibration with
 # selective simulation cancellation. Initial observations are modeled using
