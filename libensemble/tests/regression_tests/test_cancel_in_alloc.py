@@ -42,15 +42,15 @@ gen_specs = {
     "user": {
         "gen_batch_size": 5,
         "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2])}, }
+        "ub": np.array([3, 2]), }, }
 
 alloc_specs = {
     "alloc_f": give_sim_work_first,
     "out": [],
     "user": {
-        "cancel_sims_time": 5,
+        "cancel_sims_time": 3,
         "batch_mode": False,
-        "num_active_gens": 1}, }
+        "num_active_gens": 1, }, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -61,6 +61,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
                             alloc_specs=alloc_specs)
 
 if is_manager:
-    assert np.any(H["cancel_requested"]) and np.any(H["kill_sent"]), \
-        "This test should have requested a cancellation and had a kill sent"
+    assert np.any(H["cancel_requested"]) and np.any(
+        H["kill_sent"]), "This test should have requested a cancellation and had a kill sent"
     save_libE_output(H, persis_info, __file__, nworkers)
