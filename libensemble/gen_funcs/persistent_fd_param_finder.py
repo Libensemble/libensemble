@@ -49,7 +49,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     inform = np.zeros_like(noise_h_mat)
     Fnoise = np.zeros_like(noise_h_mat)
     maxnoiseits = U['maxnoiseits']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     n = len(x0)
     Fhist0 = np.zeros((n, p, nf+1))

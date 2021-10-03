@@ -121,8 +121,8 @@ for run in range(3):
     elif run == 1:
         H0[['given', 'returned', 'given_back']] = False
 
-        # Testing use_persis_return capabilities
-        libE_specs['use_persis_return'] = True
+        # Testing use_persis_return_gen capabilities
+        libE_specs['use_persis_return_gen'] = True
 
     else:
         H0 = None
@@ -133,10 +133,10 @@ for run in range(3):
     if is_manager:
         if run == 0:
             assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
-                                                   "they were marked in the gen) as 'use_persis_return' was false.")
+                                                   "they were marked in the gen) as 'use_persis_return_gen' was false.")
         elif run == 1:
-            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they "
-                                                          "were marked in the manager and 'use_persis_return' is true.")
+            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they were "
+                                                          "marked in the manager and 'use_persis_return_gen' is true.")
 
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"

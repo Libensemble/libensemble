@@ -74,8 +74,8 @@ if __name__ == "__main__":
                 objs = deap_six_hump(H_dummy, {}, deap_test.sim_specs, {})
                 H0['fitness_values'][i] = objs[0]
 
-            # Testing use_persis_return capabilities
-            deap_test.libE_specs['use_persis_return'] = True
+            # Testing use_persis_return_gen capabilities
+            deap_test.libE_specs['use_persis_return_gen'] = True
             deap_test.H0 = H0
         else:
             deap_test.H0 = None
@@ -87,11 +87,11 @@ if __name__ == "__main__":
             if run == 0:
                 assert np.sum(deap_test.H['last_points']) == 0, \
                     ("The last_points shouldn't be marked (even though "
-                     "they were marked in the gen) as 'use_persis_return' was false.")
+                     "they were marked in the gen) as 'use_persis_return_gen' was false.")
             elif run == 1:
                 assert np.sum(deap_test.H['last_points']) == 100, \
                     ("The last_points should be marked as true because they "
-                     "were marked in the manager and 'use_persis_return' is true.")
+                     "were marked in the manager and 'use_persis_return_gen' is true.")
 
             script_name = os.path.splitext(os.path.basename(__file__))[0]
             assert deap_test.flag == 0, script_name + " didn't exit correctly"

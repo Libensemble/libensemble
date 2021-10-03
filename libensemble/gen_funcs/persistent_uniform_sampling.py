@@ -24,7 +24,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['initial_batch_size']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
@@ -57,7 +57,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['initial_batch_size']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     H_o = np.zeros(b, dtype=gen_specs['out'])
     for i in range(0, b):
@@ -100,7 +100,7 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
     b = gen_specs['user']['initial_batch_size']
     shutdown_limit = gen_specs['user']['shutdown_limit']
     f_count = 0
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None

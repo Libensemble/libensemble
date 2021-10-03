@@ -92,7 +92,7 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
 
     # Initialize NSGA2 DEAP toolbox
     toolbox = nsga2_toolbox(gen_specs)
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     pop_size = gen_specs['user']['pop_size']
     # CXPB  is the probability with which two individuals are crossed

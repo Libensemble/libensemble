@@ -137,7 +137,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
     priorloc = gen_specs['user']['priorloc']
     priorscale = gen_specs['user']['priorscale']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     prior = thetaprior(priorloc, priorscale)
 

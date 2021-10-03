@@ -49,7 +49,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     order receive function values for points of interest.
     """
 
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def nlopt_obj_fun(x, grad):
 
