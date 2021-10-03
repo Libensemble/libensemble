@@ -31,6 +31,7 @@ class MPIComm(Comm):
         self.status = MPI.Status()
         self._outbox = []
         self.recv_buffer = None
+        self.last_work_dict = None
 
     def __del__(self):
         "Wait on anything pending if comm is killed."
@@ -102,10 +103,8 @@ class MPIComm(Comm):
 
     def set_last_work_dict(self, work):
         self.last_work_dict = work
-        #print('setting', self.last_work_dict)
 
     def get_last_work_dict(self):
-        print('getting', self.last_work_dict)
         return self.last_work_dict
 
 class MainMPIComm(MPIComm):
