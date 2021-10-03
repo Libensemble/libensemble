@@ -31,6 +31,9 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['zero_resource_workers'] = [1]  # Only necessary if sims use resources.
 
+libE_specs['use_persis_return_sim'] = True  # Only necessary if sims use resources.
+
+
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
@@ -64,4 +67,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
 if is_manager:
     assert len(np.unique(H['gen_time'])) == 8
     assert not any((H['f'] == 0))
+    # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
+    assert not np.isclose(H['f'][0], 3.23333333)
+    assert np.isclose(H['f'][-1], 3.23333333)
     save_libE_output(H, persis_info, __file__, nworkers)
