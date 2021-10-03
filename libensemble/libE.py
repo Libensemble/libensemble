@@ -198,7 +198,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         .. code-block::
 
             0 = No errors
-            1 = Exception occured
+            1 = Exception occurred
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
@@ -362,7 +362,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Lauch worker team
+    # Launch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
 

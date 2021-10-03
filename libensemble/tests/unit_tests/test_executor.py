@@ -125,7 +125,7 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
         # Check output file for error
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
-                print("Found(deliberate) Error in ouput file - cancelling task")
+                print("Found(deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
                 break
@@ -173,7 +173,7 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
                 # Check output file for error
                 if task.stdout_exists():
                     if 'Error' in task.read_stdout():
-                        print("Found (deliberate) Error in ouput file - cancelling task %d" % (task.id))
+                        print("Found (deliberate) Error in output file - cancelling task %d" % (task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
                         continue

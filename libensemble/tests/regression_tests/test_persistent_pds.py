@@ -115,7 +115,7 @@ for prob_id in range(6):
         X_norms = la.norm(X, ord=2, axis=0)**2
         L = (2 / m) * (np.amax(X_norms) + c)
 
-        # reduce size of problem to match avaible gens
+        # reduce size of problem to match available gens
         persis_info['sim_params'] = {'X': X, 'y': y, 'c': c, 'reg': 'l2'}
         fstar = regls_opt(X, y, c, reg='l2')
 

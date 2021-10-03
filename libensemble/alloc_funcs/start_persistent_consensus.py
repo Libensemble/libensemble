@@ -52,7 +52,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     If the user wants the alloc to sum all the {f_i}, the user must set both
     `consensus_pt` and `eval_pt` to True while settings the `f_i` variable. (The
-    reason for having both variables set to True is to simplify the implemenation
+    reason for having both variables set to True is to simplify the implementation
     in the alloc.)
 
     Finally, to request a gradient of f_i, `consensus_pt` must be set to False,

@@ -158,7 +158,7 @@ def parse_args():
     -------
 
     nworkers: :obj:`int`
-        Number of workers libEnsemble will inititate
+        Number of workers libEnsemble will initiate
 
     is_manager: :obj:`boolean`
         Indicates whether the current process is the manager process

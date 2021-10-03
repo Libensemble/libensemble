@@ -526,7 +526,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         test_2_through_5,  # satisfy tests 2 through 5
     ))
 
-    # Uncomment the following to test the effect of ignorning LocalOpt points
+    # Uncomment the following to test the effect of ignoring LocalOpt points
     # in APOSMM. This allows us to test a parallel MLSL.
     # return list(np.ix_(sample_seeds)[0])
 

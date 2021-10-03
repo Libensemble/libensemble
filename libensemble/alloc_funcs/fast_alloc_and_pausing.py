@@ -97,7 +97,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                            (partial_fvals[j] > persis_info['best_complete_val']):
                             worse_flag[j] = True
 
-                    # Pause incompete evaluations with worse_flag==True
+                    # Pause incomplete evaluations with worse_flag==True
                     pt_ids_to_pause.update(pt_ids[worse_flag])
 
             if not pt_ids_to_pause.issubset(persis_info['already_paused']):

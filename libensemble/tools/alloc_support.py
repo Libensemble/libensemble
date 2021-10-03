@@ -147,7 +147,7 @@ class AllocSupport:
          persistent state.
 
         :param wid: Int. Worker ID.
-        :param H: :doc:`History aray<../data_structures/history_array>`. For parsing out requested resource sets.
+        :param H: :doc:`History array<../data_structures/history_array>`. For parsing out requested resource sets.
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary

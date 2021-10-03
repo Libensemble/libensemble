@@ -8,7 +8,7 @@
 export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
-export RUN_PEP_TESTS=false     #Code syle conventions
+export RUN_PEP_TESTS=false    #Code style conventions
 export PYTHON_FLAGS=''        #Flags for PYTHON_RUN
 
 # Regression test options

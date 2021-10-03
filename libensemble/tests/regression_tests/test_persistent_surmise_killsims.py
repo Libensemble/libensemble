@@ -14,7 +14,7 @@
 # subprocesses a compiled version of the borehole simulation. A delay is
 # added to simulations after the initial batch, so that the killing of running
 # simulations can be tested. This will only affect simulations that have already
-# been issued to a worker when the cancel request is registesred by the manger.
+# been issued to a worker when the cancel request is registesred by the manager.
 #
 # See more information, see tutorial:
 # "Borehole Calibration with Selective Simulation Cancellation"

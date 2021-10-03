@@ -65,14 +65,14 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
         # Check output file for error
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
-                print("Found (deliberate) Error in ouput file - cancelling task")
+                print("Found (deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
                 break
 
     if task.finished:
         if task.state == 'FINISHED':
-            print('Task finished succesfully. Status:', task.state)
+            print('Task finished successfully. Status:', task.state)
         elif task.state == 'FAILED':
             print('Task failed. Status:', task.state)
         elif task.state == 'USER_KILLED':
@@ -95,7 +95,7 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 # getting registered app from Executor
 exctr = Executor.executor
 
-print('\nTest 1 - should complete succesfully with status FINISHED :\n')
+print('\nTest 1 - should complete successfully with status FINISHED :\n')
 cores = 4
 args_for_sim = 'sleep 5'
 

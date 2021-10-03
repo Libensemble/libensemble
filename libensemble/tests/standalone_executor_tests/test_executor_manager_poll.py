@@ -85,7 +85,7 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 
     if task.finished:
         if task.state == 'FINISHED':
-            print('Task finished succesfully. Status:', task.state)
+            print('Task finished successfully. Status:', task.state)
         elif task.state == 'FAILED':
             print('Task failed. Status:', task.state)
         elif task.state == 'USER_KILLED':
@@ -108,7 +108,7 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 # From worker call Executor by different name to ensure getting registered app from Executor
 exctr = Executor.executor
 
-print('\nTest 1 - should complete succesfully with status FINISHED :\n')
+print('\nTest 1 - should complete successfully with status FINISHED :\n')
 cores = 4
 args_for_sim = 'sleep 5'
 

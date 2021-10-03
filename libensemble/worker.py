@@ -223,7 +223,7 @@ class Worker:
                 calc_id = str(Work['libE_info']['gen_count'])
             else:
                 calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (mininum width).
+        # Add a right adjust (minimum width).
         calc_id = calc_id.rjust(5, ' ')
 
         timer = Timer()

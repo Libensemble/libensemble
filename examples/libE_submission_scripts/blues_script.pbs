@@ -49,7 +49,7 @@ cat $PBS_NODEFILE | sort | uniq >> libE_machinefile
 
 
 # Put in a timestamp
-echo Starting executation at: `date`
+echo Starting execution at: `date`
 
 pwd
 cmd="mpiexec -np 5 -machinefile libE_machinefile python libE_calling_script.py libE_machinefile"

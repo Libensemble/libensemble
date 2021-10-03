@@ -18,7 +18,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     tag = None
     local_gen_id = persis_info['worker_num']
 
-    # each gen has unique interal id
+    # each gen has unique internal id
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']
     n = len(ub)

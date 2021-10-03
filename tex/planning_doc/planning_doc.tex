@@ -288,7 +288,7 @@ All values in \texttt{gen\_specs['out']} or \texttt{sim\_specs['out']} are
 initialized to 0 (or FALSE for booleans). Just know this, for example, when
 assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
-Internally, \libE currenlty maintains a single data structure \texttt{H} which
+Internally, \libE currently maintains a single data structure \texttt{H} which
 contains the all history information (from \texttt{sim\_specs['out'] +
 gen\_specs['out']}). 
 
@@ -311,7 +311,7 @@ Reasons for making some type of split from \texttt{H} to \texttt{H\_in} and \tex
     \begin{itemize}
       \item Deterministic simulations:
         \begin{itemize}
-          \item[+] It is possible to remove a redudant entries from \texttt{H}. E.g.,
+          \item[+] It is possible to remove a redundant entries from \texttt{H}. E.g.,
             \begin{allintypewriter}
               \begin{itemize}
                 \item H['x']
@@ -327,7 +327,7 @@ Reasons for making some type of split from \texttt{H} to \texttt{H\_in} and \tex
         \end{itemize}
       \item Stochastic simulations:
         \begin{itemize}
-          \item[+] It is possible to remove redudant entries from \texttt{H}
+          \item[+] It is possible to remove redundant entries from \texttt{H}
             (though fewer than in the deterministic case).
           \item[-] Now \texttt{H\_in} entries will need to be duplicated and
             cross referencing output in \texttt{H\_out} becomes harder. E.g.,
@@ -337,7 +337,7 @@ Reasons for making some type of split from \texttt{H} to \texttt{H\_in} and \tex
     \end{itemize}
 \end{description}
 
-At this time, it seems as if strongest case for spliting is if the simulation
+At this time, it seems as if strongest case for splitting is if the simulation
 input is very large and stored within \texttt{H} instead of pointers to
 existing structures/files/meshes. And even in the case of stochastic
 simulations with replications, calling \texttt{sim\_f(x=$x_0$, reps=4)} and

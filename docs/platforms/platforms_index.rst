@@ -180,7 +180,7 @@ Overriding Auto-detection
 libEnsemble can automatically detect system information. This includes resource information, such as
 available nodes and the number of cores on the node, and information about available MPI runners.
 
-System detection for resources can be overriden using the :ref:`resource_info<resource_info>`
+System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
 libE_specs option.
 
 When using the MPI Executor, it is possible to override the detected information using the

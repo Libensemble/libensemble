@@ -24,7 +24,7 @@ class ResourcesException(Exception):
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    A resources instance is always intialized unless ``libE_specs['disable_resource_manager']`` is True.
+    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is True.
 
     **Class Attributes:**
 

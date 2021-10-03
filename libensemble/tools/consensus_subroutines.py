@@ -211,7 +211,7 @@ def get_consensus_gradient(x, gen_specs, libE_info):
 def get_k_reach_chain_matrix(n, k):
     """ Constructs adjacency matrix for a chain matrix where the ith vertex can
         reach vertices that are at most @k distances from them (does not wrap around),
-        where the distance is based on the absoluate difference between vertices'
+        where the distance is based on the absolute difference between vertices'
         indexes.
     """
     assert 1 <= k <= n-1

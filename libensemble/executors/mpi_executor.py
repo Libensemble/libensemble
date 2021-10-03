@@ -203,7 +203,7 @@ class MPIExecutor(Executor):
         -------
 
         task: obj: Task
-            The lauched task object
+            The launched task object
 
 
         Note that if some combination of num_procs, num_nodes, and
