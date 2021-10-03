@@ -20,7 +20,7 @@ def vtmop_gen(H, persis_info, gen_specs, _):
      functionality using fmodpy.
 
      The first time that this generator is called on your machine, the
-     necessarry VTMOP libraries will be automatically built using gfortran.
+     necessary VTMOP libraries will be automatically built using gfortran.
      If a different compiler is desired, edit lines 16 and 20 of
      gen_funcs/vtmop_libe/vtmop_libe_python_wrapper.py to specify your
      compiler and the appropriate compiler flags, respectively.

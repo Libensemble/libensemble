@@ -108,8 +108,8 @@ SUBROUTINE DELAUNAYSPARSES( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR, &
 !    computation of each of the M interpolation points in Q. The error
 !    codes are:
 !
-! 00 : Succesful interpolation.
-! 01 : Succesful extrapolation (up to the allowed extrapolation distance).
+! 00 : Successful interpolation.
+! 01 : Successful extrapolation (up to the allowed extrapolation distance).
 ! 02 : This point was outside the allowed extrapolation distance; the
 !      corresponding entries in SIMPS and WEIGHTS contain zero values.
 !
@@ -404,7 +404,7 @@ IF (PRESENT(RNORM)) THEN
    RNORM(:) = 0.0_R8 ! Initialize output to zeros.
 END IF
 IF (PRESENT(CHAIN)) THEN
-   CHAINL = CHAIN ! Turn chaining on, if necessarry.
+   CHAINL = CHAIN ! Turn chaining on, if necessary.
    SEED(:) = 0 ! Initialize SEED in case it is needed.
 ELSE
    CHAINL = .FALSE.
@@ -448,7 +448,7 @@ OUTER : DO MI = 1, M
       IEXTRAPS = 1 ! Allow for exactly one projection for this point.
    END IF
 
-   ! If there is no useable seed or if chaining is turned off, then make a new
+   ! If there is no usable seed or if chaining is turned off, then make a new
    ! simplex.
    IF( (.NOT. CHAINL) .OR. SEED(1) .EQ. 0) THEN
       CALL MAKEFIRSTSIMP()
@@ -954,7 +954,7 @@ DO I = MI+1, M
    ! Solve A^T w = WORK to get the affine weights for Q(:,I).
    WORK(2:D+1) = Q(:,I) - PTS(:,SIMPS(1,MI))
    CALL DGETRS('N', D, 1, LQ, D, IPIV, WORK(2:D+1), D, ITMP)
-   IF (ITMP < 0) CYCLE ! Illegal input error that should never occurr.
+   IF (ITMP < 0) CYCLE ! Illegal input error that should never occur.
    ! Check if the weights define a convex combination.
    WORK(1) = 1.0_R8 - SUM(WORK(2:D+1))
    IF (ALL(WORK(1:D+1) .GE. -EPSL)) THEN
@@ -1136,8 +1136,8 @@ SUBROUTINE DELAUNAYSPARSEP( D, N, PTS, M, Q, SIMPS, WEIGHTS, IERR,  &
 !    computation of each of the M interpolation points in Q. The error
 !    codes are:
 !
-! 00 : Succesful interpolation.
-! 01 : Succesful extrapolation (up to the allowed extrapolation distance).
+! 00 : Successful interpolation.
+! 01 : Successful extrapolation (up to the allowed extrapolation distance).
 ! 02 : This point was outside the allowed extrapolation distance; the
 !      corresponding entries in SIMPS and WEIGHTS contain zero values.
 !
@@ -1451,7 +1451,7 @@ IF (PRESENT(RNORM)) THEN
    RNORM(:) = 0.0_R8 ! Initialize output to zeros.
 END IF
 IF (PRESENT(CHAIN)) THEN
-   CHAINL = CHAIN ! Turn chaining on, if necessarry.
+   CHAINL = CHAIN ! Turn chaining on, if necessary.
    SEED(:) = 0 ! Initialize SEED in case it is needed.
 ELSE
    CHAINL = .FALSE.
@@ -1545,7 +1545,7 @@ OUTER : DO MI = 1, M
       IEXTRAPS = 1 ! Allow for exactly one projection for this point.
    END IF
 
-   ! If there is no useable seed or if chaining is turned off, then make a new
+   ! If there is no usable seed or if chaining is turned off, then make a new
    ! simplex.
    IF( (.NOT. CHAINL) .OR. SEED(1) .EQ. 0) THEN
 !      CALL MAKEFIRSTSIMP(); IF(IERR_PRIV .NE. 0) CYCLE OUTER
@@ -1856,7 +1856,7 @@ IF (PLVL1) THEN
       ! Solve A^T w = PLANE to get the affine weights for Q(:,I).
       PLANE(2:D+1) = Q(:,I) - PTS(:,SIMPS(1,MI))
       CALL DGETRS('N', D, 1, LQ, D, IPIV, PLANE(2:D+1), D, ITMP)
-      IF (ITMP < 0) CYCLE ! Illegal input error that should never occurr.
+      IF (ITMP < 0) CYCLE ! Illegal input error that should never occur.
       ! Check if the weights define a convex combination.
       PLANE(1) = 1.0_R8 - SUM(PLANE(2:D+1))
       IF (ALL(PLANE(1:D+1) .GE. -EPSL)) THEN
@@ -1893,7 +1893,7 @@ ELSE
       ! Solve A^T w = PLANE to get the affine weights for Q(:,I).
       PLANE(2:D+1) = Q(:,I) - PTS(:,SIMPS(1,MI))
       CALL DGETRS('N', D, 1, LQ, D, IPIV, PLANE(2:D+1), D, ITMP)
-      IF (ITMP < 0) CYCLE ! Illegal input error that should never occurr.
+      IF (ITMP < 0) CYCLE ! Illegal input error that should never occur.
       ! Check if the weights define a convex combination.
       PLANE(1) = 1.0_R8 - SUM(PLANE(2:D+1))
       IF (ALL(PLANE(1:D+1) .GE. -EPSL)) THEN

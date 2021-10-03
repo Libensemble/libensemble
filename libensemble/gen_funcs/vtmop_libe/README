@@ -30,7 +30,7 @@ The first time that vtmop_libe_mod is imported, the __init__.py file will
 automatically attempt to compile the binaries using gfortran. gfortran
 is no longer needed after the binaries have been generated. If you would
 like to build with a different compiler, edit lines 16 and 20 of __init__.py,
-as necessarry.
+as necessary.
 
 In summary, the following files are contained in this directory:
 

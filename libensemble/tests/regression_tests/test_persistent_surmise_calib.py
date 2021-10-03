@@ -48,7 +48,7 @@ if __name__ == '__main__':
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 25  # No. of x values
     nparams = 4  # No. of theta params
-    ndims = 3  # No. of x co-ordinates.
+    ndims = 3  # No. of x coordinates.
     max_add_thetas = 50  # Max no. of thetas added for evaluation
     step_add_theta = 10  # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200  # No. of thetas to explore while selecting the next theta
