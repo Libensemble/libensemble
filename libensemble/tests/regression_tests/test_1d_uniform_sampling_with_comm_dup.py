@@ -1,13 +1,11 @@
 # """
-# Runs libEnsemble with random sampling on a simple 1D problem
-# without specifying default communicator. Tests that mpi is taken
+# Runs libEnsemble with uniform random sampling on a simple 1D problem
+# without specifying the default communicator. Tests that mpi is taken
 # as default, with a duplicate of MPI.COMM_WORLD. If libEnsemble
 # uses MPI.COMM_WORLD, this test will fail.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_1d_uniform_sampling.py
-#    python3 test_1d_uniform_sampling.py --nworkers 3 --comms local
-#    python3 test_1d_uniform_sampling.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_1d_uniform_sampling_with_comm_dup.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -40,24 +38,26 @@ world = MPI.COMM_WORLD
 if not is_manager:
     world.isend(world.Get_rank(), dest=0, tag=0)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, (1,))],
-             'user': {'lb': np.array([-3]),
-                      'ub': np.array([3]),
-                      'gen_batch_size': 500
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (1, ))],
+    'user': {
+        'lb': np.array([-3]),
+        'ub': np.array([3]),
+        'gen_batch_size': 500}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 501}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'

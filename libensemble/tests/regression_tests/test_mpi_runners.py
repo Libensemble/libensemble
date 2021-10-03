@@ -41,7 +41,7 @@ nodes_per_worker = 2
 
 # For varying size test - relate node count to nworkers
 node_file = 'nodelist_mpi_runners_comms_' + str(comms) + '_wrks_' + str(nworkers)
-nnodes = nworkers*nodes_per_worker
+nnodes = nworkers * nodes_per_worker
 
 if is_manager:
     create_node_file(num_nodes=nnodes, name=node_file)
@@ -50,56 +50,99 @@ if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
 
 # Mock up system
-custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-                    'node_file': node_file}      # Name of file containing a node-list
+custom_resources = {
+    'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+    'node_file': node_file}  # Name of file containing a node-list
 libE_specs['resource_info'] = custom_resources
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': nworkers*rounds}
-
+exit_criteria = {'sim_max': nworkers * rounds}
 
 # TODO: May move specs, inputs and expected outputs to a data_set module.
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, (2,))],
-             'user': {'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': 100,
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2, ))],
+    'user': {
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': 100, }}
 
 # Each worker has 2 nodes. Basic test list for portable options
-test_list_base = [{'testid': 'base1', 'nprocs': 2, 'nnodes': 1, 'ppn': 2, 'e_args': '--xarg 1'},  # Under use
-                  {'testid': 'base2'},  # Give no config and no extra_args
-                  {'testid': 'base3', 'e_args': '--xarg 1'},  # Give no config with extra_args
-                  {'testid': 'base4', 'e_args': '--xarg 1', 'ht': True},  # Give no config but with HT
-                  {'testid': 'base5', 'nprocs': 16, 'e_args': '--xarg 1'},  # Just nprocs (will use one node)
-                  {'testid': 'base6', 'nprocs': 16, 'nnodes': 2, 'e_args': '--xarg 1'},  # nprocs, nnodes
-                  ]
+test_list_base = [
+    {
+        'testid': 'base1',
+        'nprocs': 2,
+        'nnodes': 1,
+        'ppn': 2,
+        'e_args': '--xarg 1'},  # Under use
+    {
+        'testid': 'base2'},  # Give no config and no extra_args
+    {
+        'testid': 'base3',
+        'e_args': '--xarg 1'},  # Give no config with extra_args
+    {
+        'testid': 'base4',
+        'e_args': '--xarg 1',
+        'ht': True},  # Give no config but with HT
+    {
+        'testid': 'base5',
+        'nprocs': 16,
+        'e_args': '--xarg 1'},  # Just nprocs (will use one node)
+    {
+        'testid': 'base6',
+        'nprocs': 16,
+        'nnodes': 2,
+        'e_args': '--xarg 1'},  # nprocs, nnodes
+]
 
 # extra_args tests for each mpi runner
 # extra_args should be parsed - however, the string should stay intact, inc abbreviated/different expressions
-eargs_mpich = [{'testid': 'mp1', 'nprocs': 16, 'e_args': '--xarg 1 --ppn 16'},  # nprocs + parse extra_args
-               {'testid': 'mp2', 'e_args': '-np 8 --xarg 1 --ppn 4'},  # parse extra_args
-               ]
+eargs_mpich = [
+    {
+        'testid': 'mp1',
+        'nprocs': 16,
+        'e_args': '--xarg 1 --ppn 16'},  # nprocs + parse extra_args
+    {
+        'testid': 'mp2',
+        'e_args': '-np 8 --xarg 1 --ppn 4'},  # parse extra_args
+]
 
-eargs_openmpi = [{'testid': 'ompi1', 'nprocs': 16, 'e_args': '--xarg 1 -npernode 16'},  # nprocs + parse extra_args
-                 {'testid': 'ompi2', 'e_args': '-np 8 --xarg 1 -npernode 4'},  # parse extra_args
-                 ]
+eargs_openmpi = [
+    {
+        'testid': 'ompi1',
+        'nprocs': 16,
+        'e_args': '--xarg 1 -npernode 16'},  # nprocs + parse extra_args
+    {
+        'testid': 'ompi2',
+        'e_args': '-np 8 --xarg 1 -npernode 4'},  # parse extra_args
+]
 
-eargs_aprun = [{'testid': 'ap1', 'nprocs': 16, 'e_args': '--xarg 1 -N 16'},  # nprocs + parse extra_args
-               {'testid': 'ap2', 'e_args': '-n 8 --xarg 1 -N 4'},  # parse extra_args
-               ]
+eargs_aprun = [
+    {
+        'testid': 'ap1',
+        'nprocs': 16,
+        'e_args': '--xarg 1 -N 16'},  # nprocs + parse extra_args
+    {
+        'testid': 'ap2',
+        'e_args': '-n 8 --xarg 1 -N 4'},  # parse extra_args
+]
 
 # Note in a8: -n 8 is abbreviated form of --ntasks, this should be unaltered while --nodes is derived and inserted.
-eargs_srun = [{'testid': 'sr1', 'nprocs': 16, 'e_args': '--xarg 1 --ntasks-per-node 16'},  # nprocs + parse extra_args
-              {'testid': 'sr2', 'e_args': '-n 8 --xarg 1 --ntasks-per-node 4'},  # parse extra_args
-              ]
+eargs_srun = [
+    {
+        'testid': 'sr1',
+        'nprocs': 16,
+        'e_args': '--xarg 1 --ntasks-per-node 16'},  # nprocs + parse extra_args
+    {
+        'testid': 'sr2',
+        'e_args': '-n 8 --xarg 1 --ntasks-per-node 4'},  # parse extra_args
+]
 
 # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.
 # Define extra_args as minimal relation of tasks/cores/gpus (one resource set), then n (nprocs) as multiplier.
@@ -183,27 +226,32 @@ exp_jsrun = \
      'jsrun -n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu" /path/to/fakeapp.x --testid jsr4',
      ]
 
-exp_custom = ['myrunner --xarg 1 /path/to/fakeapp.x --testid base1',
-              'myrunner /path/to/fakeapp.x --testid base2',
-              'myrunner --xarg 1 /path/to/fakeapp.x --testid base3',
-              'myrunner --xarg 1 /path/to/fakeapp.x --testid base4',
-              'myrunner --xarg 1 /path/to/fakeapp.x --testid base5',
-              'myrunner --xarg 1 /path/to/fakeapp.x --testid base6',
-              'myrunner --xarg 1 --ppn 16 /path/to/fakeapp.x --testid cust1',
-              ]
+exp_custom = [
+    'myrunner --xarg 1 /path/to/fakeapp.x --testid base1',
+    'myrunner /path/to/fakeapp.x --testid base2',
+    'myrunner --xarg 1 /path/to/fakeapp.x --testid base3',
+    'myrunner --xarg 1 /path/to/fakeapp.x --testid base4',
+    'myrunner --xarg 1 /path/to/fakeapp.x --testid base5',
+    'myrunner --xarg 1 /path/to/fakeapp.x --testid base6',
+    'myrunner --xarg 1 --ppn 16 /path/to/fakeapp.x --testid cust1', ]
 
 
 # Loop here for mocking different systems.
 def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
-    mpi_customizer = {'mpi_runner': mpi_runner,    # Select runner: mpich, openmpi, aprun, srun, jsrun
-                      'runner_name': runner_name}  # Runner name: Replaces run command if not None
+    mpi_customizer = {
+        'mpi_runner': mpi_runner,  # Select runner: mpich, openmpi, aprun, srun, jsrun
+        'runner_name': runner_name}  # Runner name: Replaces run command if not None
 
     exctr = MPIExecutor(custom_info=mpi_customizer)
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
     test_list = test_list_base + test_list_exargs
-    sim_specs['user'] = {'tests': test_list, 'expect': exp_list, 'nodes_per_worker': nodes_per_worker, 'persis_gens': 0}
+    sim_specs['user'] = {
+        'tests': test_list,
+        'expect': exp_list,
+        'nodes_per_worker': nodes_per_worker,
+        'persis_gens': 0, }
 
     # Perform the run
     H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

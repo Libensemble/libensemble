@@ -1,11 +1,12 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Tests CUDA variable resource detection in libEnsemble
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_sampling_CUDA_variable_resources.py
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above command, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -39,32 +40,33 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {}
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {}, }
 
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['f', 'x', 'sim_id'],
-             'out': [('priority', float),
-                     ('resource_sets', int),
-                     ('x', float, n)],
-             'user': {'initial_batch_size': nworkers-1,
-                      'max_resource_sets': nworkers-1,  # Any sim created can req. 1 worker up to all.
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f', 'x', 'sim_id'],
+    'out': [('priority', float), ('resource_sets', int), ('x', float, n)],
+    'user': {
+        'initial_batch_size': nworkers - 1,
+        'max_resource_sets': nworkers - 1,  # Any sim created can req. 1 worker up to all.
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': False}}
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'user': {
+        'give_all_with_same_priority': False}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
+                            alloc_specs=alloc_specs)
 
 if is_manager:
     assert flag == 0

@@ -1,11 +1,11 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Test libEnsemble's capability to use no gen_f and instead coordinates the
+# evaluation of an existing set of points.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_pregenerated_sample.py
-#    python3 test_6-hump_camel_pregenerated_sample.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_pregenerated_sample.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_evaluate_existing_sample.py
+#    python3 test_evaluate_existing_sample.py --nworkers 3 --comms local
+#    python3 test_evaluate_existing_sample.py --nworkers 3 --comms tcp
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """
@@ -24,7 +24,10 @@ from libensemble.tools import parse_args, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
 gen_specs = {}
 
@@ -43,9 +46,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
 exit_criteria = {'sim_max': len(H0)}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            alloc_specs=alloc_specs, libE_specs=libE_specs,
-                            H0=H0)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
 if is_manager:
     assert len(H) == len(H0)

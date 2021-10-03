@@ -46,16 +46,17 @@ nodes_per_worker = 0.5
 # For varying size test - relate node count to nworkers
 nsim_workers = nworkers
 
-if not (nsim_workers*nodes_per_worker).is_integer():
+if not (nsim_workers * nodes_per_worker).is_integer():
     sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
 
 comms = libE_specs['comms']
 node_file = 'nodelist_mpi_runners_subnode_comms_' + str(comms) + '_wrks_' + str(nworkers)
-nnodes = int(nsim_workers*nodes_per_worker)
+nnodes = int(nsim_workers * nodes_per_worker)
 
 # Mock up system
-custom_resources = {'cores_on_node': (16, 64),   # Tuple (physical cores, logical cores)
-                    'node_file': node_file}      # Name of file containing a node-list
+custom_resources = {
+    'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+    'node_file': node_file}  # Name of file containing a node-list
 libE_specs['resource_info'] = custom_resources
 
 if is_manager:
@@ -69,28 +70,36 @@ exctr = MPIExecutor(custom_info={'mpi_runner': 'srun'})
 exctr.register_app(full_path=sim_app, calc_type='sim')
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x', float, (n,))],
-             'user': {'gen_batch_size': 20,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'gen_batch_size': 20,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': (nsim_workers)*rounds}
+exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 # Each worker has 2 nodes. Basic test list for portable options
-test_list_base = [{'testid': 'base1'},  # Give no config and no extra_args
-                  {'testid': 'base2', 'nprocs': 5},
-                  {'testid': 'base3', 'nnodes': 1},
-                  {'testid': 'base4', 'ppn': 6},
-                  ]
+test_list_base = [
+    {
+        'testid': 'base1'},  # Give no config and no extra_args
+    {
+        'testid': 'base2',
+        'nprocs': 5},
+    {
+        'testid': 'base3',
+        'nnodes': 1},
+    {
+        'testid': 'base4',
+        'ppn': 6}, ]
 
 exp_srun = \
     ['srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1',
@@ -101,9 +110,10 @@ exp_srun = \
 
 test_list = test_list_base
 exp_list = exp_srun
-sim_specs['user'] = {'tests': test_list, 'expect': exp_list,
-                     'nodes_per_worker': nodes_per_worker}
-
+sim_specs['user'] = {
+    'tests': test_list,
+    'expect': exp_list,
+    'nodes_per_worker': nodes_per_worker, }
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
