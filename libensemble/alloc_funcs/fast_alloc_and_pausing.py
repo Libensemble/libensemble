@@ -2,7 +2,7 @@ import numpy as np
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -24,6 +24,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
 
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
+
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names
@@ -33,8 +36,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     gen_count = support.count_gens()
 
     if gen_specs['user'].get('single_component_at_a_time'):
-        assert alloc_specs['user']['batch_mode'], ("Must be in batch mode when using "
-                                                   "'single_component_at_a_time'")
+        assert alloc_specs['user']['batch_mode'], ("Must be in batch mode when using 'single_component_at_a_time'")
     if len(H) != persis_info['H_len']:
         # Something new is in the history.
         persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
@@ -115,15 +117,14 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     break
                 idle_workers = idle_workers[1:]
 
-        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count + 1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
                 if (alloc_specs['user'].get('batch_mode')
-                    and not all(np.logical_or(H['returned'][last_size:],
-                                              H['paused'][last_size:]))):
+                        and not all(np.logical_or(H['returned'][last_size:], H['paused'][last_size:]))):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
@@ -146,8 +147,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             persis_info['last_worker'] = i
             persis_info['last_size'] = len(H)
 
-        elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count >= alloc_specs['user'].get('num_active_gens', gen_count + 1):
             idle_workers = []
 
-    del support
     return Work, persis_info

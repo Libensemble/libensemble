@@ -1,7 +1,7 @@
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -17,6 +17,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -41,7 +44,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < user.get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count + 1):
 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
@@ -52,5 +55,4 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_count += 1
             persis_info['total_gen_calls'] += 1
 
-    del support
     return Work, persis_info

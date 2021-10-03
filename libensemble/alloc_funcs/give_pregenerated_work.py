@@ -1,7 +1,7 @@
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in alloc_spec['x'] to
     idle workers. It is an example use case where no gen_func is used.
@@ -9,6 +9,9 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -37,5 +40,4 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
         if persis_info['next_to_give'] >= len(H):
             break
 
-    del support
     return Work, persis_info

@@ -1,7 +1,7 @@
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -10,6 +10,9 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -47,5 +50,4 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             gen_flag = False
             persis_info['total_gen_calls'] += 1
 
-    del support
     return Work, persis_info

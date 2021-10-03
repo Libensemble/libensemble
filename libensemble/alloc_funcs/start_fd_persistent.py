@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start 1 persistent generator.  If all points requested by
@@ -14,6 +14,9 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     .. seealso::
         `test_persistent_fd_param_finder.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -44,8 +47,8 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send,
-                                         persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid),
+                                         persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -61,11 +64,9 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             try:
-                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info.get(wid),
-                                             persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1
 
-    del support
     return Work, persis_info, 0

@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start up to ``alloc_specs['user']['num_active_gens']``
@@ -43,12 +43,15 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
     """
 
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
+
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
-    init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
+    init_sample_size = user.get('init_sample_size', 0)  # Always batch return until this many evals complete
     batch_give = user.get('give_all_with_same_priority', False)
 
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
@@ -104,5 +107,4 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 persis_info['num_gens_started'] = persis_info.get('num_gens_started', 0) + 1
                 gen_count += 1
 
-    del support
     return Work, persis_info, 0
