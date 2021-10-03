@@ -107,6 +107,7 @@ class MPIComm(Comm):
     def get_last_work_dict(self):
         return self.last_work_dict
 
+
 class MainMPIComm(MPIComm):
     """MPI communicator used by the workers and managers for the moment."""
 
