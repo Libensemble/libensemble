@@ -32,7 +32,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Number of points to generate initially
     number_of_gen_points = gen_specs['user']['gen_batch_size']
@@ -100,7 +100,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Fidelity range.
     fidel_range = gen_specs['user']['range']
@@ -184,7 +184,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     # Extract bounds of the parameter space, and batch size
     ub_list = gen_specs['user']['ub']
     lb_list = gen_specs['user']['lb']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Multifidelity settings.
     cost_func = gen_specs['user']['cost_func']

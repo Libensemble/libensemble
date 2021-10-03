@@ -2,7 +2,7 @@ import numpy as np
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -14,6 +14,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     .. seealso::
         `test_old_aposmm_with_gradients.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -37,7 +40,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < user.get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count + 1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
@@ -66,5 +69,4 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
             persis_info['last_worker'] = wid
             persis_info['last_size'] = len(H)
 
-    del support
     return Work, persis_info

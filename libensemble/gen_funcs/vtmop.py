@@ -172,7 +172,7 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     p = np.int32(gen_specs["user"]["p"])  # objective dimension
     ub = np.asarray(gen_specs["user"]["ub"], dtype=ctypes.c_double, order="f")
     lb = np.asarray(gen_specs["user"]["lb"], dtype=ctypes.c_double, order="f")
-    new_run = np.bool(gen_specs["user"]["new_run"])  # Are we starting a new run?
+    new_run = bool(gen_specs["user"]["new_run"])  # Are we starting a new run?
     isnb = np.int32(gen_specs["user"]["isnb"])  # first iter batch size
     snb = np.int32(gen_specs["user"]["snb"])  # search batch size
     onb = np.int32(gen_specs["user"]["onb"])  # preferred opt batch size
@@ -208,9 +208,9 @@ def vtmop_gen(H, persis_info, gen_specs, _):
     min_radf = ctypes.c_double(0.1 * trust_radf_float)
     if "min_radf" in gen_specs["user"].keys():
         min_radf = ctypes.c_double(gen_specs["user"]["min_radf"])
-    pmode = np.bool(False)
+    pmode = bool(False)
     if "pmode" in gen_specs["user"].keys():
-        pmode = np.bool(gen_specs["user"]["pmode"])
+        pmode = bool(gen_specs["user"]["pmode"])
 
     # Copy the history arrays
     des_pts = np.asarray(H["x"].T, dtype=ctypes.c_double, order="f")
@@ -223,7 +223,7 @@ def vtmop_gen(H, persis_info, gen_specs, _):
         if ierror != 0:
             return
         else:
-            gen_specs["user"]["new_run"] = np.bool(False)
+            gen_specs["user"]["new_run"] = bool(False)
 
         # Get the first batch right away
         lbatch, batchx, ierr = vtmop_libe_mod.vtmop_libe_generate(d, p, lb, ub, des_pts, obj_pts, isnb, snb, onb,

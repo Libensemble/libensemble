@@ -214,19 +214,6 @@ class Manager:
         H = self.hist.H
         return np.any(filter_nans(H[key][H['returned']]) <= val)
 
-    def work_giving_term_test(self, logged=True):
-        b = self.term_test()
-        if b:
-            return b
-        elif ('sim_max' in self.exit_criteria
-              and self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset):
-            # To avoid starting more sims if sim_max is an exit criteria
-            if logged:
-                logger.info("Ignoring the alloc_f request for more sims than sim_max.")
-            return 1
-        else:
-            return 0
-
     def term_test(self, logged=True):
         """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
@@ -419,11 +406,10 @@ class Manager:
                            FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
-                if self.libE_specs.get('use_persis_return', False):
-                    if calc_status is FINISHED_PERSISTENT_GEN_TAG:
-                        self.hist.update_history_x_in(w, final_data, self.safe_mode)
-                    else:
-                        self.hist.update_history_f(D_recv, self.safe_mode)
+                if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get('use_persis_return_gen', False):
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get('use_persis_return_sim', False):
+                    self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w-1]['persis_state'] = 0
@@ -534,6 +520,24 @@ class Manager:
 
     # --- Main loop
 
+    def _sim_max_given(self):
+        if 'sim_max' in self.exit_criteria:
+            return self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+        else:
+            return False
+
+    def _get_alloc_libE_info(self):
+        "Selected statistics useful for alloc_f"
+
+        return {'any_idle_workers': any(self.W['active'] == 0),
+                'exit_criteria': self.exit_criteria,
+                'elapsed_time': self.elapsed(),
+                'manager_kill_canceled_sims': self.kill_canceled_sims,
+                'given_count': self.hist.given_count,
+                'returned_count': self.hist.returned_count,
+                'given_back_count': self.hist.given_back_count,
+                'sim_max_given': self._sim_max_given()}
+
     def _alloc_work(self, H, persis_info):
         """
         Calls work allocation function from alloc_specs. Copies protected libE
@@ -546,10 +550,8 @@ class Manager:
                 saveH = copy.deepcopy(H[protected_libE_fields])
 
         alloc_f = self.alloc_specs['alloc_f']
-        output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info)
-
-        if self.safe_mode:
-            assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
+        output = alloc_f(self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs,
+                         persis_info, self._get_alloc_libE_info())
 
         if self.safe_mode:
             assert np.array_equal(saveH, H[protected_libE_fields]), "The allocation function modified protected fields"
@@ -574,18 +576,17 @@ class Manager:
             while not self.term_test():
                 self._kill_cancelled_sims()
                 persis_info = self._receive_from_workers(persis_info)
-                if any(self.W['active'] == 0) and not self.work_giving_term_test(logged=False):
-                    Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
-                                                               persis_info)
-                    if flag:
-                        break
+                Work, persis_info, flag = self._alloc_work(self.hist.trim_H(),
+                                                           persis_info)
+                if flag:
+                    break
 
-                    for w in Work:
-                        if self.work_giving_term_test():
-                            break
-                        self._check_work_order(Work[w], w)
-                        self._send_work_order(Work[w], w)
-                        self._update_state_on_alloc(Work[w], w)
+                for w in Work:
+                    if self._sim_max_given():
+                        break
+                    self._check_work_order(Work[w], w)
+                    self._send_work_order(Work[w], w)
+                    self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(self.W['active'] != 0), \
                     "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:

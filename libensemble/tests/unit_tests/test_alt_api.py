@@ -27,7 +27,7 @@ def test_from_yaml():
     # unit_test sample specs dont (but perhaps should) contain 'user' field
     sim_specs.update({'user': {}})
 
-    assert all([e.alloc_specs[i] is not None for i in ['out', 'user']]), \
+    assert all([e.alloc_specs[i] is not None for i in ['user']]), \
         "class instance's alloc_specs wasn't populated."
 
     assert e.exit_criteria == exit_criteria, \

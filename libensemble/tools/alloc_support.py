@@ -1,7 +1,13 @@
 import numpy as np
+import logging
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources  # noqa: F401
+from libensemble.output_directory import EnsembleDirectory
+
+logger = logging.getLogger(__name__)
+# For debug messages - uncomment
+# logger.setLevel(logging.DEBUG)
 
 
 class AllocException(Exception):
@@ -141,7 +147,7 @@ class AllocSupport:
          persistent state.
 
         :param wid: Int. Worker ID.
-        :param H: :doc:`History array<..data_structures/hist`. For parsing out requested resource sets.
+        :param H: :doc:`History array<../data_structures/history_array>`. For parsing out requested resource sets.
         :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
@@ -157,12 +163,16 @@ class AllocSupport:
         libE_info['rset_team'] = self._update_rset_team(libE_info, wid,
                                                         H=H, H_rows=H_rows)  # to parse out resource_sets
         H_fields = AllocSupport._check_H_fields(H_fields)
-        libE_info['H_rows'] = np.atleast_1d(H_rows)
+        libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
 
-        return {'H_fields': H_fields,
+        work = {'H_fields': H_fields,
                 'persis_info': persis_info,
                 'tag': EVAL_SIM_TAG,
                 'libE_info': libE_info}
+
+        logger.debug("Alloc func packing SIM work for worker {}. Packing sim_ids: {}".
+                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        return work
 
     def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
         """Add gen work record to given ``Work`` dictionary.
@@ -192,12 +202,16 @@ class AllocSupport:
             libE_info['gen_count'] = AllocSupport.gen_counter
 
         H_fields = AllocSupport._check_H_fields(H_fields)
-        libE_info['H_rows'] = np.atleast_1d(H_rows)
+        libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
 
-        return {'H_fields': H_fields,
+        work = {'H_fields': H_fields,
                 'persis_info': persis_info,
                 'tag': EVAL_GEN_TAG,
                 'libE_info': libE_info}
+
+        logger.debug("Alloc func packing GEN work for worker {}. Packing sim_ids: {}".
+                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound
@@ -277,10 +291,28 @@ class AllocSupport:
         return np.nonzero(points_avail)[0][q_inds]
 
     @staticmethod
+    def _check_H_rows(H_rows):
+        """Ensure H_rows is a numpy array.  If it is not, then convert if possible,
+        else raise an error.
+
+        :returns: ndarray. H_rows
+        """
+        H_rows = np.atleast_1d(H_rows)  # Makes sure a numpy scalar is an ndarray
+
+        if isinstance(H_rows, np.ndarray):
+            return H_rows
+        try:
+            H_rows = np.fromiter(H_rows, int)
+        except Exception:
+            raise AllocException("H_rows could not be converted to a numpy array. Type {}".
+                                 format(type(H_rows)))
+        return H_rows
+
+    @staticmethod
     def _check_H_fields(H_fields):
         """Ensure no duplicates in H_fields"""
         if len(H_fields) != len(set(H_fields)):
-            # logger.debug("Removing duplicate field when packing work request".format(H_fields))
+            logger.debug("Removing duplicate field(s) when packing work request. {}".format(H_fields))
             H_fields = list(set(H_fields))
             # H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
         return H_fields

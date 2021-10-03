@@ -12,7 +12,7 @@ def persistent_updater_after_likelihood(H, persis_info, gen_specs, libE_info):
     n = len(lb)
     subbatch_size = gen_specs['user']['subbatch_size']
     num_subbatches = gen_specs['user']['num_subbatches']
-    ps = PersistentSupport(libE_info['comm'], EVAL_GEN_TAG)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Receive information from the manager (or a STOP_TAG)
     batch = -1

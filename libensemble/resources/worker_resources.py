@@ -227,8 +227,7 @@ class WorkerResources(RSetResources):
         :param multiplier: Optional int. Assume this many items per slot.
         :param delimiter: Optional int. Delimiter for output string.
 
-        Example  in a sim function
-        --------------------------
+        Example usage in a sim function:
 
         With resources imported:
 

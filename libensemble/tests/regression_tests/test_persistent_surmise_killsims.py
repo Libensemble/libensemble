@@ -1,12 +1,14 @@
 # """
-# Tests killing of cancelled simulation that are in progress..
+# Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_surmise_killsims.py
 #    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms local
 #    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 #
 # This test is a smaller variant of test_persistent_surmise_calib.py, but which
 # subprocesses a compiled version of the borehole simulation. A delay is
@@ -42,25 +44,24 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # from libensemble import logger
 # logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
-
 if __name__ == '__main__':
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    n_init_thetas = 15              # Initial batch of thetas
-    n_x = 5                         # No. of x values
-    nparams = 4                     # No. of theta params
-    ndims = 3                       # No. of x coordinates.
-    max_add_thetas = 20             # Max no. of thetas added for evaluation
-    step_add_theta = 10             # No. of thetas to generate per step, before emulator is rebuilt
-    n_explore_theta = 200           # No. of thetas to explore while selecting the next theta
-    obsvar = 10 ** (-1)             # Constant for generating noise in obs
+    n_init_thetas = 15  # Initial batch of thetas
+    n_x = 5  # No. of x values
+    nparams = 4  # No. of theta params
+    ndims = 3  # No. of x co-ordinates.
+    max_add_thetas = 20  # Max no. of thetas added for evaluation
+    step_add_theta = 10  # No. of thetas to generate per step, before emulator is rebuilt
+    n_explore_theta = 200  # No. of thetas to explore while selecting the next theta
+    obsvar = 10**(-1)  # Constant for generating noise in obs
 
     # Batch mode until after init_sample_size (add one theta to batch for observations)
     init_sample_size = (n_init_thetas + 1) * n_x
 
     # Stop after max_emul_runs runs of the emulator
-    max_evals = init_sample_size + max_add_thetas*n_x
+    max_evals = init_sample_size + max_add_thetas * n_x
 
     sim_app = os.path.join(os.getcwd(), "borehole.x")
     if not os.path.isfile(sim_app):
@@ -76,44 +77,49 @@ if __name__ == '__main__':
     # Rename ensemble dir for non-inteference with other regression tests
     libE_specs['ensemble_dir_path'] = 'ensemble_calib_kills'
 
-    sim_specs = {'sim_f': sim_f,
-                 'in': ['x', 'thetas'],
-                 'out': [('f', float)],
-                 'user': {'num_obs': n_x,
-                          'init_sample_size': init_sample_size}
-                 }
+    sim_specs = {
+        'sim_f': sim_f,
+        'in': ['x', 'thetas'],
+        'out': [('f', float)],
+        'user': {
+            'num_obs': n_x,
+            'init_sample_size': init_sample_size}}
 
-    gen_out = [('x', float, ndims), ('thetas', float, nparams),
-               ('priority', int), ('obs', float, n_x), ('obsvar', float, n_x)]
+    gen_out = [
+        ('x', float, ndims),
+        ('thetas', float, nparams),
+        ('priority', int),
+        ('obs', float, n_x),
+        ('obsvar', float, n_x), ]
 
-    gen_specs = {'gen_f': gen_f,
-                 'persis_in': [o[0] for o in gen_out]+['f', 'returned', 'sim_id'],
-                 'out': gen_out,
-                 'user': {'n_init_thetas': n_init_thetas,        # Num thetas in initial batch
-                          'num_x_vals': n_x,                     # Num x points to create
-                          'step_add_theta': step_add_theta,      # No. of thetas to generate per step
-                          'n_explore_theta': n_explore_theta,    # No. of thetas to explore each step
-                          'obsvar': obsvar,                      # Variance for generating noise in obs
-                          'init_sample_size': init_sample_size,  # Initial batch size inc. observations
-                          'priorloc': 1,                         # Prior location in the unit cube.
-                          'priorscale': 0.2,                     # Standard deviation of prior
-                          }
-                 }
+    gen_specs = {
+        'gen_f': gen_f,
+        'persis_in': [o[0] for o in gen_out] + ['f', 'returned', 'sim_id'],
+        'out': gen_out,
+        'user': {
+            'n_init_thetas': n_init_thetas,  # Num thetas in initial batch
+            'num_x_vals': n_x,  # Num x points to create
+            'step_add_theta': step_add_theta,  # No. of thetas to generate per step
+            'n_explore_theta': n_explore_theta,  # No. of thetas to explore each step
+            'obsvar': obsvar,  # Variance for generating noise in obs
+            'init_sample_size': init_sample_size,  # Initial batch size inc. observations
+            'priorloc': 1,  # Prior location in the unit cube.
+            'priorscale': 0.2,  # Standard deviation of prior
+        }}
 
-    alloc_specs = {'alloc_f': alloc_f,
-                   'user': {'init_sample_size': init_sample_size,
-                            'async_return': True,    # True = Return results to gen as they come in (after sample)
-                            'active_recv_gen': True  # Persistent gen can handle irregular communications
-                            }
-                   }
+    alloc_specs = {
+        'alloc_f': alloc_f,
+        'user': {
+            'init_sample_size': init_sample_size,
+            'async_return': True,  # True = Return results to gen as they come in (after sample)
+            'active_recv_gen': True  # Persistent gen can handle irregular communications
+        }}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {'sim_max': max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs,
-                                exit_criteria, persis_info,
-                                alloc_specs=alloc_specs,
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs,
                                 libE_specs=libE_specs)
 
     if is_manager:

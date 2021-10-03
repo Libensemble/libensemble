@@ -1,9 +1,14 @@
 """
-This module contains various versions that evaluate the six hump camel function.
+This module contains various versions that evaluate the six-hump camel function.
+
+Six-hump camel function is documented here:
+  https://www.sfu.ca/~ssurjano/camel6.html
+
 """
 __all__ = ['six_hump_camel', 'six_hump_camel_simple',
            'six_hump_camel_with_variable_resources',
-           'six_hump_camel_CUDA_variable_resources']
+           'six_hump_camel_CUDA_variable_resources',
+           'persistent_six_hump_camel']
 
 # import subprocess
 import os
@@ -13,6 +18,8 @@ import time
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
+from libensemble.tools.persistent_support import PersistentSupport
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel(H, persis_info, sim_specs, _):
@@ -164,6 +171,43 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
     calc_status = WORKER_DONE if task.state == 'FINISHED' else 'FAILED'
     return H_o, persis_info, calc_status
+
+
+def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
+    """
+    Similar to ``six_hump_camel``, but runs in persistent mode.
+    """
+
+    ps = PersistentSupport(libE_info, EVAL_SIM_TAG)
+
+    # Either start with a work item to process - or just start and wait for data
+    if H.size > 0:
+        tag = None
+        Work = None
+        calc_in = H
+    else:
+        tag, Work, calc_in = ps.recv()
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+
+        # calc_in: This should either be a function (unpack_work ?) or included/unpacked in ps.recv/ps.send_recv.
+        if Work is not None:
+            persis_info = Work.get('persis_info', persis_info)
+            libE_info = Work.get('libE_info', libE_info)
+
+        # Call standard six_hump_camel sim
+        H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
+
+        tag, Work, calc_in = ps.send_recv(H_o)
+
+    final_return = None
+
+    # Overwrite final point - for testing only
+    calc_in = np.ones(1, dtype=[('x', float, (2,))])
+    H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
+    final_return = H_o
+
+    return final_return, persis_info, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel_func(x):

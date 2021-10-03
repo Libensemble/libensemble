@@ -20,6 +20,7 @@
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local
+# TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
 
@@ -59,55 +60,56 @@ def sim_f(H, *unused):
 
 # Set up the problem
 nworkers, is_manager, libE_specs, _ = parse_args()
-lower_bounds = lower*np.ones(num_dims)
-upper_bounds = upper*np.ones(num_dims)
+lower_bounds = lower * np.ones(num_dims)
+upper_bounds = upper * np.ones(num_dims)
 
 # Set up the simulator
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float, num_objs)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float, num_objs)], }
 
 # Set up the generator
-gen_specs = {'gen_f': gen_f,  # Set the gen to VTMOP (aliased to gen_f above).
-             'in': ['x', 'f'],
-             'out': [('x', float, num_dims)],
-             'user': {
-                 # Set the problem dimensions (must match lb and ub).
-                 'd': num_dims,
-                 'p': num_objs,
-                 # Set the bound constraints.
-                 'lb': lower_bounds,
-                 'ub': upper_bounds,
-                 # Is this the beginning of a new run?
-                 'new_run': True,
-                 # isnb specifies the size of the initial search
-                 # and should generally be a large number. However, if a
-                 # precomputed database is available, then the initial search
-                 # could be skipped. If 0 is given, then the initial search is
-                 # skipped. Setting first_batch_size to 0 without supplying an
-                 # initial database will cause an error since the surrogates
-                 # cannot be fit without sufficient data.
-                 'isnb': 1000,
-                 # snb is the number of points used to search
-                 # each local trust region (using Latin hypercube design).
-                 # This should be a multiple of the number of concurrent
-                 # function evaluations and on the order of 4*d (where d is
-                 # the number of design variables)
-                 'snb': int(np.ceil(4*num_dims/nworkers)*nworkers),
-                 # onb is the preferred number of candidate designs.
-                 # When the actual number of candidates is not a multiple of
-                 # opt_batch_size, additional candidates are randomly generated
-                 # to pad out the batch (if possible). This should be the exact
-                 # number of concurrent simulations used.
-                 'onb': nworkers,
+gen_specs = {
+    'gen_f': gen_f,  # Set the gen to VTMOP (aliased to gen_f above).
+    'in': ['x', 'f'],
+    'out': [('x', float, num_dims)],
+    'user': {
+        # Set the problem dimensions (must match lb and ub).
+        'd': num_dims,
+        'p': num_objs,
+        # Set the bound constraints.
+        'lb': lower_bounds,
+        'ub': upper_bounds,
+        # Is this the beginning of a new run?
+        'new_run': True,
+        # isnb specifies the size of the initial search
+        # and should generally be a large number. However, if a
+        # precomputed database is available, then the initial search
+        # could be skipped. If 0 is given, then the initial search is
+        # skipped. Setting first_batch_size to 0 without supplying an
+        # initial database will cause an error since the surrogates
+        # cannot be fit without sufficient data.
+        'isnb': 1000,
+        # snb is the number of points used to search
+        # each local trust region (using Latin hypercube design).
+        # This should be a multiple of the number of concurrent
+        # function evaluations and on the order of 4*d (where d is
+        # the number of design variables)
+        'snb': int(np.ceil(4 * num_dims / nworkers) * nworkers),
+        # onb is the preferred number of candidate designs.
+        # When the actual number of candidates is not a multiple of
+        # opt_batch_size, additional candidates are randomly generated
+        # to pad out the batch (if possible). This should be the exact
+        # number of concurrent simulations used.
+        'onb': nworkers,
 
-                 # Other optional arguments below:
+        # Other optional arguments below:
 
-                 # Set the trust region radius as a fraction of ub[:]-lb[:].
-                 # This setting is problem dependent. A good starting place
-                 # would be between 0.1 and 0.2.
-                 'trust_radf': 0.1},
-             }
+        # Set the trust region radius as a fraction of ub[:]-lb[:].
+        # This setting is problem dependent. A good starting place
+        # would be between 0.1 and 0.2.
+        'trust_radf': 0.1}, }
 
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
@@ -131,8 +133,9 @@ for run in range(3):
         f = np.zeros((size, num_objs))
 
         # Initialize H0
-        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
-                                   ('returned', bool), ('given', bool)])
+        H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
+                    ('given', bool)]
+        H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = X
         H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
@@ -171,8 +174,9 @@ for run in range(3):
 
         # Initialize H0 with values from H (from the run==1 case)
         size = sum(H['returned'])
-        H0 = np.zeros(size, dtype=[('x', float, num_dims), ('f', float, num_objs), ('sim_id', int),
-                                   ('returned', bool), ('given', bool)])
+        H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
+                    ('given', bool)]
+        H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = H['x'][:size]
         H0['sim_id'] = range(size)
         H0[['given', 'returned']] = True
@@ -187,8 +191,8 @@ for run in range(3):
     persis_info['total_gen_calls'] = 0
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs,
+                                libE_specs=libE_specs, H0=H0)
 
     # The manager takes care of checkpointing/output
     if is_manager:

@@ -1,10 +1,14 @@
 # """
-# Runs libEnsemble with the persistent generator that finds an appropriate
-# finite-difference parameter for the sim_f mapping from R^n to R^p around the
-# point x.
+# Runs libEnsemble with the fd_param_finder persistent gen_f, which finds an
+# appropriate finite-difference parameter for the sim_f mapping from R^n to R^p
+# around the point x.
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_fd_param_finder.py
+#
+# When running with the above command, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -34,23 +38,24 @@ f0 = noisy_function(x0)
 n = len(x0)
 p = len(f0)
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x', 'f_ind'],
-             'out': [('f_val', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x', 'f_ind'],
+    'out': [('f_val', float)], }
 
 # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
-gen_specs = {'gen_f': gen_f,
-             'persis_in': ['x', 'f_val', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
-             'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
-             'user': {'x0': x0,
-                      'f0': f0,
-                      'nf': 10,
-                      'p': p,
-                      'n': n,
-                      'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
-                      'maxnoiseits': 3
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['x', 'f_val', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
+    'out': [('x', float, (n, )), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
+    'user': {
+        'x0': x0,
+        'f0': f0,
+        'nf': 10,
+        'p': p,
+        'n': n,
+        'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
+        'maxnoiseits': 3}}
 shutil.copy('./scripts_used_by_reg_tests/ECnoise.m', './')
 
 alloc_specs = {'alloc_f': alloc_f}
@@ -60,8 +65,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'gen_max': 1000}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert len(H) < exit_criteria['gen_max'], "Problem didn't stop early, which should have been the case."
