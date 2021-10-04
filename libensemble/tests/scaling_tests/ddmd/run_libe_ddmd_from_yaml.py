@@ -45,7 +45,7 @@ ddmd.sim_specs['user']['reference_pdb_file'] = os.path.abspath(folded_url.split(
 ddmd.gen_specs['user']['n_traj_frames'] = int(ddmd.sim_specs['user']['sim_length_ns']*1000)
 
 for app in ddmd_apps:
-    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
+    exctr.register_app(full_path=ddmd_apps[app], app_name=app)
     ddmd.gen_specs['user'][app + '_config'] = app + '.yaml'
     ddmd.gen_specs['out'].append((app + '_cstat', int))
 

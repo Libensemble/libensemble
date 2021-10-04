@@ -19,7 +19,7 @@ def create_node_file(num_nodes, name='node_list'):
 
 
 def mpi_comm_excl(exc=[0], comm=None):
-    "Exlude ranks from a communicator for MPI comms."
+    "Exclude ranks from a communicator for MPI comms."
     from mpi4py import MPI
     parent_comm = comm or MPI.COMM_WORLD
     parent_group = parent_comm.Get_group()
@@ -63,9 +63,9 @@ def modify_Balsam_worker():
     #   worker setup so multiple workers can be run on a single node.
     import balsam
 
-    new_lines = ["        for idx in range(10):\n",
-                 "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
-                 "            self.workers.append(w)\n"]
+    new_lines = [
+        "        for idx in range(10):\n", "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
+        "            self.workers.append(w)\n"]
 
     workerfile = 'worker.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
@@ -85,7 +85,7 @@ def modify_Balsam_worker():
 
 def modify_Balsam_pyCoverage():
     # Tracking line coverage through our tests requires running the Python module
-    #   'coverage' directly. Balsam explicitely configures Python runs with
+    #   'coverage' directly. Balsam explicitly configures Python runs with
     #   'python [script].py args' with no current capability for specifying
     #   modules. This hack specifies the coverage module and some options.
     import balsam

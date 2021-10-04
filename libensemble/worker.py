@@ -223,7 +223,7 @@ class Worker:
                 calc_id = str(Work['libE_info']['gen_count'])
             else:
                 calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (mininum width).
+        # Add a right adjust (minimum width).
         calc_id = calc_id.rjust(5, ' ')
 
         timer = Timer()
@@ -316,7 +316,12 @@ class Worker:
         Worker._set_rset_team(libE_info['rset_team'])
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
-        del libE_info['comm']
+
+        if 'libE_info' in Work:
+            libE_info = Work['libE_info']
+
+        if 'comm' in libE_info:
+            del libE_info['comm']
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:

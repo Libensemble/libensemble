@@ -58,11 +58,11 @@ class Ensemble:
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level('INFO')
-        self.sim_specs = {'sim_f': None, 'in': None, 'out': None,
+        self.sim_specs = {'sim_f': None, 'in': None, 'persis_in': None, 'out': None,
                           'user': None, 'type': 'sim'}
-        self.gen_specs = {'gen_f': None, 'in': None, 'out': None,
+        self.gen_specs = {'gen_f': None, 'in': None, 'persis_in': None, 'out': None,
                           'user': None, 'type': 'gen'}
-        self.alloc_specs = {'alloc_f': None, 'in': None, 'out': None,
+        self.alloc_specs = {'alloc_f': None, 'out': None,
                             'user': None, 'type': 'alloc'}
         self.exit_criteria = {}
         self.H0 = None
@@ -124,9 +124,16 @@ class Ensemble:
         return [i for i in loaded[type + '_specs'].get('inputs', [])]
 
     @staticmethod
+    def _get_persis_inputs(loaded, type):
+        """ Extracts persis input parameters from loaded yaml dict """
+        return [i for i in loaded[type + '_specs'].get('persistent_inputs', [])]
+
+    @staticmethod
     def _get_outputs(loaded, type):
         """ Extracts output parameters from loaded yaml dict """
         outputs = loaded[type + '_specs'].get('outputs')
+        if not outputs:
+            return []
         fields = [i for i in outputs]
         field_params = [i for i in outputs.values()]
         results = []
@@ -159,6 +166,7 @@ class Ensemble:
                      'gen_f': self._get_func,
                      'alloc_f': self._get_func,
                      'in': self._get_inputs,
+                     'persis_in': self._get_persis_inputs,
                      'out': self._get_outputs,
                      'user': self._get_user}
 

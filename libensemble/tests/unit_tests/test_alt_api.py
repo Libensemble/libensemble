@@ -27,16 +27,16 @@ def test_from_yaml():
     # unit_test sample specs dont (but perhaps should) contain 'user' field
     sim_specs.update({'user': {}})
 
-    assert all([e.alloc_specs[i] is not None for i in ['out', 'user']]), \
+    assert all([e.alloc_specs[i] is not None for i in ['user']]), \
         "class instance's alloc_specs wasn't populated."
 
     assert e.exit_criteria == exit_criteria, \
-        "exit_criteria wasnt correctly loaded or separated from libE_specs."
+        "exit_criteria wasn't correctly loaded or separated from libE_specs."
 
     assert e.sim_specs == sim_specs, \
         "instance's sim_specs isn't equivalent to sample sim_specs"
 
-    # cant specify np arrays in yaml - have to manually update.
+    # can't specify np arrays in yaml - have to manually update.
     e.gen_specs['user']['ub'] = np.ones(1)
     e.gen_specs['user']['lb'] = np.zeros(1)
 

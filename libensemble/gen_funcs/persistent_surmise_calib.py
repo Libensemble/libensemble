@@ -9,8 +9,8 @@ from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_
     thetaprior, select_next_theta
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg, get_mgr_worker_msg, send_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def build_emulator(theta, x, fevals):
@@ -72,7 +72,7 @@ def update_arrays(fevals, pending, complete, calc_in, obs_offset, n_x):
     return
 
 
-def cancel_columns(obs_offset, c, n_x, pending, comm):
+def cancel_columns(obs_offset, c, n_x, pending, ps):
     """Cancel columns"""
     sim_ids_to_cancel = []
     columns = np.unique(c)
@@ -88,7 +88,7 @@ def cancel_columns(obs_offset, c, n_x, pending, comm):
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
     H_o['cancel_requested'] = True
-    send_mgr_worker_msg(comm, H_o)
+    ps.send(H_o)
 
 
 def assign_priority(n_x, n_thetas):
@@ -129,7 +129,6 @@ def gen_truevals(x, gen_specs):
 
 def surmise_calib(H, persis_info, gen_specs, libE_info):
     """Generator to select and obviate parameters for calibration."""
-    comm = libE_info['comm']
     rand_stream = persis_info['rand_stream']
     n_thetas = gen_specs['user']['n_init_thetas']
     n_x = gen_specs['user']['num_x_vals']  # Num of x points
@@ -138,6 +137,8 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
     priorloc = gen_specs['user']['priorloc']
     priorscale = gen_specs['user']['priorscale']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
     prior = thetaprior(priorloc, priorscale)
 
     # Create points at which to evaluate the sim
@@ -146,7 +147,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     H_o = gen_truevals(x, gen_specs)
     obs_offset = len(H_o)
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -158,7 +159,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
     theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     # -------------------------------------------------------------------------
 
     fevals = None
@@ -179,7 +180,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                           obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
-                tag, Work, calc_in = get_mgr_worker_msg(comm)
+                tag, Work, calc_in = ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
 
@@ -216,13 +217,13 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             # n_thetas = step_add_theta
             H_o = np.zeros(n_x*(len(new_theta)), dtype=gen_specs['out'])
             load_H(H_o, x, new_theta, set_priorities=True)
-            tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H_o)
+            tag, Work, calc_in = ps.send_recv(H_o)
 
             # Determine evaluations to cancel
             c_obviate = info['obviatesugg']
             if len(c_obviate) > 0:
                 print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
-                cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
+                cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
             pending[:, c_obviate] = False
 
     return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

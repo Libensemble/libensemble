@@ -51,7 +51,7 @@ ddmd_apps = {'molecular_dynamics': run_openmm.__file__,
 exctr = MPIExecutor()
 
 for app in ddmd_apps:
-    exctr.register_calc(full_path=ddmd_apps[app], app_name=app)
+    exctr.register_app(full_path=ddmd_apps[app], app_name=app)
 
 # Specify directory structure where user functions will be called
 ensemble_directory = os.path.abspath('./ensemble_' + str(datetime.datetime.today()).replace(' ', '_').split('.')[0])
@@ -92,7 +92,7 @@ for app in ddmd_apps:
     gen_specs['out'].append((app + '_cstat', int))
 
 # Parameterize the provided allocation function
-alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)],
+alloc_specs = {'alloc_f': alloc_f,
                'user': {'init_sample_size': MD_BATCH_SIZE}}
 
 # Specify when libEnsemble should shut down

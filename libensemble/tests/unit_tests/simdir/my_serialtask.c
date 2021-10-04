@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     usleep(usec_delay);
 
     if (error==1) {
-        printf("Oh Dear! An non-fatal Error seems to have occured\n");
+        printf("Oh Dear! An non-fatal Error seems to have occurred\n");
         fflush(stdout);
         usleep(usec_delay);
     }

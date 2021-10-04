@@ -29,38 +29,38 @@ from libensemble.tests.regression_tests.common import create_node_file
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 # For varying size test - relate node count to nworkers
-total_nodes = nworkers//4  # 4 workers per node - run on 4N workers
+total_nodes = nworkers // 4  # 4 workers per node - run on 4N workers
 
 sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
 exctr = MPIExecutor()
-exctr.register_calc(full_path=sim_app, app_name='helloworld')
+exctr.register_app(full_path=sim_app, app_name='helloworld')
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             # 'in': ['x', 'resource_sets'], # Dont need if letting it just use all resources available
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {'dry_run': True}
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    # 'in': ['x', 'resource_sets'], # Dont need if letting it just use all resources available
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'dry_run': True}}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('priority', float),
-                     ('resource_sets', int),
-                     ('x', float, n),
-                     ('x_on_cube', float, n)],
-             'user': {'initial_batch_size': 5,
-                      'max_resource_sets': 4,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('priority', float), ('resource_sets', int), ('x', float, n), ('x_on_cube', float, n)],
+    'user': {
+        'initial_batch_size': 5,
+        'max_resource_sets': 4,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': give_sim_work_first,
-               'out': [('allocated', bool)],
-               'user': {'batch_mode': False,
-                        'give_all_with_same_priority': True,
-                        'num_active_gens': 1}
-               }
+alloc_specs = {
+    'alloc_f': give_sim_work_first,
+    'out': [('allocated', bool)],
+    'user': {
+        'batch_mode': False,
+        'give_all_with_same_priority': True,
+        'num_active_gens': 1}}
 
 comms = libE_specs['comms']
 node_file = 'nodelist_adaptive_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
@@ -71,15 +71,16 @@ if comms == 'mpi':
     libE_specs['mpi_comm'].Barrier()
 
 # Mock up system
-libE_specs['resource_info'] = {'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-                               'node_file': node_file}     # Name of file containing a node-list
+libE_specs['resource_info'] = {
+    'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
+    'node_file': node_file}  # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs, alloc_specs=alloc_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
+                            alloc_specs=alloc_specs)
 
 if is_manager:
     assert flag == 0

@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start 1 persistent generator.  If all points requested by
@@ -15,6 +15,9 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_persistent_fd_param_finder.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
 
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
+
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names
@@ -22,9 +25,6 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
     gen_count = support.count_persis_gens()
-
-    gen_return_fields = list(set(gen_specs['in'] + sim_specs['in'] +
-                                 [n[0] for n in sim_specs['out']] + [('sim_id')]))
 
     if len(H) and gen_count == 0:
         # The one persistent worker is done. Exiting
@@ -47,7 +47,8 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            Work[wid] = support.gen_work(wid, gen_return_fields, inds_to_send, persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid),
+                                         persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -63,11 +64,9 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         elif gen_count == 0:
             # Finally, call a persistent generator as there is nothing else to do.
             try:
-                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
-                                             persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1
 
-    del support
     return Work, persis_info, 0

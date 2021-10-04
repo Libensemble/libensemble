@@ -68,22 +68,22 @@ def setup_executor():
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
 def setup_serial_executor():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
     exctr = Executor()
-    exctr.register_calc(full_path=serial_app, calc_type='sim')
+    exctr.register_app(full_path=serial_app, calc_type='sim')
 
 
 def setup_executor_startups():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
     exctr = Executor()
-    exctr.register_calc(full_path=c_startup, app_name='c_startup')
-    exctr.register_calc(full_path=py_startup, app_name='py_startup')
+    exctr.register_app(full_path=c_startup, app_name='c_startup')
+    exctr.register_app(full_path=py_startup, app_name='py_startup')
 
 
 def setup_executor_noapp():
@@ -110,7 +110,7 @@ def setup_executor_fakerunner():
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info=customizer)
-    exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
 # -----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
         # Check output file for error
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
-                print("Found(deliberate) Error in ouput file - cancelling task")
+                print("Found(deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
                 break
@@ -173,7 +173,7 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
                 # Check output file for error
                 if task.stdout_exists():
                     if 'Error' in task.read_stdout():
-                        print("Found (deliberate) Error in ouput file - cancelling task %d" % (task.id))
+                        print("Found (deliberate) Error in output file - cancelling task %d" % (task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
                         continue
@@ -228,14 +228,14 @@ def test_launch_and_wait_timeout():
     assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-def test_launch_wait_on_run():
-    """ Test of launching task with wait_on_run """
+def test_launch_wait_on_start():
+    """ Test of launching task with wait_on_start """
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(task.state)
     exctr.poll(task)
     if not task.finished:
@@ -351,22 +351,22 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs = num_nodes*ranks_per_node (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
+    # Testing num_procs = num_nodes*procs_per_node (shouldn't fail)
+    task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs not num_nodes*ranks_per_node (should fail)
+    # Testing num_procs not num_nodes*procs_per_node (should fail)
     try:
-        task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, ranks_per_node=5, app_args=args_for_sim)
+        task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
     except MPIResourcesException as e:
-        assert e.args[0] == 'num_procs does not equal num_nodes*ranks_per_node'
+        assert e.args[0] == 'num_procs does not equal num_nodes*procs_per_node'
     else:
         assert 0
 
     # Testing no num_procs (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_nodes=2, ranks_per_node=3, app_args=args_for_sim)
+    task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -376,18 +376,18 @@ def test_procs_and_machinefile_logic():
     try:
         task = exctr.submit(calc_type='sim', app_args=args_for_sim)
     except MPIResourcesException as e:
-        assert e.args[0] == 'Need num_procs, num_nodes/ranks_per_node, or machinefile'
+        assert e.args[0] == 'Need num_procs, num_nodes/procs_per_node, or machinefile'
     else:
         assert 0
 
     # Testing no num_nodes (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=2, ranks_per_node=2, app_args=args_for_sim)
+    task = exctr.submit(calc_type='sim', num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing no ranks_per_node (shouldn't fail)
+    # Testing no procs_per_node (shouldn't fail)
     task = exctr.submit(calc_type='sim', num_nodes=1, num_procs=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
@@ -479,7 +479,7 @@ def test_launch_as_gen():
     else:
         assert 0
 
-    exctr.register_calc(full_path=sim_app, calc_type='gen')
+    exctr.register_app(full_path=sim_app, calc_type='gen')
     task = exctr.submit(calc_type='gen', num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -596,7 +596,7 @@ def test_retries_run_fail():
     exctr.retry_delay_incr = 0.05
     cores = NCORES
     args_for_sim = 'sleep 0 Fail'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
@@ -605,8 +605,8 @@ def test_register_apps():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()  # This registers an app my_simtask.x (default sim)
     exctr = Executor.executor
-    exctr.register_calc(full_path='/path/to/fake_app1.x', app_name='fake_app1')
-    exctr.register_calc(full_path='/path/to/fake_app2.py', app_name='fake_app2')
+    exctr.register_app(full_path='/path/to/fake_app1.x', app_name='fake_app1')
+    exctr.register_app(full_path='/path/to/fake_app2.py', app_name='fake_app2')
 
     # Check selected attributes
     app = exctr.get_app('my_simtask.x')
@@ -639,7 +639,7 @@ def test_serial_exes():
     setup_serial_executor()
     exctr = Executor.executor
     args_for_sim = 'sleep 0.1'
-    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_run=True)
+    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_start=True)
     task.wait()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
@@ -675,7 +675,7 @@ if __name__ == "__main__":
     test_launch_and_poll()
     test_launch_and_wait()
     test_launch_and_wait_timeout()
-    test_launch_wait_on_run()
+    test_launch_wait_on_start()
     test_kill_on_file()
     test_kill_on_timeout()
     test_kill_on_timeout_polling_loop_method()

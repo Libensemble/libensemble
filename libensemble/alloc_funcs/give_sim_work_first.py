@@ -1,8 +1,9 @@
 import numpy as np
+import time
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -26,8 +27,20 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-    # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
+
+    if 'cancel_sims_time' in user:
+        # Cancel simulations that are taking too long
+        rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
+        inds = time.time() - H['last_given_time'][rows] > user['cancel_sims_time']
+        to_request_cancel = rows[inds]
+        for row in to_request_cancel:
+            H[row]['cancel_requested'] = True
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
+
+    # Initialize alloc_specs['user'] as user.
     sched_opts = user.get('scheduler_opts', {})
     batch_give = user.get('give_all_with_same_priority', False)
     gen_in = gen_specs.get('in', [])
@@ -50,7 +63,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= user.get('num_active_gens', gen_count+1):
+            if gen_count >= user.get('num_active_gens', gen_count + 1):
                 break
 
             # Do not start gen instances in batch mode if workers still working
@@ -65,5 +78,4 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                 break
             gen_count += 1
 
-    del support
     return Work, persis_info

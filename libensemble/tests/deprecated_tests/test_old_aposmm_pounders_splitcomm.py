@@ -28,7 +28,7 @@ from libensemble.tests.regression_tests.support import persis_info_2 as persis_i
 from libensemble.tests.regression_tests.common import mpi_comm_split
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-num_comms = 2  # Must have atleast num_comms*2 processors
+num_comms = 2  # Must have at least num_comms*2 processors
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['mpi_comm'], sub_comm_number = mpi_comm_split(num_comms)
 is_manager = (libE_specs['mpi_comm'].Get_rank() == 0)

@@ -15,11 +15,11 @@ import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 
 mpi4py.rc.recv_mprobe = False  # Disable matching probes
 
-libE_specs = {'mpi_comm': MPI.COMM_WORLD,
-              'comms': 'mpi',
-              'save_every_k_sims': 400,
-              'save_every_k_gens': 20,
-              }
+libE_specs = {
+    'mpi_comm': MPI.COMM_WORLD,
+    'comms': 'mpi',
+    'save_every_k_sims': 400,
+    'save_every_k_gens': 20, }
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_manager = MPI.COMM_WORLD.Get_rank() == 0
@@ -30,38 +30,38 @@ sim_app = './my_simtask.x'
 sim_app2 = six_hump_camel.__file__
 
 exctr = BalsamMPIExecutor()
-exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
-exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
-exctr.register_calc(full_path=sim_app2, app_name='sim_hump_camel_dry_run')
+exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
+exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
+exctr.register_app(full_path=sim_app2, app_name='sim_hump_camel_dry_run')
 
-sim_specs = {'sim_f': executor_hworld,
-             'in': ['x'],
-             'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_task,
-                      'balsam_test': True}
-             }
+sim_specs = {
+    'sim_f': executor_hworld,
+    'in': ['x'],
+    'out': [('f', float), ('cstat', int)],
+    'user': {
+        'cores': cores_per_task,
+        'balsam_test': True}}
 
-gen_specs = {'gen_f': uniform_random_sample,
-             'in': ['sim_id'],
-             'out': [('x', float, (2,))],
-             'user': {'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': nworkers}
-             }
+gen_specs = {
+    'gen_f': uniform_random_sample,
+    'in': ['sim_id'],
+    'out': [('x', float, (2, ))],
+    'user': {
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': nworkers}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 60}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     print('\nChecking expected task status against Workers ...\n')
-    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR,
-                                      WORKER_DONE, WORKER_KILL_ON_TIMEOUT,
-                                      TASK_FAILED, 0])
+    calc_status_list_in = np.asarray([
+        WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     print("Expecting: {}".format(calc_status_list))

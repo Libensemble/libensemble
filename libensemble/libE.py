@@ -198,7 +198,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
         .. code-block::
 
             0 = No errors
-            1 = Exception occured
+            1 = Exception occurred
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
@@ -356,13 +356,13 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
-    "Manager routine run at rank 0."
+    "Manager routine runs on rank 0."
 
     from libensemble.comms.mpi import MainMPIComm
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Lauch worker team
+    # Launch worker team
     wcomms = [MainMPIComm(mpi_comm, w) for w in
               range(1, mpi_comm.Get_size())]
 
@@ -381,7 +381,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
-    "Worker routine run at ranks > 0."
+    "Worker routines run on ranks > 0."
 
     from libensemble.comms.mpi import MainMPIComm
     comm = MainMPIComm(libE_comm)

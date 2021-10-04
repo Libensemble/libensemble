@@ -97,7 +97,7 @@ class MPIExecutor(Executor):
     def set_resources(self, resources):
         self.resources = resources
 
-    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_run):
+    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_start):
         """ Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
@@ -119,8 +119,8 @@ class MPIExecutor(Executor):
                 retry = True
                 retry_count += 1
             else:
-                if (wait_on_run):
-                    self._wait_on_run(task, self.fail_time)
+                if (wait_on_start):
+                    self._wait_on_start(task, self.fail_time)
 
                 if task.state == 'FAILED':
                     logger.warning('task {} failed within fail_time on '
@@ -137,9 +137,9 @@ class MPIExecutor(Executor):
                 break
 
     def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, ranks_per_node=None, machinefile=None,
+               num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_run=False,
+               hyperthreads=False, dry_run=False, wait_on_start=False,
                extra_args=None):
         """Creates a new task, and either executes or schedules execution.
 
@@ -161,8 +161,8 @@ class MPIExecutor(Executor):
         num_nodes: int, optional
             The number of nodes on which to submit the task
 
-        ranks_per_node: int, optional
-            The ranks per node for this task
+        procs_per_node: int, optional
+            The processes per node for this task
 
         machinefile: string, optional
             Name of a machinefile for this task to use
@@ -188,14 +188,14 @@ class MPIExecutor(Executor):
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_run: boolean, optional
+        wait_on_start: boolean, optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
         extra_args: String, optional
             Additional command line arguments to supply to MPI runner. If
             arguments are recognised as MPI resource configuration
-            (num_procs, num_nodes, ranks_per_node) they will be used in
+            (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.
 
@@ -203,11 +203,11 @@ class MPIExecutor(Executor):
         -------
 
         task: obj: Task
-            The lauched task object
+            The launched task object
 
 
         Note that if some combination of num_procs, num_nodes, and
-        ranks_per_node is provided, these will be honored if
+        procs_per_node is provided, these will be honored if
         possible. If resource detection is on and these are omitted,
         then the available resources will be divided among workers.
         """
@@ -227,7 +227,7 @@ class MPIExecutor(Executor):
                            "executor - runs in-place")
 
         mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
-                                                  ranks_per_node, machinefile,
+                                                  procs_per_node, machinefile,
                                                   hyperthreads, extra_args,
                                                   self.resources,
                                                   self.workerID)
@@ -247,7 +247,7 @@ class MPIExecutor(Executor):
             task._set_complete(dry_run=True)
         else:
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_run)
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
             if not task.timer.timing:
                 task.timer.start()

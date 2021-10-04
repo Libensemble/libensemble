@@ -1,7 +1,7 @@
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = ['persistent_uniform',
            'uniform_random_sample_with_variable_resources',
@@ -24,16 +24,18 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['initial_batch_size']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
 
+    H_o = None
     if gen_specs['user'].get('replace_final_fields', 0):
         # This is only to test libE ability to accept History after a
         # PERSIS_STOP. This history is returned in Work.
@@ -56,6 +58,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
     lb = gen_specs['user']['lb']
     n = len(lb)
     b = gen_specs['user']['initial_batch_size']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     H_o = np.zeros(b, dtype=gen_specs['out'])
     for i in range(0, b):
@@ -66,7 +69,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o['priority'] = 1
 
     # Send batches until manager sends stop tag
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+    tag, Work, calc_in = ps.send_recv(H_o)
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         # H_o['x'] = len(H)*np.ones(n)
@@ -74,7 +77,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1, b)
         H_o['priority'] = 10*H_o['resource_sets']
         print('Created {} sims, with worker_teams req. of size(s) {}'.format(b, H_o['resource_sets']), flush=True)
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
 
         if calc_in is not None:
             b = len(calc_in)
@@ -98,13 +101,14 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
     b = gen_specs['user']['initial_batch_size']
     shutdown_limit = gen_specs['user']['shutdown_limit']
     f_count = 0
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs['out'])
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H_o)
+        tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)
         f_count += b

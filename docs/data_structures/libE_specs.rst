@@ -78,8 +78,11 @@ Specifications for libEnsemble::
             Will libE try to kill sims that user functions mark 'cancel_requested' as True.
             If False, the manager avoid this moderate overhead.
             Default: True
-        'use_persis_return' [boolean]:
-            Adds persistent function H return to managers history array.
+        'use_persis_return_gen' [boolean]:
+            Adds persistent generator function H return to managers history array.
+            Default: False
+        'use_persis_return_sim' [boolean]:
+            Adds persistent simulator function H return to managers history array.
             Default: False
         'final_fields' [list]:
             List of fields in H that the manager will return to persistent
@@ -100,7 +103,7 @@ Specifications for libEnsemble::
             detected by the resource manager. Larger node counts are not allowed.
             When the libE_specs option `disable_resource_manager` is True,
             this argument is ignored. Default: False
-        'central_mode' [boolean]:
+        'dedicated_mode' [boolean]:
             If true, then running in central mode, otherwise in distributed
             mode. Central mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
@@ -152,7 +155,6 @@ For example::
                   'node_file': 'libe_nodes'}
 
     libE_specs['resource_info'] = customizer
-
 
 .. note::
     The ``ensemble_dir_path`` option can create working directories on local node or

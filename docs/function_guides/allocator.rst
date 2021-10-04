@@ -8,19 +8,35 @@ by the libEnsemble's manager instead of a worker.
 
 Most ``alloc_f`` function definitions written by users resemble::
 
-    def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+    def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
 
 Where :doc:`W<../data_structures/worker_array>` is an array containing information
-about each worker's state, and ``H`` is the *trimmed* History array,
-containing rows initialized by the generator.
+about each worker's state, :doc:`H<../data_structures/history_array>` is the *trimmed* History array,
+containing rows initialized by the generator, and ``libE_info`` is a set of selected
+statistics for allocation functions to better determine the progress of work or
+if various exit conditions have been reached.
 
-Inside an ``alloc_f``, a :doc:`Work dictionary<../data_structures/work_dict>` is
-instantiated::
+Inside an ``alloc_f``, most users first check that it's appropriate to allocate work,
+since if all workers are busy or the maximum amount of work has been evaluated, proceeding
+with the allocation function is usually not necessary::
 
-    Work = {}
+        if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
-then populated with integer keys ``i`` for each worker and dictionary values to
-give to those workers. An example Work dictionary from a run of
+If allocation is to continue, relevant parameters are extracted, support classes
+are instantiated (see below), as well as a :doc:`Work dictionary<../data_structures/work_dict>`::
+
+        user = alloc_specs.get('user', {})
+        sched_opts = user.get('scheduler_opts', {})
+        manage_resources = 'resource_sets' in H.dtype.names
+
+        support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+
+        gen_count = support.count_gens()
+        Work = {}
+
+This Work dictionary is populated with integer keys ``i`` for each worker and
+dictionary values to give to those workers. An example Work dictionary from a run of
 the ``test_1d_sampling.py`` regression test resembles::
 
     {
@@ -44,13 +60,8 @@ the ``test_1d_sampling.py`` regression test resembles::
             'tag': 1,
             'libE_info': {'H_rows': array([370])}
         },
+        ...
 
-        4: {
-            'H_fields': ['x'],
-            'persis_info': {'rand_stream': RandomState(...) at ..., 'worker_num': 4},
-            'tag': 1,
-            'libE_info': {'H_rows': array([371])}
-        }
     }
 
 Based on information from the API reference above, this Work dictionary
@@ -69,21 +80,6 @@ available within the ``libensemble.tools.alloc_support`` module:
 
   .. automethod:: __init__
 
-
-.. .. autofunction:: avail_worker_ids
-
-.. SH TODO - how to incorporate - if we need this paragraph.
-.. Many ``alloc_f`` routines loop over the available workers returned by the above
-.. function to construct their Work dictionaries with the help of the following two
-.. functions.
-
-.. .. currentmodule:: libensemble.tools.alloc_support
-.. .. autofunction:: sim_work
-..
-.. .. currentmodule:: libensemble.tools.alloc_support
-.. .. autofunction:: gen_work
-
-
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the run to stop.
 
@@ -93,6 +89,28 @@ the existing allocation functions, including prioritization of simulations,
 returning evaluation outputs to the generator immediately or in batch, assigning
 varying resource sets to evaluations, and other methods of fine-tuned control over
 the data available to other user functions.
+
+Information from the manager describing the progress of the current libEnsemble
+routine can be found in ``libE_info``, passed into the allocation function::
+
+    libE_info =  {'exit_criteria': dict,               # Criteria for ending routine
+                  'elapsed_time': float,               # Time elapsed since start of routine
+                  'manager_kill_canceled_sims': bool,  # True if manager is canceling simulations
+                  'given_count': int,                  # Total number of points given for simulation function evaluation
+                  'returned_count': int,               # Total number of points returned from simulation function evaluations
+                  'given_back_count': int,             # Total number of evaluated points given back to a generator function
+                  'sim_max_given': bool}               # True if the maximum number of simulations has been performed
+
+Besides the initial allocation function check, the remaining values above are useful
+for very efficient control over how work is distributed to workers, especially for
+authors of persistent generator functions. Generators that construct models based
+on *all evaluated points*, for example, may need simulation work units at the end
+of a routine to be returned to the generator anyway.
+
+Alternatively, users can track a routine's runtime inside their allocation function
+and detect impending timeouts, then pack up cleanup work requests, or even mark
+points for cancellation if the corresponding generator and simulator functions accept
+such signals from the manager.
 
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle

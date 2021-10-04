@@ -204,7 +204,7 @@ def test_try2nodes_findon_3nodes():
     resources.fixed_assignment(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
-    # Cant find 2 groups of 6 so find 3 groups of 4.
+    # Can't find 2 groups of 6 so find 3 groups of 4.
     rset_team = sched.assign_resources(rsets_req=12)
     assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], 'rsets found {}'.format(rset_team)
 
@@ -224,7 +224,7 @@ def test_try2nodes_findon_3nodes():
 
 
 def test_split2fit_even_required_fails():
-    """Tests trys one node then two, and both fail"""
+    """Tests tries one node then two, and both fail"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
     resources.fixed_assignment(([1, 1, 1, 0, 2, 2, 0, 0]))

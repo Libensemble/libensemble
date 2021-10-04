@@ -14,9 +14,8 @@ from math import log, pi, sqrt
 from mpmath import gamma
 from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, ConvergedMsg, simulate_recv_from_manager
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import send_mgr_worker_msg
-from libensemble.tools.gen_support import get_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
@@ -143,6 +142,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     try:
         user_specs = gen_specs['user']
+        ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
         local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass = initialize_children(user_specs)
         if user_specs['initial_sample_size'] != 0:
@@ -152,7 +152,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                                                          persis_info, n, comm, local_H,
                                                          sim_id_to_child_inds)
             if not user_specs.get('standalone'):
-                send_mgr_worker_msg(comm, local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
+                ps.send(local_H[-user_specs['initial_sample_size']:][[i[0] for i in gen_specs['out']]])
             something_sent = True
         else:
             something_sent = False
@@ -167,7 +167,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 if user_specs.get('standalone'):
                     tag, Work, calc_in = simulate_recv_from_manager(local_H, gen_specs)
                 else:
-                    tag, Work, calc_in = get_mgr_worker_msg(comm)
+                    tag, Work, calc_in = ps.recv()
 
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     clean_up_and_stop(local_opters)
@@ -241,7 +241,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                 new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H)-num_samples_needed, len(local_H)))
 
             if not user_specs.get('standalone'):
-                send_mgr_worker_msg(comm, local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
+                ps.send(local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs['out']]])
             something_sent = True
 
         return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG
@@ -526,7 +526,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         test_2_through_5,  # satisfy tests 2 through 5
     ))
 
-    # Uncomment the following to test the effect of ignorning LocalOpt points
+    # Uncomment the following to test the effect of ignoring LocalOpt points
     # in APOSMM. This allows us to test a parallel MLSL.
     # return list(np.ix_(sample_seeds)[0])
 

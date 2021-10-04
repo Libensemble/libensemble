@@ -158,7 +158,6 @@ The allocation function used in this example is the *only_persistent_gens* funct
 .. code-block:: python
 
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('given_back', bool)],
                    'user': {'init_sample_size': init_sample_size,
                             'async_return': True,
                             'active_recv_gen': True
@@ -296,7 +295,7 @@ Using cancellations to kill running simulations
 If a generated point is cancelled by the generator before it has been given to a worker for evaluation,
 then it will never be given. If it has already returned from simulation, then results can be returned,
 but the ``cancel_requested`` field remains as True. However, if the simulation is running when the manager
-recevies the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
+receives the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
 by a user function, otherwise it will be ignored. To demonstrate this, the test ``test_persistent_surmise_killsims.py``
 captures and processes this signal from the manager.
 

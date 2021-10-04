@@ -1,7 +1,15 @@
-# Example using NSGA2 as a libE generator function:
+# Example using NSGA2 as a libE generator function
+# For more about NSGA2, see
 # https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
 #
-# """
+# Execute via one of the following commands (e.g. 3 workers):
+#    mpiexec -np 4 python3 test_deap_nsga2.py
+#    python3 test_deap_nsga2.py --nworkers 3 --comms local
+#    python3 test_deap_nsga2.py --nworkers 3 --comms tcp
+#
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -35,7 +43,7 @@ if is_manager:
 
 assert nworkers >= 2, "Cannot run with a persistent gen_f if only one worker."
 
-# Number of generations, population size, indiviual size, and objectives
+# Number of generations, population size, individual size, and objectives
 ngen = 125
 pop_size = 100
 ind_size = 2
@@ -47,35 +55,35 @@ ub = [3.0, 2.0]
 w = (-1.0, -1.0)  # Must be a tuple
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': deap_six_hump,  # This is the function whose output is being minimized
-             'in': ['individual'],  # These keys will be given to the above function
-             'out': [('fitness_values', float, num_obj)]  # This output is being minimized
-             }  # end of sim spec
+sim_specs = {
+    'sim_f': deap_six_hump,  # This is the function whose output is being minimized
+    'in': ['individual'],  # These keys will be given to the above function
+    'out': [('fitness_values', float, num_obj)]  # This output is being minimized
+}  # end of sim spec
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
-             'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
-             'user': {'lb': lb,
-                      'ub': ub,
-                      'weights': w,
-                      'pop_size': pop_size,
-                      'indiv_size': ind_size,
-                      'give_all_with_same_priority': True,
-                      'cxpb': 0.8,  # probability two individuals are crossed
-                      'eta': 20.0,  # large eta = low variation in children
-                      'indpb': 0.8/ind_size}  # end user
-             }  # end gen specs
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id', 'generation', 'individual', 'fitness_values'],
+    'persis_in': ['fitness_values', 'sim_id'],
+    'out': [('individual', float, ind_size), ('generation', int), ('last_points', bool)],
+    'user': {
+        'lb': lb,
+        'ub': ub,
+        'weights': w,
+        'pop_size': pop_size,
+        'indiv_size': ind_size,
+        'cxpb': 0.8,  # probability two individuals are crossed
+        'eta': 20.0,  # large eta = low variation in children
+        'indpb': 0.8 / ind_size}  # end user
+}  # end gen specs
 
-alloc_specs = {'alloc_f': alloc_f,
-               'user': {'give_all_with_same_priority': False},
-               'out': [],
-               }
+alloc_specs = {'alloc_f': alloc_f, 'user': {'give_all_with_same_priority': True}}
 
 # Tell libEnsemble when to stop
 # 'sim_max' = number of simulation calls
 # For deap, this should be pop_size*number of generations+1
-exit_criteria = {'sim_max': pop_size*(ngen+1)}
+exit_criteria = {'sim_max': pop_size * (ngen + 1)}
 
 for run in range(3):
 
@@ -84,9 +92,9 @@ for run in range(3):
     # Number of points in the sample
     num_samp = 100
 
-    H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
-                                   ('fitness_values', float, num_obj), ('sim_id', int), ('returned', bool),
-                                   ('given_back', bool), ('given', bool)])
+    H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, num_obj),
+                ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+    H0 = np.zeros(num_samp, dtype=H0_dtype)
 
     # Mark these points as already have been given to be evaluated, and returned, but not given_back.
     H0['generation'][:] = 1
@@ -113,8 +121,8 @@ for run in range(3):
     elif run == 1:
         H0[['given', 'returned', 'given_back']] = False
 
-        # Testing use_persis_return capabilities
-        libE_specs['use_persis_return'] = True
+        # Testing use_persis_return_gen capabilities
+        libE_specs['use_persis_return_gen'] = True
 
     else:
         H0 = None
@@ -125,10 +133,10 @@ for run in range(3):
     if is_manager:
         if run == 0:
             assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
-                                                   "they were marked in the gen) as 'use_persis_return' was false.")
+                                                   "they were marked in the gen) as 'use_persis_return_gen' was false.")
         elif run == 1:
-            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they "
-                                                          "were marked in the manager and 'use_persis_return' is true.")
+            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they were "
+                                                          "marked in the manager and 'use_persis_return_gen' is true.")
 
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"

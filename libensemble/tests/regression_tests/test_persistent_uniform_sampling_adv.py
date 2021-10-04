@@ -7,7 +7,9 @@
 #    python3 test_persistent_uniform_sampling_adv.py --nworkers 3 --comms local
 #    python3 test_persistent_uniform_sampling_adv.py --nworkers 3 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -26,25 +28,26 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['use_persis_return'] = True
+libE_specs['use_persis_return_gen'] = True
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('grad', float, n)]
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('grad', float, n)], }
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': 100,
-                      'replace_final_fields': True,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f', 'x', 'grad', 'sim_id'],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': 100,
+        'replace_final_fields': True,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -55,8 +58,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
 libE_specs['final_fields'] = ['x', 'f', 'sim_id']
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert len(np.unique(H['gen_time'])) == 1, "Everything should have been generated in one batch"

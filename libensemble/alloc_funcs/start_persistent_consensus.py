@@ -9,7 +9,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Many distributed optimization algorithms require two non-local, (e.g., not
     elementwise addition or multiplication) operations: evaluate gradients and
@@ -52,7 +52,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     If the user wants the alloc to sum all the {f_i}, the user must set both
     `consensus_pt` and `eval_pt` to True while settings the `f_i` variable. (The
-    reason for having both variables set to True is to simplify the implemenation
+    reason for having both variables set to True is to simplify the implementation
     in the alloc.)
 
     Finally, to request a gradient of f_i, `consensus_pt` must be set to False,
@@ -61,6 +61,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     If the user wants a function evaluation, then set `get_grad` to False instead.
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
@@ -111,8 +114,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
-                Work[wid] = support.gen_work(wid, ['x', 'f_i', 'gradf_i'],
-                                             sims_to_ret_to_gen, persis_info.get(wid),
+                Work[wid] = support.gen_work(wid, ['x', 'f_i', 'gradf_i'], sims_to_ret_to_gen, persis_info.get(wid),
                                              persistent=True)
 
                 persis_info[wid].update({'curr_H_ids': []})
@@ -123,9 +125,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             # did gen sent consensus? (start @last_H_len to avoid old work)
             consensus_sim_ids = np.where(
-                np.logical_and(
-                    H[last_H_len:]['consensus_pt'],
-                    H[last_H_len:]['gen_worker'] == wid))[0]
+                np.logical_and(H[last_H_len:]['consensus_pt'], H[last_H_len:]['gen_worker'] == wid))[0]
 
             if len(consensus_sim_ids) > 0:
                 assert len(consensus_sim_ids) == 1, 'Gen should only send one ' + \
@@ -134,7 +134,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 # re-center (since the last_H_len has relative index 0)
                 sim_id = consensus_sim_ids[0] + last_H_len
 
-                persis_info[wid].update({'curr_H_ids': [sim_id, sim_id+1]})
+                persis_info[wid].update({'curr_H_ids': [sim_id, sim_id + 1]})
                 persis_info[wid].update({'at_consensus': True})
 
                 num_gens_at_consensus += 1
@@ -175,14 +175,14 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         if print_progress:
             num_gens = user['num_gens']
             n = len(gen_specs['user']['lb'])
-            Ax = np.empty(num_gens*n, dtype=float)
-            x = np.empty(num_gens*n, dtype=float)
+            Ax = np.empty(num_gens * n, dtype=float)
+            x = np.empty(num_gens * n, dtype=float)
             # if (1st) gen asks to gather all f_i's and print their sum
 
         A = persis_info['A']
         for i0, wid in enumerate(avail_persis_worker_ids):
 
-            incident_gens = A.indices[A.indptr[i0]:A.indptr[i0+1]]
+            incident_gens = A.indices[A.indptr[i0]:A.indptr[i0 + 1]]
             # remove own index
             own_idx = np.argwhere(incident_gens == i0)
             incident_gens = np.delete(incident_gens, own_idx)
@@ -191,23 +191,22 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             if print_progress:
                 # implicilty perform matmul, $(A \kron I)[x_1,...x_m]$
-                x[i0*n:(i0+1)*n] = H[consensus_ids_in_H[i0]]['x']
+                x[i0 * n:(i0 + 1) * n] = H[consensus_ids_in_H[i0]]['x']
 
                 diag_scalar = A.diagonal()[i0]
-                diag_term = diag_scalar*H[consensus_ids_in_H[i0]]['x']
+                diag_term = diag_scalar * H[consensus_ids_in_H[i0]]['x']
 
-                offdiag_scalars = A.data[A.indptr[i0]:A.indptr[i0+1]]
+                offdiag_scalars = A.data[A.indptr[i0]:A.indptr[i0 + 1]]
                 offdiag_scalars = np.delete(offdiag_scalars, own_idx)
                 offdiag_terms = spp.diags(offdiag_scalars).dot(H[neighbor_consensus_ids_in_H]['x'])
                 offdiag_term = np.sum(offdiag_terms, axis=0)
 
-                Ax[i0*n:(i0+1)*n] = diag_term + offdiag_term
+                Ax[i0 * n:(i0 + 1) * n] = diag_term + offdiag_term
 
             if print_obj:
                 fsum += H[consensus_ids_in_H[i0]]['f_i']
 
-            Work[wid] = support.gen_work(wid, ['x', 'gen_worker'],
-                                         np.atleast_1d(neighbor_consensus_ids_in_H),
+            Work[wid] = support.gen_work(wid, ['x', 'gen_worker'], np.atleast_1d(neighbor_consensus_ids_in_H),
                                          persis_info.get(wid), persistent=True)
 
             persis_info[wid].update({'curr_H_ids': []})
@@ -245,13 +244,13 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             A = persis_info['A']
 
             gen_count += 1
-            l_idx = num_funcs_arr[gen_count-1]
+            l_idx = num_funcs_arr[gen_count - 1]
             r_idx = num_funcs_arr[gen_count]
 
-            A_i_indices = A.indices[A.indptr[i0]: A.indptr[i0+1]]
+            A_i_indices = A.indices[A.indptr[i0]:A.indptr[i0 + 1]]
             A_i_gen_ids = inactive_workers[A_i_indices]
             # gen A_i_gen_ids[wid] corresponds to weight S_i_data[wid]
-            A_i_data = A.data[A.indptr[i0]: A.indptr[i0+1]]
+            A_i_data = A.data[A.indptr[i0]:A.indptr[i0 + 1]]
 
             persis_info[wid].update({
                 'f_i_idxs': range(l_idx, r_idx),
@@ -260,8 +259,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 'params': persis_info.get('gen_params', {})})
             persis_info[wid].update({'at_consensus': False, 'curr_H_ids': []})
 
-            Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)),
-                                         persis_info.get(wid), persistent=True, rset_team=rset_team)
+            Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)), persis_info.get(wid),
+                                         persistent=True, rset_team=rset_team)
 
         # give sim work when task available
         elif persis_info['next_to_give'] < len(H):
@@ -295,9 +294,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             persis_info[wid].update({'params': persis_info.get('sim_params', {})})
 
-            Work[wid] = support.sim_work(wid, H, sim_specs['in'],
-                                         np.arange(l_H_ids, r_H_ids),
-                                         persis_info.get(wid),
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'], np.arange(l_H_ids, r_H_ids), persis_info.get(wid),
                                          rset_team=rset_team)
 
             # we can safely assume the rows are contiguous due to (!!)
@@ -307,7 +304,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             break
 
     persis_info.update({'last_H_len': len(H)})
-    del support
 
     return Work, persis_info, 0
 
@@ -330,7 +326,7 @@ def partition_funcs_arr(num_funcs, num_gens):
     - num_funcs_arr : np.ndarray
         Index pointer (i.e. gen i has functions [arr[i],arr[i+1])
     """
-    num_funcs_arr = (num_funcs//num_gens) * np.ones(num_gens, dtype=int)
+    num_funcs_arr = (num_funcs // num_gens) * np.ones(num_gens, dtype=int)
     num_leftover_funcs = num_funcs % num_gens
     num_funcs_arr[:num_leftover_funcs] += 1
 

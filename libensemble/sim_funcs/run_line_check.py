@@ -46,7 +46,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
         task = exctr.submit(calc_type='sim',
                             num_procs=test.get('nprocs', None),
                             num_nodes=test.get('nnodes', None),
-                            ranks_per_node=test.get('ppn', None),
+                            procs_per_node=test.get('ppn', None),
                             extra_args=test.get('e_args', None),
                             app_args='--testid ' + test.get('testid', None),
                             stdout='out.txt',
@@ -81,7 +81,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     task = exctr.submit(calc_type='sim',
                         num_procs=test.get('nprocs', None),
                         num_nodes=test.get('nnodes', None),
-                        ranks_per_node=test.get('ppn', None),
+                        procs_per_node=test.get('ppn', None),
                         extra_args=test.get('e_args', None),
                         app_args='--testid ' + test.get('testid', None),
                         stdout='out.txt',
@@ -92,7 +92,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     outline = task.runline
     wid = libE_info['workerID']
 
-    # Adjust for mininum slot scheduling in alloc func: e.g. 5 rsets on 2 nodes
+    # Adjust for minimum slot scheduling in alloc func: e.g. 5 rsets on 2 nodes
     # Node 1: 3 rsets (0,1,2). Node 2: 2 rsets (3,4)
     # The first sim will got to rset 3 as it finds a "smaller slot".
     # Alternative would be for splitter to use opposite splits (e.g. 2,3 rather than 3,2)

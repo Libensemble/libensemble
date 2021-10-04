@@ -4,6 +4,8 @@ function. The evaluation of the fitness of the current population's members
 occurs in `evaluate_pop`, where the points are communicated to the libEnsemble
 manager; the manager coordinates their evaluation and then returns their
 `fitness_values`.
+
+https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
 """
 
 __all__ = ['deap_nsga2', 'evaluate_pop', 'nsga2_toolbox']
@@ -12,8 +14,8 @@ from deap import base, creator, tools
 import numpy as np
 import array
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def uniform(low, up):
@@ -56,7 +58,7 @@ def nsga2_toolbox(gen_specs):
     return toolbox
 
 
-def evaluate_pop(g, deap_object, Out, comm):
+def evaluate_pop(g, deap_object, Out, ps):
     '''
     Evaluates the fitness of a population by communicating the individuals in
     the population to the libEnsemble manager, and then awaiting their fitness_values.
@@ -68,7 +70,7 @@ def evaluate_pop(g, deap_object, Out, comm):
         Out['generation'][index] = g
     # Sending work to sim_f, which is defined in main call script
     # A fitness value will be returned in calc_in
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, Out[['individual', 'generation']])
+    tag, Work, calc_in = ps.send_recv(Out[['individual', 'generation']])
 
     if tag not in [STOP_TAG, PERSIS_STOP]:
         for i, ind in enumerate(deap_object):
@@ -90,10 +92,11 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
 
     # Initialize NSGA2 DEAP toolbox
     toolbox = nsga2_toolbox(gen_specs)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
     pop_size = gen_specs['user']['pop_size']
     # CXPB  is the probability with which two individuals are crossed
     MU, CXPB = pop_size, gen_specs['user']['cxpb']
-    comm = libE_info['comm']
     pop = toolbox.population(n=MU)  # MU is Population size ( # of individuals)
     Out = np.zeros(pop_size, dtype=gen_specs['out'])
 
@@ -114,7 +117,7 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
         print('No initial sample provided, starting from scratch.')
         g = 0  # generation count
         # Running fitness calc for first generation
-        pop, tag = evaluate_pop(g, pop, Out, comm)
+        pop, tag = evaluate_pop(g, pop, Out, ps)
 
     # This is just to assign the crowding distance to the individuals
     # no actual selection is done
@@ -148,7 +151,7 @@ def deap_nsga2(H, persis_info, gen_specs, libE_info):
         if invalid_ind:
             print('Finished evaluating population, doing selection now.')
             # Running fitness calc on gens > 0
-            invalid_ind, tag = evaluate_pop(g, invalid_ind, Out, comm)
+            invalid_ind, tag = evaluate_pop(g, invalid_ind, Out, ps)
             if tag not in [STOP_TAG, PERSIS_STOP]:
                 # Select the next generation population
                 pop = toolbox.select(pop + offspring, MU)

@@ -1,13 +1,15 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Runs libEnsemble on a generator function that first does uniform sampling,
+# then starts persistent local optimization runs.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py
-#    python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_uniform_sampling_with_persistent_localopt_gens.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
+#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
+#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -32,21 +34,23 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('grad', float, n)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('grad', float, n)], }
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': gen_out,
-             'user': {'xtol_rel': 1e-4,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': 2,
-                      'localopt_method': 'LD_MMA',
-                      'xtol_rel': 1e-4}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['x', 'f', 'grad', 'sim_id'],
+    'out': gen_out,
+    'user': {
+        'xtol_rel': 1e-4,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': 2,
+        'localopt_method': 'LD_MMA',
+        'xtol_rel': 1e-4}}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
@@ -55,8 +59,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert flag == 0

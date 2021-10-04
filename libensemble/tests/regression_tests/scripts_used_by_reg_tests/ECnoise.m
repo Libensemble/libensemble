@@ -16,7 +16,7 @@ function [fnoise,level,inform] = ECnoise(nf,fval)
 %  in the first digit.
 %
 %  If noise is not detected, the user should increase or decrease the
-%  spacing h according to the ouput value of inform.  In most cases,
+%  spacing h according to the output value of inform.  In most cases,
 %  the subroutine detects noise with the initial value of h.
 %
 %  On exit:

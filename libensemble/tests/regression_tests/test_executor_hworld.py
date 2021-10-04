@@ -33,12 +33,11 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['disable_resource_manager'] = True
 
-
 USE_BALSAM = False
 
 cores_per_task = 1
 logical_cores = multiprocessing.cpu_count()
-cores_all_tasks = nworkers*cores_per_task
+cores_all_tasks = nworkers * cores_per_task
 
 if cores_all_tasks > logical_cores:
     disable_resource_manager = True
@@ -64,36 +63,36 @@ if USE_BALSAM:
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor()
-exctr.register_calc(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
-exctr.register_calc(full_path=sim_app2, app_name='six_hump_camel')  # Named app
+exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
+exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 
 # if nworkers == 3:
 #    CalcInfo.keep_worker_stat_files = True # Testing this functionality
 # else:
 #    CalcInfo.keep_worker_stat_files = False # Testing this functionality
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('cstat', int)],
-             'user': {'cores': cores_per_task}
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('cstat', int)],
+    'user': {
+        'cores': cores_per_task}, }
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, (2,))],
-             'user': {'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      'gen_batch_size': nworkers,
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2, ))],
+    'user': {
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        'gen_batch_size': nworkers, }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 20}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     print('\nChecking expected task status against Workers ...\n')
@@ -102,8 +101,8 @@ if is_manager:
     # manager kill - but should show in the summary file.
     # Repeat expected lists nworkers times and compare with list of status's
     # received from workers
-    calc_status_list_in = np.asarray([WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE,
-                                      WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
+    calc_status_list_in = np.asarray([
+        WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     # For debug
@@ -115,12 +114,12 @@ if is_manager:
     # Check summary file:
     print('Checking expected task status against task summary file ...\n')
 
-    calc_desc_list_in = ['Completed', 'Worker killed task on Error', 'Completed',
-                         'Worker killed task on Timeout', 'Task Failed',
-                         'Manager killed on finish']
+    calc_desc_list_in = [
+        'Completed', 'Worker killed task on Error', 'Completed', 'Worker killed task on Timeout', 'Task Failed',
+        'Manager killed on finish']
 
     # Repeat N times for N workers and insert Completed at start for generator
-    calc_desc_list = ['Completed'] + calc_desc_list_in*nworkers
+    calc_desc_list = ['Completed'] + calc_desc_list_in * nworkers
     # script_name = os.path.splitext(os.path.basename(__file__))[0]
     # short_name = script_name.split("test_", 1).pop()
     # summary_file_name = short_name + '.libe_summary.txt'

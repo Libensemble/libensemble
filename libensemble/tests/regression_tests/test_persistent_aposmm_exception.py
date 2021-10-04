@@ -1,13 +1,13 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Tests the APOSMM generator function's ability to handle exceptions
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
-#    python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+#    mpiexec -np 4 python3 test_persistent_aposmm_exception.py
+#    python3 test_persistent_aposmm_exception.py --nworkers 3 --comms local
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -23,6 +23,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 
 import libensemble.gen_funcs
+
 libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
@@ -50,25 +51,24 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)], }
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-           ('local_min', bool), ('local_pt', bool)]
+gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'localopt_method': 'LN_BOBYQA',
-                      'lb': np.array([0, -np.pi/2]),
-                      'ub': np.array([2*np.pi, 3*np.pi/2]),
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f'] + [n[0] for n in gen_out],
+    'out': gen_out,
+    'user': {
+        'initial_sample_size': 100,
+        'localopt_method': 'LN_BOBYQA',
+        'lb': np.array([0, -np.pi / 2]),
+        'ub': np.array([2 * np.pi, 3 * np.pi / 2]), }}
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {}}
-
+alloc_specs = {'alloc_f': alloc_f}
 
 exit_criteria = {'sim_max': 1000}
 
@@ -77,8 +77,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 libE_specs['abort_on_exception'] = False
 try:
     # Perform the run, which will fail because we want to test exception handling
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 except Exception as e:
     if is_manager:
         if e.args[1].endswith('NLopt roundoff-limited'):

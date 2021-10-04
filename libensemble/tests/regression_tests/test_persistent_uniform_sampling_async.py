@@ -1,13 +1,15 @@
 # """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
+# Tests libEnsemble's generator function requesting/receiving sim_f evaluations
+# asynchronouslyl
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_uniform_sampling_async.py
 #    python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms local
 #    python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above commands, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -30,32 +32,34 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float)],
-             'user': {'uniform_random_pause_ub': 0.5}
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+    'user': {
+        'uniform_random_pause_ub': 0.5}, }
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': nworkers,  # Ensure > 1 alloc to send all sims
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'persis_in': ['f', 'x', 'sim_id'],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': nworkers,  # Ensure > 1 alloc to send all sims
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2])}}
 
-alloc_specs = {'alloc_f': alloc_f,
-               'out': [],
-               'user': {'async_return': True}
-               }
+alloc_specs = {
+    'alloc_f': alloc_f,
+    'out': [],
+    'user': {
+        'async_return': True}, }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'gen_max': 100, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     [_, counts] = np.unique(H['gen_time'], return_counts=True)

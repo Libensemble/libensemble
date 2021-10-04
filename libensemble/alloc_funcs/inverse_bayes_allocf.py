@@ -3,7 +3,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     Starts up to gen_count number of persistent generators.
     These persistent generators produce points (x) in batches and subbatches.
@@ -13,6 +13,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
     The first time called there are no persis_w 1st for loop is not done
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
@@ -26,7 +29,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     # give output back to wid. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
 
-        # if > 1 persistant generator, assign the correct work to it
+        # if > 1 persistent generator, assign the correct work to it
         inds_generated_by_wid = (H['gen_worker'] == wid)
         if support.all_returned(H, inds_generated_by_wid):
 
@@ -34,15 +37,13 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             # Then give back everything in the last batch
             batch_ids = H['batch'][inds_generated_by_wid]
             last_batch_inds = (batch_ids == np.max(batch_ids))
-            inds_to_send_back = np.where(np.logical_and(inds_generated_by_wid,
-                                                        last_batch_inds))[0]
+            inds_to_send_back = np.where(np.logical_and(inds_generated_by_wid, last_batch_inds))[0]
             if H['batch'][-1] > 0:
-                n = gen_specs['user']['subbatch_size']*gen_specs['user']['num_subbatches']
+                n = gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches']
                 k = H['batch'][-1]
-                H['weight'][(n*(k-1)):(n*k)] = H['weight'][(n*k):(n*(k+1))]
+                H['weight'][(n * (k - 1)):(n * k)] = H['weight'][(n * k):(n * (k + 1))]
 
-            Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back,
-                                         persis_info.get(wid), persistent=True)
+            Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back, persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
@@ -63,10 +64,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
             # Finally, generate points since there is nothing else to do.
             try:
-                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid),
-                                             persistent=True)
+                Work[wid] = support.gen_work(wid, gen_specs['in'], [], persis_info.get(wid), persistent=True)
             except InsufficientFreeResources:
                 break
             gen_count += 1
-    del support
+
     return Work, persis_info

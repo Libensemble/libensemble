@@ -15,7 +15,7 @@ exctr = MPIExecutor()
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), 'forces.x')
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type='sim')
 
 # State the sim_f, its arguments, output, and parameters (and their sizes)
 sim_specs = {'sim_f': run_forces,         # sim_f, imported above

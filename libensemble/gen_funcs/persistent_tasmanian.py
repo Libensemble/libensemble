@@ -4,8 +4,8 @@ A persistent generator using the uncertainty quantification capabilities in
 """
 
 import numpy as np
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
@@ -16,6 +16,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
 
     """
     U = gen_specs['user']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
     allowed_refinements = ['setAnisotropicRefinement', 'setSurplusRefinement', 'none']
     assert 'refinement' in U and U['refinement'] in allowed_refinements, \
@@ -28,7 +29,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
         H0['x'] = aPoints
 
         # Receive values from manager
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], H0)
+        tag, Work, calc_in = ps.send_recv(H0)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
         aModelValues = calc_in['f']

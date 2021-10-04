@@ -62,7 +62,7 @@ class RSetResources():
         If there are more nodes than resource sets, returns 1.
         """
         num_nodes = len(resources.global_nodelist)
-        # Round up if theres a remainder
+        # Round up if there's a remainder
         rsets_per_node = num_rsets//num_nodes + (num_rsets % num_nodes > 0)
         return rsets_per_node
 

@@ -30,16 +30,17 @@ protected_libE_fields = ['gen_worker',
 
 allowed_sim_spec_keys = ['sim_f',  #
                          'in',     #
+                         'persis_in',
                          'out',    #
                          'user']   #
 
 allowed_gen_spec_keys = ['gen_f',  #
                          'in',     #
+                         'persis_in',
                          'out',    #
                          'user']   #
 
 allowed_alloc_spec_keys = ['alloc_f',  #
-                           'in',       #
                            'out',      #
                            'user']     #
 
@@ -65,7 +66,7 @@ allowed_libE_spec_keys = ['abort_on_exception',             #
                           'enforce_worker_core_bounds',     #
                           'authkey',                        #
                           'disable_resource_manager',       #
-                          'central_mode',                   #
+                          'dedicated_mode',                   #
                           'comms',                          #
                           'resource_info',                  #
                           'disable_log_files',              #
@@ -81,7 +82,8 @@ allowed_libE_spec_keys = ['abort_on_exception',             #
                           'save_every_k_gens',              #
                           'save_every_k_sims',              #
                           'save_H_and_persis_on_abort',     #
-                          'use_persis_return',              #
+                          'use_persis_return_gen',          #
+                          'use_persis_return_sim',          #
                           'workerID',                       #
                           'worker_timeout',                 #
                           'zero_resource_workers',          #

@@ -1,7 +1,6 @@
-# Example using NSGA2 as a libE generator function:
+# Example using NSGA2 as a libE generator function using the libE yaml interface
+# For more about NSGA2, see
 # https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
-#
-# """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -39,8 +38,7 @@ if __name__ == "__main__":
 
     deap_test.gen_specs['user'].update({
         'weights': w,
-        'indpb': 0.8/ind_size
-    })
+        'indpb': 0.8 / ind_size, })
 
     lb = deap_test.gen_specs['user']['lb']
     ub = deap_test.gen_specs['user']['ub']
@@ -54,9 +52,10 @@ if __name__ == "__main__":
             # Number of points in the sample
             num_samp = 100
 
-            H0 = np.zeros(num_samp, dtype=[('individual', float, ind_size), ('generation', int),
-                                           ('fitness_values', float, 2), ('sim_id', int), ('returned', bool),
-                                           ('given_back', bool), ('given', bool)])
+            H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, 2),
+                        ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+
+            H0 = np.zeros(num_samp, dtype=H0_dtype)
 
             # Mark these points as already have been given to be evaluated, and returned, but not given_back.
             H0[['given', 'given_back', 'returned']] = True
@@ -75,8 +74,8 @@ if __name__ == "__main__":
                 objs = deap_six_hump(H_dummy, {}, deap_test.sim_specs, {})
                 H0['fitness_values'][i] = objs[0]
 
-            # Testing use_persis_return capabilities
-            deap_test.libE_specs['use_persis_return'] = True
+            # Testing use_persis_return_gen capabilities
+            deap_test.libE_specs['use_persis_return_gen'] = True
             deap_test.H0 = H0
         else:
             deap_test.H0 = None
@@ -88,11 +87,11 @@ if __name__ == "__main__":
             if run == 0:
                 assert np.sum(deap_test.H['last_points']) == 0, \
                     ("The last_points shouldn't be marked (even though "
-                     "they were marked in the gen) as 'use_persis_return' was false.")
+                     "they were marked in the gen) as 'use_persis_return_gen' was false.")
             elif run == 1:
                 assert np.sum(deap_test.H['last_points']) == 100, \
                     ("The last_points should be marked as true because they "
-                     "were marked in the manager and 'use_persis_return' is true.")
+                     "were marked in the manager and 'use_persis_return_gen' is true.")
 
             script_name = os.path.splitext(os.path.basename(__file__))[0]
             assert deap_test.flag == 0, script_name + " didn't exit correctly"
