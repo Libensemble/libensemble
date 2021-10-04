@@ -33,26 +33,28 @@ libE_specs['zero_resource_workers'] = [1]  # Only necessary if sims use resource
 
 libE_specs['use_persis_return_sim'] = True  # Only necessary if sims use resources.
 
-
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'user': {'replace_final_fields': True},
-             'out': [('f', float), ('grad', float, n)]}
 
-gen_specs = {'gen_f': gen_f,
-             'in': [],
-             'persis_in': ['sim_id', 'f', 'grad'],
-             'out': [('x', float, (n,))],
-             'user': {'initial_batch_size': 5,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2]),
-                      # 'give_all_with_same_priority': True
-                      }
-             }
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'user': {'replace_final_fields': True},
+    'out': [('f', float), ('grad', float, n)], }
+
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [],
+    'persis_in': ['sim_id', 'f', 'grad'],
+    'out': [('x', float, (n, ))],
+    'user': {
+        'initial_batch_size': 5,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+        # 'give_all_with_same_priority': True
+    }}
 
 alloc_specs = {'alloc_f': alloc_f}
 # alloc_specs['user'] = {'stop_frequency': 10}
@@ -62,8 +64,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
     assert len(np.unique(H['gen_time'])) == 8

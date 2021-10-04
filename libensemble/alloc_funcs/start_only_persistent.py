@@ -162,7 +162,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
-    init_sample_size = user.get('init_sample_size', 0)   # Always batch return until this many evals complete
+    init_sample_size = user.get('init_sample_size', 0)  # Always batch return until this many evals complete
     batch_give = user.get('give_all_with_same_priority', False)
 
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
@@ -191,8 +191,9 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
     # Now the give_sim_work_first part
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
-    avail_workers = list(set(support.avail_worker_ids(persistent=False, zero_resource_workers=False)) |
-                         set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False)))
+    avail_workers = list(
+        set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
+        | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False)))
     for wid in avail_workers:
 
         if not np.any(points_to_evaluate):
@@ -201,8 +202,8 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
         try:
             # Note that resources will not change if worker is already persistent.
-            Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send,
-                                         persis_info.get(wid), persistent=True)
+            Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid),
+                                         persistent=True)
         except InsufficientFreeResources:
             break
 
