@@ -40,6 +40,7 @@ if nworkers < 2:
 n = 2
 sim_specs = {'sim_f': sim_f,
              'in': ['x'],
+             'user': {'replace_final_fields': True},
              'out': [('f', float), ('grad', float, n)]}
 
 gen_specs = {'gen_f': gen_f,
