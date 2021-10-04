@@ -11,9 +11,9 @@ Overview
 
 libEnsemble comes with built-in resource management. This entails the detection of available resources (e.g. nodelists and core counts), and the allocation of resources to workers.
 
-By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources, and if not given any of num_nodes, num_procs or procs_per_node in the submit function, it will try to use all nodes and CPU cores available to the worker.
+By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available to the worker.
 
-Detected resources can be overridden using the libE_specs option ``resource_info``.
+Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
 
 .. SH TODO: How to combine (or not) this with what is in HPC systems section - which includes showing what env vars is searched on slurm, cobalt etc...
 
@@ -21,7 +21,7 @@ Detected resources can be overridden using the libE_specs option ``resource_info
 Variable resource assignment
 ----------------------------
 
-In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. It is expected that ``num_resource_sets`` >= ``num_workers``.
+In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option.
 
 If there are more resource sets than nodes, then the resource sets on each node will be given a slot number, enumerated from zero. E.g.~ If there are three slots on a node, they will have slot numbers 0, 1 and 2.
 
@@ -68,9 +68,9 @@ When the allocation function assigns points to workers for evaluation, it will c
 
 .. SH TODO - link to alloc function writer guide - where should add something on resources in sim_work/gen_work - or directly with assign_resources.
 
-The particular nodes and slots assigned to each worker will follow the libEnsenble built-in scheduler, although users can provide an alternative scheduler via the allocation function. ***link***. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
+The particular nodes and slots assigned to each worker will follow the libEnsenble built-in scheduler, although users can provide an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
 
-In the user's simulation function, the resources supplied to the worker can be interogated directly via the resources class attribute. Note also that libEnsembles executors (e.g.~ the MPIExecutor **link**) is aware of these supplied resources, and if not given any of num_nodes,num_procs or procs_per_node in the submit function, it will try to use all nodes and CPU cores available.
+In the user's simulation function, the resources supplied to the worker can be interogated directly via the resources class attribute. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) is aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available.
 
 `six_hump_camel.py`_ has two examples of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
 
@@ -110,13 +110,17 @@ Persistent generator
 
 You have *one* persistent generator and want *eight* workers for running concurrent simulations. In this case you can run with *nine* workers.
 
-Either use one zero resource worker, if the generator should always be the same worker::
+Either use one zero resource worker, if the generator should always be the same worker:
 
-    ``libE_specs['zero_resource_workers'] = [1]``
+.. code-block:: python
 
-Or explicitly set eight resource sets::
+    libE_specs['zero_resource_workers'] = [1]
 
-    ``libE_specs['num_resource_sets'] = 8`
+Or explicitly set eight resource sets:
+
+.. code-block:: python
+
+    libE_specs['num_resource_sets'] = 8
 
 Using the two node example above, initial worker mapping in this example will be:
 
@@ -148,9 +152,11 @@ resources will be used for larger simulations.
 
 .. image:: ../images/variable_resources_more_rsets1.png
 
-This could be acheived by setting::
+This could be acheived by setting:
 
-    ``libE_specs['num_resource_sets'] = 8`
+.. code-block:: python
+
+    libE_specs['num_resource_sets'] = 8
 
 and running on 5 workers.
 
