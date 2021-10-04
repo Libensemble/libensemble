@@ -115,7 +115,6 @@ class QComm(Comm):
         self._outbox = outbox
         self._copy = copy_msg
         self.recv_buffer = None
-        self.last_work_dict = None
 
     def get_num_workers(self):
         """Return global _ncomms"""
@@ -147,15 +146,6 @@ class QComm(Comm):
     def mail_flag(self):
         "Check whether we know a message is ready for receipt."
         return not self._inbox.empty()
-
-    def reset_last_work_dict(self):
-        self.last_work_dict = None
-
-    def set_last_work_dict(self, work):
-        self.last_work_dict = work
-
-    def get_last_work_dict(self):
-        return self.last_work_dict
 
 
 class QCommThread(Comm):

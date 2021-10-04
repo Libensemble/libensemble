@@ -113,7 +113,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     return Work, persis_info, 0
 
 
-def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     SH: TODO - Need to update docstring...
     This allocation function will give simulation work if possible, but
@@ -153,6 +153,9 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     .. seealso::
         `test_persistent_gensim_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_gensim_uniform_sampling.py>`_ # noqa
     """
+
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
