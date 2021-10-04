@@ -14,7 +14,6 @@ class PersistentSupport:
         """
         self.libE_info = libE_info
         self.comm = self.libE_info['comm']
-        self.comm.reset_last_work_dict()
         self.calc_type = calc_type
         assert self.calc_type in [EVAL_GEN_TAG, EVAL_SIM_TAG], \
             "User function value {} specifies neither a simulator nor generator.".format(self.calc_type)
@@ -56,8 +55,10 @@ class PersistentSupport:
             logger.debug('Persistent {} received work request from manager'.format(self.calc_str))
 
         # Update libE_info
-        self.libE_info = Work['libE_info']
-        self.comm.set_last_work_dict(Work)
+        # self.libE_info = Work['libE_info']
+
+        # Only replace rows - keep same dictionary
+        self.libE_info['H_rows'] = Work['libE_info']['H_rows']
 
         data_tag, calc_in = self.comm.recv()  # Receive work rows
 
