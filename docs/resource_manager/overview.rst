@@ -146,7 +146,7 @@ resources will be used for larger simulations.
 
 .. image:: ../images/variable_resources_more_rsets1.png
 
-This could be acheived by setting:
+This could be achieved by setting:
 
 .. code-block:: python
 
