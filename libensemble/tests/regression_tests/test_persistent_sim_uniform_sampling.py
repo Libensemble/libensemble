@@ -41,7 +41,8 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'user': {'replace_final_fields': True},
+    'user': {
+        'replace_final_fields': True},
     'out': [('f', float), ('grad', float, n)], }
 
 gen_specs = {
@@ -53,11 +54,9 @@ gen_specs = {
         'initial_batch_size': 5,
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        # 'give_all_with_same_priority': True
     }}
 
 alloc_specs = {'alloc_f': alloc_f}
-# alloc_specs['user'] = {'stop_frequency': 10}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
