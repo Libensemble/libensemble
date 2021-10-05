@@ -119,7 +119,7 @@ Zero-resource workers
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
 are still automatically assigned system resources. This can be resolved by
-using using :ref:`zero resource workers<zero_resource_workers>`.
+using :ref:`zero resource workers<zero_resource_workers>`.
 
 
 Overriding Auto-detection

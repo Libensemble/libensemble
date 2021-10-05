@@ -137,7 +137,7 @@ To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier`` argum
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
 
 
-Setting more resource sets that workers
+Setting more resource sets than workers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Resource sets can be set to more than the number of corresponding workers. In this
@@ -158,7 +158,7 @@ Also, this can be set on the command line as a convenience.
 
 .. code-block:: bash
 
-    python run_ensemble.py --ncomms local --nworkers 5 --nresource_sets 8
+    python run_ensemble.py --comms local --nworkers 5 --nresource_sets 8
 
 
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py

@@ -99,7 +99,7 @@ routine can be found in ``libE_info``, passed into the allocation function::
                   'given_count': int,                  # Total number of points given for simulation function evaluation
                   'returned_count': int,               # Total number of points returned from simulation function evaluations
                   'given_back_count': int,             # Total number of evaluated points given back to a generator function
-                  'sim_max_given': bool}               # True if the `sim_max` simulations have been given out to workers
+                  'sim_max_given': bool}               # True if `sim_max` simulations have been given out to workers
 
 
 In most supplied examples, the allocation function will just return once `sim_max_given`
@@ -108,7 +108,7 @@ keep returning completed points to the generator. Generators that construct mode
 on *all evaluated points*, for example, may need simulation work units at the end
 of an ensemble to be returned to the generator anyway.
 
-Alternatively, users can use `elapsed_time` to track the ensembles runtime inside their
+Alternatively, users can use ``elapsed_time`` to track the ensembles runtime inside their
 allocation function and detect impending timeouts, then pack up cleanup work requests,
 or mark points for cancellation.
 
