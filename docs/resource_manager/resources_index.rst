@@ -12,5 +12,7 @@ libEnsemble comes with built-in resource management. This entails the detection 
    :caption: Resource Manager:
 
    overview
+   resource_detection
+   zero_resource_workers
    scheduler_module
    worker_resources

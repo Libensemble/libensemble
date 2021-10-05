@@ -1,19 +1,17 @@
 Dynamic Assignment of Resources
 ===============================
 
-.. SH TODO Add link to detection of resources section (an dhow to override)
-
-
 Overview
 --------
 
-libEnsemble comes with built-in resource management. This entails the detection of available resources (e.g. nodelists and core counts), and the allocation of resources to workers.
+libEnsemble comes with built-in resource management. This entails the :ref:`detection of available resources<resource_detection>` (e.g. nodelists and core counts), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available to the worker.
 
 Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
 
-.. SH TODO: How to combine (or not) this with what is in HPC systems section - which includes showing what env vars is searched on slurm, cobalt etc...
+Resource management can be disabled by setting ``libE_specs['disable_resource_manager'] = True`` This will prevent libEnsemble
+from doing any resource detection or management.
 
 
 Variable resource assignment
