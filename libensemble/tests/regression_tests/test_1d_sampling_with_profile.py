@@ -30,15 +30,18 @@ libE_specs['profile'] = True
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
-    'out': [('x', float, (1, ))],
+    'out': [('x', float, (1,))],
     'user': {
         'gen_batch_size': 500,
         'lb': np.array([-3]),
-        'ub': np.array([3]), }}
+        'ub': np.array([3]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -64,7 +67,8 @@ if is_manager:
         with open(file, 'r') as f:
             data = f.read().split()
             num_worker_funcs_profiled = sum(['worker' in i for i in data])
-        assert num_worker_funcs_profiled >= 8, 'Insufficient number of ' + \
-            'worker functions profiled: ' + str(num_worker_funcs_profiled)
+        assert num_worker_funcs_profiled >= 8, (
+            'Insufficient number of ' + 'worker functions profiled: ' + str(num_worker_funcs_profiled)
+        )
 
         os.remove(file)

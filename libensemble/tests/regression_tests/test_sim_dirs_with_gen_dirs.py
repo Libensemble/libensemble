@@ -56,15 +56,18 @@ libE_specs['ensemble_copy_back'] = True
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
-    'out': [('x', float, (1, ))],
+    'out': [('x', float, (1,))],
     'user': {
         'gen_batch_size': 20,
         'lb': np.array([-3]),
-        'ub': np.array([3]), }}
+        'ub': np.array([3]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -79,26 +82,29 @@ def check_copied(type):
         basedir = base.split('/')[-1]
         if basedir.startswith(type):
             input_copied.append(
-                all([
-                    os.path.basename(j) in files
-                    for j in libE_specs[type + '_dir_copy_files'] + libE_specs[type + '_dir_symlink_files']]))
+                all(
+                    [
+                        os.path.basename(j) in files
+                        for j in libE_specs[type + '_dir_copy_files'] + libE_specs[type + '_dir_symlink_files']
+                    ]
+                )
+            )
 
-    assert all(input_copied), \
-        'All input files not copied or symlinked to each {} calc dir'.format(type)
+    assert all(input_copied), 'All input files not copied or symlinked to each {} calc dir'.format(type)
 
 
 if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
     sim_dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
-    assert sim_dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match sim_max ({}).' \
-        .format(sim_dir_sum, exit_criteria['sim_max'])
+    assert (
+        sim_dir_sum == exit_criteria['sim_max']
+    ), 'Number of sim directories ({}) does not match sim_max ({}).'.format(sim_dir_sum, exit_criteria['sim_max'])
 
-    assert any(['gen' in i for i in os.listdir(c_ensemble)]), \
-        'No gen directories created.'
+    assert any(['gen' in i for i in os.listdir(c_ensemble)]), 'No gen directories created.'
 
     check_copied('sim')
     check_copied('gen')
 
-    assert all([i in os.listdir(c_ensemble) for i in os.listdir(c_ensemble+'_back')]), \
-        "Copyback dir doesn't contain the same contents as ensemble dir"
+    assert all(
+        [i in os.listdir(c_ensemble) for i in os.listdir(c_ensemble + '_back')]
+    ), "Copyback dir doesn't contain the same contents as ensemble dir"

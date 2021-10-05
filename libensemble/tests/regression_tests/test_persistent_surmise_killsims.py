@@ -55,7 +55,7 @@ if __name__ == '__main__':
     max_add_thetas = 20  # Max no. of thetas added for evaluation
     step_add_theta = 10  # No. of thetas to generate per step, before emulator is rebuilt
     n_explore_theta = 200  # No. of thetas to explore while selecting the next theta
-    obsvar = 10**(-1)  # Constant for generating noise in obs
+    obsvar = 10 ** (-1)  # Constant for generating noise in obs
 
     # Batch mode until after init_sample_size (add one theta to batch for observations)
     init_sample_size = (n_init_thetas + 1) * n_x
@@ -83,14 +83,17 @@ if __name__ == '__main__':
         'out': [('f', float)],
         'user': {
             'num_obs': n_x,
-            'init_sample_size': init_sample_size}}
+            'init_sample_size': init_sample_size,
+        },
+    }
 
     gen_out = [
         ('x', float, ndims),
         ('thetas', float, nparams),
         ('priority', int),
         ('obs', float, n_x),
-        ('obsvar', float, n_x), ]
+        ('obsvar', float, n_x),
+    ]
 
     gen_specs = {
         'gen_f': gen_f,
@@ -105,27 +108,29 @@ if __name__ == '__main__':
             'init_sample_size': init_sample_size,  # Initial batch size inc. observations
             'priorloc': 1,  # Prior location in the unit cube.
             'priorscale': 0.2,  # Standard deviation of prior
-        }}
+        },
+    }
 
     alloc_specs = {
         'alloc_f': alloc_f,
         'user': {
             'init_sample_size': init_sample_size,
             'async_return': True,  # True = Return results to gen as they come in (after sample)
-            'active_recv_gen': True  # Persistent gen can handle irregular communications
-        }}
+            'active_recv_gen': True,  # Persistent gen can handle irregular communications
+        },
+    }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {'sim_max': max_evals}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    )
 
     if is_manager:
         print('Cancelled sims', H['sim_id'][H['cancel_requested']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
         sims_done = np.count_nonzero(H['returned'])
         save_libE_output(H, persis_info, __file__, nworkers)
-        assert sims_done == max_evals, \
-            'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
+        assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)

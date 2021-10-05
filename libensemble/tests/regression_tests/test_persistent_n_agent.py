@@ -55,7 +55,7 @@ if nworkers < 5:
 num_gens = 4
 A = spp.diags([2, 3, 3, 2]) - get_k_reach_chain_matrix(num_gens, 2)
 S = get_doubly_stochastic(A)
-rho = la.norm(S - (S.shape[0]**-1) * np.ones(S.shape), ord=2)
+rho = la.norm(S - (S.shape[0] ** -1) * np.ones(S.shape), ord=2)
 
 eps = 1e-1
 N_const = 100
@@ -112,7 +112,7 @@ for prob_id in range(6):
         y = np.dot(X.T, np.ones(n)) + np.cos(np.dot(X.T, np.ones(n))) + np.random.normal(loc=0, scale=0.25, size=m)
         c = 0.1
 
-        X_norms = la.norm(X, ord=2, axis=0)**2
+        X_norms = la.norm(X, ord=2, axis=0) ** 2
         L = (2 / m) * (np.amax(X_norms) + c)
 
         # reduce size of problem to match available gens
@@ -153,34 +153,40 @@ for prob_id in range(6):
     sim_specs = {
         'sim_f': sim_f,
         'in': ['x', 'obj_component', 'get_grad'],
-        'out': [('f_i', float), ('gradf_i', float, (n, ))], }
+        'out': [('f_i', float), ('gradf_i', float, (n,))],
+    }
 
     gen_specs = {
         'gen_f': gen_f,
         'out': [
-            ('x', float, (n, )),
+            ('x', float, (n,)),
             ('f_i', float),
             ('eval_pt', bool),  # eval point
             ('consensus_pt', bool),  # does not require a sim
             ('obj_component', int),  # which {f_i} to eval
-            ('get_grad', bool), ],
+            ('get_grad', bool),
+        ],
         'user': {
             'lb': -np.ones(n),
-            'ub': np.ones(n)}}
+            'ub': np.ones(n),
+        },
+    }
 
     alloc_specs = {
         'alloc_f': alloc_f,
-        'user': {
-            'm': m,
-            'num_gens': num_gens}, }
+        'user': {'m': m, 'num_gens': num_gens},
+    }
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
-    persis_info['gen_params'].update({
-        'L': 1,  # L-smoothness of each function f_i
-        'eps': eps,  # error / tolerance
-        'rho': rho,
-        'N_const': N_const,  # multiplicative constant on numiters
-        'step_const': 1})
+    persis_info['gen_params'].update(
+        {
+            'L': 1,  # L-smoothness of each function f_i
+            'eps': eps,  # error / tolerance
+            'rho': rho,
+            'N_const': N_const,  # multiplicative constant on numiters
+            'step_const': 1,
+        }
+    )
 
     if is_manager:
         print('=== Optimizing {} ==='.format(prob_name), flush=True)
@@ -198,8 +204,9 @@ for prob_id in range(6):
         assert la.norm(A.dot(np.zeros(A.shape[1]))) < 1e-15, 'Not a Laplacian matrix'
 
         # check we have a doubly stochastic matrix
-        assert la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens)))/num_gens**0.5 < 1e-15,\
-            '@S is not a doubly stochastic matrix'
+        assert (
+            la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens))) / num_gens ** 0.5 < 1e-15
+        ), '@S is not a doubly stochastic matrix'
 
         # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
         eval_H = H[H['eval_pt']]
@@ -217,11 +224,12 @@ for prob_id in range(6):
             x_i = eval_H[last_eval_idx]['x']
 
             F += f_i
-            x[i * n:(i + 1) * n] = x_i
+            x[i * n : (i + 1) * n] = x_i
 
         A_kron_I = spp.kron(A, spp.eye(n))
         consensus_val = np.dot(x, A_kron_I.dot(x))
 
         assert F - fstar < err_const * eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(
-            F - fstar, err_const * eps, fstar)
+            F - fstar, err_const * eps, fstar
+        )
         assert consensus_val < eps, 'Consensus score of {:.4e}, expected {:.4e}\nx={}'.format(consensus_val, eps, x)

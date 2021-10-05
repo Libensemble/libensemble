@@ -49,7 +49,8 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 sim_specs = {
     'sim_f': run_simulation,
     'in': ['x', 'z'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     # Generator function. Will randomly generate new sim inputs 'x'.
@@ -59,9 +60,10 @@ gen_specs = {
     'persis_in': ['sim_id', 'x', 'f', 'z'],
     'out': [
         # parameters to input into the simulation.
-        ('x', float, (2, )),
+        ('x', float, (2,)),
         ('z', float),
-        ('resource_sets', int)],
+        ('resource_sets', int),
+    ],
     'user': {
         'range': [1, 8],
         'cost_func': lambda z: z[0],
@@ -70,13 +72,15 @@ gen_specs = {
         # Lower bound for the n parameters.
         'lb': np.array([0, 0]),
         # Upper bound for the n parameters.
-        'ub': np.array([15, 15])}}
+        'ub': np.array([15, 15]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': only_persistent_gens,
     'out': [('given_back', bool)],
-    'user': {
-        'async_return': True}, }
+    'user': {'async_return': True},
+}
 
 # libE logger
 logger.set_level('INFO')

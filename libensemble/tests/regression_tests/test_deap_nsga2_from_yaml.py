@@ -36,9 +36,12 @@ if __name__ == "__main__":
     ind_size = 2
     w = (-1.0, -1.0)  # Must be a tuple
 
-    deap_test.gen_specs['user'].update({
-        'weights': w,
-        'indpb': 0.8 / ind_size, })
+    deap_test.gen_specs['user'].update(
+        {
+            'weights': w,
+            'indpb': 0.8 / ind_size,
+        }
+    )
 
     lb = deap_test.gen_specs['user']['lb']
     ub = deap_test.gen_specs['user']['ub']
@@ -52,8 +55,15 @@ if __name__ == "__main__":
             # Number of points in the sample
             num_samp = 100
 
-            H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, 2),
-                        ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+            H0_dtype = [
+                ('individual', float, ind_size),
+                ('generation', int),
+                ('fitness_values', float, 2),
+                ('sim_id', int),
+                ('returned', bool),
+                ('given_back', bool),
+                ('given', bool),
+            ]
 
             H0 = np.zeros(num_samp, dtype=H0_dtype)
 
@@ -85,19 +95,24 @@ if __name__ == "__main__":
 
         if deap_test.is_manager:
             if run == 0:
-                assert np.sum(deap_test.H['last_points']) == 0, \
-                    ("The last_points shouldn't be marked (even though "
-                     "they were marked in the gen) as 'use_persis_return_gen' was false.")
+                assert np.sum(deap_test.H['last_points']) == 0, (
+                    "The last_points shouldn't be marked (even though "
+                    "they were marked in the gen) as 'use_persis_return_gen' was false."
+                )
             elif run == 1:
-                assert np.sum(deap_test.H['last_points']) == 100, \
-                    ("The last_points should be marked as true because they "
-                     "were marked in the manager and 'use_persis_return_gen' is true.")
+                assert np.sum(deap_test.H['last_points']) == 100, (
+                    "The last_points should be marked as true because they "
+                    "were marked in the manager and 'use_persis_return_gen' is true."
+                )
 
             script_name = os.path.splitext(os.path.basename(__file__))[0]
             assert deap_test.flag == 0, script_name + " didn't exit correctly"
-            assert sum(deap_test.H['returned']) >= deap_test.exit_criteria['sim_max'], \
+            assert sum(deap_test.H['returned']) >= deap_test.exit_criteria['sim_max'], (
                 script_name + " didn't evaluate the sim_max points."
-            assert min(deap_test.H['fitness_values'][:, 0]) <= 4e-3, \
+            )
+            assert min(deap_test.H['fitness_values'][:, 0]) <= 4e-3, (
                 script_name + " didn't find the minimum for objective 0."
-            assert min(deap_test.H['fitness_values'][:, 1]) <= -1.0, \
+            )
+            assert min(deap_test.H['fitness_values'][:, 1]) <= -1.0, (
                 script_name + " didn't find the minimum for objective 1."
+            )

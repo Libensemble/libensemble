@@ -70,8 +70,9 @@ def check_ranks(mpi_comm, test_exp, test_num):
     comm_ranks_in_world = MPI.COMM_WORLD.allgather(rank)
     print('got {},  exp {} '.format(comm_ranks_in_world, test_exp[test_num]), flush=True)
     # This is really testing the test is testing what is it supposed to test
-    assert comm_ranks_in_world == test_exp[test_num], "comm_ranks_in_world are: " \
-        + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])
+    assert comm_ranks_in_world == test_exp[test_num], (
+        "comm_ranks_in_world are: " + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])
+    )
     if rank == -1:
         return False
     return True
@@ -82,16 +83,18 @@ all_ranks = list(range(MPI.COMM_WORLD.Get_size()))
 
 tests = {
     1: MPI.COMM_WORLD.Dup,
-    2: mpi_comm_excl, }
+    2: mpi_comm_excl,
+}
 
 test_exp = {
     1: all_ranks,
-    2: [-1] + all_ranks[:-1], }
+    2: [-1] + all_ranks[:-1],
+}
 
 for test_num in range(1, len(tests) + 1):
     mpi_comm = tests[test_num]()
     if check_ranks(mpi_comm, test_exp, test_num):
-        is_manager = (mpi_comm.Get_rank() == 0)
+        is_manager = mpi_comm.Get_rank() == 0
         if is_manager:
             manager_main(mpi_comm)
         else:

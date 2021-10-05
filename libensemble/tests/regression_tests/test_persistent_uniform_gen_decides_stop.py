@@ -40,24 +40,28 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {
-        'uniform_random_pause_ub': 0.5}, }
+    'user': {'uniform_random_pause_ub': 0.5},
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'persis_in': ['f', 'x', 'sim_id'],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': nworkers,
         'shutdown_limit': 10,  # Iterations on a gen before it triggers a shutdown.
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': alloc_f,
     'user': {
         'async_return': True,
-        'num_active_gens': ngens}, }
+        'num_active_gens': ngens,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -75,7 +79,8 @@ if is_manager:
 
     gen_workers = np.unique(H['gen_worker'])
     print('Generators that issued points', gen_workers)
-    assert len(gen_workers) == ngens, "The number of gens used {} does not match num_active_gens {}".\
-        format(len(gen_workers), ngens)
+    assert len(gen_workers) == ngens, "The number of gens used {} does not match num_active_gens {}".format(
+        len(gen_workers), ngens
+    )
 
     save_libE_output(H, persis_info, __file__, nworkers)

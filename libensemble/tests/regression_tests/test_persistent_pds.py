@@ -50,9 +50,11 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 if nworkers < 5:
-    sys.exit('This tests requires at least 5 workers (6 MPI processes). You can \
+    sys.exit(
+        'This tests requires at least 5 workers (6 MPI processes). You can \
              decrease the number of workers by modifying the number of gens and \
-             communication graph @A in the calling script.')
+             communication graph @A in the calling script.'
+    )
 
 num_gens = 4
 A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
@@ -112,7 +114,7 @@ for prob_id in range(6):
         y = np.dot(X.T, np.ones(n)) + np.cos(np.dot(X.T, np.ones(n))) + np.random.normal(loc=0, scale=0.25, size=m)
         c = 0.1
 
-        X_norms = la.norm(X, ord=2, axis=0)**2
+        X_norms = la.norm(X, ord=2, axis=0) ** 2
         L = (2 / m) * (np.amax(X_norms) + c)
 
         # reduce size of problem to match available gens
@@ -154,35 +156,40 @@ for prob_id in range(6):
     sim_specs = {
         'sim_f': sim_f,
         'in': ['x', 'obj_component', 'get_grad'],
-        'out': [('f_i', float), ('gradf_i', float, (n, ))], }
+        'out': [('f_i', float), ('gradf_i', float, (n,))],
+    }
 
     gen_specs = {
         'gen_f': gen_f,
         'out': [
-            ('x', float, (n, )),
+            ('x', float, (n,)),
             ('f_i', float),
             ('eval_pt', bool),  # eval point
             ('consensus_pt', bool),  # does not require a sim
             ('obj_component', int),  # which {f_i} to eval
-            ('get_grad', bool), ],
+            ('get_grad', bool),
+        ],
         'user': {
             'lb': -np.ones(n),
-            'ub': np.ones(n)}}
+            'ub': np.ones(n),
+        },
+    }
 
     alloc_specs = {
         'alloc_f': alloc_f,
-        'user': {
-            'm': m,
-            'num_gens': num_gens}, }
+        'user': {'m': m, 'num_gens': num_gens},
+    }
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
-    persis_info['gen_params'].update({
-        'mu': 0,  # strong convexity term
-        'L': L,  # Lipschitz smoothness
-        'Vx_0x': n**0.5,  # Bregman divergence of x_0 and x_*
-        'eps': eps,  # error / tolerance
-        'A_norm': lam_max,  # ||A \otimes I||_2 = ||A||_2
-    })
+    persis_info['gen_params'].update(
+        {
+            'mu': 0,  # strong convexity term
+            'L': L,  # Lipschitz smoothness
+            'Vx_0x': n ** 0.5,  # Bregman divergence of x_0 and x_*
+            'eps': eps,  # error / tolerance
+            'A_norm': lam_max,  # ||A \otimes I||_2 = ||A||_2
+        }
+    )
 
     if is_manager:
         print('=== Optimizing {} ==='.format(prob_name), flush=True)
@@ -215,11 +222,12 @@ for prob_id in range(6):
             x_i = eval_H[last_eval_idx]['x']
 
             F += f_i
-            x[i * n:(i + 1) * n] = x_i
+            x[i * n : (i + 1) * n] = x_i
 
         A_kron_I = spp.kron(A, spp.eye(n))
         consensus_val = np.dot(x, A_kron_I.dot(x))
 
         assert F - fstar < err_const * eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(
-            F - fstar, err_const * eps, fstar)
+            F - fstar, err_const * eps, fstar
+        )
         assert consensus_val < eps, 'Consensus score of {:.4e}, expected {:.4e}'.format(consensus_val, eps)

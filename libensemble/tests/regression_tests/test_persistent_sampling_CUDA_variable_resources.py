@@ -44,7 +44,8 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {}, }
+    'user': {},
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -54,19 +55,22 @@ gen_specs = {
         'initial_batch_size': nworkers - 1,
         'max_resource_sets': nworkers - 1,  # Any sim created can req. 1 worker up to all.
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': alloc_f,
-    'user': {
-        'give_all_with_same_priority': False}, }
+    'user': {'give_all_with_same_priority': False},
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
-                            alloc_specs=alloc_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+)
 
 if is_manager:
     assert flag == 0

@@ -74,13 +74,13 @@ sim_specs = {
 # For a typical use case see test_persistent_surmise_calib.py.
 gen_specs = {
     'gen_f': uniform_random_sample_cancel,  # Function generating sim_f input
-    'out': [('x', float, (2, )), ('cancel_requested', bool)],
+    'out': [('x', float, (2,)), ('cancel_requested', bool)],
     'user': {
         'gen_batch_size': 50,  # Used by this specific gen_f
         'lb': np.array([-3, -2]),  # Used by this specific gen_f
-        'ub':
-            np.array([3, 2])  # Used by this specific gen_f
-    }}
+        'ub': np.array([3, 2]),  # Used by this specific gen_f
+    },
+}
 # end_gen_specs_rst_tag
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -92,29 +92,36 @@ aspec1 = {
     'out': [],
     'user': {
         'batch_mode': True,
-        'num_active_gens': 1}, }
+        'num_active_gens': 1,
+    },
+}
 
 aspec2 = {
     'alloc_f': gswf,
     'out': [],
     'user': {
         'batch_mode': True,
-        'num_active_gens': 2}, }
+        'num_active_gens': 2,
+    },
+}
 
 aspec3 = {
     'alloc_f': fast_gswf,
     'out': [],
-    'user': {}, }
+    'user': {},
+}
 
 aspec4 = {
     'alloc_f': ensure_one_active_gen,
     'out': [],
-    'user': {}, }
+    'user': {},
+}
 
 aspec5 = {
     'alloc_f': give_pregenerated_sim_work,
     'out': [],
-    'user': {}, }
+    'user': {},
+}
 
 allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 
@@ -136,8 +143,9 @@ for testnum in range(1, 6):
     persis_info['total_gen_calls'] = 0  # 1
 
     # Perform the run - do not overwrite persis_info
-    H, persis_out, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs,
-                               H0=H0)
+    H, persis_out, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs, H0=H0
+    )
 
     if is_manager:
         assert flag == 0
@@ -145,7 +153,7 @@ for testnum in range(1, 6):
         assert np.all(~H['given'][::10]), 'Some values are given that should not have been'
         tol = 0.1
         for m in minima:
-            assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
+            assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol
 
         print("libEnsemble found the 6 minima within a tolerance " + str(tol))
         del H

@@ -47,8 +47,7 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {
-        'app': 'helloworld'}  # helloworld or six_hump_camel
+    'user': {'app': 'helloworld'},  # helloworld or six_hump_camel
 }
 
 gen_specs = {
@@ -58,12 +57,15 @@ gen_specs = {
         ('priority', float),
         ('resource_sets', int),  # Set in gen func, resourced by alloc func.
         ('x', float, n),
-        ('x_on_cube', float, n)],
+        ('x_on_cube', float, n),
+    ],
     'user': {
         'initial_batch_size': 5,
         'max_resource_sets': nworkers,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': give_sim_work_first,
@@ -71,14 +73,17 @@ alloc_specs = {
     'user': {
         'batch_mode': False,
         'give_all_with_same_priority': True,
-        'num_active_gens': 1}}
+        'num_active_gens': 1,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
-                            alloc_specs=alloc_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+)
 
 if is_manager:
     assert flag == 0

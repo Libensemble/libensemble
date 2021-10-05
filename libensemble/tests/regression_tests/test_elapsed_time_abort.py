@@ -28,32 +28,37 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {
-        'pause_time': 2}, }
+    'user': {'pause_time': 2},
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'gen_batch_size': 5,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': give_sim_work_first,
     'out': [],
     'user': {
         'batch_mode': False,
-        'num_active_gens': 2}, }
+        'num_active_gens': 2,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {'elapsed_wallclock_time': 1}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
-                            alloc_specs=alloc_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+)
 
 if is_manager:
     eprint(flag)

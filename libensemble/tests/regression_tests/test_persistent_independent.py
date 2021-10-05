@@ -30,9 +30,11 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 if nworkers < 5:
-    sys.exit('This tests requires at least 5 workers (6 MPI processes). You can \
+    sys.exit(
+        'This tests requires at least 5 workers (6 MPI processes). You can \
              decrease the number of workers by modifying the number of gens and \
-             communication graph @A in the calling script.')
+             communication graph @A in the calling script.'
+    )
 
 m = 16
 n = 32
@@ -47,32 +49,39 @@ sim_specs = {
     'in': ['x', 'obj_component', 'get_grad'],
     'out': [
         ('f_i', float),
-        ('gradf_i', float, (n, )), ], }
+        ('gradf_i', float, (n,)),
+    ],
+}
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {
     'gen_f': gen_f,
     'out': [
-        ('x', float, (n, )),
+        ('x', float, (n,)),
         ('f_i', float),
         ('eval_pt', bool),  # eval point
         ('consensus_pt', bool),  # does not require a sim
         ('obj_component', int),  # which {f_i} to eval
-        ('get_grad', bool), ],
+        ('get_grad', bool),
+    ],
     'user': {
         'lb': np.array([-1.2, 1] * (n // 2)),
-        'ub': np.array([-1.2, 1] * (n // 2)), }}
+        'ub': np.array([-1.2, 1] * (n // 2)),
+    },
+}
 
 alloc_specs = {
     'alloc_f': alloc_f,
     'user': {
         'm': m,
-        'num_gens': num_gens}, }
+        'num_gens': num_gens,
+    },
+}
 
 persis_info = {}
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info['gen_params'] = ({'eps': eps})
-persis_info['sim_params'] = ({'const': 1})
+persis_info['gen_params'] = {'eps': eps}
+persis_info['sim_params'] = {'const': 1}
 persis_info['A'] = A
 
 assert n == 2 * m, "@n must be double of @m"

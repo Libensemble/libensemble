@@ -59,9 +59,11 @@ sim_app2 = six_hump_camel.__file__
 
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
+
     exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
@@ -75,17 +77,19 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float), ('cstat', int)],
-    'user': {
-        'cores': cores_per_task}, }
+    'user': {'cores': cores_per_task},
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': nworkers, }}
+        'gen_batch_size': nworkers,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -101,8 +105,9 @@ if is_manager:
     # manager kill - but should show in the summary file.
     # Repeat expected lists nworkers times and compare with list of status's
     # received from workers
-    calc_status_list_in = np.asarray([
-        WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
+    calc_status_list_in = np.asarray(
+        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0]
+    )
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     # For debug
@@ -115,8 +120,13 @@ if is_manager:
     print('Checking expected task status against task summary file ...\n')
 
     calc_desc_list_in = [
-        'Completed', 'Worker killed task on Error', 'Completed', 'Worker killed task on Timeout', 'Task Failed',
-        'Manager killed on finish']
+        'Completed',
+        'Worker killed task on Error',
+        'Completed',
+        'Worker killed task on Timeout',
+        'Task Failed',
+        'Manager killed on finish',
+    ]
 
     # Repeat N times for N workers and insert Completed at start for generator
     calc_desc_list = ['Completed'] + calc_desc_list_in * nworkers

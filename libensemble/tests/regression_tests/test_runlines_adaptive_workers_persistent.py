@@ -23,6 +23,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
+
 # from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
@@ -50,8 +51,8 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {
-        'dry_run': True}, }
+    'user': {'dry_run': True},
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -61,12 +62,14 @@ gen_specs = {
         'initial_batch_size': nworkers - 1,
         'max_resource_sets': max_rsets,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': alloc_f,
-    'user': {
-        'give_all_with_same_priority': False}, }
+    'user': {'give_all_with_same_priority': False},
+}
 
 comms = libE_specs['comms']
 node_file = 'nodelist_adaptive_workers_persistent_comms_' + str(comms) + '_wrks_' + str(nworkers)
@@ -78,14 +81,16 @@ if comms == 'mpi':
 
 libE_specs['resource_info'] = {
     'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file}  # Name of file containing a node-list
+    'node_file': node_file,
+}  # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs,
-                            alloc_specs=alloc_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+)
 
 if is_manager:
     assert flag == 0
