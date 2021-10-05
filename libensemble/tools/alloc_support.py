@@ -156,7 +156,7 @@ class AllocSupport:
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
-        if rset_team is passed as an additional parameter, it will be honored, assuming that
+        If ``rset_team`` is passed as an additional parameter, it will be honored, assuming that
         any resource checking has already been done.
 
         """
@@ -190,7 +190,7 @@ class AllocSupport:
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
-        if rset_team is passed as an additional parameter, it will be honored, and assume that
+        If ``rset_team`` is passed as an additional parameter, it will be honored, and assume that
         any resource checking has already been done. For example, passing ``rset_team=[]``, would
         ensure that no resources are assigned.
         """
