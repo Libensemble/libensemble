@@ -102,7 +102,7 @@ routine can be found in ``libE_info``, passed into the allocation function::
                   'sim_max_given': bool}               # True if `sim_max` simulations have been given out to workers
 
 
-In most supplied examples, the allocation function will just return once `sim_max_given`
+In most supplied examples, the allocation function will just return once ``sim_max_given``
 is ``True``, but the user could choose to do something different, such as cancel points or
 keep returning completed points to the generator. Generators that construct models based
 on *all evaluated points*, for example, may need simulation work units at the end
