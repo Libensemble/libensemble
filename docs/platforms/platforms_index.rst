@@ -110,69 +110,17 @@ the :doc:`examples<example_scripts>`.
 Mapping Tasks to Resources
 --------------------------
 
-.. The :doc:`resource manager<../?/?>`can detect system resources, and partition
-
-The resource manager can detect system resources, and partition
-these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`, for example,
+The :ref:`resource manager<resources_index>` can :ref:`detect system resources<resource_detection>`,
+and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
 accesses the resources available to the current worker when launching tasks.
-
-Node-lists are detected by an environment variable on the following systems:
-
-===========  ===========================
-Scheduler       Nodelist Env. variable
-===========  ===========================
-SLURM           SLURM_NODELIST
-COBALT          COBALT_PARTNAME
-LSF             LSB_HOSTS/LSB_MCPU_HOSTS
-===========  ===========================
-
-These environment variable names can be modified via the  :ref:`resource_info<resource_info>`
-libE_specs option.
-
-On other systems you may have to supply a node list in a file called **node_list**
-in your run directory. For example, on Cooley_ the session node list can be obtained
-as follows::
-
-            cat $COBALT_NODEFILE > node_list
-
-Resource detection can be disabled by setting
-``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
-configuration options on the Executor submit line. This will usually work sufficiently on
-systems that have application-level scheduling (e.g., ``aprun``, ``jsrun``) as these
-will slot each run into available nodes where possible. ``jsrun`` can also queue
-runs. However, on other cluster and multi-node systems, if the built-in resource
-manager is disabled, then runs without a hostlist or machinefile supplied may be
-undesirably scheduled to the same nodes.
 
 Zero-resource workers
 ~~~~~~~~~~~~~~~~~~~~~
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be wasteful if those
-workers only run ``gen_f`` routines in-place and don't use the Executor to submit
-applications to allocated nodes:
+are still automatically assigned system resources. This can be resolved by
+using :ref:`zero resource workers<zero_resource_workers>`.
 
-.. image:: ../images/persis_wasted_node.png
-    :alt: persis_wasted_node
-    :scale: 40
-    :align: center
-
-This can be resolved within the Executor definition in the calling script. Set the
-parameter ``zero_resource_workers`` to a list of worker IDs that shouldn't have
-system resources assigned. For example, when using a single instance of Persistent
-:doc:`APOSMM<../examples/aposmm>` as your ``gen_f``, the Executor definition
-may resemble::
-
-    exctr = MPIExecutor(dedicated_mode=True, zero_resource_workers=[1])
-
-Worker 1 will now not be allocated resources. Note that additional worker
-processes can be added to take advantage of the free resources (if using the
-same resource set) for simulation instances:
-
-.. image:: ../images/persis_add_worker.png
-    :alt: persis_add_worker
-    :scale: 40
-    :align: center
 
 Overriding Auto-detection
 -------------------------
