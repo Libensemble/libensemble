@@ -1,9 +1,7 @@
 Dynamic Assignment of Resources
 ===============================
 
-.. SH TODO Add link to a section on scheduler
 .. SH TODO Add link to detection of resources section (an dhow to override)
-.. SH TODO Add link to a section on worker resources as can be used in sim
 
 
 Overview
@@ -66,11 +64,9 @@ When the allocation function assigns points to workers for evaluation, it will c
 
 .. image:: ../images/variable_resources2.png
 
-.. SH TODO - link to alloc function writer guide - where should add something on resources in sim_work/gen_work - or directly with assign_resources.
+The particular nodes and slots assigned to each worker will be determined by the libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
 
-The particular nodes and slots assigned to each worker will follow the libEnsenble built-in scheduler, although users can provide an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
-
-In the user's simulation function, the resources supplied to the worker can be interogated directly via the resources class attribute. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) is aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available.
+In the user's simulation function, the resources supplied to the worker can be :doc:`interogated directly via the resources class attribute<worker_resources>`. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available.
 
 `six_hump_camel.py`_ has two examples of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
 

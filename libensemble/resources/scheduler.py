@@ -1,3 +1,6 @@
+__all__ = ['assign_resources']
+
+
 import copy
 import logging
 import numpy as np
