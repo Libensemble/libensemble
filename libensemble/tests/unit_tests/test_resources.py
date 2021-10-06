@@ -1,9 +1,9 @@
 import os
 import socket
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import GlobalResources, ResourcesException
-# from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
+from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
 from libensemble.resources.worker_resources import ResourceManager, WorkerResources
+from libensemble.resources.mpi_resources import create_machinefile
 
 
 def setup_standalone_run():
@@ -605,6 +605,25 @@ def test_map_workerid_to_index():
     assert index == 1, "index incorrect. Received: " + str(index)
 
 
+def test_machinefile_from_resources():
+
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
+    resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
+    libE_specs = {'resource_info': resource_info,
+                  'num_resource_sets': 8}
+
+    resources = Resources(libE_specs)
+    resources.set_worker_resources(4, 1)
+    resources.worker_resources.set_rset_team([0, 1, 2, 3])
+
+    built_mfile = create_machinefile(resources, num_nodes=4, procs_per_node=4)
+    assert built_mfile, \
+        "machinefile doesn't exist or is empty"
+
+    # Test replacing older machinefile
+    create_machinefile(resources, machinefile='machinefile', num_nodes=4, procs_per_node=4)
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -632,5 +651,7 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_map_workerid_to_index()
+
+    test_machinefile_from_resources()
 
     teardown_standalone_run()
