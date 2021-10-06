@@ -16,6 +16,7 @@ We now give greater detail in programming with libEnsemble.
 
 .. toctree::
    executor/ex_index
+   resource_manager/resources_index
 
 .. toctree::
    utilities

@@ -3,7 +3,7 @@
 # stop a run.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_uniform_gen_decides_stop.py
+#    mpiexec -np 5 python3 test_persistent_uniform_gen_decides_stop.py
 #    python3 test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms local
 #    python3 test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms tcp
 #
