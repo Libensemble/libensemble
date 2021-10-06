@@ -17,7 +17,7 @@ from doing any resource detection or management.
 Variable resource assignment
 ----------------------------
 
-In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option.
+In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. If the latter is set, dynamic resource assignment algorithm will always be used.
 
 If there are more resource sets than nodes, then the resource sets on each node will be given a slot number, enumerated from zero. E.g.~ If there are three slots on a node, they will have slot numbers 0, 1 and 2.
 
@@ -86,6 +86,9 @@ In the figure above, this would result in worker one setting::
 while worker five would set::
 
     export CUDA_VISIBLE_DEVICES=2,3
+
+
+.. note:: If the user sets the number of resource sets directly using the ``num_resource_sets`` libE_specs option, then the dynamic resource assignment algorithm will always be used. If `resource_sets` is not a field in H, then each worker will use one resource set.
 
 
 Varying generator resources

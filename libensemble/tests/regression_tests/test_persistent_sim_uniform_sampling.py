@@ -7,7 +7,9 @@
 #    python3 test_persistent_sim_uniform_sampling.py --nworkers 3 --comms local
 #    python3 test_persistent_sim_uniform_sampling.py --nworkers 3 --comms tcp
 #
-# The number of concurrent evaluations of the objective function will be 4-1=3.
+# When running with the above command, the number of concurrent evaluations of
+# the objective function will be 2, as one of the three workers will be the
+# persistent generator.
 # """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -28,10 +30,10 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # logger.set_level('DEBUG')
 
 nworkers, is_manager, libE_specs, _ = parse_args()
+libE_specs['num_resource_sets'] = nworkers - 1  # Only matters if sims use resources.
 
-libE_specs['zero_resource_workers'] = [1]  # Only necessary if sims use resources.
-
-libE_specs['use_persis_return_sim'] = True  # Only necessary if sims use resources.
+# Only used to test returning/overwriting a point at the end of the persistent sim.
+libE_specs['use_persis_return_sim'] = True
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")

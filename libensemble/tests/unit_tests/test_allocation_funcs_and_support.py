@@ -48,7 +48,7 @@ def test_decide_work_and_resources():
     mgr = man.Manager(hist, libE_specs, al, sim_specs, gen_specs, exit_criteria)
     W = mgr.W
 
-    libE_info = {'sim_max_given': False, 'any_idle_workers': True}
+    libE_info = {'sim_max_given': False, 'any_idle_workers': True, 'use_resource_sets': False}
 
     # Don't give out work when all workers are active
     W['active'] = 1

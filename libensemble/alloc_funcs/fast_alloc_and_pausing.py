@@ -29,7 +29,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    manage_resources = 'resource_sets' in H.dtype.names
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
 
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
