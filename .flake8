@@ -2,6 +2,8 @@
 max-line-length = 120
 
 ignore =
+        # E203 is not PEP 8 compliant
+        E203
         # Not worrying about spaces around arithmetic operations
         E226
         # Linebreaks before/after unary operators are okay
