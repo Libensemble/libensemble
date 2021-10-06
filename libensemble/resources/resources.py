@@ -58,7 +58,6 @@ class Resources:
         disable_resource_manager = libE_specs.get('disable_resource_manager', False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            # SH TODO: Should we recreate or re-use if exists
             if Resources.resources is None:
                 Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 

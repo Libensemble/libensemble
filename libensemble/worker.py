@@ -212,7 +212,7 @@ class Worker:
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         # calc_id = next(self._calc_id_counter)
 
-        # SH from output_directory.py
+        # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = 'sim_id'
             calc_id = EnsembleDirectory.extract_H_ranges(Work)

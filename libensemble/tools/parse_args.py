@@ -46,7 +46,6 @@ def _mpi_parse_args(args):
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
     libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
 
-    # SH TODO: Make same libE_specs option same - num or n?
     if args.nresource_sets is not None:
         libE_specs['num_resource_sets'] = args.nresource_sets
 
@@ -64,7 +63,6 @@ def _local_parse_args(args):
     libE_specs = {'comms': 'local'}
     nworkers = args.nworkers
 
-    # SH TODO: Make same libE_specs option same - num or n?
     if args.nresource_sets is not None:
         libE_specs['num_resource_sets'] = args.nresource_sets
 

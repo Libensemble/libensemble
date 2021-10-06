@@ -45,8 +45,6 @@ class RSetResources():
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.split_list, self.local_rsets_list = \
             RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
-
-        # SH TODO: To fully support uneven rsets (with re-assignment) - will use local_rsets_list (above)
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
 
     @staticmethod
@@ -120,7 +118,6 @@ class RSetResources():
         logger.debug("split_list is {}".format(split_list))
         return split_list, local_rsets_list
 
-    # SH TODO This has become redundant wrapper - if stays that way can remove
     @staticmethod
     def get_partitioned_nodelist(num_rsets, resources):
         """Returns lists of nodes available to all resource sets
@@ -129,5 +126,4 @@ class RSetResources():
         Also self.global_nodelist will have already removed non-application nodes
         """
         split_list, local_rsets_list = RSetResources.get_split_list(num_rsets, resources)
-        # print('local_rsets_list', local_rsets_list, flush=True)
         return split_list, local_rsets_list
