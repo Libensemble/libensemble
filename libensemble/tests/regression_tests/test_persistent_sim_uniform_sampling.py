@@ -30,7 +30,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # logger.set_level('DEBUG')
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs['num_resource_sets'] = nworkers - 1 # Only matters if sims use resources.
+libE_specs['num_resource_sets'] = nworkers - 1  # Only matters if sims use resources.
 
 # Only used to test returning/overwriting a point at the end of the persistent sim.
 libE_specs['use_persis_return_sim'] = True
