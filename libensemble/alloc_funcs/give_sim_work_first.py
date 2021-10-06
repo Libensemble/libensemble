@@ -45,7 +45,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     batch_give = user.get('give_all_with_same_priority', False)
     gen_in = gen_specs.get('in', [])
 
-    manage_resources = 'resource_sets' in H.dtype.names
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     gen_count = support.count_gens()
     Work = {}

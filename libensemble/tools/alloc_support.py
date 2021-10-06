@@ -135,7 +135,10 @@ class AllocSupport:
                 return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
                 if H is not None and H_rows is not None:
-                    num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                    if 'resource_sets' in H.dtype.names:
+                        num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                    else:
+                        num_rsets_req = 1
                 else:
                     num_rsets_req = self.persis_info.get('gen_resources', 0)
                 return self.assign_resources(num_rsets_req)
