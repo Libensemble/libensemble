@@ -62,8 +62,6 @@ class ResourceScheduler:
         insufficient resources.
         """
 
-        # SH TODO: Remove commented print statements
-
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
                                              .format(rsets_req, self.resources.total_num_rsets))
@@ -214,7 +212,6 @@ class ResourceScheduler:
             rsets_req_per_group = rsets_req
         return rsets_req, num_groups_req, rsets_req_per_group
 
-    # SH TODO: May be able to use an equivalent of this when have uneven groups to start with.
     def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, extend):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
         if rsets_req == 0:
@@ -229,7 +226,6 @@ class ResourceScheduler:
                     raise InsufficientFreeResources
                 rsets_per_grp = sorted_lens[ngroups - 1]
 
-        # SH TODO: Could add extend option here - then sending back rsets_req will make sense.
         return rsets_req, ngroups, rsets_per_grp
 
     @staticmethod

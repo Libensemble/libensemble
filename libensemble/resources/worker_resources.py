@@ -50,14 +50,13 @@ class ResourceManager(RSetResources):
                                                          resources.zero_resource_workers)
         # print('index list:', self.index_list)
 
-        # SH TODO: Need to update to allow uneven distribution of rsets to nodes
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
         self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
         self.rsets_free = self.total_num_rsets
 
-        # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
+        # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets['group'], return_counts=True)
         self.group_sizes = dict(zip(unique, counts))
         self.ngroups_by_size = Counter(counts)
@@ -322,7 +321,6 @@ class WorkerResources(RSetResources):
                     slots[node].append(0)
             else:
                 mynode = split_list[index][0]
-                # rsets_per_node = local_rsets_list[index]  # SH TODO Alternative for uneven rsets per node
                 pos_in_node = index % rsets_per_node
                 slots[mynode].append(pos_in_node)
 

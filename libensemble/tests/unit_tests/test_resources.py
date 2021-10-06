@@ -224,7 +224,7 @@ def _assert_worker_attr(wres, attr, exp):
     assert ret == exp, "{} returned does not match expected.  \nRet: {}\nExp: {}".format(attr, ret, exp)
 
 
-# SH TODO: These are all 1 worker per rset. Should name as such.
+# These are all 1 worker per rset.
 def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 
     # Create dictionary of attributes and expected values
@@ -243,8 +243,8 @@ def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
         _assert_worker_attr(wres, attr, exp_val)
 
 
-# SH TODO: These are all >= 1 node per rset. And 1 worker per rset
-#          dedicated_mode makes no difference in this test
+# These are all >= 1 node per rset. And 1 worker per rset
+# dedicated_mode makes no difference in this test
 def test_get_local_resources_dedicated_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
@@ -317,11 +317,9 @@ def test_get_local_resources_dedicated_mode():
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, nnodes)
 
     # 16 Workers --------------------------------------------------------------
-    # SH TODO - May put this in separate test for multi rsets/workers per node.
     # Multiple workers per node
     nworkers = 16
 
-    # SH TODO:This is modified - maybe write out explicitly
     exp_out = [['knl-0020'], ['knl-0020'], ['knl-0021'], ['knl-0021'],
                ['knl-0022'], ['knl-0022'], ['knl-0036'], ['knl-0036'],
                ['knl-0137'], ['knl-0137'], ['knl-0138'], ['knl-0138'],
@@ -424,11 +422,9 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
         del wresources
 
     # 16 Workers --------------------------------------------------------------
-    # SH TODO - May put this in separate test for multi rsets/workers per node.
     # Multiple workers per node
     nworkers = 16
 
-    # SH TODO:This is modified - maybe write out explicitly
     exp_out = [['knl-0020'], ['knl-0020'], ['knl-0021'], ['knl-0021'],
                ['knl-0022'], ['knl-0022'], ['knl-0036'], ['knl-0036'],
                ['knl-0137'], ['knl-0137'], ['knl-0138'], ['knl-0138'],
