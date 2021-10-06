@@ -28,7 +28,7 @@ If allocation is to continue, a support class is instantiated (see below), and a
 
         user = alloc_specs.get('user', {})
         sched_opts = user.get('scheduler_opts', {})
-        manage_resources = 'resource_sets' in H.dtype.names
+        manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
 
         support = AllocSupport(W, manage_resources, persis_info, sched_opts)
 
@@ -99,7 +99,8 @@ routine can be found in ``libE_info``, passed into the allocation function::
                   'given_count': int,                  # Total number of points given for simulation function evaluation
                   'returned_count': int,               # Total number of points returned from simulation function evaluations
                   'given_back_count': int,             # Total number of evaluated points given back to a generator function
-                  'sim_max_given': bool}               # True if `sim_max` simulations have been given out to workers
+                  'sim_max_given': bool,               # True if `sim_max` simulations have been given out to workers
+                  'use_resource_sets': bool}           # True if num_resource_sets has been explicitly set.
 
 
 In most supplied examples, the allocation function will just return once ``sim_max_given``

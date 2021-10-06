@@ -15,7 +15,7 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
 
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    manage_resources = 'resource_sets' in H.dtype.names
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
 

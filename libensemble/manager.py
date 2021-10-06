@@ -536,7 +536,8 @@ class Manager:
                 'given_count': self.hist.given_count,
                 'returned_count': self.hist.returned_count,
                 'given_back_count': self.hist.given_back_count,
-                'sim_max_given': self._sim_max_given()}
+                'sim_max_given': self._sim_max_given(),
+                'use_resource_sets': 'num_resource_sets' in self.libE_specs}
 
     def _alloc_work(self, H, persis_info):
         """

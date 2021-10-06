@@ -45,7 +45,9 @@ class ResourceManager(RSetResources):
 
         """
         super().__init__(num_workers, resources)
-        self.index_list = ResourceManager.get_index_list(self.num_workers, resources.zero_resource_workers)
+        self.index_list = ResourceManager.get_index_list(self.num_workers,
+                                                         self.total_num_rsets,
+                                                         resources.zero_resource_workers)
         # print('index list:', self.index_list)
 
         # SH TODO: Need to update to allow uneven distribution of rsets to nodes
@@ -109,7 +111,7 @@ class ResourceManager(RSetResources):
         return group_list
 
     @staticmethod
-    def get_index_list(num_workers, zero_resource_list):
+    def get_index_list(num_workers, num_rsets, zero_resource_list):
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
@@ -117,7 +119,11 @@ class ResourceManager(RSetResources):
             if i in zero_resource_list:
                 index_list.append(None)
             else:
-                index_list.append(index)
+                if index >= num_rsets:
+                    # Not enough rsets
+                    index_list.append(None)
+                else:
+                    index_list.append(index)
                 index += 1
         return index_list
 
