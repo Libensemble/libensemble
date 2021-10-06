@@ -1,9 +1,9 @@
 import os
 import socket
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import GlobalResources, ResourcesException
-# from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
+from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
 from libensemble.resources.worker_resources import ResourceManager, WorkerResources
+from libensemble.resources.mpi_resources import create_machinefile
 
 
 def setup_standalone_run():
@@ -601,6 +601,40 @@ def test_map_workerid_to_index():
     assert index == 1, "index incorrect. Received: " + str(index)
 
 
+def _check_mfile(machinefile, exp_list):
+    with open('machinefile', 'r') as f:
+        i = 0
+        for line in f:
+            index = i//4
+            assert line == exp_list[index]
+            i += 1
+
+
+def test_machinefile_from_resources():
+
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
+    resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
+    libE_specs = {'resource_info': resource_info,
+                  'num_resource_sets': 8}
+
+    exp_list = ['knl-0020\n', 'knl-0021\n', 'knl-0022\n', 'knl-0036\n']
+
+    resources = Resources(libE_specs)
+    resources.set_worker_resources(4, 1)
+    resources.worker_resources.set_rset_team([0, 1, 2, 3])
+
+    built_mfile = create_machinefile(resources, num_nodes=4, procs_per_node=4)
+    assert built_mfile, \
+        "machinefile doesn't exist or is empty"
+
+    _check_mfile('machinefile', exp_list)
+
+    # Test replacing older machinefile
+    create_machinefile(resources, machinefile='machinefile', num_nodes=4, procs_per_node=4)
+    _check_mfile('machinefile', exp_list)
+    os.remove('machinefile')
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -619,14 +653,13 @@ if __name__ == "__main__":
     test_get_global_nodelist_frm_wrklst_file()
     test_remove_libE_nodes()
 
-    # test_get_local_nodelist_dedicated_mode()
-    test_get_local_resources_dedicated_mode()  # new name
-
+    test_get_local_resources_dedicated_mode()
     test_get_local_resources_dedicated_mode_remove_libE_proc()
     test_get_local_nodelist_distrib_mode_host_not_in_list()
     test_get_local_nodelist_distrib_mode()
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_map_workerid_to_index()
+    test_machinefile_from_resources()
 
     teardown_standalone_run()
