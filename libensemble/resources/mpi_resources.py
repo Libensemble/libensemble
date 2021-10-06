@@ -169,9 +169,6 @@ def get_resources(resources, num_procs=None, num_nodes=None,
     num_procs, num_nodes, procs_per_node = \
         task_partition(num_procs, num_nodes, procs_per_node)
 
-    # print('cores per rset {}.  slot count {}  procs_per_node {}'.\
-    # format(cores_avail_per_node_per_rset, wresources.slot_count, procs_per_node),flush=True)
-
     rassert(num_nodes <= local_node_count,
             "Not enough nodes to honor arguments. "
             "Requested {}. Only {} available".

@@ -465,6 +465,7 @@ class Manager:
             kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
+            # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
                 logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
                 kill_ids = self.hist.H['sim_id'][kill_sim]
@@ -472,7 +473,6 @@ class Manager:
                 for w in kill_on_workers:
                     self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H['kill_sent'][kill_ids] = True
-                    # SH*** Still expecting return? Currently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 

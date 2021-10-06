@@ -126,5 +126,4 @@ class RSetResources():
         Also self.global_nodelist will have already removed non-application nodes
         """
         split_list, local_rsets_list = RSetResources.get_split_list(num_rsets, resources)
-        # print('local_rsets_list', local_rsets_list, flush=True)
         return split_list, local_rsets_list
