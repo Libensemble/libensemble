@@ -114,6 +114,7 @@ import traceback
 import numpy as np
 import pickle  # Only used when saving output on error
 
+from libensemble.version import __version__
 from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.history import History
@@ -244,6 +245,7 @@ def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
     "Generic manager routine run."
 
     logger.info('Logger initializing: [workerID] precedes each line. [0] = Manager')
+    logger.info('libE version v{}'.format(__version__))
 
     if 'out' in gen_specs and ('sim_id', int) in gen_specs['out']:
         logger.manager_warning(_USER_SIM_ID_WARNING)

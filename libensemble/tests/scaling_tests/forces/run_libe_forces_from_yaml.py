@@ -25,7 +25,7 @@ if forces.is_manager:
     print('\nRunning with {} workers\n'.format(forces.nworkers))
 
 exctr = MPIExecutor()
-exctr.register_app(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, app_name='forces')
 
 forces.libE_specs['ensemble_dir_path'] = './ensemble'
 forces.gen_specs['user'].update({
