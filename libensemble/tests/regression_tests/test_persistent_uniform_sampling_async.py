@@ -1,6 +1,6 @@
 # """
 # Tests libEnsemble's generator function requesting/receiving sim_f evaluations
-# asynchronouslyl
+# asynchronously
 #
 # Execute via one of the following commands (e.g. 3 workers):
 #    mpiexec -np 4 python3 test_persistent_uniform_sampling_async.py

@@ -1,9 +1,10 @@
 Scheduler Module
 ================
+
 .. automodule:: resources.scheduler
+  :noindex:
 
 .. autoclass:: ResourceScheduler
   :member-order: bysource
   :members:
-
-  .. automethod:: __init__
+  :noindex:
