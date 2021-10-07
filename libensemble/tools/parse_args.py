@@ -34,13 +34,14 @@ parser.add_argument('--tester_args', type=str, nargs='*',
 
 
 def _get_zrw(nworkers, nsim_workers):
+    """Determine zero resource workers from workers and sim workers"""
     ngen_workers = nworkers - nsim_workers
     assert ngen_workers > 0, "nsim_workers cannot be greater than number of workers"
     return [i for i in range(1, ngen_workers + 1)]
 
 
 def _mpi_parse_args(args):
-    "Parses arguments for MPI comms."
+    """Parses arguments for MPI comms."""
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
@@ -58,7 +59,7 @@ def _mpi_parse_args(args):
 
 
 def _local_parse_args(args):
-    "Parses arguments for forked processes using multiprocessing."
+    """Parses arguments for forked processes using multiprocessing."""
 
     libE_specs = {'comms': 'local'}
     nworkers = args.nworkers
@@ -79,7 +80,7 @@ def _local_parse_args(args):
 
 
 def _tcp_parse_args(args):
-    "Parses arguments for local TCP connections"
+    """Parses arguments for local TCP connections"""
     nworkers = args.nworkers or 4
     cmd = [
         sys.executable, sys.argv[0], "--comms", "client", "--server",
@@ -91,7 +92,7 @@ def _tcp_parse_args(args):
 
 
 def _ssh_parse_args(args):
-    "Parses arguments for SSH with reverse tunnel."
+    """Parses arguments for SSH with reverse tunnel."""
     nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
@@ -114,7 +115,7 @@ def _ssh_parse_args(args):
 
 
 def _client_parse_args(args):
-    "Parses arguments for a TCP client."
+    """Parses arguments for a TCP client."""
     nworkers = args.nworkers or 4
     ip, port, authkey = args.server
     libE_specs = {'ip': ip,

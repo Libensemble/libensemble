@@ -5,7 +5,7 @@ from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
 
 
 def _check_consistent_field(name, field0, field1):
-    "Checks that new field (field1) is compatible with an old field (field0)."
+    """Checks that new field (field1) is compatible with an old field (field0)."""
     assert field0.ndim == field1.ndim, \
         "H0 and H have different ndim for field {}".format(name)
     assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \

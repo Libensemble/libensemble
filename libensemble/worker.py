@@ -140,19 +140,19 @@ class Worker:
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
-        "Creates functions to run a sim or gen"
+        """Creates functions to run a sim or gen"""
 
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            "Calls the sim func."
+            """Calls the sim func."""
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                "Calls the gen func."
+                """Calls the gen func."""
                 return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
@@ -161,6 +161,7 @@ class Worker:
 
     @staticmethod
     def _set_rset_team(rset_team):
+        """Pass new rset_team to worker resources"""
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.worker_resources.set_rset_team(rset_team)
@@ -170,7 +171,7 @@ class Worker:
 
     @staticmethod
     def _set_executor(workerID, comm):
-        "Sets worker ID in the executor, return True if set"
+        """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
             exctr.set_worker_info(comm, workerID)  # When merge update
@@ -181,7 +182,7 @@ class Worker:
 
     @staticmethod
     def _set_resources(workerID, comm):
-        "Sets worker ID in the resources, return True if set"
+        """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.set_worker_resources(comm.get_num_workers(), workerID)
@@ -287,7 +288,7 @@ class Worker:
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
     def _recv_H_rows(self, Work):
-        "Unpacks Work request and receives any history rows"
+        """Unpacks Work request and receives any history rows"""
 
         libE_info = Work['libE_info']
         calc_type = Work['tag']
@@ -304,7 +305,7 @@ class Worker:
         return libE_info, calc_type, calc_in
 
     def _handle(self, Work):
-        "Handles a work request from the manager"
+        """Handles a work request from the manager"""
 
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
@@ -336,7 +337,7 @@ class Worker:
                 'calc_type': calc_type}
 
     def run(self):
-        "Runs the main worker loop."
+        """Runs the main worker loop."""
 
         try:
             logger.info("Worker {} initiated on node {}".

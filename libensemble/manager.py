@@ -126,7 +126,7 @@ def manager_main(hist, libE_specs, alloc_specs,
 
 
 def filter_nans(array):
-    "Filters out NaNs from a numpy array"
+    """Filters out NaNs from a numpy array"""
     return array[~np.isnan(array)]
 
 
@@ -234,7 +234,7 @@ class Manager:
     # --- Checkpointing logic
 
     def _save_every_k(self, fname, count, k):
-        "Saves history every kth step"
+        """Saves history every kth step"""
         count = k*(count//k)
         filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
@@ -243,13 +243,13 @@ class Manager:
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
-        "Saves history every kth sim step"
+        """Saves history every kth sim step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
                            self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
-        "Saves history every kth gen step"
+        """Saves history every kth gen step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_gen_{}.npy',
                            self.hist.index,
                            self.libE_specs['save_every_k_gens'])
@@ -352,7 +352,7 @@ class Manager:
 
     @staticmethod
     def _check_received_calc(D_recv):
-        "Checks the type and status fields on a receive calculation"
+        """Checks the type and status fields on a receive calculation"""
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
@@ -461,6 +461,7 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
+        """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
             kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
@@ -527,7 +528,7 @@ class Manager:
             return False
 
     def _get_alloc_libE_info(self):
-        "Selected statistics useful for alloc_f"
+        """Selected statistics useful for alloc_f"""
 
         return {'any_idle_workers': any(self.W['active'] == 0),
                 'exit_criteria': self.exit_criteria,
@@ -568,7 +569,7 @@ class Manager:
         return output
 
     def run(self, persis_info):
-        "Runs the manager"
+        """Runs the manager"""
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 

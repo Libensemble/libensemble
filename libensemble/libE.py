@@ -242,7 +242,7 @@ def libE(sim_specs, gen_specs, exit_criteria,
 def manager(wcomms, sim_specs, gen_specs, exit_criteria, persis_info,
             alloc_specs, libE_specs, hist,
             on_abort=None, on_cleanup=None):
-    "Generic manager routine run."
+    """Generic manager routine run."""
 
     logger.info('Logger initializing: [workerID] precedes each line. [0] = Manager')
     logger.info('libE version v{}'.format(__version__))
@@ -301,12 +301,12 @@ class DupComm:
 
 
 def comms_abort(mpi_comm):
-    "Abort all MPI ranks"
+    """Abort all MPI ranks"""
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
 def libE_mpi_defaults(libE_specs):
-    "Fill in default values for MPI-based communicators."
+    """Fill in default values for MPI-based communicators."""
 
     from mpi4py import MPI
 
@@ -318,7 +318,7 @@ def libE_mpi_defaults(libE_specs):
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
-    "MPI version of the libE main routine"
+    """MPI version of the libE main routine"""
 
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
 
@@ -358,7 +358,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria,
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
                      alloc_specs, libE_specs, H0):
-    "Manager routine runs on rank 0."
+    """Manager routine runs on rank 0."""
 
     from libensemble.comms.mpi import MainMPIComm
 
@@ -373,7 +373,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     # Set up abort handler
     def on_abort():
-        "Shut down MPI on error."
+        """Shut down MPI on error."""
         comms_abort(mpi_comm)
 
     # Run generic manager
@@ -383,7 +383,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
-    "Worker routines run on ranks > 0."
+    """Worker routines run on ranks > 0."""
 
     from libensemble.comms.mpi import MainMPIComm
     comm = MainMPIComm(libE_comm)
@@ -395,7 +395,7 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
-    "Launch a process worker team."
+    """Launch a process worker team."""
     wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, libE_specs, w, log_comm)
               for w in range(1, nworkers+1)]
     for wcomm in wcomms:
@@ -404,7 +404,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 
 
 def kill_proc_team(wcomms, timeout):
-    "Join on workers (and terminate forcefully if needed)."
+    """Join on workers (and terminate forcefully if needed)."""
     for wcomm in wcomms:
         try:
             wcomm.result(timeout=timeout)
@@ -414,7 +414,7 @@ def kill_proc_team(wcomms, timeout):
 
 def libE_local(sim_specs, gen_specs, exit_criteria,
                persis_info, alloc_specs, libE_specs, H0):
-    "Main routine for thread/process launch of libE."
+    """Main routine for thread/process launch of libE."""
 
     nworkers = libE_specs['nworkers']
 
@@ -451,7 +451,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
-        "Handler to clean up comms team."
+        """Handler to clean up comms team."""
         kill_proc_team(wcomms, timeout=libE_specs.get('worker_timeout', 1))
         if close_logs is not None:  # logger remains set between multiple libE calls
             close_logs()
@@ -466,7 +466,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
 
 def get_ip():
-    "Get the IP address of the current host"
+    """Get the IP address of the current host"""
     try:
         return socket.gethostbyname(socket.gethostname())
     except socket.gaierror:
@@ -474,19 +474,19 @@ def get_ip():
 
 
 def libE_tcp_authkey():
-    "Generate an authkey if not assigned by manager."
+    """Generate an authkey if not assigned by manager."""
     nonce = random.randrange(99999)
     return 'libE_auth_{}'.format(nonce)
 
 
 def libE_tcp_default_ID():
-    "Assign a (we hope unique) worker ID if not assigned by manager."
+    """Assign a (we hope unique) worker ID if not assigned by manager."""
     return "{}_pid{}".format(get_ip(), os.getpid())
 
 
 def libE_tcp(sim_specs, gen_specs, exit_criteria,
              persis_info, alloc_specs, libE_specs, H0):
-    "Main routine for TCP multiprocessing launch of libE."
+    """Main routine for TCP multiprocessing launch of libE."""
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -508,21 +508,21 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria,
 
 
 def libE_tcp_worker_launcher(libE_specs):
-    "Get a launch function from libE_specs."
+    """Get a launch function from libE_specs."""
     if 'worker_launcher' in libE_specs:
         worker_launcher = libE_specs['worker_launcher']
     else:
         worker_cmd = libE_specs['worker_cmd']
 
         def worker_launcher(specs):
-            "Basic worker launch function."
+            """Basic worker launch function."""
             return launcher.launch(worker_cmd, specs)
     return worker_launcher
 
 
 def libE_tcp_start_team(manager, nworkers, workers,
                         ip, port, authkey, launchf):
-    "Launch nworkers workers that attach back to a managers server."
+    """Launch nworkers workers that attach back to a managers server."""
     worker_procs = []
     specs = {'manager_ip': ip, 'manager_port': port, 'authkey': authkey}
     with Timer() as timer:
@@ -542,7 +542,7 @@ def libE_tcp_start_team(manager, nworkers, workers,
 
 def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                  persis_info, alloc_specs, libE_specs, H0):
-    "Main routine for TCP multiprocessing launch of libE at manager."
+    """Main routine for TCP multiprocessing launch of libE at manager."""
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -579,7 +579,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
                                 ip, port, authkey, launchf)
 
         def cleanup():
-            "Handler to clean up launched team."
+            """Handler to clean up launched team."""
             for wp in worker_procs:
                 launcher.cancel(wp, timeout=libE_specs.get('worker_timeout'))
 
@@ -590,7 +590,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
 
 
 def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
-    "Main routine for TCP worker launched by libE."
+    """Main routine for TCP worker launched by libE."""
 
     ip = libE_specs['ip']
     port = libE_specs['port']
@@ -607,6 +607,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 
 
 def _dump_on_abort(hist, persis_info, save_H=True):
+    """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error("Dumping ensemble history with {} sims evaluated:".
                  format(hist.returned_count))
