@@ -74,10 +74,9 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              }
 
 if PERSIS_GEN:
-    alloc_specs = {'alloc_f': alloc_f, 'out': []}
+    alloc_specs = {'alloc_f': alloc_f}
 else:
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('allocated', bool)],
                    'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
                             'num_active_gens': 1}  # Only one active generator at a time
                    }
