@@ -71,7 +71,6 @@ sim_specs = {'sim_f': run_openmm_sim_f,
 
 # Parameterize our persistent generator function
 gen_specs = {'gen_f': run_keras_cvae_ml_genf,
-             'in': [],
              'out': [('sim_id', int), ('stage_id', int), ('task_id', int),
                      ('initial', bool), ('gen_dir_loc', "<U70")],
              'user': {'initial_sample_size': MD_BATCH_SIZE,
