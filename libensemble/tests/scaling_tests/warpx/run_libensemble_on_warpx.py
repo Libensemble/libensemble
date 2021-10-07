@@ -67,7 +67,7 @@ sim_app = machine_specs['sim_app']
 # that LibEnsemble will vary in order to minimize a single output parameter.
 n = 4
 
-exctr = MPIExecutor(dedicated_mode=True)
+exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='warpx')
 
 # State the objective function, its arguments, output, and necessary parameters
@@ -199,6 +199,7 @@ else:
 libE_specs['save_every_k_sims'] = 100
 # Sim directory to be copied for each worker
 libE_specs['sim_input_dir'] = 'sim'
+libE_specs['dedicated_mode'] = True
 
 sim_max = machine_specs['sim_max']  # Maximum number of simulations
 exit_criteria = {'sim_max': sim_max}  # Exit after running sim_max simulations
