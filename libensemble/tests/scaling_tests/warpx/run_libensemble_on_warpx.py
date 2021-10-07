@@ -68,7 +68,7 @@ sim_app = machine_specs['sim_app']
 n = 4
 
 exctr = MPIExecutor(dedicated_mode=True)
-exctr.register_app(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, app_name='warpx')
 
 # State the objective function, its arguments, output, and necessary parameters
 # (and their sizes). Here, the 'user' field is for the user's (in this case,
@@ -142,9 +142,6 @@ if generator_type == 'random':
         # Allocator function, decides what a worker should do.
         # We use a LibEnsemble allocator.
         'alloc_f': alloc_f,
-        'out': [
-            ('allocated', bool)
-        ],
         'user': {
             # If true wait for all sims to process before generate more
             'batch_mode': True,
@@ -159,7 +156,7 @@ elif generator_type == 'aposmm':
     gen_specs = {
         # Generator function. Will randomly generate new sim inputs 'x'.
         'gen_f': gen_f,
-        'in': [],
+        'persis_in': ['f', 'x', 'x_on_cube', 'sim_id', 'local_min', 'local_pt'],
         'out': [
             # parameters to input into the simulation.
             ('x', float, (n,)),
@@ -192,12 +189,7 @@ elif generator_type == 'aposmm':
         }
     }
 
-    alloc_specs = {
-        # Allocator function, decides what a worker should do.
-        # We use a LibEnsemble allocator.
-        'alloc_f': alloc_f,
-        'out': [],
-        'user': {}}
+    alloc_specs = {'alloc_f': alloc_f}
 
 else:
     print("you shouldn' hit that")
