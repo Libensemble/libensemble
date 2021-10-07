@@ -36,23 +36,25 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float)],
-    'user': {
-        'uniform_random_pause_ub': 0.5}, }
+    'user': {'uniform_random_pause_ub': 0.5},
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'persis_in': ['f', 'x', 'sim_id'],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': nworkers,  # Ensure > 1 alloc to send all sims
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {
     'alloc_f': alloc_f,
     'out': [],
-    'user': {
-        'async_return': True}, }
+    'user': {'async_return': True},
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

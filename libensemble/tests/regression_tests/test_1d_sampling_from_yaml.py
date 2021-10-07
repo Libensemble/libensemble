@@ -20,9 +20,12 @@ from libensemble import Ensemble
 sampling = Ensemble()
 sampling.from_yaml('1d_sampling.yaml')
 
-sampling.gen_specs['user'].update({
-    'lb': np.array([-3]),
-    'ub': np.array([3]), })
+sampling.gen_specs['user'].update(
+    {
+        'lb': np.array([-3]),
+        'ub': np.array([3]),
+    }
+)
 
 sampling.persis_info.add_random_streams()
 

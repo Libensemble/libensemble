@@ -41,13 +41,14 @@ p = len(f0)
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x', 'f_ind'],
-    'out': [('f_val', float)], }
+    'out': [('f_val', float)],
+}
 
 # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
 gen_specs = {
     'gen_f': gen_f,
     'persis_in': ['x', 'f_val', 'n_ind', 'f_ind', 'x_ind', 'sim_id'],
-    'out': [('x', float, (n, )), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
+    'out': [('x', float, (n,)), ('n_ind', int), ('f_ind', int), ('x_ind', int)],
     'user': {
         'x0': x0,
         'f0': f0,
@@ -55,7 +56,9 @@ gen_specs = {
         'p': p,
         'n': n,
         'noise_h_mat': np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
-        'maxnoiseits': 3}}
+        'maxnoiseits': 3,
+    },
+}
 shutil.copy('./scripts_used_by_reg_tests/ECnoise.m', './')
 
 alloc_specs = {'alloc_f': alloc_f}

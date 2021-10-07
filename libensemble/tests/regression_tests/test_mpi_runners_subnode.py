@@ -56,7 +56,8 @@ nnodes = int(nsim_workers * nodes_per_worker)
 # Mock up system
 custom_resources = {
     'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file}  # Name of file containing a node-list
+    'node_file': node_file,  # Name of file containing a node-list
+}
 libE_specs['resource_info'] = custom_resources
 
 if is_manager:
@@ -73,47 +74,45 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': [],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'gen_batch_size': 20,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 # Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [
-    {
-        'testid': 'base1'},  # Give no config and no extra_args
-    {
-        'testid': 'base2',
-        'nprocs': 5},
-    {
-        'testid': 'base3',
-        'nnodes': 1},
-    {
-        'testid': 'base4',
-        'ppn': 6}, ]
+    {'testid': 'base1'},  # Give no config and no extra_args
+    {'testid': 'base2', 'nprocs': 5},
+    {'testid': 'base3', 'nnodes': 1},
+    {'testid': 'base4', 'ppn': 6},
+]
 
-exp_srun = \
-    ['srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1',
-     'srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base2',
-     'srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base3',
-     'srun -w node-1 --ntasks 6 --nodes 1 --ntasks-per-node 6 /path/to/fakeapp.x --testid base4',
-     ]
+exp_srun = [
+    'srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1',
+    'srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base2',
+    'srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base3',
+    'srun -w node-1 --ntasks 6 --nodes 1 --ntasks-per-node 6 /path/to/fakeapp.x --testid base4',
+]
 
 test_list = test_list_base
 exp_list = exp_srun
 sim_specs['user'] = {
     'tests': test_list,
     'expect': exp_list,
-    'nodes_per_worker': nodes_per_worker, }
+    'nodes_per_worker': nodes_per_worker,
+}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

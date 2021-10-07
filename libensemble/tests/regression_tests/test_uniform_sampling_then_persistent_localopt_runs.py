@@ -37,7 +37,8 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {
@@ -50,7 +51,9 @@ gen_specs = {
         'ub': np.array([3, 2]),
         'gen_batch_size': 2,
         'localopt_method': 'LD_MMA',
-        'xtol_rel': 1e-4}}
+        'xtol_rel': 1e-4,
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
@@ -66,7 +69,7 @@ if is_manager:
 
     tol = 0.1
     for m in minima:
-        assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
+        assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol
 
     print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
 

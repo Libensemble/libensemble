@@ -45,14 +45,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -68,7 +70,9 @@ gen_specs = {
         'dist_to_bound_multiple': 0.01,
         'max_active_runs': 6,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -95,8 +99,8 @@ for run in range(2):
         for m in minima:
             # The minima are known on this test problem.
             # We use their values to test APOSMM has identified all minima
-            print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-            if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol:
+            print(np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)), flush=True)
+            if np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)) < tol:
                 min_found += 1
         assert min_found >= 4, "Found {} minima".format(min_found)
 

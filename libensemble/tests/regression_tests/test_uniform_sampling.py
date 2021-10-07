@@ -36,13 +36,13 @@ sim_specs = {
 
 gen_specs = {
     'gen_f': uniform_random_sample,  # Function generating sim_f input
-    'out': [('x', float, (2, ))],  # Tell libE gen_f output, type, size
+    'out': [('x', float, (2,))],  # Tell libE gen_f output, type, size
     'user': {
         'gen_batch_size': 500,  # Used by this specific gen_f
         'lb': np.array([-3, -2]),  # Used by this specific gen_f
-        'ub':
-            np.array([3, 2])  # Used by this specific gen_f
-    }}
+        'ub': np.array([3, 2]),  # Used by this specific gen_f
+    },
+}
 # end_gen_specs_rst_tag
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -57,7 +57,7 @@ if is_manager:
 
     tol = 0.1
     for m in minima:
-        assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
+        assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol
 
     print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
     save_libE_output(H, persis_info, __file__, nworkers)

@@ -37,15 +37,18 @@ libE_specs['abort_on_exception'] = False
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
-    'out': [('x', float, (1, ))],
+    'out': [('x', float, (1,))],
     'user': {
         'gen_batch_size': 20,
         'lb': np.array([-3]),
-        'ub': np.array([3]), }}
+        'ub': np.array([3]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

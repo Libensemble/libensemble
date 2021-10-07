@@ -21,6 +21,7 @@ def create_node_file(num_nodes, name='node_list'):
 def mpi_comm_excl(exc=[0], comm=None):
     "Exclude ranks from a communicator for MPI comms."
     from mpi4py import MPI
+
     parent_comm = comm or MPI.COMM_WORLD
     parent_group = parent_comm.Get_group()
     new_group = parent_group.Excl(exc)
@@ -31,6 +32,7 @@ def mpi_comm_excl(exc=[0], comm=None):
 def mpi_comm_split(num_parts, comm=None):
     "Split COMM_WORLD into sub-communicators for MPI comms."
     from mpi4py import MPI
+
     parent_comm = comm or MPI.COMM_WORLD
     parent_size = parent_comm.Get_size()
     key = parent_comm.Get_rank()
@@ -52,6 +54,7 @@ def build_simfunc():
 
 def build_borehole():
     import subprocess
+
     buildstring = 'gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm'
     subprocess.check_call(buildstring.split())
 
@@ -64,8 +67,10 @@ def modify_Balsam_worker():
     import balsam
 
     new_lines = [
-        "        for idx in range(10):\n", "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
-        "            self.workers.append(w)\n"]
+        "        for idx in range(10):\n",
+        "            w = Worker(1, host_type='DEFAULT', num_nodes=1)\n",
+        "            self.workers.append(w)\n",
+    ]
 
     workerfile = 'worker.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
@@ -93,8 +98,10 @@ def modify_Balsam_pyCoverage():
     rcfile = os.path.abspath('./libensemble/tests/regression_tests/.bal_coveragerc')
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
-    new_line = "            path = ' '.join((exe, '-m coverage run " + \
-               "--parallel-mode --rcfile={}', script_path, args))\n".format(rcfile)
+    new_line = (
+        "            path = ' '.join((exe, '-m coverage run "
+        + "--parallel-mode --rcfile={}', script_path, args))\n".format(rcfile)
+    )
 
     commandfile = 'cli_commands.py'
     balsam_path = os.path.dirname(balsam.__file__) + '/scripts'

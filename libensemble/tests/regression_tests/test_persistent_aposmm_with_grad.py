@@ -46,14 +46,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_in = ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min']
 
@@ -65,13 +67,15 @@ gen_specs = {
     'user': {
         'initial_sample_size': 0,  # Don't need to do evaluations because the sampling already done below
         'localopt_method': 'LD_MMA',
-        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5)**(1 / n)) / sqrt(pi),
+        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
         'stop_after_this_many_minima': 25,
         'xtol_rel': 1e-6,
         'ftol_rel': 1e-6,
         'max_active_runs': 6,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -82,9 +86,17 @@ exit_criteria = {'sim_max': 1000}
 # Load in "already completed" set of 'x','f','grad' values to give to libE/persistent_aposmm
 sample_size = len(minima)
 
-H0 = np.zeros(
-    sample_size, dtype=[('x', float, n), ('grad', float, n), ('sim_id', int), ('x_on_cube', float, n),
-                        ('returned', bool), ('f', float), ('given_back', bool), ('given', bool)])
+H0_dtype = [
+    ('x', float, n),
+    ('grad', float, n),
+    ('sim_id', int),
+    ('x_on_cube', float, n),
+    ('returned', bool),
+    ('f', float),
+    ('given_back', bool),
+    ('given', bool),
+]
+H0 = np.zeros(sample_size, dtype=H0_dtype)
 
 # Two points in the following sample have the same best function value, which
 # tests the corner case for some APOSMM logic
@@ -108,8 +120,8 @@ if is_manager:
     for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+        print(np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)), flush=True)
+        assert np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)) < tol
 
     assert len(H) < exit_criteria['sim_max'], "Test should have stopped early"
 
