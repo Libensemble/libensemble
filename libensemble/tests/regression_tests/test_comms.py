@@ -34,16 +34,19 @@ sim_max = nworkers * rounds
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('arr_vals', float, array_size), ('scal_val', float)], }
+    'out': [('arr_vals', float, array_size), ('scal_val', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': sim_max}}
+        'gen_batch_size': sim_max,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

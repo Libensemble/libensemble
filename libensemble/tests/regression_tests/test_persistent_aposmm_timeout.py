@@ -36,14 +36,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -58,7 +60,9 @@ gen_specs = {
         'lb': np.array([0, -np.pi / 2]),
         'ub': np.array([2 * np.pi, 3 * np.pi / 2]),
         'periodic': True,
-        'print': True}}
+        'print': True,
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 

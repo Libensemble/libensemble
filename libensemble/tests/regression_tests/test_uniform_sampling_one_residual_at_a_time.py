@@ -45,8 +45,8 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x', 'obj_component'],
     'out': [('f_i', float)],
-    'user': {
-        'component_nan_frequency': 0.01}}
+    'user': {'component_nan_frequency': 0.01},
+}
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {
@@ -59,7 +59,9 @@ gen_specs = {
         'combine_component_func': lambda x: np.sum(np.power(x, 2)),
         'lb': (-2 - np.pi / 10) * np.ones(n),
         'ub': 2 * np.ones(n),
-        'components': m}}
+        'components': m,
+    },
+}
 
 alloc_specs = {
     'alloc_f': give_sim_work_first,  # Allocation function
@@ -68,7 +70,8 @@ alloc_specs = {
         'stop_on_NaNs': True,  # Should alloc preempt evals
         'batch_mode': True,  # Wait until all sim evals are done
         'num_active_gens': 1,  # Only allow one active generator
-        'stop_partial_fvec_eval': True}  # Should alloc preempt evals
+        'stop_partial_fvec_eval': True,  # Should alloc preempt evals
+    },
 }
 # end_alloc_specs_rst_tag
 

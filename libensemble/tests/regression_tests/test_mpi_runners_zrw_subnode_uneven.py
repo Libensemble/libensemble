@@ -46,9 +46,12 @@ in_place = libE_specs['zero_resource_workers']
 n_gens = len(in_place)
 nsim_workers = nworkers - n_gens
 
-if (nsim_workers % 2 == 0):
-    sys.exit("This test must be run with an odd number of sim workers >= 3 and <= 31. There are {} sim workers.".format(
-        nsim_workers))
+if nsim_workers % 2 == 0:
+    sys.exit(
+        "This test must be run with an odd number of sim workers >= 3 and <= 31. There are {} sim workers.".format(
+            nsim_workers
+        )
+    )
 
 comms = libE_specs['comms']
 node_file = 'nodelist_mpi_runners_zrw_subnode_uneven_comms_' + str(comms) + '_wrks_' + str(nworkers)
@@ -57,7 +60,8 @@ nnodes = 2
 # Mock up system
 custom_resources = {
     'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file}  # Name of file containing a node-list
+    'node_file': node_file,
+}  # Name of file containing a node-list
 libE_specs['resource_info'] = custom_resources
 
 if is_manager:
@@ -74,24 +78,26 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': [],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': 20,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 test_list_base = [
-    {
-        'testid': 'base1'},  # Give no config and no extra_args
+    {'testid': 'base1'},  # Give no config and no extra_args
 ]
 
 # Example: On 5 workers, runlines should be ...
@@ -129,7 +135,8 @@ exp_list = exp_srun
 sim_specs['user'] = {
     'tests': test_list,
     'expect': exp_list,
-    'persis_gens': n_gens, }
+    'persis_gens': n_gens,
+}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

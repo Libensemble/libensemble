@@ -39,7 +39,7 @@ logger.set_filename(log_file)
 # For varying size test - relate node count to nworkers
 nsim_workers = nworkers
 
-if (nsim_workers % 2 == 0):
+if nsim_workers % 2 == 0:
     sys.exit("This test must be run with an odd of workers >= 3 and <= 31. There are {} workers.".format(nsim_workers))
 
 comms = libE_specs['comms']
@@ -55,11 +55,13 @@ if comms == 'mpi':
 # Mock up system
 mpi_customizer = {
     'mpi_runner': 'srun',  # Select runner: mpich, openmpi, aprun, srun, jsrun
-    'runner_name': 'srun'}  # Runner name: Replaces run command if not None
+    'runner_name': 'srun',
+}  # Runner name: Replaces run command if not None
 
 custom_resources = {
     'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file}  # Name of file containing a node-list
+    'node_file': node_file,
+}  # Name of file containing a node-list
 
 libE_specs['dedicated_mode'] = True
 libE_specs['enforce_worker_core_bounds'] = True
@@ -73,23 +75,25 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': [],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'gen_batch_size': 20,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 test_list_base = [
-    {
-        'testid': 'base1'},  # Give no config and no extra_args
+    {'testid': 'base1'},  # Give no config and no extra_args
 ]
 
 # Example: On 5 workers, runlines should be ...
@@ -126,7 +130,8 @@ exp_list = exp_srun
 sim_specs['user'] = {
     'tests': test_list,
     'expect': exp_list,
-    'offset_for_schedular': True, }
+    'offset_for_schedular': True,
+}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

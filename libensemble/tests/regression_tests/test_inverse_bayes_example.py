@@ -36,7 +36,8 @@ if nworkers < 2:
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('like', float)], }
+    'out': [('like', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -47,7 +48,9 @@ gen_specs = {
         'ub': np.array([3, 2]),
         'subbatch_size': 3,
         'num_subbatches': 2,
-        'num_batches': 10}}
+        'num_batches': 10,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -55,7 +58,8 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 val = gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches'] * gen_specs['user']['num_batches']
 exit_criteria = {
     'sim_max': val,
-    'elapsed_wallclock_time': 300, }
+    'elapsed_wallclock_time': 300,
+}
 
 alloc_specs = {'out': [], 'alloc_f': alloc_f}
 

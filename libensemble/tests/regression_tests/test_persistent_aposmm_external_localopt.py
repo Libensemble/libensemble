@@ -54,14 +54,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -73,7 +75,9 @@ gen_specs = {
         'localopt_method': 'external_localopt',
         'max_active_runs': 6,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 shutil.copy('./scripts_used_by_reg_tests/call_matlab_octave_script.m', './')
 shutil.copy('./scripts_used_by_reg_tests/wrapper_obj_fun.m', './')
 
@@ -101,7 +105,7 @@ if is_manager:
     for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+        print(np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)), flush=True)
+        assert np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)) < tol
 
     save_libE_output(H, persis_info, __file__, nworkers)

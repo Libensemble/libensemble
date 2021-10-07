@@ -27,7 +27,8 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float, 8)], }
+    'out': [('f', float, 8)],
+}
 
 gen_specs = {}
 

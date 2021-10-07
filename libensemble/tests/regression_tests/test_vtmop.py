@@ -31,6 +31,7 @@ from libensemble.utils.timer import Timer
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+
 # from libensemble.sim_funcs.mop_funcs import convex_mop as func
 from libensemble.sim_funcs.mop_funcs import dtlz2 as func
 from libensemble.gen_funcs.vtmop import vtmop_gen as gen_f
@@ -67,7 +68,8 @@ upper_bounds = upper * np.ones(num_dims)
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float, num_objs)], }
+    'out': [('f', float, num_objs)],
+}
 
 # Set up the generator
 gen_specs = {
@@ -103,13 +105,13 @@ gen_specs = {
         # to pad out the batch (if possible). This should be the exact
         # number of concurrent simulations used.
         'onb': nworkers,
-
         # Other optional arguments below:
-
         # Set the trust region radius as a fraction of ub[:]-lb[:].
         # This setting is problem dependent. A good starting place
         # would be between 0.1 and 0.2.
-        'trust_radf': 0.1}, }
+        'trust_radf': 0.1,
+    },
+}
 
 # Set up the allocator
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
@@ -133,8 +135,13 @@ for run in range(3):
         f = np.zeros((size, num_objs))
 
         # Initialize H0
-        H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
-                    ('given', bool)]
+        H0_dtype = [
+            ('x', float, num_dims),
+            ('f', float, num_objs),
+            ('sim_id', int),
+            ('returned', bool),
+            ('given', bool),
+        ]
         H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = X
         H0['sim_id'] = range(size)
@@ -174,8 +181,13 @@ for run in range(3):
 
         # Initialize H0 with values from H (from the run==1 case)
         size = sum(H['returned'])
-        H0_dtype = [('x', float, num_dims), ('f', float, num_objs), ('sim_id', int), ('returned', bool),
-                    ('given', bool)]
+        H0_dtype = [
+            ('x', float, num_dims),
+            ('f', float, num_objs),
+            ('sim_id', int),
+            ('returned', bool),
+            ('given', bool),
+        ]
         H0 = np.zeros(size, dtype=H0_dtype)
         H0['x'] = H['x'][:size]
         H0['sim_id'] = range(size)
@@ -191,8 +203,9 @@ for run in range(3):
     persis_info['total_gen_calls'] = 0
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs,
-                                libE_specs=libE_specs, H0=H0)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
+    )
 
     # The manager takes care of checkpointing/output
     if is_manager:

@@ -35,6 +35,7 @@ def tasmanian_init_global():
     #       there is a conflict between the OpenMP environment and Python threading
     #       thus Tasmanian has to be imported inside the `tasmanian_init` method
     import Tasmanian
+
     grid = Tasmanian.makeGlobalGrid(num_dimensions, 1, 6, "iptotal", "clenshaw-curtis")
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
@@ -42,6 +43,7 @@ def tasmanian_init_global():
 
 def tasmanian_init_localp():
     import Tasmanian
+
     grid = Tasmanian.makeLocalPolynomialGrid(num_dimensions, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
@@ -59,12 +61,14 @@ num_dimensions = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f_batched,
     'persis_in': ['x', 'f', 'sim_id'],
-    'out': [('x', float, num_dimensions)], }
+    'out': [('x', float, num_dimensions)],
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -88,7 +92,8 @@ for run in range(3):
     #   the final grid will also be stored in the file
     gen_specs['user'] = {
         'tasmanian_init': tasmanian_init_global if run < 2 else tasmanian_init_localp,
-        'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run)}
+        'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run),
+    }
 
     # setup the refinement criteria
     if run == 0:
@@ -103,7 +108,7 @@ for run in range(3):
 
     if run == 2:
         gen_specs['user']['refinement'] = 'setSurplusRefinement'
-        gen_specs['user']['fTolerance'] = 1.E-2
+        gen_specs['user']['fTolerance'] = 1.0e-2
         gen_specs['user']['sCriteria'] = 'classic'
         gen_specs['user']['iOutput'] = 0
 
@@ -124,8 +129,7 @@ if is_manager:
     #       see the earlier note in tasmanian_init_global()
     import Tasmanian
 
-    assert len(grid_files) == 3, \
-        "Failed to generate three Tasmanian grid files"
+    assert len(grid_files) == 3, "Failed to generate three Tasmanian grid files"
 
     for run in range(len(grid_files)):
         grid = Tasmanian.SparseGrid()

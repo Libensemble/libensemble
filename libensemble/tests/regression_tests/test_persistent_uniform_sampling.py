@@ -35,16 +35,19 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'persis_in': ['x', 'f', 'grad', 'sim_id'],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': 20,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 

@@ -31,7 +31,8 @@ def six_hump_camel_err(H, persis_info, sim_specs, _):
 sim_specs = {
     'sim_f': six_hump_camel_err,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -40,7 +41,9 @@ gen_specs = {
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': 10}}
+        'gen_batch_size': 10,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

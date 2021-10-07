@@ -35,6 +35,7 @@ def assertion(passed):
     """Raise assertion or MPI Abort"""
     if libE_specs['comms'] == 'mpi':
         from mpi4py import MPI
+
         if passed:
             print("\n\nMPI will be aborted as planned\n\n", flush=True)
             MPI.COMM_WORLD.Abort(0)  # Abort with success
@@ -54,7 +55,8 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
 
@@ -66,7 +68,9 @@ gen_specs = {
         'initial_sample_size': 100,
         'localopt_method': 'LN_BOBYQA',
         'lb': np.array([0, -np.pi / 2]),
-        'ub': np.array([2 * np.pi, 3 * np.pi / 2]), }}
+        'ub': np.array([2 * np.pi, 3 * np.pi / 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
