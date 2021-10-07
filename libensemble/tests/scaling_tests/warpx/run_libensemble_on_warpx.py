@@ -199,6 +199,7 @@ else:
 libE_specs['save_every_k_sims'] = 100
 # Sim directory to be copied for each worker
 libE_specs['sim_input_dir'] = 'sim'
+libE_specs['sim_dirs_make'] = True
 libE_specs['dedicated_mode'] = True
 
 sim_max = machine_specs['sim_max']  # Maximum number of simulations
