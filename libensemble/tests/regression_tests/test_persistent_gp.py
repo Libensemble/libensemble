@@ -29,7 +29,7 @@ from libensemble.gen_funcs.persistent_gp import persistent_gp_mf_gen_f
 
 import warnings
 
-# Dragonfly uses a depricated np.asscalar command.
+# Dragonfly uses a deprecated np.asscalar command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 nworkers, is_master, libE_specs, _ = parse_args()
