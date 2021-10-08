@@ -56,9 +56,13 @@ jobs:
             sudo apt-get install octave
             sudo apt-get install bc
 
-        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
+        - name: Install nlopt
+          if: matrix.python-version != '3.10'
           run: |
             conda install nlopt
+
+        - name: Install scipy, mpich, mpi4py, blas, psutil
+          run: |
             conda install scipy
             conda install mpich
             conda install mpi4py
