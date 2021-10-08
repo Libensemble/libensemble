@@ -8,7 +8,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, macos-latest]
-                python-version: [3.6, 3.7, 3.8, 3.9, 3.10]
+                python-version: [3.6, 3.7, 3.8, 3.9, '3.10']
                 comms-type: [m, l, t]
                 exclude:
                     - os: macos-latest
@@ -120,6 +120,11 @@ jobs:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Run tests, Python 3.10
+          if: ${{ matrix.python_version == '3.10' && matrix.os == 'ubuntu-latest' }}
+          run: |
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Merge coverage, run Coveralls
           env:
