@@ -1,16 +1,17 @@
-# """
-# Example of multi-fidelity optimization using a persistent GP
-# gen_func (calling dragonfly) and an algebraic sim_f (that doesn't change with the amount of resources give).
+"""
+Example of multi-fidelity optimization using a persistent GP gen_func (calling
+dragonfly) and an algebraic sim_f (that doesn't change with the amount of
+resources give).
 
-# Execute via one of the following commands (e.g. 5 workers):
-#    mpiexec -np 5 python3 test_persistent_gp.py
-#    python3 test_persistent_gp.py --nworkers 4 --comms local
-#    python3 test_persistent_gp.py --nworkers 4 --comms tcp
+Execute via one of the following commands (e.g. 5 workers):
+   mpiexec -np 5 python3 test_persistent_gp.py
+   python3 test_persistent_gp.py --nworkers 4 --comms local
+   python3 test_persistent_gp.py --nworkers 4 --comms tcp
 
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 3, as one of the three workers will be the
-# persistent generator.
-# """
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 3, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp

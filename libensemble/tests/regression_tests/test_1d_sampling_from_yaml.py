@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble with Latin hypercube sampling on a simple 1D problem using
-# the libEnsemble yaml interface
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_1d_sampling_from_yaml.py
-#    python3 test_1d_sampling_from_yaml.py --nworkers 3 --comms local
-#    python3 test_1d_sampling_from_yaml.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble with Latin hypercube sampling on a simple 1D problem using
+the libEnsemble yaml interface
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_1d_sampling_from_yaml.py
+   python3 test_1d_sampling_from_yaml.py --nworkers 3 --comms local
+   python3 test_1d_sampling_from_yaml.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

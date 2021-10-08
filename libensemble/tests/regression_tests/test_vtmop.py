@@ -1,22 +1,22 @@
-# """
-# Runs libEnsemble on a 3-objective problem using the VTMOP package.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_VTMOP.py
-#    python3 test_VTMOP.py --nworkers 3 --comms local
-#    python3 test_VTMOP.py --nworkers 3 --comms tcp
-#
-# This requires that VTMOP be installed. Contact thchang@vt.edu for a copy.
-# To build, use  : $ make genfuncs
-# To add to path : $ export PATH=$PATH:`pwd` (from src/build directory)
-#
-# The wrapper for VTMOP is in gen_funcs/vtmop.py
-# Running this test will generate 3 unformatted binary files mop.io, mop.dat,
-# and mop.chkpt in the working directory, for sharing data between VTMOP
-# and libE.
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble on a 3-objective problem using the VTMOP package.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_VTMOP.py
+   python3 test_VTMOP.py --nworkers 3 --comms local
+   python3 test_VTMOP.py --nworkers 3 --comms tcp
+
+This requires that VTMOP be installed. Contact thchang@vt.edu for a copy.
+To build, use  : $ make genfuncs
+To add to path : $ export PATH=$PATH:`pwd` (from src/build directory)
+
+The wrapper for VTMOP is in gen_funcs/vtmop.py
+Running this test will generate 3 unformatted binary files mop.io, mop.dat,
+and mop.chkpt in the working directory, for sharing data between VTMOP
+and libE.
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local

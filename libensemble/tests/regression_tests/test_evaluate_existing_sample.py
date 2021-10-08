@@ -1,14 +1,14 @@
-# """
-# Test libEnsemble's capability to use no gen_f and instead coordinates the
-# evaluation of an existing set of points.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_evaluate_existing_sample.py
-#    python3 test_evaluate_existing_sample.py --nworkers 3 --comms local
-#    python3 test_evaluate_existing_sample.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Test libEnsemble's capability to use no gen_f and instead coordinates the
+evaluation of an existing set of points.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_evaluate_existing_sample.py
+   python3 test_evaluate_existing_sample.py --nworkers 3 --comms local
+   python3 test_evaluate_existing_sample.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

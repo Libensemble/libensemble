@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble to test basic worker/manager communications
-# Scale up array_size and number of workers as required
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_comms.py
-#    python3 test_comms.py --nworkers 3 --comms local
-#    python3 test_comms.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be N-1.
-# """
+"""
+Runs libEnsemble to test basic worker/manager communications
+Scale up array_size and number of workers as required
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_comms.py
+   python3 test_comms.py --nworkers 3 --comms local
+   python3 test_comms.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be N-1.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

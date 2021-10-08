@@ -1,16 +1,16 @@
-# """
-# Runs libEnsemble on a generator function that first does uniform sampling,
-# then starts persistent local optimization runs.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
-#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
-#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble on a generator function that first does uniform sampling,
+then starts persistent local optimization runs.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
+   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
+   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

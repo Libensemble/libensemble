@@ -1,15 +1,15 @@
-# """
-# Tests the 'periodic' domain use case for APOSMM with both NLopt and SciPy
-# local optimization methods.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_periodic.py
-#    python3 test_persistent_aposmm_periodic.py --nworkers 3 --comms local
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Tests the 'periodic' domain use case for APOSMM with both NLopt and SciPy
+local optimization methods.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_periodic.py
+   python3 test_persistent_aposmm_periodic.py --nworkers 3 --comms local
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi

@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble with uniform random sampling and writes results into sim/gen dirs.
-# This tests per-calculation gen_dir capabilities
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_sim_dirs_with_gen_dirs.py
-#    python3 test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms local
-#    python3 test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble with uniform random sampling and writes results into sim/gen dirs.
+This tests per-calculation gen_dir capabilities
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_sim_dirs_with_gen_dirs.py
+   python3 test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms local
+   python3 test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
