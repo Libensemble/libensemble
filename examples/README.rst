@@ -1,6 +1,6 @@
 For a simple tutorial with a complete libEnsemble workflow, see the simple sine tutorial::
 
-    cd cd tutorials/simple_sine
+    cd tutorials/simple_sine
     python tutorial_calling.py
 
 Many example scripts are available from the repository at ``libensemble/tests/regression_tests/``.
