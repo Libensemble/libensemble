@@ -34,19 +34,19 @@ import numpy as np
 
 
 class Timeout(Exception):
-    "Communication timeout exception."
+    """Communication timeout exception."""
 
 
 class CommFinishedException(Exception):
-    "Read from terminated comm exception."
+    """Read from terminated comm exception."""
 
 
 class ManagerStop(Exception):
-    "Exception raised by default when manager sends a stop message."
+    """Exception raised by default when manager sends a stop message."""
 
 
 class RemoteException(Exception):
-    "Exception raised when we received a remote exception."
+    """Exception raised when we received a remote exception."""
 
     def __init__(self, msg, exc):
         super().__init__(msg)
@@ -54,14 +54,14 @@ class RemoteException(Exception):
 
 
 class CommResult:
-    "Container for a result returned on exit."
+    """Container for a result returned on exit."""
 
     def __init__(self, value):
         self.value = value
 
 
 class CommResultErr:
-    "Container for an exception returned on exit."
+    """Container for an exception returned on exit."""
 
     def __init__(self, msg, exc):
         self.msg = msg
@@ -69,7 +69,7 @@ class CommResultErr:
 
 
 def _timeout_fun(timeout):
-    "Return a function that gets timeouts for time remaining."
+    """Return a function that gets timeouts for time remaining."""
     if timeout is None:
         return (lambda: None)
     else:
@@ -83,18 +83,18 @@ class Comm(ABC):
 
     @abstractmethod
     def send(self, *args):
-        "Send a message."
+        """Send a message."""
 
     @abstractmethod
     def recv(self, timeout=None):
-        "Receive a message or raise TimeoutError."
+        """Receive a message or raise TimeoutError."""
 
     def mail_flag(self):
-        "Check whether we know a message is ready for receipt."
+        """Check whether we know a message is ready for receipt."""
         return False
 
     def kill_pending(self):
-        "Cancel any pending sends (don't worry about those in the system)."
+        """Cancel any pending sends (don't worry about those in the system)."""
 
 
 class QComm(Comm):
@@ -110,7 +110,7 @@ class QComm(Comm):
     _ncomms = Value('i', 0)
 
     def __init__(self, inbox, outbox, copy_msg=False):
-        "Set the inbox and outbox queues."
+        """Set the inbox and outbox queues."""
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
@@ -121,13 +121,13 @@ class QComm(Comm):
         return QComm._ncomms.value
 
     def send(self, *args):
-        "Place a message on the outbox queue."
+        """Place a message on the outbox queue."""
         if self._copy:
             args = copy.deepcopy(args)
         self._outbox.put(args)
 
     def recv(self, timeout=None):
-        "Return a message from the inbox queue or raise TimeoutError."
+        """Return a message from the inbox queue or raise TimeoutError."""
         pb_result = self.recv_buffer
         self.recv_buffer = None
         if pb_result is not None:
@@ -144,7 +144,7 @@ class QComm(Comm):
         self.recv_buffer = args
 
     def mail_flag(self):
-        "Check whether we know a message is ready for receipt."
+        """Check whether we know a message is ready for receipt."""
         return not self._inbox.empty()
 
 
@@ -163,11 +163,11 @@ class QCommThread(Comm):
                              args=args, kwargs=kwargs)
 
     def send(self, *args):
-        "Send a message to the thread (called from creator)"
+        """Send a message to the thread (called from creator)"""
         self.inbox.put(copy.deepcopy(args))
 
     def recv(self, timeout=None):
-        "Return a message from the thread or raise TimeoutError."
+        """Return a message from the thread or raise TimeoutError."""
         try:
             if not self.outbox.empty():
                 return self.outbox.get()
@@ -176,15 +176,15 @@ class QCommThread(Comm):
             raise Timeout()
 
     def mail_flag(self):
-        "Check whether we know a message is ready for receipt."
+        """Check whether we know a message is ready for receipt."""
         return not self.outbox.empty()
 
     def run(self):
-        "Start the thread."
+        """Start the thread."""
         self.thread.start()
 
     def result(self):
-        "Join and return the thread main result (or re-raise an exception)."
+        """Join and return the thread main result (or re-raise an exception)."""
         self.thread.join()
         if isinstance(self._exception, Exception):
             raise self._exception
@@ -192,11 +192,11 @@ class QCommThread(Comm):
 
     @property
     def running(self):
-        "Check if the thread is running."
+        """Check if the thread is running."""
         return self.thread.is_alive()
 
     def _qcomm_main(self, *args, **kwargs):
-        "Main routine -- handles return values and exceptions."
+        """Main routine -- handles return values and exceptions."""
         try:
             self._result = self.main(*args, **kwargs)
         except Exception as e:
@@ -227,7 +227,7 @@ class QCommProcess(Comm):
                                args=(comm, main) + args, kwargs=kwargs)
 
     def _is_result_msg(self, msg):
-        "Return true if message indicates final result (and set result/except)."
+        """Return true if message indicates final result (and set result/except)."""
         if len(msg) and isinstance(msg[0], CommResult):
             self._result = msg[0].value
             self._done = True
@@ -239,11 +239,11 @@ class QCommProcess(Comm):
         return False
 
     def send(self, *args):
-        "Send a message to the thread (called from creator)"
+        """Send a message to the thread (called from creator)"""
         self.inbox.put(args)
 
     def recv(self, timeout=None):
-        "Return a message from the thread or raise TimeoutError."
+        """Return a message from the thread or raise TimeoutError."""
         try:
             if self._done:
                 raise CommFinishedException()
@@ -258,15 +258,15 @@ class QCommProcess(Comm):
             raise Timeout()
 
     def mail_flag(self):
-        "Check whether we know a message is ready for receipt."
+        """Check whether we know a message is ready for receipt."""
         return not self.outbox.empty()
 
     def run(self):
-        "Start the process."
+        """Start the process."""
         self.process.start()
 
     def result(self, timeout=None):
-        "Join and return the thread main result (or re-raise an exception)."
+        """Join and return the thread main result (or re-raise an exception)."""
         get_timeout = _timeout_fun(timeout)
         while not self._done and (timeout is None or timeout >= 0):
             try:
@@ -287,7 +287,7 @@ class QCommProcess(Comm):
         return self._result
 
     def terminate(self, timeout=None):
-        "Terminate the process."
+        """Terminate the process."""
         if self.running:
             self.process.terminate()
         self.process.join(timeout=timeout)
@@ -298,12 +298,12 @@ class QCommProcess(Comm):
 
     @property
     def running(self):
-        "Return true if process is running"
+        """Return true if process is running"""
         return self.process.is_alive()
 
     @staticmethod
     def _qcomm_main(comm, main, *args, **kwargs):
-        "Main routine -- handles return values and exceptions."
+        """Main routine -- handles return values and exceptions."""
         try:
             _result = main(comm, *args, **kwargs)
             comm.send(CommResult(_result))
@@ -329,15 +329,15 @@ class CommHandler(ABC):
     """
 
     def __init__(self, comm):
-        "Set the comm to be wrapped."
+        """Set the comm to be wrapped."""
         self.comm = comm
 
     def send(self, *args):
-        "Send via the comm."
+        """Send via the comm."""
         self.comm.send(*args)
 
     def process_message(self, timeout=None):
-        "Receive and process a message via the comm."
+        """Receive and process a message via the comm."""
         msg = self.comm.recv(timeout)
         msg_type = msg[0]
         args = msg[1:]
@@ -349,81 +349,81 @@ class CommHandler(ABC):
         return handler(*args)
 
     def on_unhandled_message(self, msg):
-        "Handle any messages for which there are no named handlers."
+        """Handle any messages for which there are no named handlers."""
         raise ValueError("No handler available for message {0}{1}".
                          format(msg[0], msg[1:]))
 
 
 class GenCommHandler(CommHandler):
-    "Wrapper for handling messages at a persistent gen."
+    """Wrapper for handling messages at a persistent gen."""
 
     def send_request(self, recs):
-        "Request new evaluations."
+        """Request new evaluations."""
         self.send('request', recs)
 
     def send_kill(self, sim_id):
-        "Kill an evaluation."
+        """Kill an evaluation."""
         self.send('kill', sim_id)
 
     def send_get_history(self, lo, hi):
-        "Request history from manager."
+        """Request history from manager."""
         self.send('get_history', lo, hi)
 
     def send_subscribe(self):
-        "Request subscription to updates on sims not launched by this gen."
+        """Request subscription to updates on sims not launched by this gen."""
         self.send('subscribe')
 
     def on_stop(self):
-        "Handle stop message."
+        """Handle stop message."""
         raise ManagerStop()
 
     @abstractmethod
     def on_worker_avail(self, nworker):
-        "Handle updated number of workers available to perform sims."
+        """Handle updated number of workers available to perform sims."""
 
     @abstractmethod
     def on_queued(self, sim_id):
-        "Handle sim_id assignment in response to a request"
+        """Handle sim_id assignment in response to a request"""
 
     @abstractmethod
     def on_result(self, sim_id, recs):
-        "Handle simulation results"
+        """Handle simulation results"""
 
     @abstractmethod
     def on_update(self, sim_id, recs):
-        "Handle simulation updates"
+        """Handle simulation updates"""
 
     @abstractmethod
     def on_killed(self, sim_id):
-        "Handle a simulation kill"
+        """Handle a simulation kill"""
 
 
 class SimCommHandler(CommHandler):
-    "Wrapper for handling messages at sim."
+    """Wrapper for handling messages at sim."""
 
     def send_result(self, sim_id, recs):
-        "Send a simulation result"
+        """Send a simulation result"""
         self.send('result', sim_id, recs)
 
     def send_update(self, sim_id, recs):
-        "Send a simulation update"
+        """Send a simulation update"""
         self.send('update', sim_id, recs)
 
     def send_killed(self, sim_id):
-        "Send notification that a simulation was killed"
+        """Send notification that a simulation was killed"""
         self.send('killed', sim_id)
 
     def on_stop(self):
-        "Handle stop message."
+        """Handle stop message."""
         raise ManagerStop()
 
     @abstractmethod
     def on_request(self, sim_id, recs):
-        "Handle a request for a simulation"
+        """Handle a request for a simulation"""
 
     @abstractmethod
     def on_kill(self, sim_id):
-        "Handle a request to kill a simulation"
+        """Handle a request to kill a simulation"""
 
 
 class CommEval(GenCommHandler):
@@ -441,7 +441,7 @@ class CommEval(GenCommHandler):
         self.waiting_for_queued = 0
 
     def request(self, recs):
-        "Request simulations, return promises"
+        """Request simulations, return promises"""
         self.sim_started += len(recs)
         self.sim_pending += len(recs)
         self.send_request(recs)
@@ -453,7 +453,7 @@ class CommEval(GenCommHandler):
         return returning_promises
 
     def __call__(self, *args, **kwargs):
-        "Request a simulation and return a promise"
+        """Request a simulation and return a promise"""
         assert not (args and kwargs), \
             "Must specify simulation args by position or keyword, but not both"
         assert args or kwargs, \
@@ -471,25 +471,25 @@ class CommEval(GenCommHandler):
         return self.request(rec)[0]
 
     def wait_any(self):
-        "Wait for any pending simulation to be done"
+        """Wait for any pending simulation to be done"""
         sim_pending = self.sim_pending
         while sim_pending == self.sim_pending:
             self.process_message()
 
     def wait_all(self):
-        "Wait for all pending simulations to be done"
+        """Wait for all pending simulations to be done"""
         while self.sim_pending > 0:
             self.process_message()
 
     # --- Message handlers
 
     def on_worker_avail(self, nworker):
-        "Update worker count"
+        """Update worker count"""
         self.workers = nworker
         return -1
 
     def on_queued(self, sim_id):
-        "Set up futures with indicated simulation IDs"
+        """Set up futures with indicated simulation IDs"""
         lo = sim_id
         hi = sim_id + self.waiting_for_queued
         self.waiting_for_queued = 0
@@ -501,20 +501,20 @@ class CommEval(GenCommHandler):
         return -1
 
     def on_result(self, sim_id, recs):
-        "Handle completed simulation"
+        """Handle completed simulation"""
         for k, rec in enumerate(recs):
             self.sim_pending -= 1
             self.promises[sim_id+k].on_result(rec)
         return sim_id
 
     def on_update(self, sim_id, recs):
-        "Handle updated simulation"
+        """Handle updated simulation"""
         for k, rec in enumerate(recs):
             self.promises[sim_id+k].on_update(rec)
         return sim_id
 
     def on_killed(self, sim_id):
-        "Handle killed simulation"
+        """Handle killed simulation"""
         self.sim_pending -= 1
         self.promises[sim_id].on_killed()
         return sim_id
@@ -537,23 +537,23 @@ class Future:
 
     @property
     def current_result(self):
-        "Return the current (possibly incomplete) result immediately."
+        """Return the current (possibly incomplete) result immediately."""
         return self._result
 
     def cancelled(self):
-        "Return True if the simulation was killed."
+        """Return True if the simulation was killed."""
         return self._killed
 
     def done(self):
-        "Return True if the simulation completed successfully or was killed."
+        """Return True if the simulation completed successfully or was killed."""
         return self._success or self._killed
 
     def cancel(self):
-        "Cancel the simulation."
+        """Cancel the simulation."""
         self._ceval.send_kill(self._id)
 
     def result(self, timeout=None):
-        "Get the result of the simulation or throw a timeout."
+        """Get the result of the simulation or throw a timeout."""
         while not self.done():
             if timeout is not None and timeout < 0:
                 raise Timeout()
@@ -569,14 +569,14 @@ class Future:
     # --- Message handlers
 
     def on_result(self, result):
-        "Handle an incoming result."
+        """Handle an incoming result."""
         self._result = result
         self._success = True
 
     def on_update(self, result):
-        "Handle an incoming update."
+        """Handle an incoming update."""
         self._result = result
 
     def on_killed(self):
-        "Handle a kill notification."
+        """Handle a kill notification."""
         self._killed = True

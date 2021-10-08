@@ -50,13 +50,13 @@ class CommLogHandler(logging.Handler):
     """
 
     def __init__(self, comm, pack=None, level=logging.NOTSET):
-        "Initialize the handler instance, setting the level and the comm."
+        """Initialize the handler instance, setting the level and the comm."""
         super().__init__(level)
         self.comm = comm
         self.pack = pack
 
     def emit(self, record):
-        "Actually log the record."
+        """Actually log the record."""
         if self.pack is not None:
             self.comm.send(*self.pack(record))
         else:
@@ -72,7 +72,7 @@ class WorkerIDFilter(logging.Filter):
         self.worker_id = worker_id
 
     def filter(self, record):
-        "Add worker ID to a LogRecord"
+        """Add worker ID to a LogRecord"""
         record.worker = getattr(record, 'worker', self.worker_id)
         return True
 
