@@ -66,6 +66,6 @@ H, persis_info, flag = libE(
 )
 
 if is_manager:
-    test = np.any(H["cancel_requested"]) and np.any( H["kill_sent"])
+    test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])
     assert test, "This test should have requested a cancellation and had a kill sent"
     save_libE_output(H, persis_info, __file__, nworkers)
