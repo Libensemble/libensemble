@@ -1,4 +1,4 @@
-For a simple tutorial with a complete libEnsemble workflow, see the simple sin tutorial::
+For a simple tutorial with a complete libEnsemble workflow, see the simple sine tutorial::
 
     cd cd tutorials/simple_sine
     python tutorial_calling.py
