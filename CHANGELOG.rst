@@ -8,6 +8,56 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.8.0
+-------------
+
+:Date: Oct 8, 2021
+
+Featured new capabilities:
+
+* Variable resource workers (dynamic reassignment of resources to workers). #643
+* Alternative libE interface. An Ensemble object is created and can be parameterized by a YAML file.  #645
+* Improved support classes/functions for alloc/gen/sims and executors.
+* Many new example generator/simulators and workflows.
+
+Breaking API / helper function changes:
+
+See "Updating for libEnsemble v0.8.0" wiki for details:
+https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0
+
+* Resources management has been made independent of the executor.  #345
+* A ``'persis_in'`` field has been added to gen_specs/sim_specs (instead of hard-coding in alloc funcs). #626 / #670
+* Minor name changes to variables. #529 / #659
+* ``alloc support`` module is now a class. #643 / #656
+* ``gen_support`` modules is replaced by Persistent Worker support module (now a class). #609 / #671
+* Remove 'libE_' prefix from the logger. #608
+* ``avail_worker_ids`` function should specifiy ``EVAL_GEN_TAG`` or ``EVAL_SIM_TAG`` instead of ``True``. #615 #643
+* Pass ``libE_info`` to allocation functions (allows more flexibility for user and efficiency improvements). #672
+* ``'given_back'`` is now a protected libEnsemble field in the manager's history array. #651
+
+Updates to example functions:
+
+* Suite of distributed optimization libraries for solving sum of convex functions. #647 / #649
+ * These include:
+ * primal-dual sliding (https://arxiv.org/pdf/2101.00143).
+ * N-agent, or distributed gradient descent w/ gradient tracking (https://arxiv.org/abs/1908.11444).
+ * proximal sliding (https://arxiv.org/abs/1406.0919).
+
+* Added batched construction for Tasmanian example. #644
+* Added Tasmanian dependency to Spack package. spack/spack#25762
+* Added VTMOP example. #676
+* Added a multi-fidelity persistent_gp regression test. #683 / #684
+* Added a DeepDriveMD inspired workflow. #630
+* Created a persistent sim example. #614 / #615
+* Added an example of cancellations in alloc func. #677
+
+Other functionality changes:
+
+* A helper function for generic task polling loop is added. #572 / #612
+* Break main loop happens when sim_max is returned rather than given out. #624
+* Enable a final communication with gen. #620 / #628
+* Logging updates - includes timestamps, enhanced debug logging and libEnsemble version. #629 / #674
+
 Release 0.7.2
 -------------
 
