@@ -8,9 +8,9 @@ class PersistentSupport:
 
     def __init__(self, libE_info, calc_type):
         """Instantiate a new PersistentSupport instance
-
         :param libE_info: A dictionary containing information about this work request
         :param calc_type: Named integer giving calculation type - EVAL_GEN_TAG or EVAL_SIM_TAG
+
         """
         self.libE_info = libE_info
         self.comm = self.libE_info['comm']
@@ -21,10 +21,11 @@ class PersistentSupport:
 
     def send(self, output, calc_status=UNSET_TAG):
         """Send message from worker to manager.
-
         :param output: Output array to be sent to manager
-        :param calc_status::Optional, Provides a task status
+        :param calc_status: Optional, Provides a task status
+
         :returns: None
+
         """
         if 'comm' in self.libE_info:
             # Need to make copy before remove comm as original could be reused
@@ -43,8 +44,8 @@ class PersistentSupport:
 
     def recv(self):
         """Receive message to worker from manager.
-
         :returns: message tag, Work dictionary, calc_in array
+
         """
         tag, Work = self.comm.recv()  # Receive meta-data or signal
         if tag in [STOP_TAG, PERSIS_STOP]:
@@ -74,10 +75,11 @@ class PersistentSupport:
 
     def send_recv(self, output, calc_status=UNSET_TAG):
         """Send message from worker to manager and receive response.
-
         :param output: Output array to be sent to manager
         :param calc_status::Optional, Provides a task status
+
         :returns: message tag, Work dictionary, calc_in array
+
         """
         self.send(output, calc_status)
         return self.recv()
