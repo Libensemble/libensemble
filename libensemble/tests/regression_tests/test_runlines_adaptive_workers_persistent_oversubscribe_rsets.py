@@ -1,15 +1,15 @@
-# """
-# Runs libEnsemble run-lines for adaptive workers with persistent gen.
-#
-# Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
-# where one worker is a zero-resource persistent gen.
-#
-# Execute via one of the following commands (e.g. 5 workers):
-#    mpiexec -np 6 python3 test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
-#
-# This is a dry run test, mocking up the nodes available. To test the run-lines
-# requires running a fixed, rather than random number of resource sets for a given sim_id.
-# """
+"""
+Runs libEnsemble run-lines for adaptive workers with persistent gen.
+
+Default setup is designed to run on 2*N + 1 workers - to modify, change total_nodes.
+where one worker is a zero-resource persistent gen.
+
+Execute via one of the following commands (e.g. 5 workers):
+   mpiexec -np 6 python3 test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
+
+This is a dry run test, mocking up the nodes available. To test the run-lines
+requires running a fixed, rather than random number of resource sets for a given sim_id.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local

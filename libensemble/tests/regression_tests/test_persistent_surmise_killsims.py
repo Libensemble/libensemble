@@ -1,25 +1,25 @@
-# """
-# Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_surmise_killsims.py
-#    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms local
-#    python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-#
-# This test is a smaller variant of test_persistent_surmise_calib.py, but which
-# subprocesses a compiled version of the borehole simulation. A delay is
-# added to simulations after the initial batch, so that the killing of running
-# simulations can be tested. This will only affect simulations that have already
-# been issued to a worker when the cancel request is registesred by the manager.
-#
-# See more information, see tutorial:
-# "Borehole Calibration with Selective Simulation Cancellation"
-# in the libEnsemble documentation.
-# """
+"""
+Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_surmise_killsims.py
+   python3 test_persistent_surmise_killsims.py --nworkers 3 --comms local
+   python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+
+This test is a smaller variant of test_persistent_surmise_calib.py, but which
+subprocesses a compiled version of the borehole simulation. A delay is
+added to simulations after the initial batch, so that the killing of running
+simulations can be tested. This will only affect simulations that have already
+been issued to a worker when the cancel request is registesred by the manager.
+
+See more information, see tutorial:
+"Borehole Calibration with Selective Simulation Cancellation"
+in the libEnsemble documentation.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

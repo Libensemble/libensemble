@@ -1,20 +1,20 @@
-# """
-# Test the use for APOSMM with an external local optimization method.
-# Points are passed to/from the localopt method using files with run-specific
-# hashes. These hashes are currently generated using uuid, which may not be
-# thread safe on some systems (e.g., Travis-CI). This was resolved by not using
-# 'local' communication; we therefore recommend using 'mpi' communication when
-# using persistent_aposmm with an external localopt # method.
-#
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_external_localopt.py
-#
-# When running with the above command, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-#
-# """
+"""
+Test the use for APOSMM with an external local optimization method.
+Points are passed to/from the localopt method using files with run-specific
+hashes. These hashes are currently generated using uuid, which may not be
+thread safe on some systems (e.g., Travis-CI). This was resolved by not using
+'local' communication; we therefore recommend using 'mpi' communication when
+using persistent_aposmm with an external localopt # method.
+
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_external_localopt.py
+
+When running with the above command, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp

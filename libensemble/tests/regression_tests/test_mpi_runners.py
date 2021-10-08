@@ -1,13 +1,13 @@
-# """
-# Runs libEnsemble testing the MPI Runners command creation.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_mpi_runners.py
-#    python3 test_mpi_runners.py --nworkers 3 --comms local
-#    python3 test_mpi_runners.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble testing the MPI Runners command creation.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_mpi_runners.py
+   python3 test_mpi_runners.py --nworkers 3 --comms local
+   python3 test_mpi_runners.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 import numpy as np
 from libensemble.libE import libE

@@ -1,25 +1,25 @@
-# """
-# Runs libEnsemble with Surmise calibration test.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_surmise_calib.py
-#    python3 test_persistent_surmise_calib.py --nworkers 3 --comms local
-#    python3 test_persistent_surmise_calib.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-#
-# This test uses the Surmise package to perform a Borehole Calibration with
-# selective simulation cancellation. Initial observations are modeled using
-# a theta at the center of a unit hypercube. The initial function values for
-# these are run first. As the model is updated, the generator selects previously
-# issued evaluations to cancel.
-#
-# See more information, see tutorial:
-# "Borehole Calibration with Selective Simulation Cancellation"
-# in the libEnsemble documentation.
-# """
+"""
+Runs libEnsemble with Surmise calibration test.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_surmise_calib.py
+   python3 test_persistent_surmise_calib.py --nworkers 3 --comms local
+   python3 test_persistent_surmise_calib.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+
+This test uses the Surmise package to perform a Borehole Calibration with
+selective simulation cancellation. Initial observations are modeled using
+a theta at the center of a unit hypercube. The initial function values for
+these are run first. As the model is updated, the generator selects previously
+issued evaluations to cancel.
+
+See more information, see tutorial:
+"Borehole Calibration with Selective Simulation Cancellation"
+in the libEnsemble documentation.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

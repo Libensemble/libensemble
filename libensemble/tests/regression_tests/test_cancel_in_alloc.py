@@ -1,17 +1,17 @@
-# """
-# Runs libEnsemble in order to test the ability of an allocation function to
-# cancel long-running simulations. In this case, the simulation has a run-time
-# in seconds that is drawn uniformly from [0,10] and any time the allocation
-# function is called and a sim_id has been evaluated for more than 5 seconds,
-# it is cancelled.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_cancel_in_alloc.py
-#    python3 test_cancel_in_alloc.py --nworkers 3 --comms local
-#    python3 test_cancel_in_alloc.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble in order to test the ability of an allocation function to
+cancel long-running simulations. In this case, the simulation has a run-time
+in seconds that is drawn uniformly from [0,10] and any time the allocation
+function is called and a sim_id has been evaluated for more than 5 seconds,
+it is cancelled.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_cancel_in_alloc.py
+   python3 test_cancel_in_alloc.py --nworkers 3 --comms local
+   python3 test_cancel_in_alloc.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -66,7 +66,6 @@ H, persis_info, flag = libE(
 )
 
 if is_manager:
-    assert np.any(H["cancel_requested"]) and np.any(
-        H["kill_sent"]
-    ), "This test should have requested a cancellation and had a kill sent"
+    test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])
+    assert test, "This test should have requested a cancellation and had a kill sent"
     save_libE_output(H, persis_info, __file__, nworkers)
