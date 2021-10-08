@@ -7,7 +7,9 @@ class PersistentSupport:
     """A helper class to assist with writing allocation functions."""
 
     def __init__(self, libE_info, calc_type):
-        """Instantiate a new PersistentSupport instance
+        """
+        Instantiate a new PersistentSupport instance
+
         :param libE_info: A dictionary containing information about this work request
         :param calc_type: Named integer giving calculation type - EVAL_GEN_TAG or EVAL_SIM_TAG
 
@@ -20,7 +22,9 @@ class PersistentSupport:
         self.calc_str = calc_type_strings[self.calc_type]
 
     def send(self, output, calc_status=UNSET_TAG):
-        """Send message from worker to manager.
+        """
+        Send message from worker to manager.
+
         :param output: Output array to be sent to manager
         :param calc_status: Optional, Provides a task status
 
@@ -43,7 +47,9 @@ class PersistentSupport:
         self.comm.send(self.calc_type, D)
 
     def recv(self):
-        """Receive message to worker from manager.
+        """
+        Receive message to worker from manager.
+
         :returns: message tag, Work dictionary, calc_in array
 
         """
@@ -74,9 +80,11 @@ class PersistentSupport:
         return tag, Work, calc_in
 
     def send_recv(self, output, calc_status=UNSET_TAG):
-        """Send message from worker to manager and receive response.
+        """
+        Send message from worker to manager and receive response.
+
         :param output: Output array to be sent to manager
-        :param calc_status::Optional, Provides a task status
+        :param calc_status: Optional, Provides a task status
 
         :returns: message tag, Work dictionary, calc_in array
 
