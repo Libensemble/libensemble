@@ -13,7 +13,6 @@ Detected resources can be overridden using the libE_specs option :ref:`resource_
 Resource management can be disabled by setting ``libE_specs['disable_resource_manager'] = True`` This will prevent libEnsemble
 from doing any resource detection or management.
 
-
 Variable resource assignment
 ----------------------------
 
@@ -26,7 +25,6 @@ The resource manager will not split a resource set over nodes, rather the resour
 For example, lets say a given system has four GPUs per node, and the user has run libEnsemble on two nodes, with eight workers. The default division of resources would be:
 
 .. image:: ../images/variable_resources1.png
-
 
 Variable Size simulations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -87,9 +85,7 @@ while worker five would set::
 
     export CUDA_VISIBLE_DEVICES=2,3
 
-
 .. note:: If the user sets the number of resource sets directly using the ``num_resource_sets`` libE_specs option, then the dynamic resource assignment algorithm will always be used. If `resource_sets` is not a field in H, then each worker will use one resource set.
-
 
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,7 +93,6 @@ Varying generator resources
 For all supporting allocation functions, setting the ``persis_info['gen_resources']`` to an integer value will provide resource sets to generators when they are started, with the default to provide no resources. This could be set in the calling script or inside the allocation function.
 
 Note that persistent workers maintain their resources until coming out of persistent state.
-
 
 Example scenarios
 -----------------
@@ -123,7 +118,6 @@ Using the two node example above, initial worker mapping in this example will be
 
 .. image:: ../images/variable_resources_persis_gen1.png
 
-
 Using large resource sets
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -138,7 +132,6 @@ To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier`` argum
 
     resources = Resources.resources.worker_resources
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
-
 
 Setting more resource sets than workers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -163,10 +156,8 @@ Also, this can be set on the command line as a convenience.
 
     python run_ensemble.py --comms local --nworkers 5 --nresource_sets 8
 
-
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
 
 .. _persistent_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_uniform_sampling.py
 
 .. _six_hump_camel.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/six_hump_camel.py
-
