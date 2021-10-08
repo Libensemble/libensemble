@@ -57,6 +57,17 @@ Other functionality changes:
 * Enable a final communication with gen. #620 / #628
 * Logging updates - includes timestamps, enhanced debug logging, and libEnsemble version. #629 / #674
 
+:Note:
+
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system).
+* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9.
+
+:Known issues:
+
+* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode, since it does not support nested MPI launches
+  (Either use local mode or Balsam Executor).
+* See known issues section in the documentation for more issues.
+
 Release 0.7.2
 -------------
 
