@@ -23,7 +23,7 @@ gen_out = [('x', float, 2),            # Produces 'x' values
            ('local_pt', bool)]         # Is a point from a local opt run?
 
 gen_specs = {'gen_f': aposmm,          # APOSMM generator function
-             'in': [],
+             'persis_in': ['x', 'f', 'x_on_cube', 'sim_id', 'local_min', 'local_pt'],
              'out': gen_out,           # Output defined like above dict
              'user': {'initial_sample_size': 100,  # Random sample 100 points to start
                       'localopt_method': 'scipy_Nelder-Mead',
@@ -33,8 +33,7 @@ gen_specs = {'gen_f': aposmm,          # APOSMM generator function
                       'ub': np.array([2, 1])}    # Upper bound of search domain
              }
 
-alloc_specs = {'alloc_f': persistent_aposmm_alloc,
-               'out': [], 'user': {}}
+alloc_specs = {'alloc_f': persistent_aposmm_alloc}
 
 exit_criteria = {'sim_max': 2000}
 persis_info = add_unique_random_streams({}, nworkers + 1)

@@ -56,8 +56,8 @@ encountered by the manager or workers, the history array is dumped to file, and
 MPI abort is called.
 
 An alternative approach to parameterizing and interacting with libEnsemble via
-``Ensemble`` objects and ``yaml`` files is available. The equivalent of above
-resembles:
+``Ensemble`` objects and ``yaml`` files is available, but requires ``pyyaml``
+to be installed. The equivalent of above resembles:
 
 .. code-block:: python
     :linenos:
