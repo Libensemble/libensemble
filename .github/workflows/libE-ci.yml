@@ -56,13 +56,13 @@ jobs:
             sudo apt-get install octave
             sudo apt-get install bc
 
-        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
+        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
             conda install nlopt
             conda install scipy
             conda install mpich
             conda install mpi4py
-            conda install libblas libopenblas psutil
+            conda install libblas libopenblas psutil pyyaml
 
         - name: Install with-batch PETSc and petsc4py
           if: matrix.python-version == 3.8
@@ -171,12 +171,12 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install scipy, mpich, mpi4py, blas, psutil
+        - name: Install scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
             conda install scipy
             conda install mpich
             conda install mpi4py
-            conda install libblas libopenblas psutil
+            conda install libblas libopenblas psutil pyyaml
 
         - name: Install test dependencies
           run: |
