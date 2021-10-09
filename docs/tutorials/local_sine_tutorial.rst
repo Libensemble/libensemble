@@ -89,7 +89,7 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
-    :caption: examples/tutorials/tutorial_gen.py
+    :caption: examples/tutorials/simple_sine/tutorial_gen.py
 
     import numpy as np
 
@@ -133,7 +133,7 @@ Create a new Python file named ``simulator.py``. Write the following:
 
 .. code-block:: python
     :linenos:
-    :caption: examples/tutorials/tutorial_sim.py
+    :caption: examples/tutorials/simple_sine/tutorial_sim.py
 
     import numpy as np
 
