@@ -58,6 +58,8 @@ jobs:
 
         - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
+            conda remove ca-certificates
+            conda install ca-certificates=2021.5.30
             conda install nlopt
             conda install scipy
             conda install mpich
@@ -190,6 +192,7 @@ jobs:
             pip install pytest-timeout
             pip install mock
             pip install --no-deps coveralls
+            pip install docopt
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
