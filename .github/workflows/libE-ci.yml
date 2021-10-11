@@ -94,7 +94,7 @@ jobs:
             pip install pytest-cov
             pip install pytest-timeout
             pip install mock
-            pip install coveralls
+            pip install --no-deps coveralls
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest'
@@ -187,7 +187,7 @@ jobs:
             pip install pytest-cov
             pip install pytest-timeout
             pip install mock
-            pip install coveralls
+            pip install --no-deps coveralls
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
