@@ -61,12 +61,13 @@ Other functionality changes:
 
 * Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system).
 * Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9, 3.10*.
-  (*A reduced set of tests were run for python 3.10 due to some unavailable test dependencies at time of release).
+  (*A reduced set of tests were run for python 3.10 due to some unavailable test dependencies at time of release.)
 
 :Known issues:
 
-* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode, since it does not support nested MPI launches
-  (Either use local mode or Balsam Executor).
+* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
+  since it does not support nested MPI launches.
+  (Either use local mode or the Balsam Executor.)
 * See known issues section in the documentation for more issues.
 
 Release 0.7.2
