@@ -95,6 +95,7 @@ jobs:
             pip install pytest-timeout
             pip install mock
             pip install --no-deps coveralls
+            pip install requests
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest'
