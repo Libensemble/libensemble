@@ -15,7 +15,14 @@ jobs:
                       python-version: 3.6
                     - os: macos-latest
                       python-version: 3.7
-
+                    - os: macos-latest
+                      python-version: 3.9
+                    - python-version: 3.6
+                      comms-type: t
+                    - python-version: 3.7
+                      comms-type: t
+                    - python-version: 3.9
+                      comms-type: t
         env:
             HYDRA_LAUNCHER: 'fork'
             TERM: xterm-256color
