@@ -244,6 +244,11 @@ libEnsemble generation capabilities include:
   - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
 
 - DEAP_ Distributed evolutionary algorithms
+- Distributed optimization methods for minimizing sums of convex functions. Methods include:
+  - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
+  - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
+  - Proximal sliding (https://arxiv.org/abs/1406.0919).
+
 - ECNoise_ Estimating Computational Noise in Numerical Simulations
 - Surmise_ Modular Bayesian calibration/inference framework
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN

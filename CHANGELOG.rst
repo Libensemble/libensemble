@@ -37,7 +37,7 @@ https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0
 
 Updates to example functions:
 
-* Suite of distributed optimization libraries for solving sum of convex functions. #647 / #649. Methods include:
+* Suite of distributed optimization methods for minimizing sums of convex functions. #647 / #649. Methods include:
  * primal-dual sliding (https://arxiv.org/pdf/2101.00143).
  * N-agent, or distributed gradient descent w/ gradient tracking (https://arxiv.org/abs/1908.11444).
  * proximal sliding (https://arxiv.org/abs/1406.0919).
