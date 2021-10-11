@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 0.8.0
 -------------
 
-:Date: Oct 8, 2021
+:Date: Oct 11, 2021
 
 Featured new capabilities:
 
@@ -60,7 +60,8 @@ Other functionality changes:
 :Note:
 
 * Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system).
-* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9.
+* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9, 3.10*.
+  (*A reduced set of tests were run for python 3.10 due to some unavailable test dependencies at time of release).
 
 :Known issues:
 
