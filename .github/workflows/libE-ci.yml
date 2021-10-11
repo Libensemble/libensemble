@@ -94,6 +94,7 @@ jobs:
             pip install pytest-cov
             pip install pytest-timeout
             pip install mock
+            pip install certifi==2021.5.30
             pip install --no-deps coveralls
             pip install requests
 
