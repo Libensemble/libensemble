@@ -24,7 +24,7 @@ The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
 highest priority unit of work from ``gen_f``. If a worker is idle and there is
 no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
-.. image:: images/diagram_with_persis.png
+.. figure:: images/diagram_with_persis.png
  :alt: libE component diagram
  :align: center
  :scale: 40

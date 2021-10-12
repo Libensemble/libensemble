@@ -15,7 +15,14 @@ jobs:
                       python-version: 3.6
                     - os: macos-latest
                       python-version: 3.7
-
+                    - os: macos-latest
+                      python-version: 3.9
+                    - python-version: 3.6
+                      comms-type: t
+                    - python-version: 3.7
+                      comms-type: t
+                    - python-version: 3.9
+                      comms-type: t
         env:
             HYDRA_LAUNCHER: 'fork'
             TERM: xterm-256color
@@ -56,13 +63,15 @@ jobs:
             sudo apt-get install octave
             sudo apt-get install bc
 
-        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil
+        - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
+            conda remove ca-certificates
+            conda install ca-certificates=2021.5.30
             conda install nlopt
             conda install scipy
             conda install mpich
             conda install mpi4py
-            conda install libblas libopenblas psutil
+            conda install libblas libopenblas psutil pyyaml
 
         - name: Install with-batch PETSc and petsc4py
           if: matrix.python-version == 3.8
@@ -171,12 +180,14 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install scipy, mpich, mpi4py, blas, psutil
+        - name: Install scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
+            conda remove ca-certificates
+            conda install ca-certificates=2021.5.30
             conda install scipy
             conda install mpich
             conda install mpi4py
-            conda install libblas libopenblas psutil
+            conda install libblas libopenblas psutil pyyaml
 
         - name: Install test dependencies
           run: |

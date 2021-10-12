@@ -1,13 +1,13 @@
-# """
-# Runs libEnsemble testing the MPI Runners command creation with uneven workers per node.
-#
-# This test must be run on an even number of workers >= 4 and <= 32 (e.g. odd no. of procs when using mpi4py).
-#
-# Execute via one of the following commands (e.g. 6 workers - one is zero resource):
-#    mpiexec -np 7 python3 test_mpi_runners_zrw_subnode_uneven.py
-#    python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms local
-#    python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms tcp
-# """
+"""
+Runs libEnsemble testing the MPI Runners command creation with uneven workers per node.
+
+This test must be run on an even number of workers >= 4 and <= 32 (e.g. odd no. of procs when using mpi4py).
+
+Execute via one of the following commands (e.g. 6 workers - one is zero resource):
+   mpiexec -np 7 python3 test_mpi_runners_zrw_subnode_uneven.py
+   python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms local
+   python3 test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms tcp
+"""
 
 import sys
 import numpy as np

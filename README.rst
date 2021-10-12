@@ -80,6 +80,11 @@ is required in order to run libEnsemble on the compute nodes of some supercomput
 platforms that do not support launching tasks from compute nodes. As of v0.5.0,
 libEnsemble can also be run on launch nodes using multiprocessing.
 
+* pyyaml_
+
+As of v0.8.0, an alternative interface is available. An Ensemble object is
+created and can be parameterized by a YAML file.
+
 The example simulation and generation functions and tests require the following:
 
 * SciPy_
@@ -296,6 +301,7 @@ See a complete list of `example user scripts`_.
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
+.. _pyyaml: https://pyyaml.org/
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html

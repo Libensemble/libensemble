@@ -1,15 +1,15 @@
-# """
-# Runs libEnsemble testing the MPI Runners command creation with 2 workers per node.
-#
-# This test must be run on an even number of workers >= 2 (e.g. odd no. of procs when using mpi4py).
-#
-# Execute via one of the following commands (e.g. 4 workers):
-#    mpiexec -np 5 python3 test_mpi_runners_subnode.py
-#    python3 test_mpi_runners_subnode.py --nworkers 4 --comms local
-#    python3 test_mpi_runners_subnode.py --nworkers 4 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble testing the MPI Runners command creation with 2 workers per node.
+
+This test must be run on an even number of workers >= 2 (e.g. odd no. of procs when using mpi4py).
+
+Execute via one of the following commands (e.g. 4 workers):
+   mpiexec -np 5 python3 test_mpi_runners_subnode.py
+   python3 test_mpi_runners_subnode.py --nworkers 4 --comms local
+   python3 test_mpi_runners_subnode.py --nworkers 4 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 import sys
 import numpy as np

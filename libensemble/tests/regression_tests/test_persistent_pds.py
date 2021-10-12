@@ -1,27 +1,27 @@
-# """
-# Tests libEnsemble persistent_pds distributed optimization generator function
-# on a variety of cases, including:
-#    - Rosenbrock function
-#    - Alternative Rosenbrock function
-#    - Nesterov's quadratic function (Sec 2.1.2 in Nesterov's 's "Introductory Lectures on Convex Programming")
-#    - Linear regression with l2 regularization
-#    - Logistic regression with l2 regularization
-#    - PYCUTEst functions (https://jfowkes.github.io/pycutest/_build/html/index.html)
+"""
+Tests libEnsemble persistent_pds distributed optimization generator function
+on a variety of cases, including:
+   - Rosenbrock function
+   - Alternative Rosenbrock function
+   - Nesterov's quadratic function (Sec 2.1.2 in Nesterov's 's "Introductory Lectures on Convex Programming")
+   - Linear regression with l2 regularization
+   - Logistic regression with l2 regularization
+   - PYCUTEst functions (https://jfowkes.github.io/pycutest/_build/html/index.html)
 
-# You can specify which problem to test by setting @prob_id in {0,1,2,3,4,5}.
+You can specify which problem to test by setting @prob_id in {0,1,2,3,4,5}.
 
-# This call script uses distributed primal-dual sliding (https://arxiv.org/pdf/2101.00143)
-# to solve the following problems. To test, run using, for any p >= 6,
-#    mpiexec -np p python3 test_persistent_pds.py
-#    python3 test_persistent_pds.py --nworkers p --comms local
+This call script uses distributed primal-dual sliding (https://arxiv.org/pdf/2101.00143)
+to solve the following problems. To test, run using, for any p >= 6,
+   mpiexec -np p python3 test_persistent_pds.py
+   python3 test_persistent_pds.py --nworkers p --comms local
 
-# The number gens will be 4.
+The number gens will be 4.
 
-# Note that this library makes use the nlopt library to obtain the optimal value
-# for regression testing. To test PYCUTEst, make sure to install the necessary
-# files. Refer to tools/pycute_interface on more details. To ignore this library,
-# simply comment out the import of "Blackbox" below
-# """
+Note that this library makes use the nlopt library to obtain the optimal value
+for regression testing. To test PYCUTEst, make sure to install the necessary
+files. Refer to tools/pycute_interface on more details. To ignore this library,
+simply comment out the import of "Blackbox" below
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
