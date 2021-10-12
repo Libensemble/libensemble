@@ -100,13 +100,10 @@ jobs:
             pip install flake8
             pip install coverage==4.5.4
             pip install pytest
-            pip install pytest-cov==2.12.0
+            pip install pytest-cov
             pip install pytest-timeout
             pip install mock
-            pip install certifi==2021.5.30
-            pip install --no-deps coveralls
-            pip install requests
-            pip install docopt
+            pip install coveralls
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest'
