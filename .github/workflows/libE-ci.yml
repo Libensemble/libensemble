@@ -44,6 +44,12 @@ jobs:
     #         channel-priority: flexible
     #         auto-update-conda: true
     #
+    #     - name: Reinstall ca-certificates
+    #       run: |
+    #         python --version
+    #         conda remove --force ca-certificates
+    #         conda install ca-certificates=2021.5.30
+    #
     #     - name: Install Ubuntu compilers
     #       if: matrix.os == 'ubuntu-latest'
     #       run: conda install gcc_linux-64
@@ -65,9 +71,6 @@ jobs:
     #
     #     - name: Install nlopt, scipy, mpich, mpi4py, blas, psutil, pyyaml
     #       run: |
-    #         python --version
-    #         conda remove ca-certificates
-    #         conda install ca-certificates=2021.5.30
     #         conda install nlopt
     #         conda install scipy
     #         conda install mpich
@@ -171,9 +174,14 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Install Ubuntu compilers, postgresql
+        - name: Reinstall ca-certificates
           run: |
             python --version
+            conda remove --force ca-certificates
+            conda install ca-certificates=2021.5.30
+
+        - name: Install Ubuntu compilers, postgresql
+          run: |
             conda install gcc_linux-64
             conda install libpq postgresql postgresql-plpython
             pg_ctl --version
@@ -185,8 +193,6 @@ jobs:
 
         - name: Install scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
-            conda remove ca-certificates
-            conda install ca-certificates=2021.5.30
             conda install scipy
             conda install mpich
             conda install mpi4py
