@@ -44,7 +44,7 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Reinstall ca-certificates
+        - name: Force-update certifi
           run: |
             python --version
             pip install -I --upgrade certifi
@@ -102,11 +102,11 @@ jobs:
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
             pip install flake8
             pip install coverage==5.5
-            pip install pytest
+            pip install pytest==6.2.5
             pip install pytest-cov==2.12.1
             pip install pytest-timeout==1.4.2
-            pip install mock
-            pip install -I coveralls
+            pip install mock==4.0.3
+            pip install coveralls==3.2.0
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest'
