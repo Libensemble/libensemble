@@ -47,9 +47,7 @@ jobs:
         - name: Reinstall ca-certificates
           run: |
             python --version
-            conda remove --force ca-certificates
-            conda install ca-certificates=2021.5.30
-            pip install --upgrade certifi
+            pip install -I --upgrade certifi
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
