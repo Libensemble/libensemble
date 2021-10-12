@@ -182,6 +182,8 @@ jobs:
 
         - name: Install scipy, mpich, mpi4py, blas, psutil, pyyaml
           run: |
+            conda remove ca-certificates
+            conda install ca-certificates=2021.5.30
             conda install scipy
             conda install mpich
             conda install mpi4py
@@ -196,7 +198,7 @@ jobs:
             pip install pytest-cov
             pip install pytest-timeout
             pip install mock
-            pip install --no-deps coveralls
+            pip install coveralls
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
