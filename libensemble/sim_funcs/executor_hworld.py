@@ -11,7 +11,7 @@ __all__ = ['executor_hworld']
 returned_count = 0
 
 
-def custom_polling_loop(exctr, task, timeout_sec=3.0, delay=0.3):
+def custom_polling_loop(exctr, task, timeout_sec=4.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
