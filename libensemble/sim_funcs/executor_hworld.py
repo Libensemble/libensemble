@@ -11,7 +11,7 @@ __all__ = ['executor_hworld']
 returned_count = 0
 
 
-def custom_polling_loop(exctr, task, timeout_sec=4.0, delay=0.3):
+def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     import time
 
     calc_status = UNSET_TAG  # Sim func determines status of libensemble calc - returned to worker
@@ -88,7 +88,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         args_for_sim = 'sleep 1'  # Should finish
         launch_shc = True
     elif returned_count == 4:
-        args_for_sim = 'sleep 3'  # Worker kill on timeout
+        args_for_sim = 'sleep 8'  # Worker kill on timeout
         timeout = 1.0
     elif returned_count == 5:
         args_for_sim = 'sleep 2 Fail'  # Manager kill - if signal received else completes
