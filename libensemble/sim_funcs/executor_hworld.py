@@ -91,7 +91,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         args_for_sim = 'sleep 3'  # Worker kill on timeout
         timeout = 1.0
     elif returned_count == 5:
-        args_for_sim = 'sleep 1 Fail'  # Manager kill - if signal received else completes
+        args_for_sim = 'sleep 2 Fail'  # Manager kill - if signal received else completes
     elif returned_count == 6:
         args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
         timeout = 65.0
