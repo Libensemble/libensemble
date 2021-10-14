@@ -90,6 +90,9 @@ for prob_id in range(0, 4):
             fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
             urllib.request.urlretrieve(fname, "./wdbc.data")
 
+        if libE_specs['comms'] == 'mpi':
+            libE_specs['mpi_comm'].Barrier()
+
         persis_info['print_progress'] = 0
         sim_f = svm_eval
         m, n = 30, 15
