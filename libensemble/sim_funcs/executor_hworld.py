@@ -113,7 +113,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        if returned_count >= 2:
+        if returned_count >= 2 and not use_balsam:
             calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
             if returned_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
                 calc_status = WORKER_KILL_ON_ERR
