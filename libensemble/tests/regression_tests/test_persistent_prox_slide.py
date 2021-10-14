@@ -87,8 +87,9 @@ for prob_id in range(0, 4):
 
     if prob_id >= 2:
         if prob_id == 3:
-            fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
-            urllib.request.urlretrieve(fname, "./wdbc.data")
+            if is_manager:
+                fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
+                urllib.request.urlretrieve(fname, "./wdbc.data")
 
         if libE_specs['comms'] == 'mpi':
             libE_specs['mpi_comm'].Barrier()
