@@ -9,5 +9,10 @@ __author__ = 'Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and J
 __credits__ = 'Argonne National Laboratory'
 
 from libensemble import logger
-from .api import Ensemble
+
 from .libE import libE, comms_abort
+
+try:
+    from .api import Ensemble
+except ModuleNotFoundError:
+    pass
