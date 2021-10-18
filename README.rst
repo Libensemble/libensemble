@@ -52,8 +52,8 @@ user-provided executables is also supported. Each worker can
 control and monitor any level of work, from small subnode tasks to huge
 many-node simulations. An executor interface is provided to ensure that scripts
 are portable, resilient, and flexible; it also enables automatic detection of
-the nodes and cores in a system and can split up tasks automatically if resource
-data isn't supplied.
+the nodes and cores available to the user, and can dynamically assign resources
+to workers.
 
 .. before_dependencies_rst_tag
 
@@ -152,6 +152,16 @@ of the source distribution by running ::
 Further options are available. To see a complete list of options, run ::
 
     ./run-tests.sh -h
+
+The regression tests also work as good example libEnsemble scripts and can
+be run directly in ``libensemble/tests/regression_tests``. For example::
+
+    cd libensemble/tests/regression_tests
+    python test_uniform_sampling.py --comms local --nworkers 3
+
+The ``libensemble/tests/scaling_tests`` directory includes some examples that make
+use of the executor to run compiled applications. These are tested regularly on
+HPC systems.
 
 If you have the source distribution, you can download (but not install) the testing
 prerequisites and run the tests with ::
