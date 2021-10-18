@@ -29,7 +29,7 @@ https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0
 * The ``'persis_in'`` field has been added to gen_specs/sim_specs (instead of being hard-coded in alloc funcs). #626 / #670
 * ``alloc support`` module is now a class. #643 / #656
 * ``gen_support`` module is replaced by Persistent Worker support module (now a class). #609 / #671
-* Remove 'libE_' prefix from the logger. #608
+* Remove ``libE_`` prefix from the logger. #608
 * ``avail_worker_ids`` function should specify ``EVAL_GEN_TAG`` or ``EVAL_SIM_TAG`` instead of ``True``. #615 #643
 * Pass ``libE_info`` to allocation functions (allows more flexibility for user and efficiency improvements). #672
 * ``'given_back'`` is now a protected libEnsemble field in the manager's history array. #651
@@ -38,6 +38,7 @@ https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0
 Updates to example functions:
 
 * Suite of distributed optimization methods for minimizing sums of convex functions. #647 / #649. Methods include:
+
  * primal-dual sliding (https://arxiv.org/pdf/2101.00143).
  * N-agent, or distributed gradient descent w/ gradient tracking (https://arxiv.org/abs/1908.11444).
  * proximal sliding (https://arxiv.org/abs/1406.0919).
