@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 0.8.0
 -------------
 
-:Date: Oct 11, 2021
+:Date: Oct 18, 2021
 
 Featured new capabilities:
 
@@ -27,13 +27,13 @@ https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0
 
 * Resources management is now independent of the executor.  #345
 * The ``'persis_in'`` field has been added to gen_specs/sim_specs (instead of being hard-coded in alloc funcs). #626 / #670
-* Minor name changes to variables. #529 / #659
 * ``alloc support`` module is now a class. #643 / #656
 * ``gen_support`` module is replaced by Persistent Worker support module (now a class). #609 / #671
 * Remove 'libE_' prefix from the logger. #608
 * ``avail_worker_ids`` function should specify ``EVAL_GEN_TAG`` or ``EVAL_SIM_TAG`` instead of ``True``. #615 #643
 * Pass ``libE_info`` to allocation functions (allows more flexibility for user and efficiency improvements). #672
 * ``'given_back'`` is now a protected libEnsemble field in the manager's history array. #651
+* Several name changes to functions and parameters (See the wiki above for details). #529 / #659
 
 Updates to example functions:
 
