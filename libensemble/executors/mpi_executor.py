@@ -29,7 +29,7 @@ class MPIExecutor(Executor):
     def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
-        A new Executor MPIExecutor is created with an application
+        A new MPIExecutor is created with an application
         registry and configuration attributes.
 
         This is typically created in the user calling script. The
