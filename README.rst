@@ -71,7 +71,7 @@ For libEnsemble running with the mpi4py parallelism:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependency:
+Optional dependencies:
 
 * Balsam_
 
