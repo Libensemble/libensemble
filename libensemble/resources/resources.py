@@ -115,10 +115,10 @@ class GlobalResources:
             Directory libEnsemble runs in (default is current working directory)
 
         dedicated_mode: boolean, optional
-            If true, then running in central mode, otherwise distributed.
-            Central mode means libE processes (manager and workers) are grouped together on nodes
-            that applications cannot be run on. Distributed mode means workers share nodes
-            with applications.
+            If true, then dedicate nodes to running libEnsemble.
+            Dedicated mode means that any nodes running libE processes (manager and workers),
+            will not be available to worker launched tasks (user applications). They will
+            be removed from the nodelist (if present), before dividing into resource sets.
 
         zero_resource_workers: list of ints, optional
             List of workers that require no resources.

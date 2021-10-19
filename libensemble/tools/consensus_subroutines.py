@@ -229,8 +229,8 @@ def get_doubly_stochastic(A):
     (i) S_ii > 0 for all i
     (ii) S_ij > 0 if and only if (i, j) in E
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     A : np.ndarray
         - adjacency matrix
 
