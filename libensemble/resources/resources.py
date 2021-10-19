@@ -24,7 +24,7 @@ class ResourcesException(Exception):
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is True.
+    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is ``True``.
 
     **Class Attributes:**
 
@@ -106,7 +106,7 @@ class GlobalResources:
         Determines the compute resources available for current allocation, including
         node list and cores/hardware threads available within nodes.
 
-        The following parameters may be extracted from libE_specs
+        The following parameters may be extracted from ``libE_specs``
 
         Parameters
         ----------
@@ -116,8 +116,8 @@ class GlobalResources:
 
         dedicated_mode: boolean, optional
             If true, then running in central mode, otherwise distributed.
-            Central mode means libE processes (manager and workers) are grouped together and
-            do not share nodes with applications. Distributed mode means Workers share nodes
+            Central mode means libE processes (manager and workers) are grouped together on nodes
+            that applications cannot be run on. Distributed mode means workers share nodes
             with applications.
 
         zero_resource_workers: list of ints, optional

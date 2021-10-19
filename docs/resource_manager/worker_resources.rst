@@ -1,7 +1,7 @@
 Worker Resources Module
 =======================
 
-The worker resources module can be interrogated by the user function on a worker,
+The worker resources module can be interrogated by the user function on a worker
 to obtain the following attributes. The convenience functions below can also be used.
 
 .. automodule:: resources.worker_resources
