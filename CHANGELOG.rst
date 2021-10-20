@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 0.8.0
 -------------
 
-:Date: Oct 19, 2021
+:Date: Oct 20, 2021
 
 Featured new capabilities:
 
