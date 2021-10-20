@@ -72,7 +72,7 @@ with open(infile) as f:
                     exceptions = True
                     append_to_list(in_times_exception, in_times, found_time)  # Assumes Time comes first
                 else:
-                    print('Error: Unkown status - rest of line: {}'.format(lst[i+1:len(lst)]))
+                    print('Error: Unknown status - rest of line: {}'.format(lst[i+1:len(lst)]))
                     sys.exit()
                 found_status = True
             if found_time and found_status:

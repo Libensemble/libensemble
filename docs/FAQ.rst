@@ -15,23 +15,49 @@ running with multiprocessing and multiple workers specified.**
 If your calling script code was recently switched from MPI to multiprocessing,
 make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
 
-**"AssertionError: Should not wait for workers when all workers are idle."**
+**"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
-This error occurs when the manager is waiting although no workers are busy, or
-an MPI libEnsemble run was initiated with only one process, resulting in one
-manager but no workers.
+This error occurs when the manager is waiting although all workers are idle.
+Note that a worker can be in a persistent state but is marked as idle
+when it has returned data to the manager and is ready to receive work.
 
-This may also occur with two processes if you are using a persistent generator.
-The generator will occupy the one worker, leaving none to run simulation functions.
+Some possible causes of this error are:
+
+- An MPI libEnsemble run was initiated with only one process, resulting in one
+  manager but no workers. Similarly, the error may arise when running with only
+  two processes when using a persistent generator. The generator will occupy the
+  one worker, leaving none to run simulation functions.
+
+- An error in the allocation function. For example, perhaps the allocation
+  waiting for all requested evaluations to be returned (e.g, before starting a
+  new generator), but this condition
+  is not returning True even though all scheduled evaluations have returned. This
+  can be due to incorrect implementation (e.g., it has not considered points that
+  are cancelled or paused or in some other state that prevents the allocation
+  function from sending them out to workers).
+
+- A persistent worker (usually a generator) has sent a message back to the manager
+  but is still performing work and may return further points. In this case, consider
+  starting the generator in :ref:`active_recv<gen_active_recv>` mode. This can be
+  specified in the allocation function, and will cause the worker maintain its
+  active status.
+
+- A persistent worker has requested resources that prevents any simulations from
+  taking place. By default, persistent workers hold onto resources even when not
+  active. This may require the worker to return from persistent mode.
+
+- When returning points to a persistent generator (often the top code block in
+  allocation functions). For example, ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
+  Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True``.
 
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
 
-Automatic partitioning of resources can be disabled if you want to oversubscribe
-(often if testing on a local machine) by configuring the Executor with
-``auto_resources=False``. For example::
+It is possible that you have set `enforce_worker_core_bounds` to True when setting
+up the Executor. Also, the resource manager can be completely disabled
+with::
 
-    exctr = MPIExecutor(auto_resources=False)
+    libE_specs['disable_resource_manager'] = True
 
 Note that the Executor ``submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.
@@ -42,14 +68,14 @@ This can happen when libEnsemble tries to create ensemble or simulation director
 that already exist.
 
 To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
-option in :doc:`libE_specs<history_output>` to some unique value.
+option in :doc:`libE_specs<history_output_logging>` to some unique value.
 Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
 with ``python [test with PETSc].py --comms local --nworkers 4``
 
-This error occurs on some platforms, including Travis CI, when using PETSc with libEnsemble
+This error occurs on some platforms when using PETSc with libEnsemble
 in ``local`` (multiprocessing) mode. We believe this is due to PETSc initializing MPI
 before libEnsemble forks processes using multiprocessing. The recommended solution
 is running libEnsemble in MPI mode. An alternative solution may be using a serial
@@ -145,7 +171,7 @@ If libEnsemble aborts on an exception, the History array and ``persis_info``
 dictionaries will be dumped. This can be suppressed by
 setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
-See :doc:`here<history_output>` for more information about these files.
+See :doc:`here<history_output_logging>` for more information about these files.
 
 macOS-Specific Errors
 ---------------------

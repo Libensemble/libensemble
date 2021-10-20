@@ -5,7 +5,7 @@ from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
 
 
 def _check_consistent_field(name, field0, field1):
-    "Checks that new field (field1) is compatible with an old field (field0)."
+    """Checks that new field (field1) is compatible with an old field (field0)."""
     assert field0.ndim == field1.ndim, \
         "H0 and H have different ndim for field {}".format(name)
     assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
@@ -63,7 +63,7 @@ def check_alloc_specs(alloc_specs):
 def check_sim_specs(sim_specs):
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
 
-    assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'out']]), \
+    assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'persis_in', 'out']]), \
         "sim_specs must contain 'sim_f', 'in', 'out'"
 
     assert all(isinstance(i, str) for i in sim_specs['in']), \
@@ -117,7 +117,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         # Set up dummy history to see if it agrees with H0
 
         # Combines all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        specs = [sim_specs, alloc_specs, gen_specs]
+        dtype_list = list(set(libE_fields + sum([k.get('out', []) for k in specs if k], [])))
         Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
 
         fields = H0.dtype.names
@@ -135,8 +136,8 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         assert('returned' not in fields or np.all(H0['given'] == H0['returned'])), \
             'H0 contains unreturned or invalid points'
 
-        # Fail if points in prior history don't have a sim_id.
-        assert('sim_id' in fields), 'Points in H0 must have sim_ids'
+        # # Fail if points in prior history don't have a sim_id.
+        # assert('sim_id' in fields), 'Points in H0 must have sim_ids'
 
         # Check dimensional compatibility of fields
         for field in fields:
@@ -187,6 +188,10 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
 
     # Detailed checking based on Required Keys in docs for each specs
     if libE_specs is not None:
+        for name in libE_specs.get('final_fields', []):
+            assert name in out_names, \
+                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "\
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:

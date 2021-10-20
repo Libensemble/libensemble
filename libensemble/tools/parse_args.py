@@ -13,6 +13,10 @@ parser.add_argument('--comms', type=str, nargs='?',
                     default='mpi', help='Type of communicator')
 parser.add_argument('--nworkers', type=int, nargs='?',
                     help='Number of local forked processes')
+parser.add_argument('--nsim_workers', type=int, nargs='?',
+                    help='Number of workers for sims. 1+ zero-resource gen worker will be added')
+parser.add_argument('--nresource_sets', type=int, nargs='?',
+                    help='Number of resource sets')
 parser.add_argument('--workers', type=str, nargs='+',
                     help='List of worker nodes')
 parser.add_argument('--workerID', type=int, nargs='?', help='Client worker ID')
@@ -29,24 +33,54 @@ parser.add_argument('--tester_args', type=str, nargs='*',
                     help='Additional arguments for use by specific testers')
 
 
+def _get_zrw(nworkers, nsim_workers):
+    """Determine zero resource workers from workers and sim workers"""
+    ngen_workers = nworkers - nsim_workers
+    assert ngen_workers > 0, "nsim_workers cannot be greater than number of workers"
+    return [i for i in range(1, ngen_workers + 1)]
+
+
 def _mpi_parse_args(args):
-    "Parses arguments for MPI comms."
+    """Parses arguments for MPI comms."""
     from mpi4py import MPI
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
     libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+
+    if args.nresource_sets is not None:
+        libE_specs['num_resource_sets'] = args.nresource_sets
+
+    # Convenience option which sets other libE_specs options.
+    nsim_workers = args.nsim_workers
+    if nsim_workers is not None:
+        libE_specs['zero_resource_workers'] = _get_zrw(nworkers, nsim_workers)
+
     return nworkers, is_manager, libE_specs, args.tester_args
 
 
 def _local_parse_args(args):
-    "Parses arguments for forked processes using multiprocessing."
-    nworkers = args.nworkers or 4
-    libE_specs = {'nworkers': nworkers, 'comms': 'local'}
+    """Parses arguments for forked processes using multiprocessing."""
+
+    libE_specs = {'comms': 'local'}
+    nworkers = args.nworkers
+
+    if args.nresource_sets is not None:
+        libE_specs['num_resource_sets'] = args.nresource_sets
+
+    # Convenience option which sets other libE_specs options.
+    nsim_workers = args.nsim_workers
+    if nsim_workers is not None:
+        nworkers = nworkers or nsim_workers + 1
+        libE_specs['zero_resource_workers'] = _get_zrw(nworkers, nsim_workers)
+
+    nworkers = nworkers or 4
+    libE_specs['nworkers'] = nworkers
+
     return nworkers, True, libE_specs, args.tester_args
 
 
 def _tcp_parse_args(args):
-    "Parses arguments for local TCP connections"
+    """Parses arguments for local TCP connections"""
     nworkers = args.nworkers or 4
     cmd = [
         sys.executable, sys.argv[0], "--comms", "client", "--server",
@@ -58,7 +92,7 @@ def _tcp_parse_args(args):
 
 
 def _ssh_parse_args(args):
-    "Parses arguments for SSH with reverse tunnel."
+    """Parses arguments for SSH with reverse tunnel."""
     nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
@@ -81,7 +115,7 @@ def _ssh_parse_args(args):
 
 
 def _client_parse_args(args):
-    "Parses arguments for a TCP client."
+    """Parses arguments for a TCP client."""
     nworkers = args.nworkers or 4
     ip, port, authkey = args.server
     libE_specs = {'ip': ip,
@@ -112,6 +146,8 @@ def parse_args():
 
         usage: test_... [-h] [--comms [{local,tcp,ssh,client,mpi}]]
                         [--nworkers [NWORKERS]] [--workers WORKERS [WORKERS ...]]
+                        [--nsim_workers [NSIM_WORKERS]]
+                        [--nresource_sets [NRESOURCE_SETS]]
                         [--workerID [WORKERID]] [--server SERVER SERVER SERVER]
                         [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                         [--worker_python [WORKER_PYTHON]]
@@ -121,7 +157,7 @@ def parse_args():
     -------
 
     nworkers: :obj:`int`
-        Number of workers libEnsemble will inititate
+        Number of workers libEnsemble will initiate
 
     is_manager: :obj:`boolean`
         Indicates whether the current process is the manager process

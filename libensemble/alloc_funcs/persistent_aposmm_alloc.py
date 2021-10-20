@@ -1,9 +1,9 @@
 import numpy as np
+from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_persis_gens, all_returned
 
-
-def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
     otherwise start a persistent APOSMM generator.  If all points requested by
@@ -17,20 +17,23 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
 
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
+
+    # Initialize alloc_specs['user'] as user.
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+
+    init_sample_size = gen_specs['user']['initial_sample_size']
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    gen_count = support.count_persis_gens()
     Work = {}
-    gen_count = count_persis_gens(W)
 
     if persis_info.get('first_call', True):
-        assert np.all(H['given']), "Initial points in H have never been given."
-        assert np.all(H['given_back']), "Initial points in H have never been given_back."
-        assert all_returned(H), "Initial points in H have never been returned."
-        persis_info['fields_to_give_back'] = ['f'] + [n[0] for n in gen_specs['out']]
-
-        if 'grad' in [n[0] for n in sim_specs['out']]:
-            persis_info['fields_to_give_back'] += ['grad']
-
-        if 'fvec' in [n[0] for n in sim_specs['out']]:
-            persis_info['fields_to_give_back'] += ['fvec']
+        assert support.all_given(H), "Initial points in H have never been given."
+        assert support.all_returned(H), "Initial points in H have never been returned."
+        assert support.all_given_back(H), "Initial points in H have never been given back to gen."
 
         persis_info['samples_in_H0'] = sum(H['local_pt'] == 0)
         persis_info['next_to_give'] = len(H)  #
@@ -40,37 +43,39 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         return Work, persis_info, 1
 
     # If any persistent worker's calculated values have returned, give them back.
-    for i in avail_worker_ids(W, persistent=True):
-        if (persis_info.get('sample_done') or
-           sum(H['returned']) >= gen_specs['user']['initial_sample_size'] + persis_info['samples_in_H0']):
+    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
+        if (persis_info.get('sample_done') or sum(H['returned']) >= init_sample_size + persis_info['samples_in_H0']):
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 
             returned_but_not_given = np.logical_and(H['returned'], ~H['given_back'])
             if np.any(returned_but_not_given):
-                inds_to_give = np.where(returned_but_not_given)[0]
+                point_ids = np.where(returned_but_not_given)[0]
+                Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
+                                             persistent=True)
+                returned_but_not_given[point_ids] = False
 
-                gen_work(Work, i, persis_info['fields_to_give_back'],
-                         np.atleast_1d(inds_to_give), persis_info.get(i), persistent=True)
-
-                H['given_back'][inds_to_give] = True
-
-    for i in avail_worker_ids(W, persistent=False):
+    for wid in support.avail_worker_ids(persistent=False):
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
 
         if persis_info['next_to_give'] < len(H):
             # perform sim evaluations (if they exist in History).
-            sim_work(Work, i, sim_specs['in'], np.atleast_1d(persis_info['next_to_give']), persis_info.get(i))
+            try:
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], persis_info['next_to_give'], persis_info.get(wid))
+            except InsufficientFreeResources:
+                break
             persis_info['next_to_give'] += 1
 
         elif persis_info.get('gen_started') is None:
             # Finally, call a persistent generator as there is nothing else to do.
-            persis_info['gen_started'] = True
-            persis_info.get(i)['nworkers'] = len(W)
-
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info.get(i),
-                     persistent=True)
+            persis_info.get(wid)['nworkers'] = len(W)
+            try:
+                Work[wid] = support.gen_work(wid, gen_specs.get('in', []), range(len(H)), persis_info.get(wid),
+                                             persistent=True)
+            except InsufficientFreeResources:
+                break
+            persis_info['gen_started'] = True  # Must set after - in case break on resources
 
     return Work, persis_info

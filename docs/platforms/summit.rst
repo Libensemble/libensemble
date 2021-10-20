@@ -70,7 +70,7 @@ resource sets as follows:
 
 - num_nodes (int, optional) – The number of nodes on which to submit the run.
 
-- ranks_per_node (int, optional) – The number of resource sets per node.
+- procs_per_node (int, optional) – The number of resource sets per node.
 
 It is recommended that the user defines a resource set as the minimal configuration
 of CPU cores/processes and GPUs. These can be added to the ``extra_args`` option
@@ -98,15 +98,14 @@ This would be equivalent to::
                         extra_args='-n 3 -a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"'
                         app_args="-i input")
 
-The auto-resources in the Executor works out the resources available to each worker,
+The libEnsemble resource manager works out the resources available to each worker,
 but unlike some other systems, ``jsrun`` on Summit dynamically schedules runs to
 available slots across and within nodes. It can also queue tasks. This allows variable
-size runs to easily be handled on Summit. If these runs over-use the auto-resource
-allocations, auto_resources can be turned off in the Executor setup. E.g: In the
-calling script::
+size runs to easily be handled on Summit. If oversubsciption to the `jsrun` system
+is desired, then libEnsemble's resource manager can be disabled in the
+calling script via::
 
-    from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(central_mode=True, auto_resources=False)
+    libE_specs['disable_resource_manager'] = True
 
 In the above example, the task being submitted used three GPUs, which is half those
 available on a Summit node, and thus two such tasks may be allocated to each node

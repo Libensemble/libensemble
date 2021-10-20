@@ -22,7 +22,7 @@ import numpy as np
 import argparse
 
 desc = "Script to compare libEnsemble history arrays in files"
-exmple = '''examples:
+example = '''examples:
 
  ./compare_npy.py out1.npy out2.npy
  ./compare_npy.py out1.npy out2.npy --rtol 1e-03 --atol 1e-06
@@ -31,7 +31,7 @@ exmple = '''examples:
 exclude_fields = ['gen_worker', 'sim_worker', 'gen_time', 'given_time']  # list of fields to ignore
 locate_mismatch = True
 
-parser = argparse.ArgumentParser(description=desc, epilog=exmple,
+parser = argparse.ArgumentParser(description=desc, epilog=example,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-r', '--rtol', dest='rtol', type=float, default=1e-05, help='rel. tolerance')
 parser.add_argument('-a', '--atol', dest='atol', type=float, default=1e-08, help='abs. tolerance')

@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
     if (rank==0) {
         if (error==1) {
-            printf("Oh Dear! An non-fatal Error seems to have occured on rank %d\n",rank);
+            printf("Oh Dear! An non-fatal Error seems to have occurred on rank %d\n",rank);
             fflush(stdout);
             usleep(usec_delay);
         }

@@ -7,7 +7,7 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 from libensemble.manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble import libE_logger
+from libensemble import logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
 
 USE_BALSAM = False
@@ -21,7 +21,7 @@ else:
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
 
 
-libE_logger.set_level('INFO')  # INFO is now default
+logger.set_level('INFO')  # INFO is now default
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -39,11 +39,11 @@ if not os.path.isfile('forces.x'):
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
+    exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor()  # Use allow_oversubscribe=False to prevent oversubscription
-exctr.register_calc(full_path=sim_app, calc_type='sim')
+    exctr = MPIExecutor()
+exctr.register_app(full_path=sim_app, app_name='forces')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
@@ -74,10 +74,9 @@ gen_specs = {'gen_f': gen_f,                  # Generator function
              }
 
 if PERSIS_GEN:
-    alloc_specs = {'alloc_f': alloc_f, 'out': [('given_back', bool)]}
+    alloc_specs = {'alloc_f': alloc_f}
 else:
     alloc_specs = {'alloc_f': alloc_f,
-                   'out': [('allocated', bool)],
                    'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
                             'num_active_gens': 1}  # Only one active generator at a time
                    }

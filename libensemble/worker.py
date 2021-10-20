@@ -21,6 +21,7 @@ from libensemble.output_directory import EnsembleDirectory
 
 from libensemble.utils.timer import Timer
 from libensemble.executors.executor import Executor
+from libensemble.resources.resources import Resources
 from libensemble.comms.logs import worker_logging_config
 from libensemble.comms.logs import LogConfig
 import cProfile
@@ -134,23 +135,24 @@ class Worker:
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
+        Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
     def _make_runners(sim_specs, gen_specs):
-        "Creates functions to run a sim or gen"
+        """Creates functions to run a sim or gen"""
 
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            "Calls the sim func."
+            """Calls the sim func."""
             return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                "Calls the gen func."
+                """Calls the gen func."""
                 return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
@@ -158,14 +160,35 @@ class Worker:
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
-    def _set_executor(workerID, comm):
-        "Optional - sets worker ID in the executor, return if set"
-        exctr = Executor.executor
-        if isinstance(exctr, Executor):
-            exctr.set_worker_info(comm, workerID)
+    def _set_rset_team(rset_team):
+        """Pass new rset_team to worker resources"""
+        resources = Resources.resources
+        if isinstance(resources, Resources):
+            resources.worker_resources.set_rset_team(rset_team)
             return True
         else:
-            logger.info("No executor set on worker {}".format(workerID))
+            return False
+
+    @staticmethod
+    def _set_executor(workerID, comm):
+        """Sets worker ID in the executor, return True if set"""
+        exctr = Executor.executor
+        if isinstance(exctr, Executor):
+            exctr.set_worker_info(comm, workerID)  # When merge update
+            return True
+        else:
+            logger.debug("No xecutor set on worker {}".format(workerID))
+            return False
+
+    @staticmethod
+    def _set_resources(workerID, comm):
+        """Sets worker ID in the resources, return True if set"""
+        resources = Resources.resources
+        if isinstance(resources, Resources):
+            resources.set_worker_resources(comm.get_num_workers(), workerID)
+            return True
+        else:
+            logger.debug("No resources set on worker {}".format(workerID))
             return False
 
     def _handle_calc(self, Work, calc_in):
@@ -190,7 +213,7 @@ class Worker:
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         # calc_id = next(self._calc_id_counter)
 
-        # SH from output_directory.py
+        # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = 'sim_id'
             calc_id = EnsembleDirectory.extract_H_ranges(Work)
@@ -201,7 +224,7 @@ class Worker:
                 calc_id = str(Work['libE_info']['gen_count'])
             else:
                 calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (mininum width).
+        # Add a right adjust (minimum width).
         calc_id = calc_id.rjust(5, ' ')
 
         timer = Timer()
@@ -265,7 +288,7 @@ class Worker:
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
     def _recv_H_rows(self, Work):
-        "Unpacks Work request and receives any history rows"
+        """Unpacks Work request and receives any history rows"""
 
         libE_info = Work['libE_info']
         calc_type = Work['tag']
@@ -282,7 +305,7 @@ class Worker:
         return libE_info, calc_type, calc_in
 
     def _handle(self, Work):
-        "Handles a work request from the manager"
+        """Handles a work request from the manager"""
 
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
@@ -290,9 +313,16 @@ class Worker:
         # Call user function
         libE_info['comm'] = self.comm
         libE_info['workerID'] = self.workerID
-        # libE_info['worker_team'] = [self.workerID] + libE_info.get('blocking', [])
+        libE_info['rset_team'] = libE_info.get('rset_team', [])
+        Worker._set_rset_team(libE_info['rset_team'])
+
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
-        del libE_info['comm']
+
+        if 'libE_info' in Work:
+            libE_info = Work['libE_info']
+
+        if 'comm' in libE_info:
+            del libE_info['comm']
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
@@ -307,7 +337,7 @@ class Worker:
                 'calc_type': calc_type}
 
     def run(self):
-        "Runs the main worker loop."
+        """Runs the main worker loop."""
 
         try:
             logger.info("Worker {} initiated on node {}".

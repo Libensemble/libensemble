@@ -28,7 +28,7 @@ class LogConfig:
         self.stats_name = name + ".calc stats"
         self.filename = "ensemble.log"
         self.stat_filename = 'libE_stats.txt'
-        self.fmt = '[%(worker)s] %(name)s (%(levelname)s): %(message)s'
+        self.fmt = '[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s'
         self.stderr_level = logging.MANAGER_WARNING
 
     def set_level(self, level):
@@ -50,13 +50,13 @@ class CommLogHandler(logging.Handler):
     """
 
     def __init__(self, comm, pack=None, level=logging.NOTSET):
-        "Initialize the handler instance, setting the level and the comm."
+        """Initialize the handler instance, setting the level and the comm."""
         super().__init__(level)
         self.comm = comm
         self.pack = pack
 
     def emit(self, record):
-        "Actually log the record."
+        """Actually log the record."""
         if self.pack is not None:
             self.comm.send(*self.pack(record))
         else:
@@ -72,7 +72,7 @@ class WorkerIDFilter(logging.Filter):
         self.worker_id = worker_id
 
     def filter(self, record):
-        "Add worker ID to a LogRecord"
+        """Add worker ID to a LogRecord"""
         record.worker = getattr(record, 'worker', self.worker_id)
         return True
 
@@ -101,6 +101,7 @@ def worker_logging_config(comm, worker_id=None):
     if logconfig.logger_set:
         for hdl in logger.handlers[:]:
             logger.removeHandler(hdl)
+            hdl.close()
     else:
         logger.propagate = False
         logger.setLevel(logconfig.log_level)
@@ -129,13 +130,13 @@ def manager_logging_config():
 
         # Stats logging
         # NB: Could add a specialized handler for immediate flushing
-        fh = logging.FileHandler(logconfig.stat_filename, mode='w')
-        fh.addFilter(wfilter)
-        fh.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
+        fhs = logging.FileHandler(logconfig.stat_filename, mode='w')
+        fhs.addFilter(wfilter)
+        fhs.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
         stat_logger = logging.getLogger(logconfig.stats_name)
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)
-        stat_logger.addHandler(fh)
+        stat_logger.addHandler(fhs)
 
         # Mirror error-logging to stderr of user-specified level
         fhe = logging.StreamHandler(stream=sys.stderr)
@@ -144,3 +145,9 @@ def manager_logging_config():
         fhe.addFilter(efilter)
         fhe.setFormatter(formatter)
         logger.addHandler(fhe)
+
+        def close_logs():
+            fh.close()
+            fhs.close()
+
+        return close_logs

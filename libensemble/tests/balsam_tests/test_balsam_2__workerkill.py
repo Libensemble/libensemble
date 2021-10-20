@@ -48,7 +48,7 @@ for sim_id in range(steps):
                               application="helloworld",
                               application_args=str(sleep_time),
                               num_nodes=1,
-                              ranks_per_node=8,
+                              procs_per_node=8,
                               stage_out_url="local:" + sim_path,
                               stage_out_files=jobname + ".out")
     if sim_id == 1:

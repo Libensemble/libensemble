@@ -39,7 +39,7 @@ def _print_local_cpu_resources():
 
 
 def _get_remote_cpu_resources(launcher):
-    """Launchs a probe job to obtain logical and physical cores on remote node"""
+    """Launches a probe job to obtain logical and physical cores on remote node"""
     import subprocess
     output = subprocess.check_output([launcher, 'python', __file__])
     return output.decode()
@@ -72,7 +72,7 @@ def _get_cpu_resources_from_env(env_resources=None):
 
         physical_cores_avail_per_node = counter[0]
         logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
-        logger.warning("SMT currently not detected, returning physical cores only. Specify ranks_per_node to override")
+        logger.warning("SMT currently not detected, returning physical cores only. Specify procs_per_node to override")
         return (physical_cores_avail_per_node, logical_cores_avail_per_node)
     else:
         return None

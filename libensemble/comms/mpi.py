@@ -25,7 +25,7 @@ class MPIComm(Comm):
     """
 
     def __init__(self, mpi_comm, remote_rank=0):
-        "Initialize with a given MPI communicator and rank for the other end"
+        """Initialize with a given MPI communicator and rank for the other end"""
         self.mpi_comm = mpi_comm
         self.remote_rank = remote_rank
         self.status = MPI.Status()
@@ -33,16 +33,21 @@ class MPIComm(Comm):
         self.recv_buffer = None
 
     def __del__(self):
-        "Wait on anything pending if comm is killed."
+        """Wait on anything pending if comm is killed."""
         for req in self._outbox:
             req.Wait()
 
     def mail_flag(self):
-        return (self.recv_buffer is not None
-                or self.mpi_comm.Iprobe(source=self.remote_rank))
+        if self.recv_buffer is not None:
+            return True
+        # Loop a few times to ensure MPI progress
+        for i in range(4):
+            if self.mpi_comm.Iprobe(source=self.remote_rank):
+                return True
+        return False
 
     def kill_pending(self):
-        "Make sure pending requests are cancelled if the comm is killed."
+        """Make sure pending requests are cancelled if the comm is killed."""
         for req in self._outbox:
             if not req.Test():
                 req.Cancel()
@@ -53,18 +58,18 @@ class MPIComm(Comm):
         return self.mpi_comm.Get_rank()
 
     def clean_outbox(self):
-        "Discard the request objects for any completed isends"
+        """Discard the request objects for any completed isends"""
         self._outbox = [req for req in self._outbox if not req.Test()]
 
     def send(self, *args):
-        "Send the requested message (as a pickle) via an MPI isend"
+        """Send the requested message (as a pickle) via an MPI isend"""
         self.clean_outbox()
         msg, tag = self.process_outgoing(args)
         req = self.mpi_comm.isend(msg, dest=self.remote_rank, tag=tag)
         self._outbox.append(req)
 
     def recv(self, timeout=None):
-        "Receive a message or raise TimeoutError."
+        """Receive a message or raise TimeoutError."""
         if self.recv_buffer is not None:
             result = self.recv_buffer
             self.recv_buffer = None
@@ -78,11 +83,11 @@ class MPIComm(Comm):
         return self.process_incoming(result, self.status)
 
     def process_outgoing(self, msg):
-        "Convert a communicator-format message to an MPI message and tag."
+        """Convert a communicator-format message to an MPI message and tag."""
         return msg, 0
 
     def process_incoming(self, msg, status):
-        "Convert an MPI message and tag to a local communicator format message."
+        """Convert an MPI message and tag to a local communicator format message."""
         return msg[0]
 
     def push_to_buffer(self, *args):

@@ -2,8 +2,8 @@ import numpy as np
 import subprocess
 import os
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.gen_support import sendrecv_mgr_worker_msg
+from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def build_H0(x_f_pairs, gen_specs, noise_h_mat):
@@ -49,11 +49,10 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     inform = np.zeros_like(noise_h_mat)
     Fnoise = np.zeros_like(noise_h_mat)
     maxnoiseits = U['maxnoiseits']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     n = len(x0)
     Fhist0 = np.zeros((n, p, nf+1))
-
-    comm = libE_info['comm']
     tag = None
 
     # # Request evaluations of the base point x0 at all p f_inds
@@ -74,7 +73,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
     iters = np.ones_like(noise_h_mat)
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
+    tag, Work, calc_in = ps.send_recv(H0)
 
     # import matlab.engine
     # eng = matlab.engine.start_matlab()
@@ -132,7 +131,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             break
 
         H0 = build_H0(x_f_pairs_new, gen_specs, noise_h_mat)
-        tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
+        tag, Work, calc_in = ps.send_recv(H0)
 
     persis_info['Fnoise'] = Fnoise
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG

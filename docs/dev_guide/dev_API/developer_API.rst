@@ -11,6 +11,9 @@ This section documents the internal modules of libEnsemble.
    worker_module
    history_module
    resources_module
-   mpi_resources_module
+   rset_resources_module
+   worker_resources_module
    env_resources_module
    node_resources_module
+   mpi_resources_module
+   scheduler_module

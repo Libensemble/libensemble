@@ -66,7 +66,7 @@ source $CONDA_DIR/activate $CONDA_ENV_NAME
 # Activate Balsam database
 source balsamactivate $BALSAM_DB_NAME
 
-# Currently need atleast one DB connection per worker (for postgres).
+# Currently need at least one DB connection per worker (for postgres).
 if [[ $NUM_WORKERS -gt 100 ]]
 then
    #Add a margin

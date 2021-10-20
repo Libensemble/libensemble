@@ -5,7 +5,7 @@ We now give greater detail in programming with libEnsemble.
 
 .. toctree::
    libe_module
-   history_output
+   history_output_logging
    data_structures/data_structures
 
 .. toctree::
@@ -16,7 +16,7 @@ We now give greater detail in programming with libEnsemble.
 
 .. toctree::
    executor/ex_index
-   logging
+   resource_manager/resources_index
 
 .. toctree::
    utilities

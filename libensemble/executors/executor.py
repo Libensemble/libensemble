@@ -17,7 +17,11 @@ import logging
 import itertools
 import time
 
-from libensemble.message_numbers import STOP_TAG, MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
+from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH,
+                                         MAN_SIGNAL_KILL, WORKER_DONE,
+                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
+                                         STOP_TAG)
+
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
 
@@ -294,8 +298,8 @@ class Executor:
 
     executor = None
 
-    def _wait_on_run(self, task, fail_time=None):
-        '''Called by submit when wait_on_run is True.
+    def _wait_on_start(self, task, fail_time=None):
+        '''Called by submit when wait_on_start is True.
 
         Blocks until task polls as having started.
         If fail_time is supplied, will also block until either task is in an
@@ -326,7 +330,6 @@ class Executor:
         This is typically created in the user calling script.
 
         """
-        self.top_level_dir = os.getcwd()
         self.manager_signal = 'none'
         self.default_apps = {'sim': None, 'gen': None}
         self.apps = {}
@@ -337,10 +340,8 @@ class Executor:
         self.comm = None
         Executor.executor = self
 
-    def _serial_setup(self):
-        pass  # To be overloaded
-
-    def add_comm_info(self, libE_nodes, serial_setup):
+    def serial_setup(self):
+        """Set up to be called by only one process"""
         pass  # To be overloaded
 
     @property
@@ -371,7 +372,11 @@ class Executor:
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
-    def register_calc(self, full_path, app_name=None, calc_type=None, desc=None):
+    def set_resources(self, resources):
+        # Does not use resources
+        pass
+
+    def register_app(self, full_path, app_name=None, calc_type=None, desc=None):
         """Registers a user application to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
@@ -435,6 +440,68 @@ class Executor:
             logger.warning("Received unrecognized manager signal {} - "
                            "ignoring".format(man_signal))
         self.comm.push_to_buffer(mtag, man_signal)
+        return man_signal
+
+    def polling_loop(self, task, timeout=None, delay=0.1, poll_manager=False):
+        """ Optional, blocking, generic task status polling loop. Operates until the task
+        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
+        for running an application via the Executor until it stops without monitoring
+        its intermediate output.
+
+        Parameters
+        ----------
+
+        task: object
+            a Task object returned by the executor on submission
+
+        timeout: int, optional
+            Maximum number of seconds for the polling loop to run. Tasks that run
+            longer than this limit are killed. Default: No timeout
+
+        delay: int, optional
+            Sleep duration between polling loop iterations. Default: 0.1 seconds
+
+        poll_manager: bool, optional
+            Whether to also poll the manager for 'finish' or 'kill' signals.
+            If detected, the task is killed. Default: False.
+
+        Returns
+        -------
+        calc_status: int
+            presumptive integer attribute describing the final status of a launched task
+
+        """
+
+        calc_status = UNSET_TAG
+
+        while not task.finished:
+            task.poll()
+
+            if poll_manager:
+                man_signal = self.manager_poll()
+                if self.manager_signal != 'none':
+                    task.kill()
+                    calc_status = man_signal
+                    break
+
+            if timeout is not None and task.runtime > timeout:
+                task.kill()
+                calc_status = WORKER_KILL_ON_TIMEOUT
+                break
+
+            time.sleep(delay)
+
+        if calc_status == UNSET_TAG:
+            if task.state == 'FINISHED':
+                calc_status = WORKER_DONE
+            elif task.state == 'FAILED':
+                calc_status = TASK_FAILED
+            else:
+                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
+                               .format(self.name, self.state, self.errcode))
+
+        return calc_status
 
     def get_task(self, taskid):
         """ Returns the task object for the supplied task ID """
@@ -453,7 +520,7 @@ class Executor:
         self.comm = comm
 
     def submit(self, calc_type=None, app_name=None, app_args=None,
-               stdout=None, stderr=None, dry_run=False, wait_on_run=False):
+               stdout=None, stderr=None, dry_run=False, wait_on_start=False):
         """Create a new task and run as a local serial subprocess.
 
         The created task object is returned.
@@ -482,7 +549,7 @@ class Executor:
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_run: boolean, optional
+        wait_on_start: boolean, optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
@@ -490,7 +557,7 @@ class Executor:
         -------
 
         task: obj: Task
-            The lauched task object
+            The launched task object
 
         """
 
@@ -518,8 +585,8 @@ class Executor:
                                                stdout=out,
                                                stderr=err,
                                                start_new_session=False)
-            if (wait_on_run):
-                self._wait_on_run(task, 0)  # No fail time as no re-starts in-place
+            if (wait_on_start):
+                self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
 
             if not task.timer.timing:
                 task.timer.start()

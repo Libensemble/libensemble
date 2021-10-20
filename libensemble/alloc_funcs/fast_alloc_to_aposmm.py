@@ -1,9 +1,8 @@
 import numpy as np
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
-from libensemble.tools.alloc_support import avail_worker_ids, sim_work, gen_work, count_gens
 
-
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
+def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
     to evaluate in the simulation function. The fields in ``sim_specs['in']``
@@ -16,10 +15,18 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         `test_old_aposmm_with_gradients.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
 
-    Work = {}
-    gen_count = count_gens(W)
+    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+        return {}, persis_info
 
-    for i in avail_worker_ids(W):
+    user = alloc_specs.get('user', {})
+    sched_opts = user.get('scheduler_opts', {})
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+
+    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    Work = {}
+    gen_count = support.count_gens()
+
+    for wid in support.avail_worker_ids():
         # Skip any cancelled points
         while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
             persis_info['next_to_give'] += 1
@@ -27,18 +34,20 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
         # Find indices of H that are not yet allocated
         if persis_info['next_to_give'] < len(H):
             # Give sim work if possible
-            sim_work(Work, i, sim_specs['in'], [persis_info['next_to_give']], [])
+            try:
+                Work[wid] = support.sim_work(wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
+            except InsufficientFreeResources:
+                break
             persis_info['next_to_give'] += 1
 
-        elif gen_count < alloc_specs['user'].get('num_active_gens', gen_count+1):
+        elif gen_count < user.get('num_active_gens', gen_count + 1):
             lw = persis_info['last_worker']
 
             last_size = persis_info.get('last_size')
+
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if (alloc_specs['user'].get('batch_mode')
-                    and not all(np.logical_or(H['returned'][last_size:],
-                                              H['paused'][last_size:]))):
+                if user.get('batch_mode') and not support.all_returned(pt_filter=~H['paused'], low_bound=last_size):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
@@ -49,13 +58,15 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info):
                     if not np.any(runs_needing_to_advance):
                         break
 
-            persis_info['last_size'] = len(H)
-
             # Give gen work
-            persis_info['total_gen_calls'] += 1
-            gen_count += 1
-            gen_work(Work, i, gen_specs['in'], range(len(H)), persis_info[lw])
+            try:
+                Work[wid] = support.gen_work(wid, gen_specs['in'], range(len(H)), persis_info[lw])
+            except InsufficientFreeResources:
+                break
 
-            persis_info['last_worker'] = i
+            gen_count += 1
+            persis_info['total_gen_calls'] += 1
+            persis_info['last_worker'] = wid
+            persis_info['last_size'] = len(H)
 
     return Work, persis_info

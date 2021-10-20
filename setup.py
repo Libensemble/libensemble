@@ -66,7 +66,7 @@ setup(
                    ],
 
     extras_require={
-        'extras': ['scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
+        'extras': ['pyyaml', 'scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
         'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
 
     classifiers=[
@@ -83,6 +83,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering',
         'Topic :: Software Development :: Libraries :: Python Modules'

@@ -56,6 +56,8 @@ class EnsembleDirectory:
             self.gen_dir_copy_files = self.specs.get('gen_dir_copy_files', [])
             self.gen_dir_symlink_files = self.specs.get('gen_dir_symlink_files', [])
             self.ensemble_copy_back = self.specs.get('ensemble_copy_back', False)
+            self.sim_use = any([i in self.specs for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
+            self.gen_use = any([i in self.specs for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
 
     def _make_copyback_dir(self):
         """Make copyback directory, adding suffix if identical to ensemble dir"""
@@ -79,13 +81,9 @@ class EnsembleDirectory:
         """Determines calc_dirs enabling for each calc type"""
 
         if type == EVAL_SIM_TAG:
-            dir_type_keys = libE_spec_sim_dir_keys
+            return self.sim_use
         else:
-            dir_type_keys = libE_spec_gen_dir_keys
-
-        dir_type_keys += libE_spec_calc_dir_misc
-
-        return any([setting in self.specs for setting in dir_type_keys])
+            return self.gen_use
 
     @staticmethod
     def extract_H_ranges(Work):

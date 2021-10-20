@@ -29,12 +29,12 @@ class History:
         Index where libEnsemble should start filling in H
 
     :ivar int given_count:
-        Number of points given to sim fuctions (according to H)
+        Number of points given to sim functions (according to H)
 
-    :ivar int sim_count:
+    :ivar int returned_count:
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and sim_count reflect the total number of points
+    Note that index, given_count and returned_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -50,7 +50,8 @@ class History:
         L = exit_criteria.get('sim_max', 100)
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        dtype_list = list(set(libE_fields + sum([k['out'] for k in [sim_specs, alloc_specs, gen_specs] if k], [])))
+        specs = [sim_specs, alloc_specs, gen_specs]
+        dtype_list = list(set(libE_fields + sum([k.get('out', []) for k in specs if k], [])))
         H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
         if len(H0):
@@ -77,15 +78,21 @@ class History:
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
         H['last_given_time'][-L:] = np.inf
+        H['last_given_back_time'][-L:] = np.inf
 
         self.H = H
-        # self.offset = 0
-        self.offset = len(H0)
-        self.index = self.offset
+        self.using_H0 = len(H0) > 0
+        self.index = len(H0)
+        self.grow_count = 0
 
         self.given_count = np.sum(H['given'])
+        self.returned_count = np.sum(H['returned'])
+        self.given_back_count = np.sum(H['given_back'])
+        self.given_back_warned = False
 
-        self.sim_count = np.sum(H['returned'])
+        self.given_offset = self.given_count
+        self.returned_offset = self.returned_count
+        self.given_back_offset = self.given_back_count
 
     def update_history_f(self, D, safe_mode):
         """
@@ -114,7 +121,7 @@ class History:
 
             self.H['returned'][ind] = True
             self.H['returned_time'][ind] = time.time()
-            self.sim_count += 1
+            self.returned_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
@@ -139,6 +146,27 @@ class History:
 
         self.given_count += len(q_inds)
 
+    def update_history_to_gen(self, q_inds):
+        """Updates the history (in place) when points are given back to the gen"""
+        q_inds = np.atleast_1d(q_inds)
+        t = time.time()
+
+        if q_inds.size > 0:
+            if np.all(self.H['returned'][q_inds]):
+                self.H['given_back'][q_inds] = True
+
+            elif np.any(self.H['returned'][q_inds]):  # sporadic returned points need updating
+                for ind in q_inds[self.H['returned'][q_inds]]:
+                    self.H['given_back'][ind] = True
+
+            if self.using_H0 and not self.given_back_warned:
+                logger.manager_warning(
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
+                self.given_back_warned = True
+
+            self.H['last_given_back_time'][q_inds] = t
+            self.given_back_count += len(q_inds)
+
     def update_history_x_in(self, gen_worker, D, safe_mode):
         """
         Updates the history (in place) when new points have been returned from a gen
@@ -161,7 +189,8 @@ class History:
             num_new = len(D)
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_H(self.grow_count)
 
             update_inds = np.arange(self.index, self.index+num_new)
             self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
@@ -175,7 +204,8 @@ class History:
             num_new = len(np.setdiff1d(D['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
-                self.grow_H(num_new-rows_remaining)
+                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_H(self.grow_count)
 
             update_inds = D['sim_id']
 
@@ -205,6 +235,7 @@ class History:
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
         H_1['last_given_time'] = np.inf
+        H_1['last_given_back_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

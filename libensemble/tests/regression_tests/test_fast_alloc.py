@@ -1,13 +1,12 @@
-# """
-# Runs libEnsemble on the 6-hump camel problem. Documented here:
-#    https://www.sfu.ca/~ssurjano/camel6.html
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_fast_alloc.py
-#    python3 test_fast_alloc.py --nworkers 3 --comms local
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Tests various capabilities of the libEnsemble fast_alloc alloc_f
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_fast_alloc.py
+   python3 test_fast_alloc.py --nworkers 3 --comms local
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -27,21 +26,29 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-num_pts = 30*(nworkers)
+num_pts = 30 * (nworkers)
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('large', float, 1000000)], 'user': {}}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('large', float, 1000000)],
+    'user': {},
+}
 
-gen_specs = {'gen_f': gen_f,
-             'in': ['sim_id'],
-             'out': [('x', float, (2,))],
-             'user': {'gen_batch_size': num_pts,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': ['sim_id'],
+    'out': [('x', float, (2,))],
+    'user': {
+        'gen_batch_size': num_pts,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 2*num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2 * num_pts, 'elapsed_wallclock_time': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want
@@ -61,17 +68,16 @@ for time in np.append([0], np.logspace(-5, -1, 5)):
 
         if time == 0:
             sim_specs['user'].pop('pause_time')
-            gen_specs['user']['gen_batch_size'] = num_pts//2
+            gen_specs['user']['gen_batch_size'] = num_pts // 2
 
         persis_info['next_to_give'] = 0
         persis_info['total_gen_calls'] = 1
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                    persis_info, alloc_specs, libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_manager:
             assert flag == 0
-            assert len(H) == 2*num_pts
+            assert len(H) == 2 * num_pts
 
         del H
         gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.
