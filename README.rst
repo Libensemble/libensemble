@@ -226,7 +226,7 @@ Resources
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-  @article{Hudson2021,
+  @article{Hudson2022,
     title   = {{libEnsemble}: A Library to Coordinate the Concurrent
                Evaluation of Dynamic Ensembles of Calculations},
     author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
@@ -234,7 +234,7 @@ Resources
     volume  = {33},
     number  = {4},
     pages   = {977--988},
-    year    = {2021},
+    year    = {2022},
     doi     = {10.1109/tpds.2021.3082815}
   }
 
