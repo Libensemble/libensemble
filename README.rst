@@ -7,11 +7,11 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
+.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
 
-.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
-   :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
+   :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
 
 .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
@@ -284,7 +284,7 @@ See a complete list of `example user scripts`_.
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
-.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
