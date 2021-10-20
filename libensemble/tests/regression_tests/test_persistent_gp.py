@@ -110,5 +110,12 @@ for run in range(3):
         gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-    if run in [1, 2] and is_manager:
-        assert len(np.unique(H['resource_sets'])) > 1, "Resource sets should be variable."
+
+    if is_manager:
+        if run == 0:
+            assert not len(np.unique(H['resource_sets'])) > 1, \
+                "Resource sets should be the same"
+
+        else:
+            assert len(np.unique(H['resource_sets'])) > 1, \
+                "Resource sets should be variable."
