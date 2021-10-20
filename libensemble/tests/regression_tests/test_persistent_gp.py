@@ -23,7 +23,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.tools import save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.gen_funcs.persistent_gp import (persistent_gp_gen_f,
