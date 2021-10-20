@@ -35,7 +35,7 @@ import warnings
 # Dragonfly uses a deprecated np.asscalar command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 
 def run_simulation(H, persis_info, sim_specs, libE_info):
@@ -110,8 +110,5 @@ for run in range(3):
         gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-
-# Save results to numpy file
-if is_master:
-    assert len(np.unique(H['resource_sets'])) > 1, "The resources sets should all be the same"
-    save_libE_output(H, persis_info, __file__, nworkers)
+    if run in [1, 2] and is_manager:
+        assert len(np.unique(H['resource_sets'])) > 1, "Resource sets should be variable."
