@@ -231,6 +231,9 @@ Resources
                Evaluation of Dynamic Ensembles of Calculations},
     author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
     journal = {{IEEE} Transactions on Parallel and Distributed Systems},
+    volume  = {33},
+    number  = {4},
+    pages   = {977--988},
     year    = {2021},
     doi     = {10.1109/tpds.2021.3082815}
   }
