@@ -14,7 +14,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
+# TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
