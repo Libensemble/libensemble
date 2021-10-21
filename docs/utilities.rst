@@ -30,3 +30,10 @@ examples.
 .. automodule:: alloc_support
    :members:
    :no-undoc-members:
+
+Consensus Subroutines
+---------------------
+
+.. automodule:: consensus_subroutines
+   :members:
+   :no-undoc-members:

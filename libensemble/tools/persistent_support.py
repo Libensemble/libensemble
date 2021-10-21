@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 
 
 class PersistentSupport:
-    """A helper class to assist with writing allocation functions."""
+    """A helper class to assist with writing persistent user functions."""
 
     def __init__(self, libE_info, calc_type):
         """

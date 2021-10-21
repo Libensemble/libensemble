@@ -31,4 +31,7 @@ libEnsemble is a library to coordinate the concurrent evaluation of dynamic ense
 * See the :doc:`FAQ<FAQ>` for common questions and answers, errors, and resolutions.
 * Check us out on `GitHub`_.
 
+**Users interested in updating to v0.8.0+ should read the** `Updating for libEnsemble v0.8.0`_ **wiki.**
+
 .. _GitHub: https://github.com/Libensemble/libensemble
+.. _Updating for libEnsemble v0.8.0: https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.8.0

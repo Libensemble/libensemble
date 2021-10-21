@@ -16,7 +16,7 @@ from doing any resource detection or management.
 Variable resource assignment
 ----------------------------
 
-In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. If the latter is set, dynamic resource assignment algorithm will always be used.
+In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` ``libE_specs`` option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. If the latter is set, the dynamic resource assignment algorithm will always be used.
 
 If there are more resource sets than nodes, then the resource sets on each node will be given a slot number, enumerated from zero. E.g.~ If there are three slots on a node, they will have slot numbers 0, 1 and 2.
 
@@ -40,7 +40,8 @@ In the calling script, use a ``gen_specs['out']`` field called ``resource_sets``
                  'in': ['sim_id'],
                  'out': [('priority', float),
                          ('resource_sets', int),
-                         ('x', float, n)],
+                         ('x', float, n)]
+                }
 
 For an example calling script, see The libEnsemble regression test `test_persistent_sampling_CUDA_variable_resources.py`_
 
@@ -62,7 +63,7 @@ When the allocation function assigns points to workers for evaluation, it will c
 
 The particular nodes and slots assigned to each worker will be determined by the libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
 
-In the user's simulation function, the resources supplied to the worker can be :doc:`interogated directly via the resources class attribute<worker_resources>`. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available.
+In the user's simulation function, the resources supplied to the worker can be :doc:`interogated directly via the resources class attribute<worker_resources>`. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs`` or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU cores available.
 
 `six_hump_camel.py`_ has two examples of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
 
@@ -85,7 +86,8 @@ while worker five would set::
 
     export CUDA_VISIBLE_DEVICES=2,3
 
-.. note:: If the user sets the number of resource sets directly using the ``num_resource_sets`` libE_specs option, then the dynamic resource assignment algorithm will always be used. If `resource_sets` is not a field in H, then each worker will use one resource set.
+.. note::
+    If the user sets the number of resource sets directly using the ``num_resource_sets`` ``libE_specs`` option, then the dynamic resource assignment algorithm will always be used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
 
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -137,7 +139,7 @@ Setting more resource sets than workers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Resource sets can be set to more than the number of corresponding workers. In this
-example there are 5 workers (one for the gen) and 8 resource sets. The additional
+example there are 5 workers (one for the generator) and 8 resource sets. The additional
 resources will be used for larger simulations.
 
 .. image:: ../images/variable_resources_more_rsets1.png

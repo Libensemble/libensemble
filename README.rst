@@ -7,11 +7,11 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
+.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
 
-.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
-   :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
+   :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
 
 .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
@@ -71,7 +71,7 @@ For libEnsemble running with the mpi4py parallelism:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependency:
+Optional dependencies:
 
 * Balsam_
 
@@ -232,7 +232,7 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.7.2+dev},
+    number  = {Revision 0.8.0},
     year    = {2021},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
@@ -260,6 +260,7 @@ libEnsemble generation capabilities include:
 
 - DEAP_ Distributed evolutionary algorithms
 - Distributed optimization methods for minimizing sums of convex functions. Methods include:
+
   - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
   - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
   - Proximal sliding (https://arxiv.org/abs/1406.0919).
@@ -269,7 +270,7 @@ libEnsemble generation capabilities include:
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
 - VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization
 
-libEnsemble has also been used to coordinate many computational expensive
+libEnsemble has also been used to coordinate many computationally expensive
 simulations. Select examples include:
 
 - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
@@ -283,7 +284,7 @@ See a complete list of `example user scripts`_.
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
-.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
