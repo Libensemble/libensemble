@@ -1,7 +1,13 @@
+import os
+import pytest
+
+if not os.environ['RUN_EXTRA']:
+    pytest.skip("Not running extra tests. Skipping test_alt_api.py", allow_module_level=True)
+
 import numpy as np
 from scipy.spatial.distance import cdist
 
-
+@pytest.mark.extra
 def test_cdist_issue():
     """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
 
@@ -13,7 +19,7 @@ def test_cdist_issue():
     dist_1 = cdist(np.atleast_2d(H['x'][3]), H['x'], 'euclidean')
     assert len(dist_1), "We didn't segfault"
 
-
+@pytest.mark.extra
 def test_save():
     """Seeing if I can save parts of the H array."""
 

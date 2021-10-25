@@ -203,7 +203,7 @@ usage() {
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
-  echo "  -e              Run extra regression tests that require additional dependencies"
+  echo "  -e              Run extra unit and regression tests that require additional dependencies"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -A {-flag arg}  Supply arguments to python"
@@ -259,7 +259,7 @@ while getopts ":p:n:a:y:A:hcszurmlte" opt; do
       export RUN_TCP=true
       ;;
     e)
-      echo "Running extra regression tests with additional dependencies"
+      echo "Running extra tests with additional dependencies"
       export RUN_EXTRA=true
       ;;
     m)

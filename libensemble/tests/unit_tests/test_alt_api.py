@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import pprint
 from libensemble.api import Ensemble
@@ -5,6 +6,7 @@ from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
 
+@pytest.mark.extra
 def test_ensemble_init():
     """ Only testing attrs most likely to encounter errors """
     e = Ensemble()
@@ -17,7 +19,7 @@ def test_ensemble_init():
     assert e._filename == __file__, \
         "Class instance's detected calling script not correctly set."
 
-
+@pytest.mark.extra
 def test_from_yaml():
     """ Test that Ensemble() specs dicts resemble setup dicts """
     e = Ensemble()
@@ -43,7 +45,7 @@ def test_from_yaml():
     assert e.gen_specs == gen_specs, \
         "instance's gen_specs isn't equivalent to sample gen_specs"
 
-
+@pytest.mark.extra
 def test_str_rep():
     """ Test that Ensemble() string rep resembles setup dicts string reps """
     e = Ensemble()
@@ -72,7 +74,7 @@ def test_str_rep():
     assert __version__ in repd, \
         "libEnsemble version not detected in string representation."
 
-
+@pytest.mark.extra
 def test_bad_func_loads():
     """ Test that Ensemble() raises expected errors (with warnings) on incorrect imports """
 
