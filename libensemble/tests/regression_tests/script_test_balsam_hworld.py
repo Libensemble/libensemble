@@ -81,7 +81,7 @@ if is_manager:
     with open('ensemble.log', 'r') as f:
         lines = f.readlines()
 
-    test = len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in) - 1) * nworkers
+    test = len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in)) * nworkers
     assert test, "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
 
     # Cleanup (maybe cover del_apps() and del_tasks())
