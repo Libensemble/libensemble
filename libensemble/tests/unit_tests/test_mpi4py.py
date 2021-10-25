@@ -1,5 +1,5 @@
-import os
 import pytest
+
 
 @pytest.mark.extra
 def test_mpi4py():

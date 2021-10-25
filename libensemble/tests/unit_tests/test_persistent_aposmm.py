@@ -1,4 +1,3 @@
-import os
 import pytest
 
 import numpy as np
@@ -6,6 +5,7 @@ import libensemble.gen_funcs.persistent_aposmm as al
 import libensemble.tests.unit_tests.setup as setup
 
 libE_info = {'comm': {}}
+
 
 @pytest.mark.extra
 def test_persis_aposmm_localopt_test():
@@ -25,6 +25,7 @@ def test_persis_aposmm_localopt_test():
     else:
         assert 0
 
+
 @pytest.mark.extra
 def test_update_history_optimal():
     hist, _, _, _, _ = setup.hist_setup1(n=2)
@@ -42,6 +43,7 @@ def test_update_history_optimal():
     opt_ind = al.update_history_optimal(H['x_on_cube'][-1]+1e-12, 1, H, np.arange(len(H)))
 
     assert opt_ind == 9, "Wrong point declared minimum"
+
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm():

@@ -19,6 +19,7 @@ def test_ensemble_init():
     assert e._filename == __file__, \
         "Class instance's detected calling script not correctly set."
 
+
 @pytest.mark.extra
 def test_from_yaml():
     """ Test that Ensemble() specs dicts resemble setup dicts """
@@ -44,6 +45,7 @@ def test_from_yaml():
 
     assert e.gen_specs == gen_specs, \
         "instance's gen_specs isn't equivalent to sample gen_specs"
+
 
 @pytest.mark.extra
 def test_str_rep():
@@ -73,6 +75,7 @@ def test_str_rep():
 
     assert __version__ in repd, \
         "libEnsemble version not detected in string representation."
+
 
 @pytest.mark.extra
 def test_bad_func_loads():

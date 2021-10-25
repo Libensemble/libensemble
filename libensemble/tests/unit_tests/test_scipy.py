@@ -7,6 +7,7 @@ if not os.environ['RUN_EXTRA']:
 import numpy as np
 from scipy.spatial.distance import cdist
 
+
 @pytest.mark.extra
 def test_cdist_issue():
     """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
@@ -18,6 +19,7 @@ def test_cdist_issue():
     H['x'] = np.random.uniform(0, 1, (20, 2))
     dist_1 = cdist(np.atleast_2d(H['x'][3]), H['x'], 'euclidean')
     assert len(dist_1), "We didn't segfault"
+
 
 @pytest.mark.extra
 def test_save():
