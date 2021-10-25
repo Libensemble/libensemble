@@ -19,7 +19,6 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     while task.runtime < timeout_sec:
         time.sleep(delay)
 
-        # print('Probing manager at time: ', task.runtime)
         exctr.manager_poll()
         if exctr.manager_signal == 'finish':
             exctr.kill(task)
@@ -27,15 +26,12 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
             print('Task {} killed by manager on worker {}'.format(task.id, exctr.workerID))
             break
 
-        # print('Polling task at time', task.runtime)
         task.poll()
         if task.finished:
             break
         elif task.state == 'RUNNING':
             print('Task {} still running on worker {} ....'.format(task.id, exctr.workerID))
 
-        # Check output file for error
-        # print('Checking output file for error at time:', task.runtime)
         if task.stdout_exists():
             if 'Error' in task.read_stdout():
                 print("Found (deliberate) Error in output file - cancelling "
@@ -53,8 +49,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
                 calc_status = WORKER_DONE
             elif task.state == 'FAILED':
                 calc_status = TASK_FAILED
-            # elif task.state == 'USER_KILLED':
-            #     calc_status = WORKER_KILL
+
     else:
         # assert task.state == 'RUNNING', "task.state expected to be RUNNING. Returned: " + str(task.state)
         print("Task {} timed out - killing on worker {}".format(task.id, exctr.workerID))
@@ -70,33 +65,39 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     """ Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs['user']['cores']
-    use_balsam = 'balsam_test' in sim_specs['user']
+    USE_BALSAM = 'balsam_test' in sim_specs['user']
+    ELAPSED_TIMEOUT = 'elapsed_timeout' in sim_specs['user']
 
-    args_for_sim = 'sleep 1'
-    # pref send this in X as a sim_in from calling script
-    global returned_count
-    returned_count += 1
-    timeout = 6.0
     wait = False
-    launch_shc = False
-    if returned_count == 1:
-        args_for_sim = 'sleep 1'  # Should finish
-    elif returned_count == 2:
-        args_for_sim = 'sleep 1 Error'  # Worker kill on error
-    if returned_count == 3:
-        wait = True
-        args_for_sim = 'sleep 1'  # Should finish
-        launch_shc = True
-    elif returned_count == 4:
-        args_for_sim = 'sleep 8'  # Worker kill on timeout
-        timeout = 1.0
-    elif returned_count == 5:
-        args_for_sim = 'sleep 2 Fail'  # Manager kill - if signal received else completes
-    elif returned_count == 6:
+    args_for_sim = 'sleep 1'
+
+    if ELAPSED_TIMEOUT:
         args_for_sim = 'sleep 60'  # Manager kill - if signal received else completes
         timeout = 65.0
 
-    if use_balsam:
+    else:
+        global returned_count
+        returned_count += 1
+        timeout = 6.0
+        launch_shc = False
+        print(returned_count)
+
+        if returned_count == 1:
+            args_for_sim = 'sleep 1'  # Should finish
+        elif returned_count == 2:
+            args_for_sim = 'sleep 1 Error'  # Worker kill on error
+        elif returned_count == 3:
+            wait = True
+            args_for_sim = 'sleep 1'  # Should finish
+            launch_shc = True
+        elif returned_count == 4:
+            args_for_sim = 'sleep 8'  # Worker kill on timeout
+            timeout = 1.0
+        elif returned_count == 5:
+            args_for_sim = 'sleep 2 Fail'  # Manager kill - if signal received else completes
+
+
+    if USE_BALSAM:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
                             hyperthreads=True, machinefile='notused', stdout='notused',
                             wait_on_start=True)
@@ -113,15 +114,19 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             calc_status = TASK_FAILED
 
     else:
-        if returned_count >= 2 and not use_balsam:
-            calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
-            if returned_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
-                calc_status = WORKER_KILL_ON_ERR
+        if not ELAPSED_TIMEOUT:
+            if returned_count >= 2 and not USE_BALSAM:
+                calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
+                if returned_count == 2 and task.stdout_exists() and 'Error' in task.read_stdout():
+                    calc_status = WORKER_KILL_ON_ERR
+
+            else:
+                task, calc_status = custom_polling_loop(exctr, task, timeout)
 
         else:
-            task, calc_status = custom_polling_loop(exctr, task, timeout)
+            calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
 
-    if use_balsam:
+    if USE_BALSAM:
         task.read_file_in_workdir('ensemble.log')
         try:
             task.read_stderr()
