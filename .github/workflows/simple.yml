@@ -72,6 +72,8 @@ jobs:
 
         - name: Install psutil, pyyaml
           run: |
+            conda install mpich
+            conda install mpi4py
             conda install psutil pyyaml
 
         - name: Install other test dependencies

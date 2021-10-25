@@ -142,7 +142,7 @@ jobs:
 
     coveralls:
         name: Notify coveralls of all jobs completing
-        needs: [test-libE, test-libE-with-Balsam]
+        needs: [test-libE]
         if: always()
         runs-on: ubuntu-latest
         container: python:3-slim
