@@ -103,12 +103,12 @@ jobs:
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run tests, Windows
           if: matrix.os == 'windows-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Merge coverage, run Coveralls
           env:
