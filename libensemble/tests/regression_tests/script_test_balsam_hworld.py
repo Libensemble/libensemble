@@ -60,7 +60,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 60}
+exit_criteria = {'sim_max': nworkers*5}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
@@ -68,7 +68,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 if is_manager:
     print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray(
-        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0]
+        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
     )
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
