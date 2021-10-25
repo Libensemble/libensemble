@@ -14,7 +14,6 @@ import numpy as np
 import multiprocessing
 
 # Import libEnsemble items for this test
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
@@ -22,7 +21,6 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.common import build_simfunc
 from libensemble.executors.mpi_executor import MPIExecutor
-
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -63,22 +61,18 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float), ('cstat', int)],
-    'user': {'cores': cores_per_task,
-             'elapsed_timeout': True
-    }
-
-}
+    'user': {
+        'cores': cores_per_task,
+        'elapsed_timeout': True}}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2,))],
+    'out': [('x', float, (2, ))],
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': nworkers,
-    }
-}
+        'gen_batch_size': nworkers, }}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

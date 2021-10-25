@@ -1,7 +1,6 @@
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR,
-                                         MAN_SIGNAL_FINISH, WORKER_DONE,
-                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT)
+from libensemble.message_numbers import (UNSET_TAG, WORKER_KILL_ON_ERR, MAN_SIGNAL_FINISH, WORKER_DONE, TASK_FAILED,
+                                         WORKER_KILL_ON_TIMEOUT)
 import numpy as np
 import os
 
@@ -96,11 +95,9 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         elif returned_count == 5:
             args_for_sim = 'sleep 2 Fail'  # Manager kill - if signal received else completes
 
-
     if USE_BALSAM:
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim,
-                            hyperthreads=True, machinefile='notused', stdout='notused',
-                            wait_on_start=True)
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True,
+                            machinefile='notused', stdout='notused', wait_on_start=True)
     else:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, hyperthreads=True)
 
@@ -134,8 +131,8 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             pass
 
         task = exctr.submit(app_name='sim_hump_camel_dry_run', num_procs=cores, app_args=args_for_sim,
-                            hyperthreads=True, machinefile='notused', stdout='notused',
-                            wait_on_start=True, dry_run=True, stage_inout=os.getcwd())
+                            hyperthreads=True, machinefile='notused', stdout='notused', wait_on_start=True,
+                            dry_run=True, stage_inout=os.getcwd())
 
         task.poll()
         task.wait()
@@ -165,8 +162,8 @@ def six_hump_camel_func(x):
     """
     x1 = x[0]
     x2 = x[1]
-    term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2
-    term2 = x1*x2
-    term3 = (-4+4*x2**2) * x2**2
+    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+    term2 = x1 * x2
+    term3 = (-4 + 4 * x2**2) * x2**2
 
     return term1 + term2 + term3
