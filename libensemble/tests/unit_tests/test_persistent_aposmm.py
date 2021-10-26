@@ -1,7 +1,6 @@
 import pytest
 
 import numpy as np
-import libensemble.gen_funcs.persistent_aposmm as al
 import libensemble.tests.unit_tests.setup as setup
 
 libE_info = {'comm': {}}
@@ -9,6 +8,8 @@ libE_info = {'comm': {}}
 
 @pytest.mark.extra
 def test_persis_aposmm_localopt_test():
+    import libensemble.gen_funcs.persistent_aposmm as al
+
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
     H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('returned', bool)])
@@ -28,6 +29,8 @@ def test_persis_aposmm_localopt_test():
 
 @pytest.mark.extra
 def test_update_history_optimal():
+    import libensemble.gen_funcs.persistent_aposmm as al
+
     hist, _, _, _, _ = setup.hist_setup1(n=2)
 
     H = hist.H
@@ -47,6 +50,7 @@ def test_update_history_optimal():
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm():
+    import libensemble.gen_funcs.persistent_aposmm as al
 
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad

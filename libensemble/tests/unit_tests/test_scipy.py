@@ -1,15 +1,13 @@
 import os
 import pytest
 
-if not os.environ['RUN_EXTRA']:
-    pytest.skip("Not running extra tests. Skipping test_alt_api.py", allow_module_level=True)
-
 import numpy as np
-from scipy.spatial.distance import cdist
 
 
 @pytest.mark.extra
 def test_cdist_issue():
+    from scipy.spatial.distance import cdist
+
     """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
 
     H = np.zeros(20, dtype=[('x', '<f8', (2,)), ('m', '<i8'), ('a', '<f8'), ('b', '?'), ('c', '?'),
