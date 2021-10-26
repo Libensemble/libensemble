@@ -7,12 +7,12 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: ubuntu-latest
+                os: 'ubuntu-latest'
                 python-version: [3.6, 3.7, 3.8, 3.9, '3.10']
                 include:
-                    - os: macos-latest
+                    - os: 'macos-latest'
                       python-version: 3.8
-                    - os: windows-latest
+                    - os: 'windows-latest'
                       python-version: 3.8
 
         env:
