@@ -27,6 +27,7 @@ simply comment out the import of "Blackbox" below
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXTRA: true
 
 import numpy as np
 import numpy.linalg as la
