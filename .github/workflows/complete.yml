@@ -1,7 +1,7 @@
 name: libE-Complete
 on: [pull_request]
 jobs:
-    test-libE:
+    test-libE-complete:
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
@@ -142,7 +142,7 @@ jobs:
 
     coveralls:
         name: Notify coveralls of all jobs completing
-        needs: [test-libE]
+        needs: [test-libE-complete]
         if: always()
         runs-on: ubuntu-latest
         container: python:3-slim

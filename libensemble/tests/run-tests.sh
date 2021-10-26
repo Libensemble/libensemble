@@ -388,13 +388,22 @@ if [ "$root_found" = true ]; then
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
+    if [ "$RUN_EXTRA" = true ]; then
+        EXTRA_UNIT_ARG="--runextra"
+    fi
+
     for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
     cd $ROOT_DIR/$DIR
-#     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
+
+    # unit test subdirs dont contain pytest's conftest.py that defines extra arg
+    if [ $DIR = $UNIT_TEST_NOMPI_SUBDIR ]; then
+        EXTRA_UNIT_ARG=""
+    fi
+
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
+      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
     fi;
 
     code=$?
