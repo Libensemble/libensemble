@@ -98,7 +98,7 @@ jobs:
         - name: Run tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
