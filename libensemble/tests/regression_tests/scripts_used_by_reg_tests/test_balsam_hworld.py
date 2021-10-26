@@ -82,22 +82,15 @@ def print_job_output(outscript):
     limit = 80
 
     print('Blank output file found. Waiting for expected complete Balsam Job Output.')
-    succeed_line = 'Received:  [34 34 31 31 34 34 32 32 33 33  0  0]\n'
-
-    lastposition = 0
+    succeed_line = 'Received:  [34 34 31 31 34 34 32 32 33 33]\n'
 
     while sleeptime < limit:
         with open(outscript, 'r') as f:
-            f.seek(lastposition)
-            new = f.read()
-            lastposition = f.tell()
+            lines = f.readlines()
 
-        if len(new) > 0:
-            print(new, flush=True)
-        else:
-            print(sleeptime, end=" ", flush=True)
+        print(sleeptime, end=" ", flush=True)
 
-        if succeed_line in new:
+        if succeed_line in lines:
             print('Success. Received task statuses match expected.')
             break
 
