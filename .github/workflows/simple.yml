@@ -7,26 +7,14 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
+                os: ubuntu-latest
                 python-version: [3.6, 3.7, 3.8, 3.9, '3.10']
-                comms-type: [l]
-                exclude:
+                include:
                     - os: macos-latest
-                      python-version: 3.6
-                    - os: macos-latest
-                      python-version: 3.7
-                    - os: macos-latest
-                      python-version: 3.9
-                    - os: macos-latest
-                      python-version: 3.10
+                      python-version: 3.8
                     - os: windows-latest
-                      python-version: 3.6
-                    - os: windows-latest
-                      python-version: 3.7
-                    - os: windows-latest
-                      python-version: 3.9
-                    - os: windows-latest
-                      python-version: 3.10
+                      python-version: 3.8
+
         env:
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -70,9 +58,17 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install psutil, pyyaml
+        - name: Install mpich, mpi4py, psutil, pyyaml
+          if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
           run: |
             conda install mpich
+            conda install mpi4py
+            conda install psutil pyyaml
+
+        - name: Install any compatible MPI, mpi4py, psutil, pyyaml
+          if: matrix.os == 'windows-latest'
+          run: |
+            conda install mpi
             conda install mpi4py
             conda install psutil pyyaml
 
@@ -95,22 +91,17 @@ jobs:
             flake8 libensemble
             ulimit -Sn 10000
 
-        - name: Run tests, Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+        - name: Run tests, Ubuntu or Windows
+          if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest' }}
           run: |
-           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -l
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
-
-        - name: Run tests, Windows
-          if: matrix.os == 'windows-latest'
-          run: |
-           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run-tests.sh -A "-W error" -z -l
 
         - name: Merge coverage, run Coveralls
           env:
