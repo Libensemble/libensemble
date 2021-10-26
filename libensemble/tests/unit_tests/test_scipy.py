@@ -4,7 +4,10 @@ import numpy as np
 
 @pytest.mark.extra
 def test_cdist_issue():
-    from scipy.spatial.distance import cdist
+    try:
+        from scipy.spatial.distance import cdist
+    except ModuleNotFoundError:
+        pytest.skip("scipy or its dependencies not importable. Skipping.")
 
     """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
 
