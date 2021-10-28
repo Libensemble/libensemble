@@ -12,8 +12,10 @@ jobs:
                 python-version: [3.6, 3.7, 3.8, 3.9, '3.10']
                 include:
                     - os: 'macos-latest'
+                      mpi-version: 'mpich'
                       python-version: 3.8
                     - os: 'windows-latest'
+                      mpi-version: 'msmpi'
                       python-version: 3.8
                     - os: 'ubuntu-latest'
                       mpi-version: 'openmpi'
@@ -62,15 +64,14 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install MPI - ${{ matrix.mpi-version }}
-          uses: mpi4py/setup-mpi@v1
-          with:
-            mpi: ${{ matrix.mpi-version }}
-
-        - name: Install mpi4py, psutil, pyyaml
+        - name: Install MPI, mpi4py
           run: |
-            pip install mpi4py
-            conda install psutil pyyaml
+            conda install ${{ matrix.mpi-version }}
+            conda install mpi4py
+
+        - name: Install psutil
+          run: |
+            pip install psutil
 
         - name: Install other test dependencies
           run: |

@@ -7,7 +7,6 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                mpi-version: [mpich]
                 python-version: [3.6, 3.7, 3.8, 3.9]
                 comms-type: [m, l]
                 include:
@@ -66,16 +65,12 @@ jobs:
             sudo apt-get install octave
             sudo apt-get install bc
 
-        - name: Install MPI - ${{ matrix.mpi-version }}
-          uses: mpi4py/setup-mpi@v1
-          with:
-            mpi: ${{ matrix.mpi-version }}
-
         - name: Install nlopt, scipy, mpi4py, blas, psutil, pyyaml
           run: |
             conda install nlopt
             conda install scipy
-            pip install mpi4py
+            conda install mpich
+            conda install mpi4py
             conda install libblas libopenblas psutil pyyaml
 
         - name: Install with-batch PETSc and petsc4py
