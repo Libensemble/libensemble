@@ -66,8 +66,8 @@ jobs:
             sudo apt-get install octave
             sudo apt-get install bc
 
-        - uses: mpi4py/setup-mpi@v1
-          name: Install MPI: ${{ matrix.mpi-version }}
+        - name: Install MPI - ${{ matrix.mpi-version }}
+          uses: mpi4py/setup-mpi@v1
           with:
             mpi: ${{ matrix.mpi-version }}
 
