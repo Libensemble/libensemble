@@ -37,6 +37,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 assert nworkers == 4, "This test requires exactly 4 workers"
 
+
 def run_simulation(H, persis_info, sim_specs, libE_info):
     # Extract input parameters
     values = list(H['x'][0])
@@ -120,18 +121,15 @@ for use_H0 in [False, True]:
 
         elif run == 2:
             gen_specs['gen_f'] = persistent_gp_mf_disc_gen_f
-            gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
+            gen_specs['user']['cost_func'] = lambda z: z[0][0] ** 3
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
         if is_manager:
-            if use_H0 == False:
+            if use_H0 is False:
                 if run == 0:
-                    assert not len(np.unique(H['resource_sets'])) > 1, \
-                        "Resource sets should be the same"
+                    assert not len(np.unique(H['resource_sets'])) > 1, "Resource sets should be the same"
 
-                    save_libE_output(H, persis_info, __file__, nworkers) # To be loaded in future calls to persistent_gp
-
+                    save_libE_output(H, persis_info, __file__, nworkers)  # Loaded in next persistent_gp calls
                 else:
-                    assert len(np.unique(H['resource_sets'])) > 1, \
-                        "Resource sets should be variable."
+                    assert len(np.unique(H['resource_sets'])) > 1, "Resource sets should be variable."
