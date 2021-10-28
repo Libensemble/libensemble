@@ -170,6 +170,7 @@ for run in range(3):
         gen_specs['user'].pop('trust_radf')
         gen_specs['user']['min_radf'] = 1e-16
         gen_specs['user']['pmode'] = True
+        gen_specs['user']['obj_bounds'] = np.full((1,num_objs),-np.inf)
 
         # Inelegant way to have the manager copy over the VTMOP checkpoint
         # file, and have every worker get the H value from the run==1 case to
