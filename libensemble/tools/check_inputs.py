@@ -211,6 +211,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_sim_specs(sim_specs)
 
     if gen_specs is not None:
+        if 'in' in gen_specs: 
+            assert isinstance(gen_specs['in'], list), 'gen_specs['in'] must be a list'
+
         for name in gen_specs.get('in', []):
             assert name in out_names, \
                 name + " in gen_specs['in'] is not in sim_specs['out'], "\
