@@ -15,7 +15,8 @@ jobs:
                       python-version: 3.8
                     - os: 'windows-latest'
                       python-version: 3.8
-                    - mpi-version: 'openmpi'
+                    - os: 'ubuntu-latest'
+                      mpi-version: 'openmpi'
                       python-version: 3.8
 
         env:
