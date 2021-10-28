@@ -15,7 +15,6 @@ with open(configfile, 'r') as infile:
         if line.startswith("mpicc ="):
             mpi4py_mpicc = line[8:-1]
             cmd_line = str(mpi4py_mpicc) + ' -v'
+            print(cmd_line, ":\n")
+            os.system(cmd_line)
             break
-
-print(cmd_line, ":\n")
-os.system(cmd_line)
