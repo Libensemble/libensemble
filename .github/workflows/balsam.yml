@@ -9,7 +9,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                mpi-version: ['mpich']
+                mpi-version: [mpich]
                 python-version: [3.8]
                 comms-type: [l]
 
