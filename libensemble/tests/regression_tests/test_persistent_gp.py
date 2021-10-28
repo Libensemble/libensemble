@@ -1,7 +1,7 @@
 """
 Example of multi-fidelity optimization using a persistent GP gen_func (calling
 dragonfly) and an algebraic sim_f (that doesn't change with the amount of
-resources give). Tests both with and without using an initial H0. 
+resources give). Tests both with and without using an initial H0.
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 5 python3 test_persistent_gp.py
@@ -24,11 +24,9 @@ from libensemble.libE import libE
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.tools import add_unique_random_streams
-from libensemble.tools import parse_args, save_libE_output
+from libensemble.tools import parse_args
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.gen_funcs.persistent_gp import (persistent_gp_gen_f,
-                                                 persistent_gp_mf_gen_f,
-                                                 persistent_gp_mf_disc_gen_f)
+from libensemble.gen_funcs.persistent_gp import persistent_gp_gen_f, persistent_gp_mf_gen_f, persistent_gp_mf_disc_gen_f
 
 import warnings
 
@@ -70,7 +68,7 @@ gen_specs = {
         # parameters to input into the simulation.
         ('x', float, (2,)),
         ('z', float),
-        ('resource_sets', int)
+        ('resource_sets', int),
     ],
     'user': {
         'range': [1, 8],
@@ -107,17 +105,16 @@ for run in range(3):
 
     elif run == 2:
         gen_specs['gen_f'] = persistent_gp_mf_disc_gen_f
-        gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
+        gen_specs['user']['cost_func'] = lambda z: z[0][0] ** 3
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
         if run == 0:
-            assert not len(np.unique(H['resource_sets'])) > 1, \
-                "Resource sets should be the same"
+            assert not len(np.unique(H['resource_sets'])) > 1, "Resource sets should be the same"
 
 # for use_H0 in [False, True]:
-#     if use_H0: 
+#     if use_H0:
 #         H0 = None
 #     else:
 #         if libE_specs['comms'] == 'mpi':  # Want to make sure manager has saved output
@@ -143,9 +140,8 @@ for run in range(3):
 #                 assert not len(np.unique(H['resource_sets'])) > 1, \
 #                     "Resource sets should be the same"
 
-#                 save_libE_output(H, persis_info, __file__, nworkers) # To be loaded in in subsequent calls to persistent_gp
+#                 save_libE_output(H, persis_info, __file__, nworkers) # To be loaded in future calls to persistent_gp
 
 #             else:
 #                 assert len(np.unique(H['resource_sets'])) > 1, \
 #                     "Resource sets should be variable."
-
