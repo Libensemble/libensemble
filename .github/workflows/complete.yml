@@ -75,7 +75,7 @@ jobs:
           run: |
             conda install nlopt
             conda install scipy
-            conda install mpi4py
+            pip install mpi4py
             conda install libblas libopenblas psutil pyyaml
 
         - name: Install with-batch PETSc and petsc4py

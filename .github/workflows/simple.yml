@@ -69,7 +69,7 @@ jobs:
 
         - name: Install mpi4py, psutil, pyyaml
           run: |
-            conda install mpi4py
+            pip install mpi4py
             conda install psutil pyyaml
 
         - name: Install other test dependencies
