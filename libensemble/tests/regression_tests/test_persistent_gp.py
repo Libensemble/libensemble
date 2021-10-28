@@ -24,7 +24,7 @@ from libensemble.libE import libE
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.tools import add_unique_random_streams
-from libensemble.tools import parse_args
+from libensemble.tools import parse_args, save_libE_output
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.gen_funcs.persistent_gp import persistent_gp_gen_f, persistent_gp_mf_gen_f, persistent_gp_mf_disc_gen_f
 
@@ -35,6 +35,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+assert nworkers == 4, "This test requires exactly 4 workers"
 
 def run_simulation(H, persis_info, sim_specs, libE_info):
     # Extract input parameters
@@ -72,7 +73,6 @@ gen_specs = {
     ],
     'user': {
         'range': [1, 8],
-        'cost_func': lambda z: z[0],
         # Total max number of sims running concurrently.
         'gen_batch_size': nworkers - 1,
         # Lower bound for the n parameters.
@@ -90,58 +90,48 @@ alloc_specs = {
 # libE logger
 logger.set_level('INFO')
 
-# Exit criteria
-exit_criteria = {'sim_max': 10}  # Exit after running sim_max simulations
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Run LibEnsemble, and store results in history array H
-for run in range(3):
-    # Create a different random number stream for each worker and the manager
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+for use_H0 in [False, True]:
+    if use_H0:
+        if libE_specs['comms'] == 'mpi':  # Want to make sure manager has saved output
+            libE_specs['mpi_comm'].Barrier()
+        H0 = np.load('persistent_gp_history_length=12_evals=10_workers=4.npy')
+        H0 = H0[:10]
+        gen_specs['in'] = list(H0.dtype.names)
+        exit_criteria = {'sim_max': 5}  # Do 5 more evaluations
+    else:
+        H0 = None
+        # Exit criteria
+        exit_criteria = {'sim_max': 10}  # Exit after running sim_max simulations
 
-    if run == 1:
-        gen_specs['gen_f'] = persistent_gp_mf_gen_f
+    for run in range(3):
+        # Create a different random number stream for each worker and the manager
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    elif run == 2:
-        gen_specs['gen_f'] = persistent_gp_mf_disc_gen_f
-        gen_specs['user']['cost_func'] = lambda z: z[0][0] ** 3
-
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-
-    if is_manager:
         if run == 0:
-            assert not len(np.unique(H['resource_sets'])) > 1, "Resource sets should be the same"
+            gen_specs['gen_f'] = persistent_gp_gen_f
+            gen_specs['user']['cost_func'] = lambda z: z[0]
+        if run == 1:
+            gen_specs['gen_f'] = persistent_gp_mf_gen_f
+            gen_specs['user']['cost_func'] = lambda z: z[0]
 
-# for use_H0 in [False, True]:
-#     if use_H0:
-#         H0 = None
-#     else:
-#         if libE_specs['comms'] == 'mpi':  # Want to make sure manager has saved output
-#             libE_specs['mpi_comm'].Barrier()
-#         H0 = np.load('persistent_gp_history_length=10_evals=10_workers=3.npy')
-#         gen_specs['in'] = list(H0.dtype.names)
+        elif run == 2:
+            gen_specs['gen_f'] = persistent_gp_mf_disc_gen_f
+            gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
 
-#     for run in range(3):
-#         # Create a different random number stream for each worker and the manager
-#         persis_info = add_unique_random_streams({}, nworkers + 1)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
-#         if run == 1:
-#             gen_specs['gen_f'] = persistent_gp_mf_gen_f
+        if is_manager:
+            if use_H0 == False:
+                if run == 0:
+                    assert not len(np.unique(H['resource_sets'])) > 1, \
+                        "Resource sets should be the same"
 
-#         elif run == 2:
-#             gen_specs['gen_f'] = persistent_gp_mf_disc_gen_f
-#             gen_specs['user']['cost_func'] = lambda z: z[0][0]**3
+                    save_libE_output(H, persis_info, __file__, nworkers) # To be loaded in future calls to persistent_gp
 
-#         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
-
-#         if is_manager:
-#             if run == 0:
-#                 assert not len(np.unique(H['resource_sets'])) > 1, \
-#                     "Resource sets should be the same"
-
-#                 save_libE_output(H, persis_info, __file__, nworkers) # To be loaded in future calls to persistent_gp
-
-#             else:
-#                 assert len(np.unique(H['resource_sets'])) > 1, \
-#                     "Resource sets should be variable."
+                else:
+                    assert len(np.unique(H['resource_sets'])) > 1, \
+                        "Resource sets should be variable."
