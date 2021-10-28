@@ -51,8 +51,8 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install MPI: ${{ matrix.mpi-version }}
-          uses: mpi4py/setup-mpi@v1
+        - uses: mpi4py/setup-mpi@v1
+          name: Install MPI: ${{ matrix.mpi-version }}
           with:
             mpi: ${{ matrix.mpi-version }}
 
