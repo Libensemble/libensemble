@@ -104,14 +104,14 @@ jobs:
         - name: Run tests, Ubuntu or Windows
           if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest' }}
           run: |
-           ./libensemble/tests/run-tests.sh -A "-W error" -z -l
+           ./libensemble/tests/run-tests.sh -A -z -l
 
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -l
+            ./libensemble/tests/run-tests.sh -A -z -l
 
         - name: Merge coverage, run Coveralls
           env:
