@@ -64,10 +64,17 @@ jobs:
             sudo apt-get update
             sudo apt-get install bc
 
-        - name: Install MPI, mpi4py
+        - name: Install MPI, mpi4py from conda
+          if: matrix.python-version != '3.10'
           run: |
             conda install ${{ matrix.mpi-version }}
             conda install mpi4py
+
+        - name: Install MPI, mpi4py from pip
+          if: matrix.python-version == '3.10'
+          run: |
+            conda install ${{ matrix.mpi-version }}
+            pip install mpi4py
 
         - name: Install psutil
           run: |
@@ -79,12 +86,20 @@ jobs:
             pip install -r install/testing_requirements.txt
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
+          if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest' }}
           run: |
             python install/find_mpi.py
             mpiexec --version
             pip install -e .
             flake8 libensemble
             ulimit -Sn 10000
+
+        - name: Find MPI, Install libEnsemble, flake8
+          if: matrix.os == 'windows-latest'
+          run: |
+            python install/find_mpi.py
+            pip install -e .
+            flake8 libensemble
 
         - name: Run tests, Ubuntu or Windows
           if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'windows-latest' }}
