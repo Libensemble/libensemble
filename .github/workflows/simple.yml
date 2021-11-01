@@ -106,6 +106,11 @@ jobs:
           run: |
            ./libensemble/tests/run-tests.sh -z -l
 
+        - name: Run tests, Open MPI
+          if: ${{ matrix.mpi-version' == 'openmpi' }}
+          run: |
+           ./libensemble/tests/run-tests.sh -z -l -a --oversubscribe
+
         - name: Run tests, macOS
           if: matrix.os == 'macos-latest'
           env:

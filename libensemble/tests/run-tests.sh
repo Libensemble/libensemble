@@ -469,8 +469,15 @@ if [ "$root_found" = true ]; then
     do
       COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
       IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+      OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
 
       if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
+        continue
+      fi
+
+      # Tests involving the MPIExecutor cant be run with Open MPI
+      if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]]; then
+        echo "Skipping test number for Open MPI: " $test_num
         continue
       fi
 
