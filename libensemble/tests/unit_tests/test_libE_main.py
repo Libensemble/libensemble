@@ -46,10 +46,12 @@ class Fake_MPI:
         assert flag == 1, 'Aborting without exit code of 1'
         raise MPIAbortException()
 
+
 class Fake_MPI_1P(Fake_MPI):
 
     def Get_size(self):
         return 1
+
 
 fake_mpi = Fake_MPI()
 fake_mpi_1p = Fake_MPI_1P()
