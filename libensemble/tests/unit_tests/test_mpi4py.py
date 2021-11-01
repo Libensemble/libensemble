@@ -1,7 +1,3 @@
-import pytest
-
-
-@pytest.mark.extra
 def test_mpi4py():
     from libensemble.sim_funcs.helloworld import size, rank, name
 

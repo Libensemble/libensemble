@@ -21,6 +21,7 @@ def create_node_file(num_nodes, name='node_list'):
 def mpi_comm_excl(exc=[0], comm=None):
     "Exclude ranks from a communicator for MPI comms."
     from mpi4py import MPI
+    MPI.Init()  # For unit tests, since auto-init disabled to prevent test_executor issues
 
     parent_comm = comm or MPI.COMM_WORLD
     parent_group = parent_comm.Get_group()
