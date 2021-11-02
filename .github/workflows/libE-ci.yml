@@ -81,12 +81,14 @@ jobs:
           env:
             PETSC_CONFIGURE_OPTIONS: '--with-batch'
           run: |
+              conda install superlu_dist=6.2.0
               conda install hypre=2.22.0
               conda install petsc4py
 
         - name: Install mumps-mpi, PETSc, petsc4py
           if: matrix.python-version != 3.8
           run: |
+            conda install superlu_dist=6.2.0
             conda install hypre=2.22.0
             conda install mumps-mpi
             conda install petsc
