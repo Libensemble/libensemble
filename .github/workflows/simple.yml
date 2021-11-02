@@ -14,12 +14,13 @@ jobs:
                     - os: 'macos-latest'
                       mpi-version: 'mpich'
                       python-version: 3.8
-                    - os: 'windows-latest'
-                      mpi-version: 'msmpi'
-                      python-version: 3.8
                     - os: 'ubuntu-latest'
                       mpi-version: 'openmpi'
                       python-version: 3.8
+                    # - os: 'windows-latest'
+                    #   mpi-version: 'msmpi'
+                    #   python-version: 3.8
+
 
         env:
             TERM: xterm-256color
