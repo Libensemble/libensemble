@@ -46,7 +46,7 @@ gen_specs = {
     'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': 100,
-        'replace_final_fields': True,
+        'replace_final_fields': False,
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
     },
