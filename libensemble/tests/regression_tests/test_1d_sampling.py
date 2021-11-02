@@ -24,6 +24,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['save_every_k_gens'] = 300
 libE_specs['safe_mode'] = False
+libE_specs['disable_log_files'] = True
 
 sim_specs = {
     'sim_f': sim_f,

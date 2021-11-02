@@ -45,6 +45,7 @@ gen_specs = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 libE_specs['abort_on_exception'] = False
+libE_specs['save_H_and_persis_on_abort'] = False
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 10}
