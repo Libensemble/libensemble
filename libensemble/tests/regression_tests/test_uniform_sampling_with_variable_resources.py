@@ -84,10 +84,9 @@ exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 for prob_id in range(2):
     if prob_id == 0:
         sim_specs['user']['app'] = 'six_hump_camel'
-    else: 
-        sim_specs['user']['app'] = 'helloworld'  
+    else:
+        sim_specs['user']['app'] = 'helloworld'
         libE_specs['ensemble_dir_path'] = 'dummy'
-
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
