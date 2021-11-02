@@ -61,10 +61,9 @@ alloc_specs = {'alloc_f': alloc_f, 'out': []}
 for prob_id in range(2):
     if prob_id == 0:
         gen_specs['user']['replace_final_fields'] = False
-    else: 
+    else:
         gen_specs['user']['replace_final_fields'] = True
         libE_specs['final_fields'] = ['x', 'f', 'sim_id']
-
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
