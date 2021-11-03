@@ -195,6 +195,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
+        if 'in' in alloc_specs:
+            assert isinstance(alloc_specs['in'], list), "alloc_specs['in'] must be a list"
+
         for name in alloc_specs.get('in', []):
             assert name in out_names, \
                 name + " in alloc_specs['in'] is not in sim_specs['out'], "\
@@ -203,6 +206,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_alloc_specs(alloc_specs)
 
     if sim_specs is not None:
+        if 'in' in sim_specs:
+            assert isinstance(sim_specs['in'], list), "sim_specs['in'] must be a list"
+
         for name in sim_specs.get('in', []):
             assert name in out_names, \
                 name + " in sim_specs['in'] is not in sim_specs['out'], "\
