@@ -1,5 +1,3 @@
-from mpi4py import MPI
-
 import numpy as np
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
@@ -12,7 +10,7 @@ from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.resources import Resources
 
 al = {'alloc_f': give_sim_work_first, 'out': []}
-libE_specs = {'mpi_comm': MPI.COMM_WORLD}
+libE_specs = {'comms': 'local', 'nworkers': 4}
 H0 = []
 
 W = np.array([(1, 0, 0, 0, False), (2, 0, 0, 0, False),

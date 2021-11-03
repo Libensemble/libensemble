@@ -7,7 +7,6 @@ from libensemble.libE import check_inputs, libE
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from mpi4py import MPI
 from libensemble.resources.resources import Resources
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
@@ -48,7 +47,14 @@ class Fake_MPI:
         raise MPIAbortException()
 
 
+class Fake_MPI_1P(Fake_MPI):
+
+    def Get_size(self):
+        return 1
+
+
 fake_mpi = Fake_MPI()
+fake_mpi_1p = Fake_MPI_1P()
 
 alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
 hfile_abort = 'libE_history_at_abort_0.npy'
@@ -171,7 +177,7 @@ def test_checking_inputs_noworkers():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     H0 = np.empty(0)
     # Should fail because only got a manager
-    libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    libE_specs = {'mpi_comm': fake_mpi_1p, 'comms': 'mpi'}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'must be at least one worker' in errstr, 'Incorrect assertion error: ' + errstr
 

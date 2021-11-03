@@ -42,7 +42,10 @@ def _get_zrw(nworkers, nsim_workers):
 
 def _mpi_parse_args(args):
     """Parses arguments for MPI comms."""
-    from mpi4py import MPI
+    from mpi4py import MPI, rc
+    if rc.initialize is False and not MPI.Is_initialized():
+        MPI.Init()
+
     nworkers = MPI.COMM_WORLD.Get_size()-1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
     libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}

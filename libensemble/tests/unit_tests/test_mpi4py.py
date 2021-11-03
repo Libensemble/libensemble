@@ -1,5 +1,6 @@
-from libensemble.sim_funcs.helloworld import size, rank, name
+def test_mpi4py():
+    from libensemble.sim_funcs.helloworld import size, rank, name
 
-assert size == 1
-assert rank == 0
-assert len(name)
+    assert size == 1
+    assert rank == 0
+    assert len(name)
