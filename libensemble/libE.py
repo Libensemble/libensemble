@@ -448,7 +448,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     if not libE_specs.get('disable_log_files', False):
         close_logs = manager_logging_config()
-    else: 
+    else:
         close_logs = None
 
     # Set up cleanup routine to shut down worker team
