@@ -1,12 +1,15 @@
+import pytest
 import numpy as np
 import pprint
-from libensemble.api import Ensemble
 from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
 
+@pytest.mark.extra
 def test_ensemble_init():
     """ Only testing attrs most likely to encounter errors """
+    from libensemble.api import Ensemble
+
     e = Ensemble()
     assert all([i in e.libE_specs for i in ['comms', 'mpi_comm']]), \
         "parse_args() didn't populate default values for the class instance's libE_specs"
@@ -18,8 +21,11 @@ def test_ensemble_init():
         "Class instance's detected calling script not correctly set."
 
 
+@pytest.mark.extra
 def test_from_yaml():
     """ Test that Ensemble() specs dicts resemble setup dicts """
+    from libensemble.api import Ensemble
+
     e = Ensemble()
     e.from_yaml('./simdir/test_example.yaml')
 
@@ -44,8 +50,11 @@ def test_from_yaml():
         "instance's gen_specs isn't equivalent to sample gen_specs"
 
 
+@pytest.mark.extra
 def test_str_rep():
     """ Test that Ensemble() string rep resembles setup dicts string reps """
+    from libensemble.api import Ensemble
+
     e = Ensemble()
     e.from_yaml('./simdir/test_example.yaml')
 
@@ -73,8 +82,10 @@ def test_str_rep():
         "libEnsemble version not detected in string representation."
 
 
+@pytest.mark.extra
 def test_bad_func_loads():
     """ Test that Ensemble() raises expected errors (with warnings) on incorrect imports """
+    from libensemble.api import Ensemble
 
     yaml_errors = {'./simdir/test_example_badfuncs_attribute.yaml': AttributeError,
                    './simdir/test_example_badfuncs_notfound.yaml': ModuleNotFoundError}

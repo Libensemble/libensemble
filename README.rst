@@ -237,12 +237,15 @@ Resources
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-  @article{Hudson2021,
+  @article{Hudson2022,
     title   = {{libEnsemble}: A Library to Coordinate the Concurrent
                Evaluation of Dynamic Ensembles of Calculations},
     author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
     journal = {{IEEE} Transactions on Parallel and Distributed Systems},
-    year    = {2021},
+    volume  = {33},
+    number  = {4},
+    pages   = {977--988},
+    year    = {2022},
     doi     = {10.1109/tpds.2021.3082815}
   }
 
@@ -288,7 +291,7 @@ See a complete list of `example user scripts`_.
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
-.. _example user scripts: https://libensemble.readthedocs.io/en/docs-capabilities_section/examples/examples_index.html
+.. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
