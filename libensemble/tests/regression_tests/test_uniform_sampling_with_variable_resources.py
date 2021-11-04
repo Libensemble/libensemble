@@ -28,7 +28,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers)
+libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers) + '_' + libE_specs.get('comms')
 
 if libE_specs['comms'] == 'tcp':
     sys.exit("This test only runs with MPI or local -- aborting...")
