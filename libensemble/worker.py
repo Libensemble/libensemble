@@ -30,9 +30,9 @@ import pstats
 try:
     from funcx import FuncXClient
     from funcx.sdk.executor import FuncXExecutor
-    funcx_importable=True
+    funcx_importable = True
 except ModuleNotFoundError:
-    funcx_importable=False
+    funcx_importable = False
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -159,7 +159,7 @@ class Worker:
             if use_funcx and 'funcx_endpoint' in sim_specs:
                 libE_info['comm'] = None
                 future = funcx_executor.submit(sim_f, calc_in, persis_info, sim_specs, libE_info,
-                    endpoint_id=sim_specs['funcx_endpoint'])
+                                               endpoint_id=sim_specs['funcx_endpoint'])
                 return future.result()
             else:
                 return sim_f(calc_in, persis_info, sim_specs, libE_info)
@@ -172,7 +172,7 @@ class Worker:
                 if use_funcx and 'funcx_endpoint' in gen_specs:
                     libE_info['comm'] = None
                     future = funcx_executor.submit(gen_f, calc_in, persis_info, gen_specs, libE_info,
-                        endpoint_id=gen_specs['funcx_endpoint'])
+                                                   endpoint_id=gen_specs['funcx_endpoint'])
                     return future.result()
                 else:
                     return gen_f(calc_in, persis_info, gen_specs, libE_info)

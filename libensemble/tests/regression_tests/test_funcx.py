@@ -37,7 +37,7 @@ endpoint_uuid = output[output.index('uuid:')+1]
 
 sim_specs = {
     'sim_f': sim_f,
-    'funcx_endpoint': endpoint_uuid, # endpoint for remote resource on which to run sim_f
+    'funcx_endpoint': endpoint_uuid,  # endpoint for remote resource on which to run sim_f
     'in': ['x'],
     'out': [('f', float)],
 }
