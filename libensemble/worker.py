@@ -27,6 +27,13 @@ from libensemble.comms.logs import LogConfig
 import cProfile
 import pstats
 
+try:
+    from funcx import FuncXClient
+    from funcx.sdk.executor import FuncXExecutor
+    funcx_importable=True
+except ModuleNotFoundError:
+    funcx_importable=False
+
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
@@ -129,7 +136,6 @@ class Worker:
         self.comm = comm
         self.dtypes = dtypes
         self.workerID = workerID
-        self.sim_specs = sim_specs
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
@@ -144,16 +150,32 @@ class Worker:
 
         sim_f = sim_specs['sim_f']
 
+        if funcx_importable and (('funcx_endpoint' in sim_specs) or ('funcx_endpoint' in gen_specs)):
+            funcx_executor = FuncXExecutor(FuncXClient())
+            use_funcx = True
+
         def run_sim(calc_in, persis_info, libE_info):
             """Calls the sim func."""
-            return sim_f(calc_in, persis_info, sim_specs, libE_info)
+            if use_funcx and 'funcx_endpoint' in sim_specs:
+                libE_info['comm'] = None
+                future = funcx_executor.submit(sim_f, calc_in, persis_info, sim_specs, libE_info,
+                    endpoint_id=sim_specs['funcx_endpoint'])
+                return future.result()
+            else:
+                return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
                 """Calls the gen func."""
-                return gen_f(calc_in, persis_info, gen_specs, libE_info)
+                if use_funcx and 'funcx_endpoint' in gen_specs:
+                    libE_info['comm'] = None
+                    future = funcx_executor.submit(gen_f, calc_in, persis_info, gen_specs, libE_info,
+                        endpoint_id=gen_specs['funcx_endpoint'])
+                    return future.result()
+                else:
+                    return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
 
