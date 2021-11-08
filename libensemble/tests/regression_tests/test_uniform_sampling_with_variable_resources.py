@@ -86,7 +86,7 @@ for prob_id in range(2):
         sim_specs['user']['app'] = 'six_hump_camel'
     else:
         sim_specs['user']['app'] = 'helloworld'
-        libE_specs['ensemble_dir_path'] = 'dummy'
+        libE_specs['ensemble_dir_path'] = 'ensemble_dummy'
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
