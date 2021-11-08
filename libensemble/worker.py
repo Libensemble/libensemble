@@ -148,6 +148,8 @@ class Worker:
             from funcx.sdk.executor import FuncXExecutor
             funcx_executor = FuncXExecutor(FuncXClient())
             use_funcx = True
+        else:
+            use_funcx = False
 
         def run_sim(calc_in, persis_info, libE_info):
             """Calls the sim func."""
