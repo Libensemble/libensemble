@@ -27,13 +27,6 @@ from libensemble.comms.logs import LogConfig
 import cProfile
 import pstats
 
-try:
-    from funcx import FuncXClient
-    from funcx.sdk.executor import FuncXExecutor
-    funcx_importable = True
-except ModuleNotFoundError:
-    funcx_importable = False
-
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
@@ -150,7 +143,9 @@ class Worker:
 
         sim_f = sim_specs['sim_f']
 
-        if funcx_importable and (('funcx_endpoint' in sim_specs) or ('funcx_endpoint' in gen_specs)):
+        if ('funcx_endpoint' in sim_specs) or ('funcx_endpoint' in gen_specs):
+            from funcx import FuncXClient
+            from funcx.sdk.executor import FuncXExecutor
             funcx_executor = FuncXExecutor(FuncXClient())
             use_funcx = True
 
