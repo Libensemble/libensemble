@@ -35,11 +35,16 @@ output = subprocess.run(['funcx-endpoint', 'start', 'test-libe'], capture_output
 output = output.stderr.decode().split()
 endpoint_uuid = output[output.index('uuid:')+1]
 
+libE_specs['ensemble_dir_path'] = './funcx_ensemble_' + secrets.token_hex(nbytes=3)
+
 sim_specs = {
     'sim_f': sim_f,
     'funcx_endpoint': endpoint_uuid,  # endpoint for remote resource on which to run sim_f
     'in': ['x'],
     'out': [('f', float)],
+    'user' : {
+        'calc_dir': libE_specs['ensemble_dir_path']
+    }
 }
 
 gen_specs = {
@@ -51,9 +56,6 @@ gen_specs = {
         'ub': np.array([3]),
     },
 }
-
-libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = './funcx_ensemble_' + secrets.token_hex(nbytes=3)
 
 persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
