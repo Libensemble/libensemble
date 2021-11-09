@@ -17,7 +17,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_OS_SKIP: OSX
 
 import secrets
-import subprocess
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -29,17 +28,11 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['safe_mode'] = False
 
-# Configures endpoint for local machine - default settings
-subprocess.run(['funcx-endpoint', 'configure', 'test-libe'])
-output = subprocess.run(['funcx-endpoint', 'start', 'test-libe'], capture_output=True)
-output = output.stderr.decode().split()
-endpoint_uuid = output[output.index('uuid:')+1]
-
-libE_specs['ensemble_dir_path'] = './funcx_ensemble_' + secrets.token_hex(nbytes=3)
+libE_specs['ensemble_dir_path'] = './ensemble_funcx_' + secrets.token_hex(nbytes=3)
 
 sim_specs = {
     'sim_f': sim_f,
-    'funcx_endpoint': endpoint_uuid,  # endpoint for remote resource on which to run sim_f
+    'funcx_endpoint': "replace_with_endpoint_uuid",
     'in': ['x'],
     'out': [('f', float)],
     'user' : {
@@ -59,7 +52,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-exit_criteria = {'gen_max': 19}
+exit_criteria = {'sim_max': 19}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

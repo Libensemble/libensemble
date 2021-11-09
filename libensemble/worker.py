@@ -132,32 +132,42 @@ class Worker:
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
-        # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
+    def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
+        libE_info['comm'] = None
+        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info,
+                                    endpoint_id=specs['funcx_endpoint'])
+        return future.result()
+
+    @staticmethod
     def _make_runners(sim_specs, gen_specs):
-        """Creates functions to run a sim or gen"""
+        """Creates functions to run a sim or gen. These functions are either
+        called directly by the worker or submitted to a funcX endpoint. """
+
+        funcx_sim = 'funcx_endpoint' in sim_specs
+        funcx_gen = 'funcx_endpoint' in gen_specs
+
+        if any([funcx_sim, funcx_gen]):
+            try:
+                from funcx import FuncXClient
+                from funcx.sdk.executor import FuncXExecutor
+                funcx_exctr = FuncXExecutor(FuncXClient())
+            except ModuleNotFoundError:
+                funcx_exctr = None
+
+        else:
+            funcx_exctr = None
 
         sim_f = sim_specs['sim_f']
 
-        if ('funcx_endpoint' in sim_specs) or ('funcx_endpoint' in gen_specs):
-            from funcx import FuncXClient
-            from funcx.sdk.executor import FuncXExecutor
-            funcx_executor = FuncXExecutor(FuncXClient())
-            use_funcx = True
-        else:
-            use_funcx = False
-
         def run_sim(calc_in, persis_info, libE_info):
             """Calls the sim func."""
-            if use_funcx and 'funcx_endpoint' in sim_specs:
-                libE_info['comm'] = None
-                future = funcx_executor.submit(sim_f, calc_in, persis_info, sim_specs, libE_info,
-                                               endpoint_id=sim_specs['funcx_endpoint'])
-                return future.result()
+            if funcx_sim and funcx_exctr is not None:
+                return Worker._funcx_result(funcx_exctr, sim_f, calc_in, persis_info, sim_specs, libE_info)
             else:
                 return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
@@ -166,11 +176,8 @@ class Worker:
 
             def run_gen(calc_in, persis_info, libE_info):
                 """Calls the gen func."""
-                if use_funcx and 'funcx_endpoint' in gen_specs:
-                    libE_info['comm'] = None
-                    future = funcx_executor.submit(gen_f, calc_in, persis_info, gen_specs, libE_info,
-                                                   endpoint_id=gen_specs['funcx_endpoint'])
-                    return future.result()
+                if funcx_gen and funcx_exctr is not None:
+                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in, persis_info, gen_specs, libE_info)
                 else:
                     return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
