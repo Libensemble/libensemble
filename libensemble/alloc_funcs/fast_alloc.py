@@ -49,7 +49,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
             try:
-                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid, {}))
             except InsufficientFreeResources:
                 break
             gen_count += 1

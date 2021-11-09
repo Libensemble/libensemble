@@ -44,7 +44,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
             try:
-                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
+                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid, {}))
             except InsufficientFreeResources:
                 break
             gen_flag = False

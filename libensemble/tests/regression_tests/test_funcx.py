@@ -22,7 +22,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import remote_write_sim_func as sim_f
-from libensemble.tests.regression_tests.support import write_uniform_gen_func as gen_f
+from libensemble.tests.regression_tests.support import remote_write_gen_func as gen_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -32,30 +32,23 @@ libE_specs['ensemble_dir_path'] = './ensemble_funcx_' + secrets.token_hex(nbytes
 
 sim_specs = {
     'sim_f': sim_f,
-    'funcx_endpoint': "replace_with_endpoint_uuid",
+    'funcx_endpoint': "replace-with-endpoint-uuid",
     'in': ['x'],
-    'out': [('f', float)],
+    'out': [('f', "<U10")],
     'user' : {
-        'calc_dir': libE_specs['ensemble_dir_path']
+        'calc_dir': '/home/jnavarro/bebop_output'
     }
 }
 
 gen_specs = {
     'gen_f': gen_f,
-    'out': [('x', float, (1,))],
-    'user': {
-        'gen_batch_size': 19,
-        'lb': np.array([-3]),
-        'ub': np.array([3]),
-    },
+    'out': [('x', "<U10", (1,))],
 }
-
-persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
 exit_criteria = {'sim_max': 19}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
 
 if is_manager:
     assert len(H) >= 19
