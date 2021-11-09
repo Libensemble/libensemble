@@ -65,6 +65,7 @@ gen_specs = {
         ('consensus_pt', bool),  # does not require a sim
         ('obj_component', int),  # which {f_i} to eval
         ('get_grad', bool),
+        ('resource_sets', int),  # Just trying to cover in the alloc_f, not actually used
     ],
     'user': {
         'lb': np.array([-1.2, 1] * (n // 2)),
