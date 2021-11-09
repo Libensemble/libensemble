@@ -138,16 +138,13 @@ class Worker:
 
     @staticmethod
     def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
-        libE_info['comm'] = None
+        libE_info['comm'] = None  # 'comm' object not pickle-able
         future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info,
                                     endpoint_id=specs['funcx_endpoint'])
         return future.result()
 
     @staticmethod
-    def _make_runners(sim_specs, gen_specs):
-        """Creates functions to run a sim or gen. These functions are either
-        called directly by the worker or submitted to a funcX endpoint. """
-
+    def _get_funcx_exctr(sim_specs, gen_specs):
         funcx_sim = 'funcx_endpoint' in sim_specs
         funcx_gen = 'funcx_endpoint' in gen_specs
 
@@ -155,19 +152,28 @@ class Worker:
             try:
                 from funcx import FuncXClient
                 from funcx.sdk.executor import FuncXExecutor
-                funcx_exctr = FuncXExecutor(FuncXClient())
+                return FuncXExecutor(FuncXClient()), funcx_sim, funcx_gen
             except ModuleNotFoundError:
-                funcx_exctr = None
-
+                logger.warning("funcX use detected but funcX not importable. Is it installed?")
+                return None, False, False
+            except Exception:
+                return None, False, False
         else:
-            funcx_exctr = None
+            return None, False, False
 
+    @staticmethod
+    def _make_runners(sim_specs, gen_specs):
+        """Creates functions to run a sim or gen. These functions are either
+        called directly by the worker or submitted to a funcX endpoint. """
+
+        funcx_exctr, funcx_sim, funcx_gen = Worker._get_funcx_exctr(sim_specs, gen_specs)
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            """Calls the sim func."""
-            if funcx_sim and funcx_exctr is not None:
-                return Worker._funcx_result(funcx_exctr, sim_f, calc_in, persis_info, sim_specs, libE_info)
+            """Calls or submits the sim func."""
+            if funcx_sim and funcx_exctr:
+                return Worker._funcx_result(funcx_exctr, sim_f, calc_in,
+                                            persis_info, sim_specs, libE_info)
             else:
                 return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
@@ -175,9 +181,10 @@ class Worker:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                """Calls the gen func."""
-                if funcx_gen and funcx_exctr is not None:
-                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in, persis_info, gen_specs, libE_info)
+                """Calls or submits the gen func."""
+                if funcx_gen and funcx_exctr:
+                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in,
+                                                persis_info, gen_specs, libE_info)
                 else:
                     return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
