@@ -45,6 +45,7 @@ def remote_write_sim_func(calc_in, persis_info, sim_specs, libE_info):
         f.write('sim_f received: {}\n'.format(out['f']))
     return out, persis_info
 
+
 def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
     import socket
     import numpy as np
@@ -53,6 +54,7 @@ def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
     with open('test_gen_out.txt', 'a') as f:
         f.write('gen_f produced: {}\n'.format(H_o['x']))
     return H_o, persis_info
+
 
 def write_uniform_gen_func(H, persis_info, gen_specs, _):
     ub = gen_specs['user']['ub']

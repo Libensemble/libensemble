@@ -17,13 +17,12 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_OS_SKIP: OSX
 
 import secrets
-import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import remote_write_sim_func as sim_f
 from libensemble.tests.regression_tests.support import remote_write_gen_func as gen_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['safe_mode'] = False
