@@ -13,7 +13,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 
 import sys
@@ -46,25 +46,32 @@ gen_specs = {
     'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': 100,
-        'replace_final_fields': True,
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
     },
 }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
 
 sim_max = 40
-exit_criteria = {'sim_max': 40}
+exit_criteria = {'sim_max': sim_max}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 
-libE_specs['final_fields'] = ['x', 'f', 'sim_id']
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+# Perform the runs
+for prob_id in range(2):
+    if prob_id == 0:
+        gen_specs['user']['replace_final_fields'] = False
+    else:
+        gen_specs['user']['replace_final_fields'] = True
+        libE_specs['final_fields'] = ['x', 'f', 'sim_id']
 
-if is_manager:
-    assert len(np.unique(H['gen_time'])) == 1, "Everything should have been generated in one batch"
-    assert np.all(H['x'][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        assert len(np.unique(H['gen_time'])) == 1, "Everything should have been generated in one batch"
+        if prob_id == 1:
+            assert np.all(H['x'][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
+
+        save_libE_output(H, persis_info, __file__, nworkers)

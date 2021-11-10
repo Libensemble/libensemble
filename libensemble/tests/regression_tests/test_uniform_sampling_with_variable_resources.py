@@ -42,6 +42,7 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=hello_world_app, app_name='helloworld')
 exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
+
 n = 2
 sim_specs = {
     'sim_f': sim_f,
@@ -77,14 +78,23 @@ alloc_specs = {
     },
 }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+
 exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+for prob_id in range(2):
+    if prob_id == 0:
+        sim_specs['user']['app'] = 'six_hump_camel'
+    else:
+        sim_specs['user']['app'] = 'helloworld'
+        libE_specs['ensemble_dir_path'] = 'ensemble_dummy'
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)
