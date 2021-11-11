@@ -58,7 +58,6 @@ MOCK_MODULES = [
         'surmise.calibration',
         'surmise.emulation',
         'Tasmanian',
-        'libensemble.gen_funcs.vtmop_libe'
         ]
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
