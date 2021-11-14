@@ -22,7 +22,7 @@ import secrets
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import remote_write_sim_func as sim_f
 from libensemble.tests.regression_tests.support import remote_write_gen_func as gen_f
-from libensemble.tools import parse_args, save_libE_output
+from libensemble.tools import parse_args
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 libE_specs['safe_mode'] = False
@@ -31,7 +31,7 @@ libE_specs['ensemble_dir_path'] = './ensemble_funcx_' + secrets.token_hex(nbytes
 
 sim_specs = {
     'sim_f': sim_f,
-    'funcx_endpoint': "11111111-1111-1111-1111-111111111111
+    'funcx_endpoint': "11111111-1111-1111-1111-111111111111",
     'in': ['x'],
     'out': [('f', "<U10")],
     'user' : {
