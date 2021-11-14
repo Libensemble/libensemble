@@ -48,9 +48,10 @@ def remote_write_sim_func(calc_in, persis_info, sim_specs, libE_info):
 
 def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
     import socket
+    import secrets
     import numpy as np
     H_o = np.zeros(1, dtype=gen_specs['out'])
-    H_o['x'] = socket.gethostname()
+    H_o['x'] = socket.gethostname() + '_' + secrets.token_hex(nbytes=3)
     with open('test_gen_out.txt', 'a') as f:
         f.write('gen_f produced: {}\n'.format(H_o['x']))
     return H_o, persis_info

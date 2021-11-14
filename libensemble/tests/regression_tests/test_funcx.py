@@ -31,11 +31,11 @@ libE_specs['ensemble_dir_path'] = './ensemble_funcx_' + secrets.token_hex(nbytes
 
 sim_specs = {
     'sim_f': sim_f,
-    'funcx_endpoint': "replace-with-endpoint-uuid",
+    'funcx_endpoint': "11111111-1111-1111-1111-111111111111
     'in': ['x'],
     'out': [('f', "<U10")],
     'user' : {
-        'calc_dir': '/home/jnavarro/bebop_output'
+        'calc_dir': '/home/user/output'
     }
 }
 
@@ -44,12 +44,7 @@ gen_specs = {
     'out': [('x', "<U10", (1,))],
 }
 
-exit_criteria = {'sim_max': 19}
+exit_criteria = {'sim_max': 80}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
-
-if is_manager:
-    assert len(H) >= 19
-    print("\nlibEnsemble with random sampling has generated enough points")
-    save_libE_output(H, persis_info, __file__, nworkers)
