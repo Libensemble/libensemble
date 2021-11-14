@@ -20,8 +20,8 @@ import secrets
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import remote_write_sim_func as sim_f
-from libensemble.tests.regression_tests.support import remote_write_gen_func as gen_f
+from libensemble.tests.regression_tests.support import remote_write_sim_func
+from libensemble.tests.regression_tests.support import remote_write_gen_func
 from libensemble.tools import parse_args
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -30,7 +30,7 @@ libE_specs['safe_mode'] = False
 libE_specs['ensemble_dir_path'] = './ensemble_funcx_' + secrets.token_hex(nbytes=3)
 
 sim_specs = {
-    'sim_f': sim_f,
+    'sim_f': remote_write_sim_func,
     'funcx_endpoint': "11111111-1111-1111-1111-111111111111",
     'in': ['x'],
     'out': [('f', "<U10")],
@@ -40,7 +40,7 @@ sim_specs = {
 }
 
 gen_specs = {
-    'gen_f': gen_f,
+    'gen_f': remote_write_gen_func,
     'out': [('x', "<U10", (1,))],
 }
 

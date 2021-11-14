@@ -145,8 +145,8 @@ class Worker:
 
     @staticmethod
     def _get_funcx_exctr(sim_specs, gen_specs):
-        funcx_sim = 'funcx_endpoint' in sim_specs
-        funcx_gen = 'funcx_endpoint' in gen_specs
+        funcx_sim = len(sim_specs.get('funcx_endpoint', '')) > 0
+        funcx_gen = len(gen_specs.get('funcx_endpoint', '')) > 0
 
         if any([funcx_sim, funcx_gen]):
             try:
