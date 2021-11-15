@@ -161,6 +161,16 @@ for run in range(3):
     elif run == 2:
         # In the third run, we restart VTMOP by loading in the history array saved in run==1
         gen_specs['user']['new_run'] = False
+        gen_specs['user']['lopt_budget'] = 3000
+        gen_specs['user']['decay'] = 0.1
+        gen_specs['user']['des_tol'] = 1e-16
+        gen_specs['user']['eps'] = 1e-16
+        gen_specs['user']['epsw'] = 1e-16
+        gen_specs['user']['obj_tol'] = 1e-16
+        gen_specs['user'].pop('trust_radf')
+        gen_specs['user']['min_radf'] = 1e-16
+        gen_specs['user']['pmode'] = True
+        gen_specs['user']['obj_bounds'] = np.full((1, num_objs), -np.inf)
 
         # Inelegant way to have the manager copy over the VTMOP checkpoint
         # file, and have every worker get the H value from the run==1 case to
