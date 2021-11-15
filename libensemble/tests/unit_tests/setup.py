@@ -8,7 +8,7 @@ from libensemble.history import History
 
 def make_criteria_and_specs_0(simx=10, n=1):
     sim_specs = {'sim_f': np.linalg.norm, 'in': ['x_on_cube'], 'persis_in': [],
-                'funcx_endpoint': '', 'out': [('f', float), ('fvec', float, 3)], }
+                 'funcx_endpoint': '', 'out': [('f', float), ('fvec', float, 3)], }
     gen_specs = {'gen_f': np.random.uniform,
                  'in': [],
                  'persis_in': [],
