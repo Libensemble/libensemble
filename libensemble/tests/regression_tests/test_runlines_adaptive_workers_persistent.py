@@ -16,10 +16,10 @@ requires running a fixed, rather than random number of resource sets for a given
 # TESTSUITE_NPROCS: 10
 
 import numpy as np
-import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
@@ -42,7 +42,7 @@ if total_nodes == 1:
 else:
     max_rsets = 6  # Will expand to 2 full nodes
 
-sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
+sim_app = helloworld.__file__
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='helloworld')
 
