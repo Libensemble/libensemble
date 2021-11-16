@@ -95,17 +95,3 @@ jobs:
           run: |
             mv libensemble/tests/.cov* .
             coveralls --service=github
-
-    coveralls:
-        name: Notify coveralls of all jobs completing
-        needs: [test-libE-with-Balsam]
-        if: always()
-        runs-on: ubuntu-latest
-        container: python:3-slim
-        steps:
-        - name: Finished
-          run: |
-            pip3 install --upgrade coveralls
-            coveralls --finish
-          env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
