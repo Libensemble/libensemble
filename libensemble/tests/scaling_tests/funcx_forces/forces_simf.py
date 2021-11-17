@@ -3,6 +3,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     import os
     import time
+    import secrets
     import numpy as np
 
     from libensemble.executors.executor import Executor
@@ -37,6 +38,10 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
+
+    calc_dir = os.path.join(sim_specs['user']['calc_dir'], secrets.token_hex(nbytes=4))
+    os.makedirs(calc_dir, exist_ok=True)
+    os.chdir(calc_dir)
 
     # Get from dictionary if key exists, else return default (e.g. 0)
     cores = sim_specs['user'].get('cores', None)

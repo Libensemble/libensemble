@@ -6,19 +6,10 @@ import numpy as np
 from libensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
 
-####################
-
-sim_app = os.path.join(os.getcwd(), 'forces.x')
-
-if not os.path.isfile('forces.x'):
-    if os.path.isfile('build_forces.sh'):
-        import subprocess
-        subprocess.check_call(['./build_forces.sh'])
-
-####################
-
 forces = Ensemble()
 forces.from_yaml('funcx_forces.yaml')
+
+sim_app = '/home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x'
 
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='forces')

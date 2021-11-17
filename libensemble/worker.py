@@ -139,6 +139,8 @@ class Worker:
     @staticmethod
     def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
         libE_info['comm'] = None  # 'comm' object not pickle-able
+        Worker._set_executor(0, None)  # ditto for executor
+
         future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info,
                                     endpoint_id=specs['funcx_endpoint'])
         return future.result()
@@ -210,7 +212,7 @@ class Worker:
             exctr.set_worker_info(comm, workerID)  # When merge update
             return True
         else:
-            logger.debug("No xecutor set on worker {}".format(workerID))
+            logger.debug("No executor set on worker {}".format(workerID))
             return False
 
     @staticmethod

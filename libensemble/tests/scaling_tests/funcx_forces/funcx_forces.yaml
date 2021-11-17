@@ -6,15 +6,17 @@ libE_specs:
         sim_max: 8
 
 sim_specs:
-    function: forces_simf.run_forces_funcx
+    function: libensemble.tests.scaling_tests.funcx_forces.forces_simf.run_forces_funcx
     inputs:
         - x
     outputs:
         energy:
             type: float
+    funcx_endpoint: 511d21bd-65b8-4c30-98c8-b8aed0c92266
     user:
         keys:
             - seed
+        calc_dir: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/funcx-ensemble
         cores: 1
         sim_particles: 1.e+3
         sim_timesteps: 5
