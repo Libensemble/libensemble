@@ -16,7 +16,8 @@ sim_specs:
     user:
         keys:
             - seed
-        calc_dir: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/funcx-ensemble
+        ensemble_dir: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/funcx-ensemble
+        sim_app: '/home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x'
         cores: 1
         sim_particles: 1.e+3
         sim_timesteps: 5

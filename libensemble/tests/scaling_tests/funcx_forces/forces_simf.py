@@ -6,7 +6,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     import secrets
     import numpy as np
 
-    from libensemble.executors.executor import Executor
+    from libensemble.executors.mpi_executor import MPIExecutor
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
     def perturb(particles, seed, max_fraction):
@@ -34,12 +34,15 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     calc_status = 0  # Returns to worker
 
     x = H['x']
-    # keys = sim_specs['user']['keys']
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
+    sim_app = sim_specs['user']['sim_app']
 
-    calc_dir = os.path.join(sim_specs['user']['calc_dir'], secrets.token_hex(nbytes=4))
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=sim_app, app_name='forces')
+
+    calc_dir = os.path.join(sim_specs['user']['ensemble_dir'], secrets.token_hex(nbytes=4))
     os.makedirs(calc_dir, exist_ok=True)
     os.chdir(calc_dir)
 
@@ -54,8 +57,6 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     # This is to give a random variance of work-load
     sim_particles = perturb(sim_particles, seed, particle_variance)
     print('seed: {}   particles: {}'.format(seed, sim_particles))
-
-    exctr = sim_specs['user']['exctr']  # Get Executor
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
     # task = exctr.submit( app_name='forces', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
