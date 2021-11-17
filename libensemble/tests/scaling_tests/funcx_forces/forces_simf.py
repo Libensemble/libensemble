@@ -40,8 +40,8 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
     sim_app = sim_specs['user']['sim_app']
 
-    print('sim_f initialized on ', socket.gethostname())
-    print(os.getcwd())
+    with open('hostdir.txt', 'w') as f:
+        f.write(socket.gethostname() + ' ' + os.getcwd())
 
     exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, app_name='forces')
