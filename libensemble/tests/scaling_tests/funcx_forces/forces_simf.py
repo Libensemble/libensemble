@@ -10,6 +10,9 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     from libensemble.executors.mpi_executor import MPIExecutor
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
+    class ForcesException(Exception):
+        """ Raised on some issue with Forces """
+
     def perturb(particles, seed, max_fraction):
         MAX_SEED = 32767
         """Modify particle count"""
