@@ -3,6 +3,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     import os
     import time
+    import socket
     import secrets
     import numpy as np
 
@@ -38,6 +39,9 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
     sim_app = sim_specs['user']['sim_app']
+
+    print('sim_f initialized on ', socket.gethostname())
+    print(os.getcwd())
 
     exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, app_name='forces')
