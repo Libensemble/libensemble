@@ -18,14 +18,18 @@ jobs:
                     - os: macos-latest
                       python-version: 3.8
                       comms-type: l
-                    - python-version: 3.8
+                    - os: ubuntu-latest
+                      python-version: 3.8
                       comms-type: t
-                    - python-version: '3.10'
+                    - os: ubuntu-latest
+                      python-version: '3.10'
                       comms-type: l
-                    - mpi-version: 'openmpi'
+                    - os: ubuntu-latest
+                      mpi-version: 'openmpi'
                       python-version: 3.8
                       comms-type: l
-                    - python-version: 3.8
+                    - os: ubuntu-latest
+                      python-version: 3.8
                       comms-type: l
                       do-balsam: true
         env:
