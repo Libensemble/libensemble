@@ -4,15 +4,14 @@ import pprint
 from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
-
 @pytest.mark.extra
 def test_ensemble_init():
     """ Only testing attrs most likely to encounter errors """
     from libensemble.api import Ensemble
 
-    e = Ensemble()
-    assert all([i in e.libE_specs for i in ['comms', 'mpi_comm']]), \
-        "parse_args() didn't populate default values for the class instance's libE_specs"
+    e = Ensemble(default_comms='local')
+    assert 'comms' in e.libE_specs, \
+        "parse_args() didn't populate default value for class instance's libE_specs"
 
     assert e.logger.get_level() == 20, \
         "Default log level should be 20."
@@ -26,7 +25,7 @@ def test_from_yaml():
     """ Test that Ensemble() specs dicts resemble setup dicts """
     from libensemble.api import Ensemble
 
-    e = Ensemble()
+    e = Ensemble(default_comms='local')
     e.from_yaml('./simdir/test_example.yaml')
 
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
@@ -55,7 +54,7 @@ def test_str_rep():
     """ Test that Ensemble() string rep resembles setup dicts string reps """
     from libensemble.api import Ensemble
 
-    e = Ensemble()
+    e = Ensemble(default_comms='local')
     e.from_yaml('./simdir/test_example.yaml')
 
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
@@ -91,7 +90,7 @@ def test_bad_func_loads():
                    './simdir/test_example_badfuncs_notfound.yaml': ModuleNotFoundError}
 
     for f in yaml_errors:
-        e = Ensemble()
+        e = Ensemble(default_comms='local')
         flag = 1
         try:
             e.from_yaml(f)

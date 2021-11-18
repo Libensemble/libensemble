@@ -162,6 +162,11 @@ jobs:
             flake8 libensemble
             ulimit -Sn 10000
 
+        - name: Activate API unit test if using mpich
+          if: matrix.mpi-version == 'mpich':
+          run: |
+            mv libensemble/tests/unit_tests/mpich_only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
+
         - name: Run tests, Ubuntu
           if: ${{ matrix.os == 'ubuntu-latest' && matrix.do-balsam == false }}
           run: |
