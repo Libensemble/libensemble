@@ -46,7 +46,6 @@ jobs:
             HYDRA_LAUNCHER: 'fork'
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            BALSAM_DB_PATH: $HOME/test-balsam
 
         defaults:
             run:
@@ -75,6 +74,8 @@ jobs:
 
         - name: Install postgreql
           if: matrix.do-balsam == true
+          env:
+              BALSAM_DB_PATH: $HOME/test-balsam
           run: |
             conda install libpq postgresql postgresql-plpython
             pg_ctl --version
@@ -134,6 +135,8 @@ jobs:
 
         - name: Install and configure Balsam 0.5.0
           if: matrix.do-balsam == true
+          env:
+              BALSAM_DB_PATH: $HOME/test-balsam
           run: |
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
@@ -141,6 +144,8 @@ jobs:
 
         - name: Modify Balsam for testing, create DB
           if: matrix.do-balsam == true
+          env:
+              BALSAM_DB_PATH: $HOME/test-balsam
           run: |
             pg_ctl --version
             balsam init $HOME/test-balsam
@@ -171,6 +176,8 @@ jobs:
 
         - name: Run Balsam test
           if: matrix.do-balsam == true
+          env:
+              BALSAM_DB_PATH: $HOME/test-balsam
           run: |
            source balsamactivate test-balsam
            ./libensemble/tests/run-tests.sh -re -y 'test_balsam*' -z -l
