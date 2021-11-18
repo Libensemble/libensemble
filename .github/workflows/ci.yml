@@ -158,7 +158,7 @@ jobs:
             ulimit -Sn 10000
 
         - name: Run tests, Ubuntu
-          if: ${{ matrix.os == 'ubuntu-latest' && matrix.test-balsam == false }}
+          if: ${{ matrix.os == 'ubuntu-latest' && matrix.do-balsam == false }}
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
