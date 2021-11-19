@@ -1,6 +1,5 @@
 libE_specs:
     save_every_k_gens: 1000
-    sim_dirs_make: True
     profile: False
     exit_criteria:
         sim_max: 8
@@ -12,12 +11,12 @@ sim_specs:
     outputs:
         energy:
             type: float
-    funcx_endpoint: 511d21bd-65b8-4c30-98c8-b8aed0c92266
+    funcx_endpoint: 8ae6dc54-7f57-4c46-8d21-e601fde15553
     user:
         keys:
             - seed
-        ensemble_dir: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/funcx-ensemble
-        sim_app: '/home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x'
+        sim_app: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x
+        remote_ensemble_dir: /home/jnavarro/bebop_output/ensemble_
         cores: 1
         sim_particles: 1.e+3
         sim_timesteps: 5

@@ -43,13 +43,10 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
     sim_app = sim_specs['user']['sim_app']
 
-    with open('hostdir.txt', 'w') as f:
-        f.write(socket.gethostname() + ' ' + os.getcwd())
-
     exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, app_name='forces')
 
-    calc_dir = os.path.join(sim_specs['user']['ensemble_dir'], secrets.token_hex(nbytes=4))
+    calc_dir = os.path.join(sim_specs['user']['remote_ensemble_dir'], secrets.token_hex(nbytes=4))
     os.makedirs(calc_dir, exist_ok=True)
     os.chdir(calc_dir)
 

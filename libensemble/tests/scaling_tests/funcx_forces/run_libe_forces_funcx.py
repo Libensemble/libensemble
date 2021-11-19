@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import secrets
 import numpy as np
 
@@ -7,7 +8,7 @@ from libensemble import Ensemble
 forces = Ensemble()
 forces.from_yaml('funcx_forces.yaml')
 
-forces.libE_specs['ensemble_dir_path'] = './ensemble_' + secrets.token_hex(nbytes=3)
+forces.sim_specs['user']['remote_ensemble_dir'] += secrets.token_hex(nbytes=3)
 
 forces.gen_specs['user'].update({
     'lb': np.array([0]),
