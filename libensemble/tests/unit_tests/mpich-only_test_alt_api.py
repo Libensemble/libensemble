@@ -4,6 +4,7 @@ import pprint
 from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
+
 @pytest.mark.extra
 def test_ensemble_init():
     """ Only testing attrs most likely to encounter errors """
