@@ -10,7 +10,7 @@ def test_ensemble_init():
     """ Only testing attrs most likely to encounter errors """
     from libensemble.api import Ensemble
 
-    e = Ensemble(default_comms='local')
+    e = Ensemble()
     assert 'comms' in e.libE_specs, \
         "parse_args() didn't populate default value for class instance's libE_specs"
 
@@ -26,7 +26,7 @@ def test_from_yaml():
     """ Test that Ensemble() specs dicts resemble setup dicts """
     from libensemble.api import Ensemble
 
-    e = Ensemble(default_comms='local')
+    e = Ensemble()
     e.from_yaml('./simdir/test_example.yaml')
 
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
@@ -55,7 +55,7 @@ def test_str_rep():
     """ Test that Ensemble() string rep resembles setup dicts string reps """
     from libensemble.api import Ensemble
 
-    e = Ensemble(default_comms='local')
+    e = Ensemble()
     e.from_yaml('./simdir/test_example.yaml')
 
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
@@ -91,7 +91,7 @@ def test_bad_func_loads():
                    './simdir/test_example_badfuncs_notfound.yaml': ModuleNotFoundError}
 
     for f in yaml_errors:
-        e = Ensemble(default_comms='local')
+        e = Ensemble()
         flag = 1
         try:
             e.from_yaml(f)
