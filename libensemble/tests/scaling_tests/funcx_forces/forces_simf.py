@@ -87,6 +87,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     poll_interval = 1  # secs
     while(not task.finished):
         # Read last line of statfile
+        exctr.manager_poll()
         line = read_last_line(filepath)
         if line == "kill":
             task.kill()  # Bad run
