@@ -143,7 +143,11 @@ class Worker:
 
         future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info,
                                     endpoint_id=specs['funcx_endpoint'])
-        return future.result()
+        remote_exc = future.exception()  # blocks until exception or None
+        if remote_exc is None:
+            return future.result()
+        else:
+            raise remote_exc
 
     @staticmethod
     def _get_funcx_exctr(sim_specs, gen_specs):
