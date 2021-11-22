@@ -31,6 +31,7 @@ We now present further information on running and testing libEnsemble.
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
+.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
