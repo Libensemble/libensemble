@@ -3,7 +3,6 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     import os
     import time
-    import socket
     import secrets
     import numpy as np
 
@@ -63,7 +62,6 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
     args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
-    # task = exctr.submit( app_name='forces', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
 
     machinefile = None
     if sim_specs['user']['fail_on_submit']:

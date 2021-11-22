@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import os
 import secrets
 import numpy as np
 

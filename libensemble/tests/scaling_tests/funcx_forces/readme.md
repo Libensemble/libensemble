@@ -5,7 +5,7 @@ Naive Electostatics Code Test
 This is designed only as an artificial, highly configurable test
 code for a libEnsemble sim func. This variant is primarily to test libEnsemble's
 capability to submit simulation functions to a separate machine from where libEnsemble's
-managers and workers are running.
+manager and workers are running.
 
 ### Forces Mini-App
 
