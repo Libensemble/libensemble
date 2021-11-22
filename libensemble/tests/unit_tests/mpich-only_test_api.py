@@ -11,8 +11,8 @@ def test_ensemble_init():
     from libensemble.api import Ensemble
 
     e = Ensemble()
-    assert all([i in e.libE_specs for i in ['comms', 'mpi_comm']]), \
-        "parse_args() didn't populate default values for the class instance's libE_specs"
+    assert 'comms' in e.libE_specs, \
+        "parse_args() didn't populate default value for class instance's libE_specs"
 
     assert e.logger.get_level() == 20, \
         "Default log level should be 20."
