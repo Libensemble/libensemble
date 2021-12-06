@@ -433,9 +433,8 @@ class Manager:
             else:
                 self._freeup_resources(w)
 
-        if D_recv.get('persis_info') is not None:
-            if len(D_recv['persis_info']):
-                persis_info[w].update(D_recv['persis_info'])
+        if D_recv.get('persis_info'):
+            persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):
         """Handles a message from worker w

@@ -3,7 +3,7 @@
 # Building flat MPI
 
 # GCC
-mpicc -O3 -o forces.x forces.c -lm
+mpicc -O3 -o forces.x ../forces/forces.c -lm
 
 # Intel
 # mpiicc -O3 -o forces.x forces.c
