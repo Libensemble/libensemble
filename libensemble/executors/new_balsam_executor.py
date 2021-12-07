@@ -22,13 +22,13 @@ from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.executors.executor import Application
 
-from balsam.api import ApplicationDefinition, BatchJob, Job, EventLog
+from balsam.api import ApplicationDefinition, BatchJob, EventLog
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
+
 
 class BalsamTask(Task):
     """Wraps a Balsam Task from the Balsam service
@@ -115,16 +115,19 @@ class BalsamTask(Task):
         balsam_state = self.process.state
         self.runtime = self._get_time_since_balsam_submit()
 
-        if balsam_state in models.END_STATES:
+        if balsam_state in ['RUN_DONE', 'POSTPROCESSED', 'STAGED_OUT', "JOB_FINISHED"]:
             self._set_complete()
 
-        elif balsam_state in models.ACTIVE_STATES:
+        elif balsam_state in ['RUNNING']:
             self.state = 'RUNNING'
             self.workdir = self.workdir or self.process.working_directory
 
-        elif (balsam_state in models.PROCESSABLE_STATES or
-              balsam_state in models.RUNNABLE_STATES):
+        elif balsam_state in ['CREATED', 'AWAITING_PARENTS',
+                              'READY', 'STAGED_IN', 'PREPROCESSED']:
             self.state = 'WAITING'
+
+        elif balsam_state in ['RUN_ERROR', 'RUN_TIMEOUT', 'FAILED']:
+            self.state = 'FAILED'
 
         else:
             raise ExecutorException(
@@ -151,7 +154,7 @@ class BalsamTask(Task):
         # Wait on the task
         start = time.time()
         self.process.refresh_from_db()
-        while self.process.state not in models.END_STATES:
+        while self.process.state not in ['RUN_DONE', 'POSTPROCESSED', 'STAGED_OUT', "JOB_FINISHED"]:
             time.sleep(0.2)
             self.process.refresh_from_db()
             if timeout and time.time() - start > timeout:
@@ -164,15 +167,13 @@ class BalsamTask(Task):
     def kill(self, wait_time=None):
         """ Kills or cancels the supplied task """
 
-        dag.kill(self.process)
-
-        # Could have Wait here and check with Balsam its killed -
-        # but not implemented yet.
+        self.process.delete()
 
         logger.info("Killing task {}".format(self.name))
         self.state = 'USER_KILLED'
         self.finished = True
         self.calc_task_timing()
+
 
 class NewBalsamMPIExecutor(MPIExecutor):
     """Inherits from MPIExecutor and wraps the Balsam task management service
@@ -205,13 +206,12 @@ class NewBalsamMPIExecutor(MPIExecutor):
             site = app.site
             self.application_objs[calc_name] = self.add_app(calc_name, site, full_path, desc)
 
-
     def add_app(name, site, exepath, desc):
         """ Sync application with balsam service """
 
         class BalsamApplication(ApplicationDefinition):
             site = site
-            command_template=exepath
+            command_template = exepath
 
         BalsamApplication.sync()
         logger.debug("Added App {}".format(name))
