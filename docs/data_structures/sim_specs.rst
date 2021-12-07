@@ -10,6 +10,8 @@ Used to specify the simulation function, its inputs and outputs, and user data::
             the simulation function being evaluated
         'in' [list]:
             field names (as strings) to be given to sim_f by alloc_f
+        'persis_in' [list]:
+            field names (as strings) that will be given back to a persistent sim_f
         'out' [list of tuples (field name, data type, [size])]:
             sim_f outputs to be stored in the libEnsemble history
         'user' [dict, optional]:
