@@ -59,9 +59,9 @@ class Ensemble:
         self.logger = logger
         self.logger.set_level('INFO')
         self.sim_specs = {'sim_f': None, 'in': None, 'persis_in': None, 'out': None,
-                          'user': None, 'type': 'sim'}
+                          'funcx_endpoint': None, 'user': None, 'type': 'sim'}
         self.gen_specs = {'gen_f': None, 'in': None, 'persis_in': None, 'out': None,
-                          'user': None, 'type': 'gen'}
+                          'funcx_endpoint': None, 'user': None, 'type': 'gen'}
         self.alloc_specs = {'alloc_f': None, 'out': None,
                             'user': None, 'type': 'alloc'}
         self.exit_criteria = {}
@@ -152,6 +152,11 @@ class Ensemble:
         return results
 
     @staticmethod
+    def _get_endpoint(loaded, type):
+        """ Extracts funcX endpoint from loaded yaml dict """
+        return loaded[type + '_specs'].get('funcx_endpoint', '')
+
+    @staticmethod
     def _get_user(loaded, type):
         """ Extracts user parameters from loaded yaml dict """
         return loaded[type + '_specs'].get('user', {})
@@ -168,6 +173,7 @@ class Ensemble:
                      'in': self._get_inputs,
                      'persis_in': self._get_persis_inputs,
                      'out': self._get_outputs,
+                     'funcx_endpoint': self._get_endpoint,
                      'user': self._get_user}
 
         for spec in [self.sim_specs, self.gen_specs, self.alloc_specs]:

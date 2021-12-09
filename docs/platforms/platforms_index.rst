@@ -133,6 +133,57 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
+funcX - Remote User functions
+-----------------------------
+
+*Alternatively to much of the above*, if libEnsemble is running on some resource with
+internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
+launch generator or simulator user function instances to separate resources from
+themselves via funcX_, a distributed, high-performance function-as-a-service platform:
+
+.. image:: ../images/funcxmodel.png
+    :alt: running_with_funcx
+    :scale: 50
+    :align: center
+
+This is useful for running ensembles across machines and heterogenous resources, but
+comes with several caveats:
+
+    1. User functions registered with funcX must be *non-persistent*, since
+       manager-worker communicators can't be serialized or used by a remote resource.
+
+    2. Likewise, the ``Executor.manager_poll()`` capability is disabled. The only
+       available control over remote functions by workers is processing return values
+       or exceptions when they complete.
+
+    3. funcX imposes a `handful of task-rate and data limits`_ on submitted functions.
+
+    4. Users are responsible for authenticating via Globus_ and maintaining their
+       `funcX endpoints`_ on their target systems.
+
+Users can still define Executor instances within their user functions and submit
+MPI applications normally, as long as libEnsemble and the target application are
+accessible on the remote system::
+
+    # Within remote user function
+    from libensemble.executors import MPIExecutor
+    exctr = MPIExecutor()
+    exctr.register_app(full_path='/home/user/forces.x', app_name='forces')
+    task = exctr.submit(app_name='forces', num_procs=64)
+
+Specify a funcX endpoint in either ``sim_specs`` or ``gen_specs`` via the ``funcx_endpoint``
+key. For example::
+
+    sim_specs = {
+        'sim_f': sim_f,
+        'in': ['x'],
+        'out': [('f', float)],
+        'funcx_endpoint': 3af6dc24-3f27-4c49-8d11-e301ade15353,
+    }
+
+See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
+remote-simulation example.
+
 Instructions for Specific Platforms
 -----------------------------------
 
@@ -151,3 +202,7 @@ libEnsemble on specific HPC systems.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Cooley: https://www.alcf.anl.gov/support-center/cooley
+.. _funcX: https://funcx.org/
+.. _`funcX endpoints`: https://funcx.readthedocs.io/en/latest/endpoints.html
+.. _Globus: https://www.globus.org/
+.. _`handful of task-rate and data limits`: https://funcx.readthedocs.io/en/latest/limits.html

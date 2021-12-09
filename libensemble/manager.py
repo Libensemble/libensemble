@@ -433,7 +433,7 @@ class Manager:
             else:
                 self._freeup_resources(w)
 
-        if 'persis_info' in D_recv and len(D_recv['persis_info']):
+        if D_recv.get('persis_info'):
             persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):

@@ -36,6 +36,27 @@ def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     return out, persis_info
 
 
+def remote_write_sim_func(calc_in, persis_info, sim_specs, libE_info):
+    import numpy as np
+    out = np.zeros(1, dtype=sim_specs['out'])
+    calc_dir = sim_specs['user']['calc_dir']
+    out['f'] = calc_in['x']
+    with open(calc_dir + '/test_sim_out.txt', 'a') as f:
+        f.write('sim_f received: {}\n'.format(out['f']))
+    return out, persis_info
+
+
+def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
+    import socket
+    import secrets
+    import numpy as np
+    H_o = np.zeros(1, dtype=gen_specs['out'])
+    H_o['x'] = socket.gethostname() + '_' + secrets.token_hex(nbytes=3)
+    with open('test_gen_out.txt', 'a') as f:
+        f.write('gen_f produced: {}\n'.format(H_o['x']))
+    return H_o, persis_info
+
+
 def write_uniform_gen_func(H, persis_info, gen_specs, _):
     ub = gen_specs['user']['ub']
     lb = gen_specs['user']['lb']

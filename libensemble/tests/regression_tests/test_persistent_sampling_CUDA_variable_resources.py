@@ -15,10 +15,10 @@ persistent generator.
 
 import sys
 import numpy as np
-import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_CUDA_variable_resources as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
@@ -35,7 +35,7 @@ if libE_specs['comms'] == 'tcp':
     sys.exit("This test only runs with MPI or local -- aborting...")
 
 # Get paths for applications to run
-six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'six_hump_camel.py')
+six_hump_camel_app = six_hump_camel.__file__
 exctr = MPIExecutor()
 exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
 
