@@ -119,7 +119,8 @@ environment variables::
     export I_MPI_FALLBACK=1
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
-nodes, while launching all tasks onto other nodes.
+nodes, while launching all tasks onto other nodes. To do this add a node for libEnsemble,
+and add ``libE_specs['dedicated_mode'] = True`` to your calling script.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
@@ -134,6 +135,23 @@ For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpickli
 
 This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
 Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
+
+
+**srun: Job ****** step creation temporarily disabled, retrying (Requested nodes are busy)**
+
+You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
+
+When running on a SLURM system, this implies that you are trying to run on a resource
+that is already dedicated to another task. The reason can vary, some reasons are:
+
+- All the contexts are in use. See question **can't open hfi unit: -1 (err=23)** for more info.
+
+- This error has been observed on Perlmutter, where it was resolved by adding the
+  ``--exact -u`` `option to srun`_ along with other relevant options, to prevent
+  all node resource being assigned to the first srun. In the executor, this can be
+  expressed via the ``extra_args`` option.
+
+.. _option to srun: https://docs.nersc.gov/jobs/examples/#single-gpu-tasks-in-parallel
 
 libEnsemble Help
 ----------------
