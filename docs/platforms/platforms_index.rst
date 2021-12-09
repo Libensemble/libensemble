@@ -139,7 +139,13 @@ funcX - Remote User functions
 *Alternatively to much of the above*, if libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
-themselves via funcX_, a distributed, high-performance function-as-a-service platform.
+themselves via funcX_, a distributed, high-performance function-as-a-service platform:
+
+.. image:: ../images/funcxmodel.png
+    :alt: running_with_funcx
+    :scale: 50
+    :align: center
+
 This is useful for running ensembles across machines and heterogenous resources, but
 comes with several caveats:
 
