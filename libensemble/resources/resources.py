@@ -24,7 +24,7 @@ class ResourcesException(Exception):
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is True.
+    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is ``True``.
 
     **Class Attributes:**
 
@@ -58,7 +58,6 @@ class Resources:
         disable_resource_manager = libE_specs.get('disable_resource_manager', False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            # SH TODO: Should we recreate or re-use if exists
             if Resources.resources is None:
                 Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
@@ -107,7 +106,7 @@ class GlobalResources:
         Determines the compute resources available for current allocation, including
         node list and cores/hardware threads available within nodes.
 
-        The following parameters may be extracted from libE_specs
+        The following parameters may be extracted from ``libE_specs``
 
         Parameters
         ----------
@@ -116,10 +115,10 @@ class GlobalResources:
             Directory libEnsemble runs in (default is current working directory)
 
         dedicated_mode: boolean, optional
-            If true, then running in central mode, otherwise distributed.
-            Central mode means libE processes (manager and workers) are grouped together and
-            do not share nodes with applications. Distributed mode means Workers share nodes
-            with applications.
+            If true, then dedicate nodes to running libEnsemble.
+            Dedicated mode means that any nodes running libE processes (manager and workers),
+            will not be available to worker launched tasks (user applications). They will
+            be removed from the nodelist (if present), before dividing into resource sets.
 
         zero_resource_workers: list of ints, optional
             List of workers that require no resources.

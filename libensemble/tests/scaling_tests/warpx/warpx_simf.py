@@ -45,14 +45,14 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
 
     # Launch the executor to actually run the WarpX simulation
     if machine_specs['name'] == 'summit':
-        task = exctr.submit(calc_type='sim',
+        task = exctr.submit(app_name='warpx',
                             extra_args=machine_specs['extra_args'],
                             app_args=app_args,
                             stdout='out.txt',
                             stderr='err.txt',
                             wait_on_start=True)
     else:
-        task = exctr.submit(calc_type='sim',
+        task = exctr.submit(app_name='warpx',
                             num_procs=machine_specs['cores'],
                             app_args=app_args,
                             stdout='out.txt',
@@ -97,14 +97,18 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
     # gen_f to generate new inputs for next runs.
     # All other parameters are here just for convenience.
     libE_output = np.zeros(1, dtype=sim_specs['out'])
-    libE_output['f'] = warpx_out[0]
-    libE_output['energy_std'] = warpx_out[1]
-    libE_output['energy_avg'] = warpx_out[2]
-    libE_output['charge'] = warpx_out[3]
-    libE_output['emittance'] = warpx_out[4]
-    libE_output['ramp_down_1'] = H['x'][0][0]
-    libE_output['ramp_down_2'] = H['x'][0][1]
-    libE_output['zlens_1'] = H['x'][0][2]
-    libE_output['adjust_factor'] = H['x'][0][3]
+
+    if np.isnan(warpx_out):
+        libE_output['f'] = np.nan
+    else:
+        libE_output['f'] = warpx_out[0]
+        libE_output['energy_std'] = warpx_out[1]
+        libE_output['energy_avg'] = warpx_out[2]
+        libE_output['charge'] = warpx_out[3]
+        libE_output['emittance'] = warpx_out[4]
+        libE_output['ramp_down_1'] = H['x'][0][0]
+        libE_output['ramp_down_2'] = H['x'][0][1]
+        libE_output['zlens_1'] = H['x'][0][2]
+        libE_output['adjust_factor'] = H['x'][0][3]
 
     return libE_output, persis_info, calc_status

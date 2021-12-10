@@ -1,5 +1,7 @@
-# This script is submitted as an app and job to Balsam. The job submission is
-#   via 'balsam launch' executed in the test_balsam_hworld.py script.
+"""
+This script is submitted as an app and job to Balsam. The job submission is via
+'balsam launch' executed in the test_balsam_hworld.py script.
+"""
 
 import numpy as np
 import mpi4py
@@ -19,7 +21,8 @@ libE_specs = {
     'mpi_comm': MPI.COMM_WORLD,
     'comms': 'mpi',
     'save_every_k_sims': 400,
-    'save_every_k_gens': 20, }
+    'save_every_k_gens': 20,
+}
 
 nworkers = MPI.COMM_WORLD.Get_size() - 1
 is_manager = MPI.COMM_WORLD.Get_rank() == 0
@@ -40,28 +43,33 @@ sim_specs = {
     'out': [('f', float), ('cstat', int)],
     'user': {
         'cores': cores_per_task,
-        'balsam_test': True}}
+        'balsam_test': True,
+    },
+}
 
 gen_specs = {
     'gen_f': uniform_random_sample,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': nworkers}}
+        'gen_batch_size': nworkers,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 60}
+exit_criteria = {'sim_max': nworkers*5}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 if is_manager:
     print('\nChecking expected task status against Workers ...\n')
-    calc_status_list_in = np.asarray([
-        WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0])
+    calc_status_list_in = np.asarray(
+        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
+    )
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
     print("Expecting: {}".format(calc_status_list))
@@ -73,8 +81,8 @@ if is_manager:
     with open('ensemble.log', 'r') as f:
         lines = f.readlines()
 
-    assert len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in) - 1) * nworkers, \
-        "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
+    test = len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in)) * nworkers
+    assert test, "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
 
     # Cleanup (maybe cover del_apps() and del_tasks())
     exctr.del_apps()

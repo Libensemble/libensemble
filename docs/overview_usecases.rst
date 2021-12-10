@@ -8,7 +8,8 @@ Overview
 libEnsemble is a Python library for coordinating the evaluation of dynamic ensembles
 of calculations in parallel. libEnsemble uses a manager process to allocate work to
 multiple worker processes. A libEnsemble worker is the smallest indivisible unit
-that can perform calculations. libEnsemble's work is governed by three routines:
+that can perform calculations. libEnsemble's work is governed by three routines,
+collectively known as **user functions**:
 
 * :ref:`gen_f<api_gen_f>`: Generates inputs to ``sim_f``
 * :ref:`sim_f<api_sim_f>`: Evaluates a simulation or other evaluation based on output from ``gen_f``
@@ -24,10 +25,16 @@ The default ``alloc_f`` tells each available worker to call ``sim_f`` with the
 highest priority unit of work from ``gen_f``. If a worker is idle and there is
 no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
-.. image:: images/diagram_with_persis.png
+.. figure:: images/diagram_with_persis.png
  :alt: libE component diagram
  :align: center
  :scale: 40
+
+|
+
+libEnsemble uses a NumPy structured array known as the :ref:`history array<datastruct-history-array>`
+to keep a record of all simulations. The global history array is stored on the
+manager, while selected rows and fields of this array are passed to and from user functions.
 
 Example Use Cases
 ~~~~~~~~~~~~~~~~~

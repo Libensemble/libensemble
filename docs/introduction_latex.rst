@@ -30,7 +30,8 @@ We now present further information on running and testing libEnsemble.
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
-.. _example user scripts: https://libensemble.readthedocs.io/en/docs-capabilities_section/examples/examples_index.html
+.. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
+.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
@@ -54,6 +55,7 @@ We now present further information on running and testing libEnsemble.
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
+.. _pyyaml: https://pyyaml.org/
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html

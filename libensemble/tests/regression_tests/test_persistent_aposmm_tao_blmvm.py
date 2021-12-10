@@ -1,15 +1,15 @@
-# """
-# Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_tao_blmvm.py
-#    python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms local
-#    python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_tao_blmvm.py
+   python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms local
+   python3 test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
@@ -46,14 +46,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -63,13 +65,15 @@ gen_specs = {
         'initial_sample_size': 100,
         'sample_points': np.round(minima, 1),
         'localopt_method': 'blmvm',
-        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5)**(1 / n)) / sqrt(pi),
+        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
         'grtol': 1e-4,
         'gatol': 1e-4,
         'dist_to_bound_multiple': 0.5,
         'max_active_runs': 6,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -88,7 +92,7 @@ if is_manager:
     for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-        assert np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol
+        print(np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)), flush=True)
+        assert np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)) < tol
 
     save_libE_output(H, persis_info, __file__, nworkers)

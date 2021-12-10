@@ -1,12 +1,12 @@
-# """
-# Tests various capabilities of the libEnsemble fast_alloc alloc_f
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_fast_alloc.py
-#    python3 test_fast_alloc.py --nworkers 3 --comms local
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Tests various capabilities of the libEnsemble fast_alloc alloc_f
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_fast_alloc.py
+   python3 test_fast_alloc.py --nworkers 3 --comms local
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -32,16 +32,19 @@ sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
     'out': [('f', float), ('large', float, 1000000)],
-    'user': {}, }
+    'user': {},
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'gen_batch_size': num_pts,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

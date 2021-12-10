@@ -15,7 +15,7 @@ sim_f API
 ~~~~~~~~~
 .. _api_sim_f:
 
-The sim_f function will be called by libEnsemble's workers with the following API::
+The simulator function will be called by libEnsemble's workers with the following API::
 
     out = sim_f(H[sim_specs['in']][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
 
@@ -52,7 +52,7 @@ gen_f API
 ~~~~~~~~~
 .. _api_gen_f:
 
-The gen_f calculations will be called by libEnsemble's workers with the following API::
+The generator function will be called by libEnsemble's workers with the following API::
 
     out = gen_f(H[gen_specs['in']][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
@@ -89,7 +89,7 @@ alloc_f API
 ~~~~~~~~~~~
 .. _api_alloc_f:
 
-The alloc_f calculations will be called by libEnsemble's manager with the following API::
+The allocation function will be called by libEnsemble's manager with the following API::
 
   Work, persis_info, stop_flag = alloc_f(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info)
 

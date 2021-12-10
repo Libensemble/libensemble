@@ -1,23 +1,24 @@
-# """
-# Tests libEnsemble prox-slide distributed optimization generator function on a
-# variety of cases, including:
-#    - Geometric median
-#    - SVM with l1 regularization
+"""
+Tests libEnsemble prox-slide distributed optimization generator function on a
+variety of cases, including:
+   - Geometric median
+   - SVM with l1 regularization
 
-# You can specify which problem to test by setting @prob_id in {0,1}.
+You can specify which problem to test by setting @prob_id in {0,1}.
 
-# This call script uses proximal gradient sliding (https://doi.org/10.1007/s10107-015-0955-5)
-# to solve the following problems. To test, run using, for any p >= 6,
-#    mpiexec -np p python3 test_persistent_prox_slide.py
-#    python3 test_persistent_prox_slide.py --nworkers p --comms local
+This call script uses proximal gradient sliding (https://doi.org/10.1007/s10107-015-0955-5)
+to solve the following problems. To test, run using, for any p >= 6,
+   mpiexec -np p python3 test_persistent_prox_slide.py
+   python3 test_persistent_prox_slide.py --nworkers p --comms local
 
-# The number gens will be 4.
-# """
+The number gens will be 4.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -67,7 +68,7 @@ for prob_id in range(0, 4):
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
-        M = num_gens / (m**2)
+        M = num_gens / (m ** 2)
         N_const = 4
         err_const = 1e2
 
@@ -87,8 +88,12 @@ for prob_id in range(0, 4):
 
     if prob_id >= 2:
         if prob_id == 3:
-            fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
-            urllib.request.urlretrieve(fname, "./wdbc.data")
+            if is_manager:
+                fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
+                urllib.request.urlretrieve(fname, "./wdbc.data")
+
+        if libE_specs['comms'] == 'mpi':
+            libE_specs['mpi_comm'].Barrier()
 
         persis_info['print_progress'] = 0
         sim_f = svm_eval
@@ -106,43 +111,38 @@ for prob_id in range(0, 4):
         b = b[:m]
         X = X[:n, :m]
         # Chosen ad-hoc. This is only upper bound on regularizar.
-        M = c * ((m)**0.5)
+        M = c * ((m) ** 0.5)
 
         persis_info['sim_params'] = {'X': X, 'b': b, 'c': c, 'reg': 'l1'}
 
     sim_specs = {
         'sim_f': sim_f,
         'in': ['x', 'obj_component', 'get_grad'],
-        'out': [('f_i', float), ('gradf_i', float, (n, ))], }
+        'out': [('f_i', float), ('gradf_i', float, (n,))],
+    }
 
     gen_specs = {
         'gen_f': gen_f,
         'out': [
-            ('x', float, (n, )),
+            ('x', float, (n,)),
             ('f_i', float),
             ('eval_pt', bool),  # eval point
             ('consensus_pt', bool),  # does not require a sim
             ('obj_component', int),  # which {f_i} to eval
-            ('get_grad', bool), ],
-        'user': {
-            'lb': -np.zeros(n),
-            'ub': np.zeros(n)}}
+            ('get_grad', bool),
+        ],
+        'user': {'lb': -np.zeros(n), 'ub': np.zeros(n)},
+    }
 
     alloc_specs = {
         'alloc_f': alloc_f,
-        'user': {
-            'm': m,
-            'num_gens': num_gens}, }
+        'user': {'m': m, 'num_gens': num_gens},
+    }
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
-    persis_info['gen_params'].update({
-        'M': M,
-        'R': 10**2,
-        'nu': 1,
-        'eps': eps,
-        'D': 2 * n,
-        'N_const': N_const,
-        'lam_max': lam_max})
+    persis_info['gen_params'].update(
+        {'M': M, 'R': 10 ** 2, 'nu': 1, 'eps': eps, 'D': 2 * n, 'N_const': N_const, 'lam_max': lam_max}
+    )
 
     if is_manager:
         print('=== Optimizing {} ==='.format(prob_name), flush=True)
@@ -157,7 +157,7 @@ for prob_id in range(0, 4):
 
     if is_manager and prob_id <= 2:
         if prob_id == 0 or prob_id == 1:
-            fstar = gm_opt(np.reshape(B, newshape=(-1, )), m)
+            fstar = gm_opt(np.reshape(B, newshape=(-1,)), m)
         elif prob_id == 2:
             fstar = svm_opt(X, b, c, reg='l1')
 
@@ -180,11 +180,12 @@ for prob_id in range(0, 4):
             x_i = eval_H[last_eval_idx]['x']
 
             F += f_i
-            x[i * n:(i + 1) * n] = x_i
+            x[i * n : (i + 1) * n] = x_i
 
         A_kron_I = spp.kron(A, spp.eye(n))
         consensus_val = np.dot(x, A_kron_I.dot(x))
 
         assert F - fstar < err_const * eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(
-            F - fstar, err_const * eps, fstar)
+            F - fstar, err_const * eps, fstar
+        )
         assert consensus_val < eps, 'Consensus score of {:.4e}, expected {:.4e}\nx={}'.format(consensus_val, eps, x)

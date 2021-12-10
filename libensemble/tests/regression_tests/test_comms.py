@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble to test basic worker/manager communications
-# Scale up array_size and number of workers as required
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_comms.py
-#    python3 test_comms.py --nworkers 3 --comms local
-#    python3 test_comms.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be N-1.
-# """
+"""
+Runs libEnsemble to test basic worker/manager communications
+Scale up array_size and number of workers as required
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_comms.py
+   python3 test_comms.py --nworkers 3 --comms local
+   python3 test_comms.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be N-1.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -34,16 +34,19 @@ sim_max = nworkers * rounds
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('arr_vals', float, array_size), ('scal_val', float)], }
+    'out': [('arr_vals', float, array_size), ('scal_val', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (2, ))],
+    'out': [('x', float, (2,))],
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': sim_max}}
+        'gen_batch_size': sim_max,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

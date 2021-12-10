@@ -106,7 +106,6 @@ def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):
 
 def _max_rsets_per_node(worker_resources):
     """ Return the maximum rsets per node for any node on this worker"""
-    # SH TODO: Need to add tests that go across the uneven nodes.
     rset_team = worker_resources.rset_team
     local_rsets_list = worker_resources.local_rsets_list
     rsets_on_node = [local_rsets_list[rset] for rset in rset_team]
@@ -137,15 +136,11 @@ def get_resources(resources, num_procs=None, num_nodes=None,
 
     rsets_per_node = _max_rsets_per_node(wresources)
 
-    # SH TODO: Evaluate situation when one rset is > 1 node.
-    #          Consider - may still be better to use best_split and construct.
-    # Advantage of cores per rset first is they will always get same no. per rset (double  rsets, double cores)
+    # Advantage of cores per rset first is they will always get same no. per rset (double rsets, double cores)
     # Advantage of multiply first is less wasted cores.
     cores_avail_per_node_per_worker = cores_avail_per_node//rsets_per_node * wresources.slot_count
     # cores_avail_per_node_per_worker = int(cores_avail_per_node/rsets_per_node * wresources.slot_count)
 
-    # SH TODO:This is when slots could be used to create a machinefile
-    #         constrained by any options (num_nodes etc) they have entered.
     rassert(wresources.even_slots,
             "Uneven distribution of node resources not yet supported. Nodes and slots are: {}"
             .format(wresources.slots))
@@ -173,9 +168,6 @@ def get_resources(resources, num_procs=None, num_nodes=None,
     # Checks config is consistent and sufficient to express
     num_procs, num_nodes, procs_per_node = \
         task_partition(num_procs, num_nodes, procs_per_node)
-
-    # print('cores per rset {}.  slot count {}  procs_per_node {}'.\
-    # format(cores_avail_per_node_per_rset, wresources.slot_count, procs_per_node),flush=True)
 
     rassert(num_nodes <= local_node_count,
             "Not enough nodes to honor arguments. "

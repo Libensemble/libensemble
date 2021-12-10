@@ -7,6 +7,10 @@ import sys
 import time
 import pytest
 import socket
+import mpi4py
+mpi4py.rc.initialize = False
+from mpi4py import MPI
+
 from libensemble.resources.mpi_resources import MPIResourcesException
 from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
@@ -113,6 +117,11 @@ def setup_executor_fakerunner():
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
 
+def is_ompi():
+    """Determine if running with Open MPI"""
+    return "Open MPI" in MPI.get_vendor()
+
+
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func
 def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
@@ -124,7 +133,7 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
 
         # Check output file for error
         if task.stdout_exists():
-            if 'Error' in task.read_stdout():
+            if 'Error' in task.read_stdout() or 'error' in task.read_stdout():
                 print("Found(deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
@@ -352,7 +361,11 @@ def test_procs_and_machinefile_logic():
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing num_procs = num_nodes*procs_per_node (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
+    if is_ompi():
+        task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=1, procs_per_node=6,
+                            app_args=args_for_sim, extra_args='--oversubscribe')
+    else:
+        task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
@@ -366,7 +379,11 @@ def test_procs_and_machinefile_logic():
         assert 0
 
     # Testing no num_procs (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
+    if is_ompi():
+        task = exctr.submit(calc_type='sim', num_nodes=1, procs_per_node=3,
+                            app_args=args_for_sim, extra_args='--oversubscribe')
+    else:
+        task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -571,7 +588,7 @@ def test_task_failure():
     cores = NCORES
     args_for_sim = 'sleep 1.0 Fail'
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    task = polling_loop(exctr, task)
+    task = polling_loop(exctr, task, timeout_sec=3)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
 
@@ -594,6 +611,7 @@ def test_retries_run_fail():
     setup_executor()
     exctr = Executor.executor
     exctr.retry_delay_incr = 0.05
+    exctr.fail_time = 3
     cores = NCORES
     args_for_sim = 'sleep 0 Fail'
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)

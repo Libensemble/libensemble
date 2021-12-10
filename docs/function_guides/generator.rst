@@ -67,29 +67,33 @@ optimization generator function included with libEnsemble is persistent so it ca
 maintain multiple local optimization subprocesses based on results from complete simulations.
 
 Functions for a persistent generator to communicate directly with the manager
-are available in the :ref:`libensemble.tools.gen_support<p_gen_routines>` module.
-Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``, and
+are available in the :ref:`libensemble.tools.persistent_support<p_gen_routines>` class.
+Additional necessary resources are the status tags ``STOP_TAG``, ``PERSIS_STOP``, ``EVAL_GEN_TAG``, and
 ``FINISHED_PERSISTENT_GEN_TAG`` from ``libensemble.message_numbers``. Return
-values from the ``gen_support`` functions are compared to these tags to determine when
+values from the ``persistent_support`` functions are compared to these tags to determine when
 the generator should break its loop and return.
 
-Implementing the above functions is relatively simple:
+A ``PersistentSupport`` class instance should resemble::
 
-.. currentmodule:: libensemble.tools.gen_support
-.. autofunction:: send_mgr_worker_msg
+    my_support = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
-This function call typically resembles::
+Implementing functions from the above class is relatively simple:
 
-    send_mgr_worker_msg(libE_info['comm'], local_H_out[selected_IDs])
-
-Note that ``send_mgr_worker_msg()`` has no return.
-
-.. currentmodule:: libensemble.tools.gen_support
-.. autofunction:: recv_mgr_worker_msg
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: send
 
 This function call typically resembles::
 
-    tag, Work, calc_in = recv_mgr_worker_msg(libE_info['comm'])
+    my_support.send(local_H_out[selected_IDs])
+
+Note that this function has no return.
+
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: recv
+
+This function call typically resembles::
+
+    tag, Work, calc_in = my_support.recv()
 
     if tag in [STOP_TAG, PERSIS_STOP]:
         cleanup()
@@ -98,13 +102,13 @@ This function call typically resembles::
 The logic following the function call is typically used to break the persistent
 generator's main loop and return.
 
-.. currentmodule:: libensemble.tools.gen_support
-.. autofunction:: sendrecv_mgr_worker_msg
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: send_recv
 
 This function performs both of the previous functions in a single statement. Its
 usage typically resembles::
 
-    tag, Work, calc_in = sendrecv_mgr_worker_msg(libE_info['comm'], local_H_out[selected_IDs])
+    tag, Work, calc_in = my_support.send_recv(local_H_out[selected_IDs])
     if tag in [STOP_TAG, PERSIS_STOP]:
         cleanup()
         break
@@ -150,7 +154,7 @@ In the following example, ``sim_ids_to_cancel`` is a list of integers.
     H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
     H_o['sim_id'] = sim_ids_to_cancel
     H_o['cancel_requested'] = True
-    send_mgr_worker_msg(comm, H_o)
+    my_support.send(H_o)
 
 If a generated point is cancelled by the generator before it has been given to a
 worker for evaluation, then it will never be given. If it has already returned from the

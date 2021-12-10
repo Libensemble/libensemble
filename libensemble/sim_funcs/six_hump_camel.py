@@ -134,7 +134,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     """Launches an app setting GPU resources
 
     The standard test apps do not run on GPU, but demonstrates accessing resource
-    information to set CUDA_VISIBLE_DEVICES, and typical run configuration.
+    information to set ``CUDA_VISIBLE_DEVICES``, and typical run configuration.
     """
     x = H['x'][0]
     H_o = np.zeros(1, dtype=sim_specs['out'])

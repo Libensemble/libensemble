@@ -1,17 +1,17 @@
-# """
-# Runs libEnsemble with APOSMM+DFOLS on the chwirut least-squares problem.
-# All 214 residual calculations for a given point are performed as a single
-# simulation evaluation.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_dfols.py
-#    python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms local
-#    python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble with APOSMM+DFOLS on the chwirut least-squares problem.
+All 214 residual calculations for a given point are performed as a single
+simulation evaluation.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_dfols.py
+   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms local
+   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
@@ -48,7 +48,9 @@ sim_specs = {
     'in': ['x'],
     'out': [('f', float), ('fvec', float, m)],
     'user': {
-        'combine_component_func': lambda x: np.sum(np.power(x, 2))}}
+        'combine_component_func': lambda x: np.sum(np.power(x, 2)),
+    },
+}
 
 gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
 
@@ -66,9 +68,13 @@ gen_specs = {
             'rhoend': 1e-5,
             'user_params': {
                 'model.abs_tol': 1e-10,
-                'model.rel_tol': 1e-4}},
+                'model.rel_tol': 1e-4,
+            },
+        },
         'lb': (-2 - np.pi / 10) * np.ones(n),
-        'ub': 2 * np.ones(n)}}
+        'ub': 2 * np.ones(n),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 
@@ -78,7 +84,8 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {
     'sim_max': 1000,
     'elapsed_wallclock_time': 100,
-    'stop_val': ('f', 3000), }
+    'stop_val': ('f', 3000),
+}
 # end_exit_criteria_rst_tag
 
 # Perform the run
@@ -93,6 +100,7 @@ if is_manager:
 
     # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
     from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
+
     for i in np.where(H['local_min'])[0]:
         F = EvaluateFunction(H['x'][i])
         J = EvaluateJacobian(H['x'][i])

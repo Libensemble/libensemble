@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble on a gen_f that is missing necessary information; this tests
-# libE worker exception raising
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_worker_exceptions.py
-#    python3 test_worker_exceptions.py --nworkers 3 --comms local
-#    python3 test_worker_exceptions.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble on a gen_f that is missing necessary information; this tests
+libE worker exception raising
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_worker_exceptions.py
+   python3 test_worker_exceptions.py --nworkers 3 --comms local
+   python3 test_worker_exceptions.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -28,7 +28,8 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -37,11 +38,14 @@ gen_specs = {
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'initial_sample': 100}}
+        'initial_sample': 100,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 libE_specs['abort_on_exception'] = False
+libE_specs['save_H_and_persis_on_abort'] = False
 
 # Tell libEnsemble when to stop
 exit_criteria = {'elapsed_wallclock_time': 10}

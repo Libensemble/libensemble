@@ -1,16 +1,16 @@
-# """
-# Test the APOSMM generator function's capabilities to properly exit when a
-# timeout has occurred.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_timeout.py
-#    python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms local
-#    python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Test the APOSMM generator function's capabilities to properly exit when a
+timeout has occurred.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_timeout.py
+   python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms local
+   python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
@@ -36,14 +36,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -58,7 +60,9 @@ gen_specs = {
         'lb': np.array([0, -np.pi / 2]),
         'ub': np.array([2 * np.pi, 3 * np.pi / 2]),
         'periodic': True,
-        'print': True}}
+        'print': True,
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 

@@ -7,11 +7,11 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=master
+.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
 
-.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=master
-   :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
+   :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
 
 .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
@@ -52,8 +52,8 @@ user-provided executables is also supported. Each worker can
 control and monitor any level of work, from small subnode tasks to huge
 many-node simulations. An executor interface is provided to ensure that scripts
 are portable, resilient, and flexible; it also enables automatic detection of
-the nodes and cores in a system and can split up tasks automatically if resource
-data isn't supplied.
+the nodes and cores available to the user, and can dynamically assign resources
+to workers.
 
 .. before_dependencies_rst_tag
 
@@ -71,7 +71,7 @@ For libEnsemble running with the mpi4py parallelism:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependency:
+Optional dependencies:
 
 * Balsam_
 
@@ -79,6 +79,17 @@ From v0.2.0, libEnsemble has the option of using the Balsam job manager. Balsam
 is required in order to run libEnsemble on the compute nodes of some supercomputing
 platforms that do not support launching tasks from compute nodes. As of v0.5.0,
 libEnsemble can also be run on launch nodes using multiprocessing.
+
+* pyyaml_
+
+As of v0.8.0, an alternative interface is available. An Ensemble object is
+created and can be parameterized by a YAML file.
+
+* funcX_
+
+As of v0.8.0+dev, workers can optionally submit generator or simulator
+function instances to remote funcX_ endpoints, distributing an ensemble across
+systems and heterogenous resources.
 
 The example simulation and generation functions and tests require the following:
 
@@ -147,6 +158,16 @@ of the source distribution by running ::
 Further options are available. To see a complete list of options, run ::
 
     ./run-tests.sh -h
+
+The regression tests also work as good example libEnsemble scripts and can
+be run directly in ``libensemble/tests/regression_tests``. For example::
+
+    cd libensemble/tests/regression_tests
+    python test_uniform_sampling.py --comms local --nworkers 3
+
+The ``libensemble/tests/scaling_tests`` directory includes some examples that make
+use of the executor to run compiled applications. These are tested regularly on
+HPC systems.
 
 If you have the source distribution, you can download (but not install) the testing
 prerequisites and run the tests with ::
@@ -217,17 +238,20 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.7.2+dev},
+    number  = {Revision 0.8.0+dev},
     year    = {2021},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 
-  @article{Hudson2021,
+  @article{Hudson2022,
     title   = {{libEnsemble}: A Library to Coordinate the Concurrent
                Evaluation of Dynamic Ensembles of Calculations},
     author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
     journal = {{IEEE} Transactions on Parallel and Distributed Systems},
-    year    = {2021},
+    volume  = {33},
+    number  = {4},
+    pages   = {977--988},
+    year    = {2022},
     doi     = {10.1109/tpds.2021.3082815}
   }
 
@@ -244,12 +268,18 @@ libEnsemble generation capabilities include:
   - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
 
 - DEAP_ Distributed evolutionary algorithms
+- Distributed optimization methods for minimizing sums of convex functions. Methods include:
+
+  - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
+  - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
+  - Proximal sliding (https://arxiv.org/abs/1406.0919).
+
 - ECNoise_ Estimating Computational Noise in Numerical Simulations
 - Surmise_ Modular Bayesian calibration/inference framework
 - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
 - VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization
 
-libEnsemble has also been used to coordinate many computational expensive
+libEnsemble has also been used to coordinate many computationally expensive
 simulations. Select examples include:
 
 - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
@@ -263,11 +293,12 @@ See a complete list of `example user scripts`_.
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
 .. _Conda: https://docs.conda.io/en/latest/
-.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
+.. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
-.. _example user scripts: https://libensemble.readthedocs.io/en/docs-capabilities_section/examples/examples_index.html
+.. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
+.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
@@ -291,6 +322,7 @@ See a complete list of `example user scripts`_.
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
+.. _pyyaml: https://pyyaml.org/
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html

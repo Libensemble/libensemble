@@ -8,10 +8,11 @@ from libensemble.history import History
 
 def make_criteria_and_specs_0(simx=10, n=1):
     sim_specs = {'sim_f': np.linalg.norm, 'in': ['x_on_cube'], 'persis_in': [],
-                 'out': [('f', float), ('fvec', float, 3)], }
+                 'funcx_endpoint': '', 'out': [('f', float), ('fvec', float, 3)], }
     gen_specs = {'gen_f': np.random.uniform,
                  'in': [],
                  'persis_in': [],
+                 'funcx_endpoint': '',
                  'out': [('priority', float), ('local_pt', bool), ('local_min', bool), ('num_active_runs', int)],
                  'user': {'ub': np.ones(n), 'lb': np.zeros(n), 'nu': 0}}
     if n == 1:

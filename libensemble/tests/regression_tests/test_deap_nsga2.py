@@ -1,15 +1,17 @@
-# Example using NSGA2 as a libE generator function
-# For more about NSGA2, see
-# https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_deap_nsga2.py
-#    python3 test_deap_nsga2.py --nworkers 3 --comms local
-#    python3 test_deap_nsga2.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
+"""
+Example using NSGA2 as a libE generator function
+For more about NSGA2, see
+https://gist.github.com/darden1/fa8f96185a46796ed9516993bfe24862
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_deap_nsga2.py
+   python3 test_deap_nsga2.py --nworkers 3 --comms local
+   python3 test_deap_nsga2.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
@@ -58,7 +60,7 @@ w = (-1.0, -1.0)  # Must be a tuple
 sim_specs = {
     'sim_f': deap_six_hump,  # This is the function whose output is being minimized
     'in': ['individual'],  # These keys will be given to the above function
-    'out': [('fitness_values', float, num_obj)]  # This output is being minimized
+    'out': [('fitness_values', float, num_obj)],  # This output is being minimized
 }  # end of sim spec
 
 # State the generating function, its arguments, output, and necessary parameters.
@@ -75,7 +77,8 @@ gen_specs = {
         'indiv_size': ind_size,
         'cxpb': 0.8,  # probability two individuals are crossed
         'eta': 20.0,  # large eta = low variation in children
-        'indpb': 0.8 / ind_size}  # end user
+        'indpb': 0.8 / ind_size,
+    },  # end user
 }  # end gen specs
 
 alloc_specs = {'alloc_f': alloc_f, 'user': {'give_all_with_same_priority': True}}
@@ -92,8 +95,15 @@ for run in range(3):
     # Number of points in the sample
     num_samp = 100
 
-    H0_dtype = [('individual', float, ind_size), ('generation', int), ('fitness_values', float, num_obj),
-                ('sim_id', int), ('returned', bool), ('given_back', bool), ('given', bool)]
+    H0_dtype = [
+        ('individual', float, ind_size),
+        ('generation', int),
+        ('fitness_values', float, num_obj),
+        ('sim_id', int),
+        ('returned', bool),
+        ('given_back', bool),
+        ('given', bool),
+    ]
     H0 = np.zeros(num_samp, dtype=H0_dtype)
 
     # Mark these points as already have been given to be evaluated, and returned, but not given_back.
@@ -132,11 +142,15 @@ for run in range(3):
 
     if is_manager:
         if run == 0:
-            assert np.sum(H['last_points']) == 0, ("The last_points shouldn't be marked (even though "
-                                                   "they were marked in the gen) as 'use_persis_return_gen' was false.")
+            assert np.sum(H['last_points']) == 0, (
+                "The last_points shouldn't be marked (even though "
+                "they were marked in the gen) as 'use_persis_return_gen' was false."
+            )
         elif run == 1:
-            assert np.sum(H['last_points']) == pop_size, ("The last_points should be marked as true because they were "
-                                                          "marked in the manager and 'use_persis_return_gen' is true.")
+            assert np.sum(H['last_points']) == pop_size, (
+                "The last_points should be marked as true because they were "
+                "marked in the manager and 'use_persis_return_gen' is true."
+            )
 
         script_name = os.path.splitext(os.path.basename(__file__))[0]
         assert flag == 0, script_name + " didn't exit correctly"

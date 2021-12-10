@@ -1,15 +1,15 @@
-# """
-# Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_tao_nm.py
-#    python3 test_persistent_aposmm_tao_nm.py --nworkers 3 --comms local
-#    python3 test_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_tao_nm.py
+   python3 test_persistent_aposmm_tao_nm.py --nworkers 3 --comms local
+   python3 test_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
@@ -40,14 +40,16 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 gen_specs = {
     'gen_f': gen_f,
@@ -57,7 +59,9 @@ gen_specs = {
         'initial_sample_size': 100,
         'localopt_method': 'nm',
         'lb': np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f}
 

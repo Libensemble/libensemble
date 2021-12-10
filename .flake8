@@ -2,6 +2,8 @@
 max-line-length = 120
 
 ignore =
+        # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
+        E203
         # Not worrying about spaces around arithmetic operations
         E226
         # Linebreaks before/after unary operators are okay
@@ -30,6 +32,9 @@ per-file-ignores =
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402
+
+        # Similar reasoning for configuring mpi4py
+        libensemble/tests/unit_tests/test_executor.py:E402
 
         # Matplotlib needs something set before import
         postproc_scripts/*:E402

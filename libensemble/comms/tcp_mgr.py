@@ -17,7 +17,7 @@ class ServerQCommManager:
     """
 
     def __init__(self, port, authkey):
-        "Initialize the server on localhost at an indicated TCP port and key."
+        """Initialize the server on localhost at an indicated TCP port and key."""
         queues = {'shared': Queue()}
 
         class ServerQueueManager(BaseManager):
@@ -33,32 +33,32 @@ class ServerQCommManager:
         self.manager.start()
 
     def shutdown(self):
-        "Shutdown the manager"
+        """Shutdown the manager"""
         self.manager.shutdown()
 
     @property
     def address(self):
-        "Get IP address for socket."
+        """Get IP address for socket."""
         return self.manager.address
 
     def get_queue(self, name):
-        "Get a queue from the shared manager"
+        """Get a queue from the shared manager"""
         return self.manager.get_queue(name)
 
     def get_inbox(self, workerID):
-        "Get a worker inbox queue."
+        """Get a worker inbox queue."""
         return self.get_queue('inbox{}'.format(workerID))
 
     def get_outbox(self, workerID):
-        "Get a worker outbox queue."
+        """Get a worker outbox queue."""
         return self.get_queue('outbox{}'.format(workerID))
 
     def get_shared(self):
-        "Get a shared queue for worker subscription."
+        """Get a shared queue for worker subscription."""
         return self.get_queue('shared')
 
     def await_workers(self, nworkers):
-        "Wait for a pool of workers to join."
+        """Wait for a pool of workers to join."""
         sharedq = self.get_shared()
         wqueues = []
         for _ in range(nworkers):
@@ -69,11 +69,11 @@ class ServerQCommManager:
         return wqueues
 
     def __enter__(self):
-        "Context enter."
+        """Context enter."""
         return self
 
     def __exit__(self, etype, value, traceback):
-        "Context exit."
+        """Context exit."""
         self.shutdown()
 
 
@@ -85,7 +85,7 @@ class ClientQCommManager:
     """
 
     def __init__(self, ip, port, authkey, workerID):
-        "Attach by TCP to (ip, port) with a uniquely given workerID"
+        """Attach by TCP to (ip, port) with a uniquely given workerID"""
         self.workerID = workerID
 
         class ClientQueueManager(BaseManager):
@@ -98,25 +98,25 @@ class ClientQCommManager:
         sharedq.put(workerID)
 
     def get_queue(self, name):
-        "Get a queue from the server."
+        """Get a queue from the server."""
         return self.manager.get_queue(name)
 
     def get_inbox(self):
-        "Get this worker's inbox."
+        """Get this worker's inbox."""
         return self.get_queue('inbox{}'.format(self.workerID))
 
     def get_outbox(self):
-        "Get this worker's outbox."
+        """Get this worker's outbox."""
         return self.get_queue('outbox{}'.format(self.workerID))
 
     def get_shared(self):
-        "Get the shared queue for worker sign-up."
+        """Get the shared queue for worker sign-up."""
         return self.get_queue('shared')
 
     def __enter__(self):
-        "Enter the context."
+        """Enter the context."""
         return QComm(self.get_inbox(), self.get_outbox())
 
     def __exit__(self, etype, value, traceback):
-        "Exit the context."
+        """Exit the context."""
         pass

@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble with uniform random sampling and writes results into sim
-# dirs. This tests per-calculation sim_dir capabilities
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_sim_dirs_per_calc.py
-#    python3 test_sim_dirs_per_calc.py --nworkers 3 --comms local
-#    python3 test_sim_dirs_per_calc.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble with uniform random sampling and writes results into sim
+dirs. This tests per-calculation sim_dir capabilities
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_sim_dirs_per_calc.py
+   python3 test_sim_dirs_per_calc.py --nworkers 3 --comms local
+   python3 test_sim_dirs_per_calc.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -44,15 +44,18 @@ libE_specs['ensemble_copy_back'] = True
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
-    'out': [('x', float, (1, ))],
+    'out': [('x', float, (1,))],
     'user': {
         'gen_batch_size': 20,
         'lb': np.array([-3]),
-        'ub': np.array([3]), }}
+        'ub': np.array([3]),
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -63,9 +66,9 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 if is_manager:
     assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
     dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
-    assert dir_sum == exit_criteria['sim_max'], \
-        'Number of sim directories ({}) does not match sim_max ({}).'\
-        .format(dir_sum, exit_criteria['sim_max'])
+    assert dir_sum == exit_criteria['sim_max'], 'Number of sim directories ({}) does not match sim_max ({}).'.format(
+        dir_sum, exit_criteria['sim_max']
+    )
 
     input_copied = []
 
@@ -73,9 +76,12 @@ if is_manager:
         basedir = base.split('/')[-1]
         if basedir.startswith('sim'):
             input_copied.append(
-                all([
-                    os.path.basename(j) in files
-                    for j in libE_specs['sim_dir_copy_files'] + libE_specs['sim_dir_symlink_files']]))
+                all(
+                    [
+                        os.path.basename(j) in files
+                        for j in libE_specs['sim_dir_copy_files'] + libE_specs['sim_dir_symlink_files']
+                    ]
+                )
+            )
 
-    assert all(input_copied), \
-        'Exact input files not copied or symlinked to each calculation directory'
+    assert all(input_copied), 'Exact input files not copied or symlinked to each calculation directory'

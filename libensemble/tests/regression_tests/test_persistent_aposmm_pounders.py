@@ -1,17 +1,17 @@
-# """
-# Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
-# All 214 residual calculations for a given point are performed as a single
-# simulation evaluation.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_persistent_aposmm_pounders.py
-#    python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms local
-#    python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble with APOSMM+POUNDERS on the chwirut least squares problem.
+All 214 residual calculations for a given point are performed as a single
+simulation evaluation.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_persistent_aposmm_pounders.py
+   python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms local
+   python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
@@ -50,14 +50,17 @@ sim_specs = {
     'in': ['x'],
     'out': [('f', float), ('fvec', float, m)],
     'user': {
-        'combine_component_func': lambda x: np.sum(np.power(x, 2))}}
+        'combine_component_func': lambda x: np.sum(np.power(x, 2)),
+    },
+}
 
 gen_out = [
     ('x', float, n),
     ('x_on_cube', float, n),
     ('sim_id', int),
     ('local_min', bool),
-    ('local_pt', bool), ]
+    ('local_pt', bool),
+]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 lb = (-2 - np.pi / 10) * np.ones(n)
@@ -70,14 +73,16 @@ gen_specs = {
     'user': {
         'initial_sample_size': 100,
         'localopt_method': 'pounders',
-        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5)**(1 / n)) / sqrt(pi),
+        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
         'grtol': 1e-6,
         'gatol': 1e-6,
         'dist_to_bound_multiple': 0.5,
         'lhs_divisions': 100,
         'components': m,
         'lb': lb,
-        'ub': ub}}
+        'ub': ub,
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 

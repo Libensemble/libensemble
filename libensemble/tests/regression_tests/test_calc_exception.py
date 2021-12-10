@@ -1,13 +1,11 @@
-# """
-# A test of libEnsemble exception handling.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_calc_exception.py
-#    python3 test_calc_exception.py --nworkers 3 --comms local
-#    python3 test_calc_exception.py --nworkers 3 --comms tcp
-#
-#
-# """
+"""
+A test of libEnsemble exception handling.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_calc_exception.py
+   python3 test_calc_exception.py --nworkers 3 --comms local
+   python3 test_calc_exception.py --nworkers 3 --comms tcp
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
@@ -31,7 +29,8 @@ def six_hump_camel_err(H, persis_info, sim_specs, _):
 sim_specs = {
     'sim_f': six_hump_camel_err,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
@@ -40,7 +39,9 @@ gen_specs = {
     'user': {
         'lb': np.array([-3, -2]),
         'ub': np.array([3, 2]),
-        'gen_batch_size': 10}}
+        'gen_batch_size': 10,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

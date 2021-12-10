@@ -126,7 +126,7 @@ def manager_main(hist, libE_specs, alloc_specs,
 
 
 def filter_nans(array):
-    "Filters out NaNs from a numpy array"
+    """Filters out NaNs from a numpy array"""
     return array[~np.isnan(array)]
 
 
@@ -234,7 +234,7 @@ class Manager:
     # --- Checkpointing logic
 
     def _save_every_k(self, fname, count, k):
-        "Saves history every kth step"
+        """Saves history every kth step"""
         count = k*(count//k)
         filename = fname.format(self.date_start, count)
         if not os.path.isfile(filename) and count > 0:
@@ -243,13 +243,13 @@ class Manager:
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self):
-        "Saves history every kth sim step"
+        """Saves history every kth sim step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
                            self.hist.returned_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
-        "Saves history every kth gen step"
+        """Saves history every kth gen step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_gen_{}.npy',
                            self.hist.index,
                            self.libE_specs['save_every_k_gens'])
@@ -285,17 +285,17 @@ class Manager:
 
         If rsets are not assigned, then assign using default mapping
         """
-        man_resources = self.resources.resource_manager
+        resource_manager = self.resources.resource_manager
         rset_req = Work['libE_info'].get('rset_team')
 
         if rset_req is None:
             rset_team = []
-            default_rset = man_resources.index_list[w-1]
+            default_rset = resource_manager.index_list[w-1]
             if default_rset is not None:
                 rset_team.append(default_rset)
             Work['libE_info']['rset_team'] = rset_team
 
-        man_resources.assign_rsets(Work['libE_info']['rset_team'], w)
+        resource_manager.assign_rsets(Work['libE_info']['rset_team'], w)
 
     def _freeup_resources(self, w):
         """Free up resources assigned to the worker"""
@@ -352,7 +352,7 @@ class Manager:
 
     @staticmethod
     def _check_received_calc(D_recv):
-        "Checks the type and status fields on a receive calculation"
+        """Checks the type and status fields on a receive calculation"""
         calc_type = D_recv['calc_type']
         calc_status = D_recv['calc_status']
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
@@ -433,7 +433,7 @@ class Manager:
             else:
                 self._freeup_resources(w)
 
-        if 'persis_info' in D_recv and len(D_recv['persis_info']):
+        if D_recv.get('persis_info'):
             persis_info[w].update(D_recv['persis_info'])
 
     def _handle_msg_from_worker(self, persis_info, w):
@@ -461,10 +461,12 @@ class Manager:
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
+        """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
             kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
+            # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
                 logger.debug('Manager sending kill signals to H indices {}'.format(np.where(kill_sim)))
                 kill_ids = self.hist.H['sim_id'][kill_sim]
@@ -472,7 +474,6 @@ class Manager:
                 for w in kill_on_workers:
                     self.wcomms[w-1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H['kill_sent'][kill_ids] = True
-                    # SH*** Still expecting return? Currently yes.... else set returned and inactive sim here.
 
     # --- Handle termination
 
@@ -527,7 +528,7 @@ class Manager:
             return False
 
     def _get_alloc_libE_info(self):
-        "Selected statistics useful for alloc_f"
+        """Selected statistics useful for alloc_f"""
 
         return {'any_idle_workers': any(self.W['active'] == 0),
                 'exit_criteria': self.exit_criteria,
@@ -536,7 +537,8 @@ class Manager:
                 'given_count': self.hist.given_count,
                 'returned_count': self.hist.returned_count,
                 'given_back_count': self.hist.given_back_count,
-                'sim_max_given': self._sim_max_given()}
+                'sim_max_given': self._sim_max_given(),
+                'use_resource_sets': 'num_resource_sets' in self.libE_specs}
 
     def _alloc_work(self, H, persis_info):
         """
@@ -567,7 +569,7 @@ class Manager:
         return output
 
     def run(self, persis_info):
-        "Runs the manager"
+        """Runs the manager"""
         logger.info("Manager initiated on node {}".format(socket.gethostname()))
         logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
 

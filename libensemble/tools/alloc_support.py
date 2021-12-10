@@ -135,7 +135,10 @@ class AllocSupport:
                 return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
                 if H is not None and H_rows is not None:
-                    num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                    if 'resource_sets' in H.dtype.names:
+                        num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                    else:
+                        num_rsets_req = 1
                 else:
                     num_rsets_req = self.persis_info.get('gen_resources', 0)
                 return self.assign_resources(num_rsets_req)
@@ -156,7 +159,7 @@ class AllocSupport:
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
-        if rset_team is passed as an additional parameter, it will be honored, assuming that
+        If ``rset_team`` is passed as an additional parameter, it will be honored, assuming that
         any resource checking has already been done.
 
         """
@@ -190,7 +193,7 @@ class AllocSupport:
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
-        if rset_team is passed as an additional parameter, it will be honored, and assume that
+        If ``rset_team`` is passed as an additional parameter, it will be honored, and assume that
         any resource checking has already been done. For example, passing ``rset_team=[]``, would
         ensure that no resources are assigned.
         """

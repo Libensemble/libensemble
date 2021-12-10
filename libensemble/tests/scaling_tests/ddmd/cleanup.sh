@@ -1,1 +1,1 @@
-rm -r ensemble* libE_* 1FME-*
+rm -r ensemble* *.txt *.log 1FME-*

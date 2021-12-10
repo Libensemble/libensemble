@@ -1,14 +1,14 @@
-# """
-# Runs libEnsemble with uniform random sampling on a simple 1D problem
-# without specifying the default communicator. Tests that mpi is taken
-# as default, with a duplicate of MPI.COMM_WORLD. If libEnsemble
-# uses MPI.COMM_WORLD, this test will fail.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_1d_uniform_sampling_with_comm_dup.py
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble with uniform random sampling on a simple 1D problem
+without specifying the default communicator. Tests that mpi is taken
+as default, with a duplicate of MPI.COMM_WORLD. If libEnsemble
+uses MPI.COMM_WORLD, this test will fail.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_1d_uniform_sampling_with_comm_dup.py
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi
@@ -41,16 +41,19 @@ if not is_manager:
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': ['sim_id'],
-    'out': [('x', float, (1, ))],
+    'out': [('x', float, (1,))],
     'user': {
         'lb': np.array([-3]),
         'ub': np.array([3]),
-        'gen_batch_size': 500}}
+        'gen_batch_size': 500,
+    },
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

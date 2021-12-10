@@ -1,13 +1,13 @@
-# """
-# Runs libEnsemble testing the zero_resource_workers argument.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_zero_resource_workers.py
-#    python3 test_zero_resource_workers.py --nworkers 3 --comms local
-#    python3 test_zero_resource_workers.py --nworkers 3 --comms tcp
-#
-# The number of concurrent evaluations of the objective function will be 4-1=3.
-# """
+"""
+Runs libEnsemble testing the zero_resource_workers argument.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_zero_resource_workers.py
+   python3 test_zero_resource_workers.py --nworkers 3 --comms local
+   python3 test_zero_resource_workers.py --nworkers 3 --comms tcp
+
+The number of concurrent evaluations of the objective function will be 4-1=3.
+"""
 
 import sys
 import numpy as np
@@ -56,7 +56,8 @@ nnodes = nsim_workers * nodes_per_worker
 # Mock up system
 custom_resources = {
     'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file}  # Name of file containing a node-list
+    'node_file': node_file,
+}  # Name of file containing a node-list
 libE_specs['resource_info'] = custom_resources
 
 if is_manager:
@@ -68,7 +69,8 @@ if comms == 'mpi':
 # Mock up system
 mpi_customizer = {
     'mpi_runner': 'mpich',  # Select runner: mpich, openmpi, aprun, srun, jsrun
-    'runner_name': 'mpirun'}  # Runner name: Replaces run command if not None
+    'runner_name': 'mpirun',
+}  # Runner name: Replaces run command if not None
 
 # Create executor and register sim to it.
 exctr = MPIExecutor(custom_info=mpi_customizer)
@@ -81,16 +83,19 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float)], }
+    'out': [('f', float)],
+}
 
 gen_specs = {
     'gen_f': gen_f,
     'in': [],
-    'out': [('x', float, (n, ))],
+    'out': [('x', float, (n,))],
     'user': {
         'initial_batch_size': 20,
         'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2])}}
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': []}
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -98,20 +103,14 @@ exit_criteria = {'sim_max': (nsim_workers) * rounds}
 
 # Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [
-    {
-        'testid': 'base1',
-        'nprocs': 2,
-        'nnodes': 1,
-        'ppn': 2,
-        'e_args': '--xarg 1'},  # Under use
-    {
-        'testid': 'base2'},  # Give no config and no extra_args
+    {'testid': 'base1', 'nprocs': 2, 'nnodes': 1, 'ppn': 2, 'e_args': '--xarg 1'},  # Under use
+    {'testid': 'base2'},  # Give no config and no extra_args
 ]
 
-exp_mpich = \
-    ['mpirun -hosts node-1 -np 2 --ppn 2 --xarg 1 /path/to/fakeapp.x --testid base1',
-     'mpirun -hosts node-1,node-2 -np 32 --ppn 16 /path/to/fakeapp.x --testid base2',
-     ]
+exp_mpich = [
+    'mpirun -hosts node-1 -np 2 --ppn 2 --xarg 1 /path/to/fakeapp.x --testid base1',
+    'mpirun -hosts node-1,node-2 -np 32 --ppn 16 /path/to/fakeapp.x --testid base2',
+]
 
 test_list = test_list_base
 exp_list = exp_mpich
@@ -119,7 +118,8 @@ sim_specs['user'] = {
     'tests': test_list,
     'expect': exp_list,
     'nodes_per_worker': nodes_per_worker,
-    'persis_gens': n_gens}
+    'persis_gens': n_gens,
+}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

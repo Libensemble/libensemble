@@ -29,7 +29,7 @@ class MPIExecutor(Executor):
     def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
 
-        A new Executor MPIExecutor is created with an application
+        A new MPIExecutor is created with an application
         registry and configuration attributes.
 
         This is typically created in the user calling script. The
@@ -130,7 +130,7 @@ class MPIExecutor(Executor):
                     retry_count += 1
 
             if retry and retry_count < self.max_launch_attempts:
-                logger.debug('Retry number {} for task {}')
+                logger.debug('Retry number {} for task {}'.format(retry_count, task.name))
                 time.sleep(retry_count*self.retry_delay_incr)
                 task.reset()  # Some cases may require user cleanup
             else:

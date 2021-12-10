@@ -129,31 +129,70 @@ class Worker:
         self.comm = comm
         self.dtypes = dtypes
         self.workerID = workerID
-        self.sim_specs = sim_specs
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
-        # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
-    def _make_runners(sim_specs, gen_specs):
-        "Creates functions to run a sim or gen"
+    def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
+        libE_info['comm'] = None  # 'comm' object not pickle-able
+        Worker._set_executor(0, None)  # ditto for executor
 
+        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info,
+                                    endpoint_id=specs['funcx_endpoint'])
+        remote_exc = future.exception()  # blocks until exception or None
+        if remote_exc is None:
+            return future.result()
+        else:
+            raise remote_exc
+
+    @staticmethod
+    def _get_funcx_exctr(sim_specs, gen_specs):
+        funcx_sim = len(sim_specs.get('funcx_endpoint', '')) > 0
+        funcx_gen = len(gen_specs.get('funcx_endpoint', '')) > 0
+
+        if any([funcx_sim, funcx_gen]):
+            try:
+                from funcx import FuncXClient
+                from funcx.sdk.executor import FuncXExecutor
+                return FuncXExecutor(FuncXClient()), funcx_sim, funcx_gen
+            except ModuleNotFoundError:
+                logger.warning("funcX use detected but funcX not importable. Is it installed?")
+                return None, False, False
+            except Exception:
+                return None, False, False
+        else:
+            return None, False, False
+
+    @staticmethod
+    def _make_runners(sim_specs, gen_specs):
+        """Creates functions to run a sim or gen. These functions are either
+        called directly by the worker or submitted to a funcX endpoint. """
+
+        funcx_exctr, funcx_sim, funcx_gen = Worker._get_funcx_exctr(sim_specs, gen_specs)
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            "Calls the sim func."
-            return sim_f(calc_in, persis_info, sim_specs, libE_info)
+            """Calls or submits the sim func."""
+            if funcx_sim and funcx_exctr:
+                return Worker._funcx_result(funcx_exctr, sim_f, calc_in,
+                                            persis_info, sim_specs, libE_info)
+            else:
+                return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                "Calls the gen func."
-                return gen_f(calc_in, persis_info, gen_specs, libE_info)
+                """Calls or submits the gen func."""
+                if funcx_gen and funcx_exctr:
+                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in,
+                                                persis_info, gen_specs, libE_info)
+                else:
+                    return gen_f(calc_in, persis_info, gen_specs, libE_info)
         else:
             run_gen = []
 
@@ -161,6 +200,7 @@ class Worker:
 
     @staticmethod
     def _set_rset_team(rset_team):
+        """Pass new rset_team to worker resources"""
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.worker_resources.set_rset_team(rset_team)
@@ -170,18 +210,18 @@ class Worker:
 
     @staticmethod
     def _set_executor(workerID, comm):
-        "Sets worker ID in the executor, return True if set"
+        """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
             exctr.set_worker_info(comm, workerID)  # When merge update
             return True
         else:
-            logger.debug("No xecutor set on worker {}".format(workerID))
+            logger.debug("No executor set on worker {}".format(workerID))
             return False
 
     @staticmethod
     def _set_resources(workerID, comm):
-        "Sets worker ID in the resources, return True if set"
+        """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.set_worker_resources(comm.get_num_workers(), workerID)
@@ -212,7 +252,7 @@ class Worker:
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         # calc_id = next(self._calc_id_counter)
 
-        # SH from output_directory.py
+        # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = 'sim_id'
             calc_id = EnsembleDirectory.extract_H_ranges(Work)
@@ -287,7 +327,7 @@ class Worker:
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
     def _recv_H_rows(self, Work):
-        "Unpacks Work request and receives any history rows"
+        """Unpacks Work request and receives any history rows"""
 
         libE_info = Work['libE_info']
         calc_type = Work['tag']
@@ -304,7 +344,7 @@ class Worker:
         return libE_info, calc_type, calc_in
 
     def _handle(self, Work):
-        "Handles a work request from the manager"
+        """Handles a work request from the manager"""
 
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
@@ -336,7 +376,7 @@ class Worker:
                 'calc_type': calc_type}
 
     def run(self):
-        "Runs the main worker loop."
+        """Runs the main worker loop."""
 
         try:
             logger.info("Worker {} initiated on node {}".

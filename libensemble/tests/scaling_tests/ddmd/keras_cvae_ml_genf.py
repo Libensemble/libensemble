@@ -6,8 +6,10 @@ import yaml
 import json
 import numpy as np
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG)
-from libensemble.tools.gen_support import recv_mgr_worker_msg, send_mgr_worker_msg
+from libensemble.message_numbers import (STOP_TAG, PERSIS_STOP,
+                                         FINISHED_PERSISTENT_GEN_TAG,
+                                         EVAL_GEN_TAG)
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def get_stage(persis_info):
@@ -170,6 +172,7 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
 
     user = gen_specs['user']
     exctr = Executor.executor
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     persis_info['stage_count'] = -1
     os.environ["OMP_NUM_THREADS"] = '4'
     os.environ["CUDA_VISIBLE_DEVICES"] = str(libE_info['workerID'] - 1)
@@ -180,11 +183,11 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
         if not initial_complete:
             local_H, persis_info = generate_initial_md_runs(gen_specs, persis_info)
             # Send initial MD run parameters directly to the Manager
-            send_mgr_worker_msg(libE_info['comm'], local_H)
+            ps.send(local_H)
             initial_complete = True
         else:
             # Wait for batch of MD results
-            tag, Work, calc_in = recv_mgr_worker_msg(libE_info['comm'])
+            tag, Work, calc_in = ps.recv()
             if tag in [STOP_TAG, PERSIS_STOP]:  # Generator instructed to stop
                 break
 
@@ -202,6 +205,6 @@ def run_keras_cvae_ml_genf(H, persis_info, gen_specs, libE_info):
             # Produce subsequent set of MD runs parameters based on the final app's results
             local_H, persis_info = generate_subsequent_md_runs(gen_specs, persis_info, local_H, output_path)
             # Send subsequent MD run parameters directly to the Manager
-            send_mgr_worker_msg(libE_info['comm'], local_H)
+            ps.send(local_H)
 
     return local_H, persis_info, FINISHED_PERSISTENT_GEN_TAG

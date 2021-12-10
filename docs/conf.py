@@ -51,6 +51,7 @@ MOCK_MODULES = [
         'psutil',
         'scipy',
         'scipy.io',
+        'scipy.sparse',
         'scipy.spatial',
         'scipy.spatial.distance',
         'scipy.stats',

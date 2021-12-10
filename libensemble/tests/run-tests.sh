@@ -203,7 +203,7 @@ usage() {
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
-  echo "  -e              Run extra regression tests that require additional dependencies"
+  echo "  -e              Run extra unit and regression tests that require additional dependencies"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -A {-flag arg}  Supply arguments to python"
@@ -259,7 +259,7 @@ while getopts ":p:n:a:y:A:hcszurmlte" opt; do
       export RUN_TCP=true
       ;;
     e)
-      echo "Running extra regression tests with additional dependencies"
+      echo "Running extra tests with additional dependencies"
       export RUN_EXTRA=true
       ;;
     m)
@@ -388,13 +388,22 @@ if [ "$root_found" = true ]; then
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
+    if [ "$RUN_EXTRA" = true ]; then
+        EXTRA_UNIT_ARG="--runextra"
+    fi
+
     for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
     cd $ROOT_DIR/$DIR
-#     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
+
+    # unit test subdirs dont contain pytest's conftest.py that defines extra arg
+    if [ $DIR = $UNIT_TEST_NOMPI_SUBDIR ]; then
+        EXTRA_UNIT_ARG=""
+    fi
+
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
+      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
     fi;
 
     code=$?
@@ -470,6 +479,7 @@ if [ "$root_found" = true ]; then
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
+        OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
         if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
         for NPROCS in ${NPROCS_LIST}
         do
@@ -482,6 +492,11 @@ if [ "$root_found" = true ]; then
 
           if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
             echo "Skipping test number for OSX: " $test_num
+            continue
+          fi
+
+          if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
+            echo "Skipping test number for Open MPI: " $test_num
             continue
           fi
 

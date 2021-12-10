@@ -110,69 +110,16 @@ the :doc:`examples<example_scripts>`.
 Mapping Tasks to Resources
 --------------------------
 
-.. The :doc:`resource manager<../?/?>`can detect system resources, and partition
-
-The resource manager can detect system resources, and partition
-these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`, for example,
+The :ref:`resource manager<resources_index>` can :ref:`detect system resources<resource_detection>`,
+and partition these to workers. The :doc:`MPI Executor<../executor/mpi_executor>`
 accesses the resources available to the current worker when launching tasks.
-
-Node-lists are detected by an environment variable on the following systems:
-
-===========  ===========================
-Scheduler       Nodelist Env. variable
-===========  ===========================
-SLURM           SLURM_NODELIST
-COBALT          COBALT_PARTNAME
-LSF             LSB_HOSTS/LSB_MCPU_HOSTS
-===========  ===========================
-
-These environment variable names can be modified via the  :ref:`resource_info<resource_info>`
-libE_specs option.
-
-On other systems you may have to supply a node list in a file called **node_list**
-in your run directory. For example, on Cooley_ the session node list can be obtained
-as follows::
-
-            cat $COBALT_NODEFILE > node_list
-
-Resource detection can be disabled by setting
-``libE_specs['disable_resource_manager'] = True``, and users' can simply supply run
-configuration options on the Executor submit line. This will usually work sufficiently on
-systems that have application-level scheduling (e.g., ``aprun``, ``jsrun``) as these
-will slot each run into available nodes where possible. ``jsrun`` can also queue
-runs. However, on other cluster and multi-node systems, if the built-in resource
-manager is disabled, then runs without a hostlist or machinefile supplied may be
-undesirably scheduled to the same nodes.
 
 Zero-resource workers
 ~~~~~~~~~~~~~~~~~~~~~
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
-are still automatically assigned system resources. This can be wasteful if those
-workers only run ``gen_f`` routines in-place and don't use the Executor to submit
-applications to allocated nodes:
-
-.. image:: ../images/persis_wasted_node.png
-    :alt: persis_wasted_node
-    :scale: 40
-    :align: center
-
-This can be resolved within the Executor definition in the calling script. Set the
-parameter ``zero_resource_workers`` to a list of worker IDs that shouldn't have
-system resources assigned. For example, when using a single instance of Persistent
-:doc:`APOSMM<../examples/aposmm>` as your ``gen_f``, the Executor definition
-may resemble::
-
-    exctr = MPIExecutor(dedicated_mode=True, zero_resource_workers=[1])
-
-Worker 1 will now not be allocated resources. Note that additional worker
-processes can be added to take advantage of the free resources (if using the
-same resource set) for simulation instances:
-
-.. image:: ../images/persis_add_worker.png
-    :alt: persis_add_worker
-    :scale: 40
-    :align: center
+are still automatically assigned system resources. This can be resolved by
+using :ref:`zero resource workers<zero_resource_workers>`.
 
 Overriding Auto-detection
 -------------------------
@@ -185,6 +132,57 @@ libE_specs option.
 
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
+
+funcX - Remote User functions
+-----------------------------
+
+*Alternatively to much of the above*, if libEnsemble is running on some resource with
+internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
+launch generator or simulator user function instances to separate resources from
+themselves via funcX_, a distributed, high-performance function-as-a-service platform:
+
+.. image:: ../images/funcxmodel.png
+    :alt: running_with_funcx
+    :scale: 50
+    :align: center
+
+This is useful for running ensembles across machines and heterogenous resources, but
+comes with several caveats:
+
+    1. User functions registered with funcX must be *non-persistent*, since
+       manager-worker communicators can't be serialized or used by a remote resource.
+
+    2. Likewise, the ``Executor.manager_poll()`` capability is disabled. The only
+       available control over remote functions by workers is processing return values
+       or exceptions when they complete.
+
+    3. funcX imposes a `handful of task-rate and data limits`_ on submitted functions.
+
+    4. Users are responsible for authenticating via Globus_ and maintaining their
+       `funcX endpoints`_ on their target systems.
+
+Users can still define Executor instances within their user functions and submit
+MPI applications normally, as long as libEnsemble and the target application are
+accessible on the remote system::
+
+    # Within remote user function
+    from libensemble.executors import MPIExecutor
+    exctr = MPIExecutor()
+    exctr.register_app(full_path='/home/user/forces.x', app_name='forces')
+    task = exctr.submit(app_name='forces', num_procs=64)
+
+Specify a funcX endpoint in either ``sim_specs`` or ``gen_specs`` via the ``funcx_endpoint``
+key. For example::
+
+    sim_specs = {
+        'sim_f': sim_f,
+        'in': ['x'],
+        'out': [('f', float)],
+        'funcx_endpoint': 3af6dc24-3f27-4c49-8d11-e301ade15353,
+    }
+
+See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
+remote-simulation example.
 
 Instructions for Specific Platforms
 -----------------------------------
@@ -204,3 +202,7 @@ libEnsemble on specific HPC systems.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Cooley: https://www.alcf.anl.gov/support-center/cooley
+.. _funcX: https://funcx.org/
+.. _`funcX endpoints`: https://funcx.readthedocs.io/en/latest/endpoints.html
+.. _Globus: https://www.globus.org/
+.. _`handful of task-rate and data limits`: https://funcx.readthedocs.io/en/latest/limits.html

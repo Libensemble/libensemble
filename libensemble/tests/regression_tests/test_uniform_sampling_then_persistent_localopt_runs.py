@@ -1,20 +1,21 @@
-# """
-# Runs libEnsemble on a generator function that first does uniform sampling,
-# then starts persistent local optimization runs.
-#
-# Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
-#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
-#    python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
-#
-# When running with the above commands, the number of concurrent evaluations of
-# the objective function will be 2, as one of the three workers will be the
-# persistent generator.
-# """
+"""
+Runs libEnsemble on a generator function that first does uniform sampling,
+then starts persistent local optimization runs.
+
+Execute via one of the following commands (e.g. 3 workers):
+   mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
+   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
+   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
+
+When running with the above commands, the number of concurrent evaluations of
+the objective function will be 2, as one of the three workers will be the
+persistent generator.
+"""
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -37,7 +38,8 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('grad', float, n)], }
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {
@@ -50,7 +52,9 @@ gen_specs = {
         'ub': np.array([3, 2]),
         'gen_batch_size': 2,
         'localopt_method': 'LD_MMA',
-        'xtol_rel': 1e-4}}
+        'xtol_rel': 1e-4,
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
@@ -66,7 +70,7 @@ if is_manager:
 
     tol = 0.1
     for m in minima:
-        assert np.min(np.sum((H['x'] - m)**2, 1)) < tol
+        assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol
 
     print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
 

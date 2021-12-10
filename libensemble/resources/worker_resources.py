@@ -45,22 +45,21 @@ class ResourceManager(RSetResources):
 
         """
         super().__init__(num_workers, resources)
-        self.index_list = ResourceManager.get_index_list(self.num_workers, resources.zero_resource_workers)
-        # print('index list:', self.index_list)
+        self.index_list = ResourceManager.get_index_list(self.num_workers,
+                                                         self.total_num_rsets,
+                                                         resources.zero_resource_workers)
 
-        # SH TODO: Need to update to allow uneven distribution of rsets to nodes
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
         self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
         self.rsets_free = self.total_num_rsets
 
-        # SH TODO: Useful for scheduling tasks with different sized groups (resource sets per node).
+        # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets['group'], return_counts=True)
         self.group_sizes = dict(zip(unique, counts))
         self.ngroups_by_size = Counter(counts)
         self.even_groups = True if len(self.ngroups_by_size) == 1 else False
-        # print('\nrsets are {} even groups is {}\n'.format(self.rsets,self.even_groups))
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
@@ -75,9 +74,6 @@ class ResourceManager(RSetResources):
                     ResourceManagerException("Error: Attempting to assign rsets {}"
                                              " already assigned to workers: {}".
                                              format(rset_team, rteam))
-            # print('resource ids assigned', np.where(self.rsets['assigned'])[0])
-            # print('resource worker assignment', self.rsets['assigned'])
-            # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -88,17 +84,12 @@ class ResourceManager(RSetResources):
             rsets_to_free = np.where(self.rsets['assigned'] == worker)[0]
             self.rsets['assigned'][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
-            # print('\nWorker {} returned - freed up rsets {}'.format(worker, rsets_to_free))
-        # print('resources assigned', np.where(self.rsets['assigned'])[0])
-        # print('resources unassigned', np.where(self.rsets['assigned'] == 0)[0])
 
     @staticmethod
     def get_group_list(split_list):
         group = 1
         group_list = []
         node = split_list[0]
-
-        # SH What to do when multiple nodes in each entry........ what is group then.
         for i in range(len(split_list)):
             if split_list[i] == node:
                 group_list.append(group)
@@ -109,7 +100,7 @@ class ResourceManager(RSetResources):
         return group_list
 
     @staticmethod
-    def get_index_list(num_workers, zero_resource_list):
+    def get_index_list(num_workers, num_rsets, zero_resource_list):
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
@@ -117,7 +108,11 @@ class ResourceManager(RSetResources):
             if i in zero_resource_list:
                 index_list.append(None)
             else:
-                index_list.append(index)
+                if index >= num_rsets:
+                    # Not enough rsets
+                    index_list.append(None)
+                else:
+                    index_list.append(index)
                 index += 1
         return index_list
 
@@ -294,14 +289,11 @@ class WorkerResources(RSetResources):
         if workerID is None:
             raise WorkerResourcesException("Worker has no workerID - aborting")
 
-        # print('Worker {}. rsets_per_node {}'.format(workerID, rsets_per_node), flush=True)
         team_list = []
         for index in rset_team:
             team_list += split_list[index]
-        # print('Worker {} team_list {}'.format(workerID, team_list),flush=True)
 
         local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
-        # print("Worker {} Worker's local_nodelist is {}".format(workerID, local_nodelist),flush=True)
         logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
 
         slots = {}
@@ -316,10 +308,7 @@ class WorkerResources(RSetResources):
                     slots[node].append(0)
             else:
                 mynode = split_list[index][0]
-                # rsets_per_node = local_rsets_list[index]  # SH TODO Alternative for uneven rsets per node
                 pos_in_node = index % rsets_per_node
                 slots[mynode].append(pos_in_node)
-
-        # print("Worker {} slots are {}".format(workerID, slots),flush=True)
 
         return local_nodelist, slots

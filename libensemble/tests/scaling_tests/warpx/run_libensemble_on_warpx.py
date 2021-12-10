@@ -67,8 +67,8 @@ sim_app = machine_specs['sim_app']
 # that LibEnsemble will vary in order to minimize a single output parameter.
 n = 4
 
-exctr = MPIExecutor(dedicated_mode=True)
-exctr.register_app(full_path=sim_app, calc_type='sim')
+exctr = MPIExecutor()
+exctr.register_app(full_path=sim_app, app_name='warpx')
 
 # State the objective function, its arguments, output, and necessary parameters
 # (and their sizes). Here, the 'user' field is for the user's (in this case,
@@ -142,9 +142,6 @@ if generator_type == 'random':
         # Allocator function, decides what a worker should do.
         # We use a LibEnsemble allocator.
         'alloc_f': alloc_f,
-        'out': [
-            ('allocated', bool)
-        ],
         'user': {
             # If true wait for all sims to process before generate more
             'batch_mode': True,
@@ -159,7 +156,7 @@ elif generator_type == 'aposmm':
     gen_specs = {
         # Generator function. Will randomly generate new sim inputs 'x'.
         'gen_f': gen_f,
-        'in': [],
+        'persis_in': ['f', 'x', 'x_on_cube', 'sim_id', 'local_min', 'local_pt'],
         'out': [
             # parameters to input into the simulation.
             ('x', float, (n,)),
@@ -192,12 +189,7 @@ elif generator_type == 'aposmm':
         }
     }
 
-    alloc_specs = {
-        # Allocator function, decides what a worker should do.
-        # We use a LibEnsemble allocator.
-        'alloc_f': alloc_f,
-        'out': [],
-        'user': {}}
+    alloc_specs = {'alloc_f': alloc_f}
 
 else:
     print("you shouldn' hit that")
@@ -207,6 +199,8 @@ else:
 libE_specs['save_every_k_sims'] = 100
 # Sim directory to be copied for each worker
 libE_specs['sim_input_dir'] = 'sim'
+libE_specs['sim_dirs_make'] = True
+libE_specs['dedicated_mode'] = True
 
 sim_max = machine_specs['sim_max']  # Maximum number of simulations
 exit_criteria = {'sim_max': sim_max}  # Exit after running sim_max simulations

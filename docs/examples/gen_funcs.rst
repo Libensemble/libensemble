@@ -16,5 +16,4 @@ Below are example generation functions available in libEnsemble.
    deap_nsga2
    tasmanian
    fd_param_finder
-   vtmop
    surmise

@@ -32,12 +32,14 @@ allowed_sim_spec_keys = ['sim_f',  #
                          'in',     #
                          'persis_in',
                          'out',    #
+                         'funcx_endpoint',  #
                          'user']   #
 
 allowed_gen_spec_keys = ['gen_f',  #
                          'in',     #
                          'persis_in',
                          'out',    #
+                         'funcx_endpoint',  #
                          'user']   #
 
 allowed_alloc_spec_keys = ['alloc_f',  #

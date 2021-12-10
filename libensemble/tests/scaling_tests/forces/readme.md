@@ -28,12 +28,11 @@ Modify build_forces.sh for target platform and run to build forces.x:
 
     ./build_forces.sh
 
-Then to run with default local comms (multiprocessing) with one manager and `N` workers:
+Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces.py N
+    python run_libe_forces.py --comms local --nworkers N
 
-To run with MPI, set `USE_MPI = True` in `run_libe_forces.py`.
-Then to run with one manager and `N-1` workers:
+To run with MPI comms using one manager and `N-1` workers:
 
     mpirun -np N python run_libe_forces.py
 
@@ -43,11 +42,17 @@ To remove output before the next run:
 
     ./cleanup.sh
 
+### Using YAML in calling script (optional)
+
+An alternative calling script `run_libe_forces_from_yaml.py` can be run in the same
+way as `run_libe_forces.py` above. This uses an alternative libEnsemble interface, where
+an ensemble object is created and parameters can be read from the `forces.yaml` file.
+
 ### Running with Balsam
 
-To run with balsam, set `USE_MPI = True` and `USE_BALSAM = True` in `run_libe_forces.py`.
+To run with balsam, set `USE_BALSAM = True` in `run_libe_forces.py`.
 You need to have followed the instructions to install `balsam` and set-up/activate a database.
-(See https://github.com/balsam-alcf/balsam).
+(See https://github.com/argonne-lcf/balsam).
 
 Then to test locally, run the `balsam_local.sh` script. The default runs with 2 workers.
 

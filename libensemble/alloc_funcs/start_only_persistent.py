@@ -52,7 +52,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    manage_resources = 'resource_sets' in H.dtype.names
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)  # Always batch return until this many evals complete
     batch_give = user.get('give_all_with_same_priority', False)
@@ -160,7 +160,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
     sched_opts = user.get('scheduler_opts', {})
-    manage_resources = 'resource_sets' in H.dtype.names
+    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
     active_recv_gen = user.get('active_recv_gen', False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get('init_sample_size', 0)  # Always batch return until this many evals complete
     batch_give = user.get('give_all_with_same_priority', False)

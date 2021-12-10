@@ -62,8 +62,6 @@ class ResourceScheduler:
         insufficient resources.
         """
 
-        # SH TODO: Remove commented print statements
-
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
                                              .format(rsets_req, self.resources.total_num_rsets))
@@ -74,9 +72,6 @@ class ResourceScheduler:
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  # assumes even
         avail_rsets_by_group = self.get_avail_rsets_by_group()
-
-        # print('\nChecking ------ avail_rsets_by_group: {} rsets_req {} rsets free {}'.
-        #      format(self.avail_rsets_by_group, rsets_req, self.rsets_free))
 
         # Work out best target fit - if all rsets were free.
         rsets_req, num_groups_req, rsets_req_per_group = \
@@ -98,10 +93,8 @@ class ResourceScheduler:
         # Now find slots on as many nodes as need
         accum_team = []
         group_list = []
-        # print('\nLooking for {} rsets'.format(rsets_req))
 
         for ng in range(num_groups_req):
-            # print(' - Looking for group {} out of {}: Groupsize {}'.format(ng+1, num_groups_req, rsets_req_per_group))
             cand_team, cand_group = \
                 self.find_candidate(tmp_avail_rsets_by_group, group_list, rsets_req_per_group, max_upper_bound)
 
@@ -109,24 +102,17 @@ class ResourceScheduler:
                 accum_team.extend(cand_team)
                 group_list.append(cand_group)
 
-                # print('      b4:  group {} avail {} - cand_team {}'.
-                #       format(group_list, tmp_avail_rsets_by_group, cand_team))
                 for rset in cand_team:
                     tmp_avail_rsets_by_group[cand_group].remove(rset)
-                # print('      aft: group {} avail {}'.format(group_list, tmp_avail_rsets_by_group))
 
         if len(accum_team) == rsets_req:
             # A successful team found
             rset_team = sorted(accum_team)
-            # print('Setting rset team {} - group_list {}'.format(accum_team, group_list))
             self.avail_rsets_by_group = tmp_avail_rsets_by_group
             self.rsets_free -= rsets_req
-            # print('avail_rsets_by_group after', self.avail_rsets_by_group)
         else:
             raise InsufficientFreeResources
-            # print('------Could not find enough rsets - returning None-------')
 
-        # print('Assigned rset team {} to worker {}'.format(rset_team,worker_id))
         return rset_team
 
     def find_candidate(self, rsets_by_group, group_list, rsets_req_per_group, max_upper_bound):
@@ -135,7 +121,6 @@ class ResourceScheduler:
         cand_group = None
         upper_bound = max_upper_bound
         for g in rsets_by_group:
-            # print('   -- Search possible group {} in {}'.format(g, rsets_by_group))
             if g in group_list:
                 continue
             nslots = len(rsets_by_group[g])
@@ -214,7 +199,6 @@ class ResourceScheduler:
             rsets_req_per_group = rsets_req
         return rsets_req, num_groups_req, rsets_req_per_group
 
-    # SH TODO: May be able to use an equivalent of this when have uneven groups to start with.
     def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, extend):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
         if rsets_req == 0:
@@ -229,7 +213,6 @@ class ResourceScheduler:
                     raise InsufficientFreeResources
                 rsets_per_grp = sorted_lens[ngroups - 1]
 
-        # SH TODO: Could add extend option here - then sending back rsets_req will make sense.
         return rsets_req, ngroups, rsets_per_grp
 
     @staticmethod

@@ -5,7 +5,7 @@ from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
 
 
 def _check_consistent_field(name, field0, field1):
-    "Checks that new field (field1) is compatible with an old field (field0)."
+    """Checks that new field (field1) is compatible with an old field (field0)."""
     assert field0.ndim == field1.ndim, \
         "H0 and H have different ndim for field {}".format(name)
     assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
@@ -195,14 +195,14 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
-        for name in alloc_specs.get('in', []):
-            assert name in out_names, \
-                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
-                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+        assert 'in' not in alloc_specs, "alloc_specs['in'] is not needed as all of the history is available alloc_f."
 
         check_alloc_specs(alloc_specs)
 
     if sim_specs is not None:
+        if 'in' in sim_specs:
+            assert isinstance(sim_specs['in'], list), "sim_specs['in'] must be a list"
+
         for name in sim_specs.get('in', []):
             assert name in out_names, \
                 name + " in sim_specs['in'] is not in sim_specs['out'], "\
@@ -211,6 +211,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_sim_specs(sim_specs)
 
     if gen_specs is not None:
+        if 'in' in gen_specs:
+            assert isinstance(gen_specs['in'], list), "gen_specs['in'] must be a list"
+
         for name in gen_specs.get('in', []):
             assert name in out_names, \
                 name + " in gen_specs['in'] is not in sim_specs['out'], "\

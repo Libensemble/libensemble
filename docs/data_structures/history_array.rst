@@ -35,6 +35,19 @@ populated internally:
 * ``last_given_time`` [float]: Time this entry
   was *last* given to a worker to be evaluated by a ``sim_f``.
 
+* ``returned`` [bool]: True if this entry has been evaluated by a ``sim_f``.
+
+* ``returned_time`` [float]: Time this entry was *last* returned from a ``sim_f``.
+
+* ``given_back`` [bool]: True if this ``gen_f`` output been given back to a ``gen_f``
+  worker after being returned from evaluation.
+
+.. * ``given_back_time`` [float]: Time this entry
+..   was *first* given back to a ``gen_f`` worker.
+
+* ``last_given_back_time`` [float]: Time this entry
+  was *last* given back to a ``gen_f`` worker.
+
 * ``sim_worker`` [int]: libEnsemble worker that performed the ``sim_f`` evaluation.
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this entry.
@@ -42,10 +55,6 @@ populated internally:
 * ``gen_time`` [float]: Time this entry was put into ``H`` by the manager.
 
 * ``last_gen_time`` [float]: Time this entry was last requested by a ``gen_f``.
-
-* ``returned`` [bool]: True if this entry has been evaluated by a ``sim_f``.
-
-* ``returned_time`` [float]: Time this entry was *last* returned from a ``sim_f``.
 
 * ``cancel_requested`` [bool]: True if cancellation of evaluation of this entry was requested.
 
