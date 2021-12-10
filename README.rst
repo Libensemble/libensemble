@@ -25,35 +25,35 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of
-dynamic ensembles of calculations. The library is developed to use massively
-parallel resources to accelerate the solution of design, decision, and
-inference problems and to expand the class of problems that can benefit from
-increased concurrency levels.
+libEnsemble is a Python toolkit for coordinating asynchronous and dynamic ensembles
+of calculations.
+
+libEnsemble can run on and across HPC machines and facilities,
+and help users take advantage of massively parallel resources to solve design,
+decision, and inference problems and expand the class of problems that can benefit from
+increased parallelism.
+
+libEnsemble's users select or supply **simulator** and **generator** Python functions,
+requiring only a basic familiarity with NumPy_. Simulator functions
+perform and monitor simulations based on input parameters from generator functions.
+Generator functions can train models and produce parameters on-the-fly based on
+previous simulation results.
 
 libEnsemble aims for the following:
 
-• Extreme scaling
-• Resilience/fault tolerance
-• Monitoring/killing of tasks (and recovering resources)
-• Portability and flexibility
-• Exploitation of persistent data/control flow
+• Extreme scaling, from laptops to supercomputers.
+• Resilience/fault tolerance. libEnsemble can restart incomplete ensembles.
+• Monitoring applications, including recovering and dynamically resassigning resources.
+• Portability and flexibility. Run identical libEnsemble scripts across facilities.
+• Exploitation of persistent data/control flow. libEnsemble can pass data between running functions.
 
-The user selects or supplies a *generator function* that produces
-input parameters for a *simulator function* that performs and monitors
-simulations. For example, the generator function may contain an
-optimization routine to generate new simulation parameters on-the-fly based on
-the results of previous simulations. Examples and templates of such functions are
-included in the library.
+libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
+or TCP. Workers control and monitor any level of work using the aforementioned
+functions, from small subnode tasks to huge many-node simulations.
 
-libEnsemble employs a manager/worker scheme that can run on various
-communication media (including MPI, multiprocessing, and TCP); interfacing with
-user-provided executables is also supported. Each worker can
-control and monitor any level of work, from small subnode tasks to huge
-many-node simulations. An executor interface is provided to ensure that scripts
-are portable, resilient, and flexible; it also enables automatic detection of
-the nodes and cores available to the user, and can dynamically assign resources
-to workers.
+libEnsemble includes an Executor interface so application-launching functions are
+portable, resilient, and flexible; it also enables automatic detection of the nodes
+and cores available to the user, and can dynamically assign resources to workers.
 
 .. before_dependencies_rst_tag
 
@@ -100,7 +100,7 @@ The example simulation and generation functions and tests require the following:
 * DFO-LS_
 * Tasmanian_
 * NLopt_
-* `PETSc/TAO`_ - Can optionally be installed by pip along with petsc4py
+* `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
 * Surmise_
 
 PETSc and NLopt must be built with shared libraries enabled and present in
@@ -218,9 +218,10 @@ Resources
 
 **Support:**
 
-- The best way to receive support is to email questions to ``libEnsemble@lists.mcs.anl.gov``.
+- The best way to receive support is to open an issue on GitHub_.
 - Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
+- Alternatively, feel free to email questions to ``libEnsemble@lists.mcs.anl.gov``.
 
 **Further Information:**
 
