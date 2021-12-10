@@ -30,6 +30,7 @@ from ax.core.objective import Objective
 from ax.modelbridge.factory import get_sobol, get_MTGP
 from ax.core.observation import ObservationFeatures
 
+
 def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model for multi-task optimization
@@ -63,7 +64,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
                 lower=float(lb),
                 upper=float(ub))
         )
-    search_space=SearchSpace(parameters=parameters)
+    search_space = SearchSpace(parameters=parameters)
 
     # Create metrics.
     hifi_objective = AxMetric(
@@ -84,12 +85,11 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
 
     # Create experiment.
     exp = MultiTypeExperiment(
-            name="mt_exp",
-            search_space=search_space,
-            default_trial_type=hifi_task,
-            default_runner=ax_runner,
-            optimization_config=opt_config,
-        )
+        name="mt_exp",
+        search_space=search_space,
+        default_trial_type=hifi_task,
+        default_runner=ax_runner,
+        optimization_config=opt_config)
 
     exp.add_trial_type(lofi_task, ax_runner)
     exp.add_tracking_metric(
@@ -273,9 +273,9 @@ def max_utility_from_GP(n, m, gr, hifi_task):
     u = -np.array(f['hifi_metric'])
     best_arm_indx = np.flip(np.argsort(u))[:n]
     gr_new = GeneratorRun(
-        arms = [
+        arms=[
             gr.arms[i] for i in best_arm_indx
         ],
-        weights = [1.] * n,
+        weights=[1.] * n,
     )
     return gr_new

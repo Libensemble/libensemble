@@ -10,7 +10,6 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tools import save_libE_output, add_unique_random_streams
 from libensemble.tools import parse_args
 from libensemble.message_numbers import WORKER_DONE
@@ -26,6 +25,7 @@ mt_params = {
     'n_opt_hifi': 2,
     'n_opt_lofi': 4,
 }
+
 
 def run_simulation(H, persis_info, sim_specs, libE_info):
     # Extract input parameters
@@ -47,10 +47,11 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 
     return libE_output, persis_info, calc_status
 
+
 sim_specs = {
     'sim_f': run_simulation,
     'in': ['x', 'task'],
-    'out': [ ('f', float) ],
+    'out': [('f', float)],
 }
 
 gen_specs = {
@@ -70,9 +71,9 @@ gen_specs = {
         # Total max number of sims running concurrently.
         'gen_batch_size': nworkers-1,
         # Lower bound for the n parameters.
-        'lb': np.array([ 0, 0 ]),
+        'lb': np.array([0, 0]),
         # Upper bound for the n parameters.
-        'ub': np.array([ 15, 15 ])
+        'ub': np.array([15, 15])
     }
 }
 gen_specs['user'] = {**gen_specs['user'], **mt_params}
