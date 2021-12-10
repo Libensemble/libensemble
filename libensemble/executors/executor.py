@@ -254,6 +254,25 @@ class Task:
 
         self._set_complete()
 
+    def result(self, timeout=None):
+        """Wrapper for task.wait() that also returns the task's status on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+        self.wait(timeout=timeout)
+        return self.state
+
+    def running(self):
+        """ Return ```True`` if task is currently running."""
+        return (self.state == 'RUNNING')
+
+    def done(self):
+        """ Return ```True`` if task is finished or successfully cancelled."""
+        return self.state in ['FINISHED', 'USER_KILLED']
+
     def kill(self, wait_time=60):
         """Kills or cancels the supplied task
 
@@ -281,6 +300,14 @@ class Task:
         self.state = 'USER_KILLED'
         self.finished = True
         self.calc_task_timing()
+
+    def cancel(self):
+        """Wrapper for task.kill() without waiting"""
+        self.kill(wait_time=None)
+
+    def cancelled(self):
+        """ Return ```True`` if task successfully cancelled."""
+        return self.state == 'USER_KILLED'
 
 
 class Executor:
@@ -339,6 +366,12 @@ class Executor:
         self.workerID = None
         self.comm = None
         Executor.executor = self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self):
+        pass
 
     def serial_setup(self):
         """Set up to be called by only one process"""
