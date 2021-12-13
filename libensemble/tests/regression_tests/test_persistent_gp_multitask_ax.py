@@ -28,6 +28,11 @@ from libensemble.tools import parse_args
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
+import warnings
+
+# Ax uses a deprecated warn command.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 nworkers, is_master, libE_specs, _ = parse_args()
 
 mt_params = {
