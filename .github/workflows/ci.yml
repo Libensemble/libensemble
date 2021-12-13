@@ -123,6 +123,7 @@ jobs:
             python -m pip install --upgrade pip
             pip install DFO-LS
             pip install dragonfly-opt
+            pip install ax-platform
             pip install mpmath
             pip install deap
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
