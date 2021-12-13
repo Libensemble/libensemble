@@ -13,6 +13,12 @@ persistent generator.
 
 """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: local mpi
+# TESTSUITE_NPROCS: 5
+# TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
+
 import numpy as np
 from libensemble.libE import libE
 from libensemble import logger
