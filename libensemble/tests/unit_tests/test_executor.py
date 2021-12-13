@@ -688,6 +688,36 @@ def test_serial_startup_times():
     assert 0 < startup_time < 1, "Start up time for python program took " + str(startup_time)
 
 
+def test_futures_interface():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 3'
+    with Executor.executor as exctr:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+    time.sleep(0.1)
+    assert task.running(), \
+        "task.running() should return True after wait_on_start task submission."
+    assert task.result() == 'FINISHED',  \
+        "task.result() should return FINISHED. Returned " + str(task.state)
+    assert task.done(), \
+        "task.done() should return True after task finishes."
+
+
+def test_futures_interface_cancel():
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 3'
+    with Executor.executor as exctr:
+        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+    time.sleep(0.1)
+    task.cancel()
+    assert task.cancelled() and task.done(), \
+        "Task should be both cancelled() and done() after cancellation."
+
 if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
@@ -713,4 +743,6 @@ if __name__ == "__main__":
     test_register_apps()
     test_serial_exes()
     test_serial_startup_times()
+    test_futures_interface()
+    test_futures_interface_cancel()
     teardown_module(__file__)

@@ -267,7 +267,7 @@ class Task:
 
     def running(self):
         """ Return ```True`` if task is currently running."""
-        return (self.state == 'RUNNING')
+        return self.state == 'RUNNING'
 
     def done(self):
         """ Return ```True`` if task is finished or successfully cancelled."""
@@ -370,7 +370,7 @@ class Executor:
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, *exc):
         pass
 
     def serial_setup(self):
