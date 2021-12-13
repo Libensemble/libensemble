@@ -718,6 +718,7 @@ def test_futures_interface_cancel():
     assert task.cancelled() and task.done(), \
         "Task should be both cancelled() and done() after cancellation."
 
+
 if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
