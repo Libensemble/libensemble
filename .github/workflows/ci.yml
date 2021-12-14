@@ -194,7 +194,6 @@ jobs:
             mv libensemble/tests/.cov* .
             coveralls --service=github
 
-
     coveralls:
         name: Notify coveralls of all jobs completing
         needs: [test-libE]

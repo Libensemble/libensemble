@@ -136,7 +136,6 @@ For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpickli
 This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
 Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
 
-
 **srun: Job ****** step creation temporarily disabled, retrying (Requested nodes are busy)**
 
 You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``

@@ -146,7 +146,7 @@ themselves via funcX_, a distributed, high-performance function-as-a-service pla
     :scale: 50
     :align: center
 
-This is useful for running ensembles across machines and heterogenous resources, but
+This is useful for running ensembles across machines and heterogeneous resources, but
 comes with several caveats:
 
     1. User functions registered with funcX must be *non-persistent*, since

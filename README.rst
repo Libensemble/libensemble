@@ -89,7 +89,7 @@ As of v0.8.0, libEnsemble can be parameterized via yaml.
 
 As of v0.8.0+dev, workers can optionally submit generator or simulator
 function instances to remote funcX_ endpoints, distributing an ensemble across
-systems and heterogenous resources.
+systems and heterogeneous resources.
 
 The example simulation and generation functions and tests require the following:
 
