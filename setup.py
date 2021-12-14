@@ -66,7 +66,8 @@ setup(
                    ],
 
     extras_require={
-        'extras': ['pyyaml', 'scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py', 'DFO-LS', 'deap', 'mpmath'],
+        'extras': ['pyyaml', 'scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py',
+                   'DFO-LS', 'deap', 'mpmath', 'dragonfly-opt', 'ax-platform'],
         'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
 
     classifiers=[
