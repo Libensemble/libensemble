@@ -28,32 +28,33 @@ Introduction to libEnsemble
 libEnsemble is a Python toolkit for coordinating asynchronous and dynamic ensembles
 of calculations.
 
-libEnsemble can run on and across HPC machines and facilities,
+libEnsemble can run on and across leadership-class machines and facilities,
 and help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
 increased parallelism.
 
 libEnsemble's users select or supply **simulator** and **generator** Python functions,
-requiring only a basic familiarity with NumPy_. Simulator functions
-perform and monitor simulations based on input parameters from generator functions.
-Generator functions can train models and produce parameters on-the-fly based on
-previous simulation results.
+each requiring only a basic familiarity with NumPy_. Simulator functions
+perform and monitor simulations or other operations based on parameters from generator
+functions. Generator functions can train models, perform optimizations, and produce
+parameters on-the-fly based on simulation results. Users can incorporate any machine-learning,
+mathematics, resource-management, or other libraries they wish into these functions.
 
-libEnsemble aims for the following:
+libEnsemble aims for:
 
 • Extreme scaling, from laptops to supercomputers.
-• Resilience/fault tolerance. libEnsemble can restart incomplete ensembles.
-• Monitoring applications, including recovering and dynamically resassigning resources.
-• Portability and flexibility. Run identical libEnsemble scripts across facilities.
+• Resilience/fault tolerance. libEnsemble can restart incomplete tasks or entire ensembles.
+• Monitoring applications, including recovering and dynamically reassigning resources.
+• Portability and flexibility. Run identical libEnsemble scripts across machines and facilities.
 • Exploitation of persistent data/control flow. libEnsemble can pass data between running functions.
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
-functions, from small subnode tasks to huge many-node simulations.
+functions, from small subnode tasks to huge many-node computations.
 
 libEnsemble includes an Executor interface so application-launching functions are
-portable, resilient, and flexible; it also enables automatic detection of the nodes
-and cores available to the user, and can dynamically assign resources to workers.
+portable, resilient, and flexible; it also automatically detects available nodes
+and cores, and can dynamically assign resources to workers.
 
 .. before_dependencies_rst_tag
 
@@ -82,8 +83,7 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 
 * pyyaml_
 
-As of v0.8.0, an alternative interface is available. An Ensemble object is
-created and can be parameterized by a YAML file.
+As of v0.8.0, libEnsemble can be parameterized via yaml.
 
 * funcX_
 
