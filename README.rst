@@ -37,8 +37,8 @@ libEnsemble's users select or supply **simulator** and **generator** Python func
 each requiring only a basic familiarity with NumPy_. Simulator functions
 perform and monitor simulations or other operations based on parameters from generator
 functions. Generator functions can train models, perform optimizations, and produce
-parameters on-the-fly based on simulation results. Users can incorporate any machine-learning,
-mathematics, resource-management, or other libraries they wish into these functions.
+parameters in a streaming fashion based on simulation results. Users can incorporate any machine-learning,
+mathematics, resource-management, or other libraries into these functions.
 
 libEnsemble aims for:
 
