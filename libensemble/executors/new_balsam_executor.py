@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
+class libEBalsamApplication(ApplicationDefinition):
+    site = "default_site"
+    command_template = "default_path"
+
 
 class BalsamTask(Task):
     """Wraps a Balsam Task from the Balsam service
@@ -57,7 +61,7 @@ class BalsamTask(Task):
         # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
         # balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
         balsam_launch_datetime = EventLog.objects.filter(
-            job_id=self.process.job_id, to_state="RUNNING").timestamp
+            job_id=self.process.id, to_state="RUNNING")
         current_datetime = datetime.datetime.now()
         if balsam_launch_datetime:
             return (current_datetime - balsam_launch_datetime).total_seconds()
@@ -204,18 +208,15 @@ class NewBalsamMPIExecutor(MPIExecutor):
             desc = app.desc
             full_path = app.full_path
             site = app.site
-            self.application_objs[calc_name] = self.add_app(calc_name, site, full_path, desc)
+            self.add_app(calc_name, site, full_path, desc)
 
-    def add_app(name, site, exepath, desc):
+    def add_app(self, name, site, exepath, desc):
         """ Sync application with balsam service """
 
-        class BalsamApplication(ApplicationDefinition):
-            site = site
-            command_template = exepath
-
-        BalsamApplication.sync()
+        libEBalsamApplication.site = site
+        libEBalsamApplication.command_template = exepath
+        libEBalsamApplication.sync()
         logger.debug("Added App {}".format(name))
-        return BalsamApplication
 
     def register_app(self, full_path, site, app_name=None, calc_type=None, desc=None):
         """Registers a user application to libEnsemble.
@@ -261,8 +262,8 @@ class NewBalsamMPIExecutor(MPIExecutor):
     def submit(self, calc_type=None, app_name=None, num_procs=None,
                num_nodes=None, procs_per_node=None, machinefile=None,
                app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_start=False, queue=None,
-               project=None, wall_time_min=None, extra_args=''):
+               hyperthreads=False, gpus_per_rank=0, dry_run=False, wait_on_start=False,
+               queue=None, project=None, wall_time_min=None, extra_args=''):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -312,13 +313,15 @@ class NewBalsamMPIExecutor(MPIExecutor):
             task._set_complete(dry_run=True)
         else:
 
-            balsam_app_obj = self.application_objs[task.name]
-            task.process = balsam_app_obj.submit(workdir=self.workflow_name)
+            task.process = libEBalsamApplication.submit(workdir=self.workflow_name,
+                                                        num_nodes=num_nodes,
+                                                        ranks_per_node=procs_per_node,
+                                                        wall_time_min=wall_time_min,
+                                                        gpus_per_rank=gpus_per_rank)
 
             task.batchjob = BatchJob.objects.create(
                 site_id=task.process.site_id,
                 num_nodes=num_nodes,
-                ranks_per_node=procs_per_node,
                 wall_time_min=wall_time_min,
                 job_mode="mpi",
                 queue=queue,

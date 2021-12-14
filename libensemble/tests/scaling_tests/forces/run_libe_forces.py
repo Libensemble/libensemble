@@ -10,7 +10,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble import logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
 
-USE_BALSAM = False
+USE_BALSAM = True
 PERSIS_GEN = False
 
 if PERSIS_GEN:
@@ -38,12 +38,15 @@ if not os.path.isfile('forces.x'):
 
 # Create executor and register sim to it.
 if USE_BALSAM:
-    from libensemble.executors.balsam_executor import BalsamMPIExecutor
-    exctr = BalsamMPIExecutor()
+    from libensemble.executors.new_balsam_executor import NewBalsamMPIExecutor
+    exctr = NewBalsamMPIExecutor()
+    exctr.register_app(full_path=sim_app, site='three', app_name='forces')
+
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor()
-exctr.register_app(full_path=sim_app, app_name='forces')
+    exctr.register_app(full_path=sim_app, app_name='forces')
+
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
