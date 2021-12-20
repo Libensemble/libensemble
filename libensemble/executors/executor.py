@@ -270,8 +270,8 @@ class Task:
         return self.state == 'RUNNING'
 
     def done(self):
-        """ Return ```True`` if task is finished or successfully cancelled."""
-        return self.state in ['FINISHED', 'USER_KILLED']
+        """ Return ```True`` if task is finished."""
+        return self.finished
 
     def kill(self, wait_time=60):
         """Kills or cancels the supplied task

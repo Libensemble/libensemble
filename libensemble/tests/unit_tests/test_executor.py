@@ -691,7 +691,6 @@ def test_serial_startup_times():
 def test_futures_interface():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
-    exctr = Executor.executor
     cores = NCORES
     args_for_sim = 'sleep 3'
     with Executor.executor as exctr:
@@ -708,7 +707,6 @@ def test_futures_interface():
 def test_futures_interface_cancel():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
-    exctr = Executor.executor
     cores = NCORES
     args_for_sim = 'sleep 3'
     with Executor.executor as exctr:
