@@ -114,13 +114,18 @@ Example workflow updating history array
 
 **Step 1**: The history array is initialized on the manager
 
-The history array is initialized using ``gen_specs['out']`` and ``sim_specs['out']``, provided by the user, in addition to reserved fields. In the figure below, only the protected fields: ``sim_id``, ``given`` and ``returned`` are shown for brevity.
+The history array is initialized using the ``gen_specs['out']`` and ``sim_specs['out']``
+provided by the user, in addition to reserved fields. In the figure below, only the
+reserved fields: ``sim_id``, ``given`` and ``returned`` are shown for brevity.
 
-.. image:: ../images/history_init.png
-   :scale: 33
+.. figure:: ../images/history_init.png
+   :scale: 50
    :align: center
 
-``gen_f`` and ``sim_f`` functions accept a local history array as the first argument (this contains only the rows and fields sent to the function. For new function calls these will be specified by either ``gen_specs['in']``  or ``sim_specs['in']``. For generators this may be empty.
+:ref:`gen_f<api_gen_f>` and :ref:`sim_f<api_sim_f>` functions accept a local history
+array as the first argument (this contains only the rows and fields sent to the function.
+For new function calls these will be specified by either ``gen_specs['in']``  or
+``sim_specs['in']``. For generators this may be empty.
 
 **Step 2**: Persistent generator is called
 
