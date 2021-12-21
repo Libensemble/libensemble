@@ -42,14 +42,15 @@ Reserved fields in history array
 --------------------------------
 
 The manager's history array also contains a number of reserved fields. These include a ``sim_id``
-to globally identify the point (on the manager this is usually the same as the index). This can be
-provided by the user from the ``gen_f``, but is otherwise assigned by the manager as points are generated.
+to globally identify the point (on the manager this is usually the same as the array index). This can be
+provided by the user from the ``gen_f``, but is otherwise assigned by the manager as generated points
+are received.
 The reserved boolean field ``cancel_requested`` can also be set in a user function to request that
 libEnsembles cancels evaluation of the point.
 
 There are also protected fields (populated by libEnsemble) that store information about each entry.
-These include the current scheduling status of the point (``given`` out for evaluation, ``returned``
-from evaluation, and ``given_back`` to the generator). There are also timing fields that give the
+These include boolean fields for the current scheduling status of the point (``given`` out for evaluation,
+``returned`` from evaluation, and ``given_back`` to the generator). Timing fields give the
 time (since the epoch) corresponding to each state, and when the point was generated. Other
 protected fields include the workers on which points were generated or evaluated.
 
@@ -101,7 +102,7 @@ The full list of these reserved fields is given below.
 
 * ``kill_sent`` [bool]: True if a kill signal has been sent to the worker evaluating this entry.
 
-Other than ``'sim_id'`` and ``cancel_requested``, protected fields cannot be
+Other than ``'sim_id'`` and ``cancel_requested``, reserved fields cannot be
 overwritten by user functions unless ``libE_specs['safe_mode']`` is set to ``False``.
 
 .. warning::
