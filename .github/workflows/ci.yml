@@ -169,12 +169,12 @@ jobs:
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
         - name: Run extensive tests, Ubuntu, Python 3.7-3.9
-          if: ${{ matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains(['3.7, '3.8', '3.9'], matrix.python-version) }}
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run simple tests, Ubuntu, Python 3.6 or 3.10
-          if: ${{ contains(['3.6, '3.10'], matrix.python-version) }}
+          if: contains('3.6_3.10', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
