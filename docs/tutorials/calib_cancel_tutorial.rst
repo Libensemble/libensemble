@@ -282,6 +282,7 @@ batch of scheduled simulations, most either complete or fail but the rest are
 successfully obviated:
 
 .. image:: ../images/gen_v_fail_or_cancel.png
+  :width: 600
   :alt: surmise_sample_graph
 
 Please see the ``test_persistent_surmise_calib.py`` regression test for an example
