@@ -119,8 +119,10 @@ provided by the user, in addition to reserved fields. In the figure below, only 
 reserved fields: ``sim_id``, ``given`` and ``returned`` are shown for brevity.
 
 .. figure:: ../images/history_init.png
-   :scale: 50
+   :scale: 40
    :align: center
+
+|
 
 :ref:`gen_f<api_gen_f>` and :ref:`sim_f<api_sim_f>` functions accept a local history
 array as the first argument (this contains only the rows and fields sent to the function.
@@ -130,6 +132,10 @@ For new function calls these will be specified by either ``gen_specs['in']``  or
 **Step 2**: Persistent generator is called
 
 .. image:: ../images/history_gen1.png
+
+|
+
+Note that as the generator does not set ``sim_id``, the manager assigns.
 
 **Step 3**: Points are given out for evaluation
 
