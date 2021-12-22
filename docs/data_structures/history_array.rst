@@ -135,12 +135,14 @@ For new function calls these will be specified by either ``gen_specs['in']``  or
 
 |
 
-Note that as the generator does not set ``sim_id``, the manager assigns.
-
 **Step 3**: Points are given out for evaluation
 
 .. image:: ../images/history_sim1.png
 
+|
+
 **Step 4**: Results returned to persistent generator
 
 .. image:: ../images/history_gen2.png
+
+|
