@@ -9,7 +9,7 @@ jobs:
                 os: [ubuntu-latest]
                 do-balsam: [false]
                 mpi-version: [mpich]
-                python-version: [3.6, 3.7, 3.8, 3.9]
+                python-version: [3.7, 3.8, 3.9]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -174,19 +174,19 @@ jobs:
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run simple tests, Ubuntu, Python 3.6 or 3.10
-          if: contains('3.6_3.10', matrix.python-version)
+        - name: Run simple tests, Ubuntu, Python 3.10
+          if: matrix.python-version == '3.10'
           run: |
            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run extensive tests, macOS, Python 3.8
+        - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run Balsam test, Ubuntu, Python 3.8
+        - name: Run Balsam test, Ubuntu
           if: matrix.do-balsam == true
           env:
               BALSAM_DB_PATH: $HOME/test-balsam
