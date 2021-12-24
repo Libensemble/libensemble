@@ -48,3 +48,13 @@ and monitor applications. An excellent overview is already available
 
 See the :doc:`Executor with Electrostatic Forces tutorial<../tutorials/executor_forces_tutorial>`
 for an additional example to try out.
+
+Persistent Simulators
+---------------------
+
+Although comparatively uncommon, simulator functions can also be instantiated and written
+in a persistent fashion. See the :ref:`here<persistent-gens>` for a general API overview
+of writing persistent generators, since the interface is largely identical. The only
+differences are to include ``EVAL_SIM_TAG`` when instantiating a ``PersistentSupport``
+class instance, and to return ``FINISHED_PERSISTENT_SIM_TAG`` when the simulator
+function returns.
