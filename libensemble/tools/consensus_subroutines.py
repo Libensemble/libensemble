@@ -351,7 +351,7 @@ def regls_opt(X, y, c, reg=None):
     ----------
     - X, y : np.ndarray
         2D matrix, 1D matrix, where we want to solve optimally for theta so that
-        $y \approx X.dot(theta)$
+        $y \\\\approx X.dot(theta)$
     - c : float
         Scalar term for regularization
     - reg : str
