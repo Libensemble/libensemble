@@ -130,14 +130,14 @@ Install libEnsemble using the Spack_ distribution::
     spack install py-libensemble
 
 libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
-from xSDK version 0.5.0 onward. Install the xSDK and load the environment with ::
+from xSDK version 0.5.0 onward. Install the xSDK and load the environment with::
 
     spack install xsdk
     spack load -r xsdk
 
 The codebase, tests and examples can be accessed in the GitHub_ repository.
 If necessary, you may install all optional dependencies (listed above) at once
-with ::
+with::
 
     pip install libensemble[extras]
 
@@ -151,13 +151,13 @@ regularly on:
 
 * `GitHub Actions`_
 
-The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
-packages to be installed and can be run from the ``libensemble/tests`` directory
+The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_ packages
+to be installed and can be run from the ``libensemble/tests`` directory
 of the source distribution by running::
 
     ./run-tests.sh
 
-Further options are available. To see a complete list of options, run ::
+Further options are available. To see a complete list of options, run::
 
     ./run-tests.sh -h
 
@@ -172,7 +172,7 @@ use of the executor to run compiled applications. These are tested regularly on
 HPC systems.
 
 If you have the source distribution, you can download (but not install) the testing
-prerequisites and run the tests with ::
+prerequisites and run the tests with::
 
     python setup.py test
 
@@ -286,7 +286,7 @@ See a complete list of `example user scripts`_.
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
-.. _`Community Examples repository`: https://github.com/Libensemble/libe-community-examples
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
@@ -323,10 +323,12 @@ See a complete list of `example user scripts`_.
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Spack: https://spack.readthedocs.io/en/latest
+.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

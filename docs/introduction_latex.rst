@@ -25,7 +25,9 @@ We now present further information on running and testing libEnsemble.
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
+.. _conda-forge: https://conda-forge.org/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=master
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
@@ -60,10 +62,12 @@ We now present further information on running and testing libEnsemble.
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Spack: https://spack.readthedocs.io/en/latest
+.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
