@@ -218,8 +218,7 @@ Resources
 
 - Documentation is provided by ReadtheDocs_.
 - An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_
-- Examples of production user functions and complete workflows can be viewed, downloaded,
-and contributed to in the libEnsemble `Community Examples repository`_.
+- Examples of production user functions and complete workflows can be viewed, downloaded, and contributed to in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
 
