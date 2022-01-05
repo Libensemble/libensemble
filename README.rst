@@ -47,7 +47,7 @@ libEnsemble aims for:
 • Monitoring applications, including recovering and dynamically reassigning resources.
 • Portability and flexibility. Run identical libEnsemble scripts across machines and facilities.
 • Exploitation of persistent data/control flow. libEnsemble can pass data between running functions.
-• Relatively low start-up cost. Single-machine deployments don't require additional services.
+• Relatively low start-up cost. Most single-machine deployments don't require additional services.
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
@@ -68,23 +68,24 @@ Required dependencies:
 * NumPy_
 * psutil_
 
-For libEnsemble running with the mpi4py parallelism:
+For libEnsemble running with the ``mpi4py`` parallelism:
 
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependencies:
+Optional Dependencies:
 
 * Balsam_
 
-From v0.2.0, libEnsemble has the option of using the Balsam job manager. Balsam
-is required in order to run libEnsemble on the compute nodes of some supercomputing
-platforms that do not support launching tasks from compute nodes. As of v0.5.0,
-libEnsemble can also be run on launch nodes using multiprocessing.
+If running on the the compute nodes of three-tier systems
+like OLCF's Summit_ or ALCF's Theta_, libEnsemble's workers may use the Balsam service
+to schedule and launch MPI applications. Otherwise, libEnsemble can be run with
+multiprocessing on the intermediate launch nodes.
 
 * pyyaml_
 
-As of v0.8.0, libEnsemble can be parameterized via yaml.
+libEnsemble is typically configured and parameterized via Python dictionaries.
+As of v0.8.0, libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
@@ -119,7 +120,7 @@ Install libEnsemble and its dependencies from PyPI_ using pip::
 
     pip install libensemble
 
-Install libEnsemble with Conda_ from the conda-forge channel::
+Install libEnsemble with Conda_ from the conda-forge_ channel::
 
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
@@ -152,7 +153,7 @@ regularly on:
 
 The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
 packages to be installed and can be run from the ``libensemble/tests`` directory
-of the source distribution by running ::
+of the source distribution by running::
 
     ./run-tests.sh
 
@@ -184,19 +185,11 @@ which can be viewed at ``libensemble/tests/cov_merge/index.html``
 after ``run_tests.sh`` is completed. The coverage results are available
 online at Coveralls_.
 
-.. note::
-    The executor tests can be run by using the direct-launch or
-    Balsam executors. Balsam integration with libEnsemble is now tested
-    via ``test_balsam_hworld.py``.
-
 Basic Usage
 ~~~~~~~~~~~
 
-The examples directory contains example libEnsemble calling scripts, simulation
-functions, generation functions, allocation functions, and libEnsemble submission scripts.
-
 The default manager/worker communications mode is MPI. The user script is
-launched as ::
+launched as::
 
     mpiexec -np N python myscript.py
 
@@ -207,10 +200,7 @@ If running in local mode, which uses Python's multiprocessing module, the
 ``local`` comms option and the number of workers must be specified. The script
 can then be run as a regular Python script::
 
-    python myscript.py
-
-These options may be specified via the command line by using the ``parse_args()``
-convenience function within libEnsemble's ``tools`` module.
+    python myscript.py --comms local --nworkers N
 
 See the `user guide`_ for more information.
 
@@ -228,6 +218,8 @@ Resources
 
 - Documentation is provided by ReadtheDocs_.
 - An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_
+- Examples of production user functions and complete workflows can be viewed, downloaded,
+and contributed to in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
 
@@ -259,7 +251,7 @@ Resources
 
 **Capabilities:**
 
-libEnsemble generation capabilities include:
+libEnsemble supports the following libraries as generators:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
@@ -294,7 +286,9 @@ See a complete list of `example user scripts`_.
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
+.. _`Community Examples repository`: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
+.. _conda-forge: https://conda-forge.org/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
