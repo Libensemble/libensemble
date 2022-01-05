@@ -42,12 +42,12 @@ workflows, which at a minimum require only a basic familiarity with NumPy_.
 
 libEnsemble aims for:
 
-• Extreme scaling, from laptops to supercomputers.
-• Resilience/fault tolerance. libEnsemble can restart incomplete tasks or entire ensembles.
-• Monitoring applications, including recovering and dynamically reassigning resources.
-• Portability and flexibility. Run identical libEnsemble scripts across machines and facilities.
-• Exploitation of persistent data/control flow. libEnsemble can pass data between running functions.
-• Relatively low start-up cost. Most single-machine deployments don't require additional services.
+• **Extreme scaling**, from laptops to supercomputers.
+• **Resilience/fault tolerance**. libEnsemble can restart incomplete tasks or entire ensembles.
+• **Monitoring applications**, including recovering and dynamically reassigning resources.
+• **Portability and flexibility**. Run identical libEnsemble scripts across machines and facilities.
+• **Exploitation of persistent data/control flow**. libEnsemble can pass data between running functions.
+• **Relatively low start-up cost**. Most single-machine deployments don't require additional services.
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
@@ -73,7 +73,7 @@ For libEnsemble running with the ``mpi4py`` parallelism:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional Dependencies:
+Optional dependencies:
 
 * Balsam_
 
