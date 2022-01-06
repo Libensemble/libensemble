@@ -254,7 +254,8 @@ Resources
 
 **Capabilities:**
 
-libEnsemble supports the following libraries as generators:
+libEnsemble and `Community Examples repository`_ include example generator
+functions for the following libraries: 
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
