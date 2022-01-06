@@ -33,18 +33,19 @@ and help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
 increased parallelism.
 
-libEnsemble's users select or supply **simulator** and **generator** Python functions, which
-perform/monitor computations and produce candidate parameter sets, respectively.
-Generator functions can train models, perform optimizations, and generate candidate
-parameters in a streaming fashion based on simulation results. Users can incorporate
-any machine-learning, mathematics, resource-management, or other libraries into libEnsemble
-workflows, which at a minimum require only a basic familiarity with NumPy_.
+libEnsemble's users select or supply **generator** and **simulator** Python
+functions, which respectively produce candidate parameters and perform/monitor
+computations based on those parameters. Generator functions can train
+models, perform optimizations, and generate candidate points in a streaming
+fashion based on simulation results. Users can incorporate any machine-learning,
+mathematics, resource-management, or other libraries into libEnsemble workflows,
+which at a minimum require only a basic familiarity with NumPy_.
 
 libEnsemble aims for:
 
 • **Extreme scaling**, from laptops to supercomputers.
 • **Resilience/fault tolerance**. libEnsemble can restart incomplete tasks or entire ensembles.
-• **Monitoring applications**, including recovering and dynamically reassigning resources.
+• **Monitoring of applications**, including recovering and dynamically reassigning resources.
 • **Portability and flexibility**. Run identical libEnsemble scripts across machines and facilities.
 • **Exploitation of persistent data/control flow**. libEnsemble can pass data between running functions.
 • **Relatively low start-up cost**. Most single-machine deployments don't require additional services.
