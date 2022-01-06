@@ -25,7 +25,7 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python toolkit for coordinating asynchronous and dynamic ensembles
+libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles
 of calculations.
 
 libEnsemble can run on leadership-class machines and facilities,
@@ -37,10 +37,10 @@ libEnsemble's users select or supply **generator** and **simulator** Python
 functions; these respectively produce candidate parameters and perform/monitor
 computations that use those parameters. Generator functions can train
 models, perform optimizations, and test candidate solutions in a batch or streaming
-fashion based on simulation results. 
+fashion based on simulation results.
 Simulator functions can themselves use parallel resources and involve libraries
-or exectables that are not written in Python_.
-With a basic familiarity with Python_ and NumPy_, users can easily incorporate
+or executables that are not written in Python.
+With a basic familiarity with Python and NumPy_, users can easily incorporate
 any machine-learning, mathematics, or resource-management libraries into their
 libEnsemble workflows.
 
@@ -255,7 +255,7 @@ Resources
 **Capabilities:**
 
 libEnsemble and `Community Examples repository`_ include example generator
-functions for the following libraries: 
+functions for the following libraries:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
