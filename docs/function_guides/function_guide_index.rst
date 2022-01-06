@@ -30,5 +30,4 @@ patterns and optional components for each kind of User Function:
    simulator
    allocator
 
-
 .. _NumPy: http://www.numpy.org
