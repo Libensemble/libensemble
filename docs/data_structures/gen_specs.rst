@@ -60,4 +60,4 @@ to main ``libE()`` routine::
 .. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py
 .. _test_persistent_aposmm_nlopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_nlopt.py
 .. _test_persistent_aposmm_with_grad.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
-.. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-`'persis_in'`-field
+.. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field
