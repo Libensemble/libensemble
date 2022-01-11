@@ -46,7 +46,7 @@ reserved fields). The input fields must be a simple list, for example::
 Reserved fields in history array
 --------------------------------
 
-The manager's history array also contains a number of reserved fields. These
+The manager's history array also contains several reserved fields. These
 include a ``sim_id`` to globally identify the point (on the manager this is
 usually the same as the array index). The ``sim_id`` can be provided by the
 user from the ``gen_f``, but is otherwise assigned by the manager as generated
@@ -76,7 +76,7 @@ The full list of these reserved fields is given below.
   allows for two ``gen_f`` instances to be running simultaneously, ``alloc_f``
   should ensure that both don’t generate points with the same ``sim_id``.
 
-* ``cancel_requested`` [bool]: True if cancellation of evaluation of this
+* ``cancel_requested`` [bool]: True if the cancellation of the ``sim_f`` evaluation of this
   entry was requested. This field can be set by the user in a user function.
 
 * ``given`` [bool]: True if this ``gen_f`` output been given to a libEnsemble
@@ -126,7 +126,7 @@ Example workflow updating history array
 The history array is initialized using the libEnsemble reserved field and the
 user-provided ``gen_specs['out']`` and ``sim_specs['out']`` entries.
 In the figure below, only the
-reserved fields: ``sim_id``, ``given`` and ``returned`` are shown for brevity.
+reserved fields: ``sim_id``, ``given``, and ``returned`` are shown for brevity.
 
 .. figure:: ../images/history_init.png
    :scale: 40
