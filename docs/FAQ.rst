@@ -143,14 +143,31 @@ You may also see: ``srun: Job ****** step creation still disabled, retrying (Req
 When running on a SLURM system, this implies that you are trying to run on a resource
 that is already dedicated to another task. The reason can vary, some reasons are:
 
-- All the contexts are in use. See question **can't open hfi unit: -1 (err=23)** for more info.
+- All the contexts are in use. This has occurred when using TMI fabric on clusters.
+  See question **can't open hfi unit: -1 (err=23)** for more info.
 
-- This error has been observed on Perlmutter, where it was resolved by adding the
-  ``--exact -u`` `option to srun`_ along with other relevant options, to prevent
-  all node resource being assigned to the first srun. In the executor, this can be
-  expressed via the ``extra_args`` option.
+- All the memory is assigned to the first job-step (srun application), due to a default
+  exclusive mode scheduling policy. This has been observed on `Perlmutter`_ and `SDF`_.
+
+  This can be resolved by limiting the memory and other
+  resources given to each task using the ``--exact`` `option to srun`_ along with other
+  relevant options. E.g.~::
+
+      srun --exact -n 4 -c 1 --mem-per-cpu=4G
+
+  would ensure that one CPU and 4 GigaBytes of memory is assigned to each MPI process.
+  The ammount of memory should be determined by the memory on the node divided by
+  then number of CPUs. In the executor, this can be expressed via the ``extra_args`` option.
+  More deail
+
+  If libEnsemble is sharing nodes with submitted tasks (user applications launched by workers),
+  then you may need to do this for your launch of libEnsemble also, ensuring there is enough
+  resources for both the libEnsemble manager and workers and the launched tasks. If this is
+  complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
 
 .. _option to srun: https://docs.nersc.gov/jobs/examples/#single-gpu-tasks-in-parallel
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
+.. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 
 libEnsemble Help
 ----------------
