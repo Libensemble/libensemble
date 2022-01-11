@@ -42,7 +42,6 @@ reserved fields). The input fields must be a simple list, for example::
 
     sim_specs['in'] = ['x', 'theta']
 
-
 Reserved fields in history array
 --------------------------------
 
@@ -116,7 +115,6 @@ overwritten by user functions unless ``libE_specs['safe_mode']`` is set to ``Fal
 
 .. warning::
   Adjusting values in protected fields may crash libEnsemble.
-
 
 Example workflow updating history array
 ---------------------------------------
