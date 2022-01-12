@@ -160,7 +160,7 @@ that is already dedicated to another task. The reason can vary, some reasons are
   the number of CPUs. In the executor, this can be expressed via the ``extra_args`` option.
 
   If libEnsemble is sharing nodes with submitted tasks (user applications launched by workers),
-  then you may need to do this for your launch of libEnsemble also, ensuring there is enough
+  then you may need to do this for your launch of libEnsemble also, ensuring there are enough
   resources for both the libEnsemble manager and workers and the launched tasks. If this is
   complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
 
