@@ -155,10 +155,9 @@ that is already dedicated to another task. The reason can vary, some reasons are
 
       srun --exact -n 4 -c 1 --mem-per-cpu=4G
 
-  would ensure that one CPU and 4 GigaBytes of memory is assigned to each MPI process.
-  The ammount of memory should be determined by the memory on the node divided by
-  then number of CPUs. In the executor, this can be expressed via the ``extra_args`` option.
-  More deail
+  would ensure that one CPU and 4 Gigabytes of memory is assigned to each MPI process.
+  The amount of memory should be determined by the memory on the node divided by
+  the number of CPUs. In the executor, this can be expressed via the ``extra_args`` option.
 
   If libEnsemble is sharing nodes with submitted tasks (user applications launched by workers),
   then you may need to do this for your launch of libEnsemble also, ensuring there is enough
