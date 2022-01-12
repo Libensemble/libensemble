@@ -11,6 +11,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
     for a ``'batch_mode'``.
 
+    tags: alloc, simple, fast, batch, aposmm
+
     .. seealso::
         `test_old_aposmm_with_gradients.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """

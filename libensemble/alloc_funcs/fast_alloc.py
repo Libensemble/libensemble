@@ -14,6 +14,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     is likely to be faster if there will be many short simulation evaluations,
     given that this function contains fewer column length operations.
 
+    tags: alloc, simple, fast
+
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
