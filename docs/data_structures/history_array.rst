@@ -81,7 +81,7 @@ The full list of these reserved fields is given below.
 * ``cancel_requested`` [bool]: True if the cancellation of the ``sim_f`` evaluation of this
   entry was requested. This field can be set by the user in a user function.
 
-:Protected fields:
+:*Protected fields*:
 
 * ``given`` [bool]: True if this ``gen_f`` output been given to a libEnsemble
   worker to be evaluated by a ``sim_f``.
