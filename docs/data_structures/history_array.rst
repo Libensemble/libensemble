@@ -5,7 +5,7 @@ history array
 ::
 
     H: numpy structured array
-        History of the inputs/outputs produced by the gen/sim/alloc functions
+        A record of runtime attributes and output data for all ensemble members.
 
 Overview
 --------
@@ -70,13 +70,13 @@ returned by libEnsemble.
 
 The full list of these reserved fields is given below.
 
-:User modifiable fields:
-
 * ``sim_id`` [int]: Each unit of work output from ``gen_f`` must have an
   associated ``sim_id``. The generator can assign this, but users must be
   careful to ensure that points are added in order. For example, if ``alloc_f``
   allows for two ``gen_f`` instances to be running simultaneously, ``alloc_f``
   should ensure that both don’t generate points with the same ``sim_id``.
+  If the generator does not provide, then a ``sim_id`` will be assigned by the
+  manager as generated points are received.
 
 * ``cancel_requested`` [bool]: True if the cancellation of the ``sim_f`` evaluation of this
   entry was requested. This field can be set by the user in a user function.
