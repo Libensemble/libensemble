@@ -46,7 +46,7 @@ The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from th
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``dedicated_mode=True`` is used when initializing the Executor, then any node
+If the argument ``libE_specs['dedicated_mode']=True`` is used when initializing libEnsemble, then any node
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
@@ -61,7 +61,7 @@ or::
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided amongst the workers for submitted applications. If the same run was
-performed without ``dedicated_mode=True``, runs could be submitted to all 5 nodes. The number of workers
+performed without ``libE_specs['dedicated_mode']=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 
 To launch libEnsemble distributed requires a less trivial libEnsemble run script.

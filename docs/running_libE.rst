@@ -66,8 +66,7 @@ where ``N`` is the number of workers. This will launch one manager and
 
 libEnsemble will run on one node in this scenario. It is only suitable for running
 in :doc:`central mode<platforms/platforms_index>` on multi-node systems. It can also
-be used on stand-alone systems. *Technically, you could run without dedicated_mode set,
-but libEnsemble will still run on one node*.
+be used on stand-alone systems.
 
 In particular, this mode can be used to run on the **launch** nodes of three-tier
 systems (e.g. Theta/Summit), allowing the whole node allocation for
