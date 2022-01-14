@@ -25,8 +25,7 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles
-of calculations.
+libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles of calculations. 
 
 libEnsemble can run on leadership-class machines and facilities,
 and help users take advantage of massively parallel resources to solve design,
@@ -72,7 +71,7 @@ Required dependencies:
 * NumPy_
 * psutil_
 
-For libEnsemble running with the ``mpi4py`` parallelism:
+When using  ``mpi4py`` for libEnsemble communications:
 
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
@@ -109,7 +108,7 @@ The example simulation and generation functions and tests require the following:
 * `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
 * Surmise_
 
-PETSc and NLopt must be built with shared libraries enabled and present in
+PETSc and NLopt must be built with shared libraries enabled and be present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
 should produce a file ``nlopt.py`` if Python is found on the system. See the
 `NLopt documentation` for information about building NLopt with shared
@@ -171,11 +170,11 @@ be run directly in ``libensemble/tests/regression_tests``. For example::
     cd libensemble/tests/regression_tests
     python test_uniform_sampling.py --comms local --nworkers 3
 
-The ``libensemble/tests/scaling_tests`` directory includes some examples that make
-use of the executor to run compiled applications. These are tested regularly on
+The ``libensemble/tests/scaling_tests`` directory includes example scripts that
+use the executor to run compiled applications. These are tested regularly on
 HPC systems.
 
-If you have the source distribution, you can download (but not install) the testing
+If you have the libEnsemble source code, you can download (but not install) the testing
 prerequisites and run the tests with::
 
     python setup.py test

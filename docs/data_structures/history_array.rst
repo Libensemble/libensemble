@@ -42,7 +42,6 @@ reserved fields). The input fields must be a simple list, for example::
 
     sim_specs['in'] = ['x', 'theta']
 
-
 .. _reserved_fields:
 
 Reserved fields in history array
