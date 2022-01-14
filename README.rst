@@ -25,7 +25,7 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles of calculations. 
+libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles of calculations.
 
 libEnsemble can run on leadership-class machines and facilities,
 and help users take advantage of massively parallel resources to solve design,
@@ -54,7 +54,7 @@ libEnsemble aims for:
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
-functions, from small subnode tasks to huge many-node computations.
+generator and simulator functions, from small subnode tasks to huge many-node computations.
 
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible; it also automatically detects available nodes
