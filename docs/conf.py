@@ -94,7 +94,7 @@ extensions = ['sphinxcontrib.bibtex',
               'sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               # 'sphinx.ext.autosectionlabel',
-              # 'sphinx.ext.intersphinx',
+              'sphinx.ext.intersphinx',
               'sphinx.ext.imgconverter',
               'sphinx.ext.mathjax']
 bibtex_bibfiles = ['references.bib']
@@ -106,6 +106,10 @@ bibtex_default_style = 'unsrt'
 
 ##breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["libE.py", "test.cpp"] )}
 #breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
+
+intersphinx_mapping = {
+    'community': ('https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/', None)
+}
 
 autodoc_mock_imports = ["balsam"]
 extlinks = {'duref': ('http://docutils.sourceforge.net/docs/ref/rst/'
