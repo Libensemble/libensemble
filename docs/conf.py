@@ -36,7 +36,6 @@ class Mock(MagicMock):
 
 MOCK_MODULES = [
         'argparse',
-        'deap',
         'dfols',
         'math',
         'mpi4py',
