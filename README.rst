@@ -47,7 +47,7 @@ libEnsemble aims for:
 
 • **Extreme scaling**: From laptops to supercomputers.
 • **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
-• **Monitoring of applications**: including recovering and dynamically reassigning resources.
+• **Monitoring/killing of applications**: Functions can also recover/reassign resources
 • **Portability and flexibility**: Run identical libEnsemble scripts across machines and facilities.
 • **Exploitation of persistent data/control flow**: libEnsemble can pass data between running functions.
 • **Low start-up cost**: Most single-machine deployments don't require additional services.
