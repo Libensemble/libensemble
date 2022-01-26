@@ -200,10 +200,13 @@ where ``N`` is the number of processors. This will launch one manager and
 ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the
-``local`` comms option and the number of workers must be specified. The script
+``local`` comms option and the number of workers must be specified, either in `libE_specs`_
+or via the command-line using the ``parse_args()`` function. The script
 can then be run as a regular Python script::
 
     python myscript.py --comms local --nworkers N
+
+This will launch one manager and N workers.
 
 See the `user guide`_ for more information.
 
@@ -212,10 +215,9 @@ Resources
 
 **Support:**
 
-- The best way to receive support is to open an issue on GitHub_.
-- Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
+- Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
+- Open issues on GitHub_.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
-- Alternatively, feel free to email questions to ``libEnsemble@lists.mcs.anl.gov``.
 
 **Further Information:**
 
@@ -304,6 +306,7 @@ See a complete list of `example user scripts`_.
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
+.. _libE_specs: https://libensemble.readthedocs.io/en/main/data_structures/libE_specs.html
 .. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py

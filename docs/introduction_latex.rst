@@ -39,6 +39,7 @@ We now present further information on running and testing libEnsemble.
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
+.. _libE_specs: https://libensemble.readthedocs.io/en/main/data_structures/libE_specs.html
 .. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py

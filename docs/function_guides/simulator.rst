@@ -58,3 +58,8 @@ of writing persistent generators, since the interface is largely identical. The 
 differences are to include ``EVAL_SIM_TAG`` when instantiating a ``PersistentSupport``
 class instance, and to return ``FINISHED_PERSISTENT_SIM_TAG`` when the simulator
 function returns.
+
+.. note::
+  An example routine using a persistent simulator can be found in test_persistent_sim_uniform_sampling_.
+
+.. _test_persistent_sim_uniform_sampling: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/regression_tests/test_persistent_sim_uniform_sampling.py
