@@ -257,7 +257,7 @@ Resources
 
 **Capabilities:**
 
-libEnsemble generation capabilities include:
+Proven libEnsemble generation capabilities include:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
