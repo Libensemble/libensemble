@@ -253,7 +253,7 @@ Resources
 
 **Capabilities:**
 
-libEnsemble and `Community Examples repository`_ include example generator
+libEnsemble and the `Community Examples repository`_ include example generator
 functions for the following libraries:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
@@ -300,6 +300,7 @@ See a complete list of `example user scripts`_.
 .. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
+.. _here: https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
