@@ -27,7 +27,7 @@ Introduction to libEnsemble
 
 libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles of calculations.
 
-libEnsemble can run on leadership-class machines and facilities,
+libEnsemble workflows can run on and across laptops, leadership-class machines and facilities,
 and help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
 increased parallelism.
@@ -45,12 +45,12 @@ libEnsemble workflows.
 
 libEnsemble aims for:
 
-• **Extreme scaling**, from laptops to supercomputers.
-• **Resilience/fault tolerance**. libEnsemble can restart incomplete tasks or entire ensembles.
-• **Monitoring of applications**, including recovering and dynamically reassigning resources.
-• **Portability and flexibility**. Run identical libEnsemble scripts across machines and facilities.
-• **Exploitation of persistent data/control flow**. libEnsemble can pass data between running functions.
-• **Relatively low start-up cost**. Most single-machine deployments don't require additional services.
+• **Extreme scaling**: From laptops to supercomputers.
+• **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
+• **Monitoring of applications**: including recovering and dynamically reassigning resources.
+• **Portability and flexibility**: Run identical libEnsemble scripts across machines and facilities.
+• **Exploitation of persistent data/control flow**: libEnsemble can pass data between running functions.
+• **Low start-up cost**: Most single-machine deployments don't require additional services.
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
@@ -59,6 +59,9 @@ generator and simulator functions, from small subnode tasks to huge many-node co
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible; it also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
+
+libEnsemble's cross-system capability is powered by funcX_, a function-as-a-service
+platform to which workers can submit remote generator or simulator function instances.
 
 .. before_dependencies_rst_tag
 
