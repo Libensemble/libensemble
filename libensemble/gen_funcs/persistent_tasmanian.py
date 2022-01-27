@@ -115,7 +115,6 @@ def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1E-1
     """
     For runs following the first one, get the history array H0 based on the ordering in `refined_pts`
     """
-    assert queued_pts.shape[0] > 0
     def approx_eq(x, y):
         return(np.argmax(np.fabs(x-y)) <= tol)
     num_ids = queued_ids.shape[0]
@@ -137,7 +136,6 @@ def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1E-1
 # ========================
 
 
-
 def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     """
     Implements batched construction for a Tasmanian sparse grid,
@@ -148,7 +146,8 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['anisotropic', 'setAnisotropicRefinement', 'surplus', 'setSurplusRefinement', 'none']
+    allowed_refinements = ['anisotropic', 'setAnisotropicRefinement', 'getAnisotropicRefinement', 'surplus',
+                           'setSurplusRefinement', 'getSurplusRefinement', 'none']
     assert 'refinement' in U and U['refinement'] in allowed_refinements, \
         "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
@@ -174,12 +173,12 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
             grid.write(U['tasmanian_checkpoint_file'])
 
         # set refinement, using user['refinement'] to pick the refinement strategy
-        if U['refinement'] in ['anisotropic', 'setAnisotropicRefinement']:
+        if U['refinement'] in ['anisotropic', 'setAnisotropicRefinement', 'getAnisotropicRefinement']:
             assert 'sType' in U
             assert 'iMinGrowth' in U
             assert 'iOutput' in U
             grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
-        elif U['refinement'] in ['surplus', 'setSurplusRefinement']:
+        elif U['refinement'] in ['surplus', 'setSurplusRefinement', 'getSurplusRefinement']:
             assert 'fTolerance' in U
             assert 'iOutput' in U
             assert 'sCriteria' in U
@@ -198,7 +197,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['anisotropic', 'surplus']
+    allowed_refinements = ['anisotropic', 'getCandidateConstructionPoints', 'surplus', 'getCandidateConstructionPointsSurplus']
     assert 'refinement' in U and U['refinement'] in allowed_refinements, \
         "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 

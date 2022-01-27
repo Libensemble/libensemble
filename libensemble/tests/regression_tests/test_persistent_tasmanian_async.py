@@ -62,12 +62,12 @@ def sim_f(H, persis_info, sim_specs, _):
 # Set up test parameters.
 num_dims = 2
 user_specs_arr = []
-# user_specs_arr.append({
-#     'refinement' : 'anisotropic',
-#     'tasmanian_init' : lambda : tasmanian_init_global(num_dims),
-#     'sType' : 'iptotal',
-#     'liAnisotropicWeightsOrOutput' : -1,
-# })
+user_specs_arr.append({
+    'refinement' : 'anisotropic',
+    'tasmanian_init' : lambda : tasmanian_init_global(num_dims),
+    'sType' : 'iptotal',
+    'liAnisotropicWeightsOrOutput' : -1,
+})
 user_specs_arr.append({
     'refinement' : 'surplus',
     'tasmanian_init' : lambda : tasmanian_init_localp(num_dims),
@@ -75,7 +75,8 @@ user_specs_arr.append({
     'sRefinementType' : 'classic',
 })
 exit_criteria_arr = []
-exit_criteria_arr.append({'elapsed_wallclock_time': 10})
+exit_criteria_arr.append({'elapsed_wallclock_time': 3})
+exit_criteria_arr.append({'gen_max': 100})
 
 # Test over all possible parameter combinations.
 for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
