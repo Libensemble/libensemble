@@ -29,10 +29,6 @@ logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
-class libEBalsamApplication(ApplicationDefinition):
-    site = "default_site"
-    command_template = "default_path"
-
 
 class BalsamTask(Task):
     """Wraps a Balsam Task from the Balsam service
@@ -218,8 +214,8 @@ class NewBalsamMPIExecutor(MPIExecutor):
         libEBalsamApplication.sync()
         logger.debug("Added App {}".format(name))
 
-    def register_app(self, full_path, site, app_name=None, calc_type=None, desc=None):
-        """Registers a user application to libEnsemble.
+    def register_app(self, balsam_app, app_name=None, calc_type=None, desc=None):
+        """Registers a Balsam application instance to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
         ``app_name`` or ``calc_type`` can be used to identify the
@@ -231,9 +227,6 @@ class NewBalsamMPIExecutor(MPIExecutor):
 
         full_path: String
             The full path of the user application to be registered
-
-        site: String
-            The Balsam site name for where to launch the app
 
         app_name: String, optional
             Name to identify this application.
