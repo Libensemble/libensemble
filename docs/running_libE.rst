@@ -68,8 +68,8 @@ libEnsemble will run on one node in this scenario. If the user wants to dedicate
 to just the libEnsemble manager and workers, the ``libE_specs['dedicated_mode']`` option
 can be set (see :doc:`central mode<platforms/platforms_index>`).
 
-In particular, this mode can be used to run on the **launch** nodes of three-tier
-systems (e.g. Theta/Summit), allowing the whole node allocation for
+This mode is often used to run on a **launch** node of a three-tier
+system (e.g. Theta/Summit), allowing the whole node allocation for
 worker-launched application runs. In this scenario, make sure there are
 no imports of ``mpi4py`` in your Python scripts.
 
