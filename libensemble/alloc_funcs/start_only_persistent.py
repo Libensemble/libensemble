@@ -118,7 +118,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     """
     This allocation function will give simulation work if possible to any worker
     not listed as a zero_resource_worker. On the first call, the worker will be
-    placed into a persistent state, which will be maintained until libE is exited.
+    placed into a persistent state that will be maintained until libE is exited.
 
     Otherwise, zero resource workers will be given up to a maximum of
     ``alloc_specs['user']['num_active_gens']`` persistent generators (defaulting to one).

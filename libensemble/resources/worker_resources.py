@@ -29,7 +29,7 @@ class ResourceManager(RSetResources):
     def __init__(self, num_workers, resources):
         """Initializes a new ResourceManager instance
 
-        Instantiates the numpy structured array that hold information for each
+        Instantiates the numpy structured array that holds information for each
         resource set.
 
         Parameters
