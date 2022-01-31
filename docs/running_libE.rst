@@ -64,10 +64,9 @@ you can specify these on the command line::
 where ``N`` is the number of workers. This will launch one manager and
 ``N`` workers.
 
-libEnsemble will run on one node in this scenario. It is only suitable for running
-in :doc:`central mode<platforms/platforms_index>` on multi-node systems. It can also
-be used on stand-alone systems. *Note that even without dedicated_mode set, libEnsemble
-will still run on only one node.*
+libEnsemble will run on one node in this scenario. If the user wants to dedicate the node
+to just the libEnsemble manager and workers, the ``libE_specs['dedicated_mode']`` option
+can be set (see :doc:`central mode<platforms/platforms_index>`).
 
 In particular, this mode can be used to run on the **launch** nodes of three-tier
 systems (e.g. Theta/Summit), allowing the whole node allocation for
