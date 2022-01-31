@@ -108,6 +108,13 @@ Limitations of TCP mode
 
 - There cannot be two calls to ``libE`` in the same script.
 
+
+Further command line options
+----------------------------
+
+See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for further command line options.
+
+
 Persistent Workers
 ------------------
 .. _persis_worker:
