@@ -77,7 +77,7 @@ class Application:
 
     prefix = 'libe_app'
 
-    def __init__(self, full_path, name=None, calc_type='sim', desc=None, site=None):
+    def __init__(self, full_path, name=None, calc_type='sim', desc=None, pyobj=None):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
@@ -86,8 +86,8 @@ class Application:
         if self.exe.endswith('.py'):
             self.full_path = ' '.join((sys.executable, full_path))
         self.name = name or self.exe
+        self.pyobj = pyobj
         self.desc = desc or (self.exe + ' app')
-        self.site = site or None
         self.gname = '_'.join([Application.prefix, self.name])
 
 

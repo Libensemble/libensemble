@@ -23,7 +23,7 @@ from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from balsam.api import ApplicationDefinition, BatchJob, EventLog
+from balsam.api import ApplicationDefinition, BatchJob, EventLog, Job
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -111,7 +111,7 @@ class BalsamTask(Task):
             return
 
         # Get current state of tasks from Balsam database
-        self.process.refresh_from_db()
+        # self.process.refresh_from_db()
         balsam_state = self.process.state
         self.runtime = self._get_time_since_balsam_submit()
 
@@ -199,12 +199,12 @@ class NewBalsamMPIExecutor(MPIExecutor):
     def serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
 
-        for app in self.apps.values():
-            calc_name = app.gname
-            desc = app.desc
-            full_path = app.full_path
-            site = app.site
-            self.add_app(calc_name, site, full_path, desc)
+        # for app in self.apps.values():
+        #     calc_name = app.gname
+        #     desc = app.desc
+        #     full_path = app.full_path
+        #     site = app.site
+        #     self.add_app(calc_name, site, full_path, desc)
 
     def add_app(self, name, site, exepath, desc):
         """ Sync application with balsam service """
@@ -214,7 +214,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
         libEBalsamApplication.sync()
         logger.debug("Added App {}".format(name))
 
-    def register_app(self, balsam_app, app_name=None, calc_type=None, desc=None):
+    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
         """Registers a Balsam application instance to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
@@ -240,8 +240,8 @@ class NewBalsamMPIExecutor(MPIExecutor):
 
         """
         if not app_name:
-            app_name = os.path.split(full_path)[1]
-        self.apps[app_name] = Application(full_path, app_name, calc_type, desc, site)
+            app_name = BalsamApp.command_template.split(" ")[0]
+        self.apps[app_name] = Application(" ", app_name, calc_type, desc, BalsamApp)
 
         # Default sim/gen apps will be deprecated. Just use names.
         if calc_type is not None:
@@ -252,11 +252,11 @@ class NewBalsamMPIExecutor(MPIExecutor):
     def set_resources(self, resources):
         self.resources = resources
 
-    def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, procs_per_node=None, machinefile=None,
-               app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, gpus_per_rank=0, dry_run=False, wait_on_start=False,
-               queue=None, project=None, wall_time_min=None, extra_args=''):
+    def submit(self, calc_type=None, app_name=None, app_args=None, num_procs=None,
+               num_nodes=None, procs_per_node=None, tasks_per_node=None,
+               machinefile=None, stdout=None, stderr=None,
+               stage_inout=None, gpus_per_rank=0, dry_run=False, wait_on_start=False,
+               queue=None, project=None, wall_time_min=None, extra_args={}):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -291,26 +291,23 @@ class NewBalsamMPIExecutor(MPIExecutor):
         task = BalsamTask(app, app_args, default_workdir,
                           stdout, stderr, self.workerID)
 
-        add_task_args = {'name': task.name,
-                         'workflow': self.workflow_name,
-                         'user_workdir': default_workdir,
-                         'application': app.gname,
-                         'args': task.app_args,
-                         'num_nodes': num_nodes,
-                         'procs_per_node': procs_per_node,
-                         'mpi_flags': extra_args}
-
         if dry_run:
             task.dry_run = True
             logger.info('Test (No submit) to Balsam: {}'.format(' '.join(add_task_args)))
             task._set_complete(dry_run=True)
         else:
+            App = app.pyobj
+            App.sync()
+            task.process = Job(app_id=App, workdir=self.workflow_name,
+                               parameters=app_args,
+                               num_nodes=num_nodes,
+                               ranks_per_node=procs_per_node,
+                               launch_params=extra_args,
+                               gpus_per_rank=gpus_per_rank,
+                               node_packing_count=tasks_per_node,
+                               wall_time_min=wall_time_min)
 
-            task.process = libEBalsamApplication.submit(workdir=self.workflow_name,
-                                                        num_nodes=num_nodes,
-                                                        ranks_per_node=procs_per_node,
-                                                        wall_time_min=wall_time_min,
-                                                        gpus_per_rank=gpus_per_rank)
+            task.process.save()
 
             task.batchjob = BatchJob.objects.create(
                 site_id=task.process.site_id,

@@ -11,10 +11,9 @@ forces = Ensemble()
 forces.from_yaml('balsam_forces.yaml')
 
 class RemoteForces(ApplicationDefinition):
-    site = 'libe-bebop'
-    command_template = './forces.x {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}'
-
-import ipdb; ipdb.set_trace()
+    site = 'jln_theta'
+    command_template = '/home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x' + \
+                       '{{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}'
 
 exctr = NewBalsamMPIExecutor()
 exctr.register_app(RemoteForces, app_name='forces')
