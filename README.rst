@@ -32,6 +32,15 @@ and help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
 increased parallelism.
 
+libEnsemble aims for:
+
+• **Extreme scaling**: From laptops to supercomputers.
+• **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
+• **Monitoring/killing of applications**: libEnsemble can also recover/reassign resources
+• **Portability and flexibility**: Run identical libEnsemble scripts across machines and facilities.
+• **Exploitation of persistent data/control flow**: libEnsemble can pass data between running ensemble members.
+• **Low start-up cost**: Most single-machine deployments don't require additional services.
+
 libEnsemble's users select or supply **generator** and **simulator** Python
 functions; these respectively produce candidate parameters and perform/monitor
 computations that use those parameters. Generator functions can train
@@ -39,18 +48,10 @@ models, perform optimizations, and test candidate solutions in a batch or stream
 fashion based on simulation results.
 Simulator functions can themselves use parallel resources and involve libraries
 or executables that are not written in Python.
-With a basic familiarity with Python and NumPy_, users can easily incorporate
-any machine-learning, mathematics, or resource-management libraries into their
-libEnsemble workflows.
 
-libEnsemble aims for:
-
-• **Extreme scaling**: From laptops to supercomputers.
-• **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
-• **Monitoring/killing of applications**: Functions can also recover/reassign resources
-• **Portability and flexibility**: Run identical libEnsemble scripts across machines and facilities.
-• **Exploitation of persistent data/control flow**: libEnsemble can pass data between running functions.
-• **Low start-up cost**: Most single-machine deployments don't require additional services.
+With a basic familiarity of Python and NumPy_, users can easily incorporate
+any machine-learning, mathematics, or resource-management libraries into libEnsemble
+workflows.
 
 libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
