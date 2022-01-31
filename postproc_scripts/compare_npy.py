@@ -63,6 +63,6 @@ if not match:
     for name in compare_fields:
         for i in range(len(results)):
             assert np.allclose(exp_results[name][i],
-                   results[name][i], rtol=rtol, atol=atol, equal_nan=True), \
+                               results[name][i], rtol=rtol, atol=atol, equal_nan=True), \
                 'Mismatch in row ' + str(i) + ' field: ' + name + '. ' \
                 + str(exp_results[name][i]) + ' ' + str(results[name][i])

@@ -62,7 +62,7 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.6 or above
+* Python_ 3.7 or above
 * NumPy_
 * psutil_
 
@@ -84,6 +84,12 @@ libEnsemble can also be run on launch nodes using multiprocessing.
 
 As of v0.8.0, an alternative interface is available. An Ensemble object is
 created and can be parameterized by a YAML file.
+
+* funcX_
+
+As of v0.8.0+dev, workers can optionally submit generator or simulator
+function instances to remote funcX_ endpoints, distributing an ensemble across
+systems and heterogenous resources.
 
 The example simulation and generation functions and tests require the following:
 
@@ -251,7 +257,7 @@ Resources
 
 **Capabilities:**
 
-libEnsemble generation capabilities include:
+Proven libEnsemble generation capabilities include:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
@@ -292,6 +298,7 @@ See a complete list of `example user scripts`_.
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
+.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03

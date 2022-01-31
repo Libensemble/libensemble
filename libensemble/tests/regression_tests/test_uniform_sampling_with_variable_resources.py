@@ -15,10 +15,10 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import sys
 import numpy as np
-import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -34,8 +34,8 @@ if libE_specs['comms'] == 'tcp':
     sys.exit("This test only runs with MPI or local -- aborting...")
 
 # Get paths for applications to run
-hello_world_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
-six_hump_camel_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'six_hump_camel.py')
+hello_world_app = helloworld.__file__
+six_hump_camel_app = six_hump_camel.__file__
 
 # Sim can run either helloworld or six_hump_camel
 exctr = MPIExecutor()

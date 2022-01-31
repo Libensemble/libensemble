@@ -1,0 +1,45 @@
+libE_specs:
+    save_every_k_gens: 1000
+    profile: False
+    exit_criteria:
+        sim_max: 8
+
+sim_specs:
+    function: libensemble.tests.scaling_tests.funcx_forces.forces_simf.run_forces_funcx
+    inputs:
+        - x
+    outputs:
+        energy:
+            type: float
+    funcx_endpoint: 8ae6dc54-7f57-4c46-8d21-e601fde15553
+    user:
+        keys:
+            - seed
+        sim_app: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x
+        remote_ensemble_dir: /home/jnavarro/bebop_output/ensemble_
+        cores: 1
+        sim_particles: 1.e+3
+        sim_timesteps: 5
+        sim_kill_minutes: 10.0
+        particle_variance: 0.2
+        kill_rate: 0.5
+        fail_on_sim: False
+        fail_on_submit: False
+
+gen_specs:
+    function: libensemble.gen_funcs.sampling.uniform_random_sample
+    outputs:
+        x:
+            type: float
+            size: 1
+    user:
+        gen_batch_size: 1000
+
+alloc_specs:
+    function: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first
+    outputs:
+        allocated:
+            type: bool
+    user:
+        batch_mode: True
+        num_active_gens: 1
