@@ -253,7 +253,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
         self.resources = resources
 
     def submit(self, calc_type=None, app_name=None, app_args=None, num_procs=None,
-               num_nodes=None, procs_per_node=None, tasks_per_node=None,
+               num_nodes=None, procs_per_node=None, max_tasks_per_node=None,
                machinefile=None, stdout=None, stderr=None,
                stage_inout=None, gpus_per_rank=0, dry_run=False, wait_on_start=False,
                queue=None, project=None, wall_time_min=None, extra_args={}):
@@ -304,7 +304,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
                                ranks_per_node=procs_per_node,
                                launch_params=extra_args,
                                gpus_per_rank=gpus_per_rank,
-                               node_packing_count=tasks_per_node,
+                               node_packing_count=max_tasks_per_node,
                                wall_time_min=wall_time_min)
 
             task.process.save()

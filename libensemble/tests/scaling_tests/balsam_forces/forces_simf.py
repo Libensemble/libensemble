@@ -63,8 +63,8 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
 
     task = exctr.submit(app_name='forces', app_args=args,
-                        num_procs=64, num_nodes=1, procs_per_node=64, tasks_per_node=1,
-                        queue="debug-cache-quad", project="CSC250STMS07", wall_time_min=15)  # Auto-partition
+                        num_procs=64, num_nodes=1, procs_per_node=64, max_tasks_per_node=1,
+                        queue="debug-cache-quad", project="CSC250STMS07", wall_time_min=30)  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
