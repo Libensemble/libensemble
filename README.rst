@@ -29,7 +29,7 @@ libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensem
 
 libEnsemble can help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
-increased parallelism. libEnsemble workflows can run on or across laptops, clusters, and
+increased parallelism. libEnsemble workflows can run on or across_ laptops, clusters, and
 leadership-class machines.
 
 libEnsemble aims for:
@@ -292,6 +292,7 @@ See a complete list of `example user scripts`_.
 
 .. after_resources_rst_tag
 
+.. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
