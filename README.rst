@@ -63,9 +63,6 @@ libEnsemble includes an Executor interface so application-launching functions ar
 portable, resilient, and flexible; it also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
 
-libEnsemble's cross-system capability is powered by funcX_, a function-as-a-service
-platform to which workers can submit remote generator or simulator function instances.
-
 .. before_dependencies_rst_tag
 
 Dependencies
@@ -98,9 +95,10 @@ As of v0.8.0, libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
-As of v0.8.0+dev, workers can optionally submit generator or simulator
-function instances to remote funcX_ endpoints, distributing an ensemble across
-systems and heterogeneous resources.
+As of v0.8.0+dev, libEnsemble features a cross-system capability powered by funcX_,
+a function-as-a-service platform to which workers can submit remote generator or
+simulator function instances. This feature can help distribute an ensemble
+across systems and heterogeneous resources.
 
 The example simulation and generation functions and tests require the following:
 
