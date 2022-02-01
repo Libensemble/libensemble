@@ -89,7 +89,7 @@ def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empt
         return out_ord
 
 
-def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), completed_points=np.array([])):
+def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), completed_points=np.array([]), tol=1E-12):
     """
     Creates the data to be sent and updates the state arrays and scalars if new information (new_points or compeleted_points)
     arrives. Ensures that the output state arrays remain sorted if the input state arrays are already sorted.
@@ -98,13 +98,13 @@ def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), comple
         new_points_ord = np.lexsort(np.rot90(new_points))
         new_points_ids = id_offset + np.arange(new_points.shape[0])
         id_offset += new_points.shape[0]
-        insert_idx = get_2D_insert_indices(queued_pts, new_points, y_ord=new_points_ord)
+        insert_idx = get_2D_insert_indices(queued_pts, new_points, y_ord=new_points_ord, tol=tol)
         queued_pts = np.insert(queued_pts, insert_idx, new_points[new_points_ord], axis=0)
         queued_ids = np.insert(queued_ids, insert_idx, new_points_ids[new_points_ord], axis=0)
 
     if completed_points.size > 0:
         completed_ord = np.lexsort(np.rot90(completed_points))
-        delete_ind = get_2D_duplicate_indices(queued_pts, completed_points, y_ord=completed_ord)
+        delete_ind = get_2D_duplicate_indices(queued_pts, completed_points, y_ord=completed_ord, tol=tol)
         queued_pts = np.delete(queued_pts, delete_ind, axis=0)
         queued_ids = np.delete(queued_ids, delete_ind, axis=0)
 
@@ -200,6 +200,10 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     allowed_refinements = ['anisotropic', 'getCandidateConstructionPoints', 'surplus', 'getCandidateConstructionPointsSurplus']
     assert 'refinement' in U and U['refinement'] in allowed_refinements, \
         "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    if 'tol' in U:
+        tol = U['tol']
+    else:
+        tol = 1E-12
 
     # Choose the refinement function based on U['refinement'].
     if U['refinement'] == 'anisotropic':
@@ -222,7 +226,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     # First run.
     grid.beginConstruction()
     init_pts = get_refined_points(grid)
-    queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=init_pts)
+    queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=init_pts, tol=tol)
     H0 = np.zeros(init_pts.shape[0], dtype=gen_specs['out'])
     H0['x'] = init_pts
     H0['sim_id'] = np.arange(init_pts.shape[0], dtype='int')
@@ -234,7 +238,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
         # Parse the points returned by the allocator.
         num_completed += calc_in['x'].shape[0]
-        queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, completed_points=calc_in['x'])
+        queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol)
 
         # Compute the next batch of points (if they exist).
         new_pts = np.empty((0, num_dims), dtype='float')
@@ -251,14 +255,14 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
             if refined_pts.size == 0:
                 break
             refined_ord = np.lexsort(np.rot90(refined_pts))
-            delete_ind = get_2D_duplicate_indices(refined_pts, queued_pts, x_ord=refined_ord)
+            delete_ind = get_2D_duplicate_indices(refined_pts, queued_pts, x_ord=refined_ord, tol=tol)
             new_pts = np.delete(refined_pts, delete_ind, axis=0)
 
         if new_pts.shape[0] > 0:
             # Update the state variables with the refined points and update the queue in the allocator.
             num_completed = 0
-            queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=new_pts)
-            H0 = get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids)
+            queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=new_pts, tol=tol)
+            H0 = get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=tol)
             tag, Work, calc_in = ps.send_recv(H0)
         else:
             tag, Work, calc_in = ps.recv()
