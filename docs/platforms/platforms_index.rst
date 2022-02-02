@@ -13,7 +13,7 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_new_detailed.png
+.. figure:: ../images/centralized_new_detailed.png
     :align: center
     :scale: 30
     :alt: centralized
@@ -23,7 +23,7 @@ will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4
 communicator, to be run with the workers spread across nodes so as to be co-located
 with their tasks.
 
-.. image:: ../images/distributed_new_detailed.png
+.. figure:: ../images/distributed_new_detailed.png
     :align: center
     :scale: 30
     :alt: distributed
