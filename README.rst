@@ -37,9 +37,9 @@ libEnsemble aims for:
 • **Dynamic Ensembles**: Generate new tasks on-the-fly based on previous computations.
 • **Dynamic Resource Management**: Heterogeneous resources for tasks can be reassigned or recovered.
 • **Extreme scaling**: From laptops to supercomputers.
-• **Monitoring/killing of applications**: Ensemble members can poll or kill running apps
+• **Monitoring/killing of applications**: Ensemble members can poll or kill running apps.
 • **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
-• **Portability and flexibility**: Run identical libEnsemble scripts on different machines
+• **Portability and flexibility**: Run identical libEnsemble scripts on different machines.
 • **Exploitation of persistent data/control flow**: libEnsemble can pass data between ensemble members.
 • **Low start-up cost**: Default single-machine deployments don't require additional services.
 
