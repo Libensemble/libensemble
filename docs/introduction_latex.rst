@@ -22,6 +22,7 @@ We now present further information on running and testing libEnsemble.
     :start-after: before_dependencies_rst_tag
     :end-before: after_resources_rst_tag
 
+.. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
