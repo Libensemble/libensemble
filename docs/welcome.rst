@@ -1,5 +1,5 @@
-.. image:: images/libE_logo.png
- :alt: libEnsemble
+    .. image:: images/libE_logo.png
+     :alt: libEnsemble
 
 .. only::html
   |

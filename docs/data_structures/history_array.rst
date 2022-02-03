@@ -130,9 +130,9 @@ user-provided ``gen_specs['out']`` and ``sim_specs['out']`` entries.
 In the figure below, only the
 reserved fields: ``sim_id``, ``given``, and ``returned`` are shown for brevity.
 
-.. figure:: ../images/history_init.png
-   :scale: 40
-   :align: center
+    .. figure:: ../images/history_init.png
+       :scale: 40
+       :align: center
 
 |
 
