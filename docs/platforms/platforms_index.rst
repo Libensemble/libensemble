@@ -13,20 +13,20 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_new_detailed.png
-    :alt: centralized
-    :scale: 30
-    :align: center
+  .. image:: ../images/centralized_new_detailed.png
+      :alt: centralized
+      :scale: 30
+      :align: center
 
 Alternatively, in **distributed** mode, the libEnsemble (manager/worker) processes
 will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4py*
 communicator, to be run with the workers spread across nodes so as to be co-located
 with their tasks.
 
-.. image:: ../images/distributed_new_detailed.png
-    :alt: distributed
-    :scale: 30
-    :align: center
+  .. image:: ../images/distributed_new_detailed.png
+      :alt: distributed
+      :scale: 30
+      :align: center
 
 Configurations with multiple nodes per worker or multiple workers per node are both
 common use cases. The distributed approach allows the libEnsemble worker to read files
@@ -141,10 +141,10 @@ internet access (laptops, login nodes, other servers, etc.), workers can be inst
 launch generator or simulator user function instances to separate resources from
 themselves via funcX_, a distributed, high-performance function-as-a-service platform:
 
-.. image:: ../images/funcxmodel.png
-    :alt: running_with_funcx
-    :scale: 50
-    :align: center
+    .. image:: ../images/funcxmodel.png
+        :alt: running_with_funcx
+        :scale: 50
+        :align: center
 
 This is useful for running ensembles across machines and heterogeneous resources, but
 comes with several caveats:
