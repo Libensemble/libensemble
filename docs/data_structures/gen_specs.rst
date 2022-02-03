@@ -11,7 +11,10 @@ to main ``libE()`` routine::
         'gen_f' [func]:
             generates inputs to sim_f
         'in' [list]:
-            field names (as strings) that will be given to gen_f
+            field names (as strings) that will be given to gen_f function when
+            it is called (if not present, then no fields will be passed).
+        'persis_in' [list]:
+            field names (as strings) that will be given back to a persistent gen_f
         'out' [list of tuples (field name, data type, [size])]:
             gen_f outputs that will be stored in the libEnsemble history
         'user' [dict]:
@@ -40,5 +43,21 @@ to main ``libE()`` routine::
       :start-at: gen_specs
       :end-before: end_gen_specs_rst_tag
 
+.. seealso::
+
+    - test_persistent_aposmm_nlopt.py_ shows an example where ``gen_specs['in']`` is empty, but
+      ``gen_specs['persis_in']`` specifies values to return to the persistent generator.
+
+    - test_persistent_aposmm_with_grad.py_ shows a similar example where an ``H0`` is used to
+      provide points from a previous run. In this case, ``gen_specs['in']`` is populated to provide
+      the generator with data for the initial points.
+
+    - In some cases you might be able to give different (perhaps fewer) fields in ``'persis_in'``
+      than ``'in'``; you may not need to give ``x`` for example, as the persistent generator
+      already has ``x`` for those points. See `more example uses`_ of ``persis_in``.
+
 .. _sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/sampling.py
 .. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py
+.. _test_persistent_aposmm_nlopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_nlopt.py
+.. _test_persistent_aposmm_with_grad.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
+.. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field

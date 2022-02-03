@@ -186,7 +186,7 @@ for prob_id in range(6):
         {
             'mu': 0,  # strong convexity term
             'L': L,  # Lipschitz smoothness
-            'Vx_0x': n ** 0.5,  # Bregman divergence of x_0 and x_*
+            'Vx_0x': n**0.5,  # Bregman divergence of x_0 and x_*
             'eps': eps,  # error / tolerance
             'A_norm': lam_max,  # ||A \otimes I||_2 = ||A||_2
         }

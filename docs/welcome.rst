@@ -1,5 +1,5 @@
-.. image:: images/libE_logo.png
- :alt: libEnsemble
+    .. image:: images/libE_logo.png
+     :alt: libEnsemble
 
 .. only::html
   |
@@ -23,7 +23,7 @@
 Welcome to libEnsemble's documentation!
 =======================================
 
-libEnsemble is a library to coordinate the concurrent evaluation of dynamic ensembles of calculations.
+libEnsemble is a Python toolkit for coordinating asynchronous and dynamic ensembles of calculations.
 
 * New to libEnsemble? Start :doc:`here<introduction>`.
 * Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.

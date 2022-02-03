@@ -260,8 +260,9 @@ calculations performed.
 Here is graphed output using ``Matplotlib``, with entries colored by which
 worker performed the simulation:
 
-.. image:: ../images/sinex.png
-  :alt: sine
+    .. image:: ../images/sinex.png
+      :alt: sine
+      :align: center
 
 If you want to verify your results through plotting and installed Matplotlib
 earlier, copy and paste the following code into the bottom of your calling

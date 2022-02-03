@@ -1,7 +1,12 @@
 """
-This module launches and controls the running of tasks with Balsam.
-
-.. note:: Balsam is supported only when using ``mpi`` comms and requires Python 3.6 or higher.
+This module launches and controls the running of tasks with Balsam_ 0.5.0. Balsam
+is especially useful when running libEnsemble on three-tier systems with intermediate
+launch nodes. Typically on such systems, MPI processes are themselves unable
+to submit further MPI tasks to the batch scheduler. Therefore when libEnsemble's
+workers have been launched in a distributed fashion via MPI, they must communicate
+with an intermediate service like Balsam running on the launch nodes. The Balsam
+service then reserves compute resources and launches tasks from libEnsemble's workers
+that are using the Balsam MPI Executor.
 
 In order to create a Balsam executor, the calling script should contain ::
 
@@ -10,6 +15,8 @@ In order to create a Balsam executor, the calling script should contain ::
 The Balsam executor inherits from the MPI executor. See the
 :doc:`MPIExecutor<mpi_executor>` for shared API. Any differences are
 shown below.
+
+.. _Balsam: https://balsam.readthedocs.io/en/master/
 
 """
 

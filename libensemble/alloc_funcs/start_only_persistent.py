@@ -38,6 +38,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         for a return from the generator before sending further returned points.
         Default: False
 
+    tags: alloc, batch, async, persistent, priority
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
@@ -115,21 +116,24 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
 def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
-    SH: TODO - Need to update docstring...
-    This allocation function will give simulation work if possible, but
-    otherwise start up to ``alloc_specs['user']['num_active_gens']``
-    persistent generators (defaulting to one).
+    This allocation function will give simulation work if possible to any worker
+    not listed as a zero_resource_worker. On the first call, the worker will be
+    placed into a persistent state that will be maintained until libE is exited.
+
+    Otherwise, zero resource workers will be given up to a maximum of
+    ``alloc_specs['user']['num_active_gens']`` persistent generators (defaulting to one).
 
     By default, evaluation results are given back to the generator once
     all generated points have been returned from the simulation evaluation.
     If ``alloc_specs['user']['async_return']`` is set to True, then any
     returned points are given back to the generator.
 
-    If any workers are marked as zero_resource_workers, then these will only
-    be used for generators.
-
     If any of the persistent generators has exited, then ensemble shutdown
     is triggered.
+
+    Note, that an alternative to using zero resource workers would be to set
+    a fixed number of simulation workers in persistent state at the start, allowing
+    at least one worker for the generator - a minor alteration.
 
     **User options**:
 
@@ -187,8 +191,6 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                                              persistent=True, active_recv=active_recv_gen)
                 returned_but_not_given[point_ids] = False
 
-    # SH Make sure once set up persistent sim that it W array is correct.
-
     # Now the give_sim_work_first part
     points_to_evaluate = ~H['given'] & ~H['cancel_requested']
     avail_workers = list(
@@ -209,7 +211,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
         points_to_evaluate[sim_ids_to_send] = False
 
-    # Start persistent gens if no worker to give out. Uses zero_resource_workers if defined.
+    # Start persistent gens if no sim work to give out. Uses zero_resource_workers if defined.
     if not np.any(points_to_evaluate):
         avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
 

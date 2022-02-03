@@ -32,6 +32,7 @@ function.
    :maxdepth: 3
    :caption: libEnsemble Data Structures:
 
+   history_array
    sim_specs
    gen_specs
    alloc_specs
@@ -39,7 +40,6 @@ function.
    persis_info
    exit_criteria
 
-   history_array
    worker_array
    work_dict
    calc_status

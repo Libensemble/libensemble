@@ -1,4 +1,4 @@
-\documentclass[tikz,border=1pt,convert={density=300,size=1080x800,outext=.png}]{standalone} 
+\documentclass[tikz,border=1pt,convert={density=300,size=1080x800,outext=.png}]{standalone}
 \usepackage{pgfplots,tikz}
 \usetikzlibrary{shapes,arrows,decorations.markings,shadows,positioning}
 \begin{document}
@@ -27,7 +27,6 @@
 \tikzstyle{completedgenbox} = [box, very thick, fill=ArgonneLogoBlue!50]
 \tikzstyle{completedsimbox} = [box, very thick, fill=ArgonneLogoGreen!50]
 
-
 \tikzstyle{linea} = [draw, thick, shorten >=1pt, shorten <=1pt, >=latex]
 
 % Define distances
@@ -41,18 +40,17 @@
     \node (mantitle) [textbox] {libEnsemble Manager};
     \path (mantitle.east)+(4.0,-0.2) node (workertitle) [textbox] {Workers};
 
-    % Make the manager contents 
+    % Make the manager contents
     \node [redshape,below=0.2 of mantitle] (recv) {Receive};
     \node [draw, below=\spaceinmanager of recv, redshape] (update) {Update active and queue};
     \node [draw, below=\spaceinmanager of update, redshape] (decide) {Decide work\\and resources};
     \node (give) [redshape, below=\spaceinmanager of decide] {Give work};
 
-
     % Make worker boxes
     \path (workertitle.south)+(0,-\spaceinworkers) node (worker1) [activesimbox] {active simulation};
-    \path (worker1.south)+(0,-\spaceinworkers) node (worker2) [completedgenbox] {completed generation}; 
+    \path (worker1.south)+(0,-\spaceinworkers) node (worker2) [completedgenbox] {completed generation};
     \path (worker2.south)+(0,-\spaceinworkers) node (worker3) [activesimbox] {active simulation};
-    \path (worker3.south)+(0,-\spaceinworkers) node (dots2) [textbox] {$\vdots$}; 
+    \path (worker3.south)+(0,-\spaceinworkers) node (dots2) [textbox] {$\vdots$};
     \path (dots2.south)+(0,-\spaceinworkers) node (worker4) [completedsimbox] {completed simulation};
 
     % Make lines in manager
@@ -68,22 +66,22 @@
     % Bottom title
     % \path (give.south) + (0,-1) node (bottomlabel) {(A)POSMM Diagram};
 
-    % Manager background  
+    % Manager background
     \begin{pgfonlayer}{background}
         \path (recv.west |- recv.north)+(-0.2,0.2) node (a) {};
         \path (give.east |- give.south)+(0.2,-0.2) node (c) {};
-          
+
         \path[fill=ArgonneLogoRed!20, rounded corners, draw=black, very thick]
-            (a) rectangle (c);           
+            (a) rectangle (c);
     \end{pgfonlayer}
 
     % Worker's background
     \begin{pgfonlayer}{background}
         \path (worker1.west |- mantitle.north)+(-0.2,0.0) node (a2) {};
         \path (worker4.east |- c)+(0.2,0.0) node (c2) {};
-          
+
         \path[fill=black!10]
-            (a2) rectangle (c2);           
+            (a2) rectangle (c2);
     \end{pgfonlayer}
 \end{tikzpicture}
 \end{document}

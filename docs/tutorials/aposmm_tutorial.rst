@@ -18,10 +18,10 @@ depict evaluations. We'll use the `Six-Hump Camel function`_, known to have six
 global minima. A sample space of this function, containing all minima, appears
 below:
 
-.. image:: ../images/basic_6hc.png
-    :alt: Six-Hump Camel
-    :scale: 60
-    :align: center
+    .. image:: ../images/basic_6hc.png
+        :alt: Six-Hump Camel
+        :scale: 60
+        :align: center
 
 Create a new Python file named ``six_hump_camel.py``. This will be our
 ``sim_f``, incorporating the above function. Write the following:
@@ -64,10 +64,10 @@ Before APOSMM can start local optimization runs, some number of uniformly
 sampled points must be evaluated (if no prior simulation evaluations are
 provided). User-requested sample points can also be provided to APOSMM:
 
-.. image:: ../images/sampling_6hc.png
-    :alt: Six-Hump Camel Sampling
-    :scale: 60
-    :align: center
+    .. image:: ../images/sampling_6hc.png
+        :alt: Six-Hump Camel Sampling
+        :scale: 60
+        :align: center
 
 Specifically, APOSMM will begin local optimization runs from evaluated points that
 don't have points with smaller function values nearby (within a threshold
@@ -85,10 +85,10 @@ sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
 the manager, for example when the budget of simulation evaluations has been
 exhausted, or when a sufficiently "good" simulation output has been observed.
 
-.. image:: ../images/localopt_6hc.png
-    :alt: Six-Hump Camel Local Optimization Points
-    :scale: 60
-    :align: center
+    .. image:: ../images/localopt_6hc.png
+        :alt: Six-Hump Camel Local Optimization Points
+        :scale: 60
+        :align: center
 
 Throughout, generated and evaluated points are appended to the
 :ref:`History<datastruct-history-array>` array, with the field
