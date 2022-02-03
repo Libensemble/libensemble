@@ -13,13 +13,6 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-    .. image:: ../images/centralized_new_detailed_balsam.png
-        :alt: central_balsam
-        :scale: 40
-        :align: center
-
-Test
-
     .. image:: ../images/centralized_new_detailed.png
         :alt: centralized
         :scale: 30
