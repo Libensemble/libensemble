@@ -29,14 +29,13 @@ libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensem
 
 libEnsemble can help users take advantage of massively parallel resources to solve design,
 decision, and inference problems and expand the class of problems that can benefit from
-increased parallelism. libEnsemble workflows can run on or across_ laptops, clusters, and
-leadership-class machines.
+increased parallelism.
 
 libEnsemble aims for:
 
+• **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
 • **Dynamic Ensembles**: Generate new tasks on-the-fly based on previous computations.
-• **Dynamic Resource Management**: Heterogeneous resources for tasks can be reassigned or recovered.
-• **Extreme scaling**: From laptops to supercomputers.
+• **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
 • **Monitoring/killing of applications**: Ensemble members can poll or kill running apps.
 • **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
 • **Portability and flexibility**: Run identical libEnsemble scripts on different machines.
