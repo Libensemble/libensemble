@@ -3,12 +3,9 @@ Perlmutter
 ==========
 
 Perlmutter_ is an HPE Cray “Shasta” system located at NERSC_.
-
-Its compute nodes are equipped with 4 A100 NVIDIA GPUs.
-
+Its compute nodes are equipped with four A100 NVIDIA GPUs.
 It uses the SLURM scheduler to submit jobs from login nodes to run on the
 compute nodes.
-
 
 Configuring Python and Installation
 -----------------------------------
@@ -25,8 +22,8 @@ all dependencies. For example::
 
     conda create -n libe-pm python=3.9 -y
 
-As perlmutter has a shared HOME filesystem with other clusters, using
-the ``-pm`` suffix (for perlmutter) is good practice.
+As Perlmutter has a shared HOME filesystem with other clusters, using
+the ``-pm`` suffix (for Perlmutter) is good practice.
 
 Installing libEnsemble and dependencies
 ---------------------------------------
@@ -66,12 +63,12 @@ in the `Python on Perlmutter`_ documentation.
 Job Submission
 --------------
 
-Perlmutter uses Slurm_ for job submission and management. The two commands you'll
-likely use the most to initiate jobs are ``salloc`` and ``sbatch`` for running
-interactively and batch, respectively. libEnsemble runs on the compute nodes
+Perlmutter uses Slurm_ for job submission and management. The two most common 
+commands for initiating jobs are ``salloc`` and ``sbatch`` for running
+in interactive and batch modes, respectively. libEnsemble runs on the compute nodes
 on Perlmutter using either ``multi-processing`` or ``mpi4py``.
 
-If running more than one worker per node the following is recommended to prevent
+If running more than one worker per node, the following is recommended to prevent
 resource conflicts::
 
     export SLURM_EXACT=1
@@ -84,7 +81,7 @@ Example
 -------
 
 A simple example batch script for a libEnsemble use case that runs 5 workers (one
-generator and 4 simulators) on one node:
+generator and four simulators) on one node:
 
 .. code-block:: bash
     :linenos:
@@ -102,11 +99,11 @@ generator and 4 simulators) on one node:
     python libe_calling_script.py --comms local --nworkers 5
 
 .. note::
-    Any modules loaded and environment variables (including conda environments) are
+    Any loaded modules and environment variables (including conda environments) are
     inherited by the job on Perlmutter. This is assumed in this example.
 
-This example has the following line in the calling script, so that the node is divided into
-4 resource sets (the generator does not use resources):
+This example calling script has the following line so the node is divided into
+four resource sets (the example generator does not need dedicated resources):
 
 .. code-block:: python
 
