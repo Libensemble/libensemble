@@ -144,7 +144,7 @@ Example submission scripts are also given in the :doc:`examples<example_scripts>
 Perlmutter FAQ
 --------------
 
-**srun: Job ****** step creation temporarily disabled, retrying (Requested nodes are busy)**
+**srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
 You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
 
