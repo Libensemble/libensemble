@@ -169,7 +169,7 @@ that is already dedicated to another task. The reason can vary, some reasons are
   resources for both the libEnsemble manager and workers and the launched tasks. If this is
   complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
 
-.. _option to srun: https://docs.nersc.gov/jobs/examples/#single-gpu-tasks-in-parallel
+.. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
 .. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 

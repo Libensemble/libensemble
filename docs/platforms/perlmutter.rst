@@ -170,7 +170,7 @@ See the NERSC Perlmutter_ docs for more information about Perlmutter.
 
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
 .. _Python on Perlmutter: https://docs.nersc.gov/development/languages/python/using-python-perlmutter/
-.. _option to srun: https://docs.nersc.gov/jobs/examples/#single-gpu-tasks-in-parallel
+.. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Slurm: https://slurm.schedmd.com/
