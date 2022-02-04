@@ -198,6 +198,7 @@ libEnsemble on specific HPC systems.
     cori
     theta
     summit
+    perlmutter
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
