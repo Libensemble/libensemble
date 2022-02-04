@@ -63,7 +63,7 @@ in the `Python on Perlmutter`_ documentation.
 Job Submission
 --------------
 
-Perlmutter uses Slurm_ for job submission and management. The two most common 
+Perlmutter uses Slurm_ for job submission and management. The two most common
 commands for initiating jobs are ``salloc`` and ``sbatch`` for running
 in interactive and batch modes, respectively. libEnsemble runs on the compute nodes
 on Perlmutter using either ``multi-processing`` or ``mpi4py``.
@@ -86,6 +86,7 @@ generator and four simulators) on one node:
 .. code-block:: bash
     :linenos:
 
+    #!/bin/bash
     #SBATCH -J libE_small_test
     #SBATCH -A <myproject_g>
     #SBATCH -C gpu
