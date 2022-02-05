@@ -199,6 +199,7 @@ libEnsemble on specific HPC systems.
     theta
     summit
     perlmutter
+    srun
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
