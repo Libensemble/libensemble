@@ -127,7 +127,9 @@ Each worker runs a simulator function that uses the :doc:`MPIExecutor<../executo
                         )
 
 If running using :doc:`variable resource workers<../resource_manager/overview>`, between one and
-four-way MPI runs may be issued by any of the workers (with each MPI task using a GPU).
+four-way MPI runs may be issued by any of the workers (with each MPI task using a GPU). libEnsemble's
+resource manager automatically disables workers whose resources are being used by another worker.
+
 
 .. SH TODO - I may instead recommended --nresource_sets 4 on the run line - as simpler than zero_resource_worker.
 .. perhaps making a note that they are alternatives.
@@ -156,7 +158,8 @@ and to **avoid** using ``#SBATCH`` commands that may limit resources to srun job
     #SBATCH --ntasks-per-node=4
     #SBATCH --gpus-per-task=1
 
-Instead provide these to sub-tasks via the ``extra_args`` option to the :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
+Instead provide these to sub-tasks via the ``extra_args`` option to
+the :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
 
 **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
