@@ -55,13 +55,14 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
+    workdir = 'worker' + str(libE_info['workerID']) + '_' + secrets.token_urlsafe(nbytes=3)
 
-    task = exctr.submit(app_name='forces', app_args=args, num_procs=64, num_nodes=1,
-                        procs_per_node=64, max_tasks_per_node=1, workdir=secrets.token_hex(nbytes=3))
+    task = exctr.submit(app_name='forces', app_args=args, num_procs=8, num_nodes=1,
+                        procs_per_node=8, max_tasks_per_node=4, workdir=workdir)
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
-    filepath = os.path.join(task.workdir, statfile)
+    filepath = sim_specs['user']['balsam_data_dir'] + os.path.join(task.workdir, statfile)
     line = None
 
     poll_interval = 1  # secs

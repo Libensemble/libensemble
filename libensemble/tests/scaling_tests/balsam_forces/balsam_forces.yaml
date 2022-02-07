@@ -14,6 +14,7 @@ sim_specs:
     user:
         keys:
             - seed
+        balsam_data_dir: /Users/jnavarro/Desktop/libensemble/newbalsam/sites/three/data/
         sim_particles: 1.e+3
         sim_timesteps: 5
         sim_kill_minutes: 10.0

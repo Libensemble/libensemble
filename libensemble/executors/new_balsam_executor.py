@@ -23,7 +23,7 @@ from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from balsam.api import BatchJob, EventLog, Job
+from balsam.api import Job, BatchJob, EventLog
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -56,8 +56,11 @@ class BalsamTask(Task):
 
         # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
         # balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
-        balsam_launch_datetime = EventLog.objects.filter(
+        event_query = EventLog.objects.filter(
             job_id=self.process.id, to_state="RUNNING")
+        if not len(event_query):
+            return 0
+        balsam_launch_datetime = event_query[0].timestamp
         current_datetime = datetime.datetime.now()
         if balsam_launch_datetime:
             return (current_datetime - balsam_launch_datetime).total_seconds()
@@ -274,7 +277,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
 
     def submit(self, calc_type=None, app_name=None, app_args=None, num_procs=None,
                num_nodes=None, procs_per_node=None, max_tasks_per_node=None,
-               machinefile=None, stdout=None, stderr=None, gpus_per_rank=0, transfers={},
+               machinefile=None, gpus_per_rank=0, transfers={},
                workdir='', dry_run=False, wait_on_start=False, extra_args={}):
         """Creates a new task, and either executes or schedules to execute
         in the executor
@@ -300,20 +303,8 @@ class NewBalsamMPIExecutor(MPIExecutor):
             jassert(num_procs or num_nodes or procs_per_node,
                     "No procs/nodes provided - aborting")
 
-        num_procs, num_nodes, procs_per_node = \
-            mpi_resources.task_partition(num_procs, num_nodes, procs_per_node)
-
-        if stdout is not None or stderr is not None:
-            logger.warning("Balsam does not currently accept a stdout "
-                           "or stderr name - ignoring")
-            stdout = None
-            stderr = None
-
-        # Will be possible to override with arg when implemented
-        # (or can have option to let Balsam assign)
-        default_workdir = os.getcwd()
-        task = BalsamTask(app, app_args, default_workdir,
-                          stdout, stderr, self.workerID)
+        task = BalsamTask(app, app_args, workdir,
+                          None, None, self.workerID)
 
         if dry_run:
             task.dry_run = True

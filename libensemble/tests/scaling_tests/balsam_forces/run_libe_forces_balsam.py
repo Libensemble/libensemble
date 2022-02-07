@@ -20,9 +20,9 @@ class RemoteForces(ApplicationDefinition):
 
 
 exctr = NewBalsamMPIExecutor()
-exctr.submit_allocation(site_id='three', num_nodes=1, wall_time_min=30,
-                        queue='local', project='local')
 exctr.register_app(RemoteForces, app_name='forces')
+exctr.submit_allocation(site_id=239, num_nodes=1, wall_time_min=30,
+                        queue='local', project='local')
 
 forces.gen_specs['user'].update({
     'lb': np.array([0]),
