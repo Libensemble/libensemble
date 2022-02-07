@@ -44,10 +44,6 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
     sim_app = sim_specs['user']['sim_app']
 
-    # calc_dir = os.path.join(sim_specs['user']['remote_ensemble_dir'], secrets.token_hex(nbytes=4))
-    # os.makedirs(calc_dir, exist_ok=True)
-    # os.chdir(calc_dir)
-
     # Get from dictionary if key exists, else return default (e.g. 0)
     cores = sim_specs['user'].get('cores', None)
     kill_rate = sim_specs['user'].get('kill_rate', 0)
@@ -62,9 +58,8 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
 
-    task = exctr.submit(app_name='forces', app_args=args,
-                        num_procs=64, num_nodes=1, procs_per_node=64, max_tasks_per_node=1,
-                        queue="debug-cache-quad", project="CSC250STMS07", wall_time_min=30)  # Auto-partition
+    task = exctr.submit(app_name='forces', app_args=args, num_procs=64, num_nodes=1,
+                        procs_per_node=64, max_tasks_per_node=1)
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'

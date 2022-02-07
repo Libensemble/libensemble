@@ -194,10 +194,11 @@ class NewBalsamMPIExecutor(MPIExecutor):
         super().__init__(custom_info)
 
         self.workflow_name = "libe_workflow"
-        self.application_objs = {}
+        self.allocations = []
 
     def serial_setup(self):
         """Balsam serial setup includes empyting database and adding applications"""
+        pass
 
         # for app in self.apps.values():
         #     calc_name = app.gname
@@ -208,10 +209,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
 
     def add_app(self, name, site, exepath, desc):
         """ Sync application with balsam service """
-
-        libEBalsamApplication.site = site
-        libEBalsamApplication.command_template = exepath
-        libEBalsamApplication.sync()
+        pass
         logger.debug("Added App {}".format(name))
 
     def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
@@ -249,14 +247,35 @@ class NewBalsamMPIExecutor(MPIExecutor):
                     "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
+    def submit_allocation(site_id, num_nodes, wall_time_min, job_mode="mpi",
+                          queue="local", project="local"):
+        """
+        Submits a Balsam BatchJob machine allocation request to Balsam.
+        Corresponding Balsam applications with a matching site can be submitted to this allocation.
+        """
+
+        self.allocations.append(
+            BatchJob.objects.create(
+                site_id=site_id,
+                num_nodes=num_nodes,
+                wall_time_min=wall_time_min,
+                job_mode=job_mode,
+                queue=queue,
+                project=project
+            )
+        )
+
+        logger.info("Submitted Batch allocation to endpoint {}: "
+                    "nodes {} queue {} project {}".
+                    format(site_id, num_nodes, queue, project))
+
     def set_resources(self, resources):
         self.resources = resources
 
     def submit(self, calc_type=None, app_name=None, app_args=None, num_procs=None,
                num_nodes=None, procs_per_node=None, max_tasks_per_node=None,
-               machinefile=None, stdout=None, stderr=None,
-               stage_inout=None, gpus_per_rank=0, dry_run=False, wait_on_start=False,
-               queue=None, project=None, wall_time_min=None, extra_args={}):
+               machinefile=None, stdout=None, stderr=None, gpus_per_rank=0, transfers={},
+               dry_run=False, wait_on_start=False, extra_args={}):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -305,18 +324,9 @@ class NewBalsamMPIExecutor(MPIExecutor):
                                launch_params=extra_args,
                                gpus_per_rank=gpus_per_rank,
                                node_packing_count=max_tasks_per_node,
-                               wall_time_min=wall_time_min)
+                               transfers=transfers)
 
             task.process.save()
-
-            task.batchjob = BatchJob.objects.create(
-                site_id=task.process.site_id,
-                num_nodes=num_nodes,
-                wall_time_min=wall_time_min,
-                job_mode="mpi",
-                queue=queue,
-                project=project
-            )
 
             if (wait_on_start):
                 self._wait_on_start(task)
@@ -325,9 +335,9 @@ class NewBalsamMPIExecutor(MPIExecutor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info("Added task to Balsam database {}: "
+            logger.info("Submitted Balsam App to endpoint {}: "
                         "nodes {} ppn {}".
-                        format(task.name, num_nodes, procs_per_node))
+                        format(App.site, num_nodes, procs_per_node))
 
             # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)

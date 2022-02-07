@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import secrets
 import numpy as np
 
 from libensemble import Ensemble
@@ -17,9 +16,9 @@ class RemoteForces(ApplicationDefinition):
                        ' > out.txt 2>&1'
 
 exctr = NewBalsamMPIExecutor()
+exctr.submit_allocation(site_id='jln_theta', num_nodes=8, wall_time_min=30,
+                        queue='debug-cache-quad', project='CSC250STMS07')
 exctr.register_app(RemoteForces, app_name='forces')
-
-forces.sim_specs['user']['remote_ensemble_dir'] += secrets.token_hex(nbytes=3)
 
 forces.gen_specs['user'].update({
     'lb': np.array([0]),
