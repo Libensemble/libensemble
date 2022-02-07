@@ -18,7 +18,6 @@ import logging
 import time
 import datetime
 
-from libensemble.resources import mpi_resources
 from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
