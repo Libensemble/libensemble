@@ -9,15 +9,19 @@ from balsam.api import ApplicationDefinition
 forces = Ensemble()
 forces.from_yaml('balsam_forces.yaml')
 
+
 class RemoteForces(ApplicationDefinition):
-    site = 'jln_theta'
-    command_template = '/home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x' + \
-                       ' {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}' + \
-                       ' > out.txt 2>&1'
+    site = 'three'
+    command_template = \
+        '/Users/jnavarro/Desktop/libensemble/' + \
+        'libensemble/libensemble/tests/scaling_tests/balsam_forces/forces.x' + \
+        ' {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}' + \
+        ' > out.txt 2>&1'
+
 
 exctr = NewBalsamMPIExecutor()
-exctr.submit_allocation(site_id='jln_theta', num_nodes=8, wall_time_min=30,
-                        queue='debug-cache-quad', project='CSC250STMS07')
+exctr.submit_allocation(site_id='three', num_nodes=1, wall_time_min=30,
+                        queue='local', project='local')
 exctr.register_app(RemoteForces, app_name='forces')
 
 forces.gen_specs['user'].update({

@@ -23,7 +23,7 @@ from libensemble.executors.executor import \
     Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from balsam.api import ApplicationDefinition, BatchJob, EventLog, Job
+from balsam.api import BatchJob, EventLog, Job
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -247,7 +247,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
                     "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def submit_allocation(site_id, num_nodes, wall_time_min, job_mode="mpi",
+    def submit_allocation(self, site_id, num_nodes, wall_time_min, job_mode="mpi",
                           queue="local", project="local"):
         """
         Submits a Balsam BatchJob machine allocation request to Balsam.
@@ -275,7 +275,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
     def submit(self, calc_type=None, app_name=None, app_args=None, num_procs=None,
                num_nodes=None, procs_per_node=None, max_tasks_per_node=None,
                machinefile=None, stdout=None, stderr=None, gpus_per_rank=0, transfers={},
-               dry_run=False, wait_on_start=False, extra_args={}):
+               workdir='', dry_run=False, wait_on_start=False, extra_args={}):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -288,6 +288,11 @@ class NewBalsamMPIExecutor(MPIExecutor):
             app = self.default_app(calc_type)
         else:
             raise ExecutorException("Either app_name or calc_type must be set")
+
+        if len(workdir):
+            workdir = os.path.join(self.workflow_name, workdir)
+        else:
+            workdir = self.workflow_name
 
         # Specific to this class
         if machinefile is not None:
@@ -312,12 +317,12 @@ class NewBalsamMPIExecutor(MPIExecutor):
 
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) to Balsam: {}'.format(' '.join(add_task_args)))
+            logger.info('Test (No submit) Balsam app {}'.format(app_name))
             task._set_complete(dry_run=True)
         else:
             App = app.pyobj
             App.sync()
-            task.process = Job(app_id=App, workdir=self.workflow_name,
+            task.process = Job(app_id=App, workdir=workdir,
                                parameters=app_args,
                                num_nodes=num_nodes,
                                ranks_per_node=procs_per_node,

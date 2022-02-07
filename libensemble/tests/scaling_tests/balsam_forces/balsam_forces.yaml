@@ -14,9 +14,6 @@ sim_specs:
     user:
         keys:
             - seed
-        sim_app: /home/jnavarro/libensemble/libensemble/tests/scaling_tests/forces/forces.x
-        remote_ensemble_dir: /home/jnavarro/bebop_output/ensemble_
-        cores: 1
         sim_particles: 1.e+3
         sim_timesteps: 5
         sim_kill_minutes: 10.0

@@ -42,10 +42,8 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     sim_particles = sim_specs['user']['sim_particles']
     sim_timesteps = sim_specs['user']['sim_timesteps']
     time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
-    sim_app = sim_specs['user']['sim_app']
 
     # Get from dictionary if key exists, else return default (e.g. 0)
-    cores = sim_specs['user'].get('cores', None)
     kill_rate = sim_specs['user'].get('kill_rate', 0)
     particle_variance = sim_specs['user'].get('particle_variance', 0)
 
@@ -59,7 +57,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
 
     task = exctr.submit(app_name='forces', app_args=args, num_procs=64, num_nodes=1,
-                        procs_per_node=64, max_tasks_per_node=1)
+                        procs_per_node=64, max_tasks_per_node=1, workdir=secrets.token_hex(nbytes=3))
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'

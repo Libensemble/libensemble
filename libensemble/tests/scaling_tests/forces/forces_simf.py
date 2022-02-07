@@ -78,18 +78,15 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     if sim_specs['user']['fail_on_submit']:
         machinefile = 'fail'
 
-    # # Machinefile only used here for exception testing
-    # if cores:
-    #     task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
-    #                         stdout='out.txt', stderr='err.txt', wait_on_start=True,
-    #                         machinefile=machinefile)
-    # else:
-    #     task = exctr.submit(app_name='forces', app_args=args, stdout='out.txt',
-    #                         stderr='err.txt', wait_on_start=True, hyperthreads=True,
-    #                         machinefile=machinefile)  # Auto-partition
-
-    task = exctr.submit(app_name='forces', num_procs=cores, app_args=args, wait_on_start=True,
-                        queue='local', project='local', wall_time_min=10)  # Auto-partition
+    # Machinefile only used here for exception testing
+    if cores:
+        task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
+                            stdout='out.txt', stderr='err.txt', wait_on_start=True,
+                            machinefile=machinefile)
+    else:
+        task = exctr.submit(app_name='forces', app_args=args, stdout='out.txt',
+                            stderr='err.txt', wait_on_start=True, hyperthreads=True,
+                            machinefile=machinefile)  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
