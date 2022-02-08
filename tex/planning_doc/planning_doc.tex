@@ -24,10 +24,10 @@
   \libE. Proper planning should help ensure that the code will be flexible
   and easy to adjust in the future.
 
-  Current development considers a manager and worker framework. 
+  Current development considers a manager and worker framework.
 \end{abstract}
 
-In order to ensure applicability to a variety of use cases, 
+In order to ensure applicability to a variety of use cases,
 \libE will coordinate many different types of calculations. Examples of
 such calculations include:
 \begin{itemize}
@@ -38,11 +38,11 @@ such calculations include:
   \item Monitoring intermediate output from simulations
 \end{itemize}
 Users will only need to provide scripts for simulation evaluation and point
-generation. We will provide default scripts for the other types of calculations, 
+generation. We will provide default scripts for the other types of calculations,
 which can be templates for the interested user. As a default the Manager will
 perform many calculations itself (essentially blocking the manager), but we can
 monitor this in the future and adjust as needed if manager-calculations are
-expensive. 
+expensive.
 
 We outline the behavior of the manager and worker within \libE:
 
@@ -53,7 +53,7 @@ We outline the behavior of the manager and worker within \libE:
       \item If the calculation is a simulation, determine parameters to be
         evaluated.
       \item If the calculation is a local optimization run, give state
-        information for determining the next point in a run. 
+        information for determining the next point in a run.
       \item If the calculation is deciding where to start a run, then give all
         evaluated (and about-to-be-evaluated) points.
     \end{itemize}
@@ -65,13 +65,13 @@ We outline the behavior of the manager and worker within \libE:
     \begin{itemize}
       \item Possibly receive intermediate output
     \end{itemize}
-  \item Coordinates concurrent calculations 
+  \item Coordinates concurrent calculations
     \begin{itemize}
       \item Dynamic queue of pending calculations
       \item Possibly monitor sims
     \end{itemize}
   \item Tracks history of calculations
-  \item Allocated resource to calculations 
+  \item Allocated resource to calculations
     \begin{itemize}
       \item Possibly changes resources during calculations (or just simulations)
     \end{itemize}
@@ -89,13 +89,12 @@ We outline the behavior of the manager and worker within \libE:
     \end{itemize}
 \end{itemize}
 
-
 \noindent \textbf{Worker}
 \begin{itemize}
   \item Performs the calculations given to it.
   \item An undivisible unit (though many workers may combine to perform one task). Examples:
     \begin{itemize}
-      \item If the simulation is an MPI executable, one worker may call 
+      \item If the simulation is an MPI executable, one worker may call
         \begin{center}
           \texttt{mpiexec -np 32 -machinefile two\_nodes a.out}
         \end{center}
@@ -105,13 +104,12 @@ We outline the behavior of the manager and worker within \libE:
     \end{itemize}
 \end{itemize}
 
-
 \section{Pseudocode}
 
 We outline the logic of the the manager and the workers in \algref{manager} and \algref{worker}, respectively.
 
 \LinesNumbered
-\begin{algorithm}[H] 
+\begin{algorithm}[H]
   \SetKwComment{Comment}{$\triangleright$\ }{}
   \SetAlgoNlRelativeSize{-5}
   \SetKwInOut{Input}{input}
@@ -131,7 +129,7 @@ We outline the logic of the the manager and the workers in \algref{manager} and 
 
   \While{$\mathtt{term\_test}(H)$}
   {
-    \While{Any worker is waiting to return $\mathtt{sim}$ or $\mathtt{gen}$ results} 
+    \While{Any worker is waiting to return $\mathtt{sim}$ or $\mathtt{gen}$ results}
     {
       Receive from all workers with $\mathtt{sim}$ and $\mathtt{gen}$ work\\
     }
@@ -149,9 +147,9 @@ We outline the logic of the the manager and the workers in \algref{manager} and 
       }
     }
   }
-  Receive from active workers\\ 
+  Receive from active workers\\
   Terminate all workers
-  \caption{\libE manager logic \label{alg:manager}} 
+  \caption{\libE manager logic \label{alg:manager}}
 \end{algorithm}
 
 \LinesNumbered
@@ -167,7 +165,7 @@ We outline the logic of the the manager and the workers in \algref{manager} and 
   \SetKw{break}{break}
   \While{\true}
   {
-    $D =$ Receive from manager \\ 
+    $D =$ Receive from manager \\
     \If{$D.tag == \mathtt{stop\_tag}$ }{\break}
 
     \If{$D.form\_subcomm$ is nonempty}{Form subcommunicator $sc$ with other workers}
@@ -177,9 +175,9 @@ We outline the logic of the the manager and the workers in \algref{manager} and 
     $O = D.calc\_f(sc, D.calc\_params)$
 
     \If{First element in subcommunicator $sc$}{Report $O$ to manager}
-    
+
   }
-  \caption{Each \libE worker's logic \label{alg:worker}} 
+  \caption{Each \libE worker's logic \label{alg:worker}}
 \end{algorithm}
 
 \section{API}
@@ -191,7 +189,7 @@ simulation and the generating functions.
   % history,
 
   \begin{description}
-    \item[c]: [dict] 
+    \item[c]: [dict]
       \begin{description}
         \item['comm']: [mpi4py communicator] to be used by libE
         \item['color']: [int] communicator color
@@ -199,12 +197,12 @@ simulation and the generating functions.
 
     \item[allocation\_specs]: [dict]
       \begin{description}
-        \item[manager\_ranks]: [set of ints] 
+        \item[manager\_ranks]: [set of ints]
         \item[worker\_ranks]: [set of ints]
         \item[machinefile]:
       \end{description}
 
-    \item[sim\_specs]: [dict] 
+    \item[sim\_specs]: [dict]
       \begin{description}
         \item[f]: [list of funcs] that calls each sim(s)
         \item[in]: [list] string keys that sim wants from history (assumed common to all sims)
@@ -212,13 +210,13 @@ simulation and the generating functions.
         \item[params]: [list of dicts] parameters for each f
       \end{description}
 
-    \item[gen\_specs]: [dict] 
+    \item[gen\_specs]: [dict]
       \begin{description}
         \item[f]: [func] generates points to be evaluated by a sim
         \item[in]: [list] string keys that gen wants from history
         \item[out]: [list of tuples] (string keys, type, [size>1]) of gen outputs
-        \item[params]: [dict] additional parameters for gen\_f. 
-          % E.g.: 
+        \item[params]: [dict] additional parameters for gen\_f.
+          % E.g.:
           % \begin{itemize}
           %   \item[lb]: [n-by-1 array] lower bound on sim parameters
           %   \item[ub]: [n-by-1 array] upper bound on sim parameters
@@ -233,7 +231,7 @@ simulation and the generating functions.
         \item[min\_sim\_f\_val]: [dbl] Stop when a value below this has been found.
       \end{description}
 
-    % \item[history]: [numpy structured array] 
+    % \item[history]: [numpy structured array]
     %   \begin{description}
     %     \item[x]: parameters given to simulation(s)
     %     \item[f]: simulation value(s) at each x
@@ -243,7 +241,6 @@ simulation and the generating functions.
 
   \end{description}
 \end{allintypewriter}
-        
 
 \subsection{\texttt{sim} API}
 The \texttt{sim} calculations will be called by \libE with the following API:\\
@@ -290,7 +287,7 @@ assigning 'run\_id' within scripts like \texttt{gen\_specs['f']}.
 
 Internally, \libE currently maintains a single data structure \texttt{H} which
 contains the all history information (from \texttt{sim\_specs['out'] +
-gen\_specs['out']}). 
+gen\_specs['out']}).
 
 We have considered splitting the history \texttt{H} into multiple data structures. One possible split:
 
@@ -298,8 +295,8 @@ We have considered splitting the history \texttt{H} into multiple data structure
   \begin{itemize}
     \item[H\_in]: [numpy structured array] History of all input given to
       sim\_f. Rows correspond to each ``simulation evaluation''. Contains fields
-      in sim\_specs['in']. 
-      
+      in sim\_specs['in'].
+
     \item[H\_out]: [numpy structured array] History of all simulation output
       and derived quantities. Contains fields in sim\_specs['out']+gen\_specs['out'] \ sim\_specs['in']
   \end{itemize}
@@ -362,7 +359,7 @@ There are many types of simulations that we can consider being run in \libE.
   \item A Python function
     \begin{itemize}
       \item We assume this is thread-safe.
-      \item Use cases: 
+      \item Use cases:
         \begin{itemize}
           \item 6-hump camel
           \item chwirut1.py
@@ -371,7 +368,7 @@ There are many types of simulations that we can consider being run in \libE.
   \item An executable
     \begin{itemize}
       \item May use MPI
-      \item Must perform evaluations in a manner that won't conflict with other evaluations. 
+      \item Must perform evaluations in a manner that won't conflict with other evaluations.
         \begin{itemize}
           \item Performs read/writes in the directory where it is run (or in a given directory)
         \end{itemize}
@@ -383,7 +380,7 @@ There are many types of simulations that we can consider being run in \libE.
           \item Theta/Aurora: Unsure how to accomplish this at this time.
           \item Cray system: Unsure how to accomplish this at this time.
         \end{itemize}
-      \item Use case: 
+      \item Use case:
         \begin{itemize}
           \item OPAL accelerator simulation [John Power and Nicole Neveu]
           \item LAMMPS simulation [Simon Phillpot and Eugene Ragasa]
@@ -392,28 +389,27 @@ There are many types of simulations that we can consider being run in \libE.
   \item An MPI simulation with a subcommunicator
     \begin{itemize}
       \item Possibly stops regularly to communicate with manager
-      \item Use cases: 
+      \item Use cases:
         \begin{itemize}
-          \item Possibly the HFBTHO simulation 
+          \item Possibly the HFBTHO simulation
         \end{itemize}
     \end{itemize}
-  \item PETSc simulation 
+  \item PETSc simulation
     \begin{itemize}
       \item Access to complete memory stack
       \item Easier to kill/monitor?
-      \item Use cases: 
+      \item Use cases:
         \begin{itemize}
           \item Still considering different possibilities.
         \end{itemize}
     \end{itemize}
 \end{enumerate}
 
-
 \clearpage
 \section{Initial test cases}
 In order to guide the initial development of \libE, we will focus on supporting the following use cases. (Objectives are intentionally selected to be easy to evaluate.)
 \begin{enumerate}
-  \item 
+  \item
     \begin{description}
       \item[Objective:] 6-hump camel
       \item[Generating function:] Uniform sampling on $[0,1]^n$ with different batch sizes
@@ -424,7 +420,7 @@ In order to guide the initial development of \libE, we will focus on supporting 
       \item[Status:] Completed
     \end{description}
     \bigskip
-  \item 
+  \item
     \begin{description}
       \item[Objective:] chwirut1.py
       \item[Generating function:] Multiple POUNDERS runs from $K$ starting points.
@@ -435,18 +431,18 @@ In order to guide the initial development of \libE, we will focus on supporting 
       \item[Status:] Completed
     \end{description}
     \bigskip
-  \item 
+  \item
     \begin{description}
       \item[Objective:] chwirut1.py
       \item[Generating function:] Same as above, but with APOSMM giving each point and a single residual to be evaluated.
       \item[Functionality tested:] \
         \begin{itemize}
-          \item Being able to give different residuals in APOSMM 
+          \item Being able to give different residuals in APOSMM
         \end{itemize}
       \item[Status:] Completed
     \end{description}
     \bigskip
-  \item 
+  \item
     \begin{description}
       \item[Objective:] HFBTHO (imbalance)/variable internal tols
       \item[Generating function:] POUNDERS with adaptive tolerance attempts
@@ -457,10 +453,10 @@ In order to guide the initial development of \libE, we will focus on supporting 
       \item[Status:] Currently working with Jason Sarich to get this implemented.
     \end{description}
     \bigskip
-  \item 
+  \item
     \begin{description}
-      \item[Objective:] Eldad and Lauren subsurface (in TAO) 
-      \item[Generating function:] LCAL PDECO Stefan 
+      \item[Objective:] Eldad and Lauren subsurface (in TAO)
+      \item[Generating function:] LCAL PDECO Stefan
       \item[Functionality tested:] \
         \begin{itemize}
           \item Stefan ??
@@ -468,10 +464,10 @@ In order to guide the initial development of \libE, we will focus on supporting 
       \item[Status:] Looking for a sample average approximation method that can be used to generate points to be evaluated.
     \end{description}
     \bigskip
-  \item 
+  \item
     \begin{description}
       \item[Objective:] chwirut1.py with stochastic noise on each residual
-      \item[Generating function:] POUNDERS using sample mean with the number of replications determined by iteration number. 
+      \item[Generating function:] POUNDERS using sample mean with the number of replications determined by iteration number.
       \item[Functionality tested:] \
         \begin{itemize}
           \item Efficient handling of multiple evaluations of single points
@@ -484,4 +480,4 @@ In order to guide the initial development of \libE, we will focus on supporting 
 
 \bibliographystyle{plain}
 \bibliography{../bibs/masterbib}
-\end{document} 
+\end{document}

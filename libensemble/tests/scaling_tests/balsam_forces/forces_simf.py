@@ -1,4 +1,3 @@
-
 def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     import os

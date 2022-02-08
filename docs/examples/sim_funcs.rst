@@ -22,7 +22,6 @@ chwirut
   :members:
   :undoc-members:
 
-
 noisy_vector_mapping
 --------------------
 .. automodule:: noisy_vector_mapping
