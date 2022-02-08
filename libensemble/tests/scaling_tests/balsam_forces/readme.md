@@ -2,27 +2,27 @@
 
 Naive Electostatics Code Test
 
-This is designed only as an artificial, highly configurable test
-code for a libEnsemble sim func. This variant is primarily to test libEnsemble's
-capability to submit simulation functions to a separate machine from where libEnsemble's
-manager and workers are running.
+This is a synthetic, highly configurable simulation function. Its primary use
+is to test libEnsemble's capability to submit simulation functions to a machine
+that is distinct from the machine from where libEnsemble's manager and workers
+are running.
 
 ### Forces Mini-App
 
-A system of charged particles is set up and simulated over a number of time-steps.
+A system of charged particles is initialized and simulated over a number of time-steps.
 
-Particles position and charge are initiated by a random stream.
+Particles' position and charge are initiated using a random stream.
 Particles are replicated on all ranks.
-**Each rank** computes forces for a subset of particles (O(N^2))
-Particle force arrays are allreduced across ranks.
-Particles are moved (replicated on each rank)
-Total energy is appended to file forces.stat
+**Each rank** computes forces for a subset of particles (`O(N^2)` operations).
+Particle force arrays are `allreduced` across ranks.
+Particles are moved (replicated on each rank).
+Total energy is appended to the forces.stat file.
 
-To run forces as a standalone executable on N procs:
+To run forces as a standalone executable on `N` procs:
 
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
 
-This application will need to be built on the remote machine where the sims will run.
+This application will need to be compiled on the remote machine where the sim_f will run.
 See below.
 
 ### Running with libEnsemble.
@@ -33,7 +33,7 @@ On the remote machine:
     funcx-endpoint configure forces
 
 Configure the endpoint's `config.py` to include your project information and
-match the machine's specifications.
+to match the machine's specifications.
 See [here](https://funcx.readthedocs.io/en/latest/endpoints.html#theta-alcf) for
 an example ALCF Theta configuration.
 
@@ -50,6 +50,6 @@ Application parameters can be adjusted in `funcx_forces.yaml`.
 Note that each function and path must be accessible and/or importable on the
 remote machine. Absolute paths are recommended.
 
-To remove output before the next run:
+To remove output before the next run, use:
 
     ./cleanup.sh
