@@ -1,11 +1,10 @@
-## Running test run_libe_forces_funcx.py
+## Running test run_libe_forces_balsam.py
 
-Naive Electostatics Code Test
+Naive Electrostatics Code Test
 
 This is a synthetic, highly configurable simulation function. Its primary use
-is to test libEnsemble's capability to submit simulation functions to a machine
-that is distinct from the machine from where libEnsemble's manager and workers
-are running.
+is to test libEnsemble's capability to submit application instances via the Balsam service,
+including to separate machines from libEnsemble's processes.
 
 ### Forces Mini-App
 
@@ -29,13 +28,20 @@ See below.
 
 On the remote machine:
 
-    pip install funcx-endpoint
-    funcx-endpoint configure forces
+    git clone https://github.com/argonne-lcf/balsam.git
+    cd balsam; pip install -e .
+    cd ..; balsam site init ./my-site
 
-Configure the endpoint's `config.py` to include your project information and
-to match the machine's specifications.
-See [here](https://funcx.readthedocs.io/en/latest/endpoints.html#theta-alcf) for
-an example ALCF Theta configuration.
+You may be asked to login and authenticate with the Balsam service. Do so with
+your ALCF credentials.
+
+Configure the `RemoteForces` class in the `run_libe_forces_balsam.py` calling
+script to match the Balsam site name and the path to your `forces.x` executable.
+Configure the path to the Balsam site's `data` directory in `balsam_forces.yaml`
+to match the path to your site's corresponding directory. Configure the
+`submit_allocation()` function in the calling script to correspond with your site's
+ID (an integer found via `balsam site ls`), as well as the correct queue and project
+for the machine the Balsam site was initialized on.
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
