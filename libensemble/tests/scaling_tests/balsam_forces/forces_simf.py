@@ -9,15 +9,15 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
     class ForcesException(Exception):
-        """ Raised on some issue with Forces """
+        """Raised on some issue with Forces"""
 
     def perturb(particles, seed, max_fraction):
         MAX_SEED = 32767
         """Modify particle count"""
-        seed_fraction = seed/MAX_SEED
+        seed_fraction = seed / MAX_SEED
         max_delta = particles * max_fraction
         delta = seed_fraction * max_delta
-        delta = delta - max_delta/2  # translate so -/+
+        delta = delta - max_delta / 2  # translate so -/+
         new_particles = particles + delta
         return int(new_particles)
 
@@ -56,8 +56,15 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
     workdir = 'worker' + str(libE_info['workerID']) + '_' + secrets.token_urlsafe(nbytes=3)
 
-    task = exctr.submit(app_name='forces', app_args=args, num_procs=8, num_nodes=1,
-                        procs_per_node=8, max_tasks_per_node=4, workdir=workdir)
+    task = exctr.submit(
+        app_name='forces',
+        app_args=args,
+        num_procs=8,
+        num_nodes=1,
+        procs_per_node=8,
+        max_tasks_per_node=4,
+        workdir=workdir,
+    )
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
@@ -65,7 +72,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     line = None
 
     poll_interval = 1  # secs
-    while(not task.finished):
+    while not task.finished:
         # Read last line of statfile
         line = read_last_line(filepath)
         if line == "kill":
