@@ -104,8 +104,8 @@ Specifications for libEnsemble::
             When the libE_specs option `disable_resource_manager` is True,
             this argument is ignored. Default: False
         'dedicated_mode' [boolean]:
-            If true, then running in central mode, otherwise in distributed
-            mode. Central mode means libE processes (manager and workers) are
+            If true, then running in dedicated mode, otherwise in distributed
+            mode. Dedicated mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
             Default: False

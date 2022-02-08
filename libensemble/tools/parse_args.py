@@ -132,7 +132,7 @@ def _client_parse_args(args):
 
 def parse_args():
     """
-    Parses command-line arguments.
+    Parses command-line arguments. Use in calling script.
 
     .. code-block:: python
 
@@ -155,6 +155,36 @@ def parse_args():
                         [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                         [--worker_python [WORKER_PYTHON]]
                         [--tester_args [TESTER_ARGS [TESTER_ARGS ...]]]
+
+        Note that running via an MPI runner uses the default 'mpi' comms, and '--nworkers'
+        will be ignored. The number of processes are supplied via the MPI run line. One being
+        the manager, and the rest are workers.
+
+        --comms,          Communications medium for manager and workers. Default is 'mpi'.
+        --nworkers,       (For 'local' or 'tcp' comms) Set number of workers.
+        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for common cases.
+                          If used with no other criteria, will generate one additional
+                          zero-resource worker for use as a generator. If the number of workers
+                          has also been specified, will generate enough zero-resource workers to
+                          match the other criteria.
+        --nresource_sets, Explicitly set the number of resource sets. This sets
+                          libE_specs['num_resource_sets']. By default, resources will be
+                          divided by workers (excluding zero_resource_workers).
+
+        Example command lines:
+
+        Run with 'local' comms and 4 workers
+        $ python calling_script --comms local --nworkers 4
+
+        Run with 'local' comms and 5 workers - one gen (no resources), and 4 sims.
+        $ python calling_script --comms local --nsim_workers 4
+
+        Run with 'local' comms with 4 workers and 8 resource sets. The extra resource sets will
+        be used for larger simulations (using variable resource assignment).
+        $ python calling_script --comms local --nresource_sets 8
+
+        Previous example with 'mpi' comms.
+        $ mpirun -np 5 python calling_script --nresource_sets 8
 
     Returns
     -------

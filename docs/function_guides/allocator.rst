@@ -4,7 +4,7 @@ Allocation Functions
 Although the included allocation functions, or ``alloc_f``'s are sufficient for
 most users, those who want to fine-tune how data or resources are allocated to their ``gen_f``
 and ``sim_f`` can write their own. The ``alloc_f`` is unique since it is called
-by the libEnsemble's manager instead of a worker.
+by libEnsemble's manager instead of a worker.
 
 Most ``alloc_f`` function definitions written by users resemble::
 
@@ -24,7 +24,7 @@ with the allocation function is usually not necessary::
             return {}, persis_info
 
 If allocation is to continue, a support class is instantiated (see below), and a
-:doc:`Work dictionary<../data_structures/work_dict>` is inititialized::
+:doc:`Work dictionary<../data_structures/work_dict>` is initialized::
 
         user = alloc_specs.get('user', {})
         sched_opts = user.get('scheduler_opts', {})

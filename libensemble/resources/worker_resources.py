@@ -19,6 +19,7 @@ class ResourceManagerException(Exception):
 
 
 class ResourceManager(RSetResources):
+    """Provides methods for managing the assignment of resource sets to workers."""
 
     rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
                   ('group', int)      # Group ID this resource set belongs to
@@ -26,19 +27,16 @@ class ResourceManager(RSetResources):
                   ]
 
     def __init__(self, num_workers, resources):
-        """Initializes a new WorkerResources instance
+        """Initializes a new ResourceManager instance
 
-        Determines the compute resources available for current worker, including
-        node list and cores/hardware threads available within nodes.
+        Instantiates the numpy structured array that holds information for each
+        resource set.
 
         Parameters
         ----------
 
-        workerID: int
-            workerID of current process
-
-        comm: Comm
-            The Comm object for manager/worker communications
+        num_workers: int
+            The number of workers
 
         resources: Resources
             A Resources object containing global nodelist and intranode information
@@ -174,14 +172,14 @@ class WorkerResources(RSetResources):
         Parameters
         ----------
 
-        workerID: int
-            workerID of current process
-
-        comm: Comm
-            The Comm object for manager/worker communications
+        num_workers: int
+            The number of workers
 
         resources: Resources
             A Resources object containing global nodelist and intranode information
+
+        workerID: int
+            workerID of current process
 
         """
         super().__init__(num_workers, resources)

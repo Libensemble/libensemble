@@ -81,7 +81,7 @@ gen_specs = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # num returned_count conditions in executor_hworld
-exit_criteria = {'sim_max': nworkers*5}
+exit_criteria = {'sim_max': nworkers * 5}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
