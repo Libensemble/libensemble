@@ -10,7 +10,7 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens a
 from libensemble.tools import parse_args
 
 
-def lex_le(x, y, tol=1E-12):
+def lex_le(x, y, tol=1e-12):
     """
     Returns True if x <= y lexicographically up to some tolerance.
     """
@@ -21,11 +21,12 @@ def lex_le(x, y, tol=1E-12):
     return x[ind] <= y[ind]
 
 
-def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1E-12):
+def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1e-12):
     """
-    Finds the row indices in a 2D numpy array `x` for which the sorted values of `y` can be inserted into. If `x_ord` (resp.
-    `y_ord`) is empty, then `x` (resp. `y`) must be lexicographically sorted. Otherwise, `x[x_ord]` (resp. `y[y_ord]`) must be
-    lexicographically sorted. Complexity is O(x.shape[0] + y.shape[0]).
+    Finds the row indices in a 2D numpy array `x` for which the sorted values of `y` can be inserted
+    into. If `x_ord` (resp. `y_ord`) is empty, then `x` (resp. `y`) must be lexicographically
+    sorted. Otherwise, `x[x_ord]` (resp. `y[y_ord]`) must be lexicographically sorted. Complexity is
+    O(x.shape[0] + y.shape[0]).
     """
     assert len(x.shape) == 2
     assert len(y.shape) == 2
@@ -57,11 +58,11 @@ def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0
         return out_ord
 
 
-def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1E-12):
+def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1e-12):
     """
-    Finds the row indices of a 2D numpy array `x` which overlap with `y`. If `x_ord` (resp. `y_ord`) is empty, then `x` (resp.
-    `y`) must be lexicographically sorted. Otherwise, `x[x_ord]` (resp. `y[y_ord]`) must be lexicographically sorted.Complexity
-    is O(x.shape[0] + y.shape[0]).
+    Finds the row indices of a 2D numpy array `x` which overlap with `y`. If `x_ord` (resp. `y_ord`)
+    is empty, then `x` (resp. `y`) must be lexicographically sorted. Otherwise, `x[x_ord]` (resp.
+    `y[y_ord]`) must be lexicographically sorted.Complexity is O(x.shape[0] + y.shape[0]).
     """
     assert len(x.shape) == 2
     assert len(y.shape) == 2
@@ -89,10 +90,11 @@ def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empt
         return out_ord
 
 
-def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), completed_points=np.array([]), tol=1E-12):
+def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), completed_points=np.array([]), tol=1e-12):
     """
-    Creates the data to be sent and updates the state arrays and scalars if new information (new_points or compeleted_points)
-    arrives. Ensures that the output state arrays remain sorted if the input state arrays are already sorted.
+    Creates the data to be sent and updates the state arrays and scalars if new information
+    (new_points or compeleted_points) arrives. Ensures that the output state arrays remain sorted if
+    the input state arrays are already sorted.
     """
     if new_points.size > 0:
         new_points_ord = np.lexsort(np.rot90(new_points))
@@ -111,18 +113,20 @@ def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), comple
     return queued_pts, queued_ids, id_offset
 
 
-def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1E-12):
+def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1e-12):
     """
     For runs following the first one, get the history array H0 based on the ordering in `refined_pts`
     """
+
     def approx_eq(x, y):
-        return(np.argmax(np.fabs(x-y)) <= tol)
+        return np.argmax(np.fabs(x - y)) <= tol
+
     num_ids = queued_ids.shape[0]
     H0 = np.zeros(num_ids, dtype=gen_specs['out'])
     refined_priority = np.flip(np.arange(refined_pts.shape[0], dtype='int'))
     rptr = 0
     for qptr in range(num_ids):
-        while(not approx_eq(refined_pts[refined_ord[rptr]], queued_pts[qptr])):
+        while not approx_eq(refined_pts[refined_ord[rptr]], queued_pts[qptr]):
             rptr += 1
         assert rptr <= refined_pts.shape[0]
         H0['x'][qptr] = queued_pts[qptr]
@@ -146,10 +150,18 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['anisotropic', 'setAnisotropicRefinement', 'getAnisotropicRefinement', 'surplus',
-                           'setSurplusRefinement', 'getSurplusRefinement', 'none']
-    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
-        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    allowed_refinements = [
+        'anisotropic',
+        'setAnisotropicRefinement',
+        'getAnisotropicRefinement',
+        'surplus',
+        'setSurplusRefinement',
+        'getSurplusRefinement',
+        'none',
+    ]
+    assert (
+        'refinement' in U and U['refinement'] in allowed_refinements
+    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
@@ -197,27 +209,38 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['anisotropic', 'getCandidateConstructionPoints', 'surplus', 'getCandidateConstructionPointsSurplus']
-    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
-        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    allowed_refinements = [
+        'anisotropic',
+        'getCandidateConstructionPoints',
+        'surplus',
+        'getCandidateConstructionPointsSurplus',
+    ]
+    assert (
+        'refinement' in U and U['refinement'] in allowed_refinements
+    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
     if 'tol' in U:
         tol = U['tol']
     else:
-        tol = 1E-12
+        tol = 1e-12
 
     # Choose the refinement function based on U['refinement'].
     if U['refinement'] == 'anisotropic':
         assert 'sType' in U
         assert 'liAnisotropicWeightsOrOutput' in U
-        get_refined_points = lambda g : g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
+
     if U['refinement'] == 'surplus':
         assert 'fTolerance' in U
         assert 'sRefinementType' in U
-        get_refined_points = lambda g : g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
+
+    def get_refined_points(g, U):
+        if U['refinement'] == 'anisotropic':
+            return g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
+        elif U['refinement'] == 'surplus':
+            return g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
 
     # Asynchronous helper and state variables.
     num_dims = grid.getNumDimensions()
-    num_vals = grid.getNumOutputs()
+    # num_vals = grid.getNumOutputs()
     num_completed = 0
     offset = 0
     queued_pts = np.empty((0, num_dims), dtype='float')
@@ -225,7 +248,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
     # First run.
     grid.beginConstruction()
-    init_pts = get_refined_points(grid)
+    init_pts = get_refined_points(grid, U)
     queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=init_pts, tol=tol)
     H0 = np.zeros(init_pts.shape[0], dtype=gen_specs['out'])
     H0['x'] = init_pts
@@ -238,7 +261,9 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
         # Parse the points returned by the allocator.
         num_completed += calc_in['x'].shape[0]
-        queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol)
+        queued_pts, queued_ids, offset = get_state(
+            queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol
+        )
 
         # Compute the next batch of points (if they exist).
         new_pts = np.empty((0, num_dims), dtype='float')
@@ -250,8 +275,8 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
             if 'tasmanian_checkpoint_file' in U:
                 grid.write(U['tasmanian_checkpoint_file'])
             refined_pts = get_refined_points(grid)
-            # If the refined points are empty, then there is a stopping condition internal to the Tasmanian sparse grid that is
-            # being triggered by the loaded points.
+            # If the refined points are empty, then there is a stopping condition internal to the
+            # Tasmanian sparse grid that is being triggered by the loaded points.
             if refined_pts.size == 0:
                 break
             refined_ord = np.lexsort(np.rot90(refined_pts))
@@ -272,12 +297,14 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
 def get_sparse_grid_inputs(user_specs, sim_f, num_dims, num_vals=1, mode='batched'):
     """
-    Helper function that generates the simulator, generator, and allocator specs as well as the persis_info dictionary to ensure
-    that they are compatible with the custom generators in this script.
+    Helper function that generates the simulator, generator, and allocator specs as well as the
+    persis_info dictionary to ensure that they are compatible with the custom generators in this
+    script.
 
     INPUTS:
         user_specs (dict)   : a dictionary of user specs that is needed in the generator specs.
-        sim_f      (func)   : a lambda function that takes in generator outputs (simulator inputs) and returns simulator outputs.
+        sim_f      (func)   : a lambda function that takes in generator outputs (simulator inputs)
+                              and returns simulator outputs.
         num_dims   (int)    : number of model inputs.
         num_vals   (int)    : number of model outputs.
         mode       (string) : can either be 'batched' or 'async'.
@@ -287,22 +314,18 @@ def get_sparse_grid_inputs(user_specs, sim_f, num_dims, num_vals=1, mode='batche
     assert mode in ['batched', 'async']
 
     sim_specs = {
-		'sim_f' : sim_f,
-		'in' : ['x'],
-	}
+        'sim_f': sim_f,
+        'in': ['x'],
+    }
     gen_out = [
         ('x', float, (num_dims,)),
         ('sim_id', int),
         ('priority', int),
     ]
-    gen_specs = {
-        'persis_in' : [t[0] for t in gen_out] + ['f'],
-		'out' : gen_out,
-		'user' : user_specs
-	}
+    gen_specs = {'persis_in': [t[0] for t in gen_out] + ['f'], 'out': gen_out, 'user': user_specs, }
     alloc_specs = {
-        'alloc_f' : allocf,
-        'user' : {},
+        'alloc_f': allocf,
+        'user': {},
     }
     if mode == 'batched':
         gen_specs['gen_f'] = sparse_grid_batched
