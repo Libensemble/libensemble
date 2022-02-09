@@ -115,6 +115,7 @@ class BalsamTask(Task):
         # Get current state of tasks from Balsam database
         # self.process.refresh_from_db()
         balsam_state = self.process.state
+        print(balsam_state)
         self.runtime = self._get_time_since_balsam_submit()
 
         if balsam_state in ['RUN_DONE', 'POSTPROCESSED', 'STAGED_OUT', "JOB_FINISHED"]:

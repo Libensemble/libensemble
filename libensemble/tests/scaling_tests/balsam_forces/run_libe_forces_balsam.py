@@ -11,9 +11,9 @@ forces.from_yaml('balsam_forces.yaml')
 
 
 class RemoteForces(ApplicationDefinition):
-    site = 'three'
+    site = 'jln_theta'
     command_template = (
-        '/Users/jnavarro/Desktop/libensemble/'
+        '/home/jnavarro/'
         + 'libensemble/libensemble/tests/scaling_tests/balsam_forces/forces.x'
         + ' {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}'
         + ' > out.txt 2>&1'
@@ -23,11 +23,11 @@ class RemoteForces(ApplicationDefinition):
 exctr = NewBalsamMPIExecutor()
 exctr.register_app(RemoteForces, app_name='forces')
 exctr.submit_allocation(
-    site_id=239,
+    site_id=246,
     num_nodes=1,
     wall_time_min=30,
-    queue='local',
-    project='local',
+    queue='debug-cache-quad',
+    project='CSC250STMS07',
 )
 
 forces.gen_specs['user'].update(

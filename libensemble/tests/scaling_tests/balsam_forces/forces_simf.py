@@ -59,9 +59,9 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     task = exctr.submit(
         app_name='forces',
         app_args=args,
-        num_procs=8,
+        num_procs=16,
         num_nodes=1,
-        procs_per_node=8,
+        procs_per_node=16,
         max_tasks_per_node=4,
         workdir=workdir,
     )
