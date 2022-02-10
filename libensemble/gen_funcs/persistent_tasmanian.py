@@ -150,18 +150,9 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = [
-        'anisotropic',
-        'setAnisotropicRefinement',
-        'getAnisotropicRefinement',
-        'surplus',
-        'setSurplusRefinement',
-        'getSurplusRefinement',
-        'none',
-    ]
-    assert (
-        'refinement' in U and U['refinement'] in allowed_refinements
-    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    allowed_refinements = ['setAnisotropicRefinement', 'getAnisotropicRefinement', 'setSurplusRefinement', 'getSurplusRefinement', 'none']
+    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
+        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
@@ -185,12 +176,12 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
             grid.write(U['tasmanian_checkpoint_file'])
 
         # set refinement, using user['refinement'] to pick the refinement strategy
-        if U['refinement'] in ['anisotropic', 'setAnisotropicRefinement', 'getAnisotropicRefinement']:
+        if U['refinement'] in ['setAnisotropicRefinement', 'getAnisotropicRefinement']:
             assert 'sType' in U
             assert 'iMinGrowth' in U
             assert 'iOutput' in U
             grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
-        elif U['refinement'] in ['surplus', 'setSurplusRefinement', 'getSurplusRefinement']:
+        elif U['refinement'] in ['setSurplusRefinement', 'getSurplusRefinement']:
             assert 'fTolerance' in U
             assert 'iOutput' in U
             assert 'sCriteria' in U
@@ -209,26 +200,17 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = [
-        'anisotropic',
-        'getCandidateConstructionPoints',
-        'surplus',
-        'getCandidateConstructionPointsSurplus',
-    ]
-    assert (
-        'refinement' in U and U['refinement'] in allowed_refinements
-    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
-    if 'tol' in U:
-        tol = U['tol']
-    else:
-        tol = 1e-12
+    allowed_refinements = ['getCandidateConstructionPoints', 'getCandidateConstructionPointsSurplus']
+    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
+        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    tol = U['_match_tolerance'] if '_match_tolerance' in U else 1.E-12
 
     # Choose the refinement function based on U['refinement'].
-    if U['refinement'] == 'anisotropic':
+    if U['refinement'] == 'getCandidateConstructionPoints':
         assert 'sType' in U
         assert 'liAnisotropicWeightsOrOutput' in U
-
-    if U['refinement'] == 'surplus':
+        get_refined_points = lambda g : g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
+    if U['refinement'] == 'getCandidateConstructionPointsSurplus':
         assert 'fTolerance' in U
         assert 'sRefinementType' in U
 
@@ -295,19 +277,25 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def get_sparse_grid_inputs(user_specs, sim_f, num_dims, num_vals=1, mode='batched'):
+def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batched'):
     """
-    Helper function that generates the simulator, generator, and allocator specs as well as the
-    persis_info dictionary to ensure that they are compatible with the custom generators in this
-    script.
+    Helper function that generates the simulator, generator, and allocator specs as well as the persis_info dictionary to ensure
+    that they are compatible with the custom generators in this script. The outputs should be used in the main libE() call.
 
     INPUTS:
-        user_specs (dict)   : a dictionary of user specs that is needed in the generator specs.
-        sim_f      (func)   : a lambda function that takes in generator outputs (simulator inputs)
-                              and returns simulator outputs.
-        num_dims   (int)    : number of model inputs.
-        num_vals   (int)    : number of model outputs.
-        mode       (string) : can either be 'batched' or 'async'.
+        user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs; expects the key 'tasmanian_init' 
+                               whose value is a 0-argument lambda that initializes an appropriate Tasmanian sparse grid object.
+        sim_f       (func)   : a lambda function that takes in generator outputs (simulator inputs) and returns simulator outputs.
+        num_dims    (int)    : number of model inputs.
+        num_outputs (int)    : number of model outputs.
+        mode        (string) : can either be 'batched' or 'async'.
+
+    OUTPUTS:
+        sim_specs   (dict) : a dictionary of simulation specs and also one of the inputs of libE().
+        gen_specs   (dict) : a dictionary of generator specs and also one of the inputs of libE().
+        alloc_specs (dict) : a dictionary of allocation specs and also one of the inputs of libE().
+        persis_info (dict) : a dictionary containing common information that is passed to all workers and also one of the inputs
+                             of libE().
     """
 
     assert 'tasmanian_init' in user_specs
@@ -331,12 +319,13 @@ def get_sparse_grid_inputs(user_specs, sim_f, num_dims, num_vals=1, mode='batche
         'alloc_f': allocf,
         'user': {},
     }
+
     if mode == 'batched':
         gen_specs['gen_f'] = sparse_grid_batched
-        sim_specs['out'] = [('f', float, (num_vals,))]
+        sim_specs['out'] = [('f', float, (num_outputs,))]
     if mode == 'async':
         gen_specs['gen_f'] = sparse_grid_async
-        sim_specs['out'] = [('x', float, (num_dims,)), ('f', float, (num_vals,))]
+        sim_specs['out'] = [('x', float, (num_dims,)), ('f', float, (num_outputs,))]
         alloc_specs['user']['active_recv_gen'] = True
         alloc_specs['user']['async_return'] = True
 

@@ -24,28 +24,25 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
-from libensemble.gen_funcs.persistent_tasmanian import get_sparse_grid_inputs
-from libensemble.tools import parse_args
+from libensemble.gen_funcs.persistent_tasmanian import get_sparse_grid_specs
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from time import time
 
 
 # Define some grid initializers.
-def tasmanian_init_global(num_dims):
+def tasmanian_init_global():
     # Note: if Tasmanian has been compiled with OpenMP support (i.e., the usual way)
     #       libEnsemble calls cannot be made after the `import Tasmanian` clause
     #       there is a conflict between the OpenMP environment and Python threading
     #       thus Tasmanian has to be imported inside the `tasmanian_init` method
     import Tasmanian
-
-    grid = Tasmanian.makeGlobalGrid(num_dims, 1, 6, "iptotal", "clenshaw-curtis")
+    grid = Tasmanian.makeGlobalGrid(2, 1, 6, "iptotal", "clenshaw-curtis")
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
 
-
-def tasmanian_init_localp(num_dims):
+def tasmanian_init_localp():
     import Tasmanian
-
-    grid = Tasmanian.makeLocalPolynomialGrid(num_dims, 1, 3)
+    grid = Tasmanian.makeLocalPolynomialGrid(2, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
 
@@ -67,31 +64,26 @@ def sim_f(H, persis_info, sim_specs, _):
 
 
 # Set up test parameters.
-num_dims = 2
 user_specs_arr = []
-user_specs_arr.append(
-    {
-        'refinement': 'anisotropic',
-        'tasmanian_init': lambda: tasmanian_init_global(num_dims),
-        'sType': 'iptotal',
-        'liAnisotropicWeightsOrOutput': -1,
-    }
-)
-user_specs_arr.append(
-    {
-        'refinement': 'surplus',
-        'tasmanian_init': lambda: tasmanian_init_localp(num_dims),
-        'fTolerance': 1.0e-2,
-        'sRefinementType': 'classic',
-    }
-)
+user_specs_arr.append({
+    'refinement' : 'getCandidateConstructionPoints',
+    'tasmanian_init' : lambda : tasmanian_init_global(),
+    'sType' : 'iptotal',
+    'liAnisotropicWeightsOrOutput' : -1,
+})
+user_specs_arr.append({
+    'refinement' : 'getCandidateConstructionPointsSurplus',
+    'tasmanian_init' : lambda : tasmanian_init_localp(),
+    'fTolerance' : 1.0e-2,
+    'sRefinementType' : 'classic',
+})
 exit_criteria_arr = []
 exit_criteria_arr.append({'elapsed_wallclock_time': 3})
 exit_criteria_arr.append({'gen_max': 100})
 
 # Test over all possible parameter combinations.
 for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
-    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_inputs(user_specs, sim_f, num_dims, mode='async')
+    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode = 'async')
     if is_manager:
         print('[Manager]: user_specs = {0}'.format(user_specs))
         print('[Manager]: exit_criteria = {0}'.format(exit_criteria))
