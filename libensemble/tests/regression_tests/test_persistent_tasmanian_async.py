@@ -36,12 +36,15 @@ def tasmanian_init_global():
     #       there is a conflict between the OpenMP environment and Python threading
     #       thus Tasmanian has to be imported inside the `tasmanian_init` method
     import Tasmanian
+
     grid = Tasmanian.makeGlobalGrid(2, 1, 6, "iptotal", "clenshaw-curtis")
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
 
+
 def tasmanian_init_localp():
     import Tasmanian
+
     grid = Tasmanian.makeLocalPolynomialGrid(2, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
@@ -65,25 +68,29 @@ def sim_f(H, persis_info, sim_specs, _):
 
 # Set up test parameters.
 user_specs_arr = []
-user_specs_arr.append({
-    'refinement' : 'getCandidateConstructionPoints',
-    'tasmanian_init' : lambda : tasmanian_init_global(),
-    'sType' : 'iptotal',
-    'liAnisotropicWeightsOrOutput' : -1,
-})
-user_specs_arr.append({
-    'refinement' : 'getCandidateConstructionPointsSurplus',
-    'tasmanian_init' : lambda : tasmanian_init_localp(),
-    'fTolerance' : 1.0e-2,
-    'sRefinementType' : 'classic',
-})
+user_specs_arr.append(
+    {
+        'refinement': 'getCandidateConstructionPoints',
+        'tasmanian_init': lambda: tasmanian_init_global(),
+        'sType': 'iptotal',
+        'liAnisotropicWeightsOrOutput': -1,
+    }
+)
+user_specs_arr.append(
+    {
+        'refinement': 'getCandidateConstructionPointsSurplus',
+        'tasmanian_init': lambda: tasmanian_init_localp(),
+        'fTolerance': 1.0e-2,
+        'sRefinementType': 'classic',
+    }
+)
 exit_criteria_arr = []
 exit_criteria_arr.append({'elapsed_wallclock_time': 3})
 exit_criteria_arr.append({'gen_max': 100})
 
 # Test over all possible parameter combinations.
 for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
-    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode = 'async')
+    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode='async')
     if is_manager:
         print('[Manager]: user_specs = {0}'.format(user_specs))
         print('[Manager]: exit_criteria = {0}'.format(exit_criteria))
