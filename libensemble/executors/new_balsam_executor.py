@@ -113,7 +113,7 @@ class BalsamTask(Task):
             return
 
         # Get current state of tasks from Balsam database
-        # self.process.refresh_from_db()
+        self.process.refresh_from_db()
         balsam_state = self.process.state
         print(balsam_state)
         self.runtime = self._get_time_since_balsam_submit()
