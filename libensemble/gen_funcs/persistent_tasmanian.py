@@ -287,13 +287,16 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
 def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batched'):
     """
-    Helper function that generates the simulator, generator, and allocator specs as well as the persis_info dictionary to ensure
-    that they are compatible with the custom generators in this script. The outputs should be used in the main libE() call.
+    Helper function that generates the simulator, generator, and allocator specs as well as the
+    persis_info dictionary to ensure that they are compatible with the custom generators in this
+    script. The outputs should be used in the main libE() call.
 
     INPUTS:
-        user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs; expects the key 'tasmanian_init'
-                               whose value is a 0-argument lambda that initializes an appropriate Tasmanian sparse grid object.
-        sim_f       (func)   : a lambda function that takes in generator outputs (simulator inputs) and returns simulator outputs.
+        user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs;
+                               expects the key 'tasmanian_init' whose value is a 0-argument lambda
+                               that initializes an appropriate Tasmanian sparse grid object.
+        sim_f       (func)   : a lambda function that takes in generator outputs (simulator inputs)
+                               and returns simulator outputs.
         num_dims    (int)    : number of model inputs.
         num_outputs (int)    : number of model outputs.
         mode        (string) : can either be 'batched' or 'async'.
@@ -302,8 +305,8 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batc
         sim_specs   (dict) : a dictionary of simulation specs and also one of the inputs of libE().
         gen_specs   (dict) : a dictionary of generator specs and also one of the inputs of libE().
         alloc_specs (dict) : a dictionary of allocation specs and also one of the inputs of libE().
-        persis_info (dict) : a dictionary containing common information that is passed to all workers and also one of the inputs
-                             of libE().
+        persis_info (dict) : a dictionary containing common information that is passed to all
+                             workers and also one of the inputs of libE().
     """
 
     assert 'tasmanian_init' in user_specs
