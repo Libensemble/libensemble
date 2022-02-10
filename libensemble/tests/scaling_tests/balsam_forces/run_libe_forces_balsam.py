@@ -18,7 +18,7 @@ forces.gen_specs["user"].update(
 
 forces.persis_info.add_random_streams()
 
-if forces.is_manager():
+if forces.is_manager:
     RemoteForces = ApplicationDefinition.load_by_site("jln_theta").get("RemoteForce")
     if not RemoteForces:
 
