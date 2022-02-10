@@ -322,7 +322,11 @@ def get_sparse_grid_inputs(user_specs, sim_f, num_dims, num_vals=1, mode='batche
         ('sim_id', int),
         ('priority', int),
     ]
-    gen_specs = {'persis_in': [t[0] for t in gen_out] + ['f'], 'out': gen_out, 'user': user_specs, }
+    gen_specs = {
+        'persis_in': [t[0] for t in gen_out] + ['f'],
+        'out': gen_out,
+        'user': user_specs,
+    }
     alloc_specs = {
         'alloc_f': allocf,
         'user': {},
