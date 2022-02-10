@@ -36,7 +36,6 @@ def tasmanian_init_global():
     #       there is a conflict between the OpenMP environment and Python threading
     #       thus Tasmanian has to be imported inside the `tasmanian_init` method
     import Tasmanian
-
     grid = Tasmanian.makeGlobalGrid(2, 1, 6, "iptotal", "clenshaw-curtis")
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
@@ -44,7 +43,6 @@ def tasmanian_init_global():
 
 def tasmanian_init_localp():
     import Tasmanian
-
     grid = Tasmanian.makeLocalPolynomialGrid(2, 1, 3)
     grid.setDomainTransform(np.array([[-5.0, 5.0], [-2.0, 2.0]]))
     return grid
