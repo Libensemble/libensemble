@@ -150,9 +150,16 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     U = gen_specs['user']
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['setAnisotropicRefinement', 'getAnisotropicRefinement', 'setSurplusRefinement', 'getSurplusRefinement', 'none']
-    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
-        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    allowed_refinements = [
+        'setAnisotropicRefinement',
+        'getAnisotropicRefinement',
+        'setSurplusRefinement',
+        'getSurplusRefinement',
+        'none',
+    ]
+    assert (
+        'refinement' in U and U['refinement'] in allowed_refinements
+    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
@@ -201,15 +208,16 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U['tasmanian_init']()  # initialize the grid
     allowed_refinements = ['getCandidateConstructionPoints', 'getCandidateConstructionPointsSurplus']
-    assert 'refinement' in U and U['refinement'] in allowed_refinements, \
-        "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
-    tol = U['_match_tolerance'] if '_match_tolerance' in U else 1.E-12
+    assert (
+        'refinement' in U and U['refinement'] in allowed_refinements
+    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    tol = U['_match_tolerance'] if '_match_tolerance' in U else 1.0e-12
 
     # Choose the refinement function based on U['refinement'].
     if U['refinement'] == 'getCandidateConstructionPoints':
         assert 'sType' in U
         assert 'liAnisotropicWeightsOrOutput' in U
-        get_refined_points = lambda g : g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
+        get_refined_points = lambda g: g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
     if U['refinement'] == 'getCandidateConstructionPointsSurplus':
         assert 'fTolerance' in U
         assert 'sRefinementType' in U
@@ -283,7 +291,7 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batc
     that they are compatible with the custom generators in this script. The outputs should be used in the main libE() call.
 
     INPUTS:
-        user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs; expects the key 'tasmanian_init' 
+        user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs; expects the key 'tasmanian_init'
                                whose value is a 0-argument lambda that initializes an appropriate Tasmanian sparse grid object.
         sim_f       (func)   : a lambda function that takes in generator outputs (simulator inputs) and returns simulator outputs.
         num_dims    (int)    : number of model inputs.
