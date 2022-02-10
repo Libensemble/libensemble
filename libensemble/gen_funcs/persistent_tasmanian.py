@@ -217,13 +217,12 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     if U['refinement'] == 'getCandidateConstructionPoints':
         assert 'sType' in U
         assert 'liAnisotropicWeightsOrOutput' in U
-        get_refined_points = lambda g: g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
     if U['refinement'] == 'getCandidateConstructionPointsSurplus':
         assert 'fTolerance' in U
         assert 'sRefinementType' in U
 
     def get_refined_points(g, U):
-        if U['refinement'] == 'anisotropic':
+        if U['refinement'] == 'getCandidateConstructionPoints':
             return g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
         elif U['refinement'] == 'surplus':
             return g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
