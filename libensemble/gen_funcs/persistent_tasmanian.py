@@ -251,7 +251,9 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
         # Parse the points returned by the allocator.
         num_completed += calc_in['x'].shape[0]
-        queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol)
+        queued_pts, queued_ids, offset = get_state(
+            queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol
+        )
 
         # Compute the next batch of points (if they exist).
         new_pts = np.empty((0, num_dims), dtype='float')
