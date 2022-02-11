@@ -125,6 +125,7 @@ For now, create a new Python file named ``generator.py``. Write the following:
    .. code-block:: python
       :linenos:
       :caption: examples/tutorials/simple_sine/tutorial_gen.py
+      
       def gen_random_sample(H, persis_info, gen_specs, _):
         # does this work on readthedocs?
 
