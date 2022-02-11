@@ -116,6 +116,18 @@ For now, create a new Python file named ``generator.py``. Write the following:
         # Send back our output and persis_info
         return out, persis_info
 
+.. container:: toggle
+
+   .. container:: header
+
+      **Click here to hello world**
+
+   .. code-block:: python
+      :linenos:
+      :caption: examples/tutorials/simple_sine/tutorial_gen.py
+      def gen_random_sample(H, persis_info, gen_specs, _):
+        # does this work on readthedocs?
+
 Our function creates ``batch_size`` random numbers uniformly distributed
 between the ``lower`` and ``upper`` bounds. A random stream
 from ``persis_info`` is used to generate these values, where they are placed
