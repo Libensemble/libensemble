@@ -198,7 +198,7 @@ html_static_path = ['_static']
 # html_static_path = []
 
 def setup(app):
-    app.add_css_file('my_theme.css')
+    app.add_css_file('custom.css')
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
