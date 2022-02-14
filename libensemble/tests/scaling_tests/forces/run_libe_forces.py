@@ -34,56 +34,67 @@ sim_app = os.path.join(os.getcwd(), 'forces.x')
 if not os.path.isfile('forces.x'):
     if os.path.isfile('build_forces.sh'):
         import subprocess
+
         subprocess.check_call(['./build_forces.sh'])
 
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
+
     exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='forces')
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-sim_specs = {'sim_f': run_forces,         # Function whose output is being minimized
-             'in': ['x'],                 # Name of input for sim_f
-             'out': [('energy', float)],  # Name, type of output from sim_f
-             'user': {'keys': ['seed'],
-                      'cores': 2,
-                      'sim_particles': 1e3,
-                      'sim_timesteps': 5,
-                      'sim_kill_minutes': 10.0,
-                      'particle_variance': 0.2,
-                      'kill_rate': 0.5,
-                      'fail_on_sim': False,
-                      'fail_on_submit': False}  # Won't occur if 'fail_on_sim' True
-             }
+sim_specs = {
+    'sim_f': run_forces,  # Function whose output is being minimized
+    'in': ['x'],  # Name of input for sim_f
+    'out': [('energy', float)],  # Name, type of output from sim_f
+    'user': {
+        'keys': ['seed'],
+        'cores': 2,
+        'sim_particles': 1e3,
+        'sim_timesteps': 5,
+        'sim_kill_minutes': 10.0,
+        'particle_variance': 0.2,
+        'kill_rate': 0.5,
+        'fail_on_sim': False,
+        'fail_on_submit': False,  # Won't occur if 'fail_on_sim' True
+    },
+}
 # end_sim_specs_rst_tag
 
 # State the generating function, its arguments, output, and necessary parameters.
-gen_specs = {'gen_f': gen_f,                  # Generator function
-             'in': [],                        # Generator input
-             'out': [('x', float, (1,))],     # Name, type and size of data produced (must match sim_specs 'in')
-             'user': {'lb': np.array([0]),             # Lower bound for random sample array (1D)
-                      'ub': np.array([32767]),         # Upper bound for random sample array (1D)
-                      'gen_batch_size': 1000,          # How many random samples to generate in one call
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,  # Generator function
+    'in': [],  # Generator input
+    'out': [('x', float, (1,))],  # Name, type and size of data produced (must match sim_specs 'in')
+    'user': {
+        'lb': np.array([0]),  # Lower bound for random sample array (1D)
+        'ub': np.array([32767]),  # Upper bound for random sample array (1D)
+        'gen_batch_size': 1000,  # How many random samples to generate in one call
+    },
+}
 
 if PERSIS_GEN:
     alloc_specs = {'alloc_f': alloc_f}
 else:
-    alloc_specs = {'alloc_f': alloc_f,
-                   'user': {'batch_mode': True,    # If true wait for all sims to process before generate more
-                            'num_active_gens': 1}  # Only one active generator at a time
-                   }
+    alloc_specs = {
+        'alloc_f': alloc_f,
+        'user': {
+            'batch_mode': True,  # If true wait for all sims to process before generate more
+            'num_active_gens': 1,  # Only one active generator at a time
+        },
+    }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-libE_specs['sim_dirs_make'] = True      # Separate each sim into a separate directory
-libE_specs['profile'] = False    # Whether to have libE profile on (default False)
+libE_specs['sim_dirs_make'] = True  # Separate each sim into a separate directory
+libE_specs['profile'] = False  # Whether to have libE profile on (default False)
 
 # Maximum number of simulations
 sim_max = 8
@@ -94,10 +105,14 @@ persis_info = {}
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 
 try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                                persis_info=persis_info,
-                                alloc_specs=alloc_specs,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info=persis_info,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+    )
 
 except ManagerException:
     if is_manager and sim_specs['user']['fail_on_sim']:

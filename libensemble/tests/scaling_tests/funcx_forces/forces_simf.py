@@ -9,15 +9,15 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
     class ForcesException(Exception):
-        """ Raised on some issue with Forces """
+        """Raised on some issue with Forces"""
 
     def perturb(particles, seed, max_fraction):
         MAX_SEED = 32767
         """Modify particle count"""
-        seed_fraction = seed/MAX_SEED
+        seed_fraction = seed / MAX_SEED
         max_delta = particles * max_fraction
         delta = seed_fraction * max_delta
-        delta = delta - max_delta/2  # translate so -/+
+        delta = delta - max_delta / 2  # translate so -/+
         new_particles = particles + delta
         return int(new_particles)
 
@@ -68,13 +68,25 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     # Machinefile only used here for exception testing
     if cores:
-        task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
-                            stdout='out.txt', stderr='err.txt', wait_on_start=True,
-                            machinefile=machinefile)
+        task = exctr.submit(
+            app_name='forces',
+            num_procs=cores,
+            app_args=args,
+            stdout='out.txt',
+            stderr='err.txt',
+            wait_on_start=True,
+            machinefile=machinefile,
+        )
     else:
-        task = exctr.submit(app_name='forces', app_args=args, stdout='out.txt',
-                            stderr='err.txt', wait_on_start=True, hyperthreads=True,
-                            machinefile=machinefile)  # Auto-partition
+        task = exctr.submit(
+            app_name='forces',
+            app_args=args,
+            stdout='out.txt',
+            stderr='err.txt',
+            wait_on_start=True,
+            hyperthreads=True,
+            machinefile=machinefile,
+        )  # Auto-partition
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
@@ -82,7 +94,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
     line = None
 
     poll_interval = 1  # secs
-    while(not task.finished):
+    while not task.finished:
         # Read last line of statfile
         line = read_last_line(filepath)
         if line == "kill":
