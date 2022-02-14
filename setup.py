@@ -67,7 +67,7 @@ setup(
 
     extras_require={
         'extras': ['pyyaml', 'scipy', 'nlopt', 'mpi4py', 'petsc', 'petsc4py',
-                   'DFO-LS', 'deap', 'mpmath', 'dragonfly-opt', 'ax-platform'],
+                   'DFO-LS', 'mpmath', 'dragonfly-opt', 'ax-platform'],
         'docs': ['sphinx', 'sphinxcontrib.bibtex', 'sphinx_rtd_theme']},
 
     classifiers=[
@@ -80,7 +80,6 @@ setup(
         'Operating System :: Unix',
         'Operating System :: MacOS',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',

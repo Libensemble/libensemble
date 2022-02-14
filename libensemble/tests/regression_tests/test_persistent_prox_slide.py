@@ -68,7 +68,7 @@ for prob_id in range(0, 4):
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
-        M = num_gens / (m ** 2)
+        M = num_gens / (m**2)
         N_const = 4
         err_const = 1e2
 
@@ -141,7 +141,7 @@ for prob_id in range(0, 4):
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
     persis_info['gen_params'].update(
-        {'M': M, 'R': 10 ** 2, 'nu': 1, 'eps': eps, 'D': 2 * n, 'N_const': N_const, 'lam_max': lam_max}
+        {'M': M, 'R': 10**2, 'nu': 1, 'eps': eps, 'D': 2 * n, 'N_const': N_const, 'lam_max': lam_max}
     )
 
     if is_manager:

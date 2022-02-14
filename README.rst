@@ -1,6 +1,6 @@
-.. image:: docs/images/libE_logo.png
-   :align: center
-   :alt: libEnsemble
+    .. image:: docs/images/libE_logo.png
+       :align: center
+       :alt: libEnsemble
 
 |
 
@@ -25,35 +25,42 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python library to coordinate the concurrent evaluation of
-dynamic ensembles of calculations. The library is developed to use massively
-parallel resources to accelerate the solution of design, decision, and
-inference problems and to expand the class of problems that can benefit from
-increased concurrency levels.
+libEnsemble is a Python_ toolkit for coordinating asynchronous and dynamic ensembles of calculations.
 
-libEnsemble aims for the following:
+libEnsemble can help users take advantage of massively parallel resources to solve design,
+decision, and inference problems and expand the class of problems that can benefit from
+increased parallelism.
 
-• Extreme scaling
-• Resilience/fault tolerance
-• Monitoring/killing of tasks (and recovering resources)
-• Portability and flexibility
-• Exploitation of persistent data/control flow
+libEnsemble aims for:
 
-The user selects or supplies a *generator function* that produces
-input parameters for a *simulator function* that performs and monitors
-simulations. For example, the generator function may contain an
-optimization routine to generate new simulation parameters on-the-fly based on
-the results of previous simulations. Examples and templates of such functions are
-included in the library.
+• **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
+• **Dynamic Ensembles**: Generate new tasks on-the-fly based on previous computations.
+• **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
+• **Monitoring/killing of applications**: Ensemble members can poll or kill running apps.
+• **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
+• **Portability and flexibility**: Run identical libEnsemble scripts on different machines.
+• **Exploitation of persistent data/control flow**: libEnsemble can pass data between ensemble members.
+• **Low start-up cost**: Default single-machine deployments don't require additional services.
 
-libEnsemble employs a manager/worker scheme that can run on various
-communication media (including MPI, multiprocessing, and TCP); interfacing with
-user-provided executables is also supported. Each worker can
-control and monitor any level of work, from small subnode tasks to huge
-many-node simulations. An executor interface is provided to ensure that scripts
-are portable, resilient, and flexible; it also enables automatic detection of
-the nodes and cores available to the user, and can dynamically assign resources
-to workers.
+libEnsemble's users select or supply **generator** and **simulator** Python
+functions; these respectively produce candidate parameters and perform/monitor
+computations that use those parameters. Generator functions can train
+models, perform optimizations, and test candidate solutions in a batch or streaming
+fashion based on simulation results.
+Simulator functions can themselves use parallel resources and involve libraries
+or executables that are not written in Python.
+
+With a basic familiarity of Python and NumPy_, users can easily incorporate
+any other mathematics, machine-learning, or resource-management libraries into libEnsemble
+workflows.
+
+libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
+or TCP. Workers control and monitor any level of work using the aforementioned
+generator and simulator functions, from small subnode tasks to huge many-node computations.
+
+libEnsemble includes an Executor interface so application-launching functions are
+portable, resilient, and flexible; it also automatically detects available nodes
+and cores, and can dynamically assign resources to workers.
 
 .. before_dependencies_rst_tag
 
@@ -62,11 +69,11 @@ Dependencies
 
 Required dependencies:
 
-* Python_ 3.6 or above
+* Python_ 3.7 or above
 * NumPy_
 * psutil_
 
-For libEnsemble running with the mpi4py parallelism:
+When using  ``mpi4py`` for libEnsemble communications:
 
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
@@ -75,21 +82,22 @@ Optional dependencies:
 
 * Balsam_
 
-From v0.2.0, libEnsemble has the option of using the Balsam job manager. Balsam
-is required in order to run libEnsemble on the compute nodes of some supercomputing
-platforms that do not support launching tasks from compute nodes. As of v0.5.0,
-libEnsemble can also be run on launch nodes using multiprocessing.
+If running on the the compute nodes of three-tier systems
+like OLCF's Summit_ or ALCF's Theta_, libEnsemble's workers may use the Balsam service
+to schedule and launch MPI applications. Otherwise, libEnsemble can be run with
+multiprocessing on the intermediate launch nodes.
 
 * pyyaml_
 
-As of v0.8.0, an alternative interface is available. An Ensemble object is
-created and can be parameterized by a YAML file.
+libEnsemble is typically configured and parameterized via Python dictionaries.
+As of v0.8.0, libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
-As of v0.8.0+dev, workers can optionally submit generator or simulator
-function instances to remote funcX_ endpoints, distributing an ensemble across
-systems and heterogenous resources.
+As of v0.8.0+dev, libEnsemble features a cross-system capability powered by funcX_,
+a function-as-a-service platform to which workers can submit remote generator or
+simulator function instances. This feature can help distribute an ensemble
+across systems and heterogeneous resources.
 
 The example simulation and generation functions and tests require the following:
 
@@ -100,10 +108,10 @@ The example simulation and generation functions and tests require the following:
 * DFO-LS_
 * Tasmanian_
 * NLopt_
-* `PETSc/TAO`_ - Can optionally be installed by pip along with petsc4py
+* `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
 * Surmise_
 
-PETSc and NLopt must be built with shared libraries enabled and present in
+PETSc and NLopt must be built with shared libraries enabled and be present in
 ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
 should produce a file ``nlopt.py`` if Python is found on the system. See the
 `NLopt documentation` for information about building NLopt with shared
@@ -118,7 +126,7 @@ Install libEnsemble and its dependencies from PyPI_ using pip::
 
     pip install libensemble
 
-Install libEnsemble with Conda_ from the conda-forge channel::
+Install libEnsemble with Conda_ from the conda-forge_ channel::
 
     conda config --add channels conda-forge
     conda install -c conda-forge libensemble
@@ -128,14 +136,14 @@ Install libEnsemble using the Spack_ distribution::
     spack install py-libensemble
 
 libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
-from xSDK version 0.5.0 onward. Install the xSDK and load the environment with ::
+from xSDK version 0.5.0 onward. Install the xSDK and load the environment with::
 
     spack install xsdk
     spack load -r xsdk
 
 The codebase, tests and examples can be accessed in the GitHub_ repository.
 If necessary, you may install all optional dependencies (listed above) at once
-with ::
+with::
 
     pip install libensemble[extras]
 
@@ -149,13 +157,13 @@ regularly on:
 
 * `GitHub Actions`_
 
-The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_
-packages to be installed and can be run from the ``libensemble/tests`` directory
-of the source distribution by running ::
+The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_ packages
+to be installed and can be run from the ``libensemble/tests`` directory
+of the source distribution by running::
 
     ./run-tests.sh
 
-Further options are available. To see a complete list of options, run ::
+Further options are available. To see a complete list of options, run::
 
     ./run-tests.sh -h
 
@@ -165,12 +173,12 @@ be run directly in ``libensemble/tests/regression_tests``. For example::
     cd libensemble/tests/regression_tests
     python test_uniform_sampling.py --comms local --nworkers 3
 
-The ``libensemble/tests/scaling_tests`` directory includes some examples that make
-use of the executor to run compiled applications. These are tested regularly on
+The ``libensemble/tests/scaling_tests`` directory includes example scripts that
+use the executor to run compiled applications. These are tested regularly on
 HPC systems.
 
-If you have the source distribution, you can download (but not install) the testing
-prerequisites and run the tests with ::
+If you have the libEnsemble source code, you can download (but not install) the testing
+prerequisites and run the tests with::
 
     python setup.py test
 
@@ -183,19 +191,11 @@ which can be viewed at ``libensemble/tests/cov_merge/index.html``
 after ``run_tests.sh`` is completed. The coverage results are available
 online at Coveralls_.
 
-.. note::
-    The executor tests can be run by using the direct-launch or
-    Balsam executors. Balsam integration with libEnsemble is now tested
-    via ``test_balsam_hworld.py``.
-
 Basic Usage
 ~~~~~~~~~~~
 
-The examples directory contains example libEnsemble calling scripts, simulation
-functions, generation functions, allocation functions, and libEnsemble submission scripts.
-
 The default manager/worker communications mode is MPI. The user script is
-launched as ::
+launched as::
 
     mpiexec -np N python myscript.py
 
@@ -203,13 +203,13 @@ where ``N`` is the number of processors. This will launch one manager and
 ``N-1`` workers.
 
 If running in local mode, which uses Python's multiprocessing module, the
-``local`` comms option and the number of workers must be specified. The script
+``local`` comms option and the number of workers must be specified, either in `libE_specs`_
+or via the command-line using the ``parse_args()`` function. The script
 can then be run as a regular Python script::
 
-    python myscript.py
+    python myscript.py --comms local --nworkers N
 
-These options may be specified via the command line by using the ``parse_args()``
-convenience function within libEnsemble's ``tools`` module.
+This will launch one manager and N workers.
 
 See the `user guide`_ for more information.
 
@@ -218,14 +218,15 @@ Resources
 
 **Support:**
 
-- The best way to receive support is to email questions to ``libEnsemble@lists.mcs.anl.gov``.
-- Communicate (and establish a private channel, if desired) at the `libEnsemble Slack page`_.
+- Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
+- Open issues on GitHub_.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
 - An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_
+- Examples of production user functions and complete workflows can be viewed, downloaded, and contributed to in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
 
@@ -257,7 +258,8 @@ Resources
 
 **Capabilities:**
 
-libEnsemble generation capabilities include:
+libEnsemble and the `Community Examples repository`_ include example generator
+functions for the following libraries:
 
 - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
@@ -289,10 +291,13 @@ See a complete list of `example user scripts`_.
 
 .. after_resources_rst_tag
 
+.. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://www.alcf.anl.gov/support-center/theta/balsam
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
+.. _conda-forge: https://conda-forge.org/
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
@@ -301,9 +306,11 @@ See a complete list of `example user scripts`_.
 .. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
+.. _here: https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
+.. _libE_specs: https://libensemble.readthedocs.io/en/main/data_structures/libE_specs.html
 .. _manuscript: https://arxiv.org/abs/2104.08322
 .. _mock: https://pypi.org/project/mock
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
@@ -327,10 +334,12 @@ See a complete list of `example user scripts`_.
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Spack: https://spack.readthedocs.io/en/latest
+.. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

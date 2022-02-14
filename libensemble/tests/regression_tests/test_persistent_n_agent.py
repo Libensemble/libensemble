@@ -206,7 +206,7 @@ for prob_id in range(6):
 
         # check we have a doubly stochastic matrix
         assert (
-            la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens))) / num_gens ** 0.5 < 1e-15
+            la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens))) / num_gens**0.5 < 1e-15
         ), '@S is not a doubly stochastic matrix'
 
         # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)

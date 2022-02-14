@@ -20,8 +20,9 @@ more detailed descriptions of the parameters.
 
 .. note::
 
-    If the ``gen_f`` is a persistent generator, then ``gen_specs['in']`` will often be
-    empty if the ``alloc_f`` determines what fields to send to the generator.
+    If the ``gen_f`` is a persistent generator, then ``gen_specs['in']`` only specifies
+    the fields to send when the ``gen_f`` is *first called.* Use ``gen_specs['persis_in']``
+    to specify fields to send back to the generator throughout runtime.
 
 Typically users start by extracting their custom parameters initially defined
 within ``gen_specs['user']`` in the calling script and defining a *local* History
@@ -55,11 +56,9 @@ While normal generators return after completing their calculation, persistent
 generators receive Work units, perform computations, and communicate results
 directly to the manager in a loop, not returning until explicitly instructed by
 the manager. The calling worker becomes a dedicated :ref:`persistent worker<persis_worker>`.
-A ``gen_f`` is initiated as persistent by the ``alloc_f``, which also determines
-which structures are sent to the ``gen_f``. In such cases, ``gen_specs`` is often
-empty.
+A ``gen_f`` is initiated as persistent by the ``alloc_f``.
 
-Many users prefer persistent generators since they do not need to be
+Most users prefer persistent generators since they do not need to be
 re-initialized every time their past work is completed and evaluated by a
 simulation, and can evaluate returned simulation results over the course of
 an entire libEnsemble routine as a single function instance. The :doc:`APOSMM<../examples/aposmm>`
@@ -136,7 +135,7 @@ The user is responsible for ensuring there are no communication deadlocks
 in this mode. Note that in manager/worker message exchanges, only the worker-side
 receive is blocking.
 
-Cancelling simulations
+Cancelling Simulations
 ----------------------
 
 Previously submitted simulations can be cancelled by sending a message to the manager.

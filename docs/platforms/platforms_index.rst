@@ -13,20 +13,20 @@ The first mode we refer to as **central** mode, where the libEnsemble manager an
 are grouped on to one or more dedicated nodes. Workers' launch applications on to
 the remaining allocated nodes:
 
-.. image:: ../images/centralized_new_detailed.png
-    :alt: centralized
-    :scale: 30
-    :align: center
+    .. image:: ../images/centralized_new_detailed.png
+        :alt: centralized
+        :scale: 30
+        :align: center
 
 Alternatively, in **distributed** mode, the libEnsemble (manager/worker) processes
 will share nodes with submitted tasks. This enables libEnsemble, using the *mpi4py*
 communicator, to be run with the workers spread across nodes so as to be co-located
 with their tasks.
 
-.. image:: ../images/distributed_new_detailed.png
-    :alt: distributed
-    :scale: 30
-    :align: center
+    .. image:: ../images/distributed_new_detailed.png
+        :alt: distributed
+        :scale: 30
+        :align: center
 
 Configurations with multiple nodes per worker or multiple workers per node are both
 common use cases. The distributed approach allows the libEnsemble worker to read files
@@ -46,7 +46,7 @@ The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from th
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``dedicated_mode=True`` is used when initializing the Executor, then any node
+If the argument ``libE_specs['dedicated_mode']=True`` is used when initializing libEnsemble, then any node
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
@@ -61,7 +61,7 @@ or::
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided amongst the workers for submitted applications. If the same run was
-performed without ``dedicated_mode=True``, runs could be submitted to all 5 nodes. The number of workers
+performed without ``libE_specs['dedicated_mode']=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 
 To launch libEnsemble distributed requires a less trivial libEnsemble run script.
@@ -141,12 +141,12 @@ internet access (laptops, login nodes, other servers, etc.), workers can be inst
 launch generator or simulator user function instances to separate resources from
 themselves via funcX_, a distributed, high-performance function-as-a-service platform:
 
-.. image:: ../images/funcxmodel.png
-    :alt: running_with_funcx
-    :scale: 50
-    :align: center
+    .. image:: ../images/funcxmodel.png
+        :alt: running_with_funcx
+        :scale: 50
+        :align: center
 
-This is useful for running ensembles across machines and heterogenous resources, but
+This is useful for running ensembles across machines and heterogeneous resources, but
 comes with several caveats:
 
     1. User functions registered with funcX must be *non-persistent*, since

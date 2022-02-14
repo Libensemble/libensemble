@@ -38,6 +38,7 @@ def write_sim_func(calc_in, persis_info, sim_specs, libE_info):
 
 def remote_write_sim_func(calc_in, persis_info, sim_specs, libE_info):
     import numpy as np
+
     out = np.zeros(1, dtype=sim_specs['out'])
     calc_dir = sim_specs['user']['calc_dir']
     out['f'] = calc_in['x']
@@ -50,6 +51,7 @@ def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
     import socket
     import secrets
     import numpy as np
+
     H_o = np.zeros(1, dtype=gen_specs['out'])
     H_o['x'] = socket.gethostname() + '_' + secrets.token_hex(nbytes=3)
     with open('test_gen_out.txt', 'a') as f:

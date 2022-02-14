@@ -22,12 +22,6 @@ chwirut
   :members:
   :undoc-members:
 
-.. mop_funcs
-.. ---------
-.. .. automodule:: mop_funcs
-..   :members:
-..   :undoc-members:
-
 noisy_vector_mapping
 --------------------
 .. automodule:: noisy_vector_mapping

@@ -9,7 +9,7 @@ jobs:
                 os: [ubuntu-latest]
                 do-balsam: [false]
                 mpi-version: [mpich]
-                python-version: [3.6, 3.7, 3.8, 3.9]
+                python-version: [3.7, 3.8, 3.9]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -78,6 +78,8 @@ jobs:
               BALSAM_DB_PATH: $HOME/test-balsam
           run: |
             conda install libpq postgresql postgresql-plpython
+            sudo apt-get update
+            sudo apt-get install bc
             pg_ctl --version
 
         # Roundabout solution on macos for proper linking with mpicc
@@ -89,7 +91,7 @@ jobs:
             conda install clang_osx-64=9.0.1
 
         - name: Install Octave and bc on Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
           run: |
             sudo apt-get update
             sudo apt-get install octave
@@ -108,7 +110,9 @@ jobs:
             pip install mpi4py
 
         - name: Install generator dependencies
+          if: contains('3.7_3.8_3.9', matrix.python-version) && matrix.do-balsam == false
           run: |
+            python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
             conda install libblas libopenblas psutil pyyaml
@@ -117,20 +121,18 @@ jobs:
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
-
-        - name: Install DFO-LS, mpmath, deap, other test dependencies
-          run: |
-            python -m pip install --upgrade pip
             pip install DFO-LS
             pip install dragonfly-opt
             pip install ax-platform
             pip install mpmath
-            pip install deap
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
+
+        - name: Install other testing dependencies
+          run: |
             pip install -r install/testing_requirements.txt
 
         - name: Install Tasmanian on Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
           run: |
             pip install scikit-build packaging Tasmanian --user
 
@@ -168,19 +170,24 @@ jobs:
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
-        - name: Run tests, Ubuntu
-          if: ${{ matrix.os == 'ubuntu-latest' && matrix.do-balsam == false }}
+        - name: Run extensive tests, Ubuntu, Python 3.7-3.9
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run tests, macOS
+        - name: Run simple tests, Ubuntu, Python 3.10
+          if: matrix.python-version == '3.10'
+          run: |
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run Balsam test
+        - name: Run Balsam test, Ubuntu
           if: matrix.do-balsam == true
           env:
               BALSAM_DB_PATH: $HOME/test-balsam
@@ -194,7 +201,6 @@ jobs:
           run: |
             mv libensemble/tests/.cov* .
             coveralls --service=github
-
 
     coveralls:
         name: Notify coveralls of all jobs completing

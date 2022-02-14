@@ -39,7 +39,7 @@ then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
 .. code-block:: bash
 
     $ python3 --version
-    Python 3.6.0            # This should be >= 3.6
+    Python 3.7.0            # This should be >= 3.7
 
 .. _Python: https://www.python.org/
 
@@ -260,8 +260,9 @@ calculations performed.
 Here is graphed output using ``Matplotlib``, with entries colored by which
 worker performed the simulation:
 
-.. image:: ../images/sinex.png
-  :alt: sine
+    .. image:: ../images/sinex.png
+      :alt: sine
+      :align: center
 
 If you want to verify your results through plotting and installed Matplotlib
 earlier, copy and paste the following code into the bottom of your calling

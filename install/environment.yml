@@ -4,4 +4,4 @@ channels:
 
 dependencies:
  - sphinxcontrib-bibtex
- - python>=3.6
+ - python>=3.7
