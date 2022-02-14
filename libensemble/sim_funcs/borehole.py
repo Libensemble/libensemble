@@ -1,13 +1,17 @@
 import numpy as np
 
-bounds = np.array([[63070, 115600],
-                   [63.1, 116],
-                   [990, 1110],
-                   [700, 820],
-                   [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
-                   [0.05, 0.15],  # Very low probability of being outside of this range
-                   [9855, 12045],
-                   [1120, 1680]])
+bounds = np.array(
+    [
+        [63070, 115600],
+        [63.1, 116],
+        [990, 1110],
+        [700, 820],
+        [0, np.inf],  # Not sure if the physics have a more meaningful upper bound
+        [0.05, 0.15],  # Very low probability of being outside of this range
+        [9855, 12045],
+        [1120, 1680],
+    ]
+)
 
 
 def borehole(H, persis_info, sim_specs, _):
@@ -58,10 +62,10 @@ def borehole_func(x):
     (Tu, Tl, Hu, Hl, r, rw, Kw, L) = np.split(x, 8, axis)
 
     numer = 2 * np.pi * Tu * (Hu - Hl)
-    denom1 = 2 * L * Tu / (np.log(r/rw) * rw**2 * Kw)
+    denom1 = 2 * L * Tu / (np.log(r / rw) * rw**2 * Kw)
     denom2 = Tu / Tl
 
-    return (numer / (np.log(r/rw) * (1 + denom1 + denom2))).reshape(-1)
+    return (numer / (np.log(r / rw) * (1 + denom1 + denom2))).reshape(-1)
 
 
 def gen_borehole_input(n):

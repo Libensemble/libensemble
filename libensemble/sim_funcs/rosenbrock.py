@@ -23,13 +23,13 @@ def EvaluateFunction(x, component):
 
     if np.isnan(component):
         f1 = 100 * np.power(np.power(x[::2], 2) - x[1::2], 2)
-        f2 = np.power(x[::2]-np.ones(n), 2)
+        f2 = np.power(x[::2] - np.ones(n), 2)
         f = f1 + f2
     else:
         i = component
-        x1 = x[2*i]
-        x2 = x[2*i+1]
-        f = 100 * (x1**2 - x2)**2 + (x1-1)**2
+        x1 = x[2 * i]
+        x2 = x[2 * i + 1]
+        f = 100 * (x1**2 - x2) ** 2 + (x1 - 1) ** 2
 
     return f
 
@@ -59,13 +59,13 @@ def EvaluateJacobian(x, component, const):
 
     else:
         i = component
-        x1 = x[2*i]
-        x2 = x[2*i+1]
+        x1 = x[2 * i]
+        x2 = x[2 * i + 1]
 
-        df[2*i] = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
-        df[2*i+1] = -200 * (x1**2 - x2)
+        df[2 * i] = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
+        df[2 * i + 1] = -200 * (x1**2 - x2)
 
-    return 1.0/const * df
+    return 1.0 / const * df
 
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
