@@ -265,6 +265,17 @@ class Task:
         self.wait(timeout=timeout)
         return self.state
 
+    def exception(self, timeout=None):
+        """Wrapper for task.wait() that instead returns the task's error code on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+        self.wait(timeout=timeout)
+        return self.errcode
+
     def running(self):
         """ Return ```True`` if task is currently running."""
         return self.state == 'RUNNING'

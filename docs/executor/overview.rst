@@ -15,7 +15,12 @@ the status of running application instances. Functions are also provided to acce
 and interrogate files in the task's working directory.
 
 libEnsemble's Executors and Tasks contain many familiar features and methods to
-Python's native `concurrent futures`_ interface.
+Python's native `concurrent futures`_ interface. Executors feature the ``submit()``
+function for launching apps (detailed below),  but currently do not support
+``map()`` or ``shutdown()``. Tasks are much like ``futures``, except they correspond
+to an application instance instead of a callable. They feature the ``cancel()``,
+``cancelled()``, ``running()``,``done()``, ``result()``, and ``exception()`` functions
+from the standard.
 
 The main ``Executor`` class is an abstract class, inherited by the ``MPIExecutor``
 for direct running of MPI applications, and the ``BalsamMPIExecutor``
