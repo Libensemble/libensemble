@@ -64,8 +64,8 @@ sim_specs = {
         'particle_variance': 0.2,
         'kill_rate': 0.5,
         'fail_on_sim': False,
-        'fail_on_submit': False,
-    },  # Won't occur if 'fail_on_sim' True
+        'fail_on_submit': False, # Won't occur if 'fail_on_sim' True
+    },  
 }
 # end_sim_specs_rst_tag
 
@@ -88,8 +88,8 @@ else:
         'alloc_f': alloc_f,
         'user': {
             'batch_mode': True,  # If true wait for all sims to process before generate more
-            'num_active_gens': 1,
-        },  # Only one active generator at a time
+            'num_active_gens': 1, # Only one active generator at a time
+        },
     }
 
 libE_specs['save_every_k_gens'] = 1000  # Save every K steps
