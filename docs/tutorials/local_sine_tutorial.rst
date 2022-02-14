@@ -6,19 +6,18 @@ This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
 multiprocessing.
 
-The foundation of writing libEnsemble routines is accounting for four components:
+The foundation of writing libEnsemble routines is accounting for at a minimum three components:
 
-    1. The generator function :ref:`gen_f<api_gen_f>`, which produces values for simulations
-    2. The simulator function :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``
-    3. The allocation function :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called
-    4. The calling script, which defines parameters and information about these functions and the libEnsemble task, then begins execution
+    1. A :ref:`generator function<api_gen_f>`, that produces values for simulations
+    2. A :ref:`simulator function<api_sim_f>`, performs simulations based on values from the generator function
+    3. A :doc:`calling script<../libe_module>`, for defining settings, fields, and functions, then starting the run
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
 user requests. The manager coordinates data transfer between workers and assigns
-each unit of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
-accompanying data. These functions can perform their work in-line with Python or by
-launching and controlling user applications with libEnsemble's :ref:`executor<executor_index>`.
-Workers then pass results back to the manager.
+each units of work, consisting of a function to run and
+accompanying data. These functions perform their work in-line with Python and/or
+launch and control user applications with libEnsemble's :ref:`Executors<executor_index>`.
+Workers pass results back to the manager.
 
 For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python
 without other applications. Our ``gen_f`` will produce uniform randomly sampled
