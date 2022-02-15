@@ -66,7 +66,7 @@ def test_standalone_persistent_aposmm():
     from math import gamma, pi, sqrt
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
-    persis_info = {'rand_stream': np.random.RandomState(1), 'nworkers': 4}
+    persis_info = {'rand_stream': np.random.default_rng(1), 'nworkers': 4}
 
     n = 2
     eval_max = 2000
@@ -116,7 +116,7 @@ def test_standalone_persistent_aposmm():
     gen_specs['user']['standalone']['obj_and_grad_func'] = combined_func
 
     H = []
-    persis_info = {'rand_stream': np.random.RandomState(1), 'nworkers': 3}
+    persis_info = {'rand_stream': np.random.default_rng(1), 'nworkers': 3}
     H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"

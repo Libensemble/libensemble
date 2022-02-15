@@ -108,7 +108,7 @@ def test_localopt_error_saving():
     persis_info_1 = {'run_order': {0: [1, 2, 3]},
                      'old_runs': {},
                      'total_runs': 0,
-                     'rand_stream': np.random.RandomState(1)}
+                     'rand_stream': np.random.default_rng(1)}
 
     try:
         al.aposmm_logic(H, persis_info_1, gen_specs_0, _)

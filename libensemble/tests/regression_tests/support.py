@@ -103,7 +103,7 @@ persis_info_1[0] = {
     'run_order': {},  # Used by manager to remember run order
     'old_runs': {},  # Used by manager to store old runs order
     'total_runs': 0,  # Used by manager to count total runs
-    'rand_stream': np.random.RandomState(1),
+    'rand_stream': np.random.default_rng(1),
 }
 # end_persis_info_rst_tag
 

@@ -58,7 +58,7 @@ gen_specs = {'gen_f': gen_f,
 
 gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 
-np.random.RandomState(0)
+np.random.seed(0)
 gen_specs['user']['sample_points'] = np.random.uniform(0, 1, (budget, n))*(UB-LB)+LB
 alloc_specs = {'alloc_f': alloc_f,
                'out': [('allocated', bool)],
