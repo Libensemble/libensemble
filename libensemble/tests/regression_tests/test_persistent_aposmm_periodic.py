@@ -68,7 +68,7 @@ gen_specs = {
 
 alloc_specs = {'alloc_f': alloc_f}
 
-exit_criteria = {'sim_max': 1500}
+exit_criteria = {'sim_max': 2000}
 
 for run in range(2):
     if run == 1:
