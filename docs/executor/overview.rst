@@ -1,40 +1,46 @@
 Executor Overview
 =================
 
-A typical libEnsemble workflow will include launching tasks from a
-:ref:`sim_f<api_sim_f>` (or :ref:`gen_f<api_gen_f>`) running on a worker. We use
-"task" to represent an application submission by libEnsemble to the system,
-which may be the compute nodes of a supercomputer, cluster, or other compute resource.
+Most computationally expensive libEnsemble workflows involve launching applications
+from a :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` running on a worker to the
+compute nodes of a supercomputer, cluster, or other compute resource.
 
 An **Executor** interface is provided by libEnsemble to remove the burden of
-system interaction from the user and ease the writing of portable user scripts that
-launch applications. The Executor provides the key functions: ``submit()``,
-``poll()``, ``wait()``, and ``kill()``. Task attributes can be queried to determine
-the status following each of these commands. Functions are also provided to access
+system interaction from the user and improve workflow portability. Users first register
+their applications to Executor instances, which then return corresponding ``Task``
+objects upon submission within user functions.
+
+**Task** attributes and retrieval functions can be queried to determine
+the status of running application instances. Functions are also provided to access
 and interrogate files in the task's working directory.
 
-The main ``Executor`` class is an abstract class and is inherited by the ``MPIExecutor``,
-for direct running of MPI applications. We also provide a ``BalsamMPIExecutor``,
-which submits an MPI run request from a worker running on a compute node to a
-Balsam service running on a launch node (suitable for systems that do not allow
-running MPI applications directly from compute nodes).
+libEnsemble's Executors and Tasks contain many familiar features and methods to
+Python's native `concurrent futures`_ interface. Executors feature the ``submit()``
+function for launching apps (detailed below),  but currently do not support
+``map()`` or ``shutdown()``. Tasks are much like ``futures``, except they correspond
+to an application instance instead of a callable. They feature the ``cancel()``,
+``cancelled()``, ``running()``,``done()``, ``result()``, and ``exception()`` functions
+from the standard.
 
-In a calling script, an ``Executor`` object is created, and the executable
-generator or simulation applications are registered to it for submission. If an
-alternative Executor like Balsam is used, then the applications can be
+The main ``Executor`` class is an abstract class, inherited by the ``MPIExecutor``
+for direct running of MPI applications, and the ``BalsamMPIExecutor``
+for submitting MPI run requests from a worker running on a compute node to a
+Balsam service running on a launch node. This second approach is suitable for
+systems that don't allow submitting MPI applications from compute nodes.
+
+Typically, users choose and parameterize their ``Executor`` objects in their
+calling scripts, where each executable generator or simulation application is
+registered to it. If an alternative Executor like Balsam is used, then the applications can be
 registered as in the example below. Once in the user-side worker code (sim/gen func),
-an MPI-based Executor can be retrieved without any need to specify the type.
+the Executor can be retrieved without any need to specify the type.
 
 Once the Executor is retrieved, tasks can be submitted by specifying the ``app_name``
 from registration in the calling script alongside other optional parameters
-described in the API. A corresponding ``Task`` object instance is returned. As
-can be seen in the examples below, a variety of ``Executor`` and ``Task`` attributes
-and methods can be queried to effectively manage currently running applications
-within user functions.
+described in the API.
 
 **Example usage (code runnable with or without a Balsam 0.5.0 backend):**
 
-In calling function::
+In calling script::
 
     sim_app = '/path/to/my/exe'
     USE_BALSAM = False
@@ -48,15 +54,14 @@ In calling function::
 
     exctr.register_app(full_path=sim_app, app_name='sim1')
 
-.. note::
-    The *Executor* set up in the calling script is stored as a class attribute and
-    does **not** have to be passed to *libE*. It is extracted via *Executor.executor*
-    in the sim function (regardless of type).
+Note that Executor instances in the calling script are also stored as class attributes, and
+do **not** have to be passed to ``libE()``. They can be extracted via *Executor.executor*
+in the sim function (regardless of type).
 
 In user simulation function::
 
     import time
-    from libensemble.executors.executor import Executor
+    from libensemble.executors import Executor
 
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
@@ -89,13 +94,23 @@ In user simulation function::
 
     print(task.state)  # state may be finished/failed/killed
 
+Executor instances can also be retrieved using Python's ``with`` context switching statement,
+although this is effectively syntactical sugar to above::
+
+    from libensemble.executors import Executor
+
+    with Executor.executor as exctr:
+        task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
+                            stdout='out.txt', stderr='err.txt')
+
+    ...
+
 Users primarily concerned with running their tasks to completion without intermediate
 evaluation don't necessarily need to construct a polling loop like above, but can
 instead use an ``Executor`` instance's ``polling_loop()`` method. An alternative
 to the above simulation function may resemble::
 
-    import time
-    from libensemble.executors.executor import Executor
+    from libensemble.executors import Executor
 
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
@@ -109,6 +124,18 @@ to the above simulation function may resemble::
     exctr.polling_loop(task, timeout=timeout_sec, delay=poll_delay_sec)
 
     print(task.state)  # state may be finished/failed/killed
+
+Or put *yet another way*::
+
+    from libensemble.executors import Executor
+
+    # Will return Executor (whether MPI or inherited such as Balsam).
+    exctr = Executor.executor
+
+    task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
+                        stdout='out.txt', stderr='err.txt')
+
+    print(task.result(timeout=600))  # returns state on completion
 
 See the :doc:`executor<executor>` interface for the complete API.
 
@@ -138,3 +165,4 @@ diagrams, how common options such as ``libE_specs['dedicated_mode']`` affect the
 run configuration on clusters and supercomputers.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
+.. _`concurrent futures`: https://docs.python.org/3.8/library/concurrent.futures.html
