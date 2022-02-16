@@ -14,3 +14,7 @@ max-width: 850px !important;
 .toggle .header.open:after {
     content: " ▼";
 }
+
+.underline {
+  text-decoration: underline;
+}
