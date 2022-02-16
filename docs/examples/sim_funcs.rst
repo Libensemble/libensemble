@@ -1,5 +1,5 @@
-Simulator Functions
-===================
+Simulation Functions
+====================
 
 Below are example simulation functions available in libEnsemble.
 Most of these demonstrate an inexpensive algorithm and do not

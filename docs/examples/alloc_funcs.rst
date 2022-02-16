@@ -1,5 +1,5 @@
-Allocator Functions
-===================
+Allocation Functions
+====================
 
 Below are example allocation functions available in libEnsemble.
 
