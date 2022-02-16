@@ -11,6 +11,6 @@ def float_x1000(H, persis_info, sim_specs, _):
     x2 = H['x'][0][1]
 
     output['arr_vals'].fill(x1)
-    output['scal_val'] = x2 + x2/1e7
+    output['scal_val'] = x2 + x2 / 1e7
 
     return output, persis_info

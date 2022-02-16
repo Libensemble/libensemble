@@ -58,7 +58,7 @@ def borehole_vec(x, theta):
     (Hu, Ld_Kw, Treff, powparam) = np.split(theta, theta.shape[1], axis=1)
     (rw, Hl) = np.split(x[:, :-1], 2, axis=1)
     numer = 2 * np.pi * (Hu - Hl)
-    denom1 = 2 * Ld_Kw / rw ** 2
+    denom1 = 2 * Ld_Kw / rw**2
     denom2 = Treff
 
     f = ((numer / ((denom1 + denom2))) * np.exp(powparam * rw)).reshape(-1)
@@ -72,14 +72,14 @@ def tstd2theta(tstd, hard=True):
         tstd = tstd[:, None].T
     (Treffs, Hus, LdKw, powparams) = np.split(tstd, tstd.shape[1], axis=1)
 
-    Treff = (0.5-0.05) * Treffs + 0.05
+    Treff = (0.5 - 0.05) * Treffs + 0.05
     Hu = Hus * (1110 - 990) + 990
     if hard:
-        Ld_Kw = LdKw * (1680/1500 - 1120/15000) + 1120/15000
+        Ld_Kw = LdKw * (1680 / 1500 - 1120 / 15000) + 1120 / 15000
     else:
-        Ld_Kw = LdKw*(1680/9855 - 1120/12045) + 1120/12045
+        Ld_Kw = LdKw * (1680 / 9855 - 1120 / 12045) + 1120 / 12045
 
-    powparam = powparams * (0.5 - (- 0.5)) + (-0.5)
+    powparam = powparams * (0.5 - (-0.5)) + (-0.5)
 
     theta = np.hstack((Hu, Ld_Kw, Treff, powparam))
     return theta

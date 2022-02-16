@@ -12,8 +12,8 @@ def EvaluateFunction(x, component=np.nan):
 
     i = component
     x1 = x[i]
-    x2 = x[i+1]
-    f = 100 * (x1**2 - x2)**2 + (x1-1)**2
+    x2 = x[i + 1]
+    f = 100 * (x1**2 - x2) ** 2 + (x1 - 1) ** 2
 
     return f
 
@@ -29,12 +29,12 @@ def EvaluateJacobian(x, component=np.nan):
 
     i = component
     x1 = x[i]
-    x2 = x[i+1]
+    x2 = x[i + 1]
 
     df[i] = 400 * x1 * (x1**2 - x2) + 2 * (x1 - 1)
-    df[i+1] = -200 * (x1**2 - x2)
+    df[i + 1] = -200 * (x1**2 - x2)
 
-    return 1.0/const * df
+    return 1.0 / const * df
 
 
 def alt_rosenbrock_eval(H, persis_info, sim_specs, _):
