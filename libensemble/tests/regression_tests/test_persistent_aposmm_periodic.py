@@ -68,7 +68,7 @@ gen_specs = {
 
 alloc_specs = {'alloc_f': alloc_f}
 
-exit_criteria = {'sim_max': 2000}
+exit_criteria = {'sim_max': 1000}
 
 for run in range(2):
     if run == 1:
@@ -89,10 +89,12 @@ for run in range(2):
         # The minima are known on this test problem. If the above [lb,ub] domain is
         # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
         minima = np.array([[0.25, 0.75], [0.75, 0.25]])
-        tol = 1e-4
+        tol = 2e-4
+
         for x in H['x_on_cube'][min_ids]:
             print(x)
             print(np.linalg.norm(x - minima[0]))
             print(np.linalg.norm(x - minima[1]), flush=True)
-
+            
+        for x in H['x_on_cube'][min_ids]:
             assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol
