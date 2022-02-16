@@ -1,5 +1,5 @@
-Generation Functions
-====================
+Generator Functions
+===================
 
 Below are example generation functions available in libEnsemble.
 
