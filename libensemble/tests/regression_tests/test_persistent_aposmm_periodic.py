@@ -95,6 +95,6 @@ for run in range(2):
             print(x)
             print(np.linalg.norm(x - minima[0]))
             print(np.linalg.norm(x - minima[1]), flush=True)
-            
+
         for x in H['x_on_cube'][min_ids]:
             assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol
