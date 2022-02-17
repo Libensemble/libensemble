@@ -3,8 +3,13 @@ max-width: 850px !important;
 }
 
 .toggle .header {
-    display: block;
-    clear: both;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width:300px;
+  background-color: lightblue;
+  border: 5px solid black;
+  text-align: center;
+  align-items: center; 
 }
 
 .toggle .header:after {
@@ -16,5 +21,5 @@ max-width: 850px !important;
 }
 
 .underline {
-  text-decoration: underline;
+  font-weight: bold;
 }
