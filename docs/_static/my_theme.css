@@ -2,8 +2,14 @@
 max-width: 850px !important;
 }
 
+h2 {
+  /*Increases the spacing above methods in modules in html*/
+  margin-top: 10px; # 
+}
+
 .toggle .header {
-  overflow:auto;
+  cursor: pointer;
+  overflow: auto;
   padding-top: 20px;
   background-color: lightblue;
   border: 5px solid black;
