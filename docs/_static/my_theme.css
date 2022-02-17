@@ -3,21 +3,24 @@ max-width: 850px !important;
 }
 
 .toggle .header {
+  width:500px;
   padding-top: 20px;
-  padding-bottom: 20px;
-  width:300px;
   background-color: lightblue;
   border: 5px solid black;
   text-align: center;
-  align-items: center; 
+  display: flex;
 }
 
-.toggle .header:after {
-    content: " ▶";
+.toggle .header:before {
+  padding-left: 10px;
+  padding-right: 10px;
+  content: " ▶ ";
 }
 
-.toggle .header.open:after {
-    content: " ▼";
+.toggle .header.open:before {
+  padding-right: 10px;
+  padding-left: 10px;
+  content: " ▼ ";
 }
 
 .underline {
