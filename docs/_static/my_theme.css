@@ -3,7 +3,7 @@ max-width: 850px !important;
 }
 
 .toggle .header {
-  width:500px;
+  overflow:auto;
   padding-top: 20px;
   background-color: lightblue;
   border: 5px solid black;
