@@ -4,7 +4,7 @@ max-width: 850px !important;
 
 h1 {
   /*Increases the spacing above methods in modules in html*/
-  margin-top: 200px; 
+  margin-top: 10px; 
 }
 
 .toggle .header {
