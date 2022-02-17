@@ -4,7 +4,12 @@ Naive Electrostatics Code Test
 
 This is a synthetic, highly configurable simulation function. Its primary use
 is to test libEnsemble's capability to submit application instances via the Balsam service,
-including to separate machines from libEnsemble's processes.
+including to separate machines from libEnsemble's processes. This means that although
+this is typically a HPC scaling test, this can be run on a laptop with the `forces.x`
+simulation submitted to the remote machine.
+
+Note that this test currently requires active ALCF credentials to authenticate with
+the Balsam service.
 
 ### Forces Mini-App
 
@@ -26,20 +31,26 @@ See below.
 
 ### Running with libEnsemble.
 
-On the remote machine:
+On the remote machine (in a conda or other virtual environment):
 
     git clone https://github.com/argonne-lcf/balsam.git
-    cd balsam; pip install -e .
-    cd ..; balsam site init ./my-site
+    cd balsam; pip install -e .; cd ..;
+    balsam login
+    balsam site init ./my-site
+    cd my-site; balsam site start
 
 You may be asked to login and authenticate with the Balsam service. Do so with
 your ALCF credentials.
 
+On any machine you've installed and logged into Balsam, you can run `balsam site ls`
+to list your sites and `balsam job rm --all` to remove extraneous jobs between runs.
+
 Configure the `RemoteForces` class in the `run_libe_forces_balsam.py` calling
-script to match the Balsam site name and the path to your `forces.x` executable.
+script to match the Balsam site name and the path to the `forces.x` executable
+on the remote machine.
 Configure the path to the Balsam site's `data` directory in `balsam_forces.yaml`
-to match the path to your site's corresponding directory. Configure the
-`submit_allocation()` function in the calling script to correspond with your site's
+to match the path to the remote site's corresponding directory. Configure the
+`submit_allocation()` function in the calling script to correspond with the site's
 ID (an integer found via `balsam site ls`), as well as the correct queue and project
 for the machine the Balsam site was initialized on.
 

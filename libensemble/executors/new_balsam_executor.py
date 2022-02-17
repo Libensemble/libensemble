@@ -50,11 +50,6 @@ class BalsamTask(Task):
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered RUNNING state"""
 
-        # If wait_on_start then can could calculate runtime same a base executor
-        # but otherwise that will return time from task submission. Get from Balsam.
-
-        # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
-        # balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
         event_query = EventLog.objects.filter(
             job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
