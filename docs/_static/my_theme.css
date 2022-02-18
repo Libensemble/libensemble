@@ -2,17 +2,15 @@
 max-width: 850px !important;
 }
 
-h1 {
-  /*Increases the spacing above methods in modules in html*/
-  margin-top: 10px; 
-}
+.toggle {
+  margin-bottom: 40px;
 
 .toggle .header {
   cursor: pointer;
   overflow: auto;
   padding-top: 20px;
-  background-color: lightblue;
-  border: 2px solid black;
+  background-color: rgb(86,189,119);
+  border: 2px solid;
   text-align: center;
   display: flex;
 }
@@ -20,6 +18,7 @@ h1 {
 .toggle .header:before {
   padding-left: 10px;
   padding-right: 10px;
+
   content: " ▶ ";
 }
 
