@@ -1,4 +1,4 @@
-.. image:: docs/images/libE_logo.png
+.. image:: docs/images/libEnsemble_Logo.svg
    :align: center
    :alt: libEnsemble
 
