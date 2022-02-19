@@ -135,6 +135,21 @@ Now run the Executor::
 For more worker resource attributes and convenience functions see
 the :doc:`worker resources<../resource_manager/worker_resources>` module
 
+Some useful commands
+--------------------
+
+Find slurm version::
+
+    scontrol --version
+
+Find SLURM system configuration::
+
+    scontrol show config
+
+Find SLURM partition configuration for a partition called 'gpu'::
+
+    scontrol show partition gpu
+
 
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
