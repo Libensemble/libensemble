@@ -163,9 +163,19 @@ the :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
 
 **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
-Ensure that some ``srun`` option for allocating GPUs is used in the ``extra_args`` option to the
-:doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function (E.g.~ ``--gpus-per-task=1`` would
-allocate one GPU to each MPI task of the MPI run).
+If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands, at
+time of writing, expect an  option for allocating GPUs (e.g.~ ``--gpus-per-task=1`` would
+allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
+via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
+even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
+
+If running the libEnsemble user calling script with ``srun``, then it is recommended that
+``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
+GPU runs will be submitted, instead of in the batch script. E.g::
+
+    os.environ['MPICH_GPU_SUPPORT_ENABLED'] = "1"
+
 
 Additional Information
 ----------------------
