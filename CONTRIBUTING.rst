@@ -39,6 +39,8 @@ act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
 
+::
+
   Developer's Certificate of Origin 1.1
 
   By making a contribution to this project, I certify that:
