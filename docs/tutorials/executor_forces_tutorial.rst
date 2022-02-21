@@ -5,7 +5,7 @@ Executor with Electrostatic Forces
 This tutorial highlights libEnsemble's capability to execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`. In this tutorial,
-our calling script registers an external C executable that simulates
+our calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The ``sim_f``
 routine then launches and polls this executable.
 
@@ -15,7 +15,7 @@ hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
 allow libEnsemble to submit additional tasks from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's executor was developed to directly address such issues.
+libEnsemble's Executor was developed to directly address such issues.
 
 Getting Started
 ---------------
@@ -47,12 +47,12 @@ generation functions and call libEnsemble. Create a Python file containing:
 
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.tools import parse_args, add_unique_random_streams
+    from libensemble.tools import parse_args
     from libensemble.executors.mpi_executor import MPIExecutor
 
     nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
 
-    # Create executor and register sim to it
+    # Initialize executor instance
     exctr = MPIExecutor()
 
     # Create empty simulation input directory
@@ -61,21 +61,20 @@ generation functions and call libEnsemble. Create a Python file containing:
 
     # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), 'forces.x')
-    exctr.register_app(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, app_name='forces')
 
 On line 4 we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
-For example, our script can use the number of workers (``nworkers``), a boolean
-determining if the process is the manager process (``is_manager``), and a default
-:ref:`libE_specs<datastruct-libe-specs>` with a call to the ``parse_args()``
-convenience function.
+With a call to the ``parse_args()`` convenience function, our script detects the
+number of workers ``nworkers``, a boolean determining if the process is the manager
+process ``is_manager``, and a default :ref:`libE_specs<datastruct-libe-specs>`
 
-Next we define our executor class instance. This instance can be customized
+Next we define our Executor class instance. This instance can be customized
 with many of the settings defined :doc:`here<../executor/mpi_executor>`.
 We'll register our simulation with the executor and use the same
-instance within our ``sim_f``.
+instance within our simulation function.
 
-libEnsemble can perform and write every simulation (within the ensemble) in a
+libEnsemble can perform every simulation instasnce (within the ensemble) in a
 separate directory for organization and potential I/O benefits. In this example,
 libEnsemble copies a source directory and its contents to create these simulation
 directories. For our purposes, an empty directory ``./sim`` is sufficient.
@@ -111,12 +110,12 @@ Next define the :ref:`sim_specs<datastruct-sim-specs>` and
                           }
                  }
 
-These dictionaries configure our generation function ``gen_f`` and our simulation
-function ``sim_f``, respectively, as the ``uniform_random_sample`` and
-``run_forces`` functions. Our ``gen_f`` will generate random seeds when
-initializing each ``sim_f`` call.
+These dictionaries configure our generation function and our simulation
+function respectively as the ``uniform_random_sample`` and
+``run_forces`` functions. Our generation function will generate random seeds to use within
+each simulation function call.
 
-After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
+After additional settings in ``libE_specs``, defining our ``exit_criteria``, and initializing
 ``persis_info``, our script calls the main
 :doc:`libE<../libe_module>` routine:
 
@@ -124,11 +123,11 @@ After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
     :linenos:
 
     libE_specs['save_every_k_gens'] = 1000  # Save every K steps
-    libE_specs['sim_input_dir'] = './sim'   # Sim dir to be copied for each worker
+    libE_specs['sim_input_dir'] = './sim'   # Sim input dir to be copied for each worker
 
     exit_criteria = {'sim_max': 8}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = {}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
                                 persis_info=persis_info, libE_specs=libE_specs)
@@ -136,12 +135,13 @@ After some additions to ``libE_specs`` and defining our ``exit_criteria`` and
 Simulation Function
 -------------------
 
-Our ``sim_f`` is where we'll use libEnsemble's executor to configure and submit
-for execution our compiled simulation code. We will poll this task's state while
-it runs, and once we've detected it has finished we will send any results or
+Our simulation function is where we'll use libEnsemble's executor to configure and submit
+our compiled app for execution. We'll poll this task's state while
+it runs, and once we've detected it has finished we'll send any results or
 exit statuses back to the manager.
 
-Create another Python file named ``forces_simf.py`` containing:
+Create another Python file named ``forces_simf.py`` containing some imports
+and utility functions for starters:
 
 .. code-block:: python
     :linenos:
@@ -173,11 +173,7 @@ Create another Python file named ``forces_simf.py`` containing:
             line = ""  # In case file is empty or not yet created
         return line
 
-We use libEnsemble's message number tags to communicate the worker's status to
-the manager. For testing purposes, the ``perturb()`` function randomizes the
-resources used for each calculation. The second function parses
-forces values and statuses in the ``.stat`` file produced by our compiled code.
-Now we can write the actual ``sim_f``. We'll first write the function definition,
+Now we can write the body of the simulation function. We'll write the function definition,
 extract our parameters from ``sim_specs``, define a random seed, and use
 ``perturb()`` to randomize our particle counts.
 
@@ -201,40 +197,37 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # To give a random variance of work-load
         sim_particles = perturb(sim_particles, seed, particle_variance)
 
-Next we will instantiate our executor and submit our registered application for
+Next we will re-instantiate our executor and submit our registered application for
 execution.
 
 .. code-block:: python
     :linenos:
     :emphasize-lines: 2,9,10,12,13
 
-        # Use pre-defined executor object
+        # Use previously parameterized executor object
         exctr = Executor.executor
 
         # Arguments for our registered simulation
         args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
 
         # Submit our simulation for execution.
-        if cores:
-            task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args,
-                                stdout='out.txt', stderr='err.txt', wait_on_start=True)
-        else:
-            task = exctr.submit(calc_type='sim', app_args=args, stdout='out.txt',
-                                stderr='err.txt', wait_on_start=True)
+        task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
+                            stdout='out.txt', stderr='err.txt', wait_on_start=True)
 
-In each executor ``submit()`` routine, we define the type of calculation being
-performed, optionally the number of processors to run the task on, additional
+In each executor ``submit()`` routine, we specify the registered application,
+optionally the number of MPI processes to run the task with, additional
 arguments for the simulation code, and files for ``stdout`` and ``stderr``
-output. The ``wait_on_start`` argument pauses ``sim_f`` execution until the task
-is confirmed to be running. See the :doc:`docs<../executor/mpi_executor>`
+output. The ``wait_on_start`` argument causes this statement to block until the
+application is confirmed running. See the :doc:`docs<../executor/mpi_executor>`
 for more information about these and other options.
 
-The rest of our ``sim_f`` polls the :ref:`task<task_tag>`'s
+The rest of our simulation function polls the :ref:`Task<task_tag>`'s
 dynamically updated attributes for its status, determines if a successful
 run occurred after the task completes, then formats and returns the output data
 to the manager.
 
-We can poll the task and kill it in certain circumstances:
+We can poll the task and kill it if the output file contains some value or if
+the task's runtime exceeds the time limit:
 
 .. code-block:: python
     :linenos:
@@ -265,15 +258,12 @@ user based on the task's final state:
 
         if task.finished:
             if task.state == 'FINISHED':
-                print("Task {} completed".format(task.name))
                 calc_status = WORKER_DONE
                 if read_last_line(filepath) == "kill":
                     print("Warning: Task complete but marked bad (kill flag in forces.stat)")
             elif task.state == 'FAILED':
-                print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
                 calc_status = TASK_FAILED
             elif task.state == 'USER_KILLED':
-                print("Warning: Task {} has been killed".format(task.name))
                 calc_status = WORKER_KILL
             else:
                 print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
@@ -305,7 +295,7 @@ This completes our ``sim_f`` and calling script. Run libEnsemble with:
 This may take about a minute to complete. Output should appear in a new
 directory ``./ensemble``, with sub-directories labeled by ``sim_id`` and worker.
 
-The following optional lines parse and display some output:
+The following *optional* lines parse and display some output:
 
 .. code-block:: python
     :linenos:

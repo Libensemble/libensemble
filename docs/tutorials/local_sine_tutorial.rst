@@ -394,8 +394,6 @@ Write a Calling Script with the following specifications:
 Next steps
 ----------
 
-The following is another learning exercise based on the above code.
-
 libEnsemble with MPI
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -407,7 +405,7 @@ explore modifying the above code to use MPI instead of multiprocessing.
 
 We recommend the MPI distribution MPICH_ for this tutorial, which can be found
 for a variety of systems here_. You also need mpi4py_, which can be installed
-with ``pip3 install mpi4py``. If you'd like to use a specific version or
+with ``pip install mpi4py``. If you'd like to use a specific version or
 distribution of MPI instead of MPICH, configure mpi4py with that MPI at
 installation with ``MPICC=<path/to/MPI_C_compiler> pip3 install mpi4py`` If this
 doesn't work, try appending ``--user`` to the end of the command. See the
@@ -472,7 +470,7 @@ With these changes in place, our libEnsemble code can be run with MPI by
 
 .. code-block:: bash
 
-  $ mpirun -n 5 python3 calling_script.py
+  $ mpirun -n 5 python calling_script.py
 
 where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
 the master process with the libEnsemble manager and the other four will run
@@ -485,7 +483,7 @@ calculations simultaneously. Please read our
 :doc:`platform guides <../platforms/platforms_index>` for introductions to using
 libEnsemble on many such machines.
 
-libEnsemble's can launch non-Python user applications and simulations across
+libEnsemble's Executors can launch non-Python user applications and simulations across
 allocated compute resources. Try out this feature with a more-complicated
 libEnsemble use-case within our
 :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
