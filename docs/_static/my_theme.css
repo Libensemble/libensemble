@@ -21,13 +21,13 @@ max-width: 850px !important;
   padding-left: 10px;
   padding-right: 10px;
 
-  content: " ▶ ";
+  content: " ▶ Show ";
 }
 
 .toggle .header.open:before {
   padding-right: 10px;
   padding-left: 10px;
-  content: " ▼ ";
+  content: " ▼ Hide ";
 }
 
 .underline {

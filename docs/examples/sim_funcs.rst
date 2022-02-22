@@ -23,7 +23,7 @@ six_hump_camel
 
    .. container:: header
 
-      :underline:`Show/Hide six_hump_camel.py`
+      :underline:`six_hump_camel.py`
 
    .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
       :language: python
@@ -45,7 +45,7 @@ noisy_vector_mapping
 
    .. container:: header
 
-      :underline:`Show/Hide noisy_vector_mapping.py`
+      :underline:`noisy_vector_mapping.py`
 
    .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
       :language: python
@@ -72,7 +72,7 @@ executor_hworld
 
    .. container:: header
 
-      :underline:`Show/Hide executor_hworld.py`
+      :underline:`executor_hworld.py`
 
    .. literalinclude:: ../../libensemble/sim_funcs/executor_hworld.py
       :language: python

@@ -23,7 +23,7 @@ give_sim_work_first
 
    .. container:: header
 
-      :underline:`Show/Hide give_sim_work_first.py`
+      :underline:`give_sim_work_first.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/give_sim_work_first.py
       :language: python
@@ -39,7 +39,7 @@ fast_alloc
 
    .. container:: header
 
-      :underline:`Show/Hide fast_alloc.py`
+      :underline:`fast_alloc.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
       :language: python
@@ -63,7 +63,7 @@ start_only_persistent
 
    .. container:: header
 
-      :underline:`Show/Hide start_only_persistent.py`
+      :underline:`start_only_persistent.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
       :language: python

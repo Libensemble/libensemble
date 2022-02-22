@@ -19,7 +19,7 @@ use either *venv* or *--user* install.
 
    .. container:: header
 
-      :underline:`Show/Hide persistent_tasmanian.py`
+      :underline:`persistent_tasmanian.py`
 
    .. literalinclude:: ../../libensemble/gen_funcs/persistent_tasmanian.py
       :language: python
