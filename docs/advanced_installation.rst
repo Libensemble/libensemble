@@ -14,7 +14,7 @@ pip
 ---
 
 We always recommend installing in a virtual environment such as Conda.
-If not, then use ``pip3``, ``python3`` below.
+If not, then use ``pip``, ``python`` below.
 
 To install the latest pip release::
 

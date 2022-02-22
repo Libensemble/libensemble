@@ -407,7 +407,7 @@ We recommend the MPI distribution MPICH_ for this tutorial, which can be found
 for a variety of systems here_. You also need mpi4py_, which can be installed
 with ``pip install mpi4py``. If you'd like to use a specific version or
 distribution of MPI instead of MPICH, configure mpi4py with that MPI at
-installation with ``MPICC=<path/to/MPI_C_compiler> pip3 install mpi4py`` If this
+installation with ``MPICC=<path/to/MPI_C_compiler> pip install mpi4py`` If this
 doesn't work, try appending ``--user`` to the end of the command. See the
 mpi4py_ docs for more information.
 
