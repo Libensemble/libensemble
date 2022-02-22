@@ -61,7 +61,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
         H_o = np.zeros(1, dtype=gen_specs['out'])
         # H_o['x'] = len(H)*np.ones(n)  # Can use a simple count for testing.
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub)
-        H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1)
+        H_o['resource_sets'] = persis_info['rand_stream'].integers(1, gen_specs['user']['max_resource_sets']+1)
         H_o['priority'] = 10*H_o['resource_sets']
         # print('Created sim for {} workers'.format(H_o['resource_sets']), flush=True)
 

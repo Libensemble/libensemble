@@ -160,11 +160,11 @@ def add_unique_random_streams(persis_info, nstreams, seed=''):
 
         if i in persis_info:
             persis_info[i].update({
-                'rand_stream': np.random.RandomState(random_seed),
+                'rand_stream': np.random.default_rng(random_seed),
                 'worker_num': i})
         else:
             persis_info[i] = {
-                'rand_stream': np.random.RandomState(random_seed),
+                'rand_stream': np.random.default_rng(random_seed),
                 'worker_num': i}
     return persis_info
 

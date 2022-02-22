@@ -4,7 +4,7 @@ import numpy as np
 
 
 def circ_offset(wid, length):
-    offset = length//2 + (length % 2 > 0)
+    offset = length // 2 + (length % 2 > 0)
     circ_index = wid + offset
     if circ_index > length:
         circ_index = circ_index - length
@@ -22,7 +22,7 @@ def exp_nodelist_for_worker(exp_list, workerID, nodes_per_worker, persis_gens):
             for node in node_list:
                 node_name, node_num = node.split('-')
                 offset = workerID - (1 + persis_gens)
-                new_num = int(node_num) + int(nodes_per_worker*offset)
+                new_num = int(node_num) + int(nodes_per_worker * offset)
                 new_node = '-'.join([node_name, str(new_num)])
                 new_node_list.append(new_node)
             new_list = ','.join(new_node_list)
@@ -43,16 +43,18 @@ def runline_check(H, persis_info, sim_specs, libE_info):
     p_gens = sim_specs['user'].get('persis_gens', 0)
 
     for i, test in enumerate(test_list):
-        task = exctr.submit(calc_type='sim',
-                            num_procs=test.get('nprocs', None),
-                            num_nodes=test.get('nnodes', None),
-                            procs_per_node=test.get('ppn', None),
-                            extra_args=test.get('e_args', None),
-                            app_args='--testid ' + test.get('testid', None),
-                            stdout='out.txt',
-                            stderr='err.txt',
-                            hyperthreads=test.get('ht', None),
-                            dry_run=True)
+        task = exctr.submit(
+            calc_type='sim',
+            num_procs=test.get('nprocs', None),
+            num_nodes=test.get('nnodes', None),
+            procs_per_node=test.get('ppn', None),
+            extra_args=test.get('e_args', None),
+            app_args='--testid ' + test.get('testid', None),
+            stdout='out.txt',
+            stderr='err.txt',
+            hyperthreads=test.get('ht', None),
+            dry_run=True,
+        )
 
         outline = task.runline
         new_exp_list = exp_nodelist_for_worker(exp_list[i], libE_info['workerID'], npw, p_gens)
@@ -60,7 +62,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
         if outline != new_exp_list:
             print('outline is: {}\nexp     is: {}'.format(outline, new_exp_list), flush=True)
 
-        assert(outline == new_exp_list)
+        assert outline == new_exp_list
 
     calc_status = WORKER_DONE
     output = np.zeros(1, dtype=sim_specs['out'])
@@ -78,16 +80,18 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     exp_list = sim_specs['user']['expect']
     p_gens = sim_specs['user'].get('persis_gens', 0)
 
-    task = exctr.submit(calc_type='sim',
-                        num_procs=test.get('nprocs', None),
-                        num_nodes=test.get('nnodes', None),
-                        procs_per_node=test.get('ppn', None),
-                        extra_args=test.get('e_args', None),
-                        app_args='--testid ' + test.get('testid', None),
-                        stdout='out.txt',
-                        stderr='err.txt',
-                        hyperthreads=test.get('ht', None),
-                        dry_run=True)
+    task = exctr.submit(
+        calc_type='sim',
+        num_procs=test.get('nprocs', None),
+        num_nodes=test.get('nnodes', None),
+        procs_per_node=test.get('ppn', None),
+        extra_args=test.get('e_args', None),
+        app_args='--testid ' + test.get('testid', None),
+        stdout='out.txt',
+        stderr='err.txt',
+        hyperthreads=test.get('ht', None),
+        dry_run=True,
+    )
 
     outline = task.runline
     wid = libE_info['workerID']
@@ -101,12 +105,12 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     else:
         wid_mod = wid
 
-    new_exp_list = exp_list[wid_mod-1-p_gens]
+    new_exp_list = exp_list[wid_mod - 1 - p_gens]
 
     if outline != new_exp_list:
         print('Worker {}:\n outline is: {}\n exp     is: {}'.format(wid, outline, new_exp_list), flush=True)
 
-    assert(outline == new_exp_list)
+    assert outline == new_exp_list
 
     calc_status = WORKER_DONE
     output = np.zeros(1, dtype=sim_specs['out'])

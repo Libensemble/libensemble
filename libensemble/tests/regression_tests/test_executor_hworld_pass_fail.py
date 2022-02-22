@@ -26,6 +26,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_NPROCS: 2 3 4
 # TESTSUITE_OMPI_SKIP: true
 
