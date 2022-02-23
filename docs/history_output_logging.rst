@@ -28,6 +28,8 @@ Two other libEnsemble files produced by default:
 
 To suppress libEnsemble from producing these two files, set ``libE_specs['disable_log_files']`` to ``True``.
 
+.. _logger_config:
+
 Logger Configuration
 ~~~~~~~~~~~~~~~~~~~~
 

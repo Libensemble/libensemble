@@ -256,7 +256,7 @@ Resources
     doi     = {10.1109/tpds.2021.3082815}
   }
 
-**Capabilities:**
+**Example Compatible Packages**
 
 libEnsemble and the `Community Examples repository`_ include example generator
 functions for the following libraries:
@@ -341,7 +341,7 @@ See a complete list of `example user scripts`_.
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
-.. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
+.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
 .. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
