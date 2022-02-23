@@ -45,23 +45,27 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
 
     # Launch the executor to actually run the WarpX simulation
     if machine_specs['name'] == 'summit':
-        task = exctr.submit(app_name='warpx',
-                            extra_args=machine_specs['extra_args'],
-                            app_args=app_args,
-                            stdout='out.txt',
-                            stderr='err.txt',
-                            wait_on_start=True)
+        task = exctr.submit(
+            app_name='warpx',
+            extra_args=machine_specs['extra_args'],
+            app_args=app_args,
+            stdout='out.txt',
+            stderr='err.txt',
+            wait_on_start=True,
+        )
     else:
-        task = exctr.submit(app_name='warpx',
-                            num_procs=machine_specs['cores'],
-                            app_args=app_args,
-                            stdout='out.txt',
-                            stderr='err.txt',
-                            wait_on_start=True)
+        task = exctr.submit(
+            app_name='warpx',
+            num_procs=machine_specs['cores'],
+            app_args=app_args,
+            stdout='out.txt',
+            stderr='err.txt',
+            wait_on_start=True,
+        )
 
     # Periodically check the status of the simulation
     poll_interval = 1  # secs
-    while(not task.finished):
+    while not task.finished:
         time.sleep(poll_interval)
         task.poll()
         if task.runtime > time_limit:
@@ -72,15 +76,12 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
         if task.state == 'FINISHED':
             calc_status = WORKER_DONE
         elif task.state == 'FAILED':
-            print("Warning: Task {} failed: Error code {}"
-                  .format(task.name, task.errcode))
+            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
             calc_status = TASK_FAILED
         elif task.state == 'USER_KILLED':
-            print("Warning: Task {} has been killed"
-                  .format(task.name))
+            print("Warning: Task {} has been killed".format(task.name))
         else:
-            print("Warning: Task {} in unknown state {}. Error code {}"
-                  .format(task.name, task.state, task.errcode))
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     # Safety
     time.sleep(0.2)

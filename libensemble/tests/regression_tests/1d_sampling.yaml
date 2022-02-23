@@ -4,7 +4,6 @@ libE_specs:
     exit_criteria:
         gen_max: 501
 
-
 sim_specs:
     function: libensemble.sim_funcs.one_d_func.one_d_example
     inputs:

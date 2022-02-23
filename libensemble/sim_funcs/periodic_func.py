@@ -24,4 +24,4 @@ def periodic_func(x):
     """
     This function is periodic
     """
-    return sin(x[0])*cos(x[1])
+    return sin(x[0]) * cos(x[1])

@@ -9,11 +9,11 @@ def EvaluateFunction(x, component, B):
     """
     m = B.shape[0]
     assert B.shape[1] == len(x)
-    assert 0 <= component <= m-1
+    assert 0 <= component <= m - 1
     i = component
     b_i = B[i]
 
-    f_i = 1.0/m * la.norm(x-b_i)
+    f_i = 1.0 / m * la.norm(x - b_i)
     return f_i
 
 
@@ -23,11 +23,11 @@ def EvaluateJacobian(x, component, B):
     """
     m = B.shape[0]
     assert B.shape[1] == len(x)
-    assert 0 <= component <= m-1
+    assert 0 <= component <= m - 1
     i = component
     b_i = B[i]
 
-    df_i = 1.0/m * (x-b_i)/la.norm(x-b_i)
+    df_i = 1.0 / m * (x - b_i) / la.norm(x - b_i)
     return df_i
 
 
@@ -39,7 +39,7 @@ def geomedian_eval(H, persis_info, sim_specs, _):
     H_o = np.zeros(num_xs, dtype=sim_specs['out'])
 
     for k, x in enumerate(H['x']):
-        i = H[k]['obj_component']   # f_i
+        i = H[k]['obj_component']  # f_i
 
         if H[k]['get_grad']:
             H_o['gradf_i'][k] = EvaluateJacobian(x, i, B)

@@ -25,23 +25,21 @@ from warpx_simf import run_warpx  # Sim function from current directory
 
 # Import libEnsemble modules
 from libensemble.libE import libE
+
 if generator_type == 'random':
-    from libensemble.gen_funcs.sampling \
-        import uniform_random_sample as gen_f
-    from libensemble.alloc_funcs.give_sim_work_first\
-        import give_sim_work_first as alloc_f
+    from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
 elif generator_type == 'aposmm':
     import libensemble.gen_funcs
+
     libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
     from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-    from libensemble.alloc_funcs.persistent_aposmm_alloc \
-        import persistent_aposmm_alloc as alloc_f
+    from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 else:
     print("you shouldn' hit that")
     sys.exit()
 
-from libensemble.tools import parse_args, save_libE_output, \
-    add_unique_random_streams
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import logger
 from libensemble.executors.mpi_executor import MPIExecutor
 
@@ -110,8 +108,8 @@ sim_specs = {
         # Run timeouts after 3 mins
         'sim_kill_minutes': 3,
         # machine-specific parameters
-        'machine_specs': machine_specs
-    }
+        'machine_specs': machine_specs,
+    },
 }
 
 # State the generating function, its arguments, output,
@@ -132,10 +130,10 @@ if generator_type == 'random':
             # Total max number of sims running concurrently.
             'gen_batch_size': nworkers,
             # Lower bound for the n parameters.
-            'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),
+            'lb': np.array([2.0e-3, 2.0e-3, 0.005, 0.1]),
             # Upper bound for the n parameters.
-            'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]),
-        }
+            'ub': np.array([2.0e-2, 2.0e-2, 0.028, 3.0]),
+        },
     }
 
     alloc_specs = {
@@ -146,8 +144,8 @@ if generator_type == 'random':
             # If true wait for all sims to process before generate more
             'batch_mode': True,
             # Only one active generator at a time
-            'num_active_gens': 1
-        }
+            'num_active_gens': 1,
+        },
     }
 
 elif generator_type == 'aposmm':
@@ -168,12 +166,12 @@ elif generator_type == 'aposmm':
             ('local_min', bool),
             # whether the point is from a local optimization run
             # or a random sample point.
-            ('local_pt', bool)
+            ('local_pt', bool),
         ],
         'user': {
             # Number of sims for initial random sampling.
             # Optimizer starts afterwards.
-            'initial_sample_size': max(nworkers-1, 1),
+            'initial_sample_size': max(nworkers - 1, 1),
             # APOSMM/NLOPT optimization method
             'localopt_method': 'LN_BOBYQA',
             'num_pts_first_pass': nworkers,
@@ -183,10 +181,10 @@ elif generator_type == 'aposmm':
             # local optimization stops.
             'ftol_abs': 3e-8,
             # Lower bound for the n input parameters.
-            'lb': np.array([2.e-3, 2.e-3, 0.005, .1]),
+            'lb': np.array([2.0e-3, 2.0e-3, 0.005, 0.1]),
             # Upper bound for the n input parameters.
-            'ub': np.array([2.e-2, 2.e-2, 0.028, 3.]),
-        }
+            'ub': np.array([2.0e-2, 2.0e-2, 0.028, 3.0]),
+        },
     }
 
     alloc_specs = {'alloc_f': alloc_f}
@@ -209,8 +207,7 @@ exit_criteria = {'sim_max': sim_max}  # Exit after running sim_max simulations
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Run LibEnsemble, and store results in history array H
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info, alloc_specs, libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 # Save results to numpy file
 if is_manager:
