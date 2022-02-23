@@ -18,27 +18,34 @@ forces.gen_specs["user"].update(
 
 forces.persis_info.add_random_streams()
 
-if forces.is_manager:
-    RemoteForces = ApplicationDefinition.load_by_site("jln_theta").get("RemoteForce")
-    if not RemoteForces:
-
-        class RemoteForces(ApplicationDefinition):
-            site = "jln_theta"
-            command_template = (
-                "/home/jnavarro/"
-                + "libensemble/libensemble/tests/scaling_tests/balsam_forces/forces.x"
-                + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
-                + " > out.txt 2>&1"
-            )
-
-    exctr = NewBalsamMPIExecutor()
-    exctr.register_app(RemoteForces, app_name="forces")
-    exctr.submit_allocation(
-        site_id=246,
-        num_nodes=1,
-        wall_time_min=30,
-        queue="debug-cache-quad",
-        project="CSC250STMS07",
+class RemoteForces(ApplicationDefinition):
+    site = "three"
+    command_template = (
+        "/Users/jnavarro/Desktop/libensemble/"
+        + "libensemble/libensemble/tests/scaling_tests/forces/forces.x"
+        + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
+        + " > out.txt 2>&1"
     )
 
+    transfers = {
+        "result": {
+            "required": True,
+            "direction": "out",
+            "local_path": "forces.stat",
+            "description": "Forces stat file",
+            "recursive": False
+        }
+    }
+
+exctr = NewBalsamMPIExecutor()
+exctr.register_app(RemoteForces, app_name="forces")
+
+batch = exctr.submit_allocation(
+    site_id=239,
+    num_nodes=1,
+    wall_time_min=30,
+)
+
 forces.run()
+
+# exctr.revoke_allocation(batch)

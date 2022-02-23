@@ -249,11 +249,11 @@ class NewBalsamMPIExecutor(MPIExecutor):
                           queue="local", project="local"):
         """
         Submits a Balsam BatchJob machine allocation request to Balsam.
-        Corresponding Balsam applications with a matching site can be submitted to this allocation.
+        Corresponding Balsam applications with a matching site can be submitted to
+        this allocation.
         """
 
-        self.allocations.append(
-            BatchJob.objects.create(
+        allocation = BatchJob.objects.create(
                 site_id=site_id,
                 num_nodes=num_nodes,
                 wall_time_min=wall_time_min,
@@ -261,11 +261,23 @@ class NewBalsamMPIExecutor(MPIExecutor):
                 queue=queue,
                 project=project
             )
-        )
 
-        logger.info("Submitted Batch allocation to endpoint {}: "
+        self.allocations.append(allocation)
+
+        logger.info("Submitted Batch allocation to site {}: "
                     "nodes {} queue {} project {}".
                     format(site_id, num_nodes, queue, project))
+
+        return allocation
+
+    def revoke_allocation(self, allocation):
+        """
+        Terminates a Balsam BatchJob remotely. Balsam apps should no longer be
+        submitted to this allocation. Best to run after libEnsemble completes
+        to save machine time.
+        """
+
+        BatchJob.objects.filter(scheduler_id=allocation.scheduler_id).update(state="pending_deletion")
 
     def set_resources(self, resources):
         self.resources = resources
@@ -326,7 +338,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info("Submitted Balsam App to endpoint {}: "
+            logger.info("Submitted Balsam App to site {}: "
                         "nodes {} ppn {}".
                         format(App.site, num_nodes, procs_per_node))
 

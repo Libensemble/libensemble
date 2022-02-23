@@ -56,48 +56,45 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
     workdir = 'worker' + str(libE_info['workerID']) + '_' + secrets.token_urlsafe(nbytes=3)
 
+    file_dest = os.getcwd() + "/forces_" + secrets.token_urlsafe(nbytes=3) + ".stat"
+
     task = exctr.submit(
         app_name='forces',
         app_args=args,
-        num_procs=16,
+        num_procs=4,
         num_nodes=1,
-        procs_per_node=16,
-        max_tasks_per_node=4,
-        workdir=workdir,
+        procs_per_node=4,
+        max_tasks_per_node=2,
+        transfers={"result": "jln_laptop:"+file_dest},
+        workdir=workdir
     )
 
     # Stat file to check for bad runs
     statfile = 'forces.stat'
-    filepath = sim_specs['user']['balsam_data_dir'] + os.path.join(task.workdir, statfile)
     line = None
 
-    poll_interval = 1  # secs
+    poll_interval = 2  # secs
     while not task.finished:
-        # Read last line of statfile
-        line = read_last_line(filepath)
-        if line == "kill":
-            task.kill()  # Bad run
-        elif task.runtime > time_limit:
-            task.kill()  # Timeout
-        else:
-            time.sleep(poll_interval)
-            task.poll()
+        time.sleep(poll_interval)
+        task.poll()
+        if task.state == 'FAILED':
+            break
 
-    if task.finished:
-        if task.state == 'FINISHED':
-            print("Task {} completed".format(task.name))
-            calc_status = WORKER_DONE
-            if read_last_line(filepath) == "kill":
-                # Generally mark as complete if want results (completed after poll - before readline)
-                print("Warning: Task completed although marked as a bad run (kill flag set in forces.stat)")
-        elif task.state == 'FAILED':
-            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
-            calc_status = TASK_FAILED
-        elif task.state == 'USER_KILLED':
-            print("Warning: Task {} has been killed".format(task.name))
-            calc_status = WORKER_KILL
-        else:
-            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+    # if task.finished:
+    #     if task.state == 'FINISHED':
+    #         print("Task {} completed".format(task.name))
+    #         calc_status = WORKER_DONE
+    #         if read_last_line(filepath) == "kill":
+    #             # Generally mark as complete if want results (completed after poll - before readline)
+    #             print("Warning: Task completed although marked as a bad run (kill flag set in forces.stat)")
+    #     elif task.state == 'FAILED':
+    #         print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+    #         calc_status = TASK_FAILED
+    #     elif task.state == 'USER_KILLED':
+    #         print("Warning: Task {} has been killed".format(task.name))
+    #         calc_status = WORKER_KILL
+    #     else:
+    #         print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     time.sleep(0.2)
     try:
