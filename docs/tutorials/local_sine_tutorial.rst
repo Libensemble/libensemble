@@ -6,7 +6,7 @@ This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
 multiprocessing.
 
-The foundation of writing libEnsemble routines is accounting for at a minimum three components:
+The foundation of writing libEnsemble routines is accounting for at least three components:
 
     1. A :ref:`generator function<api_gen_f>`, that produces values for simulations
     2. A :ref:`simulator function<api_sim_f>`, performs simulations based on values from the generator function
@@ -14,7 +14,7 @@ The foundation of writing libEnsemble routines is accounting for at a minimum th
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
 user requests. The manager coordinates data transfer between workers and assigns
-each units of work, consisting of a function to run and
+units of work to each worker, consisting of a function to run and
 accompanying data. These functions perform their work in-line with Python and/or
 launch and control user applications with libEnsemble's :ref:`Executors<executor_index>`.
 Workers pass results back to the manager.
@@ -75,7 +75,7 @@ following parameters:
 
 * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined fields and
   parameters for the generator. Customizable parameters such as boundaries and batch
-  sizes are placed within the nested ``user`` dictionary, while input/output fields
+  sizes are placed within the ``gen_specs['user']`` dictionary, while input/output fields
   and other specifications that libEnsemble depends on to operate the generator are
   placed outside ``user``.
 
@@ -146,7 +146,6 @@ the ``numpy.random.RandomState.randint(low, high, size)`` function.
            out['x'] = persis_info['rand_stream'].randint(lower, upper, (batch_size, num))
 
            return out, persis_info
-
 
 Simulator function
 ------------------
@@ -337,7 +336,6 @@ script and run ``python3 calling_script.py`` again
   plt.ylabel('sine(x)')
   plt.legend(loc = 'lower right')
   plt.savefig('tutorial_sines.png')
-
 
 Exercise
 ^^^^^^^^
