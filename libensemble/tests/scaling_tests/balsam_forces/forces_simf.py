@@ -54,9 +54,9 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     print('seed: {}   particles: {}'.format(seed, sim_particles))
 
     args = {"sim_particles": sim_particles, "sim_timesteps": sim_timesteps, "seed": seed, "kill_rate": kill_rate}
-    workdir = 'worker' + str(libE_info['workerID']) + '_' + secrets.token_urlsafe(nbytes=3)
+    workdir = 'worker' + str(libE_info['workerID']) + '_' + secrets.token_hex(nbytes=3)
 
-    file_dest = os.getcwd() + "/forces_" + secrets.token_urlsafe(nbytes=3) + ".stat"
+    file_dest = os.getcwd() + "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
 
     task = exctr.submit(
         app_name='forces',
