@@ -10,7 +10,8 @@ class MyResources:
     """Simulate resources"""
 
     rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
-                  ('group', int)]     # Group ID this resource set belongs to
+                  ('group', int),     # Group ID this resource set belongs to
+                  ('slot', int)]     # Slot ID this resource set belongs to
 
     # Basic layout
     def __init__(self, num_rsets, num_groups):
@@ -22,6 +23,7 @@ class MyResources:
         self.rsets['assigned'] = 0
         for i in range(self.total_num_rsets):
             self.rsets['group'][i] = i // self.rsets_per_node
+            self.rsets['slot'][i] = i % self.rsets_per_node
         self.rsets_free = self.total_num_rsets
         print(self.rsets)
 
@@ -53,11 +55,27 @@ def test_too_many_rsets():
     """Tests request of more resource sets than exist"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
+
+    # No options
     sched = ResourceScheduler(user_resources=resources)
 
     with pytest.raises(InsufficientResourcesError):
         rset_team = sched.assign_resources(rsets_req=10)  # noqa F841
         pytest.fail('Expected InsufficientResourcesError')
+
+    del sched
+    rset_team = None
+
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+            with pytest.raises(InsufficientResourcesError):
+                rset_team = sched.assign_resources(rsets_req=10)  # noqa F841
+                pytest.fail('Expected InsufficientResourcesError')
+            del sched
+    del resources
 
 
 def test_cannot_split_quick_return():
@@ -81,31 +99,41 @@ def test_schdule_find_gaps_1node():
     """
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 1)
-    sched = ResourceScheduler(user_resources=resources)
 
-    rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [0, 1]
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
 
-    rset_team = sched.assign_resources(rsets_req=3)
-    assert rset_team == [2, 3, 4]
+            rset_team = sched.assign_resources(rsets_req=2)
+            assert rset_team == [0, 1], 'rset_team is {}'.format(rset_team)
 
-    # Check not enough slots
-    with pytest.raises(InsufficientFreeResources):
-        rset_team = sched.assign_resources(rsets_req=4)
-        pytest.fail('Expected InsufficientFreeResources')
+            rset_team = sched.assign_resources(rsets_req=3)
+            assert rset_team == [2, 3, 4]
 
-    rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [5, 6]
+            # Check not enough slots
+            with pytest.raises(InsufficientFreeResources):
+                rset_team = sched.assign_resources(rsets_req=4)
+                pytest.fail('Expected InsufficientFreeResources')
 
-    # Simulate resources freed up on return from worker
-    resources.fixed_assignment(([3, 3, 0, 0, 0, 4, 4, 0]))
+            rset_team = sched.assign_resources(rsets_req=2)
+            assert rset_team == [5, 6]
 
-    # Create new scheduler to simulate new alloc call
-    del sched
-    sched = ResourceScheduler(user_resources=resources)
+            # Simulate resources freed up on return from worker
+            resources.fixed_assignment(([3, 3, 0, 0, 0, 4, 4, 0]))
 
-    rset_team = sched.assign_resources(rsets_req=4)
-    assert rset_team == [2, 3, 4, 7]
+            # Create new scheduler to simulate new alloc call
+            del sched
+            rset_team = None
+            sched = ResourceScheduler(user_resources=resources)
+
+            rset_team = sched.assign_resources(rsets_req=4)
+            assert rset_team == [2, 3, 4, 7]
+
+            del sched
+            rset_team = None
+            resources.free_rsets()
     del resources
 
 
@@ -131,20 +159,28 @@ def test_schdule_find_gaps_2nodes():
 def test_across_nodes_even_split():
     """Tests assignment over two nodes"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    resources = MyResources(8, 2)
-    sched = ResourceScheduler(user_resources=resources)
-    rset_team = sched.assign_resources(rsets_req=6)
-    # Expecting even split
-    assert rset_team == [0, 1, 2, 4, 5, 6], \
-        'Even split test did not get expected result {}'.format(rset_team)
 
-    # This time it must use 3 nodes for even split (though 2 would cover uneven).
-    resources = MyResources(15, 3)
-    sched = ResourceScheduler(user_resources=resources)
-    rset_team = sched.assign_resources(rsets_req=9)
-    # Expecting even split
-    assert rset_team == [0, 1, 2, 5, 6, 7, 10, 11, 12], \
-        'Even split test did not get expected result {}'.format(rset_team)
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            resources = MyResources(8, 2)
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+
+            rset_team = sched.assign_resources(rsets_req=6)
+            # Expecting even split
+            assert rset_team == [0, 1, 2, 4, 5, 6], \
+                'Even split test did not get expected result {}'.format(rset_team)
+
+            # This time it must use 3 nodes for even split (though 2 would cover uneven).
+            resources = MyResources(15, 3)
+            sched = ResourceScheduler(user_resources=resources)
+            rset_team = sched.assign_resources(rsets_req=9)
+            # Expecting even split
+            assert rset_team == [0, 1, 2, 5, 6, 7, 10, 11, 12], \
+                'Even split test did not get expected result {}'.format(rset_team)
+            del sched
+            rset_team = None
     del resources
 
 
@@ -152,11 +188,18 @@ def test_across_nodes_roundup_option():
     """Tests assignment over two nodes"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
-    sched = ResourceScheduler(user_resources=resources)
-    rset_team = sched.assign_resources(rsets_req=5)
-    # Expecting even split
-    assert rset_team == [0, 1, 2, 4, 5, 6], \
-        'Even split test did not get expected result {}'.format(rset_team)
+
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+            rset_team = sched.assign_resources(rsets_req=5)
+            # Expecting even split
+            assert rset_team == [0, 1, 2, 4, 5, 6], \
+                'Even split test did not get expected result {}'.format(rset_team)
+            del sched
+            rset_team = None
     del resources
 
 
