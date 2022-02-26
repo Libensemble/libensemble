@@ -1,7 +1,9 @@
 import copy
 import logging
 import numpy as np
+import itertools
 from libensemble.resources.resources import Resources
+
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -47,6 +49,7 @@ class ResourceScheduler:
 
         # Process scheduler options
         self.split2fit = sched_opts.get('split2fit', True)
+        self.match_slots = sched_opts.get('match_slots', False)  # SH TODO: Default will be True
 
     def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible
@@ -61,7 +64,6 @@ class ResourceScheduler:
         Returns a list of resource sets ids. A return of None implies
         insufficient resources.
         """
-
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
                                              .format(rsets_req, self.resources.total_num_rsets))
@@ -77,16 +79,46 @@ class ResourceScheduler:
         rsets_req, num_groups_req, rsets_req_per_group = \
             self.calc_req_split(rsets_req, max_grpsize, num_groups, extend=True)
 
+        if self.match_slots:
+            slots_avail_by_group = self.get_avail_slots_by_group(avail_rsets_by_group)
+            cand_groups, cand_slots = \
+                self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
+            if cand_groups is None:
+                if not self.split2fit:
+                    raise InsufficientFreeResources
+            else:
+                rset_team = \
+                    self.assign_team_from_slots(slots_avail_by_group, cand_groups,
+                                                cand_slots, rsets_req_per_group)
+                return rset_team
+
         if self.split2fit:
             sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
             max_even_grpsize = sorted_lengths[num_groups_req - 1]
             if max_even_grpsize == 0 and rsets_req > 0:
                 raise InsufficientFreeResources
             if max_even_grpsize < rsets_req_per_group:
-                # Cannot fit in smallest number of nodes - try to split
-                rsets_req, num_groups_req, rsets_req_per_group = \
-                    self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
-                                                       rsets_req, sorted_lengths, num_groups, extend=False)
+                found_or_doneall = False
+                while not found_or_doneall:
+                    rsets_req, num_groups_req, rsets_req_per_group = \
+                        self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
+                                                           rsets_req, sorted_lengths, num_groups, extend=False)
+                    if rsets_req == 0:
+                        raise InsufficientFreeResources
+                    if self.match_slots:
+                        cand_groups, cand_slots = \
+                            self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
+                        if cand_groups is not None:
+                            rset_team = \
+                                self.assign_team_from_slots(slots_avail_by_group,
+                                                            cand_groups, cand_slots, rsets_req_per_group)
+                            # found_or_doneall=True
+                            return rset_team
+                        else:
+                            num_groups_req += 1  # try one more group
+                    else:
+                        found_or_doneall = True
+
         tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
         max_upper_bound = max_grpsize + 1
 
@@ -107,12 +139,9 @@ class ResourceScheduler:
 
         if len(accum_team) == rsets_req:
             # A successful team found
-            rset_team = sorted(accum_team)
-            self.avail_rsets_by_group = tmp_avail_rsets_by_group
-            self.rsets_free -= rsets_req
+            rset_team = self.assign_team_from_tmp(accum_team, tmp_avail_rsets_by_group)
         else:
             raise InsufficientFreeResources
-
         return rset_team
 
     def find_candidate(self, rsets_by_group, group_list, rsets_req_per_group, max_upper_bound):
@@ -155,6 +184,13 @@ class ResourceScheduler:
                     g = rset['group']
                     self.avail_rsets_by_group[g].append(ind)
         return self.avail_rsets_by_group
+
+    def get_avail_slots_by_group(self, avail_rsets_by_group):
+        """Return a dictionary of free slot IDS for each group (e.g. node)"""
+        slots_avail_by_group = {}
+        for k, v in avail_rsets_by_group.items():
+            slots_avail_by_group[k] = set([self.resources.rsets[i]['slot'] for i in v])
+        return slots_avail_by_group
 
     def calc_req_split(self, rsets_req, max_grpsize, num_groups, extend):
         if self.resources.even_groups:  # This is total group sizes even (not available sizes)
@@ -203,7 +239,6 @@ class ResourceScheduler:
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
         if rsets_req == 0:
             return 0, 0, 0
-
         while rsets_per_grp * ngroups != rsets_req:
             if rsets_per_grp * ngroups > rsets_req:
                 rsets_per_grp -= 1
@@ -212,10 +247,56 @@ class ResourceScheduler:
                 if ngroups > max_grps:
                     raise InsufficientFreeResources
                 rsets_per_grp = sorted_lens[ngroups - 1]
-
         return rsets_req, ngroups, rsets_per_grp
+
+    def assign_team_from_slots(self, slots_avail_by_group, cand_groups, cand_slots, rsets_req_per_group):
+        rset_team = []
+        for grp in cand_groups:
+            for i, slot in enumerate(cand_slots):
+                # Ignore extra slots
+                if i >= rsets_req_per_group:
+                    continue
+                group = (self.resources.rsets['group'] == grp)
+                slot = (self.resources.rsets['slot'] == slot)
+                rset = int(np.where(group & slot)[0])
+                rset_team.append(rset)
+                self.avail_rsets_by_group[grp].remove(rset)
+        self.rsets_free -= len(rset_team)
+        return rset_team
+
+    def assign_team_from_tmp(self, cand_team, tmp_avail_rsets_by_group):
+        rset_team = sorted(cand_team)
+        self.avail_rsets_by_group = tmp_avail_rsets_by_group
+        self.rsets_free -= len(rset_team)
+        return rset_team
 
     @staticmethod
     def get_sorted_lens(avail_rsets):
         """Get max length of a list value in a dictionary"""
         return sorted([len(v) for v in avail_rsets.values()], reverse=True)
+
+    def get_matching_slots(self, slots_avail_by_group, num_groups_req, rsets_req_per_group):
+        """Get first N matching slots across groups"""
+        cand_groups = None
+        cand_slots = None
+        combs = itertools.combinations(slots_avail_by_group, num_groups_req)
+        upper_bound = max(len(v) for v in slots_avail_by_group.values()) + 1
+
+        for comb in combs:
+            tmplist = []
+            for i in comb:
+                tmplist.append(slots_avail_by_group[i])
+            common_slots = set.intersection(*tmplist)
+            if len(common_slots) == rsets_req_per_group:
+                cand_groups = comb
+                cand_slots = common_slots
+                break
+            elif rsets_req_per_group < len(common_slots) < upper_bound:
+                upper_bound = len(common_slots)
+                cand_groups = comb
+                cand_slots = common_slots
+
+        if cand_groups is None:
+            return None, None
+
+        return cand_groups, cand_slots
