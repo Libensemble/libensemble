@@ -22,7 +22,8 @@ class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
     rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
-                  ('group', int)      # Group ID this resource set belongs to
+                  ('group', int),     # Group ID this resource set belongs to
+                  ('slot', int)       # Slot ID this resource set belongs to
                   # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
                   ]
 
@@ -49,7 +50,7 @@ class ResourceManager(RSetResources):
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
-        self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
+        self.rsets['group'], self.rsets['slot'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
         self.rsets_free = self.total_num_rsets
 
@@ -85,17 +86,25 @@ class ResourceManager(RSetResources):
 
     @staticmethod
     def get_group_list(split_list):
+        """Return lists of group ids and slot IDs by resource set"""
         group = 1
+        slot = 0
         group_list = []
+        slot_list = []
         node = split_list[0]
         for i in range(len(split_list)):
             if split_list[i] == node:
                 group_list.append(group)
+                slot_list.append(slot)
+                slot += 1
             else:
                 node = split_list[i]
                 group += 1
                 group_list.append(group)
-        return group_list
+                slot = 0
+                slot_list.append(slot)
+                slot += 1
+        return group_list, slot_list
 
     @staticmethod
     def get_index_list(num_workers, num_rsets, zero_resource_list):
