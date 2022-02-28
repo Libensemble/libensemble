@@ -258,6 +258,8 @@ Resources
 
 **Example Compatible Packages**
 
+.. before_examples_rst_tag
+
 libEnsemble and the `Community Examples repository`_ include example generator
 functions for the following libraries:
 
