@@ -20,8 +20,15 @@ class InsufficientFreeResources(Exception):
 
 class ResourceScheduler:
     """Calculates and returns resource set ids from a dictionary of resource sets
-    by group. Resource sets available is read from the resources module or from
-    a resources object passed in."""
+    by group. The available resource sets are read initially from the resources
+    module or from a resources object passed in.
+
+    Resource sets are locally provisioned to work items by a call to the
+    ``assign_resources`` function, and a cache of available resource sets is
+    maintained for the life of the object (usually corresponding to one call
+    of the allocation function). Note that work item resources are formally
+    assigned to workers only when a work item is sent to the worker.
+    """
 
     def __init__(self, user_resources=None, sched_opts={}):
         """Initiate a ResourceScheduler object
@@ -33,14 +40,23 @@ class ResourceScheduler:
             A resources object. If present overrides the class variable.
 
         sched_opts: dict, optional
-            A dictionary of scheduler options. Normally passed via alloc_specs['user']
+            A dictionary of scheduler options.
+            Normally passed via ``alloc_specs['user']['scheduler_opts']``
 
 
-        **Scheduler Options**:
+        The supported fields for sched_opts are::
 
-        split2fit: boolean, optional
-            Split across more nodes if space not currently avail (even though can fit when free).
-            Default: True
+            'split2fit' [boolan]:
+                Try to split resource sets across more nodes if space is not currently
+                available on the mininum node count required. Allows more efficient
+                scheduling.
+                Default: True
+
+            'match_slots' [boolean]:
+                When splitting resource sets across multiple nodes, slot IDs must match.
+                Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
+                to specific slots counts, which should match over multiple nodes.
+                Default: True
         """
 
         self.resources = user_resources or Resources.resources.resource_manager
@@ -52,17 +68,18 @@ class ResourceScheduler:
         self.match_slots = sched_opts.get('match_slots', True)
 
     def assign_resources(self, rsets_req):
-        """Schedule resource sets to a work item if possible
+        """Schedule resource sets to a work item if possible.
 
         If the resources required are less than one node, they will be
         allocated to the smallest available sufficient slot.
 
-        If the resources required are more than one node, then will
-        attempt to find an even split. If no even split is possible,
-        then enough full nodes will be allocated to cover the requirement.
+        If the resources required are more than one node, then the
+        the scheduler will attempt to find an even split. If no even split
+        is possible, then enough additional resource sets will be
+        assigned to enable an even split.
 
-        Returns a list of resource sets ids. A return of None implies
-        insufficient resources.
+        Returns a list of resource set IDs or raises an exception (either
+        InsufficientResourcesError or InsufficientFreeResources).
         """
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
