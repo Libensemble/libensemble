@@ -11,18 +11,8 @@ TRANSFER_STATFILES = True
 forces = Ensemble()
 forces.from_yaml("balsam_forces.yaml")
 
-forces.gen_specs["user"].update(
-    {
-        "lb": np.array([0]),
-        "ub": np.array([32767])
-    }
-)
-
-forces.sim_specs["user"].update(
-    {
-        "transfer": TRANSFER_STATFILES
-    }
-)
+forces.gen_specs["user"].update({"lb": np.array([0]), "ub": np.array([32767])})
+forces.sim_specs["user"].update({"transfer": TRANSFER_STATFILES})
 
 forces.persis_info.add_random_streams()
 #
@@ -41,9 +31,10 @@ class RemoteForces(ApplicationDefinition):
             "direction": "out",
             "local_path": "forces.stat",
             "description": "Forces stat file",
-            "recursive": False
+            "recursive": False,
         }
     }
+
 
 exctr = NewBalsamMPIExecutor()
 exctr.register_app(RemoteForces, app_name="forces")
@@ -53,7 +44,7 @@ batch = exctr.submit_allocation(
     num_nodes=4,
     wall_time_min=30,
     queue="debug-flat-quad",
-    project="CSC250STMS07"
+    project="CSC250STMS07",
 )
 
 forces.run()
