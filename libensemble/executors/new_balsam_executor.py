@@ -84,11 +84,9 @@ class BalsamTask(Task):
             balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
             self.calc_task_timing()
-            self.success = (balsam_state == 'JOB_FINISHED')
-            if balsam_state == 'JOB_FINISHED':
+            if balsam_state in ['RUN_DONE', 'JOB_FINISHED']:
+                self.success = True
                 self.state = 'FINISHED'
-            elif balsam_state == 'PARENT_KILLED':  # Not currently used
-                self.state = 'USER_KILLED'
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
@@ -110,7 +108,6 @@ class BalsamTask(Task):
         # Get current state of tasks from Balsam database
         self.process.refresh_from_db()
         balsam_state = self.process.state
-        print(balsam_state)
         self.runtime = self._get_time_since_balsam_submit()
 
         if balsam_state in ['RUN_DONE', 'POSTPROCESSED', 'STAGED_OUT', "JOB_FINISHED"]:
@@ -276,8 +273,15 @@ class NewBalsamMPIExecutor(MPIExecutor):
         submitted to this allocation. Best to run after libEnsemble completes
         to save machine time.
         """
+        allocation.refresh_from_db()
 
-        BatchJob.objects.filter(scheduler_id=allocation.scheduler_id).update(state="pending_deletion")
+        while not allocation.scheduler_id:
+            time.sleep(0.5)
+            allocation.refresh_from_db()
+
+        batchjob = BatchJob.objects.get(scheduler_id=allocation.scheduler_id)
+        batchjob.state = "pending_deletion"
+        batchjob.save()
 
     def set_resources(self, resources):
         self.resources = resources
