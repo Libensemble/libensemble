@@ -49,7 +49,7 @@ class ResourceScheduler:
 
         # Process scheduler options
         self.split2fit = sched_opts.get('split2fit', True)
-        self.match_slots = sched_opts.get('match_slots', False)  # SH TODO: Default will be True
+        self.match_slots = sched_opts.get('match_slots', True)
 
     def assign_resources(self, rsets_req):
         """Schedule resource sets to a work item if possible
@@ -255,7 +255,7 @@ class ResourceScheduler:
             for i, slot in enumerate(cand_slots):
                 # Ignore extra slots
                 if i >= rsets_req_per_group:
-                    continue
+                    break
                 group = (self.resources.rsets['group'] == grp)
                 slot = (self.resources.rsets['slot'] == slot)
                 rset = int(np.where(group & slot)[0])
