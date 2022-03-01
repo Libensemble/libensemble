@@ -25,6 +25,10 @@ from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 
 
+class SixHumpException(Exception):
+    """Exception raised by the six_hump_camel"""
+
+
 def six_hump_camel(H, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a collection of points given in ``H['x']``.
@@ -152,15 +156,19 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
         num_nodes = resources.local_node_count
         cores_per_node = resources.slot_count  # One CPU per GPU
+        slots = resources.slots
         print(
-            'CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'.format(
-                os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node
+            'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
+                libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
             ),
             flush=True,
         )
     else:
         # Unless use a matching sub-set, but usually you probably don't want this
-        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
+        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(slots))
+        raise SixHumpException("Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes.",
+                               "Check 'match_slots' is True in alloc_specs['user']['scheduler_opts'])",
+                               "Slots on nodes are {}.".format(slots))
 
     # Create application input file
     inpt = ' '.join(map(str, x))
