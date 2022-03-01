@@ -81,6 +81,10 @@ class ResourceScheduler:
         Returns a list of resource set IDs or raises an exception (either
         InsufficientResourcesError or InsufficientFreeResources).
         """
+
+        if rsets_req == 0:
+            return []
+
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError("More resource sets requested {} than exist {}"
                                              .format(rsets_req, self.resources.total_num_rsets))
@@ -279,7 +283,7 @@ class ResourceScheduler:
                 rset_team.append(rset)
                 self.avail_rsets_by_group[grp].remove(rset)
         self.rsets_free -= len(rset_team)
-        return rset_team
+        return sorted(rset_team)
 
     def assign_team_from_tmp(self, cand_team, tmp_avail_rsets_by_group):
         rset_team = sorted(cand_team)
@@ -293,12 +297,14 @@ class ResourceScheduler:
         return sorted([len(v) for v in avail_rsets.values()], reverse=True)
 
     def get_matching_slots(self, slots_avail_by_group, num_groups_req, rsets_req_per_group):
-        """Get first N matching slots across groups"""
+        """Get first N matching slots across groups
+
+        Assumes num_groups_req > 0.
+        """
         cand_groups = None
         cand_slots = None
         combs = itertools.combinations(slots_avail_by_group, num_groups_req)
         upper_bound = max(len(v) for v in slots_avail_by_group.values()) + 1
-
         for comb in combs:
             tmplist = []
             for i in comb:

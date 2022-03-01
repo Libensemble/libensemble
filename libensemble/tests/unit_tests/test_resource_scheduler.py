@@ -57,6 +57,30 @@ def _fail_to_resource(sched, rsets):
         pytest.fail('Expected InsufficientFreeResources. Found {}'.format(rset_team))
 
 
+def test_request_zero_rsets():
+    """Tests requesting zero resource sets"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(8, 2)
+
+    # No options
+    sched = ResourceScheduler(user_resources=resources)
+    rset_team = sched.assign_resources(rsets_req=0)
+    assert rset_team == [], 'rset_team is {}. Expected zero'.format(rset_team)
+    del sched
+    rset_team = None
+
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+            rset_team = sched.assign_resources(rsets_req=0)
+            assert rset_team == [], 'rset_team is {}. Expected zero'.format(rset_team)
+            del sched
+            rset_team = None
+    del resources
+
+
 def test_too_many_rsets():
     """Tests request of more resource sets than exist"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
