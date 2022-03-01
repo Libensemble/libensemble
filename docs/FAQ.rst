@@ -65,11 +65,8 @@ which will attempt to use all hyperthreads/SMT threads available if set to ``Tru
 **FileExistsError: [Errno 17] File exists: './ensemble'**
 
 This can happen when libEnsemble tries to create ensemble or simulation directories
-that already exist.
-
-To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
-option in :doc:`libE_specs<history_output_logging>` to some unique value.
-Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
+that already exist from previous runs. To avoid this, ensure the ensemble directory
+paths are unique by appending some unique value to ``libE_specs['ensemble_dir_path']``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
@@ -136,7 +133,7 @@ For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpickli
 This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
 Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
 
-**srun: Job ****** step creation temporarily disabled, retrying (Requested nodes are busy)**
+**srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
 You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
 
@@ -205,6 +202,19 @@ dictionaries will be dumped. This can be suppressed by
 setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
 See :doc:`here<history_output_logging>` for more information about these files.
+
+**How can I silence libEnsemble or prevent printed warnings?**
+
+Some logger messages at or above the ``MANAGER_WARNING`` level are mirrored
+to stderr automatically. To disable this, set the minimum stderr displaying level
+to ``CRITICAL`` via the following::
+
+    from libensemble import logger
+    logger.set_stderr_level('CRITICAL')
+
+This effectively puts libEnsemble in silent mode.
+
+See the :ref:`Logger Configuration<logger_config>` docs for more information.
 
 macOS-Specific Errors
 ---------------------

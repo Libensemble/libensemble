@@ -10,11 +10,24 @@ function launching tasks, see the
 .. IMPORTANT::
   See the API for simulation functions :ref:`here<api_sim_f>`.
 
+.. role:: underline
+    :class: underline
+
 six_hump_camel
 --------------
 .. automodule:: six_hump_camel
   :members:
   :undoc-members:
+
+.. container:: toggle
+
+   .. container:: header
+
+      :underline:`six_hump_camel.py`
+
+   .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
+      :language: python
+      :linenos:
 
 chwirut
 -------
@@ -27,6 +40,16 @@ noisy_vector_mapping
 .. automodule:: noisy_vector_mapping
   :members:
   :undoc-members:
+
+.. container:: toggle
+
+   .. container:: header
+
+      :underline:`noisy_vector_mapping.py`
+
+   .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
+      :language: python
+      :linenos:
 
 periodic_func
 -------------
@@ -44,3 +67,13 @@ executor_hworld
 ---------------
 .. automodule:: executor_hworld
   :members:
+
+.. container:: toggle
+
+   .. container:: header
+
+      :underline:`executor_hworld.py`
+
+   .. literalinclude:: ../../libensemble/sim_funcs/executor_hworld.py
+      :language: python
+      :linenos:
