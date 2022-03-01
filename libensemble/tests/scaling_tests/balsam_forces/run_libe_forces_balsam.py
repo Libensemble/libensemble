@@ -18,7 +18,8 @@ forces.sim_specs["user"].update(
 )
 
 forces.persis_info.add_random_streams()
-#
+
+
 class RemoteForces(ApplicationDefinition):
     site = "jln_theta"
     command_template = (

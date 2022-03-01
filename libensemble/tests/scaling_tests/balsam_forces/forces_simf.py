@@ -6,7 +6,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     import numpy as np
 
     from libensemble.executors.executor import Executor
-    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
+    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
     def perturb(particles, seed, max_fraction):
         MAX_SEED = 32767
@@ -72,10 +72,6 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         transfers=transfer,
         workdir=workdir,
     )
-
-    # Stat file to check for bad runs
-    statfile = "forces.stat"
-    line = None
 
     poll_interval = 2  # secs
     print("Beginning to poll Task {}".format(task.name))
