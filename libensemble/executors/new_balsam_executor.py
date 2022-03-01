@@ -276,7 +276,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
         allocation.refresh_from_db()
 
         while not allocation.scheduler_id:
-            time.sleep(0.5)
+            time.sleep(1)
             allocation.refresh_from_db()
 
         batchjob = BatchJob.objects.get(scheduler_id=allocation.scheduler_id)

@@ -5,14 +5,17 @@ from libensemble import Ensemble
 from libensemble.executors import NewBalsamMPIExecutor
 from balsam.api import ApplicationDefinition
 
-# Use Globus to transfer output forces.stat files back?
+# Use Globus to transfer output forces.stat files back
 TRANSFER_STATFILES = True
+GLOBUS_ENDPOINT = "jln_laptop"
 
 forces = Ensemble()
 forces.from_yaml("balsam_forces.yaml")
 
 forces.gen_specs["user"].update({"lb": np.array([0]), "ub": np.array([32767])})
-forces.sim_specs["user"].update({"transfer": TRANSFER_STATFILES})
+forces.sim_specs["user"].update(
+    {"transfer": TRANSFER_STATFILES, "globus_endpoint": GLOBUS_ENDPOINT}
+)
 
 forces.persis_info.add_random_streams()
 #
