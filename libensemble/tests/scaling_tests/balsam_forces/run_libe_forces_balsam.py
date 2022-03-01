@@ -2,7 +2,7 @@
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.executors import NewBalsamMPIExecutor
+from libensemble.executors import NewBalsamExecutor
 from balsam.api import ApplicationDefinition
 
 # Use Globus to transfer output forces.stat files back
@@ -39,7 +39,7 @@ class RemoteForces(ApplicationDefinition):
     }
 
 
-exctr = NewBalsamMPIExecutor()
+exctr = NewBalsamExecutor()
 exctr.register_app(RemoteForces, app_name="forces")
 
 batch = exctr.submit_allocation(

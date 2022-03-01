@@ -1,15 +1,13 @@
 """
-This module launches and controls the running of tasks with Balsam.
-
-.. note:: Balsam is supported only when using ``mpi`` comms and requires Python 3.6 or higher.
+This module launches and controls the running of tasks with Balsam 2, and most
+notably can submit tasks from any machine, to any machine running a Balsam site.
 
 In order to create a Balsam executor, the calling script should contain ::
 
-    exctr = BalsamMPIExecutor()
+    exctr = NewBalsamExecutor()
 
-The Balsam executor inherits from the MPI executor. See the
-:doc:`MPIExecutor<mpi_executor>` for shared API. Any differences are
-shown below.
+One key difference to consider is that instead of registering paths to apps,
+Balsam ApplicationDefinition instances must be registered instead.
 
 """
 
@@ -26,7 +24,7 @@ from libensemble.executors.executor import (
     jassert,
     STATES,
 )
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.executors import Executor
 
 from balsam.api import Job, BatchJob, EventLog
 
@@ -35,11 +33,11 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-class BalsamTask(Task):
+class NewBalsamTask(Task):
     """Wraps a Balsam Job from the Balsam service.
 
     The same attributes and query routines are implemented. Use ``task.process``
-    to refer to the matching Balsam Job initialized by the NewBalsamMPIExecutor,
+    to refer to the matching Balsam Job initialized by the NewBalsamExecutor,
     with every Balsam Job method invokable on it. Otherwise, libEnsemble task methods
     like ``poll()`` can be used directly.
 
@@ -54,9 +52,9 @@ class BalsamTask(Task):
         stderr=None,
         workerid=None,
     ):
-        """Instantiate a new BalsamTask instance.
+        """Instantiate a new NewBalsamTask instance.
 
-        A new BalsamTask object is created with an id, status and
+        A new NewBalsamTask object is created with an id, status and
         configuration attributes.  This will normally be created by the
         executor on a submission.
         """
@@ -205,7 +203,7 @@ class BalsamTask(Task):
         self.calc_task_timing()
 
 
-class NewBalsamMPIExecutor(MPIExecutor):
+class NewBalsamExecutor(Executor):
     """Inherits from MPIExecutor and wraps the Balsam service. Via this Executor,
     Balsam Jobs can be submitted to Balsam sites, either local or on remote machines.
 
@@ -465,7 +463,7 @@ class NewBalsamMPIExecutor(MPIExecutor):
                 "Balsam Job submitted with no active BatchJobs! Initialize a matching BatchJob."
             )
 
-        task = BalsamTask(app, app_args, workdir, None, None, self.workerID)
+        task = NewBalsamTask(app, app_args, workdir, None, None, self.workerID)
 
         if dry_run:
             task.dry_run = True
