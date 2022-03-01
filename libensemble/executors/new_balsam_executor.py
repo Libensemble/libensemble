@@ -84,7 +84,7 @@ class BalsamTask(Task):
             balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
             self.calc_task_timing()
-            if balsam_state in ['RUN_DONE', 'JOB_FINISHED']:
+            if balsam_state in ['RUN_DONE', 'JOB_FINISHED', 'POSTPROCESSED']:
                 self.success = True
                 self.state = 'FINISHED'
             elif balsam_state in STATES:  # In my states

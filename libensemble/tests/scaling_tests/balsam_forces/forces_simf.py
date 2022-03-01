@@ -78,6 +78,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     line = None
 
     poll_interval = 2  # secs
+    print("Beginning to poll Task {}".format(task.name))
     while not task.finished:
         time.sleep(poll_interval)
         task.poll()
