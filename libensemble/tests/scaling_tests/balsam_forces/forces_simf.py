@@ -85,14 +85,10 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         print("Task {} exited with state {}.".format(task.name, task.state))
         if TRANSFER_STATFILES:
             print("Waiting for Task {} statfile.".format(task.name))
-            while file_dest not in [
-                os.path.join(os.getcwd(), i) for i in os.listdir(".")
-            ]:
+            while file_dest not in [os.path.join(os.getcwd(), i) for i in os.listdir(".")]:
                 time.sleep(1)
             if read_last_line(file_dest) == "kill":
-                print(
-                    "Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)"
-                )
+                print("Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)")
                 calc_status = TASK_FAILED
             else:
                 calc_status = WORKER_DONE
