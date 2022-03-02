@@ -18,7 +18,7 @@ forces.sim_specs["user"].update({"transfer": TRANSFER_STATFILES, "globus_endpoin
 
 forces.persis_info.add_random_streams()
 
-apps = ApplicationDefinition.load_by_site["jln_theta"]
+apps = ApplicationDefinition.load_by_site("jln_theta")
 RemoteForces = apps["RemoteForces"]
 
 exctr = NewBalsamExecutor()
