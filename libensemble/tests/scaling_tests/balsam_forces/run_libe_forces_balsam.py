@@ -13,9 +13,7 @@ forces = Ensemble()
 forces.from_yaml("balsam_forces.yaml")
 
 forces.gen_specs["user"].update({"lb": np.array([0]), "ub": np.array([32767])})
-forces.sim_specs["user"].update(
-    {"transfer": TRANSFER_STATFILES, "globus_endpoint": GLOBUS_ENDPOINT}
-)
+forces.sim_specs["user"].update({"transfer": TRANSFER_STATFILES, "globus_endpoint": GLOBUS_ENDPOINT})
 
 forces.persis_info.add_random_streams()
 
