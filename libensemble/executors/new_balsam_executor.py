@@ -64,9 +64,7 @@ class NewBalsamTask(Task):
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered RUNNING state"""
 
-        event_query = EventLog.objects.filter(
-            job_id=self.process.id, to_state="RUNNING"
-        )
+        event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
             return 0
         balsam_launch_datetime = event_query[0].timestamp
@@ -110,10 +108,7 @@ class NewBalsamTask(Task):
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
-                logger.warning(
-                    "Task finished, but in unrecognized "
-                    "Balsam state {}".format(balsam_state)
-                )
+                logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
                 self.state = "UNKNOWN"
 
             logger.info("Task {} ended with state {}".format(self.name, self.state))
@@ -219,9 +214,7 @@ class NewBalsamExecutor(Executor):
         """
 
         if custom_info:
-            logger.warning(
-                "The Balsam executor does not support custom_info - ignoring"
-            )
+            logger.warning("The Balsam executor does not support custom_info - ignoring")
 
         super().__init__(custom_info)
 
@@ -459,9 +452,7 @@ class NewBalsamExecutor(Executor):
             )
 
         if not len(self.allocations):
-            logger.warning(
-                "Balsam Job submitted with no active BatchJobs! Initialize a matching BatchJob."
-            )
+            logger.warning("Balsam Job submitted with no active BatchJobs! Initialize a matching BatchJob.")
 
         task = NewBalsamTask(app, app_args, workdir, None, None, self.workerID)
 
@@ -491,13 +482,10 @@ class NewBalsamExecutor(Executor):
 
             if not task.timer.timing:
                 task.timer.start()
-                task.submit_time = (
-                    task.timer.tstart
-                )  # Time not date - may not need if using timer.
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
             logger.info(
-                "Submitted Balsam App to site {}: "
-                "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
+                "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
             )
 
             # task.workdir = task.process.working_directory  # Might not be set yet!
