@@ -20,7 +20,9 @@ class RemoteForces(ApplicationDefinition):
         }
     }
 
+
 print("Defined RemoteForces Balsam ApplicationDefinition.")
+
 
 class LibensembleApp(ApplicationDefinition):
     site = "jln_theta"
@@ -40,12 +42,15 @@ class LibensembleApp(ApplicationDefinition):
         }
     }
 
+
 print("Defined LibensembleApp Balsam ApplicationDefinition.")
+
+input_file = "theta_dtn:/home/jnavarro/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
 
 libe_job = LibensembleApp.submit(
     workdir="libe_workflow/libe_processes",
     transfers={
-        "input_file": "theta_dtn:/home/jnavarro/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
+        "input_file": input_file
     },
 )
 
