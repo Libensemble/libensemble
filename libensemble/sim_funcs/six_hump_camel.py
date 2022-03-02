@@ -152,7 +152,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
-    if resources.even_slots:  # Need same slots on each node
+    if resources.matching_slots:  # Need same slots on each node
         resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
         num_nodes = resources.local_node_count
         cores_per_node = resources.slot_count  # One CPU per GPU
@@ -165,8 +165,8 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         )
     else:
         # Unless use a matching sub-set, but usually you probably don't want this
-        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(slots))
-        raise SixHumpException("Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes.",
+        print('Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}'.format(slots))
+        raise SixHumpException("Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes.",
                                "Check 'match_slots' is True in alloc_specs['user']['scheduler_opts'])",
                                "Slots on nodes are {}.".format(slots))
 
