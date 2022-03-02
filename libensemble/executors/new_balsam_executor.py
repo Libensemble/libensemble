@@ -448,9 +448,6 @@ class NewBalsamExecutor(Executor):
                 "No procs/nodes provided - aborting",
             )
 
-        if not len(self.allocations):
-            logger.warning("Balsam Job submitted with no active BatchJobs! Initialize a matching BatchJob.")
-
         task = NewBalsamTask(app, app_args, workdir, None, None, self.workerID)
 
         if dry_run:
@@ -459,7 +456,12 @@ class NewBalsamExecutor(Executor):
             task._set_complete(dry_run=True)
         else:
             App = app.pyobj
-            App.sync()
+
+            try:
+                App.sync()  # if App source-code available, send to Balsam service
+            except OSError:
+                pass  # App retrieved from Balsam service, assume no access to source-code
+
             task.process = Job(
                 app_id=App,
                 workdir=workdir,

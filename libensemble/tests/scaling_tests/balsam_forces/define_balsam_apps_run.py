@@ -20,8 +20,9 @@ class RemoteForces(ApplicationDefinition):
         }
     }
 
+RemoteForces.sync()
 
-print("Defined RemoteForces Balsam ApplicationDefinition.")
+print("Defined and synced RemoteForces Balsam ApplicationDefinition.")
 
 
 class LibensembleApp(ApplicationDefinition):
@@ -54,7 +55,7 @@ libe_job = LibensembleApp.submit(
     transfers={"input_file": input_file},
 )
 
-print("libEnsemble Job created.")
+print("libEnsemble Job created, synced with Balsam.")
 
 BatchJob.objects.create(
     site_id=libe_job.site_id,
