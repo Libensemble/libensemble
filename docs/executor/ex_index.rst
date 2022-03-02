@@ -9,7 +9,10 @@ portable interface for running and managing user applications.
 .. toctree::
    :maxdepth: 2
    :titlesonly:
-   :caption: libEnsemble Executor:
+   :caption: libEnsemble Executors:
 
    overview
    executor
+   mpi_executor
+   balsam_executor
+   balsam2_executor

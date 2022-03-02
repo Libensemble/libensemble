@@ -1,5 +1,5 @@
-Executor Modules
-================
+Base Executor - Local apps
+==========================
 
 .. automodule:: executor
   :no-undoc-members:
@@ -14,6 +14,7 @@ See the Executor APIs for optional arguments.
 
    mpi_executor
    balsam_executor
+   balsam2_executor
 
 Executor Class
 ---------------

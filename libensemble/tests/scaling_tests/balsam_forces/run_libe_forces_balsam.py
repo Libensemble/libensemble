@@ -6,7 +6,8 @@ from libensemble.executors import NewBalsamExecutor
 from balsam.api import ApplicationDefinition
 
 # Use Globus to transfer output forces.stat files back
-TRANSFER_STATFILES = True
+ON_THETA = True
+TRANSFER_STATFILES = False
 GLOBUS_ENDPOINT = "jln_laptop"
 
 forces = Ensemble()
@@ -19,38 +20,22 @@ forces.sim_specs["user"].update(
 
 forces.persis_info.add_random_streams()
 
-
-class RemoteForces(ApplicationDefinition):
-    site = "jln_theta"
-    command_template = (
-        "/home/jnavarro"
-        + "/libensemble/libensemble/tests/scaling_tests/forces/forces.x"
-        + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
-        + " > out.txt 2>&1"
-    )
-
-    transfers = {
-        "result": {
-            "required": False,
-            "direction": "out",
-            "local_path": "forces.stat",
-            "description": "Forces stat file",
-            "recursive": False,
-        }
-    }
-
+apps = ApplicationDefinition.load_by_site["jln_theta"]
+RemoteForces = apps["RemoteForces"]
 
 exctr = NewBalsamExecutor()
 exctr.register_app(RemoteForces, app_name="forces")
 
-batch = exctr.submit_allocation(
-    site_id=246,
-    num_nodes=4,
-    wall_time_min=30,
-    queue="debug-flat-quad",
-    project="CSC250STMS07",
-)
+if not ON_THETA:
+    batch = exctr.submit_allocation(
+        site_id=246,
+        num_nodes=4,
+        wall_time_min=30,
+        queue="debug-flat-quad",
+        project="CSC250STMS07",
+    )
 
 forces.run()
 
-exctr.revoke_allocation(batch)
+if not ON_THETA:
+    exctr.revoke_allocation(batch)

@@ -211,19 +211,14 @@ class NewBalsamExecutor(Executor):
 
     """
 
-    def __init__(self, custom_info={}):
+    def __init__(self):
         """Instantiate a new BalsamMPIExecutor instance.
 
         A new BalsamMPIExecutor object is created with an application
         registry and configuration attributes
         """
 
-        if custom_info:
-            logger.warning(
-                "The Balsam executor does not support custom_info - ignoring"
-            )
-
-        super().__init__(custom_info)
+        super().__init__()
 
         self.workflow_name = "libe_workflow"
         self.allocations = []
