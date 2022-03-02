@@ -38,7 +38,7 @@ class NewBalsamTask(Task):
 
     The same attributes and query routines are implemented. Use ``task.process``
     to refer to the matching Balsam Job initialized by the NewBalsamExecutor,
-    with every Balsam Job method invokable on it. Otherwise, libEnsemble task methods
+    with every Balsam Job method invocable on it. Otherwise, libEnsemble task methods
     like ``poll()`` can be used directly.
 
     """
