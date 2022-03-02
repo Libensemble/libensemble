@@ -11,7 +11,7 @@ try:
         else:
             from libensemble.executors.new_balsam_executor import NewBalsamExecutor
 
-except ModuleNotFoundError:  # One version of Balsam installed, but not the other
+except (ModuleNotFoundError, pkg_resources.DistributionNotFound):  # One version of Balsam installed, but not the other
     pass
 
 __all__ = ['BalsamMPIExecutor', 'Executor', 'MPIExecutor', 'NewBalsamExecutor']
