@@ -49,16 +49,16 @@ input_file = "theta_dtn:/home/jnavarro/libensemble/libensemble/tests/scaling_tes
 
 libe_job = LibensembleApp.submit(
     workdir="libe_workflow/libe_processes",
-    transfers={
-        "input_file": input_file
-    },
+    num_nodes=1,
+    ranks_per_node=5,
+    transfers={"input_file": input_file},
 )
 
 print("libEnsemble Job created.")
 
 BatchJob.objects.create(
     site_id=libe_job.site_id,
-    num_nodes=4,
+    num_nodes=5,
     wall_time_min=60,
     job_mode="mpi",
     project="CSC250STMS07",

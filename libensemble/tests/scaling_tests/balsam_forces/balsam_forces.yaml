@@ -2,7 +2,7 @@ libE_specs:
     save_every_k_gens: 1000
     profile: False
     exit_criteria:
-        sim_max: 8
+        sim_max: 16
 
 sim_specs:
     function: libensemble.tests.scaling_tests.balsam_forces.forces_simf.run_forces_balsam
