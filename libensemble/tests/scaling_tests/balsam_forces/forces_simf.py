@@ -35,7 +35,8 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     sim_particles = sim_specs["user"]["sim_particles"]
     sim_timesteps = sim_specs["user"]["sim_timesteps"]
     TRANSFER_STATFILES = sim_specs["user"]["transfer"]
-    globus_endpoint = sim_specs["user"]["globus_endpoint"]
+    GLOBUS_ENDPOINT = sim_specs["user"]["globus_endpoint"]
+    GLOBUS_DEST_DIR = sim_specs["user"]["globus_dest_dir"]
 
     # Get from dictionary if key exists, else return default (e.g. 0)
     kill_rate = sim_specs["user"].get("kill_rate", 0)
@@ -56,9 +57,9 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     }
     workdir = "worker" + str(libE_info["workerID"]) + "_" + secrets.token_hex(nbytes=3)
 
-    file_dest = os.getcwd() + "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
+    file_dest = GLOBUS_DEST_DIR + "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
     if TRANSFER_STATFILES:
-        transfer = {"result": globus_endpoint + ":" + file_dest}
+        transfer = {"result": GLOBUS_ENDPOINT + ":" + file_dest}
     else:
         transfer = {}
 
@@ -85,10 +86,14 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         print("Task {} exited with state {}.".format(task.name, task.state))
         if TRANSFER_STATFILES:
             print("Waiting for Task {} statfile.".format(task.name))
-            while file_dest not in [os.path.join(os.getcwd(), i) for i in os.listdir(".")]:
+            while file_dest not in [
+                os.path.join(os.getcwd(), i) for i in os.listdir(".")
+            ]:
                 time.sleep(1)
             if read_last_line(file_dest) == "kill":
-                print("Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)")
+                print(
+                    "Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)"
+                )
                 calc_status = TASK_FAILED
             else:
                 calc_status = WORKER_DONE

@@ -6,15 +6,25 @@ from libensemble.executors import NewBalsamExecutor
 from balsam.api import ApplicationDefinition
 
 # Use Globus to transfer output forces.stat files back
-ON_THETA = True
-TRANSFER_STATFILES = False
+THIS_SCRIPT_ON_THETA = True
+TRANSFER_STATFILES = True
 GLOBUS_ENDPOINT = "jln_laptop"
+GLOBUS_DEST_DIR = (
+    "/Users/jnavarro/Desktop/libensemble"
+    + "/libensemble/libensemble/tests/scaling_tests/balsam_forces"
+)
 
 forces = Ensemble()
 forces.from_yaml("balsam_forces.yaml")
 
 forces.gen_specs["user"].update({"lb": np.array([0]), "ub": np.array([32767])})
-forces.sim_specs["user"].update({"transfer": TRANSFER_STATFILES, "globus_endpoint": GLOBUS_ENDPOINT})
+forces.sim_specs["user"].update(
+    {
+        "transfer": TRANSFER_STATFILES,
+        "globus_endpoint": GLOBUS_ENDPOINT,
+        "globus_dest_dir": GLOBUS_DEST_DIR,
+    }
+)
 
 forces.persis_info.add_random_streams()
 
@@ -24,7 +34,7 @@ RemoteForces = apps["RemoteForces"]
 exctr = NewBalsamExecutor()
 exctr.register_app(RemoteForces, app_name="forces")
 
-if not ON_THETA:
+if not THIS_SCRIPT_ON_THETA:
     batch = exctr.submit_allocation(
         site_id=246,
         num_nodes=4,
@@ -35,5 +45,5 @@ if not ON_THETA:
 
 forces.run()
 
-if not ON_THETA:
+if not THIS_SCRIPT_ON_THETA:
     exctr.revoke_allocation(batch)

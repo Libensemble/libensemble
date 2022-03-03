@@ -20,6 +20,7 @@ class RemoteForces(ApplicationDefinition):
         }
     }
 
+
 RemoteForces.sync()
 
 print("Defined and synced RemoteForces Balsam ApplicationDefinition.")
@@ -46,7 +47,10 @@ class LibensembleApp(ApplicationDefinition):
 
 print("Defined LibensembleApp Balsam ApplicationDefinition.")
 
-input_file = "theta_dtn:/home/jnavarro/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
+input_file = (
+    "jln_laptop:/Users/jnavarro/Desktop/libensemble"
+    + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
+)
 
 libe_job = LibensembleApp.submit(
     workdir="libe_workflow/libe_processes",
