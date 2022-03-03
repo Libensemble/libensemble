@@ -96,6 +96,12 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
                 calc_status = WORKER_DONE
                 print("Task completed successfully.")
 
+            try:
+                data = np.loadtxt(statfile)
+                final_energy = data[-1]
+            except Exception:
+                final_energy = np.nan
+
         else:
             if TRANSFER_STATFILES:
                 print("Waiting for Task {} statfile.".format(task.name))
@@ -112,18 +118,18 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
                 else:
                     calc_status = WORKER_DONE
                     print("Task completed successfully. forces.stat retrieved.")
+
+                try:
+                    data = np.loadtxt(file_dest)
+                    final_energy = data[-1]
+                except Exception:
+                        final_energy = np.nan
             else:
                 calc_status = WORKER_DONE
                 print("Task completed.")
     else:
         print(task.state)
 
-    time.sleep(0.2)
-    try:
-        data = np.loadtxt(file_dest)
-        final_energy = data[-1]
-    except Exception:
-        final_energy = np.nan
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
