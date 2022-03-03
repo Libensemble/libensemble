@@ -182,6 +182,25 @@ def test_schedule_find_gaps_2nodes():
     del resources
 
 
+def test_split_across_no_matching_slots():
+    """Must split across - but no split2fit and no matching slots"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(6, 3)  # 3 nodes of 2 slots
+
+    for split2fit in [False, True]:
+        resources.fixed_assignment(([0, 1, 1, 0, 0, 1]))
+        sched_options = {'split2fit': split2fit}
+        sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+        _fail_to_resource(sched, 3)
+
+        sched.match_slots = False
+        rset_team = sched.assign_resources(rsets_req=3)
+        assert rset_team == [0, 3, 4], 'rset_team is {}.'.format(rset_team)
+        del sched
+        rset_team = None
+    del resources
+
+
 def test_across_nodes_even_split():
     """Tests even assignment over two and three nodes
 
@@ -464,6 +483,7 @@ if __name__ == "__main__":
     test_cannot_split_quick_return()
     test_schedule_find_gaps_1node()
     test_schedule_find_gaps_2nodes()
+    test_split_across_no_matching_slots()
     test_across_nodes_even_split()
     test_across_nodes_roundup_option()
     test_try1node_findon_2nodes_matching_slots()

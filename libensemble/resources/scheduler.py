@@ -95,6 +95,7 @@ class ResourceScheduler:
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  # assumes even
         avail_rsets_by_group = self.get_avail_rsets_by_group()
+        try_split = self.split2fit
 
         # Work out best target fit - if all rsets were free.
         rsets_req, num_groups_req, rsets_req_per_group = \
@@ -108,19 +109,16 @@ class ResourceScheduler:
                 if not self.split2fit:
                     raise InsufficientFreeResources
             else:
-                rset_team = \
-                    self.assign_team_from_slots(slots_avail_by_group, cand_groups,
-                                                cand_slots, rsets_req_per_group)
-                return rset_team
+                try_split = False  # Already found
 
-        if self.split2fit:
+        if try_split:
             sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
             max_even_grpsize = sorted_lengths[num_groups_req - 1]
             if max_even_grpsize == 0 and rsets_req > 0:
                 raise InsufficientFreeResources
             if max_even_grpsize < rsets_req_per_group:
-                found_or_doneall = False
-                while not found_or_doneall:
+                found_split = False
+                while not found_split:
                     rsets_req, num_groups_req, rsets_req_per_group = \
                         self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
                                                            rsets_req, sorted_lengths, num_groups, extend=False)
@@ -130,15 +128,20 @@ class ResourceScheduler:
                         cand_groups, cand_slots = \
                             self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
                         if cand_groups is not None:
-                            rset_team = \
-                                self.assign_team_from_slots(slots_avail_by_group,
-                                                            cand_groups, cand_slots, rsets_req_per_group)
-                            # found_or_doneall=True
-                            return rset_team
+                            found_split = True
                         else:
                             num_groups_req += 1  # try one more group
                     else:
-                        found_or_doneall = True
+                        found_split = True
+
+        if self.match_slots:
+            if cand_groups is None:
+                raise InsufficientFreeResources
+            else:
+                rset_team = \
+                    self.assign_team_from_slots(slots_avail_by_group, cand_groups,
+                                                cand_slots, rsets_req_per_group)
+                return rset_team
 
         tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
         max_upper_bound = max_grpsize + 1
