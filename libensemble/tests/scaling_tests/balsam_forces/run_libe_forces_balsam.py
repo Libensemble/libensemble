@@ -23,6 +23,7 @@ forces.sim_specs["user"].update(
         "transfer": TRANSFER_STATFILES,
         "globus_endpoint": GLOBUS_ENDPOINT,
         "globus_dest_dir": GLOBUS_DEST_DIR,
+        "this_script_on_theta": THIS_SCRIPT_ON_THETA,
     }
 )
 

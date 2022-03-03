@@ -37,6 +37,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     TRANSFER_STATFILES = sim_specs["user"]["transfer"]
     GLOBUS_ENDPOINT = sim_specs["user"]["globus_endpoint"]
     GLOBUS_DEST_DIR = sim_specs["user"]["globus_dest_dir"]
+    THIS_SCRIPT_ON_THETA = sim_specs["user"]["this_script_on_theta"]
 
     # Get from dictionary if key exists, else return default (e.g. 0)
     kill_rate = sim_specs["user"].get("kill_rate", 0)
@@ -84,23 +85,36 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     if task.state in ["FINISHED", "FAILED"]:
         print("Task {} exited with state {}.".format(task.name, task.state))
-        if TRANSFER_STATFILES:
-            print("Waiting for Task {} statfile.".format(task.name))
-            while file_dest not in [
-                os.path.join(os.getcwd(), i) for i in os.listdir(".")
-            ]:
-                time.sleep(1)
-            if read_last_line(file_dest) == "kill":
+        if THIS_SCRIPT_ON_THETA:
+            statfile = "../" + workdir + "/" + file_dest.split("/")[-1]
+            if read_last_line(statfile) == "kill":
                 print(
-                    "Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)"
+                    "Warning: Task completed although marked as a bad run (kill flag set in forces.stat)"
                 )
                 calc_status = TASK_FAILED
             else:
                 calc_status = WORKER_DONE
-                print("Task completed successfully. forces.stat retrieved.")
+                print("Task completed successfully.")
+
         else:
-            calc_status = WORKER_DONE
-            print("Task completed.")
+            if TRANSFER_STATFILES:
+                print("Waiting for Task {} statfile.".format(task.name))
+                while file_dest not in [
+                    os.path.join(os.getcwd(), i) for i in os.listdir(".")
+                ]:
+                    time.sleep(1)
+
+                if read_last_line(file_dest) == "kill":
+                    print(
+                        "Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)"
+                    )
+                    calc_status = TASK_FAILED
+                else:
+                    calc_status = WORKER_DONE
+                    print("Task completed successfully. forces.stat retrieved.")
+            else:
+                calc_status = WORKER_DONE
+                print("Task completed.")
     else:
         print(task.state)
 
