@@ -86,8 +86,11 @@ class ResourceScheduler:
             return []
 
         if rsets_req > self.resources.total_num_rsets:
-            raise InsufficientResourcesError("More resource sets requested {} than exist {}"
-                                             .format(rsets_req, self.resources.total_num_rsets))
+            raise InsufficientResourcesError(
+                "More resource sets requested {} than exist {}".format(
+                    rsets_req, self.resources.total_num_rsets
+                )
+            )
 
         if rsets_req > self.rsets_free:
             raise InsufficientFreeResources
@@ -103,8 +106,9 @@ class ResourceScheduler:
 
         if self.match_slots:
             slots_avail_by_group = self.get_avail_slots_by_group(avail_rsets_by_group)
-            cand_groups, cand_slots = \
-                self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
+            cand_groups, cand_slots = self.get_matching_slots(
+                slots_avail_by_group, num_groups_req, rsets_req_per_group
+            )
             if cand_groups is None:
                 if not self.split2fit:
                     raise InsufficientFreeResources
@@ -120,13 +124,17 @@ class ResourceScheduler:
                 found_split = False
                 while not found_split:
                     rsets_req, num_groups_req, rsets_req_per_group = \
-                        self.calc_even_split_uneven_groups(max_even_grpsize, num_groups_req,
-                                                           rsets_req, sorted_lengths, num_groups, extend=False)
+                        self.calc_even_split_uneven_groups(
+                            max_even_grpsize, num_groups_req, rsets_req,
+                            sorted_lengths, num_groups, extend=False
+                        )
                     if rsets_req == 0:
                         raise InsufficientFreeResources
                     if self.match_slots:
                         cand_groups, cand_slots = \
-                            self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
+                            self.get_matching_slots(
+                                slots_avail_by_group, num_groups_req, rsets_req_per_group
+                            )
                         if cand_groups is not None:
                             found_split = True
                         else:
@@ -138,37 +146,54 @@ class ResourceScheduler:
             if cand_groups is None:
                 raise InsufficientFreeResources
             else:
-                rset_team = \
-                    self.assign_team_from_slots(slots_avail_by_group, cand_groups,
-                                                cand_slots, rsets_req_per_group)
-                return rset_team
+                rset_team = self.assign_team_from_slots(
+                    slots_avail_by_group, cand_groups, cand_slots, rsets_req_per_group
+                )
+        else:
+            rset_team = self.find_rsets_any_slots(
+                avail_rsets_by_group, max_grpsize, rsets_req,
+                num_groups_req, rsets_req_per_group
+            )
 
-        tmp_avail_rsets_by_group = copy.deepcopy(avail_rsets_by_group)
+        logger.debug(
+            "rset_team found: Req: {} rsets. Found: {} Avail sets {}".format(
+                rsets_req, rset_team, self.avail_rsets_by_group
+            )
+        )
+
+        return rset_team
+
+    def find_rsets_any_slots(self, rsets_by_group, max_grpsize, rsets_req, ngroups, rsets_per_group):
+        """Find optimal non-matching slots across groups"""
+
+        tmp_rsets_by_group = copy.deepcopy(rsets_by_group)
         max_upper_bound = max_grpsize + 1
 
         # Now find slots on as many nodes as need
         accum_team = []
         group_list = []
 
-        for ng in range(num_groups_req):
+        for ng in range(ngroups):
             cand_team, cand_group = \
-                self.find_candidate(tmp_avail_rsets_by_group, group_list, rsets_req_per_group, max_upper_bound)
+                self.find_candidate(
+                    tmp_rsets_by_group, group_list, rsets_per_group, max_upper_bound
+                )
 
             if cand_group is not None:
                 accum_team.extend(cand_team)
                 group_list.append(cand_group)
 
                 for rset in cand_team:
-                    tmp_avail_rsets_by_group[cand_group].remove(rset)
+                    tmp_rsets_by_group[cand_group].remove(rset)
 
         if len(accum_team) == rsets_req:
             # A successful team found
-            rset_team = self.assign_team_from_tmp(accum_team, tmp_avail_rsets_by_group)
+            rset_team = self.assign_team_from_tmp(accum_team, tmp_rsets_by_group)
         else:
             raise InsufficientFreeResources
         return rset_team
 
-    def find_candidate(self, rsets_by_group, group_list, rsets_req_per_group, max_upper_bound):
+    def find_candidate(self, rsets_by_group, group_list, rsets_per_group, max_upper_bound):
         """Find a candidate slot in a group"""
         cand_team = []
         cand_group = None
@@ -177,13 +202,13 @@ class ResourceScheduler:
             if g in group_list:
                 continue
             nslots = len(rsets_by_group[g])
-            if nslots == rsets_req_per_group:
+            if nslots == rsets_per_group:
                 # Exact fit
                 cand_team = rsets_by_group[g].copy()
                 cand_group = g
                 break
-            elif rsets_req_per_group < nslots < upper_bound:
-                cand_team = rsets_by_group[g][:rsets_req_per_group]
+            elif rsets_per_group < nslots < upper_bound:
+                cand_team = rsets_by_group[g][:rsets_per_group]
                 cand_group = g
                 upper_bound = nslots
         return cand_team, cand_group
@@ -218,20 +243,21 @@ class ResourceScheduler:
 
     def calc_req_split(self, rsets_req, max_grpsize, num_groups, extend):
         if self.resources.even_groups:  # This is total group sizes even (not available sizes)
-            rsets_req, num_groups_req, rsets_req_per_group = \
+            rsets_req, num_groups_req, rsets_per_group = \
                 self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups, extend)
         else:
             logger.warning('Uneven groups - but using even groups function')
-            rsets_req, num_groups_req, rsets_req_per_group = \
+            rsets_req, num_groups_req, rsets_per_group = \
                 self.calc_rsets_even_grps(rsets_req, max_grpsize, num_groups, extend)
-        return rsets_req, num_groups_req, rsets_req_per_group
+        return rsets_req, num_groups_req, rsets_per_group
 
     def calc_rsets_even_grps(self, rsets_req, max_grpsize, max_groups, extend):
         """Calculate an even breakdown to best fit rsets_req input"""
         if rsets_req == 0:
             return 0, 0, 0
 
-        num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)  # Divide with roundup.
+        # Divide with roundup
+        num_groups_req = rsets_req//max_grpsize + (rsets_req % max_grpsize > 0)
 
         # Up to max groups - keep trying for an even split
         if num_groups_req > 1:
@@ -245,19 +271,22 @@ class ResourceScheduler:
 
             if even_partition:
                 num_groups_req = tmp_num_groups
-                rsets_req_per_group = rsets_req//num_groups_req  # This should always divide perfectly.
+                rsets_per_group = rsets_req//num_groups_req  # This should always divide perfectly.
             else:
                 if extend:
-                    rsets_req_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
-                    rsets_req = num_groups_req * rsets_req_per_group
-                    logger.debug('Increasing resource requirement to obtain an even partition of resource sets'
-                                 '\nto nodes. rsets_req {}  num_groups_req {} rsets_req_per_group {}'.
-                                 format(rsets_req, num_groups_req, rsets_req_per_group))
+                    rsets_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
+                    rsets_req = num_groups_req * rsets_per_group
+                    logger.debug(
+                        "Increasing resource requirement to obtain an even partition of resource sets"
+                        "\nto nodes. rsets_req {}  num_groups_req {} rsets_per_group {}".format(
+                            rsets_req, num_groups_req, rsets_per_group
+                        )
+                    )
                 else:
-                    rsets_req_per_group = max_grpsize
+                    rsets_per_group = max_grpsize
         else:
-            rsets_req_per_group = rsets_req
-        return rsets_req, num_groups_req, rsets_req_per_group
+            rsets_per_group = rsets_req
+        return rsets_req, num_groups_req, rsets_per_group
 
     def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, extend):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
@@ -273,12 +302,12 @@ class ResourceScheduler:
                 rsets_per_grp = sorted_lens[ngroups - 1]
         return rsets_req, ngroups, rsets_per_grp
 
-    def assign_team_from_slots(self, slots_avail_by_group, cand_groups, cand_slots, rsets_req_per_group):
+    def assign_team_from_slots(self, slots_avail_by_group, cand_groups, cand_slots, rsets_per_group):
         rset_team = []
         for grp in cand_groups:
             for i, slot in enumerate(cand_slots):
                 # Ignore extra slots
-                if i >= rsets_req_per_group:
+                if i >= rsets_per_group:
                     break
                 group = (self.resources.rsets['group'] == grp)
                 slot = (self.resources.rsets['slot'] == slot)
@@ -299,7 +328,7 @@ class ResourceScheduler:
         """Get max length of a list value in a dictionary"""
         return sorted([len(v) for v in avail_rsets.values()], reverse=True)
 
-    def get_matching_slots(self, slots_avail_by_group, num_groups_req, rsets_req_per_group):
+    def get_matching_slots(self, slots_avail_by_group, num_groups_req, rsets_per_group):
         """Get first N matching slots across groups
 
         Assumes num_groups_req > 0.
@@ -313,11 +342,11 @@ class ResourceScheduler:
             for i in comb:
                 tmplist.append(slots_avail_by_group[i])
             common_slots = set.intersection(*tmplist)
-            if len(common_slots) == rsets_req_per_group:
+            if len(common_slots) == rsets_per_group:
                 cand_groups = comb
                 cand_slots = common_slots
                 break
-            elif rsets_req_per_group < len(common_slots) < upper_bound:
+            elif rsets_per_group < len(common_slots) < upper_bound:
                 upper_bound = len(common_slots)
                 cand_groups = comb
                 cand_slots = common_slots
