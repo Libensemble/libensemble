@@ -459,6 +459,7 @@ def test_try1node_findon_2_or_4nodes():
 
 
 if __name__ == "__main__":
+    test_request_zero_rsets()
     test_too_many_rsets()
     test_cannot_split_quick_return()
     test_schedule_find_gaps_1node()
