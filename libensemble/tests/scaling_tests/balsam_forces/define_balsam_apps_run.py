@@ -1,4 +1,8 @@
+import time
+import glob
 from balsam.api import ApplicationDefinition, BatchJob
+
+SIM_MAX = 16  # make sure matches in balsam_forces.yaml
 
 
 class RemoteForces(ApplicationDefinition):
@@ -61,7 +65,7 @@ libe_job = LibensembleApp.submit(
 
 print("libEnsemble Job created, synced with Balsam.")
 
-BatchJob.objects.create(
+batch = BatchJob.objects.create(
     site_id=libe_job.site_id,
     num_nodes=5,
     wall_time_min=60,
@@ -71,3 +75,14 @@ BatchJob.objects.create(
 )
 
 print("BatchJob session initialized.")
+print("Waiting for all returned forces.stat files...")
+
+while len(glob.glob("./*.stat")) != SIM_MAX:
+    time.sleep(3)
+
+print("All forces.stat files returned. Cancelling BatchJob session.")
+
+batch.state = "pending_deletion"
+batch.save()
+
+print("BatchJob session cancelled. Success!")
