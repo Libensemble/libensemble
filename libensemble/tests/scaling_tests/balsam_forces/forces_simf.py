@@ -123,13 +123,12 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
                     data = np.loadtxt(file_dest)
                     final_energy = data[-1]
                 except Exception:
-                        final_energy = np.nan
+                    final_energy = np.nan
             else:
                 calc_status = WORKER_DONE
                 print("Task completed.")
     else:
         print(task.state)
-
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
