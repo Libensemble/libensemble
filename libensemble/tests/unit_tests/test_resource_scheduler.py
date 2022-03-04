@@ -1,4 +1,5 @@
 import sys
+import time
 import pytest
 import numpy as np
 from libensemble.resources.scheduler import (ResourceScheduler,
@@ -54,6 +55,17 @@ def _fail_to_resource(sched, rsets):
     with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=rsets)
         pytest.fail('Expected InsufficientFreeResources. Found {}'.format(rset_team))
+
+
+def _print_assigned(resources):
+    """For debugging. Print assigned rsets by group"""
+    rsets = resources.rsets
+    max_groups = max(rsets['group'])
+    print('\nAssigned')
+    for g in range(max_groups + 1):
+        filt = rsets['group'] == g
+        print(rsets['assigned'][filt])
+    print("free rsets {}\n".format(resources.free_rsets))
 
 
 def test_request_zero_rsets():
@@ -476,6 +488,69 @@ def test_try1node_findon_2_or_4nodes():
     del resources
 
 
+def _construct_large_problem(resources):
+    """Constructs rset assignment for large problem"""
+    rsets = resources.rsets
+
+    # All slots filled
+    rsets['assigned'] = 1
+
+    # Now free up the one column
+    col15 = (rsets['slot'] == 15)
+    rsets['assigned'][col15] = 0
+
+    # Now make sure two rows (groups) with 8, but different slots
+    free_row0 = (rsets['group'] == 0) & (rsets['slot'] < 8)
+    free_row1 = (rsets['group'] == 1) & (rsets['slot'] >= 8)
+
+    # Now make sure 4 rows of 4 exist (diff slots)
+    free_row2 = (rsets['group'] == 2) & (rsets['slot'] < 4)
+    free_row3 = (rsets['group'] == 3) & (rsets['slot'] >= 8) & (rsets['slot'] < 12)
+
+    # Now make sure 8 rows of 2 exist (diff slots)
+    # Free one slot each as last column already free
+    free_strip = (rsets['group'] >= 12) & (rsets['slot'] == 3)
+
+    rsets['assigned'][free_row0] = 0
+    rsets['assigned'][free_row1] = 0
+    rsets['assigned'][free_row2] = 0
+    rsets['assigned'][free_row3] = 0
+    rsets['assigned'][free_strip] = 0
+
+    resources.free_rsets = np.count_nonzero(rsets['assigned'] == 0)
+    # _print_assigned(resources)
+
+
+def test_large_match_slots():
+    """Tests multiple match slots iterations
+
+    Aim is try one of 16, then 2 of 8, then 4 or 4 and 8 or 2 then 16 of one.
+    To do this need enough slots at each step so tries to find, but in the
+    wrong places, until final iteration. Performance is of interest.
+    """
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+
+    # Construct rset assignment
+    resources = MyResources(256, 16)
+    _construct_large_problem(resources)
+
+    exp_out = [[0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31],
+               [15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255]]
+
+    for match_slots in [False, True]:
+        sched_options = {'match_slots': match_slots}
+        sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+        time1 = time.time()
+        rset_team = sched.assign_resources(rsets_req=16)
+        time2 = time.time() - time1
+        assert rset_team == exp_out[match_slots], \
+            'Expected {}, Received rset_team {}'.format(exp_out[match_slots], rset_team)
+        print('Time for large problem (match_slots {}): {}'.format(match_slots, time2))
+        del sched
+        rset_team = None
+    del resources
+
+
 if __name__ == "__main__":
     test_request_zero_rsets()
     test_too_many_rsets()
@@ -492,3 +567,4 @@ if __name__ == "__main__":
     test_split2fit_even_required_fails()
     test_split2fit_even_required_various()
     test_try1node_findon_2_or_4nodes()
+    test_large_match_slots()
