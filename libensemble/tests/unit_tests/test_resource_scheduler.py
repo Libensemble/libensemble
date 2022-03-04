@@ -25,7 +25,6 @@ class MyResources:
             self.rsets['group'][i] = i // self.rsets_per_node
             self.rsets['slot'][i] = i % self.rsets_per_node
         self.rsets_free = self.total_num_rsets
-        print(self.rsets)
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
