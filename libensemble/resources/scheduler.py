@@ -109,6 +109,7 @@ class ResourceScheduler:
             cand_groups, cand_slots = self.get_matching_slots(
                 slots_avail_by_group, num_groups_req, rsets_req_per_group
             )
+
             if cand_groups is None:
                 if not self.split2fit:
                     raise InsufficientFreeResources
@@ -234,6 +235,11 @@ class ResourceScheduler:
                     self.avail_rsets_by_group[g].append(ind)
         return self.avail_rsets_by_group
 
+    @staticmethod
+    def get_slots_of_len(d, n):
+        """Filter dictionary to values >= n"""
+        return {k: v for k, v in d.items() if len(v) >= n}
+
     def get_avail_slots_by_group(self, avail_rsets_by_group):
         """Return a dictionary of free slot IDS for each group (e.g. node)"""
         slots_avail_by_group = {}
@@ -333,14 +339,18 @@ class ResourceScheduler:
 
         Assumes num_groups_req > 0.
         """
+        viable_slots_by_group = ResourceScheduler.get_slots_of_len(slots_avail_by_group, rsets_per_group)
+        if len(viable_slots_by_group) < num_groups_req:
+            return None, None
+
+        combs = itertools.combinations(viable_slots_by_group, num_groups_req)
         cand_groups = None
         cand_slots = None
-        combs = itertools.combinations(slots_avail_by_group, num_groups_req)
-        upper_bound = max(len(v) for v in slots_avail_by_group.values()) + 1
+        upper_bound = max(len(v) for v in viable_slots_by_group.values()) + 1
         for comb in combs:
             tmplist = []
             for i in comb:
-                tmplist.append(slots_avail_by_group[i])
+                tmplist.append(viable_slots_by_group[i])
             common_slots = set.intersection(*tmplist)
             if len(common_slots) == rsets_per_group:
                 cand_groups = comb
