@@ -104,6 +104,13 @@ class ResourceScheduler:
         rsets_req, num_groups_req, rsets_req_per_group = \
             self.calc_req_split(rsets_req, max_grpsize, num_groups, extend=True)
 
+        # Check enough slots
+        sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
+        max_even_grpsize = sorted_lengths[num_groups_req - 1]
+        if max_even_grpsize < rsets_req_per_group:
+            if not self.split2fit or max_even_grpsize == 0:
+                raise InsufficientFreeResources
+
         if self.match_slots:
             slots_avail_by_group = self.get_avail_slots_by_group(avail_rsets_by_group)
             cand_groups, cand_slots = self.get_matching_slots(
@@ -117,20 +124,14 @@ class ResourceScheduler:
                 try_split = False  # Already found
 
         if try_split:
-            sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
-            max_even_grpsize = sorted_lengths[num_groups_req - 1]
-            if max_even_grpsize == 0 and rsets_req > 0:
-                raise InsufficientFreeResources
             if max_even_grpsize < rsets_req_per_group:
                 found_split = False
                 while not found_split:
+                    # Finds a split with enough slots (not nec. matching slots) if exists.
                     rsets_req, num_groups_req, rsets_req_per_group = \
                         self.calc_even_split_uneven_groups(
-                            max_even_grpsize, num_groups_req, rsets_req,
-                            sorted_lengths, num_groups, extend=False
+                            max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups
                         )
-                    if rsets_req == 0:
-                        raise InsufficientFreeResources
                     if self.match_slots:
                         cand_groups, cand_slots = \
                             self.get_matching_slots(
@@ -294,10 +295,8 @@ class ResourceScheduler:
             rsets_per_group = rsets_req
         return rsets_req, num_groups_req, rsets_per_group
 
-    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, extend):
+    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
-        if rsets_req == 0:
-            return 0, 0, 0
         while rsets_per_grp * ngroups != rsets_req:
             if rsets_per_grp * ngroups > rsets_req:
                 rsets_per_grp -= 1
