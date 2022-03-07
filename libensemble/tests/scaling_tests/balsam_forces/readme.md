@@ -65,6 +65,7 @@ Application parameters can be adjusted in `funcx_forces.yaml`.
 
 Note that each function and path must be accessible and/or importable on the
 remote machine. Absolute paths are recommended.
+**This runs libEnsemble itself in-place, with only forces submitted to a Balsam site.**
 
 To remove output before the next run, use:
 
@@ -94,3 +95,40 @@ This should be sufficient for ``forces.stat`` files from remote Balsam app runs
 to be transferred back to your local launch directory after every app run. The
 simulation function will wait for Balsam to transfer back a stat file, then determine
 the calc status based on the received output.
+
+### (Optional) Running libEnsemble as a Balsam app on compute nodes
+
+The previous instructions for running libEnsemble are understandably insufficient
+if running with potentially hundreds of workers or if the simulation/generation
+functions are computationally expensive.
+
+The included ``submit_libe_forces_balsam.py`` script will submit libEnsemble itself
+as a Balsam Job, to be run by a Balsam site on the compute nodes. From there libEnsemble's
+simulation function will behave as before, submitting forces apps to Balsam for scheduling
+on the same allocation.
+
+Since Balsam's API can initiate allocations for a given Balsam site remotely,
+``submit_libe_forces_balsam.py`` behaves like a batch submission script except
+it can be run from *anywhere* and still initiate a session on Theta. This does mean
+that any input files still need to be transferred by Globus to be accessible by
+libEnsemble running on the compute nodes. Customize the ``input_file`` dictionary
+according to Balsam's Globus specifications to do this (see the previous section).
+
+The following parameters can be adjusted at the top of this script:
+
+    SIM_MAX = 16  # make sure matches in balsam_forces.yaml
+    BATCH_NUM_NODES = 5
+    BATCH_WALL_CLOCK_TIME = 60
+    PROJECT = "CSC250STMS07"
+    QUEUE = "debug-flat-quad"
+
+    # libE Job Parameters - Will use above resources
+    LIBE_NODES = 1
+    LIBE_RANKS = 5
+
+**Adjust each of the literal sites, directories, paths and other attributes**
+in each of the ``ApplicationDefinition`` instances. If transferring statfiles,
+this script can wait for a number of statfiles equal to ``sim_max`` to be returned,
+then cancel the remote BatchJob. For this script, set ``TRANSFER_STATFILES`` to ``True.``
+The calling script will also need to be updated to contain the correct Globus endpoint
+and destination directory for the transfers.

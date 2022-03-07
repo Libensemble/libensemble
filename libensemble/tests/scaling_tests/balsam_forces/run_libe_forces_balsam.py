@@ -5,8 +5,9 @@ from libensemble import Ensemble
 from libensemble.executors import NewBalsamExecutor
 from balsam.api import ApplicationDefinition
 
+THIS_SCRIPT_ON_THETA = True  # Is this running on a personal machine, or a compute node?
+
 # Use Globus to transfer output forces.stat files back
-THIS_SCRIPT_ON_THETA = True
 TRANSFER_STATFILES = True
 GLOBUS_ENDPOINT = "jln_laptop"
 GLOBUS_DEST_DIR = (
