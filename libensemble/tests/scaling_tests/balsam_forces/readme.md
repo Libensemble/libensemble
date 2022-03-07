@@ -96,6 +96,9 @@ to be transferred back to your local launch directory after every app run. The
 simulation function will wait for Balsam to transfer back a stat file, then determine
 the calc status based on the received output.
 
+*To transfer files to Theta*, you will need to login to Globus and activate
+the ``alcf#dtn_theta`` Managed Public Endpoint.
+
 ### (Optional) Running libEnsemble as a Balsam app on compute nodes
 
 The previous instructions for running libEnsemble are understandably insufficient

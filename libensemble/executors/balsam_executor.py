@@ -2,6 +2,9 @@
 This module launches and controls the running of tasks with Balsam_, and most
 notably can submit tasks from any machine, to any machine running a Balsam site_.
 
+At this time, access to Balsam is limited to those with valid organizational logins
+authenticated through Globus_.
+
 In order to initiate a Balsam executor, the calling script should contain ::
 
     from libensemble.executors import BalsamExecutor
@@ -17,7 +20,7 @@ Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
 
     class HelloApp(ApplicationDefinition):
         site = "my-balsam-site"
-        command_template = "/path/to/hello.app"
+        command_template = "/path/to/hello.app {{ my_name }}"
 
     exctr = BalsamExecutor()
     exctr.register_app(HelloApp, app_name="hello")
@@ -28,6 +31,21 @@ Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
         wall_time_min=30,
         queue="debug-queue",
         project="my-project",
+    )
+
+Task submissions of registered apps aren't too different from the other executors,
+except Balsam expects application arguments in dictionary form. Note that these fields
+match the templating syntax in the above ``ApplicationDefinition``'s ``command_template``
+field::
+
+    args = {"my_name": "World"}
+
+    task = exctr.submit(
+        app_name="hello",
+        app_args=args,
+        num_procs=4,
+        num_nodes=1,
+        procs_per_node=4,
     )
 
 Instances of the ``HelloApp`` application submitted by the executor within a user
