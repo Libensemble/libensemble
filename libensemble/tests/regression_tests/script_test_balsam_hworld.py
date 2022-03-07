@@ -7,7 +7,7 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+from libensemble.executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
