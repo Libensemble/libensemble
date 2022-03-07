@@ -2,7 +2,7 @@
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.executors import NewBalsamExecutor
+from libensemble.executors import BalsamExecutor
 from balsam.api import ApplicationDefinition
 
 THIS_SCRIPT_ON_THETA = True  # Is this running on a personal machine, or a compute node?
@@ -33,7 +33,7 @@ forces.persis_info.add_random_streams()
 apps = ApplicationDefinition.load_by_site("jln_theta")
 RemoteForces = apps["RemoteForces"]
 
-exctr = NewBalsamExecutor()
+exctr = BalsamExecutor()
 exctr.register_app(RemoteForces, app_name="forces")
 
 if not THIS_SCRIPT_ON_THETA:

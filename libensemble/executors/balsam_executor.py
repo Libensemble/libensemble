@@ -1,13 +1,46 @@
 """
-This module launches and controls the running of tasks with Balsam 2, and most
-notably can submit tasks from any machine, to any machine running a Balsam site.
+This module launches and controls the running of tasks with Balsam_, and most
+notably can submit tasks from any machine, to any machine running a Balsam site_.
 
-In order to create a Balsam executor, the calling script should contain ::
+In order to initiate a Balsam executor, the calling script should contain ::
 
-    exctr = NewBalsamExecutor()
+    from libensemble.executors import BalsamExecutor
+    exctr = BalsamExecutor()
 
-One key difference to consider is that instead of registering paths to apps,
-Balsam ApplicationDefinition instances must be registered instead.
+One key difference to considser between this executor and libEnsemble's others is
+that instead of registering paths to apps, Balsam ``ApplicationDefinition`` instances
+must be registered instead. Furthermore, task submissions will not run until
+Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
+
+    from libensemble.executors import BalsamExecutor
+    from balsam.api import ApplicationDefinition, BatchJob
+
+    class HelloApp(ApplicationDefinition):
+        site = "my-balsam-site"
+        command_template = "/path/to/hello.app"
+
+    exctr = BalsamExecutor()
+    exctr.register_app(HelloApp, app_name="hello")
+
+    exctr.submit_allocation(
+        site_id=999,
+        num_nodes=4,
+        wall_time_min=30,
+        queue="debug-queue",
+        project="my-project",
+    )
+
+Instances of the ``HelloApp`` application submitted by the executor within a user
+function to the Balsam service will get scheduled within the reserved resource allocation.
+Results, including output files, will appear in the Balsam site's ``data`` directory,
+but can be `transferred back`_ via Globus_.
+
+*Reading Balsam's documentation is highly recommended.*
+
+.. _site: https://balsam.readthedocs.io/en/latest/user-guide/site-config/
+.. _Balsam: https://balsam.readthedocs.io/en/latest/
+.. _`transferred back`: https://balsam.readthedocs.io/en/latest/user-guide/transfer/
+.. _Globus: https://www.globus.org/
 
 """
 
