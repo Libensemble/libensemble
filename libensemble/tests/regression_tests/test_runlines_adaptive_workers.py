@@ -4,7 +4,7 @@ Runs libEnsemble run-lines for adaptive workers in non-persistent case.
 Default setup is designed to run on 4*N workers - to modify, change total_nodes.
 
 Execute via one of the following commands (e.g. 8 workers):
-   mpiexec -np 9 python3 test_runlines_adaptive_workers.py
+   mpiexec -np 9 python test_runlines_adaptive_workers.py
 
 This is a dry run test, mocking up the nodes available. To test the run-lines
 requires running a fixed, rather than random number of resource sets for a given sim_id.
