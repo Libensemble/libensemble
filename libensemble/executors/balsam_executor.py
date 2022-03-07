@@ -10,7 +10,7 @@ In order to initiate a Balsam executor, the calling script should contain ::
 One key difference to considser between this executor and libEnsemble's others is
 that instead of registering paths to apps, Balsam ``ApplicationDefinition`` instances
 must be registered instead. Furthermore, task submissions will not run until
-Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
+Balsam reserves compute resources via a ``BatchJob``. This process may resemble::
 
     from libensemble.executors import BalsamExecutor
     from balsam.api import ApplicationDefinition, BatchJob
@@ -41,7 +41,6 @@ but can be `transferred back`_ via Globus_.
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _`transferred back`: https://balsam.readthedocs.io/en/latest/user-guide/transfer/
 .. _Globus: https://www.globus.org/
-
 """
 
 import os
