@@ -111,7 +111,7 @@ its capabilities.
 
 * **Executor**: The executor can be used within user functions to provide a
   simple, portable interface for running and managing user tasks (applications).
-  There are multiple executors including the ``MPIExecutor`` and ``BalsamMPIExecutor``.
+  There are multiple executors including the ``MPIExecutor`` and ``LegacyBalsamMPIExecutor``.
   The base ``Executor`` class allows local sub-processing of serial tasks.
 
 * **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be

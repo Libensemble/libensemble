@@ -84,7 +84,7 @@ Systems with Launch/MOM nodes
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner which has some application-level scheduling
-capability (eg. aprun, jsrun). MPI applications can only be submitted from these nodes. Examples
+capability (eg. ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
 of these systems include: Summit, Sierra and Theta.
 
 There are two ways of running libEnsemble on these kind of systems. The first, and simplest,
@@ -94,8 +94,8 @@ is inherently centralized. The entire node allocation is available for the worke
 tasks.
 
 To run libEnsemble on the compute nodes of these systems requires an alternative Executor,
-such as :doc:`Balsam<../executor/balsam_executor>`, which runs on the
-launch nodes and launches tasks submitted by workers. Running libEnsemble on the compute
+such as :doc:`Balsam<../executor/balsam_2_executor>`, which maintains a separate service
+and launches tasks submitted by workers. Running libEnsemble on the compute
 nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
 that contain considerable computational work or I/O.
 

@@ -13,8 +13,8 @@ See the Executor APIs for optional arguments.
    :caption: Alternative Executors:
 
    mpi_executor
-   balsam_executor
-   balsam2_executor
+   legacy_balsam_executor
+   balsam_2_executor
 
 Executor Class
 ---------------

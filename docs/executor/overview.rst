@@ -23,9 +23,9 @@ to an application instance instead of a callable. They feature the ``cancel()``,
 from the standard.
 
 The main ``Executor`` class is an abstract class, inherited by the ``MPIExecutor``
-for direct running of MPI applications, and the ``BalsamMPIExecutor``
-for submitting MPI run requests from a worker running on a compute node to a
-Balsam service running on a launch node. This second approach is suitable for
+for direct running of MPI applications, and the ``BalsamExecutor``
+for submitting MPI run requests from a worker running on a compute node to the
+Balsam service. This second approach is suitable for
 systems that don't allow submitting MPI applications from compute nodes.
 
 Typically, users choose and parameterize their ``Executor`` objects in their
@@ -46,8 +46,8 @@ In calling script::
     USE_BALSAM = False
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import BalsamMPIExecutor
-        exctr = BalsamMPIExecutor()
+        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        exctr = LegacyBalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()

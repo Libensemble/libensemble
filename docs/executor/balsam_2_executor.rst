@@ -1,14 +1,14 @@
-Balsam 2 Executor - Remote apps
-===============================
+Balsam Executor - Remote apps
+=============================
 
-.. automodule:: new_balsam_executor
+.. automodule:: balsam_executor
   :no-undoc-members:
 
-.. autoclass:: NewBalsamExecutor
+.. autoclass:: BalsamExecutor
   :show-inheritance:
   :members: __init__, register_app, submit_allocation, revoke_allocation, submit
 
-.. autoclass:: NewBalsamTask
+.. autoclass:: BalsamTask
   :show-inheritance:
   :member-order: bysource
   :members: poll, wait, kill

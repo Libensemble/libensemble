@@ -41,7 +41,7 @@ Limitations of MPI mode
 
 If you are launching MPI applications from workers, then MPI is being nested. This is not
 supported with Open MPI. This can be overcome by using a proxy launcher
-(see :doc:`Balsam<executor/balsam_executor>`). This nesting does work, however,
+(see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work, however,
 with MPICH and its derivative MPI implementations.
 
 It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
