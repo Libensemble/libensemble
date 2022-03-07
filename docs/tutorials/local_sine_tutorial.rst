@@ -337,6 +337,8 @@ script and run ``python3 calling_script.py`` again
   plt.legend(loc = 'lower right')
   plt.savefig('tutorial_sines.png')
 
+Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
+
 Exercise
 ^^^^^^^^
 
@@ -489,3 +491,4 @@ libEnsemble use-case within our
 .. _MPICH: https://www.mpich.org/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/install.html
 .. _here: https://www.mpich.org/downloads/
+.. _examples/tutorials/simple_sine: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/simple_sine

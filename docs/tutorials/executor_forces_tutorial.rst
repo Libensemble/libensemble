@@ -397,6 +397,8 @@ The following *optional* lines parse and display some output:
             print(line)
         print('-'*60)
 
+Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
+
 Exercise
 ^^^^^^^^
 
@@ -443,3 +445,4 @@ which executor is imported and called within a calling script.
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
+.. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
