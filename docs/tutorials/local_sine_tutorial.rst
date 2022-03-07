@@ -9,15 +9,15 @@ multiprocessing.
 The foundation of writing libEnsemble routines is accounting for at least three components:
 
     1. A :ref:`generator function<api_gen_f>`, that produces values for simulations
-    2. A :ref:`simulator function<api_sim_f>`, performs simulations based on values from the generator function
+    2. A :ref:`simulator function<api_sim_f>`, that performs simulations based on values from the generator function
     3. A :doc:`calling script<../libe_module>`, for defining settings, fields, and functions, then starting the run
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
-user requests. The manager coordinates data transfer between workers and assigns
-units of work to each worker, consisting of a function to run and
-accompanying data. These functions perform their work in-line with Python and/or
-launch and control user applications with libEnsemble's :ref:`Executors<executor_index>`.
-Workers pass results back to the manager.
+user requests. The manager (via the :ref:`allocation function<api_alloc_f>`)
+coordinates data transfer between workers and assigns units of work to each worker,
+consisting of a function to run and accompanying data. These functions perform their
+work in-line with Python and/or launch and control user applications with
+libEnsemble's :ref:`Executors<executor_index>`. Workers pass results back to the manager.
 
 For this tutorial, we'll write our generator and simulator functions entirely in Python
 without other applications. Our generator will produce uniform randomly sampled
@@ -343,7 +343,7 @@ Exercise
 Write a Calling Script with the following specifications:
 
   1. Use the Exercise simulator and generator functions instead
-  2. Use 8 workers instead of 4
+  2. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate ``libE_specs``
   3. Set the generator function's lower and upper bounds to -6 and 6, respectively
   4. Increase the generator batch size to 10
   5. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key
@@ -364,8 +364,7 @@ Write a Calling Script with the following specifications:
        from simulator import sim_find_cosine
        from libensemble.tools import add_unique_random_streams
 
-       nworkers = 8
-       libE_specs = {'nworkers': nworkers, 'comms': 'local'}
+       nworkers, is_manager, libE_specs, _ = parse_args()
 
        gen_specs = {'gen_f': gen_random_ints,
                     'out': [('x', float, (1,))],
