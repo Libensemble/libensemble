@@ -315,11 +315,14 @@ class BalsamExecutor(Executor):
         job_mode="mpi",
         queue="local",
         project="local",
+        optional_params={},
+        filter_tags={},
+        partitions=[],
     ):
         """
         Submits a Balsam ``BatchJob`` machine allocation request to Balsam.
         Corresponding Balsam applications with a matching site can be submitted to
-        this allocation.
+        this allocation. Effectively a wrapper for ``BatchJob.objects.create()``.
 
         Parameters
         ----------
@@ -342,6 +345,16 @@ class BalsamExecutor(Executor):
         project: String, optional
             Specifies the project that should be charged for the requested hours. Default: "local"
 
+        optional_params: dict, optional
+            Additional system-specific parameters to set, based on fields in Balsam's job-template.sh
+
+        filter_tags: dict, optional
+            Directs the resultant BatchJob to only run Jobs with matching tags.
+
+        partitions: list of dicts, optional
+            Divides the allocation into multiple launcher partitions, with differing
+            ``job_mode``, ``num_nodes``. ``filter_tags``, etc. See the Balsam docs.
+
         Returns
         -------
 
@@ -355,6 +368,9 @@ class BalsamExecutor(Executor):
             job_mode=job_mode,
             queue=queue,
             project=project,
+            optional_params=optional_params,
+            filter_tags=filter_tags,
+            partitions=partitions
         )
 
         self.allocations.append(allocation)
@@ -407,6 +423,7 @@ class BalsamExecutor(Executor):
         dry_run=False,
         wait_on_start=False,
         extra_args={},
+        tags={},
     ):
         """Initializes and submits a Balsam Job based on a registered ApplicationDefinition
         and requested resource parameters. A corresponding libEnsemble Task object
@@ -438,10 +455,10 @@ class BalsamExecutor(Executor):
         machinefile: string, optional
             Name of a machinefile for this task to use. Unused by Balsam
 
-        gpus_per_rank: int
+        gpus_per_rank: int, optional
             Number of GPUs to reserve for each MPI rank
 
-        transfers: dict
+        transfers: dict, optional
             A Job-specific Balsam transfers dictionary that corresponds with an
             ApplicationDefinition ``transfers`` field. See the Balsam docs for
             more information.
@@ -458,8 +475,11 @@ class BalsamExecutor(Executor):
             Whether to block, and wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
-        extra_args: dict
+        extra_args: dict, optional
             Additional arguments to supply to MPI runner.
+
+        tags: dict, optional
+            Additional tags to organize the Job or restrict which BatchJobs run it.
 
         Returns
         -------
