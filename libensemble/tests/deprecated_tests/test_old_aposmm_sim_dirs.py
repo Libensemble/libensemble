@@ -68,8 +68,10 @@ persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
 # Tell libEnsemble when to stop (stop_val key must be in H)
-exit_criteria = {'sim_max': 150, 'stop_val': ('f', -1),}
-# end_exit_criteria_rst_tag
+exit_criteria = {
+    'sim_max': 150,
+    'stop_val': ('f', -1),
+}
 
 # Perform the run
 for run in range(2):

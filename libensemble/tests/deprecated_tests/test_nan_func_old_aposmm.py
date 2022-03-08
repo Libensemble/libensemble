@@ -25,7 +25,11 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 nworkers, is_manager, libE_specs, _ = parse_args()
 n = 2
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('f_i', float)],}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('f_i', float),],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
 

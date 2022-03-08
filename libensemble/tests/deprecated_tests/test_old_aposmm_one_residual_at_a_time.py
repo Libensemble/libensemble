@@ -35,7 +35,11 @@ m = 214
 n = 3
 budget = 50 * m
 
-sim_specs = {'sim_f': sim_f, 'in': ['x', 'obj_component'], 'out': [('f_i', float)],}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x', 'obj_component'],
+    'out': [('f_i', float)],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int), ('f', float)]
 
@@ -65,7 +69,12 @@ gen_specs['user']['sample_points'] = np.random.uniform(0, 1, (budget, n)) * (UB 
 alloc_specs = {
     'alloc_f': alloc_f,
     'out': [('allocated', bool)],
-    'user': {'stop_on_NaNs': True, 'batch_mode': True, 'num_active_gens': 1, 'stop_partial_fvec_eval': True,},
+    'user': {
+        'stop_on_NaNs': True,
+        'batch_mode': True,
+        'num_active_gens': 1,
+        'stop_partial_fvec_eval': True,
+    },
 }
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
