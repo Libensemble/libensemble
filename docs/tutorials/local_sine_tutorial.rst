@@ -90,7 +90,7 @@ For now, create a new Python file named ``generator.py``. Write the following:
     import numpy as np
 
     def gen_random_sample(H, persis_info, gen_specs, _):
-        # underscore parameter for advanced arguments
+        # Underscore ignores advanced arguments
 
         # Pull out user parameters
         user_specs = gen_specs['user']
