@@ -162,7 +162,7 @@ For example, if you have an activated Conda environment with Python 3.7 and SciP
         buildable: True
 
 For more information on Spack builds and any particular considerations
-for specific systems, see the spack_libe_ repostory. In particular, this
+for specific systems, see the spack_libe_ repository. In particular, this
 includes some example ``packages.yaml`` files (which go in ``~/.spack/``).
 These files are used to specify dependencies that Spack must obtain from
 the given system (rather than building from scratch). This may include
