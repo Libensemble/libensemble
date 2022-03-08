@@ -28,7 +28,10 @@ n = 2
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float), ('f_i', float),],
+    'out': [
+        ('f', float),
+        ('f_i', float),
+    ],
 }
 
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
