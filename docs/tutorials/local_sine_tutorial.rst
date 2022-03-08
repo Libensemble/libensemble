@@ -34,11 +34,11 @@ libEnsemble and its functions are written entirely in Python_. Let's make sure
 Python 3 is installed.
 
 Note: If you have a Python version-specific virtual environment set up (e.g., conda),
-then ``python`` and ``pip`` will work in place of ``python3`` and ``pip3``.
+then ``python`` and ``pip`` will work as well.
 
 .. code-block:: bash
 
-    $ python3 --version
+    $ python --version
     Python 3.7.0            # This should be >= 3.7
 
 .. _Python: https://www.python.org/
@@ -233,7 +233,7 @@ That's it! Now that these files are complete, we can run our simulation.
 
 .. code-block:: bash
 
-  $ python3 calling_script.py
+  $ python calling_script.py
 
 If everything ran perfectly and you included the above print statements, you
 should get something similar to the following output for ``H`` (although the
@@ -266,7 +266,7 @@ worker performed the simulation:
 
 If you want to verify your results through plotting and installed Matplotlib
 earlier, copy and paste the following code into the bottom of your calling
-script and run ``python3 calling_script.py`` again
+script and run ``python calling_script.py`` again
 
 .. code-block:: python
   :linenos:
@@ -369,7 +369,7 @@ With these changes in place, our libEnsemble code can be run with MPI by
 
 .. code-block:: bash
 
-  $ mpirun -n 5 python3 calling_script.py
+  $ mpirun -n 5 python calling_script.py
 
 where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
 the master process with the libEnsemble manager and the other four will run

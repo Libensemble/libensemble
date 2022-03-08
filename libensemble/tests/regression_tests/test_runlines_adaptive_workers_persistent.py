@@ -5,7 +5,7 @@ Default setup is designed to run on 4*N + 1 workers - to modify, change total_no
 where one worker is a zero-resource persistent gen.
 
 Execute via one of the following commands (e.g. 9 workers):
-   mpiexec -np 10 python3 test_runlines_adaptive_workers_persistent.py
+   mpiexec -np 10 python test_runlines_adaptive_workers_persistent.py
 
 This is a dry run test, mocking up the nodes available. To test the run-lines
 requires running a fixed, rather than random number of resource sets for a given sim_id.
