@@ -10,13 +10,14 @@ In order to initiate a Balsam executor, the calling script should contain ::
     from libensemble.executors import BalsamExecutor
     exctr = BalsamExecutor()
 
-One key difference to considser between this executor and libEnsemble's others is
-that instead of registering paths to apps, Balsam ``ApplicationDefinition`` instances
-must be registered instead. Furthermore, task submissions will not run until
-Balsam reserves compute resources via a ``BatchJob``. This process may resemble::
+Key differences to consider between this executor and libEnsemble's others is
+Balsam ``ApplicationDefinition`` instances are registered instead of paths and task
+submissions will not run until Balsam reserves compute resources at a site.
+
+This process may resemble::
 
     from libensemble.executors import BalsamExecutor
-    from balsam.api import ApplicationDefinition, BatchJob
+    from balsam.api import ApplicationDefinition
 
     class HelloApp(ApplicationDefinition):
         site = "my-balsam-site"
@@ -26,8 +27,8 @@ Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
     exctr.register_app(HelloApp, app_name="hello")
 
     exctr.submit_allocation(
-        site_id=999,
-        num_nodes=4,
+        site_id=999,  # corresponds to "my-balsam-site", found via ``balsam site ls``
+        num_nodes=4,  # Total number of nodes requested for *all jobs*
         wall_time_min=30,
         queue="debug-queue",
         project="my-project",
@@ -35,7 +36,7 @@ Balsam reserves compute resources via a ``BatchJob``. This process may resemble:
 
 Task submissions of registered apps aren't too different from the other executors,
 except Balsam expects application arguments in dictionary form. Note that these fields
-match the templating syntax in the above ``ApplicationDefinition``'s ``command_template``
+must match the templating syntax in each ``ApplicationDefinition``'s ``command_template``
 field::
 
     args = {"my_name": "World"}
@@ -48,12 +49,13 @@ field::
         procs_per_node=4,
     )
 
-Instances of the ``HelloApp`` application submitted by the executor within a user
-function to the Balsam service will get scheduled within the reserved resource allocation.
-Results, including output files, will appear in the Balsam site's ``data`` directory,
-but can be `transferred back`_ via Globus_.
+Application instances submitted by the executor to the Balsam service will get
+scheduled within the reserved resource allocation. **Each Balsam app can only be
+submitted to the site specified in its class definition.** Output files will appear
+in the Balsam site's ``data`` directory, but can be automatically `transferred back`_
+via Globus.
 
-*Reading Balsam's documentation is highly recommended.*
+**Reading Balsam's documentation is highly recommended.**
 
 .. _site: https://balsam.readthedocs.io/en/latest/user-guide/site-config/
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
@@ -84,11 +86,11 @@ logger = logging.getLogger(__name__)
 
 
 class BalsamTask(Task):
-    """Wraps a Balsam Job from the Balsam service.
+    """Wraps a Balsam ``Job`` from the Balsam service.
 
     The same attributes and query routines are implemented. Use ``task.process``
-    to refer to the matching Balsam Job initialized by the NewBalsamExecutor,
-    with every Balsam Job method invocable on it. Otherwise, libEnsemble task methods
+    to refer to the matching Balsam ``Job`` initialized by the ``BalsamExecutor``,
+    with every Balsam ``Job`` method invocable on it. Otherwise, libEnsemble task methods
     like ``poll()`` can be used directly.
 
     """
@@ -102,9 +104,9 @@ class BalsamTask(Task):
         stderr=None,
         workerid=None,
     ):
-        """Instantiate a new NewLegacyBalsamTask instance.
+        """Instantiate a new ``BalsamTask`` instance.
 
-        A new BalsamTask object is created with an id, status and
+        A new ``BalsamTask`` object is created with an id, status and
         configuration attributes.  This will normally be created by the
         executor on a submission.
         """
@@ -112,7 +114,7 @@ class BalsamTask(Task):
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
     def _get_time_since_balsam_submit(self):
-        """Return time since balsam task entered RUNNING state"""
+        """Return time since balsam task entered ``RUNNING`` state"""
 
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
@@ -203,7 +205,7 @@ class BalsamTask(Task):
             )
 
     def wait(self, timeout=None):
-        """Waits on completion of the task or raises TimeoutExpired exception
+        """Waits on completion of the task or raises ``TimeoutExpired``.
 
         Status attributes of task are updated on completion.
 
@@ -211,7 +213,7 @@ class BalsamTask(Task):
         ----------
 
         timeout: int
-            Time in seconds after which a TimeoutExpired exception is raised"""
+            Time in seconds after which a ``TimeoutExpired`` exception is raised"""
 
         if self.dry_run:
             return
@@ -249,15 +251,15 @@ class BalsamTask(Task):
 
 
 class BalsamExecutor(Executor):
-    """Inherits from Executor and wraps the Balsam service. Via this Executor,
-    Balsam Jobs can be submitted to Balsam sites, either local or on remote machines.
+    """Inherits from ``Executor`` and wraps the Balsam service. Via this Executor,
+    Balsam ``Jobs`` can be submitted to Balsam sites, either local or on remote machines.
 
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
 
     def __init__(self):
-        """Instantiate a new BalsamExecutor instance."""
+        """Instantiate a new ``BalsamExecutor`` instance."""
 
         super().__init__()
 
@@ -269,26 +271,26 @@ class BalsamExecutor(Executor):
         pass
 
     def add_app(self, name, site, exepath, desc):
-        """Sync application with balsam service"""
+        """Sync application with Balsam service"""
         pass
 
     def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
-        """Registers a Balsam ApplicationDefinition to libEnsemble. This class
+        """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
 
         Parameters
         ----------
 
-        BalsamApp: ApplicationDefinition object
-            A Balsam ApplicationDefinition instance.
+        BalsamApp: ``ApplicationDefinition`` object
+            A Balsam ``ApplicationDefinition`` instance.
 
         app_name: String, optional
             Name to identify this application.
 
         calc_type: String, optional
-            Calculation type: Set this application as the default 'sim'
-            or 'gen' function.
+            Calculation type: Set this application as the default ``'sim'``
+            or ``'gen'`` function.
 
         desc: String, optional
             Description of this application
@@ -328,28 +330,28 @@ class BalsamExecutor(Executor):
         ----------
 
         site_id: int
-            The corresponding site_id for a Balsam site. Retrieve via ``balsam site ls``
+            The corresponding ``site_id`` for a Balsam site. Retrieve via ``balsam site ls``
 
         num_nodes: int
             The number of nodes to request from a machine with a running Balsam site
 
         wall_time_min: int
-            The number of walltime minutes to request for the BatchJob allocation
+            The number of walltime minutes to request for the ``BatchJob`` allocation
 
         job_mode: String, optional
-            Either "serial" or "mpi". Default: "mpi"
+            Either ``"serial"`` or ``"mpi"``. Default: ``"mpi"``
 
         queue: String, optional
-            Specifies the queue from which the BatchJob should request nodes. Default: "local"
+            Specifies the queue from which the ``BatchJob`` should request nodes. Default: ``"local"``
 
         project: String, optional
-            Specifies the project that should be charged for the requested hours. Default: "local"
+            Specifies the project that should be charged for the requested machine time. Default: ``"local"``
 
         optional_params: dict, optional
-            Additional system-specific parameters to set, based on fields in Balsam's job-template.sh
+            Additional system-specific parameters to set, based on fields in Balsam's ``job-template.sh``
 
         filter_tags: dict, optional
-            Directs the resultant BatchJob to only run Jobs with matching tags.
+            Directs the resultant ``BatchJob`` to only run Jobs with matching tags.
 
         partitions: list of dicts, optional
             Divides the allocation into multiple launcher partitions, with differing
@@ -384,15 +386,15 @@ class BalsamExecutor(Executor):
 
     def revoke_allocation(self, allocation):
         """
-        Terminates a Balsam BatchJob machine allocation remotely. Balsam apps should
+        Terminates a Balsam ``BatchJob`` machine allocation remotely. Balsam apps should
         no longer be submitted to this allocation. Best to run after libEnsemble
-        completes, or after this BatchJob is no longer needed. Helps save machine time.
+        completes, or after this ``BatchJob`` is no longer needed. Helps save machine time.
 
         Parameters
         ----------
 
-        allocation: BatchJob object
-            a BatchJob with a corresponding machine allocation that should be cancelled.
+        allocation: ``BatchJob`` object
+            a ``BatchJob`` with a corresponding machine allocation that should be cancelled.
         """
         allocation.refresh_from_db()
 
@@ -425,16 +427,15 @@ class BalsamExecutor(Executor):
         extra_args={},
         tags={},
     ):
-        """Initializes and submits a Balsam Job based on a registered ApplicationDefinition
-        and requested resource parameters. A corresponding libEnsemble Task object
-        is created and returned.
+        """Initializes and submits a Balsam ``Job`` based on a registered ``ApplicationDefinition``
+        and requested resources. A corresponding libEnsemble ``Task`` object is returned.
 
         calc_type: String, optional
-            The calculation type: 'sim' or 'gen'
-            Only used if app_name is not supplied. Uses default sim or gen application.
+            The calculation type: ``'sim'`` or ``'gen'``
+            Only used if ``app_name`` is not supplied. Uses default sim or gen application.
 
         app_name: String, optional
-            The application name. Must be supplied if calc_type is not.
+            The application name. Must be supplied if ``calc_type`` is not.
 
         app_args: dict
             A dictionary of options that correspond to fields to template in the
@@ -460,26 +461,26 @@ class BalsamExecutor(Executor):
 
         transfers: dict, optional
             A Job-specific Balsam transfers dictionary that corresponds with an
-            ApplicationDefinition ``transfers`` field. See the Balsam docs for
+            ``ApplicationDefinition`` ``transfers`` field. See the Balsam docs for
             more information.
 
         workdir: String
             Specifies as name for the Job's output directory within the Balsam site's
-            data directory. Default: libe_workflow
+            data directory. Default: ``libe_workflow``
 
         dry_run: boolean, optional
-            Whether this is a dry_run - no task will be launched; instead
-            runline is printed to logger (at INFO level)
+            Whether this is a dry run - no task will be launched; instead
+            runline is printed to logger (at ``INFO`` level)
 
         wait_on_start: boolean, optional
-            Whether to block, and wait for task to be polled as RUNNING (or other
+            Whether to block, and wait for task to be polled as ``RUNNING`` (or other
             active/end state) before continuing
 
         extra_args: dict, optional
             Additional arguments to supply to MPI runner.
 
         tags: dict, optional
-            Additional tags to organize the Job or restrict which BatchJobs run it.
+            Additional tags to organize the ``Job`` or restrict which ``BatchJobs`` run it.
 
         Returns
         -------
@@ -488,9 +489,9 @@ class BalsamExecutor(Executor):
             The launched task object
 
         Note that since Balsam Jobs are often sent to entirely different machines
-        than where libEnsemble is running, that how libEnsemble's resource manager
+        than where libEnsemble is running, how libEnsemble's resource manager
         has divided local resources among workers doesn't impact what resources
-        can be requested for a Balsam Job running on an entirely different machine.
+        can be requested for a Balsam ``Job`` running on an entirely different machine.
 
         """
 
@@ -506,7 +507,6 @@ class BalsamExecutor(Executor):
         else:
             workdir = self.workflow_name
 
-        # Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
             jassert(
@@ -553,6 +553,5 @@ class BalsamExecutor(Executor):
                 "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
             )
 
-            # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)
         return task
