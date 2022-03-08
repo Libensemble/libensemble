@@ -12,15 +12,16 @@ import subprocess
 
 import balsam.launcher.dag as dag
 from balsam.service import models
+
 AppDef = models.ApplicationDefinition
 
 
 # Ok so more low level - but can interface app stuff in python directly
 def add_app(name, exepath, desc):
-    """ Add application to database """
+    """Add application to database"""
     app = AppDef()
     app.name = name
-    app.executable = exepath    # “/full/path/to/python/interpreter /full/path/to/script.py"
+    app.executable = exepath  # “/full/path/to/python/interpreter /full/path/to/script.py"
     app.description = desc
     # app.default_preprocess = '' # optional
     # app.default_postprocess = '' # optional
@@ -30,14 +31,14 @@ def add_app(name, exepath, desc):
 # As balsam req python 3.6 lets use subprocess.run
 # For any stuff requiring CLI
 def run_cmd(cmd, echo=False):
-    """ Run a bash command """
+    """Run a bash command"""
     if echo:
         print("\nRunning %s ...\n" % cmd)
     try:
         subprocess.run(cmd.split(), check=True)
     except Exception as e:
         print(e)
-        raise("Error: Command %s failed to run" % cmd)
+        raise ("Error: Command %s failed to run" % cmd)
 
 
 # Use relative paths to balsam_tests dir
@@ -50,9 +51,7 @@ sim_app = "helloworld.py"
 num_nodes = 1
 procs_per_node = 4
 
-job_list = ['test_balsam_1__runjobs.py',
-            'test_balsam_2__workerkill.py',
-            'test_balsam_3__managerkill.py']
+job_list = ['test_balsam_1__runjobs.py', 'test_balsam_2__workerkill.py', 'test_balsam_3__managerkill.py']
 
 
 # Currently think only CLI interface for this stuff??
@@ -80,13 +79,15 @@ for job in job_list:
     add_app(app_name, run_line, app_desc)
 
     job_name = 'job_' + app_name
-    dag.add_job(name=job_name,
-                workflow="libe_workflow",
-                application=app_name,
-                num_nodes=num_nodes,
-                procs_per_node=procs_per_node,
-                stage_out_url="local:" + work_dir,
-                stage_out_files=job_name + ".out")
+    dag.add_job(
+        name=job_name,
+        workflow="libe_workflow",
+        application=app_name,
+        num_nodes=num_nodes,
+        procs_per_node=procs_per_node,
+        stage_out_url="local:" + work_dir,
+        stage_out_files=job_name + ".out",
+    )
 
     # Add dependency between jobs so run one at a time.
     if prev_job_name:
