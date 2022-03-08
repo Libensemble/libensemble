@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+import socket
 import numpy as np
 
 from libensemble import Ensemble
 from libensemble.executors import BalsamExecutor
 from balsam.api import ApplicationDefinition
 
-THIS_SCRIPT_ON_THETA = True  # Is this running on a personal machine, or a compute node?
+THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])  # Is this running on a personal machine, or a compute node?
 
 # Use Globus to transfer output forces.stat files back
 TRANSFER_STATFILES = True
