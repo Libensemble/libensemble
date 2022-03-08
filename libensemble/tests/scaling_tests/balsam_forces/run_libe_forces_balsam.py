@@ -6,15 +6,14 @@ from libensemble import Ensemble
 from libensemble.executors import BalsamExecutor
 from balsam.api import ApplicationDefinition
 
-THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])  # Is this running on a personal machine, or a compute node?
+THIS_SCRIPT_ON_THETA = any(
+    [i in socket.gethostname() for i in ["theta", "nid0"]]
+)  # Is this running on a personal machine, or a compute node?
 
 # Use Globus to transfer output forces.stat files back
 TRANSFER_STATFILES = True
 GLOBUS_ENDPOINT = "jln_laptop"
-GLOBUS_DEST_DIR = (
-    "/Users/jnavarro/Desktop/libensemble"
-    + "/libensemble/libensemble/tests/scaling_tests/balsam_forces"
-)
+GLOBUS_DEST_DIR = "/Users/jnavarro/Desktop/libensemble" + "/libensemble/libensemble/tests/scaling_tests/balsam_forces"
 
 forces = Ensemble()
 forces.from_yaml("balsam_forces.yaml")
