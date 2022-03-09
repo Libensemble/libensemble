@@ -25,6 +25,12 @@ all dependencies. For example::
 As Perlmutter has a shared HOME filesystem with other clusters, using
 the ``-pm`` suffix (for Perlmutter) is good practice.
 
+Activate your virtual environment with::
+
+    export PYTHONNOUSERSITE=1
+    conda activate libe-pm
+
+
 Installing libEnsemble and dependencies
 ---------------------------------------
 
@@ -101,7 +107,7 @@ generator and four simulators) on one node:
 
 .. note::
     Any loaded modules and environment variables (including conda environments) are
-    inherited by the job on Perlmutter. This is assumed in this example.
+    inherited by the job on Perlmutter.
 
 This example calling script has the following line so the node is divided into
 four resource sets (the example generator does not need dedicated resources):
@@ -129,15 +135,6 @@ Each worker runs a simulator function that uses the :doc:`MPIExecutor<../executo
 If running using :doc:`variable resource workers<../resource_manager/overview>`, between one and
 four-way MPI runs may be issued by any of the workers (with each MPI task using a GPU). libEnsemble's
 resource manager automatically disables workers whose resources are being used by another worker.
-
-
-.. SH TODO - I may instead recommended --nresource_sets 4 on the run line - as simpler than zero_resource_worker.
-.. perhaps making a note that they are alternatives.
-..
-.. SH TODO - custom_info['srun'] currently needed!
-
-.. Could recommended setting extra_args via env variable for totally portable sim func
-..     export LIBE_SIM_EXTRA_ARGS="--gpus-per-task 1"
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
 
