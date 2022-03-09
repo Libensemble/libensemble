@@ -30,7 +30,7 @@ def check_libE_specs(libE_specs, serial_check=False):
             "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
 
         if k in ['ensemble_copy_back', 'use_worker_dirs', 'sim_dirs_make', 'gen_dirs_make']:
-            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be Boolean".format(k)
+            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be boolean".format(k)
 
         if k in ['sim_input_dir', 'gen_input_dir']:
             assert isinstance(libE_specs[k], str), \

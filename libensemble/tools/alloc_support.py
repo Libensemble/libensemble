@@ -38,7 +38,7 @@ class AllocSupport:
         module and the built-in libEnsemble scheduler.
 
         :param W: A :doc:`Worker array<../data_structures/worker_array>`
-        :param manage_resources: Optional, Boolean for if to assign resource sets when creating work units
+        :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
         :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
@@ -75,8 +75,8 @@ class AllocSupport:
         """Returns available workers as a list of IDs, filtered by the given options.
 
         :param persistent: Optional int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
-        :param active_recv: Optional Boolean. Only return workers with given active_recv state.
-        :param zero_resource_workers: Optional Boolean. Only return workers that require no resources
+        :param active_recv: Optional boolean. Only return workers with given active_recv state.
+        :param zero_resource_workers: Optional boolean. Only return workers that require no resources
         :returns: List of worker IDs
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
@@ -280,7 +280,7 @@ class AllocSupport:
         """Returns indices of points to give by priority
 
         :param points_avail: Indices of points that are available to give
-        :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
+        :param batch: Optional boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
         if 'priority' in H.dtype.fields:
