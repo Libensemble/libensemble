@@ -62,6 +62,7 @@ class ResourceScheduler:
         self.resources = user_resources or Resources.resources.resource_manager
         self.rsets_free = self.resources.rsets_free
         self.avail_rsets_by_group = None
+        self.log_msg = None
 
         # Process scheduler options
         self.split2fit = sched_opts.get('split2fit', True)
@@ -95,6 +96,7 @@ class ResourceScheduler:
         if rsets_req > self.rsets_free:
             raise InsufficientFreeResources
 
+        self.log_msg = None   # Log resource messages only when find resources
         num_groups = self.resources.num_groups
         max_grpsize = self.resources.rsets_per_node  # assumes even
         avail_rsets_by_group = self.get_avail_rsets_by_group()
@@ -156,6 +158,9 @@ class ResourceScheduler:
                 avail_rsets_by_group, max_grpsize, rsets_req,
                 num_groups_req, rsets_req_per_group
             )
+
+        if self.log_msg is not None:
+            logger.debug(self.log_msg)
 
         logger.debug(
             "rset_team found: Req: {} rsets. Found: {} Avail sets {}".format(
@@ -282,12 +287,12 @@ class ResourceScheduler:
             else:
                 if extend:
                     rsets_per_group = rsets_req//num_groups_req + (rsets_req % num_groups_req > 0)
+                    orig_rsets_req = rsets_req
                     rsets_req = num_groups_req * rsets_per_group
-                    logger.debug(
+                    self.log_msg = (
                         "Increasing resource requirement to obtain an even partition of resource sets"
-                        "\nto nodes. rsets_req {}  num_groups_req {} rsets_per_group {}".format(
-                            rsets_req, num_groups_req, rsets_per_group
-                        )
+                        "\nto nodes. rsets_req orig: {} New: {}  num_groups_req {} rsets_per_group {}".
+                        format(orig_rsets_req, rsets_req, num_groups_req, rsets_per_group)
                     )
                 else:
                     rsets_per_group = max_grpsize
