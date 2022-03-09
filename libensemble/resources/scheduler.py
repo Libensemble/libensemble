@@ -46,7 +46,7 @@ class ResourceScheduler:
 
         The supported fields for sched_opts are::
 
-            'split2fit' [boolan]:
+            'split2fit' [boolean]:
                 Try to split resource sets across more nodes if space is not currently
                 available on the minimum node count required. Allows more efficient
                 scheduling.
