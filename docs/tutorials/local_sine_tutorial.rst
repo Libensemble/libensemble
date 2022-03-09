@@ -64,7 +64,7 @@ or :ref:`gen_f<api_gen_f>`.
 An available libEnsemble worker will call this generator function with the
 following parameters:
 
-* :ref:`H<datastruct-history-array>`: The History array. A NumPy structured array
+* :ref:`H_in<datastruct-history-array>`: A selection of the History array, a NumPy structured array
   for storing information about each point generated and processed in the ensemble.
   libEnsemble passes a selection of ``H`` to the generator function in case the user
   wants to generate new values based on previous data.
@@ -89,7 +89,7 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
     import numpy as np
 
-    def gen_random_sample(H, persis_info, gen_specs, _):
+    def gen_random_sample(H_in, persis_info, gen_specs, _):
         # Underscore ignores advanced arguments
 
         # Pull out user parameters
@@ -134,7 +134,7 @@ the ``numpy.random.RandomState.randint(low, high, size)`` function.
 
        import numpy as np
 
-       def gen_random_ints(H, persis_info, gen_specs, _):
+       def gen_random_ints(H_in, persis_info, gen_specs, _):
 
            user_specs = gen_specs['user']
            lower = user_specs['lower']
@@ -175,7 +175,7 @@ Create a new Python file named ``simulator.py``. Write the following:
         # Send back our output and persis_info
         return out, persis_info
 
-Our simulator function is called by a worker *for every value in its batch* from
+Our simulator function is called by a worker for every work item produced by
 the generator function. This function calculates the sine of the passed value,
 then returns it so a worker can log it into ``H``.
 
@@ -196,7 +196,7 @@ value, using the ``numpy.cos(x)`` function.
 
        import numpy as np
 
-       def sim_find_cosine(H, persis_info, gen_specs, _):
+       def sim_find_cosine(H_in, persis_info, gen_specs, _):
 
         out = np.zeros(1, dtype=sim_specs['out'])
 
@@ -344,12 +344,11 @@ Exercise
 
 Write a Calling Script with the following specifications:
 
-  1. Use the Exercise simulator and generator functions instead
-  2. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate ``libE_specs``
-  3. Set the generator function's lower and upper bounds to -6 and 6, respectively
-  4. Increase the generator batch size to 10
-  5. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key
-  6. Print an error message if any errors occurred while libEnsemble was running
+  1. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate ``libE_specs``
+  2. Set the generator function's lower and upper bounds to -6 and 6, respectively
+  3. Increase the generator batch size to 10
+  4. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key
+  5. Print an error message if any errors occurred while libEnsemble was running
 
 .. container:: toggle
 
@@ -362,8 +361,8 @@ Write a Calling Script with the following specifications:
 
        import numpy as np
        from libensemble.libE import libE
-       from generator import gen_random_ints
-       from simulator import sim_find_cosine
+       from generator import gen_random_sample
+       from simulator import sim_find_sine
        from libensemble.tools import add_unique_random_streams
 
        nworkers, is_manager, libE_specs, _ = parse_args()
