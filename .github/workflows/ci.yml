@@ -218,7 +218,7 @@ jobs:
 
     spellcheck:
         name: Spellcheck release branch
-        if: ${{ env.GITHUB_BASE_REF == 'main' }}
+        if: $GITHUB_BASE_REF == 'main'
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v2
