@@ -3,9 +3,9 @@ Example of multi-fidelity optimization using a persistent GP gen_func (calling
 Ax).
 
 Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 5 python3 test_persistent_gp_multitask_ax.py
-   python3 test_persistent_gp_multitask_ax.py --nworkers 4 --comms local
-   python3 test_persistent_gp_multitask_ax.py --nworkers 4 --comms tcp
+   mpiexec -np 5 python test_persistent_gp_multitask_ax.py
+   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms local
+   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 3, as one of the three workers will be the

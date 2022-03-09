@@ -3,7 +3,7 @@
 #    https://www.sfu.ca/~ssurjano/camel6.html
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_6-hump_camel_aposmm_LD_MMA.py
+#    mpiexec -np 4 python test_6-hump_camel_aposmm_LD_MMA.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """

@@ -144,7 +144,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 new_H_ids_from_gen_i = np.where(H[last_H_len:]['gen_worker'] == wid)[0]
 
                 assert len(new_H_ids_from_gen_i) > 0, 'Gen must request new sim ' \
-                    + 'work or show convergence if avail, but neither occured'
+                    + 'work or show convergence if avail, but neither occurred'
 
                 new_H_ids_from_gen_i += last_H_len
 
@@ -190,7 +190,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             neighbor_consensus_ids_in_H = consensus_ids_in_H[incident_gens]
 
             if print_progress:
-                # implicilty perform matmul, $(A \kron I)[x_1,...x_m]$
+                # implicitly perform matmul, $(A \kron I)[x_1,...x_m]$
                 x[i0 * n:(i0 + 1) * n] = H[consensus_ids_in_H[i0]]['x']
 
                 diag_scalar = A.diagonal()[i0]

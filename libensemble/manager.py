@@ -379,9 +379,9 @@ class Manager:
         looped back over.
         """
         new_stuff = True
-        while new_stuff and any(self.W['active']):
+        while new_stuff:
             new_stuff = False
-            for w in self.W['worker_id'][self.W['active'] > 0]:
+            for w in self.W['worker_id']:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)

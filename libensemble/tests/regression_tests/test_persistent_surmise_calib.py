@@ -2,9 +2,9 @@
 Runs libEnsemble with Surmise calibration test.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_surmise_calib.py
-   python3 test_persistent_surmise_calib.py --nworkers 3 --comms local
-   python3 test_persistent_surmise_calib.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_surmise_calib.py
+   python test_persistent_surmise_calib.py --nworkers 3 --comms local
+   python test_persistent_surmise_calib.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the

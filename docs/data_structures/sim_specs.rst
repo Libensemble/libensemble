@@ -26,12 +26,12 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
 .. seealso::
 
-  .. _sim-specs-exmple1:
+  .. _sim-specs-example1:
 
   - test_uniform_sampling.py_ has a ``sim_specs``  that declares
     the name of the ``'in'`` field variable, ``'x'`` (as specified by the
     corresponding generator ``'out'`` field ``'x'`` from the :ref:`gen_specs
-    example<gen-specs-exmple1>`).  Only the field name is required in
+    example<gen-specs-example1>`).  Only the field name is required in
     ``sim_specs['in']``.
 
   ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
