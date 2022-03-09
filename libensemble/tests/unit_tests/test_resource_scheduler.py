@@ -491,7 +491,7 @@ def test_split2fit_even_required_various():
 
 
 def test_try1node_findon_2_or_4nodes():
-    """Tests spliting to fit. Needs 4 nodes if matching slots, else 2. """
+    """Tests splitting to fit. Needs 4 nodes if matching slots, else 2. """
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(16, 4)
     resources.fixed_assignment(([1, 1, 0, 1, 2, 2, 0, 0, 1, 0, 0, 1, 0, 4, 0, 4]))

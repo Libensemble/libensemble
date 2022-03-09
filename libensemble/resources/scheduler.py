@@ -48,7 +48,7 @@ class ResourceScheduler:
 
             'split2fit' [boolan]:
                 Try to split resource sets across more nodes if space is not currently
-                available on the mininum node count required. Allows more efficient
+                available on the minimum node count required. Allows more efficient
                 scheduling.
                 Default: True
 
