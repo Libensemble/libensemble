@@ -79,7 +79,7 @@ alloc_specs = {
         'give_all_with_same_priority': True,
         'num_active_gens': 1,
         'async_return': True,
-        'scheduler_opts': scheduler_opts
+        'scheduler_opts': scheduler_opts,
     },
 }
 
