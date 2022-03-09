@@ -60,6 +60,8 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
   :members:
   :no-undoc-members:
 
+.. _output_dirs:
+
 Working Directories for User Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 libEnsemble features configurable output and working directory structuring for

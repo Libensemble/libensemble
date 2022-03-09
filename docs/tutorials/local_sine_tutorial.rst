@@ -6,23 +6,22 @@ This introductory tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>` with Python's
 multiprocessing.
 
-The foundation of writing libEnsemble routines is accounting for four components:
+The foundation of writing libEnsemble routines is accounting for at least three components:
 
-    1. The generator function :ref:`gen_f<api_gen_f>`, which produces values for simulations
-    2. The simulator function :ref:`sim_f<api_sim_f>`, which performs simulations based on values from ``gen_f``
-    3. The allocation function :ref:`alloc_f<api_alloc_f>`, which decides which of the previous two functions should be called
-    4. The calling script, which defines parameters and information about these functions and the libEnsemble task, then begins execution
+    1. A :ref:`generator function<api_gen_f>`, that produces values for simulations
+    2. A :ref:`simulator function<api_sim_f>`, that performs simulations based on values from the generator function
+    3. A :doc:`calling script<../libe_module>`, for defining settings, fields, and functions, then starting the run
 
 libEnsemble initializes a *manager* process and as many *worker* processes as the
-user requests. The manager coordinates data transfer between workers and assigns
-each unit of work, consisting of a ``gen_f`` or ``sim_f`` function to run and
-accompanying data. These functions can perform their work in-line with Python or by
-launching and controlling user applications with libEnsemble's :ref:`executor<executor_index>`.
-Workers then pass results back to the manager.
+user requests. The manager (via the :ref:`allocation function<api_alloc_f>`)
+coordinates data transfer between workers and assigns units of work to each worker,
+consisting of a function to run and accompanying data. These functions perform their
+work in-line with Python and/or launch and control user applications with
+libEnsemble's :ref:`Executors<executor_index>`. Workers pass results back to the manager.
 
-For this tutorial, we'll write our ``gen_f`` and ``sim_f`` entirely in Python
-without other applications. Our ``gen_f`` will produce uniform randomly sampled
-values, and our ``sim_f`` will calculate the sine of each. By default we don't
+For this tutorial, we'll write our generator and simulator functions entirely in Python
+without other applications. Our generator will produce uniform randomly sampled
+values, and our simulator will calculate the sine of each. By default we don't
 need to write a new allocation function. All generated and simulated values
 alongside other parameters are stored in :ref:`H<datastruct-history-array>`,
 the history array.
@@ -31,10 +30,7 @@ Getting started
 ---------------
 
 libEnsemble and its functions are written entirely in Python_. Let's make sure
-Python 3 is installed.
-
-Note: If you have a Python version-specific virtual environment set up (e.g., conda),
-then ``python`` and ``pip`` will work as well.
+the correct version is installed.
 
 .. code-block:: bash
 
@@ -49,9 +45,9 @@ libraries with
 
 .. code-block:: bash
 
-    $ pip3 install numpy
-    $ pip3 install libensemble
-    $ pip3 install matplotlib # Optional
+    $ pip install numpy
+    $ pip install libensemble
+    $ pip install matplotlib # Optional
 
 If your system doesn't allow you to perform these installations, try adding
 ``--user`` to the end of each command.
@@ -62,28 +58,28 @@ If your system doesn't allow you to perform these installations, try adding
 Generator function
 ------------------
 
-Let's begin the coding portion of this tutorial by writing our
-:ref:`gen_f<api_gen_f>`, or generator function.
+Let's begin the coding portion of this tutorial by writing our generator function,
+or :ref:`gen_f<api_gen_f>`.
 
 An available libEnsemble worker will call this generator function with the
 following parameters:
 
-* :ref:`H<datastruct-history-array>`: The history array. Updated by the workers
-  with ``gen_f`` and ``sim_f`` inputs and outputs, then returned to the user.
-  libEnsemble passes ``H`` to the generator function in case the user wants to
-  generate new values based on previous data.
+* :ref:`H_in<datastruct-history-array>`: A selection of the History array, a NumPy structured array
+  for storing information about each point generated and processed in the ensemble.
+  libEnsemble passes a selection of ``H`` to the generator function in case the user
+  wants to generate new values based on previous data.
 
 * :ref:`persis_info<datastruct-persis-info>`: Dictionary with worker-specific
-  information. In our case this dictionary contains mechanisms called random
-  streams for generating random numbers.
+  information. In our case, this dictionary contains NumPy Random Stream objects
+  for generating random numbers.
 
-* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined and
-  operational parameters for the ``gen_f``. The user places function-specific
-  parameters such as boundaries and batch sizes within the nested ``user`` dictionary,
-  while parameters that libEnsemble depends on to operate the ``gen_f`` are placed
-  outside ``user``.
+* :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined fields and
+  parameters for the generator. Customizable parameters such as boundaries and batch
+  sizes are placed within the ``gen_specs['user']`` dictionary, while input/output fields
+  and other specifications that libEnsemble depends on to operate the generator are
+  placed outside ``user``.
 
-Later on, we'll populate ``gen_specs`` and ``persis_info`` in our calling script.
+Later on, we'll populate ``gen_specs`` and ``persis_info`` when we initialize libEnsemble.
 
 For now, create a new Python file named ``generator.py``. Write the following:
 
@@ -93,13 +89,13 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
     import numpy as np
 
-    def gen_random_sample(H, persis_info, gen_specs, _):
-        # underscore parameter for internal/testing arguments
+    def gen_random_sample(H_in, persis_info, gen_specs, _):
+        # Underscore ignores advanced arguments
 
-        # Pull out user parameters to perform calculations
+        # Pull out user parameters
         user_specs = gen_specs['user']
 
-        # Get lower and upper bounds from gen_specs
+        # Get lower and upper bounds
         lower = user_specs['lower']
         upper = user_specs['upper']
 
@@ -107,10 +103,10 @@ For now, create a new Python file named ``generator.py``. Write the following:
         num = len(lower)
         batch_size = user_specs['gen_batch_size']
 
-        # Create array of 'batch_size' zeros
+        # Create empty array of 'batch_size' zeros. Array dtype should match 'out' fields
         out = np.zeros(batch_size, dtype=gen_specs['out'])
 
-        # Replace those zeros with the random numbers
+        # Set the 'x' output field to contain random numbers, using random stream
         out['x'] = persis_info['rand_stream'].uniform(lower, upper, (batch_size, num))
 
         # Send back our output and persis_info
@@ -118,13 +114,43 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
 Our function creates ``batch_size`` random numbers uniformly distributed
 between the ``lower`` and ``upper`` bounds. A random stream
-from ``persis_info`` is used to generate these values, where they are placed
-into a NumPy array that meets the specifications from ``gen_specs['out']``.
+from ``persis_info`` is used to generate these values, which are then placed
+into an output NumPy array that meets the specifications from ``gen_specs['out']``.
+
+Exercise
+^^^^^^^^
+
+Write a simple generator function that instead produces random integers, using
+the ``numpy.random.RandomState.randint(low, high, size)`` function.
+
+.. container:: toggle
+
+   .. container:: header
+
+      **Click Here for Solution**
+
+   .. code-block:: python
+       :linenos:
+
+       import numpy as np
+
+       def gen_random_ints(H_in, persis_info, gen_specs, _):
+
+           user_specs = gen_specs['user']
+           lower = user_specs['lower']
+           upper = user_specs['upper']
+           num = len(lower)
+           batch_size = user_specs['gen_batch_size']
+
+           out = np.zeros(batch_size, dtype=gen_specs['out'])
+           out['x'] = persis_info['rand_stream'].randint(lower, upper, (batch_size, num))
+
+           return out, persis_info
 
 Simulator function
 ------------------
 
-Next, we'll write our :ref:`sim_f<api_sim_f>` or simulator function. Simulator
+Next, we'll write our simulator function or :ref:`sim_f<api_sim_f>`. Simulator
 functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
 serves a purpose similar to the ``gen_specs`` dictionary.
@@ -137,23 +163,48 @@ Create a new Python file named ``simulator.py``. Write the following:
 
     import numpy as np
 
-    def sim_find_sine(H, persis_info, sim_specs, _):
+    def sim_find_sine(H_in, persis_info, sim_specs, _):
         # underscore for internal/testing arguments
 
         # Create an output array of a single zero
         out = np.zeros(1, dtype=sim_specs['out'])
 
         # Set the zero to the sine of the input value stored in H
-        out['y'] = np.sin(H['x'])
+        out['y'] = np.sin(H_in['x'])
 
         # Send back our output and persis_info
         return out, persis_info
 
-Our simulator function is called by a worker for every value in its batch from
+Our simulator function is called by a worker for every work item produced by
 the generator function. This function calculates the sine of the passed value,
 then returns it so a worker can log it into ``H``.
 
-Calling script
+Exercise
+^^^^^^^^
+
+Write a simple simulator function that instead calculates the *cosine* of a received
+value, using the ``numpy.cos(x)`` function.
+
+.. container:: toggle
+
+   .. container:: header
+
+      **Click Here for Solution**
+
+   .. code-block:: python
+       :linenos:
+
+       import numpy as np
+
+       def sim_find_cosine(H_in, persis_info, gen_specs, _):
+
+        out = np.zeros(1, dtype=sim_specs['out'])
+
+        out['y'] = np.cos(H_in['x'])
+
+        return out, persis_info
+
+Calling Script
 --------------
 
 Now we can write the calling script that configures our generator and simulator
@@ -286,15 +337,63 @@ script and run ``python calling_script.py`` again
   plt.legend(loc = 'lower right')
   plt.savefig('tutorial_sines.png')
 
----
+Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
+
+Exercise
+^^^^^^^^
+
+Write a Calling Script with the following specifications:
+
+  1. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate ``libE_specs``
+  2. Set the generator function's lower and upper bounds to -6 and 6, respectively
+  3. Increase the generator batch size to 10
+  4. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key
+  5. Print an error message if any errors occurred while libEnsemble was running
+
+.. container:: toggle
+
+   .. container:: header
+
+      **Click Here for Solution**
+
+   .. code-block:: python
+       :linenos:
+
+       import numpy as np
+       from libensemble.libE import libE
+       from generator import gen_random_sample
+       from simulator import sim_find_sine
+       from libensemble.tools import add_unique_random_streams
+
+       nworkers, is_manager, libE_specs, _ = parse_args()
+
+       gen_specs = {'gen_f': gen_random_ints,
+                    'out': [('x', float, (1,))],
+                    'user': {
+                       'lower': np.array([-6]),
+                       'upper': np.array([6]),
+                       'gen_batch_size': 10
+                     }
+                   }
+
+       sim_specs = {'sim_f': sim_find_sine,
+                     'in': ['x'],
+                     'out': [('y', float)]}
+
+       persis_info = add_unique_random_streams({}, nworkers+1)
+       exit_criteria = {'gen_max': 160}
+
+       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                   libE_specs=libE_specs)
+
+       if flag != 0:
+          print('Oh no! An error occurred!')
 
 Next steps
 ----------
 
-The following is another learning exercise based on the above code.
-
 libEnsemble with MPI
-""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^
 
 MPI_ is a standard interface for parallel computing, implemented in libraries
 such as MPICH_ and used at extreme scales. MPI potentially allows libEnsemble's
@@ -304,16 +403,16 @@ explore modifying the above code to use MPI instead of multiprocessing.
 
 We recommend the MPI distribution MPICH_ for this tutorial, which can be found
 for a variety of systems here_. You also need mpi4py_, which can be installed
-with ``pip3 install mpi4py``. If you'd like to use a specific version or
+with ``pip install mpi4py``. If you'd like to use a specific version or
 distribution of MPI instead of MPICH, configure mpi4py with that MPI at
-installation with ``MPICC=<path/to/MPI_C_compiler> pip3 install mpi4py`` If this
+installation with ``MPICC=<path/to/MPI_C_compiler> pip install mpi4py`` If this
 doesn't work, try appending ``--user`` to the end of the command. See the
 mpi4py_ docs for more information.
 
 Verify that MPI has installed correctly with ``mpirun --version``.
 
 Modifying the calling script
-""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Only a few changes are necessary to make our code MPI-compatible. Modify the top
 of the calling script as follows:
@@ -382,7 +481,7 @@ calculations simultaneously. Please read our
 :doc:`platform guides <../platforms/platforms_index>` for introductions to using
 libEnsemble on many such machines.
 
-libEnsemble's can launch non-Python user applications and simulations across
+libEnsemble's Executors can launch non-Python user applications and simulations across
 allocated compute resources. Try out this feature with a more-complicated
 libEnsemble use-case within our
 :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
@@ -391,3 +490,4 @@ libEnsemble use-case within our
 .. _MPICH: https://www.mpich.org/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/install.html
 .. _here: https://www.mpich.org/downloads/
+.. _examples/tutorials/simple_sine: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/simple_sine
