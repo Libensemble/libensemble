@@ -263,7 +263,7 @@ def test_across_nodes_even_split():
     del resources
 
 
-def test_across_nodes_roundup_option():
+def test_across_nodes_roundup_option_2nodes():
     """Tests assignment over two nodes"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
@@ -277,6 +277,27 @@ def test_across_nodes_roundup_option():
             # Expecting even split
             assert rset_team == [0, 1, 2, 4, 5, 6], \
                 'Even split test did not get expected result {}'.format(rset_team)
+            assert sched.rsets_free == 2, 'Free slots found {}'.format(sched.rsets_free)
+            del sched
+            rset_team = None
+    del resources
+
+
+def test_across_nodes_roundup_option_3nodes():
+    """Tests assignment over two nodes"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    resources = MyResources(9, 3)
+
+    # Options should make no difference
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {'match_slots': match_slots, 'split2fit': split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+            rset_team = sched.assign_resources(rsets_req=7)
+            # Expecting even split
+            assert rset_team == [0, 1, 2, 3, 4, 5, 6, 7, 8], \
+                'Even split test did not get expected result {}'.format(rset_team)
+            assert sched.rsets_free == 0, 'Free slots found {}'.format(sched.rsets_free)
             del sched
             rset_team = None
     del resources
@@ -559,7 +580,8 @@ if __name__ == "__main__":
     test_schedule_find_gaps_2nodes()
     test_split_across_no_matching_slots()
     test_across_nodes_even_split()
-    test_across_nodes_roundup_option()
+    test_across_nodes_roundup_option_2nodes()
+    test_across_nodes_roundup_option_3nodes()
     test_try1node_findon_2nodes_matching_slots()
     test_try1node_findon_2nodes_different_slots()
     test_try1node_findon_3nodes()
