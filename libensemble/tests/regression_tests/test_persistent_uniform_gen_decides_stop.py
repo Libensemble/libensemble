@@ -3,9 +3,9 @@ Test the libEnsemble capability to honor a generator function's request to
 stop a run.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 5 python3 test_persistent_uniform_gen_decides_stop.py
-   python3 test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms local
-   python3 test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms tcp
+   mpiexec -np 5 python test_persistent_uniform_gen_decides_stop.py
+   python test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms local
+   python test_persistent_uniform_gen_decides_stop.py --nworkers 4 --comms tcp
 
 The number of concurrent evaluations of the objective function with 2 gens will be 2:
 5 - 1 manager - 2 persistent gens = 2.

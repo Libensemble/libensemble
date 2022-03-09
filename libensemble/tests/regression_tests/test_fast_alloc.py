@@ -2,8 +2,8 @@
 Tests various capabilities of the libEnsemble fast_alloc alloc_f
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_fast_alloc.py
-   python3 test_fast_alloc.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_fast_alloc.py
+   python test_fast_alloc.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

@@ -30,7 +30,7 @@ Getting started
 ---------------
 
 libEnsemble and its functions are written entirely in Python_. Let's make sure
-Python 3 is installed.
+the correct version is installed.
 
 .. code-block:: bash
 
@@ -284,7 +284,7 @@ That's it! Now that these files are complete, we can run our simulation.
 
 .. code-block:: bash
 
-  $ python3 calling_script.py
+  $ python calling_script.py
 
 If everything ran perfectly and you included the above print statements, you
 should get something similar to the following output for ``H`` (although the
@@ -317,7 +317,7 @@ worker performed the simulation:
 
 If you want to verify your results through plotting and installed Matplotlib
 earlier, copy and paste the following code into the bottom of your calling
-script and run ``python3 calling_script.py`` again
+script and run ``python calling_script.py`` again
 
 .. code-block:: python
   :linenos:

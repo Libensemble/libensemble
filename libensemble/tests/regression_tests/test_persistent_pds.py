@@ -12,8 +12,8 @@ You can specify which problem to test by setting @prob_id in {0,1,2,3,4,5}.
 
 This call script uses distributed primal-dual sliding (https://arxiv.org/pdf/2101.00143)
 to solve the following problems. To test, run using, for any p >= 6,
-   mpiexec -np p python3 test_persistent_pds.py
-   python3 test_persistent_pds.py --nworkers p --comms local
+   mpiexec -np p python test_persistent_pds.py
+   python test_persistent_pds.py --nworkers p --comms local
 
 The number gens will be 4.
 
