@@ -221,5 +221,5 @@ jobs:
         if: ${{ env.GITHUB_BASE_REF == 'main' }}
         runs-on: ubuntu-latest
         steps:
-          uses: actions/checkout@v2
-          uses: crate-ci/typos@master
+        - uses: actions/checkout@v2
+        - uses: crate-ci/typos@master
