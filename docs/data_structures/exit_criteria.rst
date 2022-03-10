@@ -3,7 +3,7 @@
 exit_criteria
 =============
 
-Exit criteria for libEnsemble::
+The following criteria (or termination tests) can be used to tell libEnsemble when to stop a given run::
 
     exit_criteria: [dict]:
 
