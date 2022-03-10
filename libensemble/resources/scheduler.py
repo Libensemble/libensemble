@@ -74,7 +74,7 @@ class ResourceScheduler:
         If the resources required are less than one node, they will be
         allocated to the smallest available sufficient slot.
 
-        If the resources required are more than one node, then 
+        If the resources required are more than one node, then
         the scheduler will attempt to find an even split. If no even split
         is possible, then enough additional resource sets will be
         assigned to enable an even split.
