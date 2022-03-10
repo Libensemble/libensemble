@@ -99,7 +99,7 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
     # Ensure termination criteria are valid
     valid_term_fields = ['sim_max', 'gen_max',
-                         'elapsed_wallclock_time', 'stop_val']
+                         'wallclock_max', 'stop_val']
     assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
         "Valid termination options: " + str(valid_term_fields)
 

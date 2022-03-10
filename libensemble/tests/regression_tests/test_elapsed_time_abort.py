@@ -53,7 +53,7 @@ alloc_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 1}
+exit_criteria = {'wallclock_max': 1}
 
 # Perform the run
 H, persis_info, flag = libE(

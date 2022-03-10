@@ -45,7 +45,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 10}
+exit_criteria = {'wallclock_max': 10}
 
 libE_specs['abort_on_exception'] = False
 

@@ -28,7 +28,7 @@ export LIBE_WALLCLOCK=25
 # Name of working directory where Balsam places running jobs/output (inside the database directory)
 export WORKFLOW_NAME=libe_workflow
 
-# If user script takes ``elapsed_wallclock_time`` argument.
+# If user script takes ``wallclock_max`` argument.
 # export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
 export SCRIPT_ARGS=""
 
