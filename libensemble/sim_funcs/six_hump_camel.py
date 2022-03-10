@@ -144,15 +144,15 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
+    slots = resources.slots
 
     assert (
         resources.matching_slots
-    ), "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}'.format(slots)"
+    ), "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}".format(slots)
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
     num_nodes = resources.local_node_count
     cores_per_node = resources.slot_count  # One CPU per GPU
-    slots = resources.slots
     print(
         'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
             libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots

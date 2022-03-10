@@ -64,7 +64,7 @@ alloc_specs = {
     'user': {
         'give_all_with_same_priority': False,
         'async_return': True,
-        'scheduler_opts': {'match_slots': False},
+        'scheduler_opts': {'match_slots': True},
     },
 }
 
