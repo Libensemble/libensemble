@@ -120,10 +120,6 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
             # To return something in test
             H_o['f'][i] = six_hump_camel_func(x)
 
-        # v = np.random.uniform(0, 10)
-        # print('About to sleep for :' + str(v))
-        # time.sleep(v)
-
     calc_status = UNSET_TAG  # Returns to worker
     if all(t == 'FINISHED' for t in task_states):
         calc_status = WORKER_DONE
@@ -153,11 +149,11 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
     num_nodes = resources.local_node_count
     cores_per_node = resources.slot_count  # One CPU per GPU
+
     print(
         'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
             libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
-        ),
-        flush=True,
+        )
     )
 
     # Create application input file
