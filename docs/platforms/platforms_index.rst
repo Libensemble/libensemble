@@ -101,7 +101,7 @@ that contain considerable computational work or I/O.
 
     .. image:: ../images/centralized_new_detailed_balsam.png
         :alt: central_balsam
-        :scale: 40
+        :scale: 30
         :align: center
 
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
@@ -198,6 +198,8 @@ libEnsemble on specific HPC systems.
     cori
     theta
     summit
+    perlmutter
+    srun
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
