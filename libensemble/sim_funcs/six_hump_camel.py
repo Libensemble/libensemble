@@ -13,7 +13,6 @@ __all__ = [
     'persistent_six_hump_camel',
 ]
 
-# import subprocess
 import os
 import sys
 import numpy as np
@@ -23,10 +22,6 @@ from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
-
-
-class SixHumpException(Exception):
-    """Exception raised by the six_hump_camel"""
 
 
 def six_hump_camel(H, persis_info, sim_specs, _):
@@ -93,13 +88,10 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
     exctr = Executor.executor  # Get Executor
     task_states = []
     for i, x in enumerate(H['x']):
-        # If set_cores_by_rsets is set - set nprocs here (you can oversubscribe on node)
-        # else let automatic resources set nodes/procs to use all available set.
         nprocs = None  # Will be as if argument is not present
         if set_cores_by_rsets:
             resources = Resources.resources.worker_resources
             nprocs = resources.num_rsets * core_multiplier
-            # print('nprocs is',nprocs,flush=True)
 
         inpt = None  # Will be as if argument is not present
         if app == 'six_hump_camel':
@@ -152,23 +144,21 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
-    if resources.matching_slots:  # Need same slots on each node
-        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
-        num_nodes = resources.local_node_count
-        cores_per_node = resources.slot_count  # One CPU per GPU
-        slots = resources.slots
-        print(
-            'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
-                libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
-            ),
-            flush=True,
-        )
-    else:
-        # Unless use a matching sub-set, but usually you probably don't want this
-        print('Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}'.format(slots))
-        raise SixHumpException("Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes.",
-                               "Check 'match_slots' is True in alloc_specs['user']['scheduler_opts'])",
-                               "Slots on nodes are {}.".format(slots))
+
+    assert (
+        resources.matching_slots
+    ), "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}'.format(slots)"
+
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    num_nodes = resources.local_node_count
+    cores_per_node = resources.slot_count  # One CPU per GPU
+    slots = resources.slots
+    print(
+        'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
+            libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
+        ),
+        flush=True,
+    )
 
     # Create application input file
     inpt = ' '.join(map(str, x))
@@ -181,7 +171,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         num_nodes=num_nodes,
         procs_per_node=cores_per_node,
         stdout='out.txt',
-        stderr='err.txt',
+        stderr='err.txt'
     )
 
     task.wait()  # Wait for run to complete
