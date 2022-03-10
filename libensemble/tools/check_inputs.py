@@ -6,6 +6,7 @@ from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
 
 logger = logging.getLogger(__name__)
 
+
 def _check_consistent_field(name, field0, field1):
     """Checks that new field (field1) is compatible with an old field (field0)."""
     assert field0.ndim == field1.ndim, \
@@ -100,7 +101,11 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
     assert len(exit_criteria) > 0, "Must have some exit criterion"
 
     if 'elapsed_wallclock_time' in exit_criteria:
-        logger.warning("exit_criteria['elapsed_wallclock_time'] is depricated. This will break in the future. Use exit_criteria['wallclock_max']") 
+        logger.warning(
+            "exit_criteria['elapsed_wallclock_time'] is depricated.'\n"
+            + "This will break in the future. Use exit_criteria['wallclock_max']"
+        )
+
         exit_criteria['wallclock_max'] = exit_criteria.pop('elapsed_wallclock_time')
 
     # Ensure termination criteria are valid
