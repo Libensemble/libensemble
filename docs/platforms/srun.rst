@@ -7,18 +7,17 @@ SLURM is a popular open-source workload manager.
 libEnsemble is able to read SLURM node lists and partition these to workers. By
 default this is done by :ref:`reading an environment variable<resource_detection>`.
 
-Example SLURM submission scripts for various systems are given in the :doc:`examples<example_scripts>`.
-Further examples are given in some of the specific platform guides.
-
-.. SH TODO: Add correct link once decided on any docs restructuring.
+Example SLURM submission scripts for various systems are given in the
+:doc:`examples<example_scripts>`. Further examples are given in some of the specific
+platform guides (e.g. :doc:`Perlmutter guide<perlmutter>`)
 
 By default, the :doc:`MPIExecutor<../executor/mpi_executor>` uses ``mpirun``
-as a priority over ``srun`` as it works better in some cases. If ``mpirun`` does not work well,
-then try telling the MPIExecutor to use ``srun`` when it is initiated in the calling script::
+as a priority over ``srun`` as it works better in some cases. If ``mpirun`` does
+not work well, then try telling the MPIExecutor to use ``srun`` when it is initiated
+in the calling script::
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})
-
 
 Common Errors
 -------------
@@ -35,11 +34,12 @@ It is recommended to add these to submission scripts to prevent resource conflic
     export SLURM_EXACT=1
     export SLURM_MEM_PER_NODE=0
 
-Alternatively, the ``--exact`` `option to srun`_, along with other relevant options can be given on
-any ``srun`` lines (including the ``MPIExecutor`` submission lines via the ``extra_args`` option).
+Alternatively, the ``--exact`` `option to srun`_, along with other relevant options
+can be given on any ``srun`` lines (including the ``MPIExecutor`` submission lines
+via the ``extra_args`` option).
 
-Secondly, while many configurations are possible, it is recommended to **avoid** using ``#SBATCH`` commands
-that may limit resources to srun job steps such as::
+Secondly, while many configurations are possible, it is recommended to **avoid** using
+``#SBATCH`` commands that may limit resources to srun job steps such as::
 
     #SBATCH --ntasks-per-node=4
     #SBATCH --gpus-per-task=1
@@ -47,93 +47,41 @@ that may limit resources to srun job steps such as::
 Instead provide these to sub-tasks via the ``extra_args`` option to the
 :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
 
-
 **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
-Ensure that some ``srun`` option for allocating GPUs is used in the ``extra_args`` option to the
-:doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function (E.g.~ ``--gpus-per-task=1`` would
-allocate one GPU to each MPI task of the MPI run).
+If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
+expect an  option for allocating GPUs (e.g.~ ``--gpus-per-task=1`` would
+allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
+via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
+even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
 
+If running the libEnsemble user calling script with ``srun``, then it is recommended that
+``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
+GPU runs will be submitted, instead of in the batch script. E.g::
 
-Advanced - Resource Binding
----------------------------
+    os.environ['MPICH_GPU_SUPPORT_ENABLED'] = "1"
 
-Note that the use of ``CUDA_VISIBLE_DEVICES`` and other environment variables is often a highly
-portable way of assigning GPUs to workers, and has been known to work on some systems when
-other methods do not. See the libEnsemble regression test `test_persistent_sampling_CUDA_variable_resources.py`_
-for an example of setting ``CUDA_VISIBLE_DEVICES`` in the user simulator function.
+Note on Resource Binding
+------------------------
 
-.. SH TODO - Better to link to the sim func? six_hump_camel_CUDA_variable_resource than regression test
+Note that the use of ``CUDA_VISIBLE_DEVICES`` and other environment variables is often
+a highly portable way of assigning specific GPUs to workers, and has been known to work
+on some systems when other methods do not. See the libEnsemble regression test `test_persistent_sampling_CUDA_variable_resources.py`_ for an example of setting
+CUDA_VISIBLE_DEVICES in the imported simulator function (``six_hump_camel_CUDA_variable_resources``).
 
-On other systems, like Perlmutter, using an option such as ``--gpus-per-task=1`` or ``-gres=gpu:1``
-in ``extra_args`` is sufficient to allow SLURM to find the free GPUs.
+On other systems, like Perlmutter, using an option such as ``--gpus-per-task=1`` or
+``-gres=gpu:1`` in ``extra_args`` is sufficient to allow SLURM to find the free GPUs.
 
-If more precise binding is desired, the :ref:`sim_f<api_sim_f>` or :ref:`gen_f<api_gen_f>` function
-can use the :doc:`worker resources<../resource_manager/worker_resources>` module to set options such as::
+Note that the ``srun`` options such as::
 
-    srun -w nid003488 --nodes 1 --ntasks-per-node 2 --gpus-per-task 1
-         --cpu-bind=map_cpu:0,32 --gpu-bind=map_gpu:0,1 ./sim.x
+    --gpu-bind=map_gpu:2,3
 
-and concurrently::
+do not necessarily provide absolute GPU slots when there are more than one concurrent
+job steps (``sruns``) running on a node. If desired, such options could be set using the
+:doc:`worker resources<../resource_manager/worker_resources>` module in a similar manner
+to how ``CUDA_VISIBLE_DEVICES`` is set in the example.
 
-    srun -w nid003488 --nodes 1 --ntasks-per-node 2 --gpus-per-task 1
-         --cpu-bind=map_cpu:64,96 --gpu-bind=map_gpu:2,3 ./sim.x
-
-.. note::
-    These ``srun`` binding options are only used when the ``task/affinity`` or ``task/cgroup`` plugin is enabled.
-    This can be checked by running ``scontrol show config|grep TaskPlugin``.
-
-
-
-The above lines were generated by a code that has four workers assigned to each node (each node has four GPUs).
-Any worker can run between a one and four way MPI run, whereby each MPI rank uses one CPU and one GPU.
-libEnsemble's resource manager automatically disables workers whose resources are being used by another worker.
-
-At the top the simulator module imports Resources and Executor modules::
-
-    from libensemble.resources.resources import Resources
-    from libensemble.executors.executor import Executor
-
-The MPIExecutor and the resources module are retreived from class attributes::
-
-    exctr = Executor.executor
-    resources = Resources.resources.worker_resources
-
-Resources is used to retreive nodes and slots (partitions on node) assigned to this worker::
-
-    cpus_per_rset = 32                   # Hard-coded - alt. get via libE cores per node.
-    slot_list = resources.slots_on_node  # E.g. [0,1]
-    cpu_list = []
-    gpu_list = []
-    for slot in slot_list:
-        cpu_list.append(cpus_per_rset * slot)
-        gpu_list.append(slot)
-    cpus_str = '--cpu-bind=map_cpu:' + ','.join(map(str, cpu_list))
-    gpus_str = '--gpu-bind=map_gpu:' + ','.join(map(str, gpu_list))
-    extra_args = ' '.join([extra_args, cpus_str, gpus_str])
-
-To see output of the bindings substitute these lines::
-
-    cpus_str = '--cpu-bind=verbose,map_cpu:' + ','.join(map(str, cpu_list))
-    gpus_str = '--gpu-bind=verbose,map_gpu:' + ','.join(map(str, gpu_list))
-
-
-Now run the Executor::
-
-    num_nodes = resources.local_node_count  # In this example is 1
-    cores_per_node = resources.slot_count   # Between 1 and 4
-
-    task = exctr.submit(app_name='sim1',
-                        num_nodes=num_nodes,
-                        procs_per_node=cores_per_node,
-                        extra_args=extra_args,
-                        app_args=sim_script,
-                        stdout='out.txt',
-                        stderr='err.txt',
-                        wait_on_start=True)
-
-For more worker resource attributes and convenience functions see
-the :doc:`worker resources<../resource_manager/worker_resources>` module
 
 Some useful commands
 --------------------
@@ -153,4 +101,3 @@ Find SLURM partition configuration for a partition called 'gpu'::
 
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
-

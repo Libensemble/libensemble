@@ -80,8 +80,9 @@ resource conflicts::
     export SLURM_EXACT=1
     export SLURM_MEM_PER_NODE=0
 
-Alternatively, the ``--exact`` `option to srun`_, along with other relevant options can be given on
-any ``srun`` lines (including executor submission lines via the ``extra_args`` option).
+Alternatively, the ``--exact`` `option to srun`_, along with other relevant options
+can be given on any ``srun`` lines (including executor submission lines via the
+``extra_args`` option).
 
 Example
 -------
@@ -132,9 +133,10 @@ Each worker runs a simulator function that uses the :doc:`MPIExecutor<../executo
                         extra_args='--gpus-per-task=1'
                         )
 
-If running using :doc:`variable resource workers<../resource_manager/overview>`, between one and
-four-way MPI runs may be issued by any of the workers (with each MPI task using a GPU). libEnsemble's
-resource manager automatically disables workers whose resources are being used by another worker.
+If running using :doc:`variable resource workers<../resource_manager/overview>`,
+between one and four-way MPI runs may be issued by any of the workers (with each
+MPI task using a GPU). libEnsemble's resource manager automatically disables workers
+whose resources are being used by another worker.
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
 
