@@ -212,7 +212,7 @@ class BalsamTask(Task):
         Parameters
         ----------
 
-        timeout: int
+        timeout: float
             Time in seconds after which a ``TimeoutExpired`` exception is raised"""
 
         if self.dry_run:

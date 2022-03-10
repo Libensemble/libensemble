@@ -178,7 +178,7 @@ key. For example::
         'sim_f': sim_f,
         'in': ['x'],
         'out': [('f', float)],
-        'funcx_endpoint': 3af6dc24-3f27-4c49-8d11-e301ade15353,
+        'funcx_endpoint': '3af6dc24-3f27-4c49-8d11-e301ade15353',
     }
 
 See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
