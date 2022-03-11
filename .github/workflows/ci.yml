@@ -123,7 +123,7 @@ jobs:
             conda install petsc4py
             pip install DFO-LS
             pip install dragonfly-opt
-            pip install ax-platform==0.2.1 
+            pip install ax-platform==0.2.3 
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
