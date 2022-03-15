@@ -1,17 +1,15 @@
 Generation Functions
 ====================
 
-Below are example generation functions available in libEnsemble.
-
-Additional examples are available in the `libEnsemble Community Repository`_,
-with corresponding generator documentation available :doc:`here<community:index>`.
+.. include:: ../../README.rst
+    :start-after: before_examples_rst_tag
 
 .. IMPORTANT::
   See the API for generation functions :ref:`here<api_gen_f>`.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Example Generator Functions:
+   :caption: Documented Example Generator Functions:
 
    sampling
    aposmm

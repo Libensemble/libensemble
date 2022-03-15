@@ -123,7 +123,13 @@ jobs:
             conda install petsc4py
             pip install DFO-LS
             pip install dragonfly-opt
-            pip install ax-platform
+
+            # The following three are required to resolve an issue a linear solve, e.g.,:
+            # https://github.com/Libensemble/libensemble/runs/5514733499?check_suite_focus=true
+            pip install torch==1.9.0
+            pip install gpytorch==1.5.0
+            pip install ax-platform==0.2.1
+
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
@@ -215,3 +221,11 @@ jobs:
             coveralls --finish
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    spellcheck:
+        name: Spellcheck release branch
+        if: contains(github.base_ref, 'main')
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: crate-ci/typos@v1.0.4

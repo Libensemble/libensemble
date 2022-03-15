@@ -1,4 +1,4 @@
 [codespell]
-skip = *.so,*.npy,*.mod,*.pyc,*.pickle,.git,*.png,*.xml,*.bib,lapack.f,test_allocation_funcs_and_support.py
+skip = _typos.toml,*.so,*.npy,*.mod,*.pyc,*.pickle,.git,*.png,*.xml,*.bib,lapack.f,test_allocation_funcs_and_support.py
 quiet-level = 1
 ignore-words=.spell

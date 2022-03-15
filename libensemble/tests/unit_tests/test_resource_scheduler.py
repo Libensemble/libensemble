@@ -73,7 +73,7 @@ def test_cannot_split_quick_return():
         pytest.fail('Expected InsufficientFreeResources')
 
 
-def test_schdule_find_gaps_1node():
+def test_schedule_find_gaps_1node():
     """Tests assignment of rsets on one node.
 
     This test also checks the list is correctly assigned to workers
@@ -109,7 +109,7 @@ def test_schdule_find_gaps_1node():
     del resources
 
 
-def test_schdule_find_gaps_2nodes():
+def test_schedule_find_gaps_2nodes():
     """Tests finding gaps on two nodes with equal resource sets"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     resources = MyResources(8, 2)
@@ -265,8 +265,8 @@ def test_split2fit_even_required_various():
 if __name__ == "__main__":
     test_too_many_rsets()
     test_cannot_split_quick_return()
-    test_schdule_find_gaps_1node()
-    test_schdule_find_gaps_2nodes()
+    test_schedule_find_gaps_1node()
+    test_schedule_find_gaps_2nodes()
     test_across_nodes_even_split()
     test_across_nodes_roundup_option()
     test_try1node_findon_2nodes()

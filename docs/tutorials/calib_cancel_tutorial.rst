@@ -132,9 +132,9 @@ The entire ``cancel_columns()`` routine is listed below:
         for c in columns:
             col_offset = c*n_x
             for i in range(n_x):
-                sim_id_cancl = obs_offset + col_offset + i
+                sim_id_cancel = obs_offset + col_offset + i
                 if pending[i, c]:
-                    sim_ids_to_cancel.append(sim_id_cancl)
+                    sim_ids_to_cancel.append(sim_id_cancel)
                     pending[i, c] = 0
 
         # Send only these fields to existing H rows and libEnsemble will slot in the change.

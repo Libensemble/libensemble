@@ -146,7 +146,12 @@ that is already dedicated to another task. The reason can vary, some reasons are
 - All the memory is assigned to the first job-step (srun application), due to a default
   exclusive mode scheduling policy. This has been observed on `Perlmutter`_ and `SDF`_.
 
-  This can be resolved by limiting the memory and other
+  In some cases using these environment variables will stop the issue::
+
+    export SLURM_EXACT=1
+    export SLURM_MEM_PER_NODE=0
+
+  Alternatively, this can be resolved by limiting the memory and other
   resources given to each task using the ``--exact`` `option to srun`_ along with other
   relevant options. For example::
 
@@ -161,7 +166,7 @@ that is already dedicated to another task. The reason can vary, some reasons are
   resources for both the libEnsemble manager and workers and the launched tasks. If this is
   complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
 
-.. _option to srun: https://docs.nersc.gov/jobs/examples/#single-gpu-tasks-in-parallel
+.. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
 .. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 

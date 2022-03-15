@@ -274,6 +274,8 @@ APOSMM with libEnsemble should be listed directly below the warning.
 Please see the API reference :doc:`here<../examples/aposmm>` for
 more APOSMM configuration options and other information.
 
+Each of these example files can be found in the repository in `examples/tutorials/aposmm`_.
+
 Applications
 ------------
 
@@ -289,3 +291,4 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
 .. _SciPy: https://www.scipy.org/scipylib/index.html
 .. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/master/libensemble/tests/scaling_tests/warpx
+.. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials
