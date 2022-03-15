@@ -55,7 +55,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 for i in persis_info:
     persis_info[i]['get_grad'] = True
 
-exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'gen_max': 40, 'wallclock_max': 300}
 
 libE_specs['kill_canceled_sims'] = False
 # Perform the run

@@ -83,7 +83,7 @@ for run in range(3):
     if run != 1:
         # note that using 'setAnisotropicRefinement' without 'gen_max' will create an infinite loop
         # other stopping criteria could be used with 'setSurplusRefinement' or no refinement
-        exit_criteria = {'elapsed_wallclock_time': 10}
+        exit_criteria = {'wallclock_max': 10}
     elif run == 1:
         exit_criteria = {'gen_max': 100}  # This will test persistent_tasmanian stopping early.
 

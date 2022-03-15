@@ -84,7 +84,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_max = 500
-exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': sim_max, 'wallclock_max': 300}
 
 aspec1 = {
     'alloc_f': gswf,

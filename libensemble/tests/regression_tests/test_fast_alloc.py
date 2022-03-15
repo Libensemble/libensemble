@@ -48,7 +48,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 2 * num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2 * num_pts, 'wallclock_max': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want

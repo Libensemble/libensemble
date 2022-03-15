@@ -57,9 +57,9 @@ for prob_id in range(0, 4):
     persis_info['gen_params'] = {}
 
     if prob_id < 3:
-        exit_criteria = {'elapsed_wallclock_time': 600}
+        exit_criteria = {'wallclock_max': 600}
     else:
-        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 1}
+        exit_criteria = {'wallclock_max': 600, 'sim_max': 1}
 
     libE_specs['safe_mode'] = False
 
