@@ -33,7 +33,7 @@ import warnings
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-nworkers, is_master, libE_specs, _ = parse_args()
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 mt_params = {
     'name_hifi': 'expensive_model',
@@ -115,5 +115,5 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 # Save results to numpy file
-if is_master:
+if is_manager:
     save_libE_output(H, persis_info, __file__, nworkers)
