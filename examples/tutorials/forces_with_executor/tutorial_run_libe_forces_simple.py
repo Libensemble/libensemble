@@ -8,9 +8,9 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
-nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
+nworkers, is_manager, libE_specs, _ = parse_args()  # Parse workers, comms, etc. from arguments
 
-# Create executor and register sim to it
+# Initialize MPI Executor instance
 exctr = MPIExecutor()
 
 # Normally would be pre-compiled
@@ -24,14 +24,14 @@ if not os.path.isfile("forces.x"):
 sim_app = os.path.join(os.getcwd(), "forces.x")
 exctr.register_app(full_path=sim_app, app_name="forces")
 
-# State the sim_f, its arguments, output, and parameters (and their sizes)
+# State the sim_f, inputs, outputs
 sim_specs = {
     "sim_f": run_forces,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
     "out": [("energy", float)],  # Name, type of output from sim_f
 }
 
-# State the gen_f, its arguments, output, and necessary parameters.
+# State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": uniform_random_sample,  # Generator function
     "in": ["sim_id"],  # Generator input
@@ -43,10 +43,13 @@ gen_specs = {
     },
 }
 
+# Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}
 
+# Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
+# Launch libEnsemble
 H, persis_info, flag = libE(
     sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
 )
