@@ -124,6 +124,7 @@ jobs:
             pip install DFO-LS
             pip install dragonfly-opt
             pip install torch==1.9.0
+            pip install gpytorch==1.5.0
             pip install ax-platform==0.2.1
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
