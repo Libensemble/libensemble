@@ -3,8 +3,6 @@ import numpy as np
 from libensemble.executors.executor import Executor
 from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
-MAX_SEED = 32767
-
 
 def run_forces(H, persis_info, sim_specs, libE_info):
     calc_status = 0

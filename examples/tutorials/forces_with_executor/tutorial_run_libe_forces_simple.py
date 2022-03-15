@@ -6,9 +6,10 @@ from tutorial_forces_simf_simple import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.executors import MPIExecutor
 
-nworkers, is_manager, libE_specs, _ = parse_args()  # Parse workers, comms, etc. from arguments
+# Parse number of workers, comms type, etc. from arguments
+nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Initialize MPI Executor instance
 exctr = MPIExecutor()

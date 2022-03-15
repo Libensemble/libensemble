@@ -6,9 +6,8 @@ This tutorial highlights libEnsemble's capability to execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`. In this tutorial,
 our calling script registers a compiled executable that simulates
-electrostatic forces between a collection of particles. The simulator function
-launches instances of this executable and reads output files to determine
-if the run was successful.
+electrostatic forces between a collection of particles. The ``sim_f``
+routine then launches and polls this executable.
 
 It is possible to use ``subprocess`` calls from Python to issue
 commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
@@ -16,7 +15,7 @@ hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
 allow libEnsemble to submit additional tasks from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's various Executors were developed to directly address such issues.
+libEnsemble's Executor was developed to directly address such issues.
 
 Getting Started
 ---------------
@@ -39,85 +38,99 @@ generation functions and call libEnsemble. Create a Python file containing:
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 15,19
+    :emphasize-lines: 22
 
     #!/usr/bin/env python
     import os
     import numpy as np
-    from tutorial_forces_simf_simple import run_forces  # Sim func from current dir
+    from forces_simf import run_forces  # Sim func from current dir
 
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.tools import parse_args, add_unique_random_streams
-    from libensemble.executors import MPIExecutor
+    from libensemble.tools import parse_args
+    from libensemble.executors.mpi_executor import MPIExecutor
 
-    # Parse number of workers, comms type, etc. from arguments
-    nworkers, is_manager, libE_specs, _ = parse_args()
+    nworkers, is_manager, libE_specs, _ = parse_args()  # Convenience function
 
-    # Initialize MPI Executor instance
+    # Initialize executor instance
     exctr = MPIExecutor()
 
+    # Create empty simulation input directory
+    if not os.path.isdir('./sim'):
+        os.mkdir('./sim')
+
     # Register simulation executable with executor
-    sim_app = os.path.join(os.getcwd(), "forces.x")
-    exctr.register_app(full_path=sim_app, app_name="forces")
+    sim_app = os.path.join(os.getcwd(), 'forces.x')
+    exctr.register_app(full_path=sim_app, app_name='forces')
 
+On line 4 we import our not-yet-written ``sim_f``. We also import necessary
+libEnsemble components and some :doc:`convenience functions<../utilities>`.
+With a call to the ``parse_args()`` convenience function, our script detects the
+number of workers ``nworkers``, a boolean determining if the process is the manager
+process ``is_manager``, and a default :ref:`libE_specs<datastruct-libe-specs>`
 
-On line 15 we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
-which can optionally be customized by specifying alternative MPI runners. The
-auto-detected default should be sufficient.
-
-Registering an application is as easy as providing the full file-path and giving
-it a memorable name. This Executor instance will later be retrieved within our
-simulation function to launch the registered app.
+Next we define our Executor class instance. This instance can be customized
+with many of the settings defined :doc:`here<../executor/mpi_executor>`.
+We'll register our simulation with the executor and use the same
+instance within our simulation function.
 
 Next define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>` data structures. Recall that these
-are used to specify to libEnsemble what user functions and input/output fields to
-expect, and also to parameterize function instances without hard-coding:
+are used to specify to libEnsemble what input/output fields to expect, and also
+to parameterize function instances without hard-coding:
 
 .. code-block:: python
     :linenos:
 
-    # State the sim_f, inputs, outputs
-    sim_specs = {
-        "sim_f": run_forces,  # sim_f, imported above
-        "in": ["x"],  # Name of input for sim_f
-        "out": [("energy", float)],  # Name, type of output from sim_f
-    }
+    # State the simulation function, its arguments, output, and parameters (and their sizes)
+    sim_specs = {'sim_f': run_forces,         # simulation function, imported above
+                 'in': ['x'],                 # Name of inputs from History array
+                 'out': [('energy', float)],  # Name, type of output from simulation function
+                 'user': {'cores': 2,         # Additional User parameters
+                          'sim_particles': 1e3,
+                          'sim_timesteps': 5,
+                          'sim_kill_minutes': 10.0,
+                          'particle_variance': 0.2,
+                          'kill_rate': 0.5}
+                 }
 
-    # State the gen_f, inputs, outputs, additional parameters
-    gen_specs = {
-        "gen_f": uniform_random_sample,  # Generator function
-        "in": ["sim_id"],  # Generator input
-        "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
-        "user": {
-            "lb": np.array([1000]),  # User parameters for the gen_f
-            "ub": np.array([3000]),
-            "gen_batch_size": 8,
-        },
-    }
+    # State the gen_f, its arguments, output, and necessary parameters.
+    gen_specs = {'gen_f': uniform_random_sample,  # Generator function
+                 'in': ['sim_id'],                # Generator input
+                 'out': [('x', float, (1,))],     # Name, type and size of data from gen_f
+                 'user': {'lb': np.array([0]),            # User parameters for gen_f
+                          'ub': np.array([32767]),
+                          'gen_batch_size': 1000,
+                          'batch_mode': True,
+                          'num_active_gens': 1,
+                          }
+                 }
 
-Our generation function will generate random numbers of particles, between
-the ``"lb"`` and ``"ub"`` bounds, for our simulation function to evaluate via our
-registered application.
+Our generation function will generate random seeds to use within
+each simulation function call.
 
-After configuring :ref:`persis_info<datastruct-persis-info>` and
-:ref:`exit_criteria<datastruct-exit-criteria>`, we initialize libEnsemble
-by calling the primary :doc:`libE()<../libe_module>` routine:
+libEnsemble can perform every simulation instance (within the ensemble) in a
+separate directory for organization and potential I/O benefits. In this example,
+libEnsemble copies the source directory ``./sim`` and its contents to create these
+simulation directories. These input/output directories are highly customizable,
+using many of the settings described :ref:`here<output_dirs>`.
+
+After additional settings and configuring our ``exit_criteria``, we call libEnsemble
+using the primary :doc:`libE()<../libe_module>` routine:
 
  .. code-block:: python
     :linenos:
 
-    # Instruct libEnsemble to exit after this many simulations
-    exit_criteria = {"sim_max": 8}
+    libE_specs['save_every_k_gens'] = 1000  # Save every K steps
+    libE_specs['sim_input_dir'] = './sim'   # Sim input dir to be copied for each worker
 
-    # Seed random streams for each worker, particularly for gen_f
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    exit_criteria = {'sim_max': 8}
 
-    # Launch libEnsemble
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-    )
+    persis_info = {}
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
+                                persis_info=persis_info, libE_specs=libE_specs)
+
 Exercise
 ^^^^^^^^
 
@@ -126,8 +139,10 @@ This may take some additional browsing of the docs to complete.
 Write an alternative Calling Script similar to above, but with the following differences:
 
  1. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
- 2. Set the libEnsemble logger to print DEBUG messages.
- 3. Save the History array and ``persis_info`` to files once libEnsemble completes.
+ 2. Set the output ensemble directory to be stored in ``/scratch``, then copied back to the starting directory on completion.
+ 3. Set the libEnsemble logger to print DEBUG messages.
+ 4. Save the History array and ``persis_info`` to files once libEnsemble completes.
+ 5. Simplify our Calling Script by using the ``yaml`` interface.
 
 .. container:: toggle
 
@@ -138,85 +153,112 @@ Write an alternative Calling Script similar to above, but with the following dif
    .. code-block:: python
        :linenos:
 
-    #!/usr/bin/env python
-    import os
-    import numpy as np
-    from tutorial_forces import run_forces  # Sim func from current dir
+       #!/usr/bin/env python
+       import os
+       import numpy as np
 
-    from libensemble import logger
-    from libensemble.libE import libE
-    from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
-    from libensemble.executors import MPIExecutor
+       from libensemble import Ensemble
+       from libensemble.executors.mpi_executor import MPIExecutor
 
-    # Parse number of workers, comms type, etc. from arguments
-    nworkers, is_manager, libE_specs, _ = parse_args()
+       sim_app = os.path.join(os.getcwd(), 'forces.x')
 
-    # Adjust logger level
-    logger.set_level('DEBUG')
+       forces = Ensemble()
+       forces.from_yaml('forces.yaml')
 
-    # Initialize MPI Executor instance
-    exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
+       forces.logger.set_level('DEBUG')
 
-    ...
+       exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
+       exctr.register_app(full_path=sim_app, app_name='forces')
 
-    # Launch libEnsemble
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-    )
+       forces.gen_specs['user'].update({
+           'lb': np.array([0]),
+           'ub': np.array([32767])
+       })
 
-    if is_manager:
-        save_libE_output(H, persis_info, __file__, nworkers)
+       forces.run()
 
+       if forces.is_manager:
+           forces.save_output(__file__)
 
+   .. code-block:: yaml
+
+       libE_specs:
+           save_every_k_gens: 1000
+           sim_dirs_make: True
+           sim_input_dir: ./sim
+           ensemble_dir_path: /scratch/ensemble
+           ensemble_copy_back: True
+           profile: False
+           exit_criteria:
+               sim_max: 8
+
+       sim_specs:
+           function: forces_simf.run_forces
+           inputs:
+               - x
+           outputs:
+               energy:
+                   type: float
+
+           user:
+               keys:
+                   - seed
+               cores: 2
+               sim_particles: 1.e+3
+               sim_timesteps: 5
+               sim_kill_minutes: 10.0
+               particle_variance: 0.2
+               kill_rate: 0.5
+
+       gen_specs:
+           function: libensemble.gen_funcs.sampling.uniform_random_sample
+           outputs:
+               x:
+                   type: float
+                   size: 1
+           user:
+               gen_batch_size: 1000
 
 Simulation Function
 -------------------
 
 Our simulation function is where we'll use libEnsemble's executor to configure and submit
-our application for execution. Once we've detected it has finished we'll send any results or
+our application for execution. We'll poll this task's state while
+it runs, and once we've detected it has finished we'll send any results or
 exit statuses back to the manager.
 
-Create another Python file named ``forces_simf.py`` containing the following
-for starters:
+Create another Python file named ``forces_simf.py`` containing some imports
+and utility functions for starters:
 
 .. code-block:: python
     :linenos:
 
+    import os
+    import time
     import numpy as np
 
     from libensemble.executors.executor import Executor
-    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
+    MAX_SEED = 32767
 
-    def run_forces(H, persis_info, sim_specs, libE_info):
-        calc_status = 0
+    def perturb(particles, seed, max_fraction):
+        """Modify particle count"""
+        seed_fraction = seed/MAX_SEED
+        max_delta = particles * max_fraction
+        delta = seed_fraction * max_delta
+        delta = delta - max_delta/2  # translate so -/+
+        new_particles = particles + delta
+        return int(new_particles)
 
-        # Parse out num particles, from generator function
-        particles = str(int(H["x"][0][0]))
-
-        # num particles, timesteps, also using num particles as seed
-        args = particles + " " + str(10) + " " + particles
-
-        # Obtain our MPI Executor instance, submit the forces app for execution
-        exctr = Executor.executor
-        task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True)
-
-        # Block until the task finishes
-        task.wait(timeout=60)
-
-Notably, we retrieve the generated number of particles and construct
-an argument string for our launched application. We've retrieved our
-previously-instantiated Executor instance from the class definition,
-where it was automatically stored as an attribute.
-
-When an application instance is submitted by one of libEnsemble's executors,
-a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
-This object is roughly equivalent to a Python future, and can be polled, killed,
-and evaluated in a variety of ways. For now, we're satisfied by waiting
-for the task to complete.
-
-TODO: FINISH BELOW
+    def read_last_line(filepath):
+        """Read last line of statfile"""
+        try:
+            with open(filepath, 'rb') as fh:
+                line = fh.readlines()[-1].decode().rstrip()
+        except Exception:
+            line = ""  # In case file is empty or not yet created
+        return line
 
 Next let's write the body of the simulation function. We'll write the function definition,
 extract our parameters from ``sim_specs``, define a random seed, and use
@@ -225,25 +267,22 @@ extract our parameters from ``sim_specs``, define a random seed, and use
 .. code-block:: python
     :linenos:
 
-        # Stat file to check for bad runs
-        statfile = "forces{}.stat".format(particles)
+    def run_forces(H, persis_info, sim_specs, libE_info):
+        calc_status = 0
 
-        # Try loading final energy reading, setting the computation's status
-        try:
-            data = np.loadtxt(statfile)
-            final_energy = data[-1]
-            calc_status = WORKER_DONE
-        except Exception:
-            final_energy = np.nan
-            calc_status = TASK_FAILED
+        x = H['x']
+        sim_particles = sim_specs['user']['sim_particles']
+        sim_timesteps = sim_specs['user']['sim_timesteps']
+        time_limit = sim_specs['user']['sim_kill_minutes'] * 60.0
 
-        # Define our output array,  populate with energy reading
-        outspecs = sim_specs["out"]
-        output = np.zeros(1, dtype=outspecs)
-        output["energy"][0] = final_energy
+        cores = sim_specs['user'].get('cores', None)
+        kill_rate = sim_specs['user'].get('kill_rate', 0)
+        particle_variance = sim_specs['user'].get('particle_variance', 0)
 
-        # Return final information to worker, for reporting to manager
-        return output, persis_info, calc_status
+        seed = int(np.rint(x[0][0]))
+
+        # To give a random variance of work-load
+        sim_particles = perturb(sim_particles, seed, particle_variance)
 
 Next we will fetch our Executor and submit our registered application for
 execution.
