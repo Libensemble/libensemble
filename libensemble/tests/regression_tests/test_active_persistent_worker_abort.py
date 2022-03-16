@@ -63,7 +63,7 @@ alloc_specs = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Set sim_max small so persistent worker is quickly terminated
-exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 10, 'wallclock_max': 300}
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
