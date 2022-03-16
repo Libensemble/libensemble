@@ -47,7 +47,7 @@ if nworkers == 3:
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
-exit_criteria = {'sim_max': 100, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 100, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,

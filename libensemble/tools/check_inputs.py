@@ -1,7 +1,10 @@
 import os
 import numpy as np
+import logging
 from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
     allowed_sim_spec_keys, allowed_alloc_spec_keys, allowed_libE_spec_keys
+
+logger = logging.getLogger(__name__)
 
 
 def _check_consistent_field(name, field0, field1):
@@ -97,9 +100,17 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
     assert len(exit_criteria) > 0, "Must have some exit criterion"
 
+    if 'elapsed_wallclock_time' in exit_criteria:
+        logger.warning(
+            "exit_criteria['elapsed_wallclock_time'] is depricated.'\n"
+            + "This will break in the future. Use exit_criteria['wallclock_max']"
+        )
+
+        exit_criteria['wallclock_max'] = exit_criteria.pop('elapsed_wallclock_time')
+
     # Ensure termination criteria are valid
     valid_term_fields = ['sim_max', 'gen_max',
-                         'elapsed_wallclock_time', 'stop_val']
+                         'wallclock_max', 'stop_val']
     assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
         "Valid termination options: " + str(valid_term_fields)
 

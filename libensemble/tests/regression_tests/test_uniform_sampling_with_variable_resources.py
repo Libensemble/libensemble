@@ -79,7 +79,7 @@ alloc_specs = {
 }
 
 
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 for prob_id in range(2):
     if prob_id == 0:
