@@ -122,6 +122,7 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
     H, persis_info, flag = libE(
         sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
     )
+    
 Exercise
 ^^^^^^^^
 
@@ -142,36 +143,35 @@ Write an alternative Calling Script similar to above, but with the following dif
    .. code-block:: python
        :linenos:
 
-    #!/usr/bin/env python
-    import os
-    import numpy as np
-    from tutorial_forces import run_forces  # Sim func from current dir
+        #!/usr/bin/env python
+        import os
+        import numpy as np
+        from tutorial_forces import run_forces  # Sim func from current dir
 
-    from libensemble import logger
-    from libensemble.libE import libE
-    from libensemble.gen_funcs.sampling import uniform_random_sample
-    from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
-    from libensemble.executors import MPIExecutor
+        from libensemble import logger
+        from libensemble.libE import libE
+        from libensemble.gen_funcs.sampling import uniform_random_sample
+        from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
+        from libensemble.executors import MPIExecutor
 
-    # Parse number of workers, comms type, etc. from arguments
-    nworkers, is_manager, libE_specs, _ = parse_args()
+        # Parse number of workers, comms type, etc. from arguments
+        nworkers, is_manager, libE_specs, _ = parse_args()
 
-    # Adjust logger level
-    logger.set_level('DEBUG')
+        # Adjust logger level
+        logger.set_level('DEBUG')
 
-    # Initialize MPI Executor instance
-    exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
+        # Initialize MPI Executor instance
+        exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
 
-    ...
+        ...
 
-    # Launch libEnsemble
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-    )
+        # Launch libEnsemble
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
+        )
 
-    if is_manager:
-        save_libE_output(H, persis_info, __file__, nworkers)
-
+        if is_manager:
+            save_libE_output(H, persis_info, __file__, nworkers)
 
 
 Simulation Function
@@ -232,7 +232,7 @@ or a "kill" message if particles were lost. This last message indicates a failed
 simulation.
 
 To complete our simulation function, parse the last energy value from the output file into
-a local output :ref:`History array<datastruct-history-array`, and if successful,
+a local output :ref:`History array<datastruct-history-array>`, and if successful,
 set the simulation function's exit status :ref:`calc_status<datastruct-calc-status>`
 to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
