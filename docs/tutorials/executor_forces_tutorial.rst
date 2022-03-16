@@ -18,6 +18,10 @@ allow libEnsemble to submit additional tasks from the compute nodes. On these
 systems a proxy launch mechanism (such as Balsam) is required.
 libEnsemble's various Executors were developed to directly address such issues.
 
+In particular, we'll be experimenting with
+libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`, since it can automatically
+detect available MPI runners and resources, and by default divide them equally among workers.
+
 Getting Started
 ---------------
 
@@ -185,7 +189,10 @@ for starters:
 
     import numpy as np
 
+    # To retrieve our MPI Executor instance
     from libensemble.executors.executor import Executor
+
+    # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
 
@@ -198,8 +205,10 @@ for starters:
         # num particles, timesteps, also using num particles as seed
         args = particles + " " + str(10) + " " + particles
 
-        # Obtain our MPI Executor instance, submit the forces app for execution
+        # Retrieve our MPI Executor instance
         exctr = Executor.executor
+
+        # Submit our forces app for execution. Block until the task starts.
         task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True)
 
         # Block until the task finishes
@@ -213,14 +222,19 @@ where it was automatically stored as an attribute.
 When an application instance is submitted by one of libEnsemble's executors,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
 This object is roughly equivalent to a Python future, and can be polled, killed,
-and evaluated in a variety of ways. For now, we're satisfied by waiting
+and evaluated in a variety of helpful ways. For now, we're satisfied with waiting
 for the task to complete.
 
-TODO: FINISH BELOW
+Since ``task.wait()`` blocks until the task completes, we can assume that afterward, any
+results are now available to parse. Our application produces a ``forces[particles].stat``
+file during runtime that contains either energy computations for every time-step
+or a "kill" message if particles were lost. This last message indicates a failed
+simulation.
 
-Next let's write the body of the simulation function. We'll write the function definition,
-extract our parameters from ``sim_specs``, define a random seed, and use
-``perturb()`` to randomize our particle counts.
+To complete our simulation function, parse the last energy value from the output file into
+a local output :ref:`History array<datastruct-history-array`, and if successful,
+set the simulation function's exit status :ref:`calc_status<datastruct-calc-status>`
+to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
 .. code-block:: python
     :linenos:
@@ -228,7 +242,7 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # Stat file to check for bad runs
         statfile = "forces{}.stat".format(particles)
 
-        # Try loading final energy reading, setting the computation's status
+        # Try loading final energy reading, set the sim's status
         try:
             data = np.loadtxt(statfile)
             final_energy = data[-1]
@@ -245,165 +259,74 @@ extract our parameters from ``sim_specs``, define a random seed, and use
         # Return final information to worker, for reporting to manager
         return output, persis_info, calc_status
 
-Next we will fetch our Executor and submit our registered application for
-execution.
-
-.. code-block:: python
-    :linenos:
-
-        # Fetches *previously parameterized* Executor
-        exctr = Executor.executor
-
-        # Arguments for our registered simulation
-        args = str(int(sim_particles)) + ' ' + str(sim_timesteps) + ' ' + str(seed) + ' ' + str(kill_rate)
-
-        # Submit our simulation for execution.
-        task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
-                            stdout='out.txt', stderr='err.txt', wait_on_start=True)
-
-In each executor ``submit()`` routine, we specify the registered application,
-optionally the number of MPI processes to run the task with, additional
-arguments for the simulation code, and files for ``stdout`` and ``stderr``
-output. The ``wait_on_start`` argument causes this statement to block until the
-application is confirmed running. See the :doc:`docs<../executor/mpi_executor>`
-for more information about these and other options.
-
-The rest of our simulation function polls the :ref:`Task<task_tag>`'s
-dynamically updated attributes for its status, determines if a successful
-run occurred after the task completes, then formats and returns the output data
-to the manager.
-
-We can poll the task and kill it if the output file contains some value or if
-the task's runtime exceeds the time limit:
-
-.. code-block:: python
-    :linenos:
-
-        # Stat file to check for bad runs
-        statfile = 'forces.stat'
-        filepath = os.path.join(task.workdir, statfile)
-        line = None
-
-        poll_interval = 1
-        while not task.finished :
-            line = read_last_line(filepath)  # Parse some output from the task
-            if line == "kill":
-                task.kill()
-            elif task.runtime > time_limit:
-                task.kill()
-            else:
-                time.sleep(poll_interval)
-                task.poll()                   # updates the task's attributes
-
-Once our task finishes, adjust ``calc_status`` (our "exit code").
-
-.. code-block:: python
-    :linenos:
-
-        if task.finished:
-            if task.state == 'FINISHED':
-                calc_status = WORKER_DONE
-                if read_last_line(filepath) == "kill":
-                    print("Warning: Task complete but marked bad (kill flag in forces.stat)")
-            elif task.state == 'FAILED':
-                calc_status = TASK_FAILED
-            elif task.state == 'USER_KILLED':
-                calc_status = WORKER_KILL
-            else:
-                print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
-
-Load output data from our task, initialize an output NumPy array with that data,
-then return it, ``persis_info`` (unused in our example but required by the interface),
-and ``calc_status``:
-
-.. code-block:: python
-    :linenos:
-
-        time.sleep(0.2) # Small buffer to guarantee data has been written
-        try:
-            data = np.loadtxt(filepath)
-            final_energy = data[-1]
-        except Exception:
-            final_energy = np.nan
-
-        outspecs = sim_specs['out']
-        output = np.zeros(1, dtype=outspecs)
-        output['energy'][0] = final_energy
-
-        return output, persis_info, calc_status
-
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
+
+That's it! As can be seen, with libEnsemble, it's relatively easy to get started
+with launching applications, since behind the scenes libEnsemble evaluates default
+MPI runners and available resources, and divides them among workers accordingly.
 
 This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    $ python my_calling_script.py --comms local --nworkers 4
+    $ python my_calling_script.py --comms local --nworkers [nworkers]
 
-This may take about a minute to complete. Output should appear in a new
-directory ``./ensemble``, with sub-directories labeled by ``sim_id`` and worker.
+This may take up to a minute to complete. Output files, including ``forces.stat``
+and files containing ``stdout`` and ``stderr`` content for each task should
+appear in the current working directory. Overall workflow information
+should appear in ``libE_stats.txt`` and ``ensemble.log`` as usual.
 
-The following *optional* lines parse and display some output:
+For example, my ``libE_stats.txt`` resembled::
 
-.. code-block:: python
-    :linenos:
+  Worker     1: Gen no     1: gen Time: 0.001 Start: ... End: ... Status: Not set
+  Worker     1: sim_id     0: sim Time: 3.201 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     1: sim Time: 3.208 Start: ... End: ... Status: Task Failed
+  Worker     1: sim_id     2: sim Time: 0.228 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     3: sim Time: 0.236 Start: ... End: ... Status: Task Failed
+  Worker     1: sim_id     4: sim Time: 0.229 Start: ... End: ... Status: Task Failed
+  Worker     2: sim_id     5: sim Time: 0.233 Start: ... End: ... Status: Task Failed
+  Worker     1: sim_id     6: sim Time: 0.227 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     7: sim Time: 0.228 Start: ... End: ... Status: Task Failed
 
-    import os
+Where ``status`` is set based on the simulation function's returned ``calc_status``.
 
-    for dir in os.listdir('./ensemble'):
-        with open(os.path.join('./ensemble', dir, 'out.txt')) as f:
-            out = f.readlines()
-        print(dir + ':')
-        for line in out:
-            print(line)
-        print('-'*60)
+My ``ensemble.log`` (on a ten-core laptop) resembled::
 
+  [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
+  [0]  ... libensemble.libE (INFO): libE version v0.8.0+dev
+  [0]  ... libensemble.manager (INFO): Manager initiated on node my_laptop
+  [0]  ... libensemble.manager (INFO): Manager exit_criteria: {'sim_max': 8}
+  [1]  ... libensemble.worker (INFO): Worker 1 initiated on node my_laptop
+  [2]  ... libensemble.worker (INFO): Worker 2 initiated on node my_laptop
+  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2023 10 2023
+  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2900 10 2900
+  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_0 finished with errcode 0 (FINISHED)
+  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1288 10 1288
+  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_0 finished with errcode 0 (FINISHED)
+  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2897 10 2897
+  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_1 finished with errcode 0 (FINISHED)
+  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1623 10 1623
+  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_1 finished with errcode 0 (FINISHED)
+  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1846 10 1846
+  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_2 finished with errcode 0 (FINISHED)
+  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2655 10 2655
+  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_2 finished with errcode 0 (FINISHED)
+  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1818 10 1818
+  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_3 finished with errcode 0 (FINISHED)
+  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_3 finished with errcode 0 (FINISHED)
+  [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
+  [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
+  [0]  ... libensemble.libE (INFO): Manager total time: 3.939
+
+Note again that the ten cores were divided equally among two workers.
+
+That concludes this tutorial.
 Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
 
-Exercise
-^^^^^^^^
+Advanced Exercises
+^^^^^^^^^^^^^^^^^^
 
-This may also take some additional browsing of the docs to complete.
-
-Write an alternative simulation function similar to above, but with the following differences:
-
- 1. Submit the forces application to run across two nodes, also using hyperthreads
- 2. Replace the ``while`` loop with the ``Executor.polling_loop()`` routine, polling once a second.
-
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
-
-   .. code-block:: python
-       :linenos:
-
-       def run_forces(H, persis_info, sim_specs, libE_info):
-
-           ...
-
-           task = exctr.submit(app_name='forces', num_procs=cores, app_args=args,
-                               stdout='out.txt', stderr='err.txt', wait_on_start=True,
-                               num_nodes=2, hyperthreads=True)
-
-           exctr.polling_loop(task, timeout=time_limit, delay=1)
-
-           ...
-
-Executor Variants
------------------
-
-libEnsemble features two variants of its executor that perform identical
-functions, but are designed for running on different systems. For most uses,
-the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
-do not support MPI launches from compute nodes. On these systems libEnsemble is
-run either on launch nodes or uses a proxy launch mechanism to submit
-tasks from compute nodes. One such mechanism is a scheduling utility called
-Balsam_ which runs on a separate node. The Balsam Executor variant interacts
-with Balsam for this purpose. The only user-facing difference between the two is
-which executor is imported and called within a calling script.
+TODO
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
-.. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
