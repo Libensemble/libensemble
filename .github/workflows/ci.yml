@@ -121,7 +121,7 @@ jobs:
 
             # The following three are required to resolve an issue a linear solve, e.g.,:
             # https://github.com/Libensemble/libensemble/runs/5514733499?check_suite_focus=true
-            pip install torch==1.9.0
+            pip install torch==1.11.0
             pip install gpytorch==1.5.0
             pip install ax-platform==0.2.1
 
