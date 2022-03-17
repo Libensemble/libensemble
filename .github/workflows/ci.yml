@@ -24,6 +24,11 @@ jobs:
                       comms-type: l
                     - os: ubuntu-latest
                       do-balsam: false
+                      python-version: '3.11'
+                      mpi-version: 'mpich'
+                      comms-type: l
+                    - os: ubuntu-latest
+                      do-balsam: false
                       python-version: 3.8
                       mpi-version: 'mpich'
                       comms-type: t
@@ -119,11 +124,11 @@ jobs:
             pip install DFO-LS
             pip install dragonfly-opt
 
-            # The following three are required to resolve an issue a linear solve, e.g.,:
-            # https://github.com/Libensemble/libensemble/runs/5514733499?check_suite_focus=true
-            pip install torch==1.11.0
-            pip install gpytorch==1.5.0
-            pip install ax-platform==0.2.1
+            ## The following three are required to resolve an issue a linear solve, e.g.,:
+            ## https://github.com/Libensemble/libensemble/runs/5514733499?check_suite_focus=true
+            #pip install torch==1.11.0
+            #pip install gpytorch==1.5.0
+            #pip install ax-platform==0.2.1
 
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
@@ -175,6 +180,11 @@ jobs:
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9_3.10', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Run simple tests, Ubuntu, Python 3.11
+          if: matrix.python-version == '3.11'
+          run: |
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
