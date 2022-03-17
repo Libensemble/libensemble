@@ -116,8 +116,8 @@ jobs:
             conda install nlopt
             conda install scipy
             conda install libblas libopenblas psutil pyyaml
-            conda install superlu_dist=6.2.0
-            conda install hypre=2.22.0
+            conda install superlu_dist
+            conda install hypre
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
