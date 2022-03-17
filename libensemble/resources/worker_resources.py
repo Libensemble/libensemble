@@ -22,7 +22,8 @@ class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
     rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
-                  ('group', int)      # Group ID this resource set belongs to
+                  ('group', int),     # Group ID this resource set belongs to
+                  ('slot', int)       # Slot ID this resource set belongs to
                   # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
                   ]
 
@@ -49,7 +50,7 @@ class ResourceManager(RSetResources):
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
-        self.rsets['group'] = ResourceManager.get_group_list(self.split_list)
+        self.rsets['group'], self.rsets['slot'] = ResourceManager.get_group_list(self.split_list)
         self.num_groups = self.rsets['group'][-1]
         self.rsets_free = self.total_num_rsets
 
@@ -85,17 +86,25 @@ class ResourceManager(RSetResources):
 
     @staticmethod
     def get_group_list(split_list):
+        """Return lists of group ids and slot IDs by resource set"""
         group = 1
+        slot = 0
         group_list = []
+        slot_list = []
         node = split_list[0]
         for i in range(len(split_list)):
             if split_list[i] == node:
                 group_list.append(group)
+                slot_list.append(slot)
+                slot += 1
             else:
                 node = split_list[i]
                 group += 1
                 group_list.append(group)
-        return group_list
+                slot = 0
+                slot_list.append(slot)
+                slot += 1
+        return group_list, slot_list
 
     @staticmethod
     def get_index_list(num_workers, num_rsets, zero_resource_list):
@@ -129,13 +138,14 @@ class WorkerResources(RSetResources):
     :ivar list rset_team: List of rset IDs currently assigned to this worker.
     :ivar int num_rsets: The number of resource sets assigned to this worker.
     :ivar dict slots: A dictionary with a list of slot IDs for each node.
-    :ivar bool even_slots: Determines if the slots evenly divide amongst nodes.
+    :ivar bool even_slots: True if each node has the same number of slots.
+    :ivar bool matching_slots: True if each node has matching slot IDs.
     :ivar int slot_count: The number of slots per node if even_slots is True, else None.
-    :ivar list slots_on_node: A list of slots IDs if even_slots is True, else None.
+    :ivar list slots_on_node: A list of slots IDs if matching_slots is True, else None.
     :ivar int local_node_count: The number of nodes available to this worker (rounded up to whole number).
     :ivar int rsets_per_node: The number of rsets per node (if a rset > 1 node, will be 1).
 
-    The worker_resources attribtues can be queried, and convenience functions
+    The worker_resources attributes can be queried, and convenience functions
     called, via the resources class attribute. For example:
 
     With resources imported:
@@ -156,9 +166,10 @@ class WorkerResources(RSetResources):
     Note that **slots** are resource sets enumerated on a node (starting with zero).
     If a resource set has more than one node, then each node is considered to have slot zero.
 
-    If ``even_slots`` is True, then the attributes ``slot_count`` and ``slots_on_node``
-    can be used for simplicity, Otherwise, the ``slots`` dictionary can be used to get
-    information for each node.
+    If ``even_slots`` is True, then the attributes ``slot_count`` will give the number
+    of slots on each node. If ``matching_slots`` is True, then  ``slots_on_node`` will
+    give the slot IDs for all nodes. These can be used for simplicity; otherwise, the
+    ``slots`` dictionary can be used to get information for each node.
 
     """
 
@@ -189,6 +200,7 @@ class WorkerResources(RSetResources):
         self.num_rsets = 0
         self.slots = None
         self.even_slots = None
+        self.matching_slots = None
         self.slot_count = None
         self.slots_on_node = None
         self.zero_resource_workers = resources.zero_resource_workers
@@ -263,22 +275,27 @@ class WorkerResources(RSetResources):
             self.local_node_count = len(self.local_nodelist)
 
     def set_slot_count(self):
+        """Sets attributes even_slots and matching_slots.
+
+        Also sets slot_count if even_slots (else None) and
+        sets slots_on_node if matching_slots (else None).
+        """
         if self.slots:
-            # Check if same slots on each node (not just lengths)
             first_node_slots = list(self.slots.values())[0]
             all_match = True
-            for node_list in self.slots.values():
-                if node_list != first_node_slots:
+            all_even = True
+            first_len = len(first_node_slots)
+            for slot_list in self.slots.values():
+                if len(slot_list) != first_len:
+                    all_even = False
                     all_match = False
                     break
-
-            self.even_slots = True if all_match else False
-            if self.even_slots:
-                self.slots_on_node = first_node_slots
-                self.slot_count = len(self.slots_on_node)
-            else:
-                self.slots_on_node = None
-                self.slot_count = None
+                elif all_match and slot_list != first_node_slots:
+                    all_match = False
+            self.even_slots = True if all_even else False
+            self.matching_slots = True if all_match else False
+            self.slots_on_node = first_node_slots if self.matching_slots else None
+            self.slot_count = first_len if self.even_slots else None
 
     @staticmethod
     def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):
