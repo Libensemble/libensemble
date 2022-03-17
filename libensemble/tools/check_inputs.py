@@ -102,7 +102,7 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
     if 'elapsed_wallclock_time' in exit_criteria:
         logger.warning(
-            "exit_criteria['elapsed_wallclock_time'] is depricated.'\n"
+            "exit_criteria['elapsed_wallclock_time'] is deprecated.'\n"
             + "This will break in the future. Use exit_criteria['wallclock_max']"
         )
 
