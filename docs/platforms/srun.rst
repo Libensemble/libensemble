@@ -82,7 +82,6 @@ job steps (``sruns``) running on a node. If desired, such options could be set u
 :doc:`worker resources<../resource_manager/worker_resources>` module in a similar manner
 to how ``CUDA_VISIBLE_DEVICES`` is set in the example.
 
-
 Some useful commands
 --------------------
 
@@ -97,7 +96,6 @@ Find SLURM system configuration::
 Find SLURM partition configuration for a partition called 'gpu'::
 
     scontrol show partition gpu
-
 
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
