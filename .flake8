@@ -49,6 +49,7 @@ per-file-ignores =
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
         libensemble/tests/deprecated_tests/test_old_aposmm*:E402
+        libensemble/tests/regression_tests/temp/*:E402
 
         # Ignoring linelength in test_history.py
         libensemble/tests/unit_tests/test_history.py:E501
