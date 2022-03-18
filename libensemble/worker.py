@@ -394,10 +394,7 @@ class Worker:
                         continue
 
                 # Active recv is for persistent worker only - throw away here
-                if isinstance(Work, int):
-                    print("Why is this happening?")
-                    print(Work)
-                    print(mtag)
+                assert isinstance(Work, dict), "Why is this happening?" + str(Work) + ' ' + str(mtag)
 
                 if Work.get('libE_info', False):
                     if Work['libE_info'].get('active_recv', False) and not Work['libE_info'].get('persistent', False):

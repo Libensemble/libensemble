@@ -30,7 +30,6 @@ Activate your virtual environment with::
     export PYTHONNOUSERSITE=1
     conda activate libe-pm
 
-
 Installing libEnsemble and dependencies
 ---------------------------------------
 
@@ -174,7 +173,6 @@ If running the libEnsemble user calling script with ``srun``, then it is recomme
 GPU runs will be submitted, instead of in the batch script. E.g::
 
     os.environ['MPICH_GPU_SUPPORT_ENABLED'] = "1"
-
 
 Additional Information
 ----------------------
