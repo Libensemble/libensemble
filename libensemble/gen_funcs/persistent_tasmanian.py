@@ -307,7 +307,7 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batc
 
     OUTPUTS:
         sim_specs   (dict) : a dictionary of simulation specs and also one of the inputs of libE().
-        
+
         gen_specs   (dict) : a dictionary of generator specs and also one of the inputs of libE().
 
         alloc_specs (dict) : a dictionary of allocation specs and also one of the inputs of libE().
