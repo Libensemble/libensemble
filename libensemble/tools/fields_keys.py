@@ -1,22 +1,24 @@
 """
-Below are the fields used within libEnsemble (All times are since epoch)
+Below are the fields used within libEnsemble 
+Note: 
+    - All times are since epoch
+    - All times are from the manager's perspective (i.e., times may differ
+      slightly from those recorded by the worker in the libE_stats file.)
 """
 
 libE_fields = [('sim_id', int),                 # Unique id of entry in H that was generated
-               ('gen_worker', int),             # Worker that (first) generated this entry
-               ('gen_start_time', float),       # Time gen_worker was first called that produced this entry
-               ('gen_end_time', float),         # Time any gen (first) requested this entry
+               ('gen_worker', int),             # Worker that generated this entry
+               ('gen_start_time', float),       # Time gen_worker was initiated that produced this entry
+               ('gen_end_time', float),         # Time gen_worker requested this entry
                ('sim_worker', int),             # Worker that did (or is doing) the sim eval for this entry
-               ('sim_given', bool),             # True if entry has been given for sim eval
-               ('sim_given_time', float),       # Time entry was (first) given to be evaluated
-               ('sim_completed', bool),         # True if entry's sim eval completed
-               ('sim_completed_time', float),   # Time entry's (last) sim eval completed
+               ('sim_start', bool),             # True if entry has been given for sim eval
+               ('sim_start_time', float),       # Time entry was given to be evaluated
+               ('sim_end', bool),               # True if entry's sim eval completed
+               ('sim_end_time', float),         # Time entry's sim eval completed
                ('gen_informed', bool)           # True if gen_worker was informed about the sim eval of this entry
-               ('gen_informed_time', float),    # Time gen was (last) informed about the sim eval from this entry
+               ('gen_informed_time', float),    # Time gen was informed about the sim eval from this entry
                ('cancel_requested', bool),      # True if cancellation requested for this entry
                ('kill_sent', bool),             # True if a kill signal has been sent to worker for this entry
-               ('last_gen_end_time', float),    # Time gen_worker last requested this entry
-               ('last_sim_given_time', float),  # Time entry was last given to be evaluated
                ]
 # end_libE_fields_rst_tag
 
