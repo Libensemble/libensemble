@@ -387,7 +387,7 @@ class Worker:
 
                 mtag, Work = self.comm.recv()
 
-                if mtag == STOP_TAG:
+                if mtag == STOP_TAG or mtag == PERSIS_STOP:
                     if Work is MAN_SIGNAL_FINISH:
                         break
                     elif Work is MAN_SIGNAL_KILL:
