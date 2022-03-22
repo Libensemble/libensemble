@@ -2,54 +2,48 @@ import time
 import glob
 from balsam.api import ApplicationDefinition, BatchJob
 
+"""
+This file is roughly equivalent to a traditional batch submission shell script
+that used legacy Balsam commands, except it uses the Balsam API to submit jobs
+to the scheduler. It can also be run from anywhere and still submit jobs to
+the same machine. It loads, parameterizes, and submits the LibensembleApp for
+execution.
+"""
+
+# To which Balsam site should these apps be submitted?
+BALSAM_SITE = "jln_theta"
+
 # Batch Session Parameters
-SIM_MAX = 16  # make sure matches in balsam_forces.yaml
 BATCH_NUM_NODES = 5
 BATCH_WALL_CLOCK_TIME = 60
 PROJECT = "CSC250STMS07"
 QUEUE = "debug-flat-quad"
 
-# libE Job Parameters - Will use above resources
+# libEnsemble Job Parameters - Will use above resources
 LIBE_NODES = 1
 LIBE_RANKS = 5
 
 # Transfer forces.stat files back to this script's source directory?
 #  Adjust run_libe_forces_balsam.py as well!!!!
+# SIM_MAX is requested so that this script can wait for all forces.stat files,
+#  then cancel the remote allocation to save node hours
 TRANSFER_STATFILES = True
+SIM_MAX = 16  # make sure matches in balsam_forces.yaml
 
 # Transfer this file to the libE Job's working directory.
-#  # globus_endpoint_key *specified in local balsam site's settings.yml*
 #  globus_endpoint_key:/path/to/file
+#  globus_endpoint_key specified in site's settings.yml
 input_file = (
     "jln_laptop:/Users/jnavarro/Desktop/libensemble"
     + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
 )
 
-# FOR EACH OF THE FOLLOWING APPS, make sure Balsam sites, home directories,
-#  pythons, and other paths are updated.
+# Retrieve the libEnsemble app from the Balsam service
+apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
+LibensembleApp = apps["LibensembleApp"]
 
-
-class LibensembleApp(ApplicationDefinition):
-    site = "jln_theta"
-    command_template = (
-        "/home/jnavarro/.conda/envs/again/bin/python /home/jnavarro"
-        + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/run_libe_forces_balsam.py"
-        + " > libe_out.txt 2>&1"
-    )
-
-    transfers = {
-        "input_file": {
-            "required": True,
-            "direction": "in",
-            "local_path": ".",
-            "description": "Transfer in of balsam_forces.yaml",
-            "recursive": False,
-        }
-    }
-
-
-print("Defined LibensembleApp Balsam ApplicationDefinition.")
-
+# Submit the libEnsemble app as a Job to the Balsam service.
+#  It will wait for a running BatchJob session
 libe_job = LibensembleApp.submit(
     workdir="libe_workflow/libe_processes",
     num_nodes=LIBE_NODES,
@@ -57,33 +51,9 @@ libe_job = LibensembleApp.submit(
     transfers={"input_file": input_file},
 )
 
-print("libEnsemble Job created, synced with Balsam. Will run on next BatchJob")
+print("libEnsemble App retrieved and submitted a Job to Balsam service.")
 
-
-class RemoteForces(ApplicationDefinition):
-    site = "jln_theta"
-    command_template = (
-        "/home/jnavarro"
-        + "/libensemble/libensemble/tests/scaling_tests/forces/forces.x"
-        + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
-        + " > out.txt 2>&1"
-    )
-
-    transfers = {
-        "result": {
-            "required": False,
-            "direction": "out",
-            "local_path": "forces.stat",
-            "description": "Forces stat file",
-            "recursive": False,
-        }
-    }
-
-
-RemoteForces.sync()
-
-print("Defined and synced RemoteForces Balsam ApplicationDefinition.")
-
+# Submit an allocation (BatchJob) request to the libEnsemble app's site
 batch = BatchJob.objects.create(
     site_id=libe_job.site_id,
     num_nodes=BATCH_NUM_NODES,
@@ -95,6 +65,7 @@ batch = BatchJob.objects.create(
 
 print("BatchJob session initialized. All Balsam apps will run in this BatchJob.")
 
+# Wait for all forces.stat files to be transferred back, then cancel the BatchJob
 if TRANSFER_STATFILES:
     print("Waiting for all returned forces.stat files...")
 

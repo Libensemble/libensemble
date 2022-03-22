@@ -47,8 +47,8 @@ to list your sites and `balsam job rm --all` to remove extraneous jobs between r
 
 ### Configuring and Running libEnsemble.
 
-Configure the `RemoteForces` class in the `run_libe_forces_balsam.py` calling
-script to match the Balsam site name and the path to the `forces.x` executable
+Configure the `RemoteForces` class in the `submit_libe_forces_balsam.py` submission script
+ to match the Balsam site name and the path to the `forces.x` executable
 on the remote machine. Configure the `submit_allocation()` function in the calling
 script to correspond with the site's ID (an integer found via `balsam site ls`),
 as well as the correct queue and project for the machine the Balsam site was initialized on.
