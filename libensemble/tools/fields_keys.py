@@ -1,6 +1,6 @@
 """
-Below are the fields used within libEnsemble 
-Note: 
+Below are the fields used within libEnsemble
+Note:
     - All times are since epoch
     - All times are from the manager's perspective (i.e., times may differ
       slightly from those recorded by the worker in the libE_stats file.)
