@@ -15,7 +15,7 @@ libE_fields = [('sim_id', int),                 # Unique id of entry in H that w
                ('sim_start_time', float),       # Time entry was given to be evaluated
                ('sim_end', bool),               # True if entry's sim eval completed
                ('sim_end_time', float),         # Time entry's sim eval completed
-               ('gen_informed', bool)           # True if gen_worker was informed about the sim eval of this entry
+               ('gen_informed', bool),          # True if gen_worker was informed about the sim eval of this entry
                ('gen_informed_time', float),    # Time gen was informed about the sim eval from this entry
                ('cancel_requested', bool),      # True if cancellation requested for this entry
                ('kill_sent', bool),             # True if a kill signal has been sent to worker for this entry
