@@ -45,10 +45,44 @@ your ALCF credentials.
 On any machine you've installed and logged into Balsam, you can run `balsam site ls`
 to list your sites and `balsam job rm --all` to remove extraneous jobs between runs.
 
-### Configuring and Running libEnsemble.
+### Configuring libEnsemble
 
-Configure the `RemoteForces` class in the `submit_libe_forces_balsam.py` submission script
- to match the Balsam site name and the path to the `forces.x` executable
+There are several scripts that each need to be adjusted. To explain each:
+
+1. ``define_apps.py``:
+
+  About:
+
+  This script defines and syncs each Balsam app with the Balsam service. A Balsam
+  app is an ``ApplicationDefinition`` class with of ``site`` and
+  ``command_template`` fields. ``site`` specifies to Balsam on which Balsam site
+  the app should be run, and ``command_template`` specifies the command that should
+  be executed, as a Jinja2 string template.
+
+  Configuring:
+
+  Adjust the ``site`` field in each App to match your remote Balsam site. Adjust
+  the various paths in the ``command_template`` fields to match your home directory
+  or paths to your pythons.
+
+  **Run this script each time you edit it**
+
+2. ``submit_libe_forces_balsam.py``:
+
+  About:
+
+  Configuring:
+
+3. ``run_libe_forces_balsam.py``:
+
+  About:
+
+  Configuring:
+
+
+
+Configure the `RemoteForces` class in the `define_apps.py` submission script
+to match the Balsam site name and the path to the `forces.x` executable
 on the remote machine. Configure the `submit_allocation()` function in the calling
 script to correspond with the site's ID (an integer found via `balsam site ls`),
 as well as the correct queue and project for the machine the Balsam site was initialized on.
