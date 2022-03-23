@@ -387,15 +387,13 @@ class Worker:
 
                 mtag, Work = self.comm.recv()
 
-                if mtag == STOP_TAG or mtag == PERSIS_STOP:
+                if mtag in [STOP_TAG, PERSIS_STOP]:
                     if Work is MAN_SIGNAL_FINISH:
                         break
                     elif Work is MAN_SIGNAL_KILL:
                         continue
 
                 # Active recv is for persistent worker only - throw away here
-                assert isinstance(Work, dict), "Why is this happening?" + str(Work) + ' ' + str(mtag)
-
                 if Work.get('libE_info', False):
                     if Work['libE_info'].get('active_recv', False) and not Work['libE_info'].get('persistent', False):
                         if len(Work['libE_info']['H_rows']) > 0:
