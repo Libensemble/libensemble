@@ -10,7 +10,6 @@ the same machine. It loads, parameterizes, and submits the LibensembleApp for
 execution.
 """
 
-# To which Balsam site should these apps be submitted?
 BALSAM_SITE = "jln_theta"
 
 # Batch Session Parameters
@@ -23,27 +22,25 @@ QUEUE = "debug-flat-quad"
 LIBE_NODES = 1
 LIBE_RANKS = 5
 
-# Transfer forces.stat files back to this script's source directory?
-#  Adjust run_libe_forces_balsam.py as well!!!!
-# SIM_MAX is requested so that this script can wait for all forces.stat files,
-#  then cancel the remote allocation to save node hours
-TRANSFER_STATFILES = True
-SIM_MAX = 16  # make sure matches in balsam_forces.yaml
-
-# Transfer this file to the libE Job's working directory.
+# Parameter file for calling script. Must be transferred to Balsam site.
 #  globus_endpoint_key:/path/to/file
-#  globus_endpoint_key specified in site's settings.yml
+#  globus_endpoint_key specified in BALSAM_SITE's settings.yml
 input_file = (
     "jln_laptop:/Users/jnavarro/Desktop/libensemble"
     + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
 )
+
+# Transfer forces.stat files back to this script's directory?
+# If True, this script cancels remote allocation once SIM_MAX statfiles transferred
+TRANSFER_STATFILES = True
+SIM_MAX = 16  # must match balsam_forces.yaml
 
 # Retrieve the libEnsemble app from the Balsam service
 apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
 LibensembleApp = apps["LibensembleApp"]
 
 # Submit the libEnsemble app as a Job to the Balsam service.
-#  It will wait for a running BatchJob session
+#  It will wait for a compatible, running BatchJob session (remote allocation)
 libe_job = LibensembleApp.submit(
     workdir="libe_workflow/libe_processes",
     num_nodes=LIBE_NODES,

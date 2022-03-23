@@ -53,31 +53,40 @@ There are several scripts that each need to be adjusted. To explain each:
 
   About:
 
-  This script defines and syncs each Balsam app with the Balsam service. A Balsam
-  app is an ``ApplicationDefinition`` class with of ``site`` and
+  This script defines and syncs each of our Balsam apps with the Balsam service. A Balsam
+  app is an ``ApplicationDefinition`` class with ``site`` and
   ``command_template`` fields. ``site`` specifies to Balsam on which Balsam site
-  the app should be run, and ``command_template`` specifies the command that should
-  be executed, as a Jinja2 string template.
+  the app should be run, and ``command_template`` specifies the command (as a Jinja2
+  string template) that should be executed. This script contains two apps, ``LibensembleApp`` and ``RemoteForces``.
 
   Configuring:
 
-  Adjust the ``site`` field in each App to match your remote Balsam site. Adjust
-  the various paths in the ``command_template`` fields to match your home directory
-  or paths to your pythons.
+  Adjust the ``site`` field in each ``ApplicationDefinition`` to match your remote
+  Balsam site. Adjust the various paths in the ``command_template`` fields to match
+  your home directory and/or Python paths.
 
-  **Run this script each time you edit it**
+  **Run this script each time you edit it,** since changes to each
+  ``ApplicationDefinition`` need to be synced with the Balsam service.
 
-2. ``submit_libe_forces_balsam.py``:
+2. ``run_libe_forces_balsam.py``:
 
   About:
 
+  This is a typical libEnsemble calling script, but uses the BalsamExecutor
+  to register
+
   Configuring:
 
-3. ``run_libe_forces_balsam.py``:
+3. (optional) ``submit_libe_forces_balsam.py``:
 
   About:
 
+  This Python script is effectively a batch submission script, capable of checking
+  out resources
+
   Configuring:
+
+
 
 
 
