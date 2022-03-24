@@ -77,8 +77,7 @@ class History:
 
         H['sim_id'][-L:] = -1
         H['given_time'][-L:] = np.inf
-        H['last_given_time'][-L:] = np.inf
-        H['last_given_back_time'][-L:] = np.inf
+        H['given_back_time'][-L:] = np.inf
 
         self.H = H
         self.using_H0 = len(H0) > 0
@@ -136,12 +135,10 @@ class History:
             Worker ID
         """
         q_inds = np.atleast_1d(q_inds)
-        first_given_inds = ~self.H['given'][q_inds]
         t = time.time()
 
         self.H['given'][q_inds] = True
-        self.H['given_time'][q_inds[first_given_inds]] = t
-        self.H['last_given_time'][q_inds] = t
+        self.H['given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
         self.given_count += len(q_inds)
@@ -164,7 +161,7 @@ class History:
                     "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
                 self.given_back_warned = True
 
-            self.H['last_given_back_time'][q_inds] = t
+            self.H['given_back_time'][q_inds] = t
             self.given_back_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
@@ -215,9 +212,7 @@ class History:
             self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
-        t = time.time()
-        self.H['gen_time'][first_gen_inds] = t
-        self.H['last_gen_time'][update_inds] = t
+        self.H['gen_time'][first_gen_inds] = time.time()
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
@@ -234,8 +229,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['given_time'] = np.inf
-        H_1['last_given_time'] = np.inf
-        H_1['last_given_back_time'] = np.inf
+        H_1['given_back_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

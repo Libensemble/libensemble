@@ -85,32 +85,22 @@ The full list of these reserved fields is given below.
 * ``given`` [bool]: True if this ``gen_f`` output been given to a libEnsemble
   worker to be evaluated by a ``sim_f``.
 
-* ``given_time`` [float]: Time this entry
-  was *first* given to a worker to be evaluated by a ``sim_f``.
-
-* ``last_given_time`` [float]: Time this entry
-  was *last* given to a worker to be evaluated by a ``sim_f``.
+* ``given_time`` [float]: Time this entry was given to a worker to be evaluated by a ``sim_f``.
 
 * ``returned`` [bool]: True if this entry has been evaluated by a ``sim_f``.
 
-* ``returned_time`` [float]: Time this entry was *last* returned from a ``sim_f``.
+* ``returned_time`` [float]: Time this entry was returned from a ``sim_f``.
 
 * ``given_back`` [bool]: True if this ``gen_f`` output been given back to a ``gen_f``
   worker after being returned from evaluation.
 
-.. * ``given_back_time`` [float]: Time this entry
-..   was *first* given back to a ``gen_f`` worker.
-
-* ``last_given_back_time`` [float]: Time this entry
-  was *last* given back to a ``gen_f`` worker.
+* ``given_back_time`` [float]: Time this entry was given back to a ``gen_f`` worker.
 
 * ``sim_worker`` [int]: libEnsemble worker that performed the ``sim_f`` evaluation.
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this entry.
 
 * ``gen_time`` [float]: Time this entry was put into ``H`` by the manager.
-
-* ``last_gen_time`` [float]: Time this entry was last requested by a ``gen_f``.
 
 * ``kill_sent`` [bool]: True if a kill signal has been sent to the worker evaluating this entry.
 
