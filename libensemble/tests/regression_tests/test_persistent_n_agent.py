@@ -12,8 +12,8 @@ You can specify which problem to test by setting @prob_id in {0,1,2,3,4,5}.
 
 This call script uses distributed gradient-tracking (https://doi.org/10.1109/TCNS.2020.3024321)
 to solve the following problems. To test, run using, for any p >= 6,
-   mpiexec -np p python3 test_persistent_n_agent.py
-   python3 test_persistent_n_agent.py --nworkers p --comms local
+   mpiexec -np p python test_persistent_n_agent.py
+   python test_persistent_n_agent.py --nworkers p --comms local
 
 The number gens will be 4.
 
@@ -74,7 +74,7 @@ for prob_id in range(6):
     persis_info['gen_params'] = {}
 
     if prob_id <= 4:
-        exit_criteria = {'elapsed_wallclock_time': 600}
+        exit_criteria = {'wallclock_max': 600}
     else:
         exit_criteria = {'sim_max': 50}
 

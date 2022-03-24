@@ -3,9 +3,9 @@ Tests libEnsemble's generator function requesting/receiving sim_f evaluations
 asynchronously
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_uniform_sampling_async.py
-   python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms local
-   python3 test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_uniform_sampling_async.py
+   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms local
+   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -58,7 +58,7 @@ alloc_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'gen_max': 100, 'elapsed_wallclock_time': 300}
+exit_criteria = {'gen_max': 100, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

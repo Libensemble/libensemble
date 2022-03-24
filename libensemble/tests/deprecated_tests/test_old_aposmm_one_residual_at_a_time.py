@@ -4,7 +4,7 @@
 # separate simulation evaluation.
 #
 # Execute via one of the following commands (e.g. 3 workers):
-#    mpiexec -np 4 python3 test_chwirut_aposmm_one_residual_at_a_time.py
+#    mpiexec -np 4 python test_chwirut_aposmm_one_residual_at_a_time.py
 #
 # The number of concurrent evaluations of the objective function will be 4-1=3.
 # """

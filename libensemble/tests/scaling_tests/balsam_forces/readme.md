@@ -45,10 +45,53 @@ your ALCF credentials.
 On any machine you've installed and logged into Balsam, you can run `balsam site ls`
 to list your sites and `balsam job rm --all` to remove extraneous jobs between runs.
 
-### Configuring and Running libEnsemble.
+### Configuring libEnsemble
 
-Configure the `RemoteForces` class in the `run_libe_forces_balsam.py` calling
-script to match the Balsam site name and the path to the `forces.x` executable
+There are several scripts that each need to be adjusted. To explain each:
+
+1. ``define_apps.py``:
+
+  About:
+
+  This script defines and syncs each of our Balsam apps with the Balsam service. A Balsam
+  app is an ``ApplicationDefinition`` class with ``site`` and
+  ``command_template`` fields. ``site`` specifies to Balsam on which Balsam site
+  the app should be run, and ``command_template`` specifies the command (as a Jinja2
+  string template) that should be executed. This script contains two apps, ``LibensembleApp`` and ``RemoteForces``.
+
+  Configuring:
+
+  Adjust the ``site`` field in each ``ApplicationDefinition`` to match your remote
+  Balsam site. Adjust the various paths in the ``command_template`` fields to match
+  your home directory and/or Python paths.
+
+  **Run this script each time you edit it,** since changes to each
+  ``ApplicationDefinition`` need to be synced with the Balsam service.
+
+2. ``run_libe_forces_balsam.py``:
+
+  About:
+
+  This is a typical libEnsemble calling script, but uses the BalsamExecutor
+  to register
+
+  Configuring:
+
+3. (optional) ``submit_libe_forces_balsam.py``:
+
+  About:
+
+  This Python script is effectively a batch submission script, capable of checking
+  out resources
+
+  Configuring:
+
+
+
+
+
+Configure the `RemoteForces` class in the `define_apps.py` submission script
+to match the Balsam site name and the path to the `forces.x` executable
 on the remote machine. Configure the `submit_allocation()` function in the calling
 script to correspond with the site's ID (an integer found via `balsam site ls`),
 as well as the correct queue and project for the machine the Balsam site was initialized on.

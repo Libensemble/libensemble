@@ -2,9 +2,9 @@
 Tests the async-mode of the Tasmanian generator function.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_tasmanian_async.py
-   python3 test_persistent_tasmanian_async.py --nworkers 3 --comms local
-   python3 test_persistent_tasmanian_async.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_tasmanian_async.py
+   python test_persistent_tasmanian_async.py --nworkers 3 --comms local
+   python test_persistent_tasmanian_async.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -85,7 +85,7 @@ user_specs_arr.append(
     }
 )
 exit_criteria_arr = []
-exit_criteria_arr.append({'elapsed_wallclock_time': 3})
+exit_criteria_arr.append({'wallclock_max': 3})
 exit_criteria_arr.append({'gen_max': 100})
 
 # Test over all possible parameter combinations.

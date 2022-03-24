@@ -2,9 +2,9 @@
 A test of libEnsemble exception handling.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_calc_exception.py
-   python3 test_calc_exception.py --nworkers 3 --comms local
-   python3 test_calc_exception.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_calc_exception.py
+   python test_calc_exception.py --nworkers 3 --comms local
+   python test_calc_exception.py --nworkers 3 --comms tcp
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -45,7 +45,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 10}
+exit_criteria = {'wallclock_max': 10}
 
 libE_specs['abort_on_exception'] = False
 

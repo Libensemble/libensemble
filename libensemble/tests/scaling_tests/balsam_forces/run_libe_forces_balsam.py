@@ -6,8 +6,10 @@ from libensemble import Ensemble
 from libensemble.executors import BalsamExecutor
 from balsam.api import ApplicationDefinition
 
-# Determine if this is running on a personal machine, or a compute node
-THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])
+BALSAM_SITE = "jln_theta"
+
+# Is this running on a personal machine, or a compute node?
+THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])  
 
 # Use Globus to transfer output forces.stat files back
 TRANSFER_STATFILES = True
@@ -29,7 +31,7 @@ forces.sim_specs["user"].update(
 
 forces.persis_info.add_random_streams()
 
-apps = ApplicationDefinition.load_by_site("jln_theta")
+apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
 RemoteForces = apps["RemoteForces"]
 
 exctr = BalsamExecutor()

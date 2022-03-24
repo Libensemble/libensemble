@@ -2,9 +2,9 @@
 Tests libEnsemble's capability to abort after a certain amount of elapsed time.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_6-hump_camel_elapsed_time_abort.py
-   python3 test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms local
-   python3 test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_6-hump_camel_elapsed_time_abort.py
+   python test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms local
+   python test_6-hump_camel_elapsed_time_abort.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -53,7 +53,7 @@ alloc_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 1}
+exit_criteria = {'elapsed_wallclock_time': 1}  # Intentionally using deprecated term. Use wallclock_max instead.
 
 # Perform the run
 H, persis_info, flag = libE(

@@ -6,9 +6,9 @@ function is called and a sim_id has been evaluated for more than 5 seconds,
 it is cancelled.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_cancel_in_alloc.py
-   python3 test_cancel_in_alloc.py --nworkers 3 --comms local
-   python3 test_cancel_in_alloc.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_cancel_in_alloc.py
+   python test_cancel_in_alloc.py --nworkers 3 --comms local
+   python test_cancel_in_alloc.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -58,7 +58,7 @@ alloc_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {"sim_max": 10, "elapsed_wallclock_time": 300}
+exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
 # Perform the run
 H, persis_info, flag = libE(

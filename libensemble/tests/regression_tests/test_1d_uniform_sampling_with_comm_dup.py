@@ -5,7 +5,7 @@ as default, with a duplicate of MPI.COMM_WORLD. If libEnsemble
 uses MPI.COMM_WORLD, this test will fail.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_1d_uniform_sampling_with_comm_dup.py
+   mpiexec -np 4 python test_1d_uniform_sampling_with_comm_dup.py
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

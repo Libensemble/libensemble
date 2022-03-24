@@ -2,9 +2,9 @@
 Runs libEnsemble testing the executor functionality.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_executor_hworld.py
-   python3 test_executor_hworld.py --nworkers 3 --comms local
-   python3 test_executor_hworld.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_executor_hworld.py
+   python test_executor_hworld.py --nworkers 3 --comms local
+   python test_executor_hworld.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -81,7 +81,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 30}
+exit_criteria = {'wallclock_max': 30}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)

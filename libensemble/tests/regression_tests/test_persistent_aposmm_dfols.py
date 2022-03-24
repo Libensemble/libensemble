@@ -4,9 +4,9 @@ All 214 residual calculations for a given point are performed as a single
 simulation evaluation.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_dfols.py
-   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms local
-   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_dfols.py
+   python test_persistent_aposmm_dfols.py --nworkers 3 --comms local
+   python test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -83,7 +83,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 # Tell libEnsemble when to stop (stop_val key must be in H)
 exit_criteria = {
     'sim_max': 1000,
-    'elapsed_wallclock_time': 100,
+    'wallclock_max': 100,
     'stop_val': ('f', 3000),
 }
 # end_exit_criteria_rst_tag

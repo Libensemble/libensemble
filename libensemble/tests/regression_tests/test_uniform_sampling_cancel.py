@@ -3,9 +3,9 @@ Tests libEnsemble with a uniform sample that is also requesting cancellation of
 some points.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_uniform_sampling_cancel.py
-   python3 test_uniform_sampling_cancel.py --nworkers 3 --comms local
-   python3 test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_uniform_sampling_cancel.py
+   python test_uniform_sampling_cancel.py --nworkers 3 --comms local
+   python test_uniform_sampling_cancel.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 
@@ -84,7 +84,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_max = 500
-exit_criteria = {'sim_max': sim_max, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': sim_max, 'wallclock_max': 300}
 
 aspec1 = {
     'alloc_f': gswf,

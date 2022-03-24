@@ -2,8 +2,8 @@
 Tests various capabilities of the libEnsemble fast_alloc alloc_f
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_fast_alloc.py
-   python3 test_fast_alloc.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_fast_alloc.py
+   python test_fast_alloc.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -48,7 +48,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 2 * num_pts, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 2 * num_pts, 'wallclock_max': 300}
 
 if libE_specs['comms'] == 'tcp':
     # Can't use the same interface for manager and worker if we want

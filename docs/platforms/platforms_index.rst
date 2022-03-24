@@ -101,7 +101,7 @@ that contain considerable computational work or I/O.
 
     .. image:: ../images/centralized_new_detailed_balsam.png
         :alt: central_balsam
-        :scale: 40
+        :scale: 30
         :align: center
 
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
@@ -178,7 +178,7 @@ key. For example::
         'sim_f': sim_f,
         'in': ['x'],
         'out': [('f', float)],
-        'funcx_endpoint': 3af6dc24-3f27-4c49-8d11-e301ade15353,
+        'funcx_endpoint': '3af6dc24-3f27-4c49-8d11-e301ade15353',
     }
 
 See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
@@ -198,6 +198,8 @@ libEnsemble on specific HPC systems.
     cori
     theta
     summit
+    perlmutter
+    srun
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
