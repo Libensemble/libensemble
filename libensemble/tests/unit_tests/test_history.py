@@ -29,7 +29,7 @@ exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.
                     dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
                            ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('sim_end', '?'),
                            ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
-                           ('returned_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
+                           ('sim_end_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                            ('given_back', '?'), ('given_back_time', '<f8')])
 
 wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
@@ -44,7 +44,7 @@ wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], Fal
                 (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf)],
                dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_end_time', '<f8'),
                       ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_start', '?'),
-                      ('sim_worker', '<i8'), ('sim_end', '?'), ('returned_time', '<f8'), ('fvec', '<f8', (3,)),
+                      ('sim_worker', '<i8'), ('sim_end', '?'), ('sim_end_time', '<f8'), ('fvec', '<f8', (3,)),
                       ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                       ('local_min', '?'), ('num_active_runs', '<i8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                       ('given_back', '?'), ('given_back_time', '<f8')])
@@ -59,7 +59,7 @@ wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False,
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf)],
-                dtype=[('gen_worker', '<i8'), ('sim_end', '?'), ('returned_time', '<f8'),
+                dtype=[('gen_worker', '<i8'), ('sim_end', '?'), ('sim_end_time', '<f8'),
                        ('gen_end_time', '<f8'), ('x', '<f8'),
                        ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('sim_start', '?'),
                        ('sim_id', '<i8'), ('sim_start_time', '<f8'),

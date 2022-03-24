@@ -10,7 +10,7 @@ libE_fields = [('sim_id', int),             # Unique id of entry in H that was g
                ('sim_start_time', float),       # Time (since epoch) that the entry was (first) given to be evaluated
                ('given_back_time', float),  # Time (since epoch) that the entry was last given back to the gen
                ('sim_end', bool),          # True if entry has been returned from sim eval
-               ('returned_time', float),    # Time entry was (last) returned from sim eval
+               ('sim_end_time', float),    # Time entry was (last) returned from sim eval
                ('sim_worker', int),         # Worker that did (or is doing) the sim eval
                ('cancel_requested', bool),  # True if cancellation of this entry is requested
                ('kill_sent', bool),         # True if a kill signal has been sent to worker
@@ -38,7 +38,7 @@ protected_libE_fields = ['gen_worker',
                          'sim_start',
                          'sim_start_time',
                          'sim_end',
-                         'returned_time',
+                         'sim_end_time',
                          'given_back',
                          'sim_worker']
 
