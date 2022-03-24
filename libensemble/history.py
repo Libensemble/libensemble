@@ -77,7 +77,7 @@ class History:
 
         H['sim_id'][-L:] = -1
         H['sim_start_time'][-L:] = np.inf
-        H['given_back_time'][-L:] = np.inf
+        H['gen_informed_time'][-L:] = np.inf
 
         self.H = H
         self.using_H0 = len(H0) > 0
@@ -161,7 +161,7 @@ class History:
                     "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_end'.")
                 self.given_back_warned = True
 
-            self.H['given_back_time'][q_inds] = t
+            self.H['gen_informed_time'][q_inds] = t
             self.given_back_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode):
@@ -229,7 +229,7 @@ class History:
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
         H_1['sim_start_time'] = np.inf
-        H_1['given_back_time'] = np.inf
+        H_1['gen_informed_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

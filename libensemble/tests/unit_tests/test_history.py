@@ -19,7 +19,7 @@ wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1,
                   dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
                          ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('sim_end', '?'),
                          ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
-                         ('cancel_requested', '?'), ('kill_sent', '?'), ('gen_informed', '?'), ('given_back_time', '<f8')])
+                         ('cancel_requested', '?'), ('kill_sent', '?'), ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
 exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1, 2.1, False, False, False, inf),
                      (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2, 2.3, False, False, False, inf),
@@ -30,7 +30,7 @@ exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.
                            ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('sim_end', '?'),
                            ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                            ('sim_end_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                           ('gen_informed', '?'), ('given_back_time', '<f8')])
+                           ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
 wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
                 (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
@@ -47,7 +47,7 @@ wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], Fal
                       ('sim_worker', '<i8'), ('sim_end', '?'), ('sim_end_time', '<f8'), ('fvec', '<f8', (3,)),
                       ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                       ('local_min', '?'), ('num_active_runs', '<i8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                      ('gen_informed', '?'), ('given_back_time', '<f8')])
+                      ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
 wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
@@ -64,7 +64,7 @@ wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False,
                        ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('sim_start', '?'),
                        ('sim_id', '<i8'), ('sim_start_time', '<f8'),
                        ('priority', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                       ('gen_informed', '?'), ('given_back_time', '<f8')])
+                       ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
 exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, inf, 0., False, False, False, inf),
                             (0, 1, 3, 0., 7.20324493e-01, False, False, False, inf, 0., False, False, False, inf),
@@ -79,7 +79,7 @@ exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, i
                            dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'),
                                   ('x', '<f8'), ('allocated', '?'), ('sim_end', '?'), ('sim_start', '?'),
                                   ('sim_start_time', '<f8'), ('g', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                                  ('gen_informed', '?'), ('given_back_time', '<f8')])
+                                  ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
 safe_mode = True
 
