@@ -75,7 +75,7 @@ if is_manager:
     print('Num. points in each gen iteration:', counts)
     assert counts[0] == nworkers, "The first gen_end_time should be common among initial_batch_size number of points"
     assert counts[1] == nworkers, "The second gen_end_time should be common among initial_batch_size number of points"
-    assert len(np.unique(counts)) > 1, "There is no variablitiy in the gen_end_times but there should be for the async case"
+    assert len(np.unique(counts)) > 1, "All gen_end_times are the same; they should be different for the async case"
 
     gen_workers = np.unique(H['gen_worker'])
     print('Generators that issued points', gen_workers)
