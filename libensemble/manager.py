@@ -30,6 +30,7 @@ from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
 import copy
+import time
 
 if tuple(np.__version__.split('.')) >= ('1', '15'):
     from numpy.lib.recfunctions import repack_fields
@@ -150,6 +151,7 @@ class Manager:
                     ('active', int),
                     ('persis_state', int),
                     ('active_recv', int),
+                    ('gen_start_time', float),
                     ('zero_resource_worker', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
@@ -314,6 +316,9 @@ class Manager:
 
         self.wcomms[w-1].send(Work['tag'], Work)
 
+        if Work['tag'] == EVAL_GEN_TAG:
+            self.W[w]['gen_start_time'] = time.time()
+
         work_rows = Work['libE_info']['H_rows']
         work_name = calc_type_strings[Work['tag']]
         logger.debug("Manager sending {} work to worker {}. Rows {}".
@@ -424,7 +429,7 @@ class Manager:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode, self.W[w]['gen_start_time'])
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:

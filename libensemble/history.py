@@ -164,7 +164,7 @@ class History:
             self.H['gen_informed_time'][q_inds] = t
             self.given_back_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D, safe_mode):
+    def update_history_x_in(self, gen_worker, D, safe_mode, gen_start_time):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -179,6 +179,7 @@ class History:
         if len(D) == 0:
             return
 
+        t = time.time()
         rows_remaining = len(self.H)-self.index
 
         if 'sim_id' not in D.dtype.names:
@@ -212,7 +213,8 @@ class History:
             self.H[field][update_inds] = D[field]
 
         first_gen_inds = update_inds[self.H['gen_end_time'][update_inds] == 0]
-        self.H['gen_end_time'][first_gen_inds] = time.time()
+        self.H['gen_start_time'][first_gen_inds] = gen_start_time
+        self.H['gen_end_time'][first_gen_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
