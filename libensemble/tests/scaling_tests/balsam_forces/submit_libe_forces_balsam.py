@@ -38,6 +38,7 @@ SIM_MAX = 16  # must match balsam_forces.yaml
 # Retrieve the libEnsemble app from the Balsam service
 apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
 LibensembleApp = apps["LibensembleApp"]
+LibensembleApp.resolve_site_id()
 
 # Submit the libEnsemble app as a Job to the Balsam service.
 #  It will wait for a compatible, running BatchJob session (remote allocation)
@@ -48,7 +49,7 @@ libe_job = LibensembleApp.submit(
     transfers={"input_file": input_file},
 )
 
-print("libEnsemble App retrieved and submitted a Job to Balsam service.")
+print("libEnsemble App retrieved and submitted as Job to Balsam service.")
 
 # Submit an allocation (BatchJob) request to the libEnsemble app's site
 batch = BatchJob.objects.create(
