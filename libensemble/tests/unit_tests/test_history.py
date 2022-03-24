@@ -62,7 +62,7 @@ wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False,
                 dtype=[('gen_worker', '<i8'), ('returned', '?'), ('returned_time', '<f8'),
                        ('gen_time', '<f8'), ('x', '<f8'),
                        ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('given', '?'),
-                       ('sim_id', '<i8'), ('given_time', '<f8'), 
+                       ('sim_id', '<i8'), ('given_time', '<f8'),
                        ('priority', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                        ('given_back', '?')])
 
