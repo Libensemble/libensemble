@@ -17,7 +17,7 @@ wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1,
                    (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2, False, False, False, inf),
                    (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3, False, False, False, inf)],
                   dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
-                         ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('returned', '?'),
+                         ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('sim_end', '?'),
                          ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                          ('cancel_requested', '?'), ('kill_sent', '?'), ('given_back', '?'), ('given_back_time', '<f8')])
 
@@ -27,7 +27,7 @@ exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.
                      (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, 0., False, False, False, inf),
                      (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf, 0., False, False, False, inf)],
                     dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
-                           ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('returned', '?'),
+                           ('sim_id', '<i8'), ('sim_start', '?'), ('sim_worker', '<i8'), ('sim_end', '?'),
                            ('fvec', '<f8', (3,)), ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                            ('returned_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                            ('given_back', '?'), ('given_back_time', '<f8')])
@@ -44,7 +44,7 @@ wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], Fal
                 (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf)],
                dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_end_time', '<f8'),
                       ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_start', '?'),
-                      ('sim_worker', '<i8'), ('returned', '?'), ('returned_time', '<f8'), ('fvec', '<f8', (3,)),
+                      ('sim_worker', '<i8'), ('sim_end', '?'), ('returned_time', '<f8'), ('fvec', '<f8', (3,)),
                       ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                       ('local_min', '?'), ('num_active_runs', '<i8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                       ('given_back', '?'), ('given_back_time', '<f8')])
@@ -59,7 +59,7 @@ wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False,
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
                  (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf)],
-                dtype=[('gen_worker', '<i8'), ('returned', '?'), ('returned_time', '<f8'),
+                dtype=[('gen_worker', '<i8'), ('sim_end', '?'), ('returned_time', '<f8'),
                        ('gen_end_time', '<f8'), ('x', '<f8'),
                        ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('sim_start', '?'),
                        ('sim_id', '<i8'), ('sim_start_time', '<f8'),
@@ -77,7 +77,7 @@ exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, i
                             (0, 8, 3, 0., 3.96767474e-01, False, False, False, inf, 0., False, False, False, inf),
                             (0, 9, 3, 0., 5.38816734e-01, False, False, False, inf, 0., False, False, False, inf)],
                            dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'),
-                                  ('x', '<f8'), ('allocated', '?'), ('returned', '?'), ('sim_start', '?'),
+                                  ('x', '<f8'), ('allocated', '?'), ('sim_end', '?'), ('sim_start', '?'),
                                   ('sim_start_time', '<f8'), ('g', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                                   ('given_back', '?'), ('given_back_time', '<f8')])
 
@@ -302,7 +302,7 @@ def test_update_history_x_out():
     # Check some unchanged values for point and counts
     assert hist.index == 0
     assert hist.returned_count == 0
-    hist.H['returned'][0] = False
+    hist.H['sim_end'][0] = False
     hist.H['allocated'][0] = False
     hist.H['f'][0] == 0.0
     hist.H['sim_id'][0] == -1
@@ -326,7 +326,7 @@ def test_update_history_x_out():
     # Try to avoid tautological testing - compare columns
     assert np.array_equal(hist.H['sim_start'], np.array([True, True, True, False, True, False, False, True, False, True]))
     assert np.array_equal(hist.H['sim_worker'], np.array([2, 3, 3, 0, 4, 0, 0, 4, 0, 4]))
-    assert np.all(~hist.H['returned'])  # Should still be unaffected.
+    assert np.all(~hist.H['sim_end'])  # Should still be unaffected.
 
     # Check counts
     assert hist.given_count == 6
@@ -354,8 +354,8 @@ def test_update_history_f():
 
     hist.update_history_f(D_recv, safe_mode)
     assert isclose(exp_vals[0], hist.H['g'][0])
-    assert np.all(hist.H['returned'][0:1])
-    assert np.all(~hist.H['returned'][1:10])  # Check the rest
+    assert np.all(hist.H['sim_end'][0:1])
+    assert np.all(~hist.H['sim_end'][1:10])  # Check the rest
     assert hist.returned_count == 1
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
@@ -378,8 +378,8 @@ def test_update_history_f():
 
     hist.update_history_f(D_recv, safe_mode)
     assert np.allclose(exp_vals, hist.H['g'])
-    assert np.all(hist.H['returned'][0:3])
-    assert np.all(~hist.H['returned'][3:10])  # Check the rest
+    assert np.all(hist.H['sim_end'][0:3])
+    assert np.all(~hist.H['sim_end'][3:10])  # Check the rest
     assert hist.returned_count == 3
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
@@ -409,8 +409,8 @@ def test_update_history_f_vec():
 
     assert isclose(exp_fs[0], hist.H['f'][0])
     assert np.allclose(exp_fvecs[0], hist.H['fvec'][0])
-    assert np.all(hist.H['returned'][0:1])
-    assert np.all(~hist.H['returned'][1:10])  # Check the rest
+    assert np.all(hist.H['sim_end'][0:1])
+    assert np.all(~hist.H['sim_end'][1:10])  # Check the rest
     assert hist.returned_count == 1
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
@@ -442,8 +442,8 @@ def test_update_history_f_vec():
 
     assert np.allclose(exp_fs, hist.H['f'])
     assert np.allclose(exp_fvecs, hist.H['fvec'])
-    assert np.all(hist.H['returned'][0:3])
-    assert np.all(~hist.H['returned'][3:10])  # Check the rest
+    assert np.all(hist.H['sim_end'][0:3])
+    assert np.all(~hist.H['sim_end'][3:10])  # Check the rest
     assert hist.returned_count == 3
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
@@ -477,8 +477,8 @@ def test_update_history_f_vec():
 
     assert np.allclose(exp_fs, hist.H['f'])
     assert np.allclose(exp_fvecs, hist.H['fvec'])
-    assert np.all(hist.H['returned'][0:5])
-    assert np.all(~hist.H['returned'][5:10])  # Check the rest
+    assert np.all(hist.H['sim_end'][0:5])
+    assert np.all(~hist.H['sim_end'][5:10])  # Check the rest
     assert hist.returned_count == 5
     assert hist.given_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....

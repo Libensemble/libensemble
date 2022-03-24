@@ -124,4 +124,4 @@ gen_specs['persis_in'].remove('grad')
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert np.sum(H['returned']) >= exit_criteria['sim_max'], "Run didn't finish"
+    assert np.sum(H['sim_end']) >= exit_criteria['sim_max'], "Run didn't finish"

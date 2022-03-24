@@ -194,28 +194,28 @@ def test_checking_inputs_H0():
                    (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
                   dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
                          ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_start', '?'),
-                         ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)),
+                         ('sim_worker', '<i8'), ('sim_end', '?'), ('fvec', '<f8', (3,)),
                          ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8')])
 
     # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # A value has not been returned
-    H0['returned'][2] = False
+    H0['sim_end'][2] = False
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
     # Ungiven points shown as returned
-    H0['returned'] = True
+    H0['sim_end'] = True
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
     # Return to correct state
-    H0['returned'][3:len(H0)] = False
+    H0['sim_end'][3:len(H0)] = False
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Removing 'returned' and then testing again. Should be successful as 'returned' does not exist
-    H0 = rmfield(H0, 'returned')
+    # Removing 'sim_end' and then testing again. Should be successful as 'sim_end' does not exist
+    H0 = rmfield(H0, 'sim_end')
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Should fail because H0 has fields not in H

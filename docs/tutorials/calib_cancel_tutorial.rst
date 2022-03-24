@@ -188,7 +188,7 @@ prepared for irregular sending /receiving of data.
 ..
 ..     1) Marked as ``'sim_start'`` by the allocation function
 ..     2) Marked with ``'cancel_requested'`` by the generator
-..     3) *Not* been marked as ``'returned'`` by the Manager
+..     3) *Not* been marked as ``'sim_end'`` by the Manager
 ..     4) *Not* been marked with ``'kill_sent'`` by the Manager
 ..
 .. If any points match these characteristics, the Workers that are processing these

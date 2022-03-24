@@ -212,7 +212,7 @@ class Manager:
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
-        return np.any(filter_nans(H[key][H['returned']]) <= val)
+        return np.any(filter_nans(H[key][H['sim_end']]) <= val)
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -464,7 +464,7 @@ class Manager:
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
             kill_sim = self.hist.H['sim_start'] & self.hist.H['cancel_requested'] \
-                & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+                & ~self.hist.H['sim_end'] & ~self.hist.H['kill_sent']
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
@@ -491,7 +491,7 @@ class Manager:
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 if 'final_fields' in self.libE_specs:
-                    rows_to_send = self.hist.trim_H()['returned']
+                    rows_to_send = self.hist.trim_H()['sim_end']
                     fields_to_send = self.libE_specs['final_fields']
                     H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
                     self.wcomms[w-1].send(PERSIS_STOP, H_to_send)

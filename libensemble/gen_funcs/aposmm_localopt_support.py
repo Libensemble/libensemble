@@ -563,10 +563,10 @@ def simulate_recv_from_manager(local_H, gen_specs):
     # output as if the calculations were performed externally by libEnsemble.
     user = gen_specs['user']['standalone']
 
-    if np.sum(local_H['returned']) >= user['eval_max']:
+    if np.sum(local_H['sim_end']) >= user['eval_max']:
         return STOP_TAG, {}, {}
 
-    H_rows = np.where(~local_H['returned'])[0]
+    H_rows = np.where(~local_H['sim_end'])[0]
     H_fields = [i[0] for i in gen_specs['out']]
 
     Work = {'libE_info': {'H_rows': H_rows}, 'H_fields': H_fields}

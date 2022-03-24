@@ -78,7 +78,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                     if 'local_pt' in H.dtype.names and H['local_pt'][a1][0]:
                         persis_info['local_pt_ids'].add(pt_id)
 
-                    if np.all(H['returned'][a1]):
+                    if np.all(H['sim_end'][a1]):
                         persis_info['complete'].add(pt_id)
                         values = gen_specs['user']['combine_component_func'](H['f_i'][a1])
                         persis_info['best_complete_val'] = min(persis_info['best_complete_val'], values)
@@ -124,13 +124,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
                 if (alloc_specs['user'].get('batch_mode')
-                        and not all(np.logical_or(H['returned'][last_size:], H['paused'][last_size:]))):
+                        and not all(np.logical_or(H['sim_end'][last_size:], H['paused'][last_size:]))):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
                     runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']), dtype=bool)
                     for run, inds in enumerate(persis_info[lw]['run_order'].values()):
-                        runs_needing_to_advance[run] = np.all(H['returned'][inds])
+                        runs_needing_to_advance[run] = np.all(H['sim_end'][inds])
 
                     if not np.any(runs_needing_to_advance):
                         break

@@ -261,7 +261,7 @@ class AllocSupport:
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['sim_start']
-        return np.all(H['returned'][pfilter & ~excluded_points])
+        return np.all(H['sim_end'][pfilter & ~excluded_points])
 
     def all_given_back(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have been given back to gen.

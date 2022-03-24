@@ -64,12 +64,12 @@ class History:
                 #     H[field][ind] = val
 
             if 'sim_start' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_start' and 'returned'")
+                logger.manager_warning("Marking entries in H0 as having been 'sim_start' and 'sim_end'")
                 H['sim_start'][:len(H0)] = 1
-                H['returned'][:len(H0)] = 1
-            elif 'returned' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'sim_start'")
-                H['returned'][:len(H0)] = H0['sim_start']
+                H['sim_end'][:len(H0)] = 1
+            elif 'sim_end' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_end' if 'sim_start'")
+                H['sim_end'][:len(H0)] = H0['sim_start']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
@@ -85,7 +85,7 @@ class History:
         self.grow_count = 0
 
         self.given_count = np.sum(H['sim_start'])
-        self.returned_count = np.sum(H['returned'])
+        self.returned_count = np.sum(H['sim_end'])
         self.given_back_count = np.sum(H['given_back'])
         self.given_back_warned = False
 
@@ -118,7 +118,7 @@ class History:
                     else:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
-            self.H['returned'][ind] = True
+            self.H['sim_end'][ind] = True
             self.H['returned_time'][ind] = time.time()
             self.returned_count += 1
 
@@ -149,16 +149,16 @@ class History:
         t = time.time()
 
         if q_inds.size > 0:
-            if np.all(self.H['returned'][q_inds]):
+            if np.all(self.H['sim_end'][q_inds]):
                 self.H['given_back'][q_inds] = True
 
-            elif np.any(self.H['returned'][q_inds]):  # sporadic returned points need updating
-                for ind in q_inds[self.H['returned'][q_inds]]:
+            elif np.any(self.H['sim_end'][q_inds]):  # sporadic returned points need updating
+                for ind in q_inds[self.H['sim_end'][q_inds]]:
                     self.H['given_back'][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'sim_end'.")
                 self.given_back_warned = True
 
             self.H['given_back_time'][q_inds] = t
