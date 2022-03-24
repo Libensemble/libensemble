@@ -25,19 +25,23 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 nworkers, is_manager, libE_specs, _ = parse_args()
 n = 2
 
-sim_specs = {'sim_f': sim_f,
-             'in': ['x'],
-             'out': [('f', float), ('f_i', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [
+        ('f', float),
+        ('f_i', float),
+    ],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
 
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'f_i', 'returned'],
-             'out': gen_out,
-             'user': {'initial_sample_size': 5,
-                      'lb': -2*np.ones(n),
-                      'ub': 2*np.ones(n)}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out] + ['f', 'f_i', 'returned'],
+    'out': gen_out,
+    'user': {'initial_sample_size': 5, 'lb': -2 * np.ones(n), 'ub': 2 * np.ones(n)},
+}
 
 if nworkers == 3:
     gen_specs['user']['single_component_at_a_time'] = True
@@ -50,8 +54,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 100, 'wallclock_max': 300}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 if is_manager:
     assert flag == 0
     assert np.all(~H['local_pt'])
