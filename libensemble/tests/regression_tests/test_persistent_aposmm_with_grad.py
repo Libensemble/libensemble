@@ -95,7 +95,7 @@ H0_dtype = [
     ('returned', bool),
     ('f', float),
     ('given_back', bool),
-    ('given', bool),
+    ('sim_start', bool),
 ]
 H0 = np.zeros(sample_size, dtype=H0_dtype)
 
@@ -104,7 +104,7 @@ H0 = np.zeros(sample_size, dtype=H0_dtype)
 H0['x'] = np.round(minima, 1)
 H0['x_on_cube'] = (H0['x'] - gen_specs['user']['lb']) / (gen_specs['user']['ub'] - gen_specs['user']['lb'])
 H0['sim_id'] = range(sample_size)
-H0[['given', 'given_back', 'returned']] = True
+H0[['sim_start', 'given_back', 'returned']] = True
 
 for i in range(sample_size):
     H0['f'][i] = six_hump_camel_func(H0['x'][i])

@@ -144,7 +144,7 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points (or returned but not given).
-        assert('returned' not in fields or np.all(H0['given'] == H0['returned'])), \
+        assert('returned' not in fields or np.all(H0['sim_start'] == H0['returned'])), \
             'H0 contains unreturned or invalid points'
 
         # # Fail if points in prior history don't have a sim_id.

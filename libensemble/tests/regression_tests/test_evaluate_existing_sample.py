@@ -35,12 +35,12 @@ gen_specs = {}
 n_samp = 1000
 n = 8
 
-H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('sim_id', int), ('given', bool)])
+H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('sim_id', int), ('sim_start', bool)])
 
 np.random.seed(0)
 H0['x'] = gen_borehole_input(n_samp)
 H0['sim_id'] = range(n_samp)
-H0['given'] = False
+H0['sim_start'] = False
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
 

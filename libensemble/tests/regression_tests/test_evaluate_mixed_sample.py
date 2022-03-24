@@ -35,7 +35,7 @@ gen_specs = {}
 n_samp = 1000
 n = 8
 
-H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('f', float, 8), ('sim_id', int), ('given', bool), ('returned', bool)])
+H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('f', float, 8), ('sim_id', int), ('sim_start', bool), ('returned', bool)])
 
 np.random.seed(0)
 H0['x'] = gen_borehole_input(n_samp)
@@ -43,7 +43,7 @@ H0['x'] = gen_borehole_input(n_samp)
 for i in range(500):
     H0['f'][i] = borehole_func(H0['x'][i])
 
-H0['given'][:500] = True
+H0['sim_start'][:500] = True
 H0['returned'][:500] = True
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}

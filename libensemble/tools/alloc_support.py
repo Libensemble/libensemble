@@ -248,7 +248,7 @@ class AllocSupport:
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested']
-        return np.all(H['given'][pfilter & ~excluded_points])
+        return np.all(H['sim_start'][pfilter & ~excluded_points])
 
     def all_returned(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have returned from sim
@@ -260,7 +260,7 @@ class AllocSupport:
         :returns: True if all expected points have been returned
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['given']
+        excluded_points = H['cancel_requested'] & ~H['sim_start']
         return np.all(H['returned'][pfilter & ~excluded_points])
 
     def all_given_back(self, H, pt_filter=None, low_bound=None):
@@ -273,7 +273,7 @@ class AllocSupport:
         :returns: True if all expected points have been returned
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['given']
+        excluded_points = H['cancel_requested'] & ~H['sim_start']
         return np.all(H['given_back'][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):

@@ -45,7 +45,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
             Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back, persis_info.get(wid), persistent=True)
 
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_start'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
         if np.any(points_to_evaluate):
 

@@ -34,7 +34,7 @@ def test_term_test_2():
     assert mgr.term_test()
     #
     # Terminate because everything has been given.
-    hist.H['given'] = np.ones
+    hist.H['sim_start'] = np.ones
     hist.given_count = len(hist.H)
     assert mgr.term_test()
 

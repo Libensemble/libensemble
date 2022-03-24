@@ -463,7 +463,7 @@ class Manager:
     def _kill_cancelled_sims(self):
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
-            kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
+            kill_sim = self.hist.H['sim_start'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
 
             # Note that a return is still expected when running sims are killed

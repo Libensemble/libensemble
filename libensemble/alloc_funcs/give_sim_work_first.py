@@ -33,7 +33,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     if 'cancel_sims_time' in user:
         # Cancel simulations that are taking too long
-        rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
+        rows = np.where(np.logical_and.reduce((H['sim_start'], ~H['returned'], ~H['cancel_requested'])))[0]
         inds = time.time() - H['given_time'][rows] > user['cancel_sims_time']
         to_request_cancel = rows[inds]
         for row in to_request_cancel:
@@ -52,7 +52,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     gen_count = support.count_gens()
     Work = {}
 
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_start'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):

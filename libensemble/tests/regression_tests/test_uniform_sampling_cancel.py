@@ -41,21 +41,21 @@ def create_H0(persis_info, gen_specs, sim_max):
     n = len(lb)
     b = sim_max
 
-    H0 = np.zeros(b, dtype=[('x', float, 2), ('sim_id', int), ('given', bool), ('cancel_requested', bool)])
+    H0 = np.zeros(b, dtype=[('x', float, 2), ('sim_id', int), ('sim_start', bool), ('cancel_requested', bool)])
     H0['x'] = persis_info[0]['rand_stream'].uniform(lb, ub, (b, n))
     H0['sim_id'] = range(b)
-    H0['given'] = False
+    H0['sim_start'] = False
     for i in range(b):
         if i % 10 == 0:
             H0[i]['cancel_requested'] = True
 
     # Using uniform_random_sample_cancel call - need to adjust some gen_specs though
     # gen_specs['out'].append(('sim_id', int))
-    # gen_specs['out'].append(('given', bool))
+    # gen_specs['out'].append(('sim_start', bool))
     # gen_specs['user']['gen_batch_size'] = sim_max
     # H0, persis_info[0] = uniform_random_sample_cancel({}, persis_info[0], gen_specs, {})
     # H0['sim_id'] = range(gen_specs['user']['gen_batch_size'])
-    # H0['given'] = False
+    # H0['sim_start'] = False
     return H0
 
 
@@ -149,7 +149,7 @@ for testnum in range(1, 6):
     if is_manager:
         assert flag == 0
         assert np.all(H['cancel_requested'][::10]), 'Some values should be cancelled but are not'
-        assert np.all(~H['given'][::10]), 'Some values are given that should not have been'
+        assert np.all(~H['sim_start'][::10]), 'Some values are given that should not have been'
         tol = 0.1
         for m in minima:
             assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol

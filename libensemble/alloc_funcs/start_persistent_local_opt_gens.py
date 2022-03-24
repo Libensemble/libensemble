@@ -33,7 +33,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
     gen_count = support.count_persis_gens()
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_start'] & ~H['cancel_requested']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info

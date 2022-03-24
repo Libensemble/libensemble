@@ -63,13 +63,13 @@ class History:
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
-            if 'given' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'given' and 'returned'")
-                H['given'][:len(H0)] = 1
+            if 'sim_start' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_start' and 'returned'")
+                H['sim_start'][:len(H0)] = 1
                 H['returned'][:len(H0)] = 1
             elif 'returned' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'given'")
-                H['returned'][:len(H0)] = H0['given']
+                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'sim_start'")
+                H['returned'][:len(H0)] = H0['sim_start']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
@@ -84,7 +84,7 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
 
-        self.given_count = np.sum(H['given'])
+        self.given_count = np.sum(H['sim_start'])
         self.returned_count = np.sum(H['returned'])
         self.given_back_count = np.sum(H['given_back'])
         self.given_back_warned = False
@@ -137,7 +137,7 @@ class History:
         q_inds = np.atleast_1d(q_inds)
         t = time.time()
 
-        self.H['given'][q_inds] = True
+        self.H['sim_start'][q_inds] = True
         self.H['given_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
