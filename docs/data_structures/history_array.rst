@@ -100,7 +100,7 @@ The full list of these reserved fields is given below.
 
 * ``gen_worker`` [int]: libEnsemble worker that generated this entry.
 
-* ``gen_time`` [float]: Time this entry was put into ``H`` by the manager.
+* ``gen_end_time`` [float]: Time this entry was put into ``H`` by the manager.
 
 * ``kill_sent`` [bool]: True if a kill signal has been sent to the worker evaluating this entry.
 

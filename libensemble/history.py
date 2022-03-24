@@ -211,8 +211,8 @@ class History:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
-        self.H['gen_time'][first_gen_inds] = time.time()
+        first_gen_inds = update_inds[self.H['gen_end_time'][update_inds] == 0]
+        self.H['gen_end_time'][first_gen_inds] = time.time()
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 

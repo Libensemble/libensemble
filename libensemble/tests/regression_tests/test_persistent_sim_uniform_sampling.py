@@ -69,7 +69,7 @@ exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_time'])) == 8
+    assert len(np.unique(H['gen_end_time'])) == 8
     assert not any((H['f'] == 0))
     # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
     assert not np.isclose(H['f'][0], 3.23333333)
