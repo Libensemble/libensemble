@@ -195,7 +195,7 @@ def test_checking_inputs_H0():
                   dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
                          ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_start', '?'),
                          ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)),
-                         ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+                         ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8')])
 
     # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)

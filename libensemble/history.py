@@ -76,7 +76,7 @@ class History:
                 H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
-        H['given_time'][-L:] = np.inf
+        H['sim_start_time'][-L:] = np.inf
         H['given_back_time'][-L:] = np.inf
 
         self.H = H
@@ -138,7 +138,7 @@ class History:
         t = time.time()
 
         self.H['sim_start'][q_inds] = True
-        self.H['given_time'][q_inds] = t
+        self.H['sim_start_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
         self.given_count += len(q_inds)
@@ -228,7 +228,7 @@ class History:
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
-        H_1['given_time'] = np.inf
+        H_1['sim_start_time'] = np.inf
         H_1['given_back_time'] = np.inf
         self.H = np.append(self.H, H_1)
 

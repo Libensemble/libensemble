@@ -46,7 +46,7 @@ def test_term_test_3():
     hist, sim_specs, gen_specs, exit_criteria, al = setup.hist_setup2(H0_in=H0)
     mgr = man.Manager(hist, libE_specs, al, sim_specs, gen_specs, exit_criteria)
     hist.index = 4
-    hist.H['given_time'][0] = time.time()
+    hist.H['sim_start_time'][0] = time.time()
     time.sleep(0.5)
     hist.given_count = 4
     assert mgr.term_test()
