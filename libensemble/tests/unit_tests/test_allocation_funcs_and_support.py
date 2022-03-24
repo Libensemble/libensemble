@@ -23,7 +23,7 @@ H = np.array([(False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49, 0.88
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.11, -1.63], 0., 2, False, False, [0., 0.], np.inf),
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-1.88, -0.61], 0., 3, False, False, [0., 0.], np.inf),
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.61, 0.15], 0., 4, False, False, [0., 0.], np.inf)],
-             dtype=[('sim_start', '?'), ('given_back', '?'), ('gen_worker', '<i8'), ('sim_end_time', '<f8'),
+             dtype=[('sim_start', '?'), ('gen_informed', '?'), ('gen_worker', '<i8'), ('sim_end_time', '<f8'),
                     ('priority', '<f8'), ('kill_sent', '?'), ('gen_end_time', '<f8'), ('sim_worker', '<i8'), ('resource_sets', '<i8'), ('sim_end', '?'),
                     ('x', '<f8', (2,)), ('f', '<f8'), ('sim_id', '<i8'), ('cancel_requested', '?'), ('allocated', '?'),
                     ('x_on_cube', '<f8', (2,)), ('sim_start_time', '<f8')])
@@ -331,7 +331,7 @@ def test_als_all_returned():
 
 def test_als_all_given_back():
     H_some_gvnbk = H.copy()
-    H_some_gvnbk['given_back'] = np.array([True, False, False, True, True])
+    H_some_gvnbk['gen_informed'] = np.array([True, False, False, True, True])
     als = AllocSupport(W, True)
 
     myfilter1 = np.array([False, True, False, True, True])

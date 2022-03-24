@@ -86,7 +86,7 @@ class History:
 
         self.given_count = np.sum(H['sim_start'])
         self.returned_count = np.sum(H['sim_end'])
-        self.given_back_count = np.sum(H['given_back'])
+        self.given_back_count = np.sum(H['gen_informed'])
         self.given_back_warned = False
 
         self.given_offset = self.given_count
@@ -150,15 +150,15 @@ class History:
 
         if q_inds.size > 0:
             if np.all(self.H['sim_end'][q_inds]):
-                self.H['given_back'][q_inds] = True
+                self.H['gen_informed'][q_inds] = True
 
             elif np.any(self.H['sim_end'][q_inds]):  # sporadic returned points need updating
                 for ind in q_inds[self.H['sim_end'][q_inds]]:
-                    self.H['given_back'][ind] = True
+                    self.H['gen_informed'][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'sim_end'.")
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_end'.")
                 self.given_back_warned = True
 
             self.H['given_back_time'][q_inds] = t

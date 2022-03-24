@@ -48,7 +48,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             # Don't return if the initial sample is not complete
             persis_info['sample_done'] = True
 
-            returned_but_not_given = np.logical_and(H['sim_end'], ~H['given_back'])
+            returned_but_not_given = np.logical_and(H['sim_end'], ~H['gen_informed'])
             if np.any(returned_but_not_given):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),

@@ -36,7 +36,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.
-        inds_not_sent_back = ~H['given_back']
+        inds_not_sent_back = ~H['gen_informed']
         H_tmp = H[inds_not_sent_back]
 
         inds_to_send = np.array([], dtype=int)

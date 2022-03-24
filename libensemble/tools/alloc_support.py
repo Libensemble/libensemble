@@ -274,7 +274,7 @@ class AllocSupport:
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['sim_start']
-        return np.all(H['given_back'][pfilter & ~excluded_points])
+        return np.all(H['gen_informed'][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):
         """Returns indices of points to give by priority

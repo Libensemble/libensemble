@@ -98,7 +98,7 @@ gen_specs['user'] = {**gen_specs['user'], **mt_params}
 
 alloc_specs = {
     'alloc_f': only_persistent_gens,
-    'out': [('given_back', bool)],
+    'out': [('gen_informed', bool)],
     'user': {'async_return': False},
 }
 
