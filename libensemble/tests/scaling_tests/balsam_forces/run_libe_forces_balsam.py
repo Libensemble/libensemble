@@ -9,7 +9,7 @@ from balsam.api import ApplicationDefinition
 BALSAM_SITE = "jln_theta"
 
 # Is this running on a personal machine, or a compute node?
-THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])  
+THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])
 
 # Use Globus to transfer output forces.stat files back
 TRANSFER_STATFILES = True

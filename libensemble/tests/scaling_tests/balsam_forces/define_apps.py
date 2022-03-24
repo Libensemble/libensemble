@@ -37,7 +37,9 @@ class LibensembleApp(ApplicationDefinition):
         }
     }
 
+
 print("Defined LibensembleApp Balsam ApplicationDefinition.")
+
 
 class RemoteForces(ApplicationDefinition):
     site = "jln_theta"
@@ -57,6 +59,7 @@ class RemoteForces(ApplicationDefinition):
             "recursive": False,
         }
     }
+
 
 print("Defined RemoteForces Balsam ApplicationDefinition.")
 
