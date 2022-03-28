@@ -57,8 +57,13 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         "kill_rate": kill_rate,
     }
     workdir = "worker" + str(libE_info["workerID"]) + "_" + secrets.token_hex(nbytes=3)
+    forcesfile = "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
 
-    file_dest = GLOBUS_DEST_DIR + "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
+    if THIS_SCRIPT_ON_THETA:
+        file_dest = GLOBUS_DEST_DIR + forcesfile
+    else:
+        file_dest = os.getcwd() + forcesfile
+
     if TRANSFER_STATFILES:
         transfer = {"result": GLOBUS_ENDPOINT + ":" + file_dest}
     else:

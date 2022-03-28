@@ -1,6 +1,6 @@
 libE_specs:
     save_every_k_gens: 1000
-    profile: False
+    sim_dirs_make: True
     exit_criteria:
         sim_max: 16
 

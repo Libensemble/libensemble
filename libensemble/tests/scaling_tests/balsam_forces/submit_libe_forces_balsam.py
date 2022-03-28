@@ -1,3 +1,4 @@
+import os
 import time
 import glob
 from balsam.api import ApplicationDefinition, BatchJob
@@ -7,7 +8,7 @@ This file is roughly equivalent to a traditional batch submission shell script
 that used legacy Balsam commands, except it uses the Balsam API to submit jobs
 to the scheduler. It can also be run from anywhere and still submit jobs to
 the same machine. It loads, parameterizes, and submits the LibensembleApp for
-execution.
+execution. Use this script to run libEnsemble as a Balsam Job on the compute nodes.
 """
 
 BALSAM_SITE = "jln_theta"
@@ -30,20 +31,21 @@ input_file = (
     + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
 )
 
-# Transfer forces.stat files back to this script's directory?
+# Transfer forces.stat files back to the following local destination?
 # If True, this script cancels remote allocation once SIM_MAX statfiles transferred
 TRANSFER_STATFILES = True
+TRANSFER_DESTINATION = "./ensemble"
 SIM_MAX = 16  # must match balsam_forces.yaml
 
 # Retrieve the libEnsemble app from the Balsam service
 apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
-LibensembleApp = apps["LibensembleApp"]
-LibensembleApp.resolve_site_id()
+RemoteLibensembleApp = apps["RemoteLibensembleApp"]
+RemoteLibensembleApp.resolve_site_id()
 
 # Submit the libEnsemble app as a Job to the Balsam service.
 #  It will wait for a compatible, running BatchJob session (remote allocation)
-libe_job = LibensembleApp.submit(
-    workdir="libe_workflow/libe_processes",
+libe_job = RemoteLibensembleApp.submit(
+    workdir="libe_workflow",
     num_nodes=LIBE_NODES,
     ranks_per_node=LIBE_RANKS,
     transfers={"input_file": input_file},
@@ -65,9 +67,10 @@ print("BatchJob session initialized. All Balsam apps will run in this BatchJob."
 
 # Wait for all forces.stat files to be transferred back, then cancel the BatchJob
 if TRANSFER_STATFILES:
+    os.makedirs(TRANSFER_DESTINATION, exist_ok=True)
     print("Waiting for all returned forces.stat files...")
 
-    while len(glob.glob("./*.stat")) != SIM_MAX:
+    while len(glob.glob(os.path.abspath(TRANSFER_DESTINATION) + "/*.stat")) != SIM_MAX:
         time.sleep(3)
 
     print("All forces.stat files returned. Cancelling BatchJob session.")

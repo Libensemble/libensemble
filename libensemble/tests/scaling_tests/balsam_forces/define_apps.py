@@ -19,7 +19,7 @@ register each of these apps with the Balsam service.
 """
 
 
-class LibensembleApp(ApplicationDefinition):
+class RemoteLibensembleApp(ApplicationDefinition):
     site = "jln_theta"
     command_template = (
         "/home/jnavarro/.conda/envs/again/bin/python /home/jnavarro"
@@ -38,7 +38,7 @@ class LibensembleApp(ApplicationDefinition):
     }
 
 
-print("Defined LibensembleApp Balsam ApplicationDefinition.")
+print("Defined RemoteLibensembleApp Balsam ApplicationDefinition.")
 
 
 class RemoteForces(ApplicationDefinition):
@@ -63,7 +63,7 @@ class RemoteForces(ApplicationDefinition):
 
 print("Defined RemoteForces Balsam ApplicationDefinition.")
 
-LibensembleApp.sync()
+RemoteLibensembleApp.sync()
 RemoteForces.sync()
 
 print("Synced each app with the Balsam service.")

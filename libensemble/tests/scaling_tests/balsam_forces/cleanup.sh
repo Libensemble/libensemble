@@ -1,1 +1,1 @@
-rm -r ensemble_* *.npy *.pickle ensemble.log lib*.txt *.stat
+rm -r ensemble* *.npy *.pickle ensemble.log lib*.txt *.stat
