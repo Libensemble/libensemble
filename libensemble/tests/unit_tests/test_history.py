@@ -32,39 +32,39 @@ exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.
                            ('sim_end_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
                            ('gen_informed', '?'), ('gen_informed_time', '<f8')])
 
-wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf)],
+wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0),
+                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], False, 0., inf, False, 0, False, False, False, inf, 0)],
                dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_end_time', '<f8'),
                       ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_start', '?'),
                       ('sim_worker', '<i8'), ('sim_end', '?'), ('sim_end_time', '<f8'), ('fvec', '<f8', (3,)),
                       ('allocated', '?'), ('f', '<f8'), ('sim_start_time', '<f8'),
                       ('local_min', '?'), ('num_active_runs', '<i8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                      ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+                      ('gen_informed', '?'), ('gen_informed_time', '<f8'), ('gen_start_time', '<f8')])
 
-wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf),
-                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf)],
+wrs2 = np.array([(0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0),
+                 (0, False, 0., 0., 0., 0, False, 0., False, -1, inf, 0., False, False, False, inf, 0)],
                 dtype=[('gen_worker', '<i8'), ('sim_end', '?'), ('sim_end_time', '<f8'),
                        ('gen_end_time', '<f8'), ('x', '<f8'),
                        ('sim_worker', '<i8'), ('allocated', '?'), ('g', '<f8'), ('sim_start', '?'),
                        ('sim_id', '<i8'), ('sim_start_time', '<f8'),
                        ('priority', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                       ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+                       ('gen_informed', '?'), ('gen_informed_time', '<f8'), ('gen_start_time', '<f8')])
 
 exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, False, inf, 0., False, False, False, inf),
                             (0, 1, 3, 0., 7.20324493e-01, False, False, False, inf, 0., False, False, False, inf),
@@ -92,10 +92,10 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 def test_hist_init_1():
     hist, _, _, _, _ = setup.hist_setup1()
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 0
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_hist_init_1A_H0():
@@ -107,20 +107,20 @@ def test_hist_init_1A_H0():
     # These dont work for numpy structured arrays
     # assert np.array_equiv(hist.H, exp_H0_H), "Array does not match expected"
     # assert np.array_equal(hist.H, exp_H0_H), "Array does not match expected"
-    assert hist.given_count == 3
+    assert hist.sim_start_count == 3
     assert hist.index == 3
-    assert hist.returned_count == 3
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 3
+    assert hist.gen_informed_count == 0
     assert len(hist.H) == 5
 
 
 def test_hist_init_2():
     hist, _, _, _, _ = setup.hist_setup2()
     assert np.array_equal(hist.H, wrs2), "Array does not match expected"
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 0
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_grow_H():
@@ -128,10 +128,10 @@ def test_grow_H():
     new_rows = 7
     hist.grow_H(k=new_rows)
     assert np.array_equal(hist.H, wrs), "Array does not match expected"
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 0
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_trim_H():
@@ -139,22 +139,22 @@ def test_trim_H():
     hist.index = 10
     H = hist.trim_H()
     assert np.array_equal(H, wrs), "Array does not match expected"
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 10
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_update_history_x_in_Oempty():
     hist, sim_specs, gen_specs, _, _ = setup.hist_setup2()
     H_o = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     assert np.array_equal(hist.H, wrs2), "H Array does not match expected"
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 0
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_update_history_x_in():
@@ -171,28 +171,28 @@ def test_update_history_x_in():
     H_o = np.zeros(size, dtype=gen_specs['out'])
     H_o['x'] = single_rand
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     assert isclose(single_rand, hist.H['x'][0])
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 1
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
     size = 6
     gen_worker = 3
     H_o = np.zeros(size, dtype=gen_specs['out'])
     H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
     for field in exp_x.dtype.names:
         np.allclose(hist.H[field], exp_x[field])
 
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 7
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
     # Force H to grow when add points
     size = 3
@@ -200,20 +200,20 @@ def test_update_history_x_in():
     H_o = np.zeros(size, dtype=gen_specs['out'])
     H_o['x'] = gen_specs['gen_f'](size=size)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:
         np.allclose(hist.H[field], exp_x[field])
 
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 10
-    assert hist.returned_count == 0
+    assert hist.sim_end_count == 0
 
     # Test libE errors when a protected field appears in output from a gen_worker
     H_o = np.zeros(size, dtype=gen_specs['out'] + [('sim_start', bool)])
     try:
-        hist.update_history_x_in(gen_worker, H_o, safe_mode)
+        hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     except AssertionError:
         assert 1, "Failed like it should have"
     else:
@@ -222,7 +222,7 @@ def test_update_history_x_in():
     # Test libE errors when a protected field appears in output from a gen_worker
     H_o = np.zeros(size, dtype=gen_specs['out'] + [('sim_start', bool)])
     try:
-        hist.update_history_x_in(gen_worker, H_o, safe_mode)
+        hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     except AssertionError:
         assert 1, "Failed like it should have"
     else:
@@ -244,29 +244,29 @@ def test_update_history_x_in_sim_ids():
     H_o['x'] = single_rand
     H_o['sim_id'] = 0
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     assert isclose(single_rand, hist.H['x'][0])
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 1
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
     size = 6
     gen_worker = 3
     H_o = np.zeros(size, dtype=gen_specs['out'])
     H_o['x'] = gen_specs['gen_f'](size=size)
     H_o['sim_id'] = range(1, 7)
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
 
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
     for field in exp_x.dtype.names:
         np.allclose(hist.H[field], exp_x[field])
 
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 7
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
     # Force H to grow when add points
     size = 3
@@ -275,16 +275,16 @@ def test_update_history_x_in_sim_ids():
     H_o['x'] = gen_specs['gen_f'](size=size)
     H_o['sim_id'] = range(7, 10)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode)
+    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
     for field in exp_x.dtype.names:
         np.allclose(hist.H[field], exp_x[field])
 
-    assert hist.given_count == 0
+    assert hist.sim_start_count == 0
     assert hist.index == 10
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 # Note - Ideally have more setup here (so hist.index reflects generated points)
@@ -297,11 +297,11 @@ def test_update_history_x_out():
     # Check updated values for point and counts
     assert hist.H['sim_start'][0]
     assert hist.H['sim_worker'][0] == 2
-    assert hist.given_count == 1
+    assert hist.sim_start_count == 1
 
     # Check some unchanged values for point and counts
     assert hist.index == 0
-    assert hist.returned_count == 0
+    assert hist.sim_end_count == 0
     hist.H['sim_end'][0] = False
     hist.H['allocated'][0] = False
     hist.H['f'][0] == 0.0
@@ -317,7 +317,7 @@ def test_update_history_x_out():
     # Check updated values for point and counts
     assert np.all(hist.H['sim_start'][0:3])  # Include previous point
     assert np.all(hist.H['sim_worker'][my_qinds] == 3)
-    assert hist.given_count == 3
+    assert hist.sim_start_count == 3
 
     # Update three further non-consecutive points
     my_qinds = np.array([4, 7, 9])
@@ -329,10 +329,10 @@ def test_update_history_x_out():
     assert np.all(~hist.H['sim_end'])  # Should still be unaffected.
 
     # Check counts
-    assert hist.given_count == 6
+    assert hist.sim_start_count == 6
     assert hist.index == 0  # In real case this would be ahead.....
-    assert hist.returned_count == 0
-    assert hist.given_back_count == 0
+    assert hist.sim_end_count == 0
+    assert hist.gen_informed_count == 0
 
 
 def test_update_history_f():
@@ -356,8 +356,8 @@ def test_update_history_f():
     assert isclose(exp_vals[0], hist.H['g'][0])
     assert np.all(hist.H['sim_end'][0:1])
     assert np.all(~hist.H['sim_end'][1:10])  # Check the rest
-    assert hist.returned_count == 1
-    assert hist.given_count == 0  # In real case this would be ahead.....
+    assert hist.sim_end_count == 1
+    assert hist.sim_start_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
     # Update two further consecutive points
@@ -380,8 +380,8 @@ def test_update_history_f():
     assert np.allclose(exp_vals, hist.H['g'])
     assert np.all(hist.H['sim_end'][0:3])
     assert np.all(~hist.H['sim_end'][3:10])  # Check the rest
-    assert hist.returned_count == 3
-    assert hist.given_count == 0  # In real case this would be ahead.....
+    assert hist.sim_end_count == 3
+    assert hist.sim_start_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
 
@@ -411,8 +411,8 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs[0], hist.H['fvec'][0])
     assert np.all(hist.H['sim_end'][0:1])
     assert np.all(~hist.H['sim_end'][1:10])  # Check the rest
-    assert hist.returned_count == 1
-    assert hist.given_count == 0  # In real case this would be ahead.....
+    assert hist.sim_end_count == 1
+    assert hist.sim_start_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
     # Update two further consecutive points
@@ -444,8 +444,8 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs, hist.H['fvec'])
     assert np.all(hist.H['sim_end'][0:3])
     assert np.all(~hist.H['sim_end'][3:10])  # Check the rest
-    assert hist.returned_count == 3
-    assert hist.given_count == 0  # In real case this would be ahead.....
+    assert hist.sim_end_count == 3
+    assert hist.sim_start_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
     # Update two further consecutive points but with sub_array fvec components
@@ -479,8 +479,8 @@ def test_update_history_f_vec():
     assert np.allclose(exp_fvecs, hist.H['fvec'])
     assert np.all(hist.H['sim_end'][0:5])
     assert np.all(~hist.H['sim_end'][5:10])  # Check the rest
-    assert hist.returned_count == 5
-    assert hist.given_count == 0  # In real case this would be ahead.....
+    assert hist.sim_end_count == 5
+    assert hist.sim_start_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
 

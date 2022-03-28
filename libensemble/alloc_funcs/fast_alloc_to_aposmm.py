@@ -49,7 +49,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if user.get('batch_mode') and not support.all_returned(pt_filter=~H['paused'], low_bound=last_size):
+                if user.get('batch_mode') and not support.all_sim_end(pt_filter=~H['paused'], low_bound=last_size):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):

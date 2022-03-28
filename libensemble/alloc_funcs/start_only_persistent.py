@@ -74,7 +74,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         gen_inds = (H['gen_worker'] == wid)
         returned_but_not_given = np.logical_and.reduce((H['sim_end'], ~H['gen_informed'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_returned(H, gen_inds):
+            if async_return or support.all_sim_end(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
                                              persistent=True, active_recv=active_recv_gen)
@@ -185,7 +185,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         gen_inds = (H['gen_worker'] == wid)
         returned_but_not_given = np.logical_and.reduce((H['sim_end'], ~H['gen_informed'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_returned(H, gen_inds):
+            if async_return or support.all_sim_end(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
                                              persistent=True, active_recv=active_recv_gen)

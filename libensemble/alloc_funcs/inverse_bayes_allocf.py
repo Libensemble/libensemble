@@ -31,7 +31,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
         # if > 1 persistent generator, assign the correct work to it
         inds_generated_by_wid = (H['gen_worker'] == wid)
-        if support.all_returned(H, inds_generated_by_wid):
+        if support.all_sim_end(H, inds_generated_by_wid):
 
             # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch

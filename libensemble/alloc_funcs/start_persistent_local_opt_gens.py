@@ -50,7 +50,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # returned, give them back to i. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         gen_inds = (H['gen_worker'] == wid)
-        if support.all_returned(H, gen_inds):
+        if support.all_sim_end(H, gen_inds):
             last_time_pos = np.argmax(H['sim_start_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             Work[wid] = support.gen_work(wid, gen_specs['persis_in'], last_ind, persis_info[wid], persistent=True)

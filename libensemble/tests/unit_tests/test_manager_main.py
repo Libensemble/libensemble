@@ -30,12 +30,12 @@ def test_term_test_2():
     hist.H['g'][0] = -1
     hist.H['sim_end'][0] = True
     hist.index = 1
-    hist.given_count = 1
+    hist.sim_start_count = 1
     assert mgr.term_test()
     #
     # Terminate because everything has been given.
     hist.H['sim_start'] = np.ones
-    hist.given_count = len(hist.H)
+    hist.sim_start_count = len(hist.H)
     assert mgr.term_test()
 
 
@@ -48,7 +48,7 @@ def test_term_test_3():
     hist.index = 4
     hist.H['sim_start_time'][0] = time.time()
     time.sleep(0.5)
-    hist.given_count = 4
+    hist.sim_start_count = 4
     assert mgr.term_test()
 
 

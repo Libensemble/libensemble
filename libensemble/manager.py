@@ -204,11 +204,11 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.returned_count >= sim_max + self.hist.returned_offset
+        return self.hist.sim_end_count >= sim_max + self.hist.sim_end_offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
-        return self.hist.index >= gen_max + self.hist.given_back_offset
+        return self.hist.index >= gen_max + self.hist.gen_informed_offset
 
     def term_test_stop_val(self, stop_val):
         """Checks against stop value criterion"""
@@ -247,7 +247,7 @@ class Manager:
     def _save_every_k_sims(self):
         """Saves history every kth sim step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.returned_count,
+                           self.hist.sim_end_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -528,7 +528,7 @@ class Manager:
 
     def _sim_max_given(self):
         if 'sim_max' in self.exit_criteria:
-            return self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+            return self.hist.sim_start_count >= self.exit_criteria['sim_max'] + self.hist.sim_start_offset
         else:
             return False
 
@@ -539,9 +539,9 @@ class Manager:
                 'exit_criteria': self.exit_criteria,
                 'elapsed_time': self.elapsed(),
                 'manager_kill_canceled_sims': self.kill_canceled_sims,
-                'given_count': self.hist.given_count,
-                'returned_count': self.hist.returned_count,
-                'given_back_count': self.hist.given_back_count,
+                'sim_start_count': self.hist.sim_start_count,
+                'sim_end_count': self.hist.sim_end_count,
+                'gen_informed_count': self.hist.gen_informed_count,
                 'sim_max_given': self._sim_max_given(),
                 'use_resource_sets': 'num_resource_sets' in self.libE_specs}
 

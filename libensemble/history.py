@@ -28,13 +28,13 @@ class History:
     :ivar int index:
         Index where libEnsemble should start filling in H
 
-    :ivar int given_count:
+    :ivar int sim_start_count:
         Number of points given to sim functions (according to H)
 
-    :ivar int returned_count:
+    :ivar int sim_end_count:
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and returned_count reflect the total number of points
+    Note that index, sim_start_count and sim_end_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -84,14 +84,14 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
 
-        self.given_count = np.sum(H['sim_start'])
-        self.returned_count = np.sum(H['sim_end'])
-        self.given_back_count = np.sum(H['gen_informed'])
+        self.sim_start_count = np.sum(H['sim_start'])
+        self.sim_end_count = np.sum(H['sim_end'])
+        self.gen_informed_count = np.sum(H['gen_informed'])
         self.given_back_warned = False
 
-        self.given_offset = self.given_count
-        self.returned_offset = self.returned_count
-        self.given_back_offset = self.given_back_count
+        self.sim_start_offset = self.sim_start_count
+        self.sim_end_offset = self.sim_end_count
+        self.gen_informed_offset = self.gen_informed_count
 
     def update_history_f(self, D, safe_mode):
         """
@@ -120,7 +120,7 @@ class History:
 
             self.H['sim_end'][ind] = True
             self.H['sim_end_time'][ind] = time.time()
-            self.returned_count += 1
+            self.sim_end_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
@@ -141,7 +141,7 @@ class History:
         self.H['sim_start_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        self.given_count += len(q_inds)
+        self.sim_start_count += len(q_inds)
 
     def update_history_to_gen(self, q_inds):
         """Updates the history (in place) when points are given back to the gen"""
@@ -162,7 +162,7 @@ class History:
                 self.given_back_warned = True
 
             self.H['gen_informed_time'][q_inds] = t
-            self.given_back_count += len(q_inds)
+            self.gen_informed_count += len(q_inds)
 
     def update_history_x_in(self, gen_worker, D, safe_mode, gen_start_time):
         """
