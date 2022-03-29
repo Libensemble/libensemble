@@ -57,13 +57,15 @@ There are several scripts that each need to be adjusted. To explain each:
   app is an ``ApplicationDefinition`` class with ``site`` and
   ``command_template`` fields. ``site`` specifies to Balsam on which Balsam site
   the app should be run, and ``command_template`` specifies the command (as a Jinja2
-  string template) that should be executed. This script contains two apps, ``LibensembleApp`` and ``RemoteForces``.
+  string template) that should be executed. This script contains two apps, ``RemoteLibensembleApp``
+   and ``RemoteForces``. If you're running libEnsemble on your personal machine and
+   only submitting the Forces app via Balsam, only ``RemoteForces`` needs adjusting.
 
   Configuring:
 
   Adjust the ``site`` field in each ``ApplicationDefinition`` to match your remote
   Balsam site. Adjust the various paths in the ``command_template`` fields to match
-  your home directory and/or Python paths.
+  your home directory and/or Python paths **on the remote machine**.
 
   **Run this script each time you edit it,** since changes to each
   ``ApplicationDefinition`` need to be synced with the Balsam service.
@@ -72,39 +74,52 @@ There are several scripts that each need to be adjusted. To explain each:
 
   About:
 
-  This is a typical libEnsemble calling script, but uses the BalsamExecutor
-  to register
+  This is a typical libEnsemble plus Executor calling script, but instead of
+  registering paths to apps as with the MPI Executor, this script loads the
+  ``RemoteForces`` app synced with the Balsam service in ``define_apps.py``
+  and registers it with libEnsemble's Balsam Executor. If running this
+  script on your personal machine, it also uses the Balsam Executor to check
+  out resources at a Balsam site.
 
   Configuring:
+
+  At a minimum (if not transferring statfiles), adjust the ``BALSAM_SITE`` field
+  to match your remote Balsam site, and fields in the in the
+  ``batch = exctr.submit_allocation()`` block further down. For ``site_id``,
+  retrieve the corresponding field with ``balsam site ls``. If this script is being
+  run on a remote machine, the ``forces.from_yaml()`` path can be adjusted to point to
+  the ``balsam_forces.yaml`` configuration file on that machine so it doesn't have
+  to be transferred over.
 
 3. (optional) ``submit_libe_forces_balsam.py``:
 
   About:
 
-  This Python script is effectively a batch submission script, capable of checking
-  out resources
+  This Python script is effectively a batch submission script. It uses the Balsam API
+  to check out resources at a Balsam site, and submits libEnsemble as
+  a Balsam Job onto those resources. Note that customizing the Globus transfer
+  of the ``balsam_forces.yaml`` file is necessary
 
   Configuring:
 
 
-
-
-
-Configure the `RemoteForces` class in the `define_apps.py` submission script
-to match the Balsam site name and the path to the `forces.x` executable
-on the remote machine. Configure the `submit_allocation()` function in the calling
-script to correspond with the site's ID (an integer found via `balsam site ls`),
-as well as the correct queue and project for the machine the Balsam site was initialized on.
+### Running libEnsemble
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces_funcx.py --comms local --nworkers N
+    python run_libe_forces_balsam.py --comms local --nworkers N
 
 To run with MPI comms using one manager and `N-1` workers:
 
     mpirun -np N python run_libe_forces.py
 
-Application parameters can be adjusted in `funcx_forces.yaml`.
+**This run libEnsemble itself in-place, with only Forces submitted to a Balsam site.**
+
+To run both libEnsemble and the Forces app on a Balsam site, use:
+
+  python submit_libe_forces_balsam.py
+
+Application parameters can be adjusted in `balsam_forces.yaml`.
 
 Note that each function and path must be accessible and/or importable on the
 remote machine. Absolute paths are recommended.

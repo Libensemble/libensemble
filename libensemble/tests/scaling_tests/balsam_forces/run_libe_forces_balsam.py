@@ -12,7 +12,7 @@ BALSAM_SITE = "jln_theta"
 THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]])
 
 # Use Globus to transfer output forces.stat files back
-TRANSFER_STATFILES = True
+TRANSFER_STATFILES = False
 GLOBUS_ENDPOINT = "jln_laptop"
 GLOBUS_DEST_DIR = (
     "/Users/jnavarro/Desktop/libensemble"
