@@ -131,7 +131,7 @@ This may take some additional browsing of the docs to complete.
 Write an alternative Calling Script similar to above, but with the following differences:
 
  1. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
- 2. Set the libEnsemble logger to print DEBUG messages.
+ 2. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
  3. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files aftser libEnsemble completes.
 
 .. container:: toggle
@@ -322,10 +322,52 @@ Note again that the ten cores were divided equally among two workers.
 That concludes this tutorial.
 Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
 
-Advanced Exercises
-^^^^^^^^^^^^^^^^^^
+Exercises
+^^^^^^^^^
 
-TODO
+These may require additional browsing of the documentation to complete.
+
+  1. Enable :ref:`worker directory settings<output_dirs>` so workers separate their output into separate directories by simulation.
+  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  3. Construct a ``while not task.finished:`` loop that periodically calls :meth:`task.poll()<executor.Task.poll>`,
+     reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
+     **or if** ``task.runtime`` exceeds sixty seconds. Otherwise, sleep for one second.
+
+.. container:: toggle
+
+   .. container:: header
+
+      **Click Here for Solution**
+
+   .. code-block:: python
+       :linenos:
+
+        #!/usr/bin/env python
+
+        ### The following line (answer to #1) goes inside the calling script ###
+
+        libE_specs['sim_dirs_make'] = True
+
+        ### The following lines (answers to #2-3) go inside the sim_f ##########
+
+        import time
+        ...
+        task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True,
+                            num_nodes=2, procs_per_node=8)
+
+        while not task.finished:
+          time.sleep(1)
+          task.poll()
+
+          with open(statfile, 'r') as f:
+            if "kill\n" in f.readlines():
+              task.kill()
+
+          if task.runtime > 60:
+            task.kill()
+
+        ...
+
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
