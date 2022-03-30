@@ -122,7 +122,7 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
     H, persis_info, flag = libE(
         sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
     )
-    
+
 Exercise
 ^^^^^^^^
 
@@ -132,7 +132,7 @@ Write an alternative Calling Script similar to above, but with the following dif
 
  1. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
  2. Set the libEnsemble logger to print DEBUG messages.
- 3. Save the History array and ``persis_info`` to files once libEnsemble completes.
+ 3. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files aftser libEnsemble completes.
 
 .. container:: toggle
 
@@ -214,22 +214,21 @@ for starters:
         # Block until the task finishes
         task.wait(timeout=60)
 
-Notably, we retrieve the generated number of particles and construct
-an argument string for our launched application. We've retrieved our
+We retrieve the generated number of particles from ``H`` and construct
+an argument string for our launched application. We retrieved our
 previously-instantiated Executor instance from the class definition,
 where it was automatically stored as an attribute.
 
-When an application instance is submitted by one of libEnsemble's executors,
+After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
 This object is roughly equivalent to a Python future, and can be polled, killed,
 and evaluated in a variety of helpful ways. For now, we're satisfied with waiting
-for the task to complete.
+for the task to complete via ``task.wait()``.
 
-Since ``task.wait()`` blocks until the task completes, we can assume that afterward, any
-results are now available to parse. Our application produces a ``forces[particles].stat``
-file during runtime that contains either energy computations for every time-step
-or a "kill" message if particles were lost. This last message indicates a failed
-simulation.
+We can assume that afterward, any results are now available to parse. Our application
+produces a ``forces[particles].stat`` file that contains either energy
+computations for every time-step or a "kill" message if particles were lost, which
+indicates a failed simulation.
 
 To complete our simulation function, parse the last energy value from the output file into
 a local output :ref:`History array<datastruct-history-array>`, and if successful,
