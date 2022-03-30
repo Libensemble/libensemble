@@ -29,7 +29,7 @@ class RemoteLibensembleApp(ApplicationDefinition):
 
     transfers = {
         "input_file": {
-            "required": True,
+            "required": False,
             "direction": "in",
             "local_path": ".",
             "description": "Transfer in of balsam_forces.yaml",

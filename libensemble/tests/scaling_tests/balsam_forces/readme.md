@@ -75,7 +75,7 @@ There are several scripts that each need to be adjusted. To explain each:
   About:
 
   This is a typical libEnsemble plus Executor calling script, but instead of
-  registering paths to apps as with the MPI Executor, this script loads the
+  registering paths to apps like with the MPI Executor, this script loads the
   ``RemoteForces`` app synced with the Balsam service in ``define_apps.py``
   and registers it with libEnsemble's Balsam Executor. If running this
   script on your personal machine, it also uses the Balsam Executor to check
@@ -83,7 +83,7 @@ There are several scripts that each need to be adjusted. To explain each:
 
   Configuring:
 
-  At a minimum (if not transferring statfiles), adjust the ``BALSAM_SITE`` field
+  At a minimum (if not performing transfers), adjust the ``BALSAM_SITE`` field
   to match your remote Balsam site, and fields in the in the
   ``batch = exctr.submit_allocation()`` block further down. For ``site_id``,
   retrieve the corresponding field with ``balsam site ls``. If this script is being
@@ -96,43 +96,57 @@ There are several scripts that each need to be adjusted. To explain each:
   About:
 
   This Python script is effectively a batch submission script. It uses the Balsam API
-  to check out resources at a Balsam site, and submits libEnsemble as
-  a Balsam Job onto those resources. Note that customizing the Globus transfer
-  of the ``balsam_forces.yaml`` file is necessary
+  to check out resources (a ``BatchJob``) at a Balsam site, and submits libEnsemble as
+  a Balsam Job onto those resources. If transferring statfiles back to your
+  personal machine, it also waits until they are all returned and cancels
+  the remote ``BatchJob``.
 
   Configuring:
 
+  Every field in UPPER_CASE can be adjusted. ``BALSAM_SITE``, ``PROJECT``,
+  and ``QUEUE`` among others will probably need adjusting. ``LIBE_NODES`` and ``LIBE_RANKS``
+  specify a subset of resources specifically for libEnsemble out of ``BATCH_NUM_NODES``.
+  If the ``forces.from_yaml()`` path in the calling script wasn't adjusted,
+  then ``TRANSFER_CONFIG_FILE`` can be enabled, with ``INPUT_FILE`` set to point
+  to the ``balsam_forces.yaml`` configuration file on your local machine.
 
-### Running libEnsemble
+### Running libEnsemble locally
 
-Then to run with local comms (multiprocessing) with one manager and `N` workers:
+First make sure that all Balsam apps are synced with the Balsam service:
+
+    python define_apps.py
+
+Then run libEnsemble with multiprocessing comms, with one manager and `N` workers:
 
     python run_libe_forces_balsam.py --comms local --nworkers N
 
-To run with MPI comms using one manager and `N-1` workers:
+Or, run with MPI comms using one manager and `N-1` workers:
 
     mpirun -np N python run_libe_forces.py
 
-**This run libEnsemble itself in-place, with only Forces submitted to a Balsam site.**
-
-To run both libEnsemble and the Forces app on a Balsam site, use:
-
-  python submit_libe_forces_balsam.py
-
-Application parameters can be adjusted in `balsam_forces.yaml`.
-
-Note that each function and path must be accessible and/or importable on the
-remote machine. Absolute paths are recommended.
-**This runs libEnsemble itself in-place, with only forces submitted to a Balsam site.**
+Many libEnsemble parameters can be adjusted in `balsam_forces.yaml`.
 
 To remove output before the next run, use:
 
     ./cleanup.sh
 
+**This runs libEnsemble itself in-place, with only Forces submitted to a Balsam site.**
+
+### (Optional) Running libEnsemble remotely
+
+The previous instructions for running libEnsemble are understandably insufficient
+if running with lots of workers or if the simulation/generation
+functions are computationally expensive.
+
+To run both libEnsemble and the Forces app on the compute nodes at Balsam site, use:
+
+    python define_apps.py
+    python submit_libe_forces_balsam.py
+
 ### (Optional) Configuring data-transfer via Balsam and Globus
 
-Although the raw results of forces runs are available in Balsam sites, remote or
-local, this is understandably insufficient for the simulation function's capability
+Although the raw results of forces runs are available in Balsam sites,
+this is understandably insufficient for the simulation function's capability
 to evaluate results and determine the final status of an app run if it's running
 on another machine.
 
@@ -154,42 +168,9 @@ to be transferred back to your local launch directory after every app run. The
 simulation function will wait for Balsam to transfer back a stat file, then determine
 the calc status based on the received output.
 
-*To transfer files to Theta*, you will need to login to Globus and activate
-the ``alcf#dtn_theta`` Managed Public Endpoint.
+*To transfer files to/from Theta*, you will need to login to Globus and activate
+Theta's Managed Public Endpoint:
 
-### (Optional) Running libEnsemble as a Balsam app on compute nodes
-
-The previous instructions for running libEnsemble are understandably insufficient
-if running with potentially hundreds of workers or if the simulation/generation
-functions are computationally expensive.
-
-The included ``submit_libe_forces_balsam.py`` script will submit libEnsemble itself
-as a Balsam Job, to be run by a Balsam site on the compute nodes. From there libEnsemble's
-simulation function will behave as before, submitting forces apps to Balsam for scheduling
-on the same allocation.
-
-Since Balsam's API can initiate allocations for a given Balsam site remotely,
-``submit_libe_forces_balsam.py`` behaves like a batch submission script except
-it can be run from *anywhere* and still initiate a session on Theta. This does mean
-that any input files still need to be transferred by Globus to be accessible by
-libEnsemble running on the compute nodes. Customize the ``input_file`` dictionary
-according to Balsam's Globus specifications to do this (see the previous section).
-
-The following parameters can be adjusted at the top of this script:
-
-    SIM_MAX = 16  # make sure matches in balsam_forces.yaml
-    BATCH_NUM_NODES = 5
-    BATCH_WALL_CLOCK_TIME = 60
-    PROJECT = "CSC250STMS07"
-    QUEUE = "debug-flat-quad"
-
-    # libE Job Parameters - Will use above resources
-    LIBE_NODES = 1
-    LIBE_RANKS = 5
-
-**Adjust each of the literal sites, directories, paths and other attributes**
-in each of the ``ApplicationDefinition`` instances. If transferring statfiles,
-this script can wait for a number of statfiles equal to ``sim_max`` to be returned,
-then cancel the remote BatchJob. For this script, set ``TRANSFER_STATFILES`` to ``True.``
-The calling script will also need to be updated to contain the correct Globus endpoint
-and destination directory for the transfers.
+- Login to Globus, click "Endpoints" on the left.
+- Search for ``alcf#dtn_theta``, click on the result.
+- On the right, click "Activate", then "Continue". Authenticate with ALCF.

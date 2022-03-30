@@ -19,21 +19,22 @@ BATCH_WALL_CLOCK_TIME = 60
 PROJECT = "CSC250STMS07"
 QUEUE = "debug-flat-quad"
 
-# libEnsemble Job Parameters - Will use above resources
+# libEnsemble Job Parameters - A subset of above resources dedicated to libEnsemble
 LIBE_NODES = 1
 LIBE_RANKS = 5
 
 # Parameter file for calling script. Must be transferred to Balsam site.
 #  globus_endpoint_key:/path/to/file
 #  globus_endpoint_key specified in BALSAM_SITE's settings.yml
-input_file = (
+TRANSFER_CONFIG_FILE = False
+INPUT_FILE = (
     "jln_laptop:/Users/jnavarro/Desktop/libensemble"
     + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/balsam_forces.yaml"
 )
 
 # Transfer forces.stat files back to the following local destination?
 # If True, this script cancels remote allocation once SIM_MAX statfiles transferred
-TRANSFER_STATFILES = True
+TRANSFER_STATFILES = False
 TRANSFER_DESTINATION = "./ensemble"
 SIM_MAX = 16  # must match balsam_forces.yaml
 
@@ -42,13 +43,18 @@ apps = ApplicationDefinition.load_by_site(BALSAM_SITE)
 RemoteLibensembleApp = apps["RemoteLibensembleApp"]
 RemoteLibensembleApp.resolve_site_id()
 
+if TRANSFER_CONFIG_FILE:
+    transfers = {"input_file": INPUT_FILE}
+else:
+    transfers = {}
+
 # Submit the libEnsemble app as a Job to the Balsam service.
 #  It will wait for a compatible, running BatchJob session (remote allocation)
 libe_job = RemoteLibensembleApp.submit(
     workdir="libe_workflow",
     num_nodes=LIBE_NODES,
     ranks_per_node=LIBE_RANKS,
-    transfers={"input_file": input_file},
+    transfers=transfers,
 )
 
 print("libEnsemble App retrieved and submitted as Job to Balsam service.")
