@@ -48,7 +48,7 @@ libE_specs['abort_on_exception'] = False
 libE_specs['save_H_and_persis_on_abort'] = False
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 10}
+exit_criteria = {'wallclock_max': 10}
 
 # Perform the run
 return_flag = 1

@@ -72,7 +72,7 @@ for prob_id in range(6):
     persis_info['gen_params'] = {}
 
     if prob_id <= 4:
-        exit_criteria = {'elapsed_wallclock_time': 600}
+        exit_criteria = {'wallclock_max': 600}
     else:
         exit_criteria = {'sim_max': 100}
 

@@ -131,13 +131,13 @@ def filter_nans(array):
 
 
 _WALLCLOCK_MSG_ALL_RETURNED = """
-Termination due to elapsed_wallclock_time has occurred.
+Termination due to wallclock_max has occurred.
 All completed work has been returned.
 Posting kill messages for all workers.
 """
 
 _WALLCLOCK_MSG_ACTIVE = """
-Termination due to elapsed_wallclock_time has occurred.
+Termination due to wallclock_max has occurred.
 Some issued work has not been returned.
 Posting kill messages for all workers.
 """
@@ -174,7 +174,7 @@ class Manager:
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
-            [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+            [(2, 'wallclock_max', self.term_test_wallclock),
              (1, 'sim_max', self.term_test_sim_max),
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]

@@ -85,7 +85,7 @@ user_specs_arr.append(
     }
 )
 exit_criteria_arr = []
-exit_criteria_arr.append({'elapsed_wallclock_time': 3})
+exit_criteria_arr.append({'wallclock_max': 3})
 exit_criteria_arr.append({'gen_max': 100})
 
 # Test over all possible parameter combinations.

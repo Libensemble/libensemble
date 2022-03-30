@@ -83,7 +83,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 # Tell libEnsemble when to stop (stop_val key must be in H)
 exit_criteria = {
     'sim_max': 1000,
-    'elapsed_wallclock_time': 100,
+    'wallclock_max': 100,
     'stop_val': ('f', 3000),
 }
 # end_exit_criteria_rst_tag

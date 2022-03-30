@@ -66,8 +66,8 @@ gen_specs = {
 
 alloc_specs = {'alloc_f': alloc_f}
 
-# Setting a very high sim_max value and a short elapsed_wallclock_time so timeout will occur
-exit_criteria = {'sim_max': 50000, 'elapsed_wallclock_time': 5}
+# Setting a very high sim_max value and a short wallclock_max so timeout will occur
+exit_criteria = {'sim_max': 50000, 'wallclock_max': 5}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
