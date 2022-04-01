@@ -140,7 +140,15 @@ jobs:
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
           run: |
-            pip install scikit-build packaging Tasmanian --user
+            pip install scikit-build packaging
+            wget  https://github.com/ORNL/TASMANIAN/archive/refs/tags/v7.7.tar.gz
+            tar xf TASMANIAN-7.7.tar.gz; cd TASMANIAN-7.7
+            sed -i 's/    cmake_args=cmake_args/    cmake_args=cmake_args,\n    packages=[]/' ./InterfacePython/PipInstaller/setup.py
+            cp ./InterfacePython/PipInstaller/setup.py .
+            cp ./InterfacePython/PipInstaller/MANIFEST.in .
+            cp ./InterfacePython/PipInstaller/pyproject.toml .
+            python setup.py sdist
+            pip install dist/Tasmanian-7.7rc1.tar.gz --user
 
         - name: Install and configure Balsam 0.5.0
           if: matrix.do-balsam == true
