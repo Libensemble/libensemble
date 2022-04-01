@@ -142,8 +142,7 @@ jobs:
           run: |
             pip install scikit-build packaging
             wget  https://github.com/ORNL/TASMANIAN/archive/refs/tags/v7.7.tar.gz
-            tar xf v7.7.tar.gz
-            ls
+            tar xf v7.7.tar.gz; cd TASMANIAN-7.7
             sed -i 's/    cmake_args=cmake_args/    cmake_args=cmake_args,\n    packages=[]/' ./InterfacePython/PipInstaller/setup.py
             cp ./InterfacePython/PipInstaller/setup.py .
             cp ./InterfacePython/PipInstaller/MANIFEST.in .
