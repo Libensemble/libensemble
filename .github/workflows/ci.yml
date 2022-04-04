@@ -115,8 +115,6 @@ jobs:
             python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
-            conda install psutil
-            conda install pyyaml=5.4.1
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
@@ -137,6 +135,8 @@ jobs:
         - name: Install other testing dependencies
           run: |
             pip install -r install/testing_requirements.txt
+            pip install psutil
+            pip install pyyaml
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
