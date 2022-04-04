@@ -601,6 +601,36 @@ def test_map_workerid_to_index():
     assert index == 1, "index incorrect. Received: " + str(index)
 
 
+def test_get_group_list():
+    # 8 resource sets on different nodes --------------------------------------
+    split_list = [['knl-0020'], ['knl-0021'], ['knl-0022'], ['knl-0036'],
+                  ['knl-0137'], ['knl-0138'], ['knl-0139'], ['knl-1234']]
+    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    assert group_list == [1, 2, 3, 4, 5, 6, 7, 8]
+    assert slot_list == [0, 0, 0, 0, 0, 0, 0, 0]
+
+    # 4 resource sets with 2 nodes each ---------------------------------------
+    split_list = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'],
+                  ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234']]
+    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    assert group_list == [1, 2, 3, 4]
+    assert slot_list == [0, 0, 0, 0]
+
+    # 8 resource sets - 2 per node --------------------------------------------
+    split_list = [['knl-0020'], ['knl-0020'], ['knl-0022'], ['knl-0022'],
+                  ['knl-0137'], ['knl-0137'], ['knl-0139'], ['knl-0139']]
+    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    assert group_list == [1, 1, 2, 2, 3, 3, 4, 4]
+    assert slot_list == [0, 1, 0, 1, 0, 1, 0, 1]
+
+    # 8 resource sets - uneven ------------------------------------------------
+    split_list = [['knl-0020'], ['knl-0020'], ['knl-0020'], ['knl-0020'],
+                  ['knl-0137'], ['knl-0137'], ['knl-0137'], ['knl-0139']]
+    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    assert group_list == [1, 1, 1, 1, 2, 2, 2, 3]
+    assert slot_list == [0, 1, 2, 3, 0, 1, 2, 0]
+
+
 def _check_mfile(machinefile, exp_list):
     with open('machinefile', 'r') as f:
         i = 0
@@ -660,6 +690,7 @@ if __name__ == "__main__":
     test_get_local_nodelist_distrib_mode_uneven_split()
 
     test_map_workerid_to_index()
+    test_get_group_list()
     test_machinefile_from_resources()
 
     teardown_standalone_run()

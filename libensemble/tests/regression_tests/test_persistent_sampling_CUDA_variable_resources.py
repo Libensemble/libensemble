@@ -61,7 +61,11 @@ gen_specs = {
 
 alloc_specs = {
     'alloc_f': alloc_f,
-    'user': {'give_all_with_same_priority': False},
+    'user': {
+        'give_all_with_same_priority': False,
+        'async_return': True,
+        'scheduler_opts': {'match_slots': True},
+    },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
