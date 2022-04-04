@@ -115,7 +115,8 @@ jobs:
             python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
-            conda install libblas libopenblas psutil pyyaml
+            conda install psutil
+            conda install pyyaml
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
