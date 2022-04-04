@@ -9,7 +9,7 @@ libE_fields = [('sim_id', int),               # Unique id of a generated entry i
                ('gen_end_time', float),       # Time gen_worker requested this entry
                ('sim_worker', int),           # Worker that did (or is doing) the sim eval for this entry
                ('sim_started', bool),         # True if entry was given to sim_worker for sim eval
-               ('sim_start_time', float),     # Time entry was given to sim_worker for a sim eval
+               ('sim_started_time', float),     # Time entry was given to sim_worker for a sim eval
                ('sim_ended', bool),           # True if entry's sim eval completed
                ('sim_end_time', float),       # Time entry's sim eval completed
                ('gen_informed', bool),        # True if gen_worker was informed about the sim eval of this entry
@@ -25,7 +25,7 @@ protected_libE_fields = ['gen_worker',
                          'gen_end_time',
                          'sim_worker',
                          'sim_started',
-                         'sim_start_time',
+                         'sim_started_time',
                          'sim_ended',
                          'sim_end_time',
                          'gen_informed',

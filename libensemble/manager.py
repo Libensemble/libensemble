@@ -468,7 +468,7 @@ class Manager:
     def _kill_cancelled_sims(self):
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
-            kill_sim = self.hist.H['sim_start'] & self.hist.H['cancel_requested'] \
+            kill_sim = self.hist.H['sim_started'] & self.hist.H['cancel_requested'] \
                 & ~self.hist.H['sim_end'] & ~self.hist.H['kill_sent']
 
             # Note that a return is still expected when running sims are killed
@@ -528,7 +528,7 @@ class Manager:
 
     def _sim_max_given(self):
         if 'sim_max' in self.exit_criteria:
-            return self.hist.sim_start_count >= self.exit_criteria['sim_max'] + self.hist.sim_start_offset
+            return self.hist.sim_started_count >= self.exit_criteria['sim_max'] + self.hist.sim_started_offset
         else:
             return False
 
@@ -539,7 +539,7 @@ class Manager:
                 'exit_criteria': self.exit_criteria,
                 'elapsed_time': self.elapsed(),
                 'manager_kill_canceled_sims': self.kill_canceled_sims,
-                'sim_start_count': self.hist.sim_start_count,
+                'sim_started_count': self.hist.sim_started_count,
                 'sim_end_count': self.hist.sim_end_count,
                 'gen_informed_count': self.hist.gen_informed_count,
                 'sim_max_given': self._sim_max_given(),

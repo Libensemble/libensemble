@@ -28,13 +28,13 @@ class History:
     :ivar int index:
         Index where libEnsemble should start filling in H
 
-    :ivar int sim_start_count:
+    :ivar int sim_started_count:
         Number of points given to sim functions (according to H)
 
     :ivar int sim_end_count:
         Number of points evaluated  (according to H)
 
-    Note that index, sim_start_count and sim_end_count reflect the total number of points
+    Note that index, sim_started_count and sim_end_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -63,20 +63,20 @@ class History:
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
-            if 'sim_start' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_start' and 'sim_end'")
-                H['sim_start'][:len(H0)] = 1
+            if 'sim_started' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_end'")
+                H['sim_started'][:len(H0)] = 1
                 H['sim_end'][:len(H0)] = 1
             elif 'sim_end' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_end' if 'sim_start'")
-                H['sim_end'][:len(H0)] = H0['sim_start']
+                logger.manager_warning("Marking entries in H0 as having been 'sim_end' if 'sim_started'")
+                H['sim_end'][:len(H0)] = H0['sim_started']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
-        H['sim_start_time'][-L:] = np.inf
+        H['sim_started_time'][-L:] = np.inf
         H['gen_informed_time'][-L:] = np.inf
 
         self.H = H
@@ -84,12 +84,12 @@ class History:
         self.index = len(H0)
         self.grow_count = 0
 
-        self.sim_start_count = np.sum(H['sim_start'])
+        self.sim_started_count = np.sum(H['sim_started'])
         self.sim_end_count = np.sum(H['sim_end'])
         self.gen_informed_count = np.sum(H['gen_informed'])
         self.given_back_warned = False
 
-        self.sim_start_offset = self.sim_start_count
+        self.sim_started_offset = self.sim_started_count
         self.sim_end_offset = self.sim_end_count
         self.gen_informed_offset = self.gen_informed_count
 
@@ -137,11 +137,11 @@ class History:
         q_inds = np.atleast_1d(q_inds)
         t = time.time()
 
-        self.H['sim_start'][q_inds] = True
-        self.H['sim_start_time'][q_inds] = t
+        self.H['sim_started'][q_inds] = True
+        self.H['sim_started_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        self.sim_start_count += len(q_inds)
+        self.sim_started_count += len(q_inds)
 
     def update_history_to_gen(self, q_inds):
         """Updates the history (in place) when points are given back to the gen"""
@@ -230,7 +230,7 @@ class History:
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
-        H_1['sim_start_time'] = np.inf
+        H_1['sim_started_time'] = np.inf
         H_1['gen_informed_time'] = np.inf
         self.H = np.append(self.H, H_1)
 

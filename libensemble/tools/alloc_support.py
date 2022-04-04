@@ -248,7 +248,7 @@ class AllocSupport:
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested']
-        return np.all(H['sim_start'][pfilter & ~excluded_points])
+        return np.all(H['sim_started'][pfilter & ~excluded_points])
 
     def all_sim_end(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have had their sim_end
@@ -260,7 +260,7 @@ class AllocSupport:
         :returns: True if all expected points have had their sim_end
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['sim_start']
+        excluded_points = H['cancel_requested'] & ~H['sim_started']
         return np.all(H['sim_end'][pfilter & ~excluded_points])
 
     def all_gen_informed(self, H, pt_filter=None, low_bound=None):
@@ -273,7 +273,7 @@ class AllocSupport:
         :returns: True if gen have been informed of all expected points
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['sim_start']
+        excluded_points = H['cancel_requested'] & ~H['sim_started']
         return np.all(H['gen_informed'][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):

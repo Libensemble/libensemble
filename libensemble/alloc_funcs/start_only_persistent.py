@@ -81,7 +81,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
                 returned_but_not_given[point_ids] = False
 
     # Now the give_sim_work_first part
-    points_to_evaluate = ~H['sim_start'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
     for wid in avail_workers:
 
@@ -192,7 +192,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 returned_but_not_given[point_ids] = False
 
     # Now the give_sim_work_first part
-    points_to_evaluate = ~H['sim_start'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     avail_workers = list(
         set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
         | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False)))
