@@ -23,8 +23,8 @@ H = np.array([(False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49, 0.88
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-2.11, -1.63], 0., 2, False, False, [0., 0.], np.inf),
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-1.88, -0.61], 0., 3, False, False, [0., 0.], np.inf),
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.61, 0.15], 0., 4, False, False, [0., 0.], np.inf)],
-             dtype=[('sim_started', '?'), ('gen_informed', '?'), ('gen_worker', '<i8'), ('sim_end_time', '<f8'),
-                    ('priority', '<f8'), ('kill_sent', '?'), ('gen_end_time', '<f8'), ('sim_worker', '<i8'), ('resource_sets', '<i8'), ('sim_end', '?'),
+             dtype=[('sim_started', '?'), ('gen_informed', '?'), ('gen_worker', '<i8'), ('sim_ended_time', '<f8'),
+                    ('priority', '<f8'), ('kill_sent', '?'), ('gen_end_time', '<f8'), ('sim_worker', '<i8'), ('resource_sets', '<i8'), ('sim_ended', '?'),
                     ('x', '<f8', (2,)), ('f', '<f8'), ('sim_id', '<i8'), ('cancel_requested', '?'), ('allocated', '?'),
                     ('x_on_cube', '<f8', (2,)), ('sim_started_time', '<f8')])
 
@@ -275,58 +275,58 @@ def test_als_all_sim_started():
         "all_sim_started(H_some_gvn) should\'ve returned True with cancelled and adjusted lower bound."
 
 
-def test_als_all_sim_end():
+def test_als_all_sim_ended():
     H_some_rtn = H.copy()
-    H_some_rtn['sim_end'] = np.array([True, False, False, True, True])
+    H_some_rtn['sim_ended'] = np.array([True, False, False, True, True])
     als = AllocSupport(W, True)
 
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
 
-    assert not als.all_sim_end(H_some_rtn), \
-        "all_sim_end() should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_ended(H_some_rtn), \
+        "all_sim_ended() should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_end(H_some_rtn, low_bound=3), \
-        "all_sim_end() should\'ve returned True with adjusted lower bound."
+    assert als.all_sim_ended(H_some_rtn, low_bound=3), \
+        "all_sim_ended() should\'ve returned True with adjusted lower bound."
 
-    assert not als.all_sim_end(H_some_rtn, pt_filter=myfilter1), \
-        "all_sim_end() should\'ve returned False based on boolean filter."
+    assert not als.all_sim_ended(H_some_rtn, pt_filter=myfilter1), \
+        "all_sim_ended() should\'ve returned False based on boolean filter."
 
-    assert als.all_sim_end(H_some_rtn, pt_filter=myfilter1, low_bound=3), \
-        "all_sim_end() should\'ve returned True with boolean filter and adjusted lower bound."
+    assert als.all_sim_ended(H_some_rtn, pt_filter=myfilter1, low_bound=3), \
+        "all_sim_ended() should\'ve returned True with boolean filter and adjusted lower bound."
 
-    assert als.all_sim_end(H_some_rtn, pt_filter=myfilter2), \
-        "all_sim_end() should\'ve returned True based on boolean filter."
+    assert als.all_sim_ended(H_some_rtn, pt_filter=myfilter2), \
+        "all_sim_ended() should\'ve returned True based on boolean filter."
 
     # Now cancel a point
     H_some_rtn['cancel_requested'] = np.array([False, True, False, False, False])
 
-    assert not als.all_sim_end(H_some_rtn), \
-        "all_sim_end() should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_ended(H_some_rtn), \
+        "all_sim_ended() should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_end(H_some_rtn, pt_filter=myfilter1), \
-        "all_sim_end() should\'ve returned True based on boolean filter and cancelled."
+    assert als.all_sim_ended(H_some_rtn, pt_filter=myfilter1), \
+        "all_sim_ended() should\'ve returned True based on boolean filter and cancelled."
 
     # Now cancel more points
     H_some_rtn['cancel_requested'] = np.array([False, True, True, False, False])
 
-    assert als.all_sim_end(H_some_rtn), \
-        "all_sim_end() should\'ve returned True as cancelled point ignored."
+    assert als.all_sim_ended(H_some_rtn), \
+        "all_sim_ended() should\'ve returned True as cancelled point ignored."
 
     # Now cancel a different point
     H_some_rtn['cancel_requested'] = np.array([False, False, True, False, False])
 
-    assert not als.all_sim_end(H_some_rtn), \
-        "all_sim_end() should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_ended(H_some_rtn), \
+        "all_sim_ended() should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_end(H_some_rtn, low_bound=2), \
-        "all_sim_end() should\'ve returned True with cancelled and adjusted lower bound."
+    assert als.all_sim_ended(H_some_rtn, low_bound=2), \
+        "all_sim_ended() should\'ve returned True with cancelled and adjusted lower bound."
 
     # But if the cancelled point is already given, we still expect it back.
     H_some_rtn['sim_started'] = np.array([False, False, True, False, False])
 
-    assert not als.all_sim_end(H_some_rtn, low_bound=2), \
-        "all_sim_end() should\'ve returned False with given cancelled and adjusted lower bound."
+    assert not als.all_sim_ended(H_some_rtn, low_bound=2), \
+        "all_sim_ended() should\'ve returned False with given cancelled and adjusted lower bound."
 
 
 def test_als_all_gen_informed():
@@ -413,6 +413,6 @@ if __name__ == "__main__":
     test_als_sim_work()
     test_als_gen_work()
     test_als_all_sim_started()
-    test_als_all_sim_end()
+    test_als_all_sim_ended()
     test_als_all_gen_informed()
     test_als_points_by_priority()

@@ -105,7 +105,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             [l_H_id, r_H_id] = persis_info[wid].get('curr_H_ids')
             num_sims_req = r_H_id - l_H_id
 
-            num_fin_sims = np.sum(H['sim_end'][l_H_id:r_H_id])
+            num_fin_sims = np.sum(H['sim_ended'][l_H_id:r_H_id])
 
             completed_all_sims_for_gen_i = num_fin_sims == num_sims_req
 

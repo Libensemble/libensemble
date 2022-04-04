@@ -243,7 +243,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
         # Find next point in any uncompleted run using persis_info['run_order']
         for run in active_runs:
-            if not np.all(H['sim_end'][persis_info['run_order'][run]]):
+            if not np.all(H['sim_ended'][persis_info['run_order'][run]]):
                 continue  # Can't advance a run if all points aren't returned.
 
             x_opt, exit_code, persis_info, sorted_run_inds, x_new = advance_local_run(H, gen_specs['user'], c_flag, run, persis_info)
@@ -399,9 +399,9 @@ def update_history_dist(H, n, gen_specs, c_flag):
             H['f'][inds] = np.inf
             H['f'][np.where(inds)[0][0]] = gen_specs['user']['combine_component_func'](H['f_i'][inds])
 
-        p = np.logical_and.reduce((H['sim_end'], H['obj_component'] == 0, ~np.isnan(H['f'])))
+        p = np.logical_and.reduce((H['sim_ended'], H['obj_component'] == 0, ~np.isnan(H['f'])))
     else:
-        p = np.logical_and.reduce((H['sim_end'], ~np.isnan(H['f'])))
+        p = np.logical_and.reduce((H['sim_ended'], ~np.isnan(H['f'])))
 
     for new_ind in new_inds:
         # Loop over new returned points and update their distances
@@ -783,7 +783,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
-            H['sim_end'] == 1,  # have a returned function value
+            H['sim_ended'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
             r_k,  # no better sample point within r_k (L2)
             ~H['started_run'],  # have not started a run (L3)
@@ -795,7 +795,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
         ))
     else:
         test_2_through_5 = np.logical_and.reduce((
-            H['sim_end'] == 1,  # have a returned function value
+            H['sim_ended'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
             r_k,  # no better sample point within r_k (L2)
             ~H['started_run'],  # have not started a run (L3)
@@ -915,12 +915,12 @@ def initialize_APOSMM(H, gen_specs):
 
     if c_flag:
         # Get the pt_id for non-nan, returned points
-        pt_ids = H['pt_id'][np.logical_and(H['sim_end'], ~np.isnan(H['f_i']))]
+        pt_ids = H['pt_id'][np.logical_and(H['sim_ended'], ~np.isnan(H['f_i']))]
         _, counts = np.unique(pt_ids, return_counts=True)
         n_s = np.sum(counts == user_specs['components'])
     else:
         # Number of returned sampled points (excluding nans)
-        n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']), ~H['local_pt'], H['sim_end'])))
+        n_s = np.sum(np.logical_and.reduce((~np.isnan(H['f']), ~H['local_pt'], H['sim_ended'])))
 
     # Rather than build up a large output, we will just make changes in the
     # given H, and then send back the rows corresponding to updated H entries.

@@ -28,7 +28,7 @@ def test_term_test_2():
     #
     # Terminate because we've found a good 'g' value
     hist.H['g'][0] = -1
-    hist.H['sim_end'][0] = True
+    hist.H['sim_ended'][0] = True
     hist.index = 1
     hist.sim_started_count = 1
     assert mgr.term_test()

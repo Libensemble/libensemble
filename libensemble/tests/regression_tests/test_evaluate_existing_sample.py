@@ -52,6 +52,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=all
 if is_manager:
     assert len(H) == len(H0)
     assert np.array_equal(H0['x'], H['x'])
-    assert np.all(H['sim_end'])
+    assert np.all(H['sim_ended'])
     print("\nlibEnsemble correctly didn't add anything to initial sample")
     save_libE_output(H, persis_info, __file__, nworkers)

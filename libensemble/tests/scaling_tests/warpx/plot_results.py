@@ -34,7 +34,7 @@ if generator_type == 'aposmm':
     nbatches = len(pickle_data[1]['run_order'])
 
 # Remove un-returned (i.e., not submitted) simulations
-results = results[results['sim_end'] == 1]
+results = results[results['sim_ended'] == 1]
 
 # Re-organize results into a dictionary. Each key is a field in libE_output,
 # each value is an array with the value of this field for all WarpX simulations

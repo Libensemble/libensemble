@@ -31,10 +31,10 @@ class History:
     :ivar int sim_started_count:
         Number of points given to sim functions (according to H)
 
-    :ivar int sim_end_count:
+    :ivar int sim_ended_count:
         Number of points evaluated  (according to H)
 
-    Note that index, sim_started_count and sim_end_count reflect the total number of points
+    Note that index, sim_started_count and sim_ended_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -64,12 +64,12 @@ class History:
                 #     H[field][ind] = val
 
             if 'sim_started' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_end'")
+                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
                 H['sim_started'][:len(H0)] = 1
-                H['sim_end'][:len(H0)] = 1
-            elif 'sim_end' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'sim_end' if 'sim_started'")
-                H['sim_end'][:len(H0)] = H0['sim_started']
+                H['sim_ended'][:len(H0)] = 1
+            elif 'sim_ended' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_ended' if 'sim_started'")
+                H['sim_ended'][:len(H0)] = H0['sim_started']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
@@ -85,12 +85,12 @@ class History:
         self.grow_count = 0
 
         self.sim_started_count = np.sum(H['sim_started'])
-        self.sim_end_count = np.sum(H['sim_end'])
+        self.sim_ended_count = np.sum(H['sim_ended'])
         self.gen_informed_count = np.sum(H['gen_informed'])
         self.given_back_warned = False
 
         self.sim_started_offset = self.sim_started_count
-        self.sim_end_offset = self.sim_end_count
+        self.sim_ended_offset = self.sim_ended_count
         self.gen_informed_offset = self.gen_informed_count
 
     def update_history_f(self, D, safe_mode):
@@ -118,9 +118,9 @@ class History:
                     else:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
-            self.H['sim_end'][ind] = True
-            self.H['sim_end_time'][ind] = time.time()
-            self.sim_end_count += 1
+            self.H['sim_ended'][ind] = True
+            self.H['sim_ended_time'][ind] = time.time()
+            self.sim_ended_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
@@ -149,16 +149,16 @@ class History:
         t = time.time()
 
         if q_inds.size > 0:
-            if np.all(self.H['sim_end'][q_inds]):
+            if np.all(self.H['sim_ended'][q_inds]):
                 self.H['gen_informed'][q_inds] = True
 
-            elif np.any(self.H['sim_end'][q_inds]):  # sporadic returned points need updating
-                for ind in q_inds[self.H['sim_end'][q_inds]]:
+            elif np.any(self.H['sim_ended'][q_inds]):  # sporadic returned points need updating
+                for ind in q_inds[self.H['sim_ended'][q_inds]]:
                     self.H['gen_informed'][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_end'.")
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'.")
                 self.given_back_warned = True
 
             self.H['gen_informed_time'][q_inds] = t

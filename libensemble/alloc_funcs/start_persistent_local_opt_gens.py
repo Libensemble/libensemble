@@ -50,7 +50,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # returned, give them back to i. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         gen_inds = (H['gen_worker'] == wid)
-        if support.all_sim_end(H, gen_inds):
+        if support.all_sim_ended(H, gen_inds):
             last_time_pos = np.argmax(H['sim_started_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             Work[wid] = support.gen_work(wid, gen_specs['persis_in'], last_ind, persis_info[wid], persistent=True)
@@ -58,7 +58,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     for wid in support.avail_worker_ids(persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
-        if np.any(np.logical_and(~H['local_pt'], H['sim_end'], ~H['cancel_requested'])):
+        if np.any(np.logical_and(~H['local_pt'], H['sim_ended'], ~H['cancel_requested'])):
             n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
             update_history_dist(H, n, gen_specs['user'], c_flag=False)
             starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)

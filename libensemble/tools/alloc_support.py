@@ -250,7 +250,7 @@ class AllocSupport:
         excluded_points = H['cancel_requested']
         return np.all(H['sim_started'][pfilter & ~excluded_points])
 
-    def all_sim_end(self, H, pt_filter=None, low_bound=None):
+    def all_sim_ended(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have had their sim_end
 
         Excludes cancelled points that were not already sim_started.
@@ -261,7 +261,7 @@ class AllocSupport:
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested'] & ~H['sim_started']
-        return np.all(H['sim_end'][pfilter & ~excluded_points])
+        return np.all(H['sim_ended'][pfilter & ~excluded_points])
 
     def all_gen_informed(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if gen has been informed of all expected points

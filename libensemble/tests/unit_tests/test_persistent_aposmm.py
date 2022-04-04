@@ -15,8 +15,8 @@ def test_persis_aposmm_localopt_test():
 
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
-    H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('sim_end', bool)])
-    H['sim_end'] = True
+    H = np.zeros(4, dtype=[('f', float), ('sim_id', bool), ('dist_to_unit_bounds', float), ('sim_ended', bool)])
+    H['sim_ended'] = True
     H['sim_id'] = range(len(H))
     gen_specs_0['user']['localopt_method'] = 'BADNAME'
     gen_specs_0['user']['ub'] = np.ones(2)
@@ -41,7 +41,7 @@ def test_update_history_optimal():
 
     H = hist.H
 
-    H['sim_end'] = True
+    H['sim_ended'] = True
     H['sim_id'] = range(len(H))
     H['f'][0] = -1e-8
     H['x_on_cube'][-1] = 1e-10
@@ -74,7 +74,7 @@ def test_standalone_persistent_aposmm():
     gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
                ('local_min', bool), ('local_pt', bool)]
 
-    gen_specs = {'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'sim_end', 'x_on_cube', 'local_min'],
+    gen_specs = {'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'sim_ended', 'x_on_cube', 'local_min'],
                  'out': gen_out,
                  'user': {'initial_sample_size': 100,
                           # 'localopt_method': 'LD_MMA', # Needs gradients
@@ -95,7 +95,7 @@ def test_standalone_persistent_aposmm():
     H = []
     H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
-    assert np.sum(H['sim_end']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
+    assert np.sum(H['sim_ended']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
     assert persis_info.get('run_order'), "Standalone persistent_aposmm didn't do any localopt runs"
 
     tol = 1e-3
@@ -120,7 +120,7 @@ def test_standalone_persistent_aposmm():
     H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
-    assert np.sum(H['sim_end']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
+    assert np.sum(H['sim_ended']) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
     assert persis_info.get('run_order'), "Standalone persistent_aposmm didn't do any localopt runs"
 
 

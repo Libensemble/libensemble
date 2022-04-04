@@ -204,7 +204,7 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.sim_end_count >= sim_max + self.hist.sim_end_offset
+        return self.hist.sim_ended_count >= sim_max + self.hist.sim_ended_offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
@@ -214,7 +214,7 @@ class Manager:
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
-        return np.any(filter_nans(H[key][H['sim_end']]) <= val)
+        return np.any(filter_nans(H[key][H['sim_ended']]) <= val)
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -247,7 +247,7 @@ class Manager:
     def _save_every_k_sims(self):
         """Saves history every kth sim step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.sim_end_count,
+                           self.hist.sim_ended_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -469,7 +469,7 @@ class Manager:
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
             kill_sim = self.hist.H['sim_started'] & self.hist.H['cancel_requested'] \
-                & ~self.hist.H['sim_end'] & ~self.hist.H['kill_sent']
+                & ~self.hist.H['sim_ended'] & ~self.hist.H['kill_sent']
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
@@ -496,7 +496,7 @@ class Manager:
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 if 'final_fields' in self.libE_specs:
-                    rows_to_send = self.hist.trim_H()['sim_end']
+                    rows_to_send = self.hist.trim_H()['sim_ended']
                     fields_to_send = self.libE_specs['final_fields']
                     H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
                     self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
@@ -540,7 +540,7 @@ class Manager:
                 'elapsed_time': self.elapsed(),
                 'manager_kill_canceled_sims': self.kill_canceled_sims,
                 'sim_started_count': self.hist.sim_started_count,
-                'sim_end_count': self.hist.sim_end_count,
+                'sim_ended_count': self.hist.sim_ended_count,
                 'gen_informed_count': self.hist.gen_informed_count,
                 'sim_max_given': self._sim_max_given(),
                 'use_resource_sets': 'num_resource_sets' in self.libE_specs}

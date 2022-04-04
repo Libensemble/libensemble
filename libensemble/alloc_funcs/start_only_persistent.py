@@ -63,7 +63,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     Work = {}
 
     # Asynchronous return to generator
-    async_return = user.get('async_return', False) and sum(H['sim_end']) >= init_sample_size
+    async_return = user.get('async_return', False) and sum(H['sim_ended']) >= init_sample_size
 
     if gen_count < persis_info.get('num_gens_started', 0):
         # When a persistent worker is done, trigger a shutdown (returning exit condition of 1)
@@ -72,9 +72,9 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     # Give evaluated results back to a running persistent gen
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
         gen_inds = (H['gen_worker'] == wid)
-        returned_but_not_given = np.logical_and.reduce((H['sim_end'], ~H['gen_informed'], gen_inds))
+        returned_but_not_given = np.logical_and.reduce((H['sim_ended'], ~H['gen_informed'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_sim_end(H, gen_inds):
+            if async_return or support.all_sim_ended(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
                                              persistent=True, active_recv=active_recv_gen)
@@ -174,7 +174,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     Work = {}
 
     # Asynchronous return to generator
-    async_return = user.get('async_return', False) and sum(H['sim_end']) >= init_sample_size
+    async_return = user.get('async_return', False) and sum(H['sim_ended']) >= init_sample_size
 
     if gen_count < persis_info.get('num_gens_started', 0):
         # When a persistent gen worker is done, trigger a shutdown (returning exit condition of 1)
@@ -183,9 +183,9 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     # Give evaluated results back to a running persistent gen
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
         gen_inds = (H['gen_worker'] == wid)
-        returned_but_not_given = np.logical_and.reduce((H['sim_end'], ~H['gen_informed'], gen_inds))
+        returned_but_not_given = np.logical_and.reduce((H['sim_ended'], ~H['gen_informed'], gen_inds))
         if np.any(returned_but_not_given):
-            if async_return or support.all_sim_end(H, gen_inds):
+            if async_return or support.all_sim_ended(H, gen_inds):
                 point_ids = np.where(returned_but_not_given)[0]
                 Work[wid] = support.gen_work(wid, gen_specs['persis_in'], point_ids, persis_info.get(wid),
                                              persistent=True, active_recv=active_recv_gen)

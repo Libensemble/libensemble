@@ -42,7 +42,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
         inds_to_send = np.array([], dtype=int)
         for x_ind in range(gen_specs['user']['n']):
             for f_ind in range(gen_specs['user']['p']):
-                inds = np.logical_and.reduce((H_tmp['x_ind'] == x_ind, H_tmp['f_ind'] == f_ind, H_tmp['sim_end']))
+                inds = np.logical_and.reduce((H_tmp['x_ind'] == x_ind, H_tmp['f_ind'] == f_ind, H_tmp['sim_ended']))
                 if sum(inds) == gen_specs['user']['nf']:
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 

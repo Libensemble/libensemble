@@ -44,7 +44,7 @@ gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int), ('
 UB = 2*np.ones(n)
 LB = (-2-np.pi/10)*np.ones(n)
 gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f_i', 'sim_end'],
+             'in': [o[0] for o in gen_out] + ['f_i', 'sim_ended'],
              'out': gen_out,
              'user': {'initial_sample_size': 5,
                       'lb': LB,

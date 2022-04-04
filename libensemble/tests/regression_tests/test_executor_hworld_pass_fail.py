@@ -81,7 +81,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# num sim_end_count conditions in executor_hworld
+# num sim_ended_count conditions in executor_hworld
 exit_criteria = {'sim_max': nworkers * 5}
 
 # Perform the run

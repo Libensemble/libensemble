@@ -33,7 +33,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     if 'cancel_sims_time' in user:
         # Cancel simulations that are taking too long
-        rows = np.where(np.logical_and.reduce((H['sim_started'], ~H['sim_end'], ~H['cancel_requested'])))[0]
+        rows = np.where(np.logical_and.reduce((H['sim_started'], ~H['sim_ended'], ~H['cancel_requested'])))[0]
         inds = time.time() - H['sim_started_time'][rows] > user['cancel_sims_time']
         to_request_cancel = rows[inds]
         for row in to_request_cancel:
@@ -69,7 +69,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_sim_end(H):
+            if user.get('batch_mode') and not support.all_sim_ended(H):
                 break
 
             # Give gen work

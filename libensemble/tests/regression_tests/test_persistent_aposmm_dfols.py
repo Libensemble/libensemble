@@ -94,7 +94,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 if is_manager:
     assert persis_info[1].get('run_order'), "Run_order should have been given back"
     assert flag == 0
-    assert np.min(H['f'][H['sim_end']]) <= 3000, "Didn't find a value below 3000"
+    assert np.min(H['f'][H['sim_ended']]) <= 3000, "Didn't find a value below 3000"
 
     save_libE_output(H, persis_info, __file__, nworkers)
 

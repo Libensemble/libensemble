@@ -140,11 +140,11 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             format(set(fields).difference(set(Dummy_H.dtype.names)))
 
         # Prior history cannot contain unreturned points
-        # assert 'sim_end' not in fields or np.all(H0['sim_end']), \
+        # assert 'sim_ended' not in fields or np.all(H0['sim_ended']), \
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points (or returned but not given).
-        assert('sim_end' not in fields or np.all(H0['sim_started'] == H0['sim_end'])), \
+        assert('sim_ended' not in fields or np.all(H0['sim_started'] == H0['sim_ended'])), \
             'H0 contains unreturned or invalid points'
 
         # # Fail if points in prior history don't have a sim_id.
