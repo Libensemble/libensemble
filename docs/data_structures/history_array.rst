@@ -58,7 +58,7 @@ function to request that libEnsemble cancels evaluation of the point.
 
 The remaining reserved fields are protected (populated by libEnsemble), and
 store information about each entry. These include boolean fields for the
-current scheduling status of the point (``sim_start`` when the sim evaluation
+current scheduling status of the point (``sim_started`` when the sim evaluation
 has started out, ``sim_end`` when sim evaluation has completed, and
 ``gen_informed`` when the sim output has been passed back to the generator).
 Timing fields give the time (since the epoch) corresponding to each state, and
@@ -91,9 +91,9 @@ The full list of these reserved fields is given below.
 
 ``sim_worker`` [int]: Worker that did (or is doing) the sim evaluation for this entry
 
-``sim_start`` [bool]: True if entry was given to sim_worker for sim evaluation
+``sim_started`` [bool]: True if entry was given to sim_worker for sim evaluation
 
-``sim_start_time`` [float]: Time entry was given to sim_worker for a sim evaluation
+``sim_started_time`` [float]: Time entry was given to sim_worker for a sim evaluation
 
 ``sim_end`` [bool]: True if entry's sim evaluation completed
 
@@ -119,7 +119,7 @@ Example workflow updating history array
 The history array is initialized using the libEnsemble reserved field and the
 user-provided ``gen_specs['out']`` and ``sim_specs['out']`` entries.
 In the figure below, only the
-reserved fields: ``sim_id``, ``sim_start``, and ``sim_end`` are shown for brevity.
+reserved fields: ``sim_id``, ``sim_started``, and ``sim_end`` are shown for brevity.
 
     .. figure:: ../images/history_init.png
        :scale: 40

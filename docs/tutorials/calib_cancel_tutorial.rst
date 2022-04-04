@@ -186,7 +186,7 @@ prepared for irregular sending /receiving of data.
 .. Between routines to call the allocation function and distribute allocated work
 .. to each Worker, the Manager selects points from the History array that are:
 ..
-..     1) Marked as ``'sim_start'`` by the allocation function
+..     1) Marked as ``'sim_started'`` by the allocation function
 ..     2) Marked with ``'cancel_requested'`` by the generator
 ..     3) *Not* been marked as ``'sim_end'`` by the Manager
 ..     4) *Not* been marked with ``'kill_sent'`` by the Manager
@@ -198,7 +198,7 @@ prepared for irregular sending /receiving of data.
 .. function calls, any points in the Manager's History array that have ``'cancel_requested'``
 .. as ``True`` are not allocated::
 ..
-..     task_avail = ~H['sim_start'] & ~H['cancel_requested']
+..     task_avail = ~H['sim_started'] & ~H['cancel_requested']
 ..
 .. This ``alloc_f`` also can prioritize allocating points that have
 .. higher ``'priority'`` values from the ``gen_f`` values in the local History array::

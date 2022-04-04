@@ -96,7 +96,7 @@ routine can be found in ``libE_info``, passed into the allocation function::
     libE_info =  {'exit_criteria': dict,               # Criteria for ending routine
                   'elapsed_time': float,               # Time elapsed since start of routine
                   'manager_kill_canceled_sims': bool,  # True if manager is to send kills to cancelled simulations
-                  'sim_start_count': int,              # Total number of points given for simulation function evaluation
+                  'sim_started_count': int,              # Total number of points given for simulation function evaluation
                   'sim_end_count': int,                # Total number of points returned from simulation function evaluations
                   'gen_informed_count': int,           # Total number of evaluated points given back to a generator function
                   'sim_max_given': bool,               # True if `sim_max` simulations have been given out to workers
