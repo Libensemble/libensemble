@@ -31,7 +31,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     Work = {}
 
     if persis_info.get('first_call', True):
-        assert support.all_sim_start(H), "Initial points in H have never been given."
+        assert support.all_sim_started(H), "Initial points in H have never been given."
         assert support.all_sim_end(H), "Initial points in H have never been returned."
         assert support.all_gen_informed(H), "Initial points in H have never been given back to gen."
 

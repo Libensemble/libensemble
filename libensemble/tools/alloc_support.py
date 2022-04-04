@@ -237,7 +237,7 @@ class AllocSupport:
                 pfilter = pt_filter
         return H, pfilter
 
-    def all_sim_start(self, H, pt_filter=None, low_bound=None):
+    def all_sim_started(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have started their sim
 
         Excludes cancelled points.

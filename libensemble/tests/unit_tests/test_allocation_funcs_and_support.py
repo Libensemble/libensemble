@@ -227,7 +227,7 @@ def test_als_gen_work():
     clear_resources()
 
 
-def test_als_all_sim_start():
+def test_als_all_sim_started():
     H_some_gvn = H.copy()
     H_some_gvn['sim_started'] = np.array([True, False, False, True, True])
     als = AllocSupport(W, True)
@@ -235,44 +235,44 @@ def test_als_all_sim_start():
     myfilter1 = np.array([False, True, False, True, True])
     myfilter2 = np.array([True, False, False, False, True])
 
-    assert not als.all_sim_start(H_some_gvn), \
-        "all_sim_start() should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_started(H_some_gvn), \
+        "all_sim_started() should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_start(H_some_gvn, low_bound=3), \
-        "all_sim_start() should\'ve returned True with adjusted lower bound."
+    assert als.all_sim_started(H_some_gvn, low_bound=3), \
+        "all_sim_started() should\'ve returned True with adjusted lower bound."
 
-    assert not als.all_sim_start(H_some_gvn, pt_filter=myfilter1), \
-        "all_sim_start() should\'ve returned False based on boolean filter."
+    assert not als.all_sim_started(H_some_gvn, pt_filter=myfilter1), \
+        "all_sim_started() should\'ve returned False based on boolean filter."
 
-    assert als.all_sim_start(H_some_gvn, pt_filter=myfilter1, low_bound=3), \
-        "all_sim_start() should\'ve returned True with boolean filter and adjusted lower bound."
+    assert als.all_sim_started(H_some_gvn, pt_filter=myfilter1, low_bound=3), \
+        "all_sim_started() should\'ve returned True with boolean filter and adjusted lower bound."
 
-    assert als.all_sim_start(H_some_gvn, pt_filter=myfilter2), \
-        "all_sim_start() should\'ve returned True based on boolean filter."
+    assert als.all_sim_started(H_some_gvn, pt_filter=myfilter2), \
+        "all_sim_started() should\'ve returned True based on boolean filter."
 
     # Now cancel a point
     H_some_gvn['cancel_requested'] = np.array([False, True, False, False, False])
 
-    assert not als.all_sim_start(H_some_gvn), \
-        "all_sim_start(H_some_gvn) should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_started(H_some_gvn), \
+        "all_sim_started(H_some_gvn) should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_start(H_some_gvn, pt_filter=myfilter1), \
-        "all_sim_start(H_some_gvn) should\'ve returned True based on boolean filter and cancelled."
+    assert als.all_sim_started(H_some_gvn, pt_filter=myfilter1), \
+        "all_sim_started(H_some_gvn) should\'ve returned True based on boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvn['cancel_requested'] = np.array([False, True, True, False, False])
 
-    assert als.all_sim_start(H_some_gvn), \
-        "all_sim_start(H_some_gvn) should\'ve returned True as cancelled point ignored."
+    assert als.all_sim_started(H_some_gvn), \
+        "all_sim_started(H_some_gvn) should\'ve returned True as cancelled point ignored."
 
     # Now cancel a different point
     H_some_gvn['cancel_requested'] = np.array([False, False, True, False, False])
 
-    assert not als.all_sim_start(H_some_gvn), \
-        "all_sim_start(H_some_gvn) should\'ve returned False on incomplete sim results."
+    assert not als.all_sim_started(H_some_gvn), \
+        "all_sim_started(H_some_gvn) should\'ve returned False on incomplete sim results."
 
-    assert als.all_sim_start(H_some_gvn, low_bound=2), \
-        "all_sim_start(H_some_gvn) should\'ve returned True with cancelled and adjusted lower bound."
+    assert als.all_sim_started(H_some_gvn, low_bound=2), \
+        "all_sim_started(H_some_gvn) should\'ve returned True with cancelled and adjusted lower bound."
 
 
 def test_als_all_sim_end():
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     test_als_evaluate_gens()
     test_als_sim_work()
     test_als_gen_work()
-    test_als_all_sim_start()
+    test_als_all_sim_started()
     test_als_all_sim_end()
     test_als_all_gen_informed()
     test_als_points_by_priority()
