@@ -116,7 +116,7 @@ jobs:
             conda install nlopt
             conda install scipy
             conda install psutil
-            conda install pyyaml
+            conda install pyyaml=5.4.1
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
