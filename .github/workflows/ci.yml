@@ -32,11 +32,11 @@ jobs:
                       python-version: 3.8
                       mpi-version: 'mpich'
                       comms-type: t
-                    - os: ubuntu-latest
-                      do-balsam: false
-                      mpi-version: 'openmpi'
-                      python-version: 3.8
-                      comms-type: l
+                    #- os: ubuntu-latest
+                    #  do-balsam: false
+                    #  mpi-version: 'openmpi'
+                    #  python-version: 3.8
+                    #  comms-type: l
                     - os: ubuntu-latest
                       python-version: 3.8
                       comms-type: l

@@ -412,7 +412,7 @@ class Manager:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get('use_persis_return_gen', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w-1]['gen_started_time'])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get('use_persis_return_sim', False):
                     self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
