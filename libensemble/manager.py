@@ -317,7 +317,7 @@ class Manager:
         self.wcomms[w-1].send(Work['tag'], Work)
 
         if Work['tag'] == EVAL_GEN_TAG:
-            self.W[w]['gen_started_time'] = time.time()
+            self.W[w-1]['gen_started_time'] = time.time()
 
         work_rows = Work['libE_info']['H_rows']
         work_name = calc_type_strings[Work['tag']]
@@ -429,7 +429,7 @@ class Manager:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode, self.W[w]['gen_started_time'])
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode, self.W[w-1]['gen_started_time'])
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
