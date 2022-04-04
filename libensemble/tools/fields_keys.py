@@ -8,9 +8,9 @@ libE_fields = [('sim_id', int),               # Unique id of a generated entry i
                ('gen_start_time', float),     # Time gen_worker was initiated that produced this entry
                ('gen_end_time', float),       # Time gen_worker requested this entry
                ('sim_worker', int),           # Worker that did (or is doing) the sim eval for this entry
-               ('sim_start', bool),           # True if entry was given to sim_worker for sim eval
+               ('sim_started', bool),         # True if entry was given to sim_worker for sim eval
                ('sim_start_time', float),     # Time entry was given to sim_worker for a sim eval
-               ('sim_end', bool),             # True if entry's sim eval completed
+               ('sim_ended', bool),           # True if entry's sim eval completed
                ('sim_end_time', float),       # Time entry's sim eval completed
                ('gen_informed', bool),        # True if gen_worker was informed about the sim eval of this entry
                ('gen_informed_time', float),  # Time gen_worker was informed about the sim eval of this entry
