@@ -132,7 +132,7 @@ Write an alternative Calling Script similar to above, but with the following dif
 
  1. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
  2. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
- 3. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files aftser libEnsemble completes.
+ 3. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
 .. container:: toggle
 
