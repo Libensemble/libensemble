@@ -164,7 +164,7 @@ class History:
             self.H['gen_informed_time'][q_inds] = t
             self.gen_informed_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D, safe_mode, gen_start_time):
+    def update_history_x_in(self, gen_worker, D, safe_mode, gen_started_time):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -212,9 +212,9 @@ class History:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        first_gen_inds = update_inds[self.H['gen_end_time'][update_inds] == 0]
-        self.H['gen_start_time'][first_gen_inds] = gen_start_time
-        self.H['gen_end_time'][first_gen_inds] = t
+        first_gen_inds = update_inds[self.H['gen_ended_time'][update_inds] == 0]
+        self.H['gen_started_time'][first_gen_inds] = gen_started_time
+        self.H['gen_ended_time'][first_gen_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 

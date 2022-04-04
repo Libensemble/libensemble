@@ -5,8 +5,8 @@ Below are the fields used within libEnsemble
 
 libE_fields = [('sim_id', int),               # Unique id of a generated entry in H
                ('gen_worker', int),           # Worker that generated this entry
-               ('gen_start_time', float),     # Time gen_worker was initiated that produced this entry
-               ('gen_end_time', float),       # Time gen_worker requested this entry
+               ('gen_started_time', float),     # Time gen_worker was initiated that produced this entry
+               ('gen_ended_time', float),       # Time gen_worker requested this entry
                ('sim_worker', int),           # Worker that did (or is doing) the sim eval for this entry
                ('sim_started', bool),         # True if entry was given to sim_worker for sim eval
                ('sim_started_time', float),     # Time entry was given to sim_worker for a sim eval
@@ -21,8 +21,8 @@ libE_fields = [('sim_id', int),               # Unique id of a generated entry i
 
 
 protected_libE_fields = ['gen_worker',
-                         'gen_start_time',
-                         'gen_end_time',
+                         'gen_started_time',
+                         'gen_ended_time',
                          'sim_worker',
                          'sim_started',
                          'sim_started_time',

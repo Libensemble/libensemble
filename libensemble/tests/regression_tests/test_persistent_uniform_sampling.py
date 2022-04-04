@@ -62,6 +62,6 @@ libE_specs['kill_canceled_sims'] = False
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_end_time'])) == 2
+    assert len(np.unique(H['gen_ended_time'])) == 2
 
     save_libE_output(H, persis_info, __file__, nworkers)

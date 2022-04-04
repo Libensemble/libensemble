@@ -70,7 +70,7 @@ for prob_id in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        assert len(np.unique(H['gen_end_time'])) == 1, "Everything should have been generated in one batch"
+        assert len(np.unique(H['gen_ended_time'])) == 1, "Everything should have been generated in one batch"
         if prob_id == 1:
             assert np.all(H['x'][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
 
