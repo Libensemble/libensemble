@@ -34,8 +34,8 @@ jobs:
                       comms-type: t
                     - os: ubuntu-latest
                       do-balsam: false
-                      mpi-version: 'openmpi'
-                      python-version: 3.8
+                      mpi-version: 'openmpi=4.1.2'
+                      python-version: 3.9
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: 3.8
@@ -115,7 +115,6 @@ jobs:
             python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
-            conda install libblas libopenblas psutil pyyaml
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
@@ -136,6 +135,8 @@ jobs:
         - name: Install other testing dependencies
           run: |
             pip install -r install/testing_requirements.txt
+            pip install psutil
+            pip install pyyaml
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
