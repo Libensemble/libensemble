@@ -14,8 +14,8 @@ commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
 allow libEnsemble to submit additional tasks from the compute nodes. On these
-systems a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's Executor was developed to directly address such issues.
+systems, a proxy launch mechanism (such as Balsam) is required.
+libEnsemble's Executors were developed to directly address such issues.
 
 Getting Started
 ---------------
@@ -63,7 +63,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     sim_app = os.path.join(os.getcwd(), 'forces.x')
     exctr.register_app(full_path=sim_app, app_name='forces')
 
-On line 4 we import our not-yet-written ``sim_f``. We also import necessary
+On line 4, we import our not-yet-written ``sim_f``. We also import necessary
 libEnsemble components and some :doc:`convenience functions<../utilities>`.
 With a call to the ``parse_args()`` convenience function, our script detects the
 number of workers ``nworkers``, a boolean determining if the process is the manager
@@ -224,7 +224,7 @@ Simulation Function
 
 Our simulation function is where we'll use libEnsemble's executor to configure and submit
 our application for execution. We'll poll this task's state while
-it runs, and once we've detected it has finished we'll send any results or
+it runs, and once we've detected it has finished, we'll send any results or
 exit statuses back to the manager.
 
 Create another Python file named ``forces_simf.py`` containing some imports
@@ -436,7 +436,7 @@ Executor Variants
 libEnsemble features two variants of its executor that perform identical
 functions, but are designed for running on different systems. For most uses,
 the MPI variant will be satisfactory. However, some systems, such as ALCF's Theta
-do not support MPI launches from compute nodes. On these systems libEnsemble is
+do not support MPI launches from compute nodes. On these systems, libEnsemble is
 run either on launch nodes or uses a proxy launch mechanism to submit
 tasks from compute nodes. One such mechanism is a scheduling utility called
 Balsam_ which runs on a separate node. The Balsam Executor variant interacts

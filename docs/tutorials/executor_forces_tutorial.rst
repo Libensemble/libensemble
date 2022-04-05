@@ -15,8 +15,8 @@ commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
 hard-coding such commands within user scripts isn't portable.
 Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
 allow libEnsemble to submit additional tasks from the compute nodes. On these
-systems a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's various Executors were developed to directly address such issues.
+systems, a proxy launch mechanism (such as Balsam) is required.
+libEnsemble's Executors were developed to directly address such issues.
 
 In particular, we'll be experimenting with
 libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`, since it can automatically
@@ -66,7 +66,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     exctr.register_app(full_path=sim_app, app_name="forces")
 
 
-On line 15 we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
+On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
 which can optionally be customized by specifying alternative MPI runners. The
 auto-detected default should be sufficient.
 
@@ -93,7 +93,7 @@ expect, and also to parameterize function instances without hard-coding:
     gen_specs = {
         "gen_f": uniform_random_sample,  # Generator function
         "in": ["sim_id"],  # Generator input
-        "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
+        "out": [("x", float, (1,))],  # Name, type, and size of data from gen_f
         "user": {
             "lb": np.array([1000]),  # User parameters for the gen_f
             "ub": np.array([3000]),
@@ -101,8 +101,8 @@ expect, and also to parameterize function instances without hard-coding:
         },
     }
 
-Our generation function will generate random numbers of particles, between
-the ``"lb"`` and ``"ub"`` bounds, for our simulation function to evaluate via our
+Our generation function will generate random numbers of particles (between
+the ``"lb"`` and ``"ub"`` bounds) for our simulation function to evaluate via our
 registered application.
 
 After configuring :ref:`persis_info<datastruct-persis-info>` and
@@ -178,7 +178,8 @@ Simulation Function
 -------------------
 
 Our simulation function is where we'll use libEnsemble's executor to configure and submit
-our application for execution. Once we've detected it has finished we'll send any results or
+our application for execution. We'll poll this task's state while
+it runs, and once we've detected it has finished we'll send any results or
 exit statuses back to the manager.
 
 Create another Python file named ``forces_simf.py`` containing the following
@@ -216,7 +217,7 @@ for starters:
 
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. We retrieved our
-previously-instantiated Executor instance from the class definition,
+previously instantiated Executor instance from the class definition,
 where it was automatically stored as an attribute.
 
 After submitting the "forces" app for execution,
@@ -261,8 +262,8 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
 That's it! As can be seen, with libEnsemble, it's relatively easy to get started
-with launching applications, since behind the scenes libEnsemble evaluates default
-MPI runners and available resources, and divides them among workers accordingly.
+with launching applications. Behind the scenes, libEnsemble evaluates default
+MPI runners and available resources and divides them among the workers.
 
 This completes our calling script and simulation function. Run libEnsemble with:
 
@@ -270,8 +271,8 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
     $ python my_calling_script.py --comms local --nworkers [nworkers]
 
-This may take up to a minute to complete. Output files, including ``forces.stat``
-and files containing ``stdout`` and ``stderr`` content for each task should
+This may take up to a minute to complete. Output files---including ``forces.stat``
+and files containing ``stdout`` and ``stderr`` content for each task---should
 appear in the current working directory. Overall workflow information
 should appear in ``libE_stats.txt`` and ``ensemble.log`` as usual.
 
@@ -327,11 +328,13 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Enable :ref:`worker directory settings<output_dirs>` so workers separate their output into separate directories by simulation.
-  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  1. Enable :ref:`worker directory settings<output_dirs>` so that workers
+       separate their outputs into separate directories by simulation.
+  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto
+       two nodes, with eight processes per node.
   3. Construct a ``while not task.finished:`` loop that periodically calls :meth:`task.poll()<executor.Task.poll>`,
      reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
-     **or if** ``task.runtime`` exceeds sixty seconds. Otherwise, sleep for one second.
+     or if ``task.runtime`` exceeds sixty seconds. Otherwise, sleep for one second.
 
 .. container:: toggle
 
