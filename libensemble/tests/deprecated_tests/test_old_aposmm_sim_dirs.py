@@ -47,7 +47,7 @@ if nworkers == 3:
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'returned'],
+             'in': [o[0] for o in gen_out] + ['f', 'sim_ended'],
              'out': gen_out,
              'user': {'lb': np.array([-5, 0]),
                       'ub': np.array([10, 15]),

@@ -40,7 +40,7 @@ sim_specs = {'sim_f': sim_f,
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'grad', 'returned'],
+             'in': [o[0] for o in gen_out] + ['f', 'grad', 'sim_ended'],
              'out': gen_out,
              'user': {'initial_sample_size': 100,
                       'sample_points': np.round(minima, 1),

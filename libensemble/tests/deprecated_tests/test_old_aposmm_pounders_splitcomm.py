@@ -48,7 +48,7 @@ gen_out += [('x', float, n), ('x_on_cube', float, n)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out]+['f', 'fvec', 'returned'],
+             'in': [o[0] for o in gen_out]+['f', 'fvec', 'sim_ended'],
              'out': gen_out,
              'user': {'initial_sample_size': 5,
                       'lb': (-2-np.pi/10)*np.ones(n),

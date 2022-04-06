@@ -32,7 +32,7 @@ sim_specs = {'sim_f': sim_f,
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int)]
 
 gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'f_i', 'returned'],
+             'in': [o[0] for o in gen_out] + ['f', 'f_i', 'sim_ended'],
              'out': gen_out,
              'user': {'initial_sample_size': 5,
                       'lb': -2*np.ones(n),

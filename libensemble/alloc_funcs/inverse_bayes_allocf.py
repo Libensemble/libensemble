@@ -31,7 +31,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
         # if > 1 persistent generator, assign the correct work to it
         inds_generated_by_wid = (H['gen_worker'] == wid)
-        if support.all_returned(H, inds_generated_by_wid):
+        if support.all_sim_ended(H, inds_generated_by_wid):
 
             # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
@@ -45,7 +45,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
             Work[wid] = support.gen_work(wid, ['like'], inds_to_send_back, persis_info.get(wid), persistent=True)
 
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
         if np.any(points_to_evaluate):
 

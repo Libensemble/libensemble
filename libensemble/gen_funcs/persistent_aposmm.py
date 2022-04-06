@@ -261,7 +261,7 @@ def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, f
     for name in calc_in.dtype.names:
         local_H[name][Work['libE_info']['H_rows']] = calc_in[name]
 
-    local_H['returned'][Work['libE_info']['H_rows']] = True
+    local_H['sim_ended'][Work['libE_info']['H_rows']] = True
     n_s += np.sum(~local_H[Work['libE_info']['H_rows']]['local_pt'])
     n_r = len(Work['libE_info']['H_rows'])
 
@@ -323,7 +323,7 @@ def update_history_dist(H, n):
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
 
-    p = np.logical_and.reduce((H['returned'], ~np.isnan(H['f'])))
+    p = np.logical_and.reduce((H['sim_ended'], ~np.isnan(H['f'])))
 
     for new_ind in new_inds:
         # Loop over new returned points and update their distances
@@ -491,7 +491,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
 
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
-            H['returned'] == 1,  # have a returned function value
+            H['sim_ended'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
             r_k,  # no better sample point within r_k (L2)
             ~H['started_run'],  # have not started a run (L3)
@@ -503,7 +503,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         ))
     else:
         test_2_through_5 = np.logical_and.reduce((
-            H['returned'] == 1,  # have a returned function value
+            H['sim_ended'] == 1,  # have a returned function value
             H['dist_to_better_s'] >
             r_k,  # no better sample point within r_k (L2)
             ~H['started_run'],  # have not started a run (L3)
@@ -605,7 +605,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
                       ('local_min', bool),
                       ('sim_id', int),
                       ('paused', bool),
-                      ('returned', bool),
+                      ('sim_ended', bool),
                       ]
 
     if 'components' in user_specs:
@@ -623,7 +623,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
         assert 'f' in H.dtype.names, "Must give 'f' values to persistent_aposmm in gen_specs['in']"
         assert 'sim_id' in H.dtype.names, "Must give 'sim_id' to persistent_aposmm in gen_specs['in']"
-        assert 'returned' in H.dtype.names, "Must give 'returned' status to persistent_aposmm in gen_specs['in']"
+        assert 'sim_ended' in H.dtype.names, "Must give 'sim_ended' status to persistent_aposmm in gen_specs['in']"
 
         over_written_fields = ['dist_to_unit_bounds', 'dist_to_better_l', 'dist_to_better_s', 'ind_of_better_l', 'ind_of_better_s']
         if any([i in H.dtype.names for i in over_written_fields]):

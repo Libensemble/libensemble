@@ -23,13 +23,13 @@ else:
 if done_only:
     count = 0
     for line in results:
-        if line['returned']:
+        if line['sim_ended']:
             count += 1
 
     results_filtered = np.zeros(count, dtype=results.dtype)
     count = 0
     for i, line in enumerate(results):
-        if line['returned']:
+        if line['sim_ended']:
             results_filtered[count] = results[i]
             count += 1
 
