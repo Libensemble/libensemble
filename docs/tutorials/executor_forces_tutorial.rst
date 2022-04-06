@@ -105,23 +105,34 @@ Our generation function will generate random numbers of particles (between
 the ``"lb"`` and ``"ub"`` bounds) for our simulation function to evaluate via our
 registered application.
 
+The following additional :ref:`libE_specs setting<output_dirs>` instructs libEnsemble's workers
+to each create and work within a separate directory each time they call a simulation
+function. This helps organize output and also helps prevents workers from overwriting
+previous results:
+
+.. code-block:: python
+    :linenos:
+
+    # Create and work inside separate per-simulation directories
+    libE_specs['sim_dirs_make'] = True
+
 After configuring :ref:`persis_info<datastruct-persis-info>` and
 :ref:`exit_criteria<datastruct-exit-criteria>`, we initialize libEnsemble
 by calling the primary :doc:`libE()<../libe_module>` routine:
 
- .. code-block:: python
-    :linenos:
+.. code-block:: python
+  :linenos:
 
-    # Instruct libEnsemble to exit after this many simulations
-    exit_criteria = {"sim_max": 8}
+  # Instruct libEnsemble to exit after this many simulations
+  exit_criteria = {"sim_max": 8}
 
-    # Seed random streams for each worker, particularly for gen_f
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+  # Seed random streams for each worker, particularly for gen_f
+  persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    # Launch libEnsemble
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-    )
+  # Launch libEnsemble
+  H, persis_info, flag = libE(
+      sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
+  )
 
 Exercise
 ^^^^^^^^
@@ -130,9 +141,10 @@ This may take some additional browsing of the docs to complete.
 
 Write an alternative Calling Script similar to above, but with the following differences:
 
- 1. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
- 2. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
- 3. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
+ 1. Add an additional :ref:`worker directory setting<output_dirs>` so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
+ 2. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
+ 3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
+ 4. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
 .. container:: toggle
 
@@ -162,6 +174,11 @@ Write an alternative Calling Script similar to above, but with the following dif
 
         # Initialize MPI Executor instance
         exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
+
+        ...
+
+        # Instruct workers to operate somewhere else on the filesystem
+        libE_specs['ensemble_dir_path'] = "/scratch/ensemble"
 
         ...
 
@@ -209,8 +226,8 @@ for starters:
         # Retrieve our MPI Executor instance
         exctr = Executor.executor
 
-        # Submit our forces app for execution. Block until the task starts.
-        task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True)
+        # Submit our forces app for execution
+        task = exctr.submit(app_name="forces", app_args=args)
 
         # Block until the task finishes
         task.wait(timeout=60)
@@ -334,8 +351,8 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Enable :ref:`worker directory settings<output_dirs>` so workers write output into separate per-simulation directories.
-  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
   3. Construct a ``while not task.finished:`` loop that periodically sleeps for one second, calls :meth:`task.poll()<executor.Task.poll>`,
      then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
@@ -349,13 +366,6 @@ These may require additional browsing of the documentation to complete.
    .. code-block:: python
        :linenos:
 
-        #!/usr/bin/env python
-
-        ### The following line (answer to #1) goes inside the calling script ###
-
-        libE_specs['sim_dirs_make'] = True
-
-        ### The following lines (answers to #2-3) go inside the sim_f ##########
 
         import time
         ...
