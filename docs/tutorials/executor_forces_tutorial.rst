@@ -370,7 +370,7 @@ These may require additional browsing of the documentation to complete.
         import time
         ...
         task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True,
-                            num_nodes=2, procs_per_node=8)
+                            num_nodes=2, procs_per_node=8, stdout="stdout.txt", stderr="stderr.txt")
 
         while not task.finished:
           time.sleep(1)
