@@ -328,13 +328,11 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Enable :ref:`worker directory settings<output_dirs>` so that workers
-       separate their outputs into separate directories by simulation.
-  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto
-       two nodes, with eight processes per node.
-  3. Construct a ``while not task.finished:`` loop that periodically calls :meth:`task.poll()<executor.Task.poll>`,
-     reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
-     or if ``task.runtime`` exceeds sixty seconds. Otherwise, sleep for one second.
+  1. Enable :ref:`worker directory settings<output_dirs>` so workers write output into separate per-simulation directories.
+  2. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  3. Construct a ``while not task.finished:`` loop that periodically sleeps for one second, calls :meth:`task.poll()<executor.Task.poll>`,
+     then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
+     or if ``task.runtime`` exceeds sixty seconds.
 
 .. container:: toggle
 
