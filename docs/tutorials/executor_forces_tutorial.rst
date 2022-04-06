@@ -323,6 +323,12 @@ Note again that the ten cores were divided equally among two workers.
 That concludes this tutorial.
 Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
 
+For further experimentation, we recommend trying out this libEnsemble tutorial
+workflow on a cluster or multi-node system, since libEnsemble can also manage
+those resources and is developed to coordinate computations at huge scales.
+Please feel free to contact us or open an issue on GitHub_ if this tutorial
+workflow doesn't work properly on your cluster or other compute resource.
+
 Exercises
 ^^^^^^^^^
 
@@ -372,3 +378,4 @@ These may require additional browsing of the documentation to complete.
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
+.. _GitHub: https://github.com/Libensemble/libensemble/issues
