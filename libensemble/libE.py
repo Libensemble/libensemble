@@ -612,9 +612,9 @@ def _dump_on_abort(hist, persis_info, save_H=True):
     """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error("Dumping ensemble history with {} sims evaluated:".
-                 format(hist.returned_count))
+                 format(hist.sim_ended_count))
 
     if save_H:
-        np.save('libE_history_at_abort_' + str(hist.returned_count) + '.npy', hist.trim_H())
-        with open('libE_persis_info_at_abort_' + str(hist.returned_count) + '.pickle', "wb") as f:
+        np.save('libE_history_at_abort_' + str(hist.sim_ended_count) + '.npy', hist.trim_H())
+        with open('libE_persis_info_at_abort_' + str(hist.sim_ended_count) + '.pickle', "wb") as f:
             pickle.dump(persis_info, f)

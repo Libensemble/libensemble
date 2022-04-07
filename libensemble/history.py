@@ -28,13 +28,13 @@ class History:
     :ivar int index:
         Index where libEnsemble should start filling in H
 
-    :ivar int given_count:
+    :ivar int sim_started_count:
         Number of points given to sim functions (according to H)
 
-    :ivar int returned_count:
+    :ivar int sim_ended_count:
         Number of points evaluated  (according to H)
 
-    Note that index, given_count and returned_count reflect the total number of points
+    Note that index, sim_started_count and sim_ended_count reflect the total number of points
     in H and therefore include those prepended to H in addition to the current run.
 
     """
@@ -63,36 +63,35 @@ class History:
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
-            if 'given' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'given' and 'returned'")
-                H['given'][:len(H0)] = 1
-                H['returned'][:len(H0)] = 1
-            elif 'returned' not in fields:
-                logger.manager_warning("Marking entries in H0 as having been 'returned' if 'given'")
-                H['returned'][:len(H0)] = H0['given']
+            if 'sim_started' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
+                H['sim_started'][:len(H0)] = 1
+                H['sim_ended'][:len(H0)] = 1
+            elif 'sim_ended' not in fields:
+                logger.manager_warning("Marking entries in H0 as having been 'sim_ended' if 'sim_started'")
+                H['sim_ended'][:len(H0)] = H0['sim_started']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H['sim_id'][:len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
-        H['given_time'][-L:] = np.inf
-        H['last_given_time'][-L:] = np.inf
-        H['last_given_back_time'][-L:] = np.inf
+        H['sim_started_time'][-L:] = np.inf
+        H['gen_informed_time'][-L:] = np.inf
 
         self.H = H
         self.using_H0 = len(H0) > 0
         self.index = len(H0)
         self.grow_count = 0
 
-        self.given_count = np.sum(H['given'])
-        self.returned_count = np.sum(H['returned'])
-        self.given_back_count = np.sum(H['given_back'])
+        self.sim_started_count = np.sum(H['sim_started'])
+        self.sim_ended_count = np.sum(H['sim_ended'])
+        self.gen_informed_count = np.sum(H['gen_informed'])
         self.given_back_warned = False
 
-        self.given_offset = self.given_count
-        self.returned_offset = self.returned_count
-        self.given_back_offset = self.given_back_count
+        self.sim_started_offset = self.sim_started_count
+        self.sim_ended_offset = self.sim_ended_count
+        self.gen_informed_offset = self.gen_informed_count
 
     def update_history_f(self, D, safe_mode):
         """
@@ -119,9 +118,9 @@ class History:
                     else:
                         self.H[field][ind][:H0_size] = returned_H[field][j]  # Slice View
 
-            self.H['returned'][ind] = True
-            self.H['returned_time'][ind] = time.time()
-            self.returned_count += 1
+            self.H['sim_ended'][ind] = True
+            self.H['sim_ended_time'][ind] = time.time()
+            self.sim_ended_count += 1
 
     def update_history_x_out(self, q_inds, sim_worker):
         """
@@ -136,15 +135,13 @@ class History:
             Worker ID
         """
         q_inds = np.atleast_1d(q_inds)
-        first_given_inds = ~self.H['given'][q_inds]
         t = time.time()
 
-        self.H['given'][q_inds] = True
-        self.H['given_time'][q_inds[first_given_inds]] = t
-        self.H['last_given_time'][q_inds] = t
+        self.H['sim_started'][q_inds] = True
+        self.H['sim_started_time'][q_inds] = t
         self.H['sim_worker'][q_inds] = sim_worker
 
-        self.given_count += len(q_inds)
+        self.sim_started_count += len(q_inds)
 
     def update_history_to_gen(self, q_inds):
         """Updates the history (in place) when points are given back to the gen"""
@@ -152,22 +149,22 @@ class History:
         t = time.time()
 
         if q_inds.size > 0:
-            if np.all(self.H['returned'][q_inds]):
-                self.H['given_back'][q_inds] = True
+            if np.all(self.H['sim_ended'][q_inds]):
+                self.H['gen_informed'][q_inds] = True
 
-            elif np.any(self.H['returned'][q_inds]):  # sporadic returned points need updating
-                for ind in q_inds[self.H['returned'][q_inds]]:
-                    self.H['given_back'][ind] = True
+            elif np.any(self.H['sim_ended'][q_inds]):  # sporadic returned points need updating
+                for ind in q_inds[self.H['sim_ended'][q_inds]]:
+                    self.H['gen_informed'][ind] = True
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'given_back' if 'returned'.")
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'.")
                 self.given_back_warned = True
 
-            self.H['last_given_back_time'][q_inds] = t
-            self.given_back_count += len(q_inds)
+            self.H['gen_informed_time'][q_inds] = t
+            self.gen_informed_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D, safe_mode):
+    def update_history_x_in(self, gen_worker, D, safe_mode, gen_started_time):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -182,6 +179,7 @@ class History:
         if len(D) == 0:
             return
 
+        t = time.time()
         rows_remaining = len(self.H)-self.index
 
         if 'sim_id' not in D.dtype.names:
@@ -214,10 +212,9 @@ class History:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 
-        first_gen_inds = update_inds[self.H['gen_time'][update_inds] == 0]
-        t = time.time()
-        self.H['gen_time'][first_gen_inds] = t
-        self.H['last_gen_time'][update_inds] = t
+        first_gen_inds = update_inds[self.H['gen_ended_time'][update_inds] == 0]
+        self.H['gen_started_time'][first_gen_inds] = gen_started_time
+        self.H['gen_ended_time'][first_gen_inds] = t
         self.H['gen_worker'][first_gen_inds] = gen_worker
         self.index += num_new
 
@@ -233,9 +230,8 @@ class History:
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
         H_1['sim_id'] = -1
-        H_1['given_time'] = np.inf
-        H_1['last_given_time'] = np.inf
-        H_1['last_given_back_time'] = np.inf
+        H_1['sim_started_time'] = np.inf
+        H_1['gen_informed_time'] = np.inf
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

@@ -44,23 +44,20 @@ sim_specs = {
 gen_out += [('x', float, n), ('x_on_cube', float, n), ('obj_component', int), ('f', float)]
 
 # LB tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
-UB = 2 * np.ones(n)
-LB = (-2 - np.pi / 10) * np.ones(n)
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [o[0] for o in gen_out] + ['f_i', 'returned'],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 5,
-        'lb': LB,
-        'ub': UB,
-        'localopt_method': 'pounders',
-        'dist_to_bound_multiple': 0.5,
-        'single_component_at_a_time': True,
-        'components': m,
-        'combine_component_func': lambda x: np.sum(np.power(x, 2)),
-    },
-}
+UB = 2*np.ones(n)
+LB = (-2-np.pi/10)*np.ones(n)
+gen_specs = {'gen_f': gen_f,
+             'in': [o[0] for o in gen_out] + ['f_i', 'sim_ended'],
+             'out': gen_out,
+             'user': {'initial_sample_size': 5,
+                      'lb': LB,
+                      'ub': UB,
+                      'localopt_method': 'pounders',
+                      'dist_to_bound_multiple': 0.5,
+                      'single_component_at_a_time': True,
+                      'components': m,
+                      'combine_component_func': lambda x: np.sum(np.power(x, 2))}
+             }
 
 gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 

@@ -49,19 +49,16 @@ sim_specs = {
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
-gen_specs = {
-    'gen_f': gen_f,
-    'in': [o[0] for o in gen_out] + ['f', 'fvec', 'returned'],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 5,
-        'lb': (-2 - np.pi / 10) * np.ones(n),
-        'ub': 2 * np.ones(n),
-        'localopt_method': 'pounders',
-        'dist_to_bound_multiple': 0.5,
-        'components': m,
-    },
-}
+gen_specs = {'gen_f': gen_f,
+             'in': [o[0] for o in gen_out]+['f', 'fvec', 'sim_ended'],
+             'out': gen_out,
+             'user': {'initial_sample_size': 5,
+                      'lb': (-2-np.pi/10)*np.ones(n),
+                      'ub': 2*np.ones(n),
+                      'localopt_method': 'pounders',
+                      'dist_to_bound_multiple': 0.5,
+                      'components': m}
+             }
 
 gen_specs['user'].update({'grtol': 1e-4, 'gatol': 1e-4, 'frtol': 1e-15, 'fatol': 1e-15})
 

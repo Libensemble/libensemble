@@ -105,7 +105,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             [l_H_id, r_H_id] = persis_info[wid].get('curr_H_ids')
             num_sims_req = r_H_id - l_H_id
 
-            num_fin_sims = np.sum(H['returned'][l_H_id:r_H_id])
+            num_fin_sims = np.sum(H['sim_ended'][l_H_id:r_H_id])
 
             completed_all_sims_for_gen_i = num_fin_sims == num_sims_req
 
@@ -267,7 +267,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             # skip points that are not sim work or are already done
             while persis_info['next_to_give'] < len(H) and \
-                    (H[persis_info['next_to_give']]['given'] or
+                    (H[persis_info['next_to_give']]['sim_started'] or
                      H[persis_info['next_to_give']]['consensus_pt'] or
                      H[persis_info['next_to_give']]['cancel_requested']):
 

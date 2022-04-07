@@ -25,7 +25,7 @@ gen_out = [
 def test_failing_localopt_method():
     hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc = setup.hist_setup1()
 
-    hist.H['returned'] = 1
+    hist.H['sim_ended'] = 1
 
     gen_specs_0['user']['localopt_method'] = 'BADNAME'
 
@@ -39,7 +39,7 @@ def test_failing_localopt_method():
 
 def test_exception_raising():
     hist, sim_specs_0, gen_specs_0, exit_criteria_0, alloc = setup.hist_setup1(n=2)
-    hist.H['returned'] = 1
+    hist.H['sim_ended'] = 1
 
     for method in ['LN_SBPLX', 'pounders', 'scipy_COBYLA']:
         gen_specs_0['user']['localopt_method'] = method
@@ -50,10 +50,10 @@ def test_exception_raising():
 
 
 def test_decide_where_to_start_localopt():
-    H = np.zeros(10, dtype=gen_out + [('f', float), ('returned', bool)])
+    H = np.zeros(10, dtype=gen_out + [('f', float), ('sim_ended', bool)])
     H['x'] = np.random.uniform(0, 1, (10, 2))
     H['f'] = np.random.uniform(0, 1, 10)
-    H['returned'] = 1
+    H['sim_ended'] = 1
 
     b = al.decide_where_to_start_localopt(H, 9, 1)
     assert len(b) == 0
@@ -96,10 +96,10 @@ def test_declare_opt():
 def test_localopt_error_saving():
     _, sim_specs_0, gen_specs_0, _, _ = setup.hist_setup1()
 
-    H = np.zeros(4, dtype=gen_out + [('f', float), ('fvec', float, 2), ('returned', bool)])
+    H = np.zeros(4, dtype=gen_out + [('f', float), ('fvec', float, 2), ('sim_ended', bool)])
     H['x'] = np.random.uniform(0, 1, (4, 2))
     H['f'] = np.random.uniform(0, 1, 4)
-    H['returned'] = True
+    H['sim_ended'] = True
     H['local_pt'][1:] = True
     gen_specs_0['user']['initial_sample_size'] = 1
     gen_specs_0['user']['localopt_method'] = 'scipy_COBYLA'

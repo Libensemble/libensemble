@@ -141,7 +141,7 @@ jobs:
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
           run: |
-            pip install scikit-build packaging Tasmanian==7.8rc1 --user
+            pip install scikit-build packaging Tasmanian --user
 
         - name: Install and configure Balsam 0.5.0
           if: matrix.do-balsam == true

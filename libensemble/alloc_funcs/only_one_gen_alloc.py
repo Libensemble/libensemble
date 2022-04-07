@@ -38,7 +38,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
 
         elif not support.test_any_gen() and gen_flag:
 
-            if not support.all_returned(H):
+            if not support.all_sim_ended(H):
                 break
 
             # Give gen work

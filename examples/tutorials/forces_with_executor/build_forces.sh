@@ -1,0 +1,1 @@
+../../../libensemble/tests/scaling_tests/forces/build_forces.sh

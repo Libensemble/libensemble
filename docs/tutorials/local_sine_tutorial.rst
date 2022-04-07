@@ -292,7 +292,7 @@ columns might be rearranged).
 
 .. code-block::
 
-  ['y', 'given_time', 'gen_worker', 'sim_worker', 'given', 'returned', 'x', 'allocated', 'sim_id', 'gen_time']
+  ['y', 'sim_started_time', 'gen_worker', 'sim_worker', 'sim_started', 'sim_ended', 'x', 'allocated', 'sim_id', 'gen_ended_time']
   [(-0.37466051, 1.559+09, 2, 2,  True,  True, [-0.38403059],  True,  0, 1.559+09)
   (-0.29279634, 1.559+09, 2, 3,  True,  True, [-2.84444261],  True,  1, 1.559+09)
   ( 0.29358492, 1.559+09, 2, 4,  True,  True, [ 0.29797487],  True,  2, 1.559+09)
