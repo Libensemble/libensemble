@@ -175,8 +175,8 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             # Register metric and runner in order to be able to save to json.
             _, encoder_registry, decoder_registry = register_metric(AxMetric)
             _, encoder_registry, decoder_registry = register_runner(AxRunner,
-                    encoder_registry=encoder_registry,
-                    decoder_registry=decoder_registry)
+                                                                    encoder_registry=encoder_registry,
+                                                                    decoder_registry=decoder_registry)
 
         # Save current experiment.
         # Saving the experiment to a json file currently requires a bit of
