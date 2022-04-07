@@ -40,7 +40,11 @@ libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+}
 
 if nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.001}
