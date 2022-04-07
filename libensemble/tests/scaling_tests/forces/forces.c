@@ -18,6 +18,8 @@
     Author: S Hudson.
 -------------------------------------------------------------------- */
 
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -248,7 +250,7 @@ int print_step_summary(int step, double total_en,
     return 0;
 }
 
-int open_stat_file(num_particles) {
+int open_stat_file(int num_particles) {
     char *statfile;
     asprintf(&statfile, "forces%d.stat", num_particles);
     stat_fp = fopen(statfile, "w");
