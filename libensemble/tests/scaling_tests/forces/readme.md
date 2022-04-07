@@ -1,3 +1,10 @@
+## QuickStart
+
+Build executable and run example::
+
+    ./build_forces.sh
+    python run_libe_forces.py --comms local --nworkers 4
+
 ## Running test run_libe_forces.py
 
 Naive Electostatics Code Test
