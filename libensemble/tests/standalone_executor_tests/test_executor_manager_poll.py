@@ -41,9 +41,11 @@ USE_BALSAM = False  # Take as arg
 # Create and add exes to registry
 if USE_BALSAM:
     from libensemble.executors.balsam_executor import BalsamMPIExecutor
+
     exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
 
 exctr.register_app(full_path=sim_app, calc_type='sim')
@@ -56,8 +58,10 @@ exctr.register_app(full_path=sim_app, calc_type='sim')
 # --------------- Worker: sim func ----------------------------------------
 # Should work with Balsam or not
 
+
 def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
     import time
+
     start = time.time()
 
     while time.time() - start < timeout_sec:

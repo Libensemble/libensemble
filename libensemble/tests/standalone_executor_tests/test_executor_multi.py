@@ -35,9 +35,11 @@ USE_BALSAM = False  # Take as arg
 # Create and add exes to registry
 if USE_BALSAM:
     from libensemble.baslam_executor import BalsamMPIExecutor
+
     exctr = BalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
 
 exctr.register_app(full_path=sim_app, calc_type='sim')
@@ -54,6 +56,7 @@ exctr.register_app(full_path=sim_app, calc_type='sim')
 
 def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
     import time
+
     start = time.time()
 
     while time.time() - start < timeout_sec:
@@ -66,8 +69,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
         for task in task_list:
             if not task.finished:
                 time.sleep(delay)
-                print('Polling task {0} at time {1}'.
-                      format(task.id, time.time() - start))
+                print('Polling task {0} at time {1}'.format(task.id, time.time() - start))
                 task.poll()
 
                 if task.finished:
@@ -80,8 +82,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
                 # Check output file for error
                 if task.stdout_exists():
                     if 'Error' in task.read_stdout():
-                        print("Found (deliberate) Error in output file - "
-                              "cancelling task {}".format(task.id))
+                        print("Found (deliberate) Error in output file - " "cancelling task {}".format(task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
                         continue
@@ -98,22 +99,18 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
     for task in task_list:
         if task.finished:
             if task.state == 'FINISHED':
-                print('Task {0} finished successfully. Status: {1}'.
-                      format(task.id, task.state))
+                print('Task {0} finished successfully. Status: {1}'.format(task.id, task.state))
             elif task.state == 'FAILED':
-                print('Task {0} failed. Status: {1}'.
-                      format(task.id, task.state))
+                print('Task {0} failed. Status: {1}'.format(task.id, task.state))
             elif task.state == 'USER_KILLED':
-                print('Task {0} has been killed. Status: {1}'.
-                      format(task.id, task.state))
+                print('Task {0} has been killed. Status: {1}'.format(task.id, task.state))
             else:
                 print('Task {0} status: {1}'.format(task.id, task.state))
         else:
             print('Task {0} timed out. Status: {1}'.format(task.id, task.state))
             exctr.kill(task)
             if task.finished:
-                print('Task {0} Now killed. Status: {1}'.
-                      format(task.id, task.state))
+                print('Task {0} Now killed. Status: {1}'.format(task.id, task.state))
                 # double check
                 task.poll()
                 print('Task {0} state is {1}'.format(task.id, task.state))
@@ -134,7 +131,7 @@ cores = 4
 for j in range(3):
     # Could allow submission to generate outfile names based on task.id
     # outfilename = 'out_' + str(j) + '.txt'
-    sleeptime = 6 + j*3  # Change args
+    sleeptime = 6 + j * 3  # Change args
     args_for_sim = 'sleep' + ' ' + str(sleeptime)
     rundir = 'run_' + str(sleeptime)
     task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
