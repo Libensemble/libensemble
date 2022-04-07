@@ -248,8 +248,10 @@ int print_step_summary(int step, double total_en,
     return 0;
 }
 
-int open_stat_file() {
-    stat_fp = fopen("forces.stat", "w");
+int open_stat_file(num_particles) {
+    char *statfile;
+    asprintf(&statfile, "forces%d.stat", num_particles);
+    stat_fp = fopen(statfile, "w");
     if(stat_fp == NULL) {
         printf("Error opening statfile");
         return 1;
@@ -319,7 +321,7 @@ int main(int argc, char **argv) {
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
-    double kill_rate = 0; // default proportion of tasks to kill
+    double kill_rate = 0.5; // default proportion of tasks to kill
 
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
@@ -329,7 +331,7 @@ int main(int argc, char **argv) {
     struct timeval comms_start, comms_end;
 
     double local_en, total_en;
-    double step_survival_rate;
+    double step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     int badrun = 0;
 
     if (argc >=2) {
@@ -392,7 +394,7 @@ int main(int argc, char **argv) {
     fflush(stdout);
 
     if (rank == 0) {
-        open_stat_file();
+        open_stat_file(num_particles);
     }
 
     gettimeofday(&tstart, NULL);
