@@ -48,7 +48,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     #!/usr/bin/env python
     import os
     import numpy as np
-    from tutorial_forces_simf_simple import run_forces  # Sim func from current dir
+    from forces_simf import run_forces  # Sim func from current dir
 
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -158,7 +158,7 @@ Write an alternative Calling Script similar to above, but with the following dif
         #!/usr/bin/env python
         import os
         import numpy as np
-        from tutorial_forces import run_forces  # Sim func from current dir
+        from forces_simf import run_forces  # Sim func from current dir
 
         from libensemble import logger
         from libensemble.libE import libE
