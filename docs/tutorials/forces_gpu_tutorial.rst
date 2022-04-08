@@ -1,0 +1,124 @@
+========================
+Executor - Assign to GPU
+========================
+
+This tutorial shows the most portable way to assign tasks (user applications) to the GPU.
+
+In the first instance, each worker will be using one GPU. We assume we are on a cluster
+with CUDA GPUs. We will assign GPUs by setting the environment variable ``CUDA_VISIBLE_DEVICES``.
+
+The forces code used is based on that in the simple forces tutorial *ref*
+
+The code used is available at *forces_gpu*.
+
+Simulation function
+-------------------
+
+The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlighted:
+
+
+.. code-block:: python
+    :linenos:
+    :emphasize-lines: 5, 22, 24, 29-30
+    
+    import numpy as np
+
+    # To retrieve our MPI Executor and resources instances
+    from libensemble.executors.executor import Executor
+    from libensemble.resources.resources import Resources
+
+    # Optional status codes to display in libE_stats.txt for each gen or sim
+    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+
+
+    def run_forces(H, persis_info, sim_specs, libE_info):
+        calc_status = 0
+
+        # Parse out num particles, from generator function
+        particles = str(int(H["x"][0][0]))
+
+        # app arguments: num particles, timesteps, also using num particles as seed
+        args = particles + " " + str(10) + " " + particles
+
+        # Retrieve our MPI Executor instance and resources
+        exctr = Executor.executor
+        resources = Resources.resources.worker_resources
+        
+        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+
+        # Submit our forces app for execution. Block until the task starts.
+        task = exctr.submit(app_name="forces",
+                            app_args=args,
+                            num_nodes=resources.local_node_count,
+                            procs_per_node=resources.slot_count,
+                            wait_on_start=True)
+
+        # Block until the task finishes
+        task.wait(timeout=60)
+
+        # Stat file to check for bad runs
+        statfile = "forces{}.stat".format(particles)
+
+        # Try loading final energy reading, set the sim's status
+        try:
+            data = np.loadtxt(statfile)
+            final_energy = data[-1]
+            calc_status = WORKER_DONE
+        except Exception:
+            final_energy = np.nan
+            calc_status = TASK_FAILED
+
+        # Define our output array,  populate with energy reading
+        outspecs = sim_specs["out"]
+        output = np.zeros(1, dtype=outspecs)
+        output["energy"][0] = final_energy
+
+        # Return final information to worker, for reporting to manager
+    return output, persis_info, calc_status
+
+  
+The above code can be run on most systems, and will assign a GPU to each worker, so long as the number of workers is chosen to fit the resources.
+
+The resource attributes used are::
+
+    local_node_count: The number of nodes available to this worker
+    slot_count: The number of slots per node for this worker
+        
+and the line::
+
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    
+will set environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned slots (partitions on the node). 
+
+Note that if you are on a system that automatically assigns free GPUs on the node, then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure workers are strictly bound to GPUs. For example, on some **SLURM** systems, you can use ``--gpus-per-task=1`` **link to perlmutter guid**
+
+Other environment variables could be simply substituted (e.g.,~ ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
+
+Other useful functions for assigning resources can be found at **ref worker_resources**
+
+Running the example
+-------------------
+
+For example, if you have allocated two nodes, each with four GPUs, then assign eight workers. If you are running one persistent generator which does not require resources, then assign nine workers, and set the following in your calling script::
+
+    libE_specs['zero_resource_workers'] = [1]
+
+Or - if you do not care which worker runs the generator, you could fix the resource_sets::
+
+    libE_specs['num_resource_sets'] = 8
+    
+Changing GPUs per worker
+------------------------
+
+If you want to have two GPUs per worker on the same system (four GPUs per node), you could assign only four workers, and change the line 24 to::
+
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
+    
+In this case there are two GPUs per worker (and per slot).
+
+Varying resources
+-----------------
+
+The same code can be used when varying worker resources. In this case, you may choose to set one worker per GPU (as we did originally). Then add ``resource_sets`` as a ``gen_specs['out']`` in your calling script. Simply assign the ``resource_sets`` field for each point generated.
+
+In this case the above code would still work, assigning one CPU processor and one GPU to each rank. If you want to have one rank with multiple GPUs, then change lines 29/30 accordingly.
