@@ -60,7 +60,7 @@ gen_specs = {
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
+alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'batch_mode': True, 'num_active_gens': 1}}
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
