@@ -140,7 +140,8 @@ Varying resources
 The same code can be used when varying worker resources. In this case, you may
 choose to set one worker per GPU (as we did originally). Then add ``resource_sets``
 as a ``gen_specs['out']`` in your calling script. Simply assign the
-``resource_sets`` field for each point generated.
+``resource_sets`` field of :doc:`H<../data_structures/history_array>` for each point 
+generated.
 
 In this case the above code would still work, assigning one CPU processor and
 one GPU to each rank. If you want to have one rank with multiple GPUs, then
