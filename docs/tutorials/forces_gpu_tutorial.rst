@@ -1,15 +1,19 @@
-========================
-Executor - Assign to GPU
-========================
+======================
+Executor - Assign GPUs
+======================
 
-This tutorial shows the most portable way to assign tasks (user applications) to the GPU.
+This tutorial shows the most portable way to assign tasks (user applications)
+to the GPU.
 
-In the first instance, each worker will be using one GPU. We assume we are on a cluster
-with CUDA GPUs. We will assign GPUs by setting the environment variable ``CUDA_VISIBLE_DEVICES``.
+In the first example, each worker will be using one GPU. We assume we are on a
+cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
+variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
+devices.
 
-The forces code used is based on that in the simple forces tutorial *ref*
+The forces code used is based on that in the
+:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>`.
 
-The code used is available at *forces_gpu*.
+The code used is available under forces_gpu_ in the libEnsemble repository.
 
 Simulation function
 -------------------
@@ -77,40 +81,54 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
     return output, persis_info, calc_status
 
   
-The above code can be run on most systems, and will assign a GPU to each worker, so long as the number of workers is chosen to fit the resources.
+The above code can be run on most systems, and will assign a GPU to each worker,
+so long as the number of workers is chosen to fit the resources.
 
-The resource attributes used are::
+The  :doc:`resource<../resource_manager/worker_resources>` attributes used are:
 
-    local_node_count: The number of nodes available to this worker
-    slot_count: The number of slots per node for this worker
-        
+• **local_node_count**: The number of nodes available to this worker
+• **slot_count**: The number of slots per node for this worker
+
 and the line::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
     
-will set environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned slots (partitions on the node). 
+will set environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned
+slots (partitions on the node). 
 
-Note that if you are on a system that automatically assigns free GPUs on the node, then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure workers are strictly bound to GPUs. For example, on some **SLURM** systems, you can use ``--gpus-per-task=1`` **link to perlmutter guid**
+Note that if you are on a system that automatically assigns free GPUs on the node,
+then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure
+workers are strictly bound to GPUs. For example, on some **SLURM** systems, you
+can use ``--gpus-per-task=1`` (e.g. :doc:`Perlmutter<../platforms/perlmutter>`).
 
-Other environment variables could be simply substituted (e.g.,~ ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
+Alternative environment variables could be simply substituted
+(e.g.,~ ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
 
-Other useful functions for assigning resources can be found at **ref worker_resources**
 
 Running the example
 -------------------
 
-For example, if you have allocated two nodes, each with four GPUs, then assign eight workers. If you are running one persistent generator which does not require resources, then assign nine workers, and set the following in your calling script::
+As an example, if you have allocated two nodes, each with four GPUs, then assign
+eight workers. For example::
+
+    python run_libe_forces.py --comms local --nworkers 8
+
+If you are running one persistent generator which does not require
+resources, then assign nine workers, and set the following in your 
+calling script::
 
     libE_specs['zero_resource_workers'] = [1]
 
-Or - if you do not care which worker runs the generator, you could fix the resource_sets::
+Or - if you do not care which worker runs the generator, you could fix the
+*resource_sets*::
 
     libE_specs['num_resource_sets'] = 8
     
 Changing GPUs per worker
 ------------------------
 
-If you want to have two GPUs per worker on the same system (four GPUs per node), you could assign only four workers, and change the line 24 to::
+If you want to have two GPUs per worker on the same system (four GPUs per node),
+you could assign only four workers, and change line 24 to::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
     
@@ -119,6 +137,42 @@ In this case there are two GPUs per worker (and per slot).
 Varying resources
 -----------------
 
-The same code can be used when varying worker resources. In this case, you may choose to set one worker per GPU (as we did originally). Then add ``resource_sets`` as a ``gen_specs['out']`` in your calling script. Simply assign the ``resource_sets`` field for each point generated.
+The same code can be used when varying worker resources. In this case, you may
+choose to set one worker per GPU (as we did originally). Then add ``resource_sets``
+as a ``gen_specs['out']`` in your calling script. Simply assign the
+``resource_sets`` field for each point generated.
 
-In this case the above code would still work, assigning one CPU processor and one GPU to each rank. If you want to have one rank with multiple GPUs, then change lines 29/30 accordingly.
+In this case the above code would still work, assigning one CPU processor and
+one GPU to each rank. If you want to have one rank with multiple GPUs, then
+change source lines 29/30 accordingly.
+
+Further guidance on varying resource to workers can be found under the
+:doc:`resource manager<../resource_manager/resources_index>`.
+
+
+Example submission script
+-------------------------
+
+A simple example batch script for :doc:`Perlmutter<../platforms/perlmutter>`
+that runs 8 workers on 2 nodes:
+
+.. code-block:: bash
+    :linenos:
+
+    #!/bin/bash
+    #SBATCH -J libE_small_test
+    #SBATCH -A <myproject_g>
+    #SBATCH -C gpu
+    #SBATCH --time 10
+    #SBATCH --nodes 2
+
+    export MPICH_GPU_SUPPORT_ENABLED=1
+    export SLURM_EXACT=1
+    export SLURM_MEM_PER_NODE=0
+
+    python libe_calling_script.py --comms local --nworkers 8
+
+where ``SLURM_EXACT`` and ``SLURM_MEM_PER_NODE`` are set to prevent
+resource conflicts on each node.
+
+.. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces_gpu
