@@ -25,7 +25,7 @@ H = np.array([(False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.49, 0.88
               (False, False, 1, 0., 1., False, 1.6e09, 0, 1, False, [-0.61, 0.15], 0., 4, False, [0., 0.], np.inf)],
              dtype=[('sim_started', '?'), ('gen_informed', '?'), ('gen_worker', '<i8'), ('sim_ended_time', '<f8'),
                     ('priority', '<f8'), ('kill_sent', '?'), ('gen_ended_time', '<f8'), ('sim_worker', '<i8'), ('resource_sets', '<i8'), ('sim_ended', '?'),
-                    ('x', '<f8', (2,)), ('f', '<f8'), ('sim_id', '<i8'), ('cancel_requested', '?'), 
+                    ('x', '<f8', (2,)), ('f', '<f8'), ('sim_id', '<i8'), ('cancel_requested', '?'),
                     ('x_on_cube', '<f8', (2,)), ('sim_started_time', '<f8')])
 
 

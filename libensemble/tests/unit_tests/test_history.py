@@ -91,7 +91,8 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 # Tests ========================================================================================
 def test_hist_init_1():
     hist, _, _, _, _ = setup.hist_setup1()
-    assert np.array_equal(hist.H, wrs), "Array does not match expected"
+    for field in set(wrs.dtype.names + hist.H.dtype.names):
+        np.array_equal(hist.H[field], wrs[field]), "Array does not match expected"
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -102,11 +103,8 @@ def test_hist_init_1A_H0():
     hist, _, _, _, _ = setup.hist_setup1(sim_max=2, H0_in=wrs_H0)
 
     # Compare by column
-    for field in exp_H0_H.dtype.names:
-        np.array_equal(hist.H[field], exp_H0_H[field])
-    # These dont work for numpy structured arrays
-    # assert np.array_equiv(hist.H, exp_H0_H), "Array does not match expected"
-    # assert np.array_equal(hist.H, exp_H0_H), "Array does not match expected"
+    for field in set(exp_H0_H.dtype.names + hist.H.dtype.names):
+        np.array_equal(hist.H[field], exp_H0_H[field]), "Array does not match expected"
     assert hist.sim_started_count == 3
     assert hist.index == 3
     assert hist.sim_ended_count == 3
@@ -116,7 +114,8 @@ def test_hist_init_1A_H0():
 
 def test_hist_init_2():
     hist, _, _, _, _ = setup.hist_setup2()
-    assert np.array_equal(hist.H, wrs2), "Array does not match expected"
+    for field in set(wrs2.dtype.names + hist.H.dtype.names):
+        np.array_equal(hist.H[field], wrs2[field]), "Array does not match expected"
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -127,7 +126,8 @@ def test_grow_H():
     hist, _, _, _, _ = setup.hist_setup1(3)
     new_rows = 7
     hist.grow_H(k=new_rows)
-    assert np.array_equal(hist.H, wrs), "Array does not match expected"
+    for field in set(wrs.dtype.names + hist.H.dtype.names):
+        np.array_equal(hist.H[field], wrs[field]), "Array does not match expected"
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -138,7 +138,8 @@ def test_trim_H():
     hist, _, _, _, _ = setup.hist_setup1(13)
     hist.index = 10
     H = hist.trim_H()
-    assert np.array_equal(H, wrs), "Array does not match expected"
+    for field in set(wrs.dtype.names + H.dtype.names):
+        np.array_equal(H[field], wrs[field]), "Array does not match expected"
     assert hist.sim_started_count == 0
     assert hist.index == 10
     assert hist.sim_ended_count == 0
@@ -150,7 +151,8 @@ def test_update_history_x_in_Oempty():
     H_o = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
     hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
-    assert np.array_equal(hist.H, wrs2), "H Array does not match expected"
+    for field in set(wrs2.dtype.names + hist.H.dtype.names):
+        np.array_equal(hist.H[field], wrs2[field]), "Array does not match expected"
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -307,7 +309,8 @@ def test_update_history_x_out():
     hist.H['sim_id'][0] == -1
 
     # Check the rest of H is unaffected
-    assert np.array_equal(hist.H[1:10], wrs[1:10]), "H Array slice does not match expected"
+    for field in set(wrs[1:10].dtype.names + hist.H[1:10].dtype.names):
+        np.array_equal(hist.H[1:10][field], wrs[1:10][field]), "Array does not match expected"
 
     # Update two further consecutive points
     my_qinds = np.arange(1, 3)
