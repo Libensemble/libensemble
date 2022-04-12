@@ -32,6 +32,7 @@ import warnings
 
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
