@@ -33,7 +33,7 @@ run with the generated ``x`` and ``theta`` values.
 For ease, the ``gen_f`` and ``sim_f`` are expected to return output as NumPy
 structured arrays. The output from the ``gen_f`` or ``sim_f`` functions can be
 the exact elements declared in the gen/sim_specs['out'] lists, or can be a
-subset of these lists. (The manager's history array will update any fields 
+subset of these lists. (The manager's history array will update any fields
 returned to it.)
 
 The names of the input fields for ``gen_f`` and ``sim_f`` must exist in the manager's
