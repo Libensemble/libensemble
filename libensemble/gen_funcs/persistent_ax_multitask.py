@@ -173,8 +173,10 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             if not os.path.exists('model_history'):
                 os.mkdir('model_history')
             # Register metric and runner in order to be able to save to json.
-            register_metric(AxMetric)
-            register_runner(AxRunner)
+            _, encoder_registry, decoder_registry = register_metric(AxMetric)
+            _, encoder_registry, decoder_registry = register_runner(AxRunner,
+                                                                    encoder_registry=encoder_registry,
+                                                                    decoder_registry=decoder_registry)
 
         # Save current experiment.
         # Saving the experiment to a json file currently requires a bit of
@@ -189,7 +191,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             trial._runner = SyntheticRunner()
         exp.update_runner(lofi_task, SyntheticRunner())
         exp.update_runner(hifi_task, SyntheticRunner())
-        save_experiment(exp, 'model_history/experiment_%05d.json' % model_iteration)
+        save_experiment(exp, 'model_history/experiment_%05d.json' % model_iteration, encoder_registry=encoder_registry)
         exp.update_runner(lofi_task, ax_runner)
         exp.update_runner(hifi_task, ax_runner)
 
