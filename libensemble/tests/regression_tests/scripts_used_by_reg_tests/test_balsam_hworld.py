@@ -36,8 +36,7 @@ def wait_for_job_dir(basedb):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, \
-        "Balsam Database directory not created within {} seconds.".format(limit)
+    assert sleeptime < limit, "Balsam Database directory not created within {} seconds.".format(limit)
 
     # Stop sleeping once job directory detected within database directory
     print('Waiting for Job Directory {}'.format(sleeptime))
@@ -48,8 +47,7 @@ def wait_for_job_dir(basedb):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, \
-        "Balsam Job directory not created within {} seconds.".format(limit)
+    assert sleeptime < limit, "Balsam Job directory not created within {} seconds.".format(limit)
 
     # Assumes database dir was empty, now contains single job dir
     jobdir = os.path.join(basedb, os.listdir(basedb)[0])
@@ -71,8 +69,7 @@ def wait_for_job_output(jobdir):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, \
-        "Balsam output file not created within {} seconds.".format(limit)
+    assert sleeptime < limit, "Balsam output file not created within {} seconds.".format(limit)
 
     return output
 
@@ -97,8 +94,7 @@ def print_job_output(outscript):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, \
-        "Expected Balsam Job output-file contents not detected after {} seconds.".format(limit)
+    assert sleeptime < limit, "Expected Balsam Job output-file contents not detected after {} seconds.".format(limit)
 
 
 def move_job_coverage(jobdir):
@@ -107,8 +103,9 @@ def move_job_coverage(jobdir):
     here = os.getcwd()
     covname = '.cov_reg_out.'
 
-    assert any([file.startswith(covname) for file in os.listdir(jobdir)]), \
-        "Coverage results not detected in Balsam Job directory."
+    assert any(
+        [file.startswith(covname) for file in os.listdir(jobdir)]
+    ), "Coverage results not detected in Balsam Job directory."
 
     for file in os.listdir(jobdir):
         if file.startswith(covname):
