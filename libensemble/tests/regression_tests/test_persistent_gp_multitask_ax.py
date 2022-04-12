@@ -31,7 +31,7 @@ from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_ge
 import warnings
 
 # Ax uses a deprecated warn command.
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
