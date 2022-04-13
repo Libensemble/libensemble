@@ -47,8 +47,9 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid),
-                                         persistent=True)
+            Work[wid] = support.gen_work(
+                wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid), persistent=True
+            )
 
     points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
