@@ -115,7 +115,11 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
                 Work[wid] = support.gen_work(
-                    wid, ['x', 'f_i', 'gradf_i'], sims_to_ret_to_gen, persis_info.get(wid), persistent=True,
+                    wid,
+                    ['x', 'f_i', 'gradf_i'],
+                    sims_to_ret_to_gen,
+                    persis_info.get(wid),
+                    persistent=True,
                 )
 
                 persis_info[wid].update({'curr_H_ids': []})
