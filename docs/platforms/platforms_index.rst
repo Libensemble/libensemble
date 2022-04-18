@@ -141,9 +141,9 @@ internet access (laptops, login nodes, other servers, etc.), workers can be inst
 launch generator or simulator user function instances to separate resources from
 themselves via funcX_, a distributed, high-performance function-as-a-service platform:
 
-    .. image:: ../images/funcxmodel.png
+    .. image:: ../images/funcx.png
         :alt: running_with_funcx
-        :scale: 50
+        :scale: 40
         :align: center
 
 This is useful for running ensembles across machines and heterogeneous resources, but
