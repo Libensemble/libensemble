@@ -2,6 +2,11 @@
 This module launches and controls the running of tasks with Balsam_, and most
 notably can submit tasks from any machine, to any machine running a Balsam site_.
 
+.. image:: ../images/balsam2.png
+    :alt: central_balsam
+    :scale: 40
+    :align: center
+
 At this time, access to Balsam is limited to those with valid organizational logins
 authenticated through Globus_.
 
