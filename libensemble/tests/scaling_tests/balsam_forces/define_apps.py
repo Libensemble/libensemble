@@ -16,6 +16,8 @@ a libEnsemble app, and a Forces app:
 
 Unless changes are made to these Apps, this should only need to be run once to
 register each of these apps with the Balsam service.
+
+If not running libEnsemble remotely, feel free to comment-out ``RemoteLibensembleApp.sync()``
 """
 
 

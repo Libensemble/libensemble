@@ -8,7 +8,10 @@ This file is roughly equivalent to a traditional batch submission shell script
 that used legacy Balsam commands, except it uses the Balsam API to submit jobs
 to the scheduler. It can also be run from anywhere and still submit jobs to
 the same machine. It loads, parameterizes, and submits the LibensembleApp for
-execution. Use this script to run libEnsemble as a Balsam Job on the compute nodes.
+execution. Use this script to run libEnsemble as a Balsam Job on compute nodes.
+
+If running libEnsemble on a laptop, this script is not needed. Just run the
+corresponding libEnsemble calling script as normal.
 """
 
 BALSAM_SITE = "jln_theta"
