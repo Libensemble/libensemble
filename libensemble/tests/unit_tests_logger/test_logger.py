@@ -55,6 +55,7 @@ def test_set_log_level():
 
 def test_set_filename():
     from libensemble.comms.logs import manager_logging_config
+
     alt_name = "alt_name.log"
 
     logs = LogConfig.config
@@ -81,8 +82,7 @@ def test_set_filename():
 def test_set_stderr_level():
 
     stderr_level = logger.get_stderr_level()
-    assert stderr_level == 35, "Default stderr copying level is 35, found " + \
-        str(stderr_level)
+    assert stderr_level == 35, "Default stderr copying level is 35, found " + str(stderr_level)
 
     logger.set_stderr_level('DEBUG')
     stderr_level = logger.get_stderr_level()

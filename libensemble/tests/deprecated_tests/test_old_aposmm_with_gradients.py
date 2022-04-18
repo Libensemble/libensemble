@@ -37,22 +37,28 @@ from libensemble.tests.regression_tests.support import (
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 n = 2
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float), ('grad', float, n)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float), ('grad', float, n)],
+}
 
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'grad', 'sim_ended'],
-             'out': gen_out,
-             'user': {'initial_sample_size': 100,
-                      'sample_points': np.round(minima, 1),
-                      'localopt_method': 'LD_MMA',
-                      'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-                      'xtol_rel': 1e-3,
-                      'max_active_runs': 6,
-                      'lb': np.array([-3, -2]),
-                      'ub': np.array([3, 2])
-                      }
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out] + ['f', 'grad', 'sim_ended'],
+    'out': gen_out,
+    'user': {
+        'initial_sample_size': 100,
+        'sample_points': np.round(minima, 1),
+        'localopt_method': 'LD_MMA',
+        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        'xtol_rel': 1e-3,
+        'max_active_runs': 6,
+        'lb': np.array([-3, -2]),
+        'ub': np.array([3, 2]),
+    },
+}
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('allocated', bool)], 'user': {'batch_mode': True, 'num_active_gens': 1}}
 

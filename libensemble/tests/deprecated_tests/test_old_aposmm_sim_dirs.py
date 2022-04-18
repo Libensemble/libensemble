@@ -40,26 +40,33 @@ libE_specs['sim_input_dir'] = resource_filename('libensemble.sim_funcs.branin', 
 if libE_specs['comms'] == 'tcp':
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-sim_specs = {'sim_f': sim_f, 'in': ['x'], 'out': [('f', float)]}
+sim_specs = {
+    'sim_f': sim_f,
+    'in': ['x'],
+    'out': [('f', float)],
+}
 
 if nworkers == 3:
     sim_specs['user'] = {'uniform_random_pause_ub': 0.001}
 
 n = 2
 gen_out += [('x', float, n), ('x_on_cube', float, n)]
-gen_specs = {'gen_f': gen_f,
-             'in': [o[0] for o in gen_out] + ['f', 'sim_ended'],
-             'out': gen_out,
-             'user': {'lb': np.array([-5, 0]),
-                      'ub': np.array([10, 15]),
-                      'initial_sample_size': 20,
-                      'localopt_method': 'LN_BOBYQA',
-                      'dist_to_bound_multiple': 0.99,
-                      'xtol_rel': 1e-3,
-                      'min_batch_size': nworkers,
-                      'high_priority_to_best_localopt_runs': True,
-                      'max_active_runs': 3}
-             }
+gen_specs = {
+    'gen_f': gen_f,
+    'in': [o[0] for o in gen_out] + ['f', 'sim_ended'],
+    'out': gen_out,
+    'user': {
+        'lb': np.array([-5, 0]),
+        'ub': np.array([10, 15]),
+        'initial_sample_size': 20,
+        'localopt_method': 'LN_BOBYQA',
+        'dist_to_bound_multiple': 0.99,
+        'xtol_rel': 1e-3,
+        'min_batch_size': nworkers,
+        'high_priority_to_best_localopt_runs': True,
+        'max_active_runs': 3,
+    },
+}
 
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
@@ -69,6 +76,7 @@ exit_criteria = {
     'sim_max': 150,
     'stop_val': ('f', -1),
 }
+# end_exit_criteria_rst_tag
 
 # Perform the run
 for run in range(2):
