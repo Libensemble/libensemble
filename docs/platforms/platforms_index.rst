@@ -143,7 +143,7 @@ themselves via funcX_, a distributed, high-performance function-as-a-service pla
 
     .. image:: ../images/funcx.png
         :alt: running_with_funcx
-        :scale: 30
+        :scale: 40
         :align: center
 
 This is useful for running ensembles across machines and heterogeneous resources, but
