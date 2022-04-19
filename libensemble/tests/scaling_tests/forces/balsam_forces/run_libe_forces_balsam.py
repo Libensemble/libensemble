@@ -6,6 +6,8 @@ from libensemble.libE import libE
 from libensemble.gen_funcs.sampling import uniform_random_sample
 from forces_simf import run_forces_balsam
 from libensemble.executors import BalsamExecutor
+from libensemble.tools import parse_args, add_unique_random_streams
+
 from balsam.api import ApplicationDefinition
 
 BALSAM_SITE = "jln_theta"
