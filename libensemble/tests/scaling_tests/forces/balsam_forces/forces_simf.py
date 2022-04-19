@@ -8,66 +8,36 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     from libensemble.executors.executor import Executor
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
-    def perturb(particles, seed, max_fraction):
-        MAX_SEED = 32767
-        """Modify particle count"""
-        seed_fraction = seed / MAX_SEED
-        max_delta = particles * max_fraction
-        delta = seed_fraction * max_delta
-        delta = delta - max_delta / 2  # translate so -/+
-        new_particles = particles + delta
-        return int(new_particles)
+    calc_status = 0
 
-    def read_last_line(filepath):
-        """Read last line of statfile"""
-        try:
-            with open(filepath, "rb") as fh:
-                line = fh.readlines()[-1].decode().rstrip()
-        except Exception:
-            line = ""  # In case file is empty or not yet created
-        return line
-
-    calc_status = 0  # Returns to worker
+    particles = str(int(H["x"][0][0]))
 
     exctr = Executor.executor
 
-    x = H["x"]
-    sim_particles = sim_specs["user"]["sim_particles"]
-    sim_timesteps = sim_specs["user"]["sim_timesteps"]
-    TRANSFER_STATFILES = sim_specs["user"]["transfer"]
     GLOBUS_ENDPOINT = sim_specs["user"]["globus_endpoint"]
     GLOBUS_DEST_DIR = sim_specs["user"]["globus_dest_dir"]
     THIS_SCRIPT_ON_THETA = sim_specs["user"]["this_script_on_theta"]
 
-    # Get from dictionary if key exists, else return default (e.g. 0)
-    kill_rate = sim_specs["user"].get("kill_rate", 0)
-    particle_variance = sim_specs["user"].get("particle_variance", 0)
-
-    # Composing variable names and x values to set up simulation
-    seed = int(np.rint(x[0][0]))
-
-    # This is to give a random variance of work-load
-    sim_particles = perturb(sim_particles, seed, particle_variance)
-    print("seed: {}   particles: {}".format(seed, sim_particles))
-
     args = {
-        "sim_particles": sim_particles,
-        "sim_timesteps": sim_timesteps,
-        "seed": seed,
-        "kill_rate": kill_rate,
+        "sim_particles": particles,
+        "sim_timesteps": str(10),
+        "seed": particles,
     }
-    workdir = "worker" + str(libE_info["workerID"]) + "_" + secrets.token_hex(nbytes=3)
-    forcesfile = "/forces_" + secrets.token_hex(nbytes=3) + ".stat"
+
+    workdir = "sim" + ["libE_info"]["H_rows"] + "_worker" + str(libE_info["workerID"])
+
+    statfile = "forces{}.stat".format(particles)
 
     if THIS_SCRIPT_ON_THETA:
-        file_dest = GLOBUS_DEST_DIR + forcesfile
+        transfer_statfile_path = GLOBUS_DEST_DIR + statfile
+        local_statfile_path = (
+            "../" + workdir + "/" + transfer_statfile_path.split("/")[-1]
+        )
     else:
-        file_dest = os.getcwd() + forcesfile
+        transfer_statfile_path = os.getcwd() + statfile
+        local_statfile_path = transfer_statfile_path
 
-    if TRANSFER_STATFILES:
-        transfer = {"result": GLOBUS_ENDPOINT + ":" + file_dest}
-    else:
-        transfer = {}
+    transfer = {"result": GLOBUS_ENDPOINT + ":" + transfer_statfile_path}
 
     task = exctr.submit(
         app_name="forces",
@@ -80,60 +50,21 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         workdir=workdir,
     )
 
-    poll_interval = 2  # secs
-    print("Beginning to poll Task {}".format(task.name))
-    while not task.finished:
-        time.sleep(poll_interval)
-        task.poll()
-        if task.state == "FAILED":
-            break
+    task.wait(timeout=300)
+    task.poll()
 
-    if task.state in ["FINISHED", "FAILED"]:
-        print("Task {} exited with state {}.".format(task.name, task.state))
-        if THIS_SCRIPT_ON_THETA:
-            statfile = "../" + workdir + "/" + file_dest.split("/")[-1]
-            if read_last_line(statfile) == "kill":
-                print(
-                    "Warning: Task completed although marked as a bad run (kill flag set in forces.stat)"
-                )
-                calc_status = TASK_FAILED
-            else:
-                calc_status = WORKER_DONE
-                print("Task completed successfully.")
+    print("Task {} polled. state: {}.".format(task.name, task.state))
 
-            try:
-                data = np.loadtxt(statfile)
-                final_energy = data[-1]
-            except Exception:
-                final_energy = np.nan
+    while not os.path.lexists(local_statfile_path):
+        time.sleep(1)
 
-        else:
-            if TRANSFER_STATFILES:
-                print("Waiting for Task {} statfile.".format(task.name))
-                while file_dest not in [
-                    os.path.join(os.getcwd(), i) for i in os.listdir(".")
-                ]:
-                    time.sleep(1)
-
-                if read_last_line(file_dest) == "kill":
-                    print(
-                        "Warning: Task completed although marked as a bad run (kill flag set in retrieved forces.stat)"
-                    )
-                    calc_status = TASK_FAILED
-                else:
-                    calc_status = WORKER_DONE
-                    print("Task completed successfully. forces.stat retrieved.")
-
-                try:
-                    data = np.loadtxt(file_dest)
-                    final_energy = data[-1]
-                except Exception:
-                    final_energy = np.nan
-            else:
-                calc_status = WORKER_DONE
-                print("Task completed.")
-    else:
-        print(task.state)
+    try:
+        data = np.loadtxt(local_statfile_path)
+        final_energy = data[-1]
+        calc_status = WORKER_DONE
+    except Exception:
+        final_energy = np.nan
+        calc_status = TASK_FAILED
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)

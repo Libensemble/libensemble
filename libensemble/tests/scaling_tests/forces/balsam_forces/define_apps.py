@@ -48,7 +48,7 @@ class RemoteForces(ApplicationDefinition):
     command_template = (
         "/home/jnavarro"
         + "/libensemble/libensemble/tests/scaling_tests/forces/forces.x"
-        + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
+        + " {{sim_particles}} {{sim_timesteps}} {{seed}}"
         + " > out.txt 2>&1"
     )
 
