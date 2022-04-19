@@ -1,1 +1,1 @@
-../../../libensemble/tests/scaling_tests/forces/build_forces.sh
+../../../libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
