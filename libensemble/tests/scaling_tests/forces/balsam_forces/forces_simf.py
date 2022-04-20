@@ -23,7 +23,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         "seed": particles,
     }
 
-    workdir = "sim" + ["libE_info"]["H_rows"] + "_worker" + str(libE_info["workerID"])
+    workdir = "sim" + libE_info["H_rows"] + "_worker" + str(libE_info["workerID"])
 
     statfile = "forces{}.stat".format(particles)
 

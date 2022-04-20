@@ -19,7 +19,7 @@ THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]
 GLOBUS_ENDPOINT = "jln_laptop"
 GLOBUS_DEST_DIR = (
     "/Users/jnavarro/Desktop/libensemble"
-    + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/ensemble"
+    + "/libensemble/libensemble/tests/scaling_tests/forces/balsam_forces/ensemble"
 )
 
 # Parse number of workers, comms type, etc. from arguments
