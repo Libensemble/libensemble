@@ -17,10 +17,11 @@ THIS_SCRIPT_ON_THETA = any([i in socket.gethostname() for i in ["theta", "nid0"]
 
 # Use Globus to transfer output forces.stat files back
 GLOBUS_ENDPOINT = "jln_laptop"
-GLOBUS_DEST_DIR = (
-    "/Users/jnavarro/Desktop/libensemble"
-    + "/libensemble/libensemble/tests/scaling_tests/forces/balsam_forces/ensemble"
-)
+
+if not THIS_SCRIPT_ON_THETA:
+    GLOBUS_DEST_DIR_PREFIX = os.getcwd() + "/ensemble"
+else:
+    GLOBUS_DEST_DIR_PREFIX = "/path/to/remote/ensemble/directory"
 
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -32,7 +33,7 @@ sim_specs = {
     "out": [("energy", float)],  # Name, type of output from sim_f
     "user": {
         "globus_endpoint": GLOBUS_ENDPOINT,
-        "globus_dest_dir": GLOBUS_DEST_DIR,
+        "globus_dest_dir": GLOBUS_DEST_DIR_PREFIX,
         "this_script_on_theta": THIS_SCRIPT_ON_THETA,
     },
 }
