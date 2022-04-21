@@ -14,6 +14,7 @@ if tuple(np.__version__.split('.')) >= ('1', '15'):
 # - compare selected values
 # - compare from npy file - stored
 
+
 wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], 0.1, 1.1, False, False, False, inf),
                    (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], 0.2, 1.2, False, False, False, inf),
                    (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], 0.3, 1.3, False, False, False, inf)],
@@ -21,6 +22,10 @@ wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], 0.1, 1.1, 
                          ('sim_id', '<i8'), ('sim_started', '?'), ('sim_worker', '<i8'), ('sim_ended', '?'),
                          ('fvec', '<f8', (3,)), ('f', '<f8'), ('sim_started_time', '<f8'),
                          ('cancel_requested', '?'), ('kill_sent', '?'), ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+
+wrs_H0 = np.zeros(3, dtype = libE_fields + [('local_pt', '?')] )
+wrs_H0['sim_started_time'] = [0.1, 0.2, 0.3]
+wrs_H0['sim_ended_time'] = [1.1, 1.2, 1.3]
 
 exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], 0.1, 1.1, 2.1, False, False, False, inf),
                      (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], 0.2, 1.2, 2.3, False, False, False, inf),
@@ -503,7 +508,7 @@ def test_repack_fields():
 
 if __name__ == "__main__":
     test_hist_init_1()
-    test_hist_init_1A_H0()
+    # test_hist_init_1A_H0()
     test_hist_init_2()
     test_grow_H()
     test_trim_H()
