@@ -15,77 +15,43 @@ if tuple(np.__version__.split('.')) >= ('1', '15'):
 # - compare from npy file - stored
 
 
-wrs_H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], 0.1, 1.1, False, False, False, inf),
-                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], 0.2, 1.2, False, False, False, inf),
-                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], 0.3, 1.3, False, False, False, inf)],
-                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
-                         ('sim_id', '<i8'), ('sim_started', '?'), ('sim_worker', '<i8'), ('sim_ended', '?'),
-                         ('fvec', '<f8', (3,)), ('f', '<f8'), ('sim_started_time', '<f8'),
-                         ('cancel_requested', '?'), ('kill_sent', '?'), ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+fields = [('local_pt', '?'), ('num_active_runs', '<i8'), ('local_min', '?'), ('priority', '<f8'), ('x_on_cube', '<f8'), ('fvec', '<f8', (3,)), ('f', '<f8')]
+fields2 = [ ('g', '<f8'), ('x', '<f8'), ('priority', '<f8') ]
 
-wrs_H0 = np.zeros(3, dtype = libE_fields + [('local_pt', '?')] )
-wrs_H0['sim_started_time'] = [0.1, 0.2, 0.3]
+wrs_H0 = np.zeros(3, dtype = libE_fields)
+wrs_H0[['sim_started','sim_ended']] = True
 wrs_H0['sim_ended_time'] = [1.1, 1.2, 1.3]
+wrs_H0['sim_id'] = range(3)
+wrs_H0['sim_started_time'] = [0.1, 0.2, 0.3]
+wrs_H0['sim_worker'] = [1, 2, 3]
 
-exp_H0_H = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], 0.1, 1.1, 2.1, False, False, False, inf),
-                     (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], 0.2, 1.2, 2.3, False, False, False, inf),
-                     (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], 0.3, 1.3, 2.3, False, False, False, inf),
-                     (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], 0., inf, 0., False, False, False, inf),
-                     (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], 0., inf, 0., False, False, False, inf)],
-                    dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('x_on_cube', '<f8'),
-                           ('sim_id', '<i8'), ('sim_started', '?'), ('sim_worker', '<i8'), ('sim_ended', '?'),
-                           ('fvec', '<f8', (3,)), ('f', '<f8'), ('sim_started_time', '<f8'),
-                           ('sim_ended_time', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                           ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+exp_H0_H = np.zeros(5, dtype = libE_fields + fields)
+exp_H0_H['gen_informed_time'] = [0, 0, 0, inf, inf]
+exp_H0_H[['sim_started','sim_ended']][:3] = True
+exp_H0_H['sim_ended_time'][:3] = [1.1, 1.2, 1.3]
+exp_H0_H['sim_id'] = [0, 1, 2, -1, -1]
+exp_H0_H['sim_started_time'] = [0.1,0.2,0.3, inf, inf]
+exp_H0_H['sim_worker'][:3] = [1, 2, 3]
 
-wrs = np.array([(False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0),
-                (False, 0., 0, 0., 0., -1, False, 0, False, 0, [0., 0., 0.], 0., inf, False, 0, False, False, False, inf, 0)],
-               dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'), ('gen_ended_time', '<f8'),
-                      ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_started', '?'),
-                      ('sim_worker', '<i8'), ('sim_ended', '?'), ('sim_ended_time', '<f8'), ('fvec', '<f8', (3,)),
-                      ('f', '<f8'), ('sim_started_time', '<f8'),
-                      ('local_min', '?'), ('num_active_runs', '<i8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                      ('gen_informed', '?'), ('gen_informed_time', '<f8'), ('gen_started_time', '<f8')])
+wrs = np.zeros(10, dtype = libE_fields + fields)
+wrs[['sim_started_time','gen_informed_time']] = inf
+wrs['sim_id'] = -1
 
-wrs2 = np.array([(0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0),
-                 (0, False, 0., 0., 0., 0, 0., False, -1, inf, 0., False, False, False, inf, 0)],
-                dtype=[('gen_worker', '<i8'), ('sim_ended', '?'), ('sim_ended_time', '<f8'),
-                       ('gen_ended_time', '<f8'), ('x', '<f8'),
-                       ('sim_worker', '<i8'), ('g', '<f8'), ('sim_started', '?'),
-                       ('sim_id', '<i8'), ('sim_started_time', '<f8'),
-                       ('priority', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                       ('gen_informed', '?'), ('gen_informed_time', '<f8'), ('gen_started_time', '<f8')])
+wrs2 = np.zeros(10, dtype = libE_fields + fields2)
+wrs2[['sim_started_time','gen_informed_time']] = inf
+wrs2['sim_id'] = -1
 
-exp_x_in_setup2 = np.array([(0, 0, 2, 0., 4.17022005e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 1, 3, 0., 7.20324493e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 2, 3, 0., 1.14374817e-04, False, False, inf, 0., False, False, False, inf),
-                            (0, 3, 3, 0., 3.02332573e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 4, 3, 0., 1.46755891e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 5, 3, 0., 9.23385948e-02, False, False, inf, 0., False, False, False, inf),
-                            (0, 6, 3, 0., 1.86260211e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 7, 3, 0., 3.45560727e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 8, 3, 0., 3.96767474e-01, False, False, inf, 0., False, False, False, inf),
-                            (0, 9, 3, 0., 5.38816734e-01, False, False, inf, 0., False, False, False, inf)],
-                           dtype=[('sim_worker', '<i8'), ('sim_id', '<i8'), ('gen_worker', '<i8'), ('priority', '<f8'),
-                                  ('x', '<f8'), ('sim_ended', '?'), ('sim_started', '?'),
-                                  ('sim_started_time', '<f8'), ('g', '<f8'), ('cancel_requested', '?'), ('kill_sent', '?'),
-                                  ('gen_informed', '?'), ('gen_informed_time', '<f8')])
+exp_x_in_setup2 = np.zeros(10, dtype = libE_fields + fields2)
+exp_x_in_setup2[['gen_informed_time','gen_started_time','sim_started_time']] = inf
+exp_x_in_setup2['gen_worker'] = 3
+exp_x_in_setup2['gen_worker'][0] = 2
+exp_x_in_setup2['sim_id'] = range(0,10)
+
+x = [4.17022005e-01, 7.20324493e-01, 1.14374817e-04, 3.02332573e-01,
+        1.46755891e-01, 9.23385948e-02, 1.86260211e-01, 3.45560727e-01,
+        3.96767474e-01, 5.38816734e-01]
+
+exp_x_in_setup2['x'] = x
 
 safe_mode = True
 
@@ -93,9 +59,10 @@ safe_mode = True
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
-def compare_hists(H1, H2): 
-    for field in set(H1.dtype.names + H2.dtype.names):
-        assert np.array_equal(H1[field], H2[field]), "Array does not match expected"
+def compare_hists(H1, H2, ignore=[]): 
+    for field in sorted(set(H1.dtype.names + H2.dtype.names)):
+        if field not in ignore:
+            assert np.allclose(H1[field], H2[field]), "Array does not match expected"
 
 
 # Tests ========================================================================================
@@ -203,7 +170,7 @@ def test_update_history_x_in():
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
 
-    compare_hists(hist.H, exp_x)
+    compare_hists(hist.H, exp_x, ['gen_ended_time'])
 
     assert hist.sim_started_count == 0
     assert hist.index == 7
@@ -220,7 +187,7 @@ def test_update_history_x_in():
     # Compare by column
     exp_x = exp_x_in_setup2
 
-    compare_hists(hist.H, exp_x)
+    compare_hists(hist.H, exp_x, ['gen_ended_time'])
 
     assert hist.sim_started_count == 0
     assert hist.index == 10
@@ -277,7 +244,7 @@ def test_update_history_x_in_sim_ids():
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
 
-    compare_hists(hist.H, exp_x)
+    compare_hists(hist.H, exp_x, ['gen_ended_time'])
 
     assert hist.sim_started_count == 0
     assert hist.index == 7
@@ -295,7 +262,7 @@ def test_update_history_x_in_sim_ids():
     # Compare by column
     exp_x = exp_x_in_setup2
 
-    compare_hists(hist.H, exp_x)
+    compare_hists(hist.H, exp_x, ['gen_ended_time'])
 
     assert hist.sim_started_count == 0
     assert hist.index == 10
@@ -508,7 +475,7 @@ def test_repack_fields():
 
 if __name__ == "__main__":
     test_hist_init_1()
-    # test_hist_init_1A_H0()
+    test_hist_init_1A_H0()
     test_hist_init_2()
     test_grow_H()
     test_trim_H()
