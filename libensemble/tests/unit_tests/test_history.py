@@ -1,5 +1,6 @@
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.message_numbers import WORKER_DONE
+from libensemble.tools.fields_keys import libE_fields
 import numpy as np
 from numpy import inf
 
@@ -87,12 +88,17 @@ safe_mode = True
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
+def compare_hists(H1, H2): 
+    for field in set(H1.dtype.names + H2.dtype.names):
+        assert np.array_equal(H1[field], H2[field]), "Array does not match expected"
+
 
 # Tests ========================================================================================
 def test_hist_init_1():
     hist, _, _, _, _ = setup.hist_setup1()
-    for field in set(wrs.dtype.names + hist.H.dtype.names):
-        np.array_equal(hist.H[field], wrs[field]), "Array does not match expected"
+
+    compare_hists(hist.H, wrs)
+
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -102,9 +108,8 @@ def test_hist_init_1():
 def test_hist_init_1A_H0():
     hist, _, _, _, _ = setup.hist_setup1(sim_max=2, H0_in=wrs_H0)
 
-    # Compare by column
-    for field in set(exp_H0_H.dtype.names + hist.H.dtype.names):
-        np.array_equal(hist.H[field], exp_H0_H[field]), "Array does not match expected"
+    compare_hists(hist.H, exp_H0_H)
+
     assert hist.sim_started_count == 3
     assert hist.index == 3
     assert hist.sim_ended_count == 3
@@ -114,8 +119,9 @@ def test_hist_init_1A_H0():
 
 def test_hist_init_2():
     hist, _, _, _, _ = setup.hist_setup2()
-    for field in set(wrs2.dtype.names + hist.H.dtype.names):
-        np.array_equal(hist.H[field], wrs2[field]), "Array does not match expected"
+
+    compare_hists(hist.H, wrs2)
+
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -126,8 +132,9 @@ def test_grow_H():
     hist, _, _, _, _ = setup.hist_setup1(3)
     new_rows = 7
     hist.grow_H(k=new_rows)
-    for field in set(wrs.dtype.names + hist.H.dtype.names):
-        np.array_equal(hist.H[field], wrs[field]), "Array does not match expected"
+
+    compare_hists(hist.H, wrs)
+
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -138,8 +145,9 @@ def test_trim_H():
     hist, _, _, _, _ = setup.hist_setup1(13)
     hist.index = 10
     H = hist.trim_H()
-    for field in set(wrs.dtype.names + H.dtype.names):
-        np.array_equal(H[field], wrs[field]), "Array does not match expected"
+
+    compare_hists(H, wrs)
+
     assert hist.sim_started_count == 0
     assert hist.index == 10
     assert hist.sim_ended_count == 0
@@ -151,8 +159,9 @@ def test_update_history_x_in_Oempty():
     H_o = np.zeros(0, dtype=gen_specs['out'])
     gen_worker = 1
     hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
-    for field in set(wrs2.dtype.names + hist.H.dtype.names):
-        np.array_equal(hist.H[field], wrs2[field]), "Array does not match expected"
+
+    compare_hists(hist.H, wrs2)
+
     assert hist.sim_started_count == 0
     assert hist.index == 0
     assert hist.sim_ended_count == 0
@@ -188,8 +197,8 @@ def test_update_history_x_in():
     hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
-    for field in exp_x.dtype.names:
-        np.allclose(hist.H[field], exp_x[field])
+
+    compare_hists(hist.H, exp_x)
 
     assert hist.sim_started_count == 0
     assert hist.index == 7
@@ -205,8 +214,8 @@ def test_update_history_x_in():
     hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
-    for field in exp_x.dtype.names:
-        np.allclose(hist.H[field], exp_x[field])
+
+    compare_hists(hist.H, exp_x)
 
     assert hist.sim_started_count == 0
     assert hist.index == 10
@@ -262,8 +271,8 @@ def test_update_history_x_in_sim_ids():
 
     # Compare by column
     exp_x = exp_x_in_setup2[:size+1]
-    for field in exp_x.dtype.names:
-        np.allclose(hist.H[field], exp_x[field])
+
+    compare_hists(hist.H, exp_x)
 
     assert hist.sim_started_count == 0
     assert hist.index == 7
@@ -280,8 +289,8 @@ def test_update_history_x_in_sim_ids():
     hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
-    for field in exp_x.dtype.names:
-        np.allclose(hist.H[field], exp_x[field])
+
+    compare_hists(hist.H, exp_x)
 
     assert hist.sim_started_count == 0
     assert hist.index == 10
@@ -309,8 +318,7 @@ def test_update_history_x_out():
     hist.H['sim_id'][0] == -1
 
     # Check the rest of H is unaffected
-    for field in set(wrs[1:10].dtype.names + hist.H[1:10].dtype.names):
-        np.array_equal(hist.H[1:10][field], wrs[1:10][field]), "Array does not match expected"
+    compare_hists(hist.H[1:10], wrs[1:10])
 
     # Update two further consecutive points
     my_qinds = np.arange(1, 3)
@@ -495,7 +503,7 @@ def test_repack_fields():
 
 if __name__ == "__main__":
     test_hist_init_1()
-    # test_hist_init_1A_H0()
+    test_hist_init_1A_H0()
     test_hist_init_2()
     test_grow_H()
     test_trim_H()
