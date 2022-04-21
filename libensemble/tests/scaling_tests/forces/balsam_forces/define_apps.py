@@ -25,19 +25,9 @@ class RemoteLibensembleApp(ApplicationDefinition):
     site = "jln_theta"
     command_template = (
         "/home/jnavarro/.conda/envs/again/bin/python /home/jnavarro"
-        + "/libensemble/libensemble/tests/scaling_tests/balsam_forces/run_libe_forces_balsam.py"
+        + "/libensemble/libensemble/tests/scaling_tests/forces/balsam_forces/run_libe_forces_balsam.py"
         + " > libe_out.txt 2>&1"
     )
-
-    transfers = {
-        "input_file": {
-            "required": False,
-            "direction": "in",
-            "local_path": ".",
-            "description": "Transfer in of balsam_forces.yaml",
-            "recursive": False,
-        }
-    }
 
 
 print("Defined RemoteLibensembleApp Balsam ApplicationDefinition.")
@@ -47,14 +37,14 @@ class RemoteForces(ApplicationDefinition):
     site = "jln_theta"
     command_template = (
         "/home/jnavarro"
-        + "/libensemble/libensemble/tests/scaling_tests/forces/forces.x"
-        + " {{sim_particles}} {{sim_timesteps}} {{seed}} {{kill_rate}}"
+        + "/libensemble/libensemble/tests/scaling_tests/forces/forces_app/forces.x"
+        + " {{sim_particles}} {{sim_timesteps}} {{seed}}"
         + " > out.txt 2>&1"
     )
 
     transfers = {
         "result": {
-            "required": False,
+            "required": True,
             "direction": "out",
             "local_path": "forces.stat",
             "description": "Forces stat file",

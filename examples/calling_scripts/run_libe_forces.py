@@ -1,1 +1,1 @@
-../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
+../../libensemble/tests/scaling_tests/forces/forces_adv/run_libe_forces.py
