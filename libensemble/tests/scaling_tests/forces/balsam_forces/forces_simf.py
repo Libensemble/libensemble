@@ -34,7 +34,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
             "../" + workdir + "/" + transfer_statfile_path.split("/")[-1]
         )
     else:
-        transfer_statfile_path = os.getcwd() + statfile
+        transfer_statfile_path = os.getcwd() + "/" + statfile
         local_statfile_path = transfer_statfile_path
 
     transfer = {"result": GLOBUS_ENDPOINT + ":" + transfer_statfile_path}
