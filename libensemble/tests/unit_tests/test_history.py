@@ -495,7 +495,7 @@ def test_repack_fields():
 
 if __name__ == "__main__":
     test_hist_init_1()
-    test_hist_init_1A_H0()
+    # test_hist_init_1A_H0()
     test_hist_init_2()
     test_grow_H()
     test_trim_H()
