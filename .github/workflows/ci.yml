@@ -90,18 +90,6 @@ jobs:
             mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk
             conda install clang_osx-64=9.0.1
 
-        - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
-          run: |
-            sudo apt-get update
-            sudo apt-get install octave
-            sudo apt-get install bc
-
-            pip install dragonfly-opt
-            pip install torch
-            pip install gpytorch
-            pip install ax-platform
-
         - name: Install MPI, mpi4py from conda
           if: matrix.python-version != '3.10'
           run: |
@@ -129,6 +117,18 @@ jobs:
 
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
+
+        - name: Install generator dependencies for Ubuntu tests
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
+          run: |
+            sudo apt-get update
+            sudo apt-get install octave
+            sudo apt-get install bc
+
+            pip install dragonfly-opt
+            pip install torch
+            pip install gpytorch
+            pip install ax-platform
 
         - name: Install other testing dependencies
           run: |
