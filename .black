@@ -16,7 +16,6 @@ force-exclude = '''
     | libensemble/tests/unit_tests
     | libensemble/gen_funcs
     | libensemble/alloc_funcs
-    | libensemble/sim_funcs
     | examples
     | postproc_scripts
   )/

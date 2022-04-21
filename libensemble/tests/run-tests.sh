@@ -294,7 +294,7 @@ done
 # fi
 
 # If none selected default to running all tests
-if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
+if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ]; then
     RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=false
 fi
 
@@ -337,10 +337,10 @@ PYTHON_RUN="python$PYTHON_VER $PYTHON_FLAGS"
 echo -e "Python run: $PYTHON_RUN"
 
 textreset=$(tput sgr0)
-fail_color=$(tput bold;tput setaf 1) #red
-pass_color=$(tput bold;tput setaf 2) #green
-titl_color=$(tput bold;tput setaf 6) #cyan
-hint_color=$(tput bold;tput setaf 4) #blue
+fail_color=$(tput bold; tput setaf 1) #red
+pass_color=$(tput bold; tput setaf 2) #green
+titl_color=$(tput bold; tput setaf 6) #cyan
+hint_color=$(tput bold; tput setaf 4) #blue
 
 # Note - pytest exit codes
 # Exit code 0:  All tests were collected and passed successfully
@@ -384,7 +384,7 @@ if [ "$root_found" = true ]; then
   # Run Unit Tests -----------------------------------------------------------------------
 
   if [ "$RUN_UNIT_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
@@ -409,11 +409,11 @@ if [ "$root_found" = true ]; then
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
-      tput bold;tput setaf 2; echo "Unit tests passed. Continuing...";tput sgr 0
+      tput bold; tput setaf 2; echo "Unit tests passed. Continuing..."; tput sgr 0
       echo
     else
       echo
-      tput bold;tput setaf 1;echo -e "Abort $RUN_PREFIX: Unit tests failed: $code";tput sgr 0
+      tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX: Unit tests failed: $code"; tput sgr 0
       exit $code #return pytest exit code
     fi;
     done
@@ -423,7 +423,7 @@ if [ "$root_found" = true ]; then
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
 
@@ -632,19 +632,19 @@ if [ "$root_found" = true ]; then
     #All reg tests - summary ----------------------------------------------
     if [ "$code" -eq "0" ]; then
       echo
-      #tput bold;tput setaf 2
+      #tput bold; tput setaf 2
 
       if [ "$REG_USE_PYTEST" != true ]; then
         #sh - temp formatting similar(ish) to pytest - update in python (as with timing)
-        #tput bold;tput setaf 4; echo -e "***Note***: temporary formatting/timing ......"
+        #tput bold; tput setaf 4; echo -e "***Note***: temporary formatting/timing ......"
 
         summ_line="$reg_pass passed in $reg_time seconds"
-        tput bold;tput setaf 2;
+        tput bold; tput setaf 2;
         print_summary_line $summ_line
         tput sgr 0
       fi;
 
-      tput bold;tput setaf 2;echo -e "\nRegression tests passed ..."
+      tput bold; tput setaf 2; echo -e "\nRegression tests passed ..."
       tput sgr 0
       echo
     else
@@ -654,12 +654,12 @@ if [ "$root_found" = true ]; then
           echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
         fi
         summ_line="$reg_fail failed, $reg_pass passed in $reg_time seconds"
-        tput bold;tput setaf 1;
+        tput bold; tput setaf 1;
         print_summary_line $summ_line
         tput sgr 0
       fi;
       echo
-      tput bold;tput setaf 1;echo -e "\nAbort $RUN_PREFIX: Regression tests failed (exit code $code)";tput sgr 0
+      tput bold; tput setaf 1; echo -e "\nAbort $RUN_PREFIX: Regression tests failed (exit code $code)"; tput sgr 0
       echo
       exit $code
     fi;
@@ -669,7 +669,7 @@ if [ "$root_found" = true ]; then
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR
   if [ "$RUN_PEP_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running PEP tests - All python src below $PEP_SCOPE"
     tput sgr 0
     pytest --$PYTHON_PEP_STANDARD $ROOT_DIR/$PEP_SCOPE
@@ -677,19 +677,19 @@ if [ "$root_found" = true ]; then
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
-      tput bold;tput setaf 2; echo "PEP tests passed. Continuing...";tput sgr 0
+      tput bold; tput setaf 2; echo "PEP tests passed. Continuing..."; tput sgr 0
       echo
     else
       echo
-      tput bold;tput setaf 1;echo -e "Abort $RUN_PREFIX: PEP tests failed: $code";tput sgr 0
+      tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX: PEP tests failed: $code"; tput sgr 0
        exit $code #return pytest exit code
     fi;
   fi;
 
   # ------------------------------------------------------------------
-  tput bold;tput setaf 2; echo -e "\n$RUN_PREFIX --$PYTHON_RUN: All tests passed\n"; tput sgr 0
+  tput bold; tput setaf 2; echo -e "\n$RUN_PREFIX --$PYTHON_RUN: All tests passed\n"; tput sgr 0
   exit 0
 else
-  tput bold;tput setaf 1; echo -e "Abort $RUN_PREFIX:  Project root dir not found"; tput sgr 0
+  tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX:  Project root dir not found"; tput sgr 0
   exit 1
 fi
