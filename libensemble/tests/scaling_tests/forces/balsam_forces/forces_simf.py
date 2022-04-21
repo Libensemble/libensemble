@@ -24,7 +24,9 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         "seed": particles,
     }
 
-    workdir = "sim" + str(libE_info["H_rows"][0]) + "_worker" + str(libE_info["workerID"])
+    workdir = (
+        "sim" + str(libE_info["H_rows"][0]) + "_worker" + str(libE_info["workerID"])
+    )
 
     statfile = "forces{}.stat".format(particles)
 
@@ -55,8 +57,13 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     print("Task {} polled. state: {}.".format(task.name, task.state))
 
-    while not os.path.lexists(local_statfile_path):
+    while True:
         time.sleep(1)
+        if (
+            os.path.isfile(local_statfile_path)
+            and os.path.getsize(local_statfile_path) > 0
+        ):
+            break
 
     try:
         data = np.loadtxt(local_statfile_path)
