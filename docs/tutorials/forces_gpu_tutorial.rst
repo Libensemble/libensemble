@@ -15,9 +15,11 @@ The forces code used is based on that in the
 
 To compile the forces application for using the GPU, ensure forces.c_ has the
 ``#pragma omp target`` line uncommented and comment out the equivalent 
-``#pragma omp parallel`` line.
+``#pragma omp parallel`` line. Then compile to ``forces.x`` using one of the
+GPU build lines in ``build_forces.sh``.
 
-The code used is available under forces_gpu_ in the libEnsemble repository.
+The libEnsemble scripts in this example are available under forces_gpu_ in
+the libEnsemble repository.
 
 Simulation function
 -------------------
