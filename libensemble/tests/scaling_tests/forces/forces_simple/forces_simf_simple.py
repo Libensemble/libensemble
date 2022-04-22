@@ -26,7 +26,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     task.wait(timeout=60)
 
     # Stat file to check for bad runs
-    statfile = "forces{}.stat".format(particles)
+    statfile = "forces.stat"
 
     # Try loading final energy reading, set the sim's status
     try:

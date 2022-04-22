@@ -241,7 +241,7 @@ and evaluated in a variety of helpful ways. For now, we're satisfied with waitin
 for the task to complete via ``task.wait()``.
 
 We can assume that afterward, any results are now available to parse. Our application
-produces a ``forces[particles].stat`` file that contains either energy
+produces a ``forces.stat`` file that contains either energy
 computations for every time-step or a "kill" message if particles were lost, which
 indicates a failed simulation.
 
@@ -254,7 +254,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
     :linenos:
 
         # Stat file to check for bad runs
-        statfile = "forces{}.stat".format(particles)
+        statfile = "forces.stat"
 
         # Try loading final energy reading, set the sim's status
         try:

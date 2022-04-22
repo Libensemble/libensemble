@@ -1,23 +1,71 @@
 """
-This module launches and controls the running of tasks with Balsam_ 0.5.0. Balsam
-is especially useful when running libEnsemble on three-tier systems with intermediate
-launch nodes. Typically on such systems, MPI processes are themselves unable
-to submit further MPI tasks to the batch scheduler. Therefore when libEnsemble's
-workers have been launched in a distributed fashion via MPI, they must communicate
-with an intermediate service like Balsam running on the launch nodes. The Balsam
-service then reserves compute resources and launches tasks from libEnsemble's workers
-that are using the Balsam MPI Executor.
+This module launches and controls the running of tasks with Balsam_, and most
+notably can submit tasks from any machine, to any machine running a Balsam site_.
 
-In order to create a Balsam executor, the calling script should contain ::
+.. image:: ../images/balsam2.png
+    :alt: central_balsam
+    :scale: 40
+    :align: center
 
-    exctr = BalsamMPIExecutor()
+At this time, access to Balsam is limited to those with valid organizational logins
+authenticated through Globus_.
 
-The Balsam executor inherits from the MPI executor. See the
-:doc:`MPIExecutor<mpi_executor>` for shared API. Any differences are
-shown below.
+In order to initiate a Balsam executor, the calling script should contain ::
 
-.. _Balsam: https://balsam.readthedocs.io/en/master/
+    from libensemble.executors import BalsamExecutor
+    exctr = BalsamExecutor()
 
+Key differences to consider between this executor and libEnsemble's others is
+Balsam ``ApplicationDefinition`` instances are registered instead of paths and task
+submissions will not run until Balsam reserves compute resources at a site.
+
+This process may resemble::
+
+    from libensemble.executors import BalsamExecutor
+    from balsam.api import ApplicationDefinition
+
+    class HelloApp(ApplicationDefinition):
+        site = "my-balsam-site"
+        command_template = "/path/to/hello.app {{ my_name }}"
+
+    exctr = BalsamExecutor()
+    exctr.register_app(HelloApp, app_name="hello")
+
+    exctr.submit_allocation(
+        site_id=999,  # corresponds to "my-balsam-site", found via ``balsam site ls``
+        num_nodes=4,  # Total number of nodes requested for *all jobs*
+        wall_time_min=30,
+        queue="debug-queue",
+        project="my-project",
+    )
+
+Task submissions of registered apps aren't too different from the other executors,
+except Balsam expects application arguments in dictionary form. Note that these fields
+must match the templating syntax in each ``ApplicationDefinition``'s ``command_template``
+field::
+
+    args = {"my_name": "World"}
+
+    task = exctr.submit(
+        app_name="hello",
+        app_args=args,
+        num_procs=4,
+        num_nodes=1,
+        procs_per_node=4,
+    )
+
+Application instances submitted by the executor to the Balsam service will get
+scheduled within the reserved resource allocation. **Each Balsam app can only be
+submitted to the site specified in its class definition.** Output files will appear
+in the Balsam site's ``data`` directory, but can be automatically `transferred back`_
+via Globus.
+
+**Reading Balsam's documentation is highly recommended.**
+
+.. _site: https://balsam.readthedocs.io/en/latest/user-guide/site-config/
+.. _Balsam: https://balsam.readthedocs.io/en/latest/
+.. _`transferred back`: https://balsam.readthedocs.io/en/latest/user-guide/transfer/
+.. _Globus: https://www.globus.org/
 """
 
 import os
@@ -25,13 +73,17 @@ import logging
 import time
 import datetime
 
-from libensemble.resources import mpi_resources
-from libensemble.executors.executor import \
-    Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.executors.executor import (
+    Application,
+    Task,
+    ExecutorException,
+    TimeoutExpired,
+    jassert,
+    STATES,
+)
+from libensemble.executors import Executor
 
-import balsam.launcher.dag as dag
-from balsam.core import models
+from balsam.api import Job, BatchJob, EventLog
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -39,40 +91,40 @@ logger = logging.getLogger(__name__)
 
 
 class BalsamTask(Task):
-    """Wraps a Balsam Task from the Balsam service
+    """Wraps a Balsam ``Job`` from the Balsam service.
 
-    The same attributes and query routines are implemented.
+    The same attributes and query routines are implemented. Use ``task.process``
+    to refer to the matching Balsam ``Job`` initialized by the ``BalsamExecutor``,
+    with every Balsam ``Job`` method invocable on it. Otherwise, libEnsemble task methods
+    like ``poll()`` can be used directly.
 
     """
 
-    def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None):
-        """Instantiate a new BalsamTask instance.
+    def __init__(
+        self,
+        app=None,
+        app_args=None,
+        workdir=None,
+        stdout=None,
+        stderr=None,
+        workerid=None,
+    ):
+        """Instantiate a new ``BalsamTask`` instance.
 
-        A new BalsamTask object is created with an id, status and
+        A new ``BalsamTask`` object is created with an id, status and
         configuration attributes.  This will normally be created by the
         executor on a submission.
         """
         # May want to override workdir with Balsam value when it exists
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
-    def read_file_in_workdir(self, filename):
-        return self.process.read_file_in_workdir(filename)
-
-    def read_stdout(self):
-        return self.process.read_file_in_workdir(self.stdout)
-
-    def read_stderr(self):
-        return self.process.read_file_in_workdir(self.stderr)
-
     def _get_time_since_balsam_submit(self):
-        """Return time since balsam task entered RUNNING state"""
+        """Return time since balsam task entered ``RUNNING`` state"""
 
-        # If wait_on_start then can could calculate runtime same a base executor
-        # but otherwise that will return time from task submission. Get from Balsam.
-
-        # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
-        balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
+        event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
+        if not len(event_query):
+            return 0
+        balsam_launch_datetime = event_query[0].timestamp
         current_datetime = datetime.datetime.now()
         if balsam_launch_datetime:
             return (current_datetime - balsam_launch_datetime).total_seconds()
@@ -97,28 +149,30 @@ class BalsamTask(Task):
         self.finished = True
         if dry_run:
             self.success = True
-            self.state = 'FINISHED'
+            self.state = "FINISHED"
         else:
             balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
             self.calc_task_timing()
-            self.success = (balsam_state == 'JOB_FINISHED')
-            if balsam_state == 'JOB_FINISHED':
-                self.state = 'FINISHED'
-            elif balsam_state == 'PARENT_KILLED':  # Not currently used
-                self.state = 'USER_KILLED'
+            if balsam_state in [
+                "RUN_DONE",
+                "POSTPROCESSED",
+                "STAGED_OUT",
+                "JOB_FINISHED",
+            ]:
+                self.success = True
+                self.state = "FINISHED"
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
-                logger.warning("Task finished, but in unrecognized "
-                               "Balsam state {}".format(balsam_state))
-                self.state = 'UNKNOWN'
+                logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
+                self.state = "UNKNOWN"
 
-            logger.info("Task {} ended with state {}".
-                        format(self.name, self.state))
+            logger.info("Task {} ended with state {}".format(self.name, self.state))
 
     def poll(self):
-        """Polls and updates the status attributes of the supplied task"""
+        """Polls and updates the status attributes of the supplied task. Requests
+        Job information from Balsam service."""
         if self.dry_run:
             return
 
@@ -130,32 +184,41 @@ class BalsamTask(Task):
         balsam_state = self.process.state
         self.runtime = self._get_time_since_balsam_submit()
 
-        if balsam_state in models.END_STATES:
+        if balsam_state in ["RUN_DONE", "POSTPROCESSED", "STAGED_OUT", "JOB_FINISHED"]:
             self._set_complete()
 
-        elif balsam_state in models.ACTIVE_STATES:
-            self.state = 'RUNNING'
+        elif balsam_state in ["RUNNING"]:
+            self.state = "RUNNING"
             self.workdir = self.workdir or self.process.working_directory
 
-        elif (balsam_state in models.PROCESSABLE_STATES or
-              balsam_state in models.RUNNABLE_STATES):
-            self.state = 'WAITING'
+        elif balsam_state in [
+            "CREATED",
+            "AWAITING_PARENTS",
+            "READY",
+            "STAGED_IN",
+            "PREPROCESSED",
+        ]:
+            self.state = "WAITING"
+
+        elif balsam_state in ["RUN_ERROR", "RUN_TIMEOUT", "FAILED"]:
+            self.state = "FAILED"
 
         else:
             raise ExecutorException(
                 "Task state returned from Balsam is not in known list of "
-                "Balsam states. Task state is {}".format(balsam_state))
+                "Balsam states. Task state is {}".format(balsam_state)
+            )
 
     def wait(self, timeout=None):
-        """Waits on completion of the task or raises TimeoutExpired exception
+        """Waits on completion of the task or raises ``TimeoutExpired``.
 
         Status attributes of task are updated on completion.
 
         Parameters
         ----------
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        timeout: float
+            Time in seconds after which a ``TimeoutExpired`` exception is raised"""
 
         if self.dry_run:
             return
@@ -166,7 +229,12 @@ class BalsamTask(Task):
         # Wait on the task
         start = time.time()
         self.process.refresh_from_db()
-        while self.process.state not in models.END_STATES:
+        while self.process.state not in [
+            "RUN_DONE",
+            "POSTPROCESSED",
+            "STAGED_OUT",
+            "JOB_FINISHED",
+        ]:
             time.sleep(0.2)
             self.process.refresh_from_db()
             if timeout and time.time() - start > timeout:
@@ -176,100 +244,260 @@ class BalsamTask(Task):
         self.runtime = self._get_time_since_balsam_submit()
         self._set_complete()
 
-    def kill(self, wait_time=None):
-        """ Kills or cancels the supplied task """
+    def kill(self):
+        """Cancels the supplied task. Killing is unsupported at this time."""
 
-        dag.kill(self.process)
-
-        # Could have Wait here and check with Balsam its killed -
-        # but not implemented yet.
+        self.process.delete()
 
         logger.info("Killing task {}".format(self.name))
-        self.state = 'USER_KILLED'
+        self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
 
 
-class BalsamMPIExecutor(MPIExecutor):
-    """Inherits from MPIExecutor and wraps the Balsam task management service
+class BalsamExecutor(Executor):
+    """Inherits from ``Executor`` and wraps the Balsam service. Via this Executor,
+    Balsam ``Jobs`` can be submitted to Balsam sites, either local or on remote machines.
 
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
-    def __init__(self, custom_info={}):
-        """Instantiate a new BalsamMPIExecutor instance.
 
-        A new BalsamMPIExecutor object is created with an application
-        registry and configuration attributes
-        """
+    def __init__(self):
+        """Instantiate a new ``BalsamExecutor`` instance."""
 
-        if custom_info:
-            logger.warning("The Balsam executor does not support custom_info - ignoring")
-
-        super().__init__(custom_info)
+        super().__init__()
 
         self.workflow_name = "libe_workflow"
+        self.allocations = []
 
     def serial_setup(self):
-        """Balsam serial setup includes empyting database and adding applications"""
-        BalsamMPIExecutor.del_apps()
-        BalsamMPIExecutor.del_tasks()
+        """Balsam serial setup includes emptying database and adding applications"""
+        pass
 
-        for app in self.apps.values():
-            calc_name = app.gname
-            desc = app.desc
-            full_path = app.full_path
-            self.add_app(calc_name, full_path, desc)
+    def add_app(self, name, site, exepath, desc):
+        """Sync application with Balsam service"""
+        pass
 
-    @staticmethod
-    def del_apps():
-        """Deletes all Balsam apps in the libe_app namespace"""
-        AppDef = models.ApplicationDefinition
+    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
+        """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
+        instance *must* have a ``site`` and ``command_template`` specified. See
+        the Balsam docs for information on other optional fields.
 
-        # Some error handling on deletes.... is it internal
-        for app_type in [Application.prefix]:
-            deletion_objs = AppDef.objects.filter(name__contains=app_type)
-            if deletion_objs:
-                for del_app in deletion_objs.iterator():
-                    logger.debug("Deleting app {}".format(del_app.name))
-                deletion_objs.delete()
+        Parameters
+        ----------
 
-    @staticmethod
-    def del_tasks():
-        """Deletes all Balsam tasks """
-        for app_type in [Task.prefix]:
-            deletion_objs = models.BalsamJob.objects.filter(
-                name__contains=app_type)
-            if deletion_objs:
-                for del_task in deletion_objs.iterator():
-                    logger.debug("Deleting task {}".format(del_task.name))
-                deletion_objs.delete()
+        BalsamApp: ``ApplicationDefinition`` object
+            A Balsam ``ApplicationDefinition`` instance.
 
-    @staticmethod
-    def add_app(name, exepath, desc):
-        """ Add application to Balsam database """
-        AppDef = models.ApplicationDefinition
-        app = AppDef()
-        app.name = name
-        app.executable = exepath
-        app.description = desc
-        # app.default_preprocess = '' # optional
-        # app.default_postprocess = '' # optional
-        app.save()
-        logger.debug("Added App {}".format(app.name))
+        app_name: String, optional
+            Name to identify this application.
+
+        calc_type: String, optional
+            Calculation type: Set this application as the default ``'sim'``
+            or ``'gen'`` function.
+
+        desc: String, optional
+            Description of this application
+
+        """
+        if not app_name:
+            app_name = BalsamApp.command_template.split(" ")[0]
+        self.apps[app_name] = Application(" ", app_name, calc_type, desc, BalsamApp)
+
+        # Default sim/gen apps will be deprecated. Just use names.
+        if calc_type is not None:
+            jassert(
+                calc_type in self.default_apps,
+                "Unrecognized calculation type",
+                calc_type,
+            )
+            self.default_apps[calc_type] = self.apps[app_name]
+
+    def submit_allocation(
+        self,
+        site_id,
+        num_nodes,
+        wall_time_min,
+        job_mode="mpi",
+        queue="local",
+        project="local",
+        optional_params={},
+        filter_tags={},
+        partitions=[],
+    ):
+        """
+        Submits a Balsam ``BatchJob`` machine allocation request to Balsam.
+        Corresponding Balsam applications with a matching site can be submitted to
+        this allocation. Effectively a wrapper for ``BatchJob.objects.create()``.
+
+        Parameters
+        ----------
+
+        site_id: int
+            The corresponding ``site_id`` for a Balsam site. Retrieve via ``balsam site ls``
+
+        num_nodes: int
+            The number of nodes to request from a machine with a running Balsam site
+
+        wall_time_min: int
+            The number of walltime minutes to request for the ``BatchJob`` allocation
+
+        job_mode: String, optional
+            Either ``"serial"`` or ``"mpi"``. Default: ``"mpi"``
+
+        queue: String, optional
+            Specifies the queue from which the ``BatchJob`` should request nodes. Default: ``"local"``
+
+        project: String, optional
+            Specifies the project that should be charged for the requested machine time. Default: ``"local"``
+
+        optional_params: dict, optional
+            Additional system-specific parameters to set, based on fields in Balsam's ``job-template.sh``
+
+        filter_tags: dict, optional
+            Directs the resultant ``BatchJob`` to only run Jobs with matching tags.
+
+        partitions: list of dicts, optional
+            Divides the allocation into multiple launcher partitions, with differing
+            ``job_mode``, ``num_nodes``. ``filter_tags``, etc. See the Balsam docs.
+
+        Returns
+        -------
+
+        The corresponding ``BatchJob`` object.
+        """
+
+        allocation = BatchJob.objects.create(
+            site_id=site_id,
+            num_nodes=num_nodes,
+            wall_time_min=wall_time_min,
+            job_mode=job_mode,
+            queue=queue,
+            project=project,
+            optional_params=optional_params,
+            filter_tags=filter_tags,
+            partitions=partitions
+        )
+
+        self.allocations.append(allocation)
+
+        logger.info(
+            "Submitted Batch allocation to site {}: "
+            "nodes {} queue {} project {}".format(site_id, num_nodes, queue, project)
+        )
+
+        return allocation
+
+    def revoke_allocation(self, allocation):
+        """
+        Terminates a Balsam ``BatchJob`` machine allocation remotely. Balsam apps should
+        no longer be submitted to this allocation. Best to run after libEnsemble
+        completes, or after this ``BatchJob`` is no longer needed. Helps save machine time.
+
+        Parameters
+        ----------
+
+        allocation: ``BatchJob`` object
+            a ``BatchJob`` with a corresponding machine allocation that should be cancelled.
+        """
+        allocation.refresh_from_db()
+
+        while not allocation.scheduler_id:
+            time.sleep(1)
+            allocation.refresh_from_db()
+
+        batchjob = BatchJob.objects.get(scheduler_id=allocation.scheduler_id)
+        batchjob.state = "pending_deletion"
+        batchjob.save()
 
     def set_resources(self, resources):
         self.resources = resources
 
-    def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, procs_per_node=None, machinefile=None,
-               app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_start=False,
-               extra_args=''):
-        """Creates a new task, and either executes or schedules to execute
-        in the executor
+    def submit(
+        self,
+        calc_type=None,
+        app_name=None,
+        app_args=None,
+        num_procs=None,
+        num_nodes=None,
+        procs_per_node=None,
+        max_tasks_per_node=None,
+        machinefile=None,
+        gpus_per_rank=0,
+        transfers={},
+        workdir="",
+        dry_run=False,
+        wait_on_start=False,
+        extra_args={},
+        tags={},
+    ):
+        """Initializes and submits a Balsam ``Job`` based on a registered ``ApplicationDefinition``
+        and requested resources. A corresponding libEnsemble ``Task`` object is returned.
 
-        The created task object is returned.
+        calc_type: String, optional
+            The calculation type: ``'sim'`` or ``'gen'``
+            Only used if ``app_name`` is not supplied. Uses default sim or gen application.
+
+        app_name: String, optional
+            The application name. Must be supplied if ``calc_type`` is not.
+
+        app_args: dict
+            A dictionary of options that correspond to fields to template in the
+            ApplicationDefinition's ``command_template`` field.
+
+        num_procs: int, optional
+            The total number of MPI ranks on which to submit the task
+
+        num_nodes: int, optional
+            The number of nodes on which to submit the task
+
+        procs_per_node: int, optional
+            The processes per node for this task
+
+        max_tasks_per_node: int
+            Instructs Balsam to schedule at most this many Jobs per node.
+
+        machinefile: string, optional
+            Name of a machinefile for this task to use. Unused by Balsam
+
+        gpus_per_rank: int, optional
+            Number of GPUs to reserve for each MPI rank
+
+        transfers: dict, optional
+            A Job-specific Balsam transfers dictionary that corresponds with an
+            ``ApplicationDefinition`` ``transfers`` field. See the Balsam docs for
+            more information.
+
+        workdir: String
+            Specifies as name for the Job's output directory within the Balsam site's
+            data directory. Default: ``libe_workflow``
+
+        dry_run: boolean, optional
+            Whether this is a dry run - no task will be launched; instead
+            runline is printed to logger (at ``INFO`` level)
+
+        wait_on_start: boolean, optional
+            Whether to block, and wait for task to be polled as ``RUNNING`` (or other
+            active/end state) before continuing
+
+        extra_args: dict, optional
+            Additional arguments to supply to MPI runner.
+
+        tags: dict, optional
+            Additional tags to organize the ``Job`` or restrict which ``BatchJobs`` run it.
+
+        Returns
+        -------
+
+        task: obj: Task
+            The launched task object
+
+        Note that since Balsam Jobs are often sent to entirely different machines
+        than where libEnsemble is running, how libEnsemble's resource manager
+        has divided local resources among workers doesn't impact what resources
+        can be requested for a Balsam ``Job`` running on an entirely different machine.
+
         """
 
         if app_name is not None:
@@ -279,60 +507,56 @@ class BalsamMPIExecutor(MPIExecutor):
         else:
             raise ExecutorException("Either app_name or calc_type must be set")
 
-        # Specific to this class
+        if len(workdir):
+            workdir = os.path.join(self.workflow_name, workdir)
+        else:
+            workdir = self.workflow_name
+
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(num_procs or num_nodes or procs_per_node,
-                    "No procs/nodes provided - aborting")
+            jassert(
+                num_procs or num_nodes or procs_per_node,
+                "No procs/nodes provided - aborting",
+            )
 
-        num_procs, num_nodes, procs_per_node = \
-            mpi_resources.task_partition(num_procs, num_nodes, procs_per_node)
-
-        if stdout is not None or stderr is not None:
-            logger.warning("Balsam does not currently accept a stdout "
-                           "or stderr name - ignoring")
-            stdout = None
-            stderr = None
-
-        # Will be possible to override with arg when implemented
-        # (or can have option to let Balsam assign)
-        default_workdir = os.getcwd()
-        task = BalsamTask(app, app_args, default_workdir,
-                          stdout, stderr, self.workerID)
-
-        add_task_args = {'name': task.name,
-                         'workflow': self.workflow_name,
-                         'user_workdir': default_workdir,
-                         'application': app.gname,
-                         'args': task.app_args,
-                         'num_nodes': num_nodes,
-                         'procs_per_node': procs_per_node,
-                         'mpi_flags': extra_args}
-
-        if stage_inout is not None:
-            # For now hardcode staging - for testing
-            add_task_args['stage_in_url'] = "local:" + stage_inout + "/*"
-            add_task_args['stage_out_url'] = "local:" + stage_inout
-            add_task_args['stage_out_files'] = "*.out"
+        task = BalsamTask(app, app_args, workdir, None, None, self.workerID)
 
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
+            logger.info("Test (No submit) Balsam app {}".format(app_name))
             task._set_complete(dry_run=True)
         else:
-            task.process = dag.add_job(**add_task_args)
+            App = app.pyobj
 
-            if (wait_on_start):
+            try:
+                App.sync()  # if App source-code available, send to Balsam service
+            except OSError:
+                pass  # App retrieved from Balsam service, assume no access to source-code
+
+            task.process = Job(
+                app_id=App,
+                workdir=workdir,
+                parameters=app_args,
+                num_nodes=num_nodes,
+                ranks_per_node=procs_per_node,
+                launch_params=extra_args,
+                gpus_per_rank=gpus_per_rank,
+                node_packing_count=max_tasks_per_node,
+                transfers=transfers,
+            )
+
+            task.process.save()
+
+            if wait_on_start:
                 self._wait_on_start(task)
 
             if not task.timer.timing:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info("Added task to Balsam database {}: "
-                        "nodes {} ppn {}".
-                        format(task.name, num_nodes, procs_per_node))
+            logger.info(
+                "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
+            )
 
-            # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)
         return task
