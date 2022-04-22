@@ -426,7 +426,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         g.setSizes(n)
         g.setFromOptions()
         tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read,
-                                                                         parent_can_read, user_specs))
+                                                                         parent_can_read, user_specs), None)
 
     # Set everything for tao before solving
     PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval', 1000*n)))
