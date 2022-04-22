@@ -124,8 +124,8 @@ Or - if you do not care which worker runs the generator, you could fix the
 
     libE_specs['num_resource_sets'] = 8
     
-Changing GPUs per worker
-------------------------
+Changing number of GPUs per worker
+----------------------------------
 
 If you want to have two GPUs per worker on the same system (four GPUs per node),
 you could assign only four workers, and change line 24 to::
