@@ -13,6 +13,10 @@ devices.
 The forces code used is based on that in the
 :doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>`.
 
+To compile the forces application for using the GPU, ensure forces.c_ has the
+``#pragma omp target`` line uncommented and comment out the equivalent 
+``#pragma omp parallel`` line.
+
 The code used is available under forces_gpu_ in the libEnsemble repository.
 
 Simulation function
@@ -176,4 +180,6 @@ that runs 8 workers on 2 nodes:
 where ``SLURM_EXACT`` and ``SLURM_MEM_PER_NODE`` are set to prevent
 resource conflicts on each node.
 
-.. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces_gpu
+.. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
+
+.. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
