@@ -24,17 +24,13 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
         "seed": particles,
     }
 
-    workdir = (
-        "sim" + str(libE_info["H_rows"][0]) + "_worker" + str(libE_info["workerID"])
-    )
+    workdir = "sim" + str(libE_info["H_rows"][0]) + "_worker" + str(libE_info["workerID"])
 
     statfile = "forces{}.stat".format(particles)
 
     if THIS_SCRIPT_ON_THETA:
         transfer_statfile_path = GLOBUS_DEST_DIR + statfile
-        local_statfile_path = (
-            "../" + workdir + "/" + transfer_statfile_path.split("/")[-1]
-        )
+        local_statfile_path = "../" + workdir + "/" + transfer_statfile_path.split("/")[-1]
     else:
         transfer_statfile_path = os.getcwd() + "/" + statfile
         local_statfile_path = transfer_statfile_path
@@ -59,10 +55,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     while True:
         time.sleep(1)
-        if (
-            os.path.isfile(local_statfile_path)
-            and os.path.getsize(local_statfile_path) > 0
-        ):
+        if os.path.isfile(local_statfile_path) and os.path.getsize(local_statfile_path) > 0:
             break
 
     try:

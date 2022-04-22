@@ -54,6 +54,4 @@ exit_criteria = {"sim_max": 8}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
