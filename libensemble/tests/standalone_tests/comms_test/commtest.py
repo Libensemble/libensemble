@@ -11,12 +11,16 @@ num_workers = MPI.COMM_WORLD.Get_size() - 1
 rank = comm.Get_rank()
 worker_ranks = set(range(1, MPI.COMM_WORLD.Get_size()))
 rounds = 20
-total_num_mess = rounds*num_workers
+total_num_mess = rounds * num_workers
 
-array_size = int(1e6)   # Size of large array in sim_specs
+array_size = int(1e6)  # Size of large array in sim_specs
 
-sim_specs = {'out': [('arr_vals', float, array_size),
-                     ('scal_val', float)]}  # Test if get error without this
+sim_specs = {
+    'out': [
+        ('arr_vals', float, array_size),
+        ('scal_val', float),
+    ]
+}  # Test if get error without this
 
 start_time = time.time()
 
@@ -37,7 +41,7 @@ if rank == 0:
                 # To test values
                 x = w * 1000.0
                 assert np.all(D_recv['arr_vals'] == x), "Array values do not all match"
-                assert D_recv['scal_val'] == x + x/1e7, "Scalar values do not all match"
+                assert D_recv['scal_val'] == x + x / 1e7, "Scalar values do not all match"
         if mess_count >= total_num_mess:
             alldone = True
 
@@ -50,5 +54,5 @@ else:
     for x in range(rounds):
         x = rank * 1000.0
         output.fill(x)
-        output['scal_val'] = x + x/1e7
+        output['scal_val'] = x + x / 1e7
         comm.send(obj=output, dest=0)

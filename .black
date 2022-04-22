@@ -13,6 +13,8 @@ force-exclude = '''
     | libensemble/utils
     | libensemble/resources
     | libensemble/executors
+    | libensemble/tests/unit_tests
+    | libensemble/gen_funcs
     | examples
     | postproc_scripts
   )/

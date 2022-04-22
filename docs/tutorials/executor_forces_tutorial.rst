@@ -65,7 +65,6 @@ generation functions and call libEnsemble. Create a Python file containing:
     sim_app = os.path.join(os.getcwd(), "forces.x")
     exctr.register_app(full_path=sim_app, app_name="forces")
 
-
 On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
 which can optionally be customized by specifying alternative MPI runners. The
 auto-detected default should be sufficient.
@@ -190,7 +189,6 @@ Write an alternative Calling Script similar to above, but with the following dif
         if is_manager:
             save_libE_output(H, persis_info, __file__, nworkers)
 
-
 Simulation Function
 -------------------
 
@@ -212,7 +210,6 @@ for starters:
 
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
-
 
     def run_forces(H, persis_info, sim_specs, libE_info):
         calc_status = 0
@@ -244,7 +241,7 @@ and evaluated in a variety of helpful ways. For now, we're satisfied with waitin
 for the task to complete via ``task.wait()``.
 
 We can assume that afterward, any results are now available to parse. Our application
-produces a ``forces[particles].stat`` file that contains either energy
+produces a ``forces.stat`` file that contains either energy
 computations for every time-step or a "kill" message if particles were lost, which
 indicates a failed simulation.
 
@@ -257,7 +254,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
     :linenos:
 
         # Stat file to check for bad runs
-        statfile = "forces{}.stat".format(particles)
+        statfile = "forces.stat"
 
         # Try loading final energy reading, set the sim's status
         try:
@@ -366,7 +363,6 @@ These may require additional browsing of the documentation to complete.
    .. code-block:: python
        :linenos:
 
-
         import time
         ...
         task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True,
@@ -384,7 +380,6 @@ These may require additional browsing of the documentation to complete.
             task.kill()
 
         ...
-
 
 .. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor

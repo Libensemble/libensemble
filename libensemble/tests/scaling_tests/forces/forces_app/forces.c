@@ -250,9 +250,9 @@ int print_step_summary(int step, double total_en,
     return 0;
 }
 
-int open_stat_file(int num_particles) {
-    char *statfile;
-    asprintf(&statfile, "forces%d.stat", num_particles);
+
+int open_stat_file() {
+    char *statfile = "forces.stat";
     stat_fp = fopen(statfile, "w");
     if(stat_fp == NULL) {
         printf("Error opening statfile");
@@ -396,7 +396,7 @@ int main(int argc, char **argv) {
     fflush(stdout);
 
     if (rank == 0) {
-        open_stat_file(num_particles);
+        open_stat_file();
     }
 
     gettimeofday(&tstart, NULL);

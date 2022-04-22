@@ -142,9 +142,9 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     resources = Resources.resources.worker_resources
     slots = resources.slots
 
-    assert (
-        resources.matching_slots
-    ), "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}".format(slots)
+    assert resources.matching_slots, "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}".format(
+        slots
+    )
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
     num_nodes = resources.local_node_count
@@ -167,7 +167,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         num_nodes=num_nodes,
         procs_per_node=cores_per_node,
         stdout='out.txt',
-        stderr='err.txt'
+        stderr='err.txt',
     )
 
     task.wait()  # Wait for run to complete

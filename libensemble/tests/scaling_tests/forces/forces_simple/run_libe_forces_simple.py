@@ -16,10 +16,10 @@ exctr = MPIExecutor()
 
 # Normally would be pre-compiled
 if not os.path.isfile("forces.x"):
-    if os.path.isfile("build_forces.sh"):
+    if os.path.isfile("../forces_app/build_forces.sh"):
         import subprocess
 
-        subprocess.check_call(["./build_forces.sh"])
+        subprocess.check_call(["../forces_app/build_forces.sh"])
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), "forces.x")
@@ -54,6 +54,4 @@ exit_criteria = {"sim_max": 8}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)

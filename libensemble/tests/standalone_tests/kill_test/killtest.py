@@ -55,13 +55,13 @@ elif launcher == 'aprun':
     mpicmd_ppn = '-N'
 
 # As runline common to tasks currently - construct here.
-runline = []                             # E.g: 2 nodes run
-runline.append(mpicmd_launcher)          # mpirun
-runline.append(mpicmd_numprocs)          # mpirun -np
-runline.append(str(num_procs))           # mpirun -np 8
-runline.append(mpicmd_ppn)               # mpirun -np 8 --ppn
+runline = []  # E.g: 2 nodes run
+runline.append(mpicmd_launcher)  # mpirun
+runline.append(mpicmd_numprocs)  # mpirun -np
+runline.append(str(num_procs))  # mpirun -np 8
+runline.append(mpicmd_ppn)  # mpirun -np 8 --ppn
 runline.append(str(num_procs_per_node))  # mpirun -np 8 --ppn 4
-runline.append(user_code)                # mpirun -np 8 --ppn 4 ./burn_time.x
+runline.append(user_code)  # mpirun -np 8 --ppn 4 ./burn_time.x
 
 
 # print("Running killtest.py with task size {} procs".format(num_procs))
@@ -77,8 +77,9 @@ for run_num in range(2):
     if kill_type == 1:
         process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False)  # with kill 1
     elif kill_type == 2:
-        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False,
-                                   preexec_fn=os.setsid)  # kill 2
+        process = subprocess.Popen(
+            runline, cwd='./', stdout=open(stdout, 'w'), shell=False, preexec_fn=os.setsid
+        )  # kill 2
     else:
         raise Exception("kill_type not recognized")
 
@@ -86,7 +87,7 @@ for run_num in range(2):
     start_time = time.time()
     finished = False
     state = "Not started"
-    while(not finished):
+    while not finished:
 
         time.sleep(2)
         poll = process.poll()
@@ -101,7 +102,7 @@ for run_num in range(2):
             else:
                 state = 'FAILED'
 
-        if(time.time() - start_time > time_limit):
+        if time.time() - start_time > time_limit:
             print('Killing task', run_num)
             # kill_task(process, user_code)
 
@@ -116,9 +117,9 @@ for run_num in range(2):
     assert state == 'KILLED', "Task not registering as killed. State is: " + state
 
     # Checking if processes still running and producing output
-    grace_period = 1    # Seconds after kill when first read last line
+    grace_period = 1  # Seconds after kill when first read last line
     recheck_period = 2  # Recheck last line after this many seconds
-    num_rechecks = 2    # Number of times to check for new output
+    num_rechecks = 2  # Number of times to check for new output
 
     time.sleep(grace_period)  # Give chance to kill
 
@@ -130,11 +131,11 @@ for run_num in range(2):
     if 'has finished' in line_on_kill:
         raise Exception('Task may have already finished - test invalid')
 
-    for recheck in range(1, num_rechecks+1):
+    for recheck in range(1, num_rechecks + 1):
         time.sleep(recheck_period)
         with open(stdout, 'rb') as fh:
             lastline = fh.readlines()[-1].decode().rstrip()
-        print("Last line after {} seconds: {}".format(recheck_period*recheck, lastline))
+        print("Last line after {} seconds: {}".format(recheck_period * recheck, lastline))
 
         if lastline != line_on_kill:
             print("Task {} still producing output".format(run_num))
