@@ -74,9 +74,7 @@ if not THIS_SCRIPT_ON_THETA:
     )
 
 # Launch libEnsemble
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-)
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 if not THIS_SCRIPT_ON_THETA:
     exctr.revoke_allocation(batch)
