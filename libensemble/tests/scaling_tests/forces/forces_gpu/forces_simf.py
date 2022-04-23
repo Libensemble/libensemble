@@ -20,7 +20,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Retrieve our MPI Executor instance and resources
     exctr = Executor.executor
     resources = Resources.resources.worker_resources
-    
+
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
     # Submit our forces app for execution. Block until the task starts.
