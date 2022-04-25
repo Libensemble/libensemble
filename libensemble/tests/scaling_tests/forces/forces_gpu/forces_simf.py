@@ -24,11 +24,13 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
     # Submit our forces app for execution. Block until the task starts.
-    task = exctr.submit(app_name="forces",
-                        app_args=args,
-                        num_nodes=resources.local_node_count,
-                        procs_per_node=resources.slot_count,
-                        wait_on_start=True)
+    task = exctr.submit(
+        app_name="forces",
+        app_args=args,
+        num_nodes=resources.local_node_count,
+        procs_per_node=resources.slot_count,
+        wait_on_start=True,
+    )
 
     # Block until the task finishes
     task.wait(timeout=60)
