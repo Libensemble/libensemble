@@ -28,7 +28,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 5, 22, 24, 29-30
+    :emphasize-lines: 5, 21, 23, 29-30
 
     import numpy as np
 
