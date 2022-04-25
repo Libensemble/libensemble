@@ -11,7 +11,6 @@ from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
-from numpy import inf
 
 
 class MPIAbortException(Exception):
@@ -190,13 +189,13 @@ def test_checking_inputs_H0():
     # Should fail because H0 has points with 'sim_ended'==False
     H0 = np.zeros(5, dtype=libE_fields)
     H0['sim_id'] = [0, 1, 2, -1, -1]
-    H0['sim_worker'][0:3] = range(1,4)
+    H0['sim_worker'][0:3] = range(1, 4)
     H0[['sim_started', 'sim_ended']][0:3] = True
 
     # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # A value has not been marked as sim_ended 
+    # A value has not been marked as sim_ended
     H0['sim_ended'][2] = False
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
