@@ -155,7 +155,6 @@ Or, run with MPI comms using one manager and `N-1` workers:
 
     mpirun -np N python run_libe_forces_balsam.py
 
-
 To remove output before the next run, use:
 
     ./cleanup.sh

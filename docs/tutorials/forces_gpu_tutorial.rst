@@ -5,16 +5,16 @@ Executor - Assign GPUs
 This tutorial shows the most portable way to assign tasks (user applications)
 to the GPU.
 
-In the first example, each worker will be using one GPU. We assume we are on a
+In the first example, each worker will be using one GPU. We assume the workers are on a
 cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
 variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
 devices.
 
-The forces code used is based on that in the
+The forces code is a modifcation of the sim_f in the
 :doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>`.
 
-To compile the forces application for using the GPU, ensure forces.c_ has the
-``#pragma omp target`` line uncommented and comment out the equivalent 
+To compile the forces application to use the GPU, ensure forces.c_ has the
+``#pragma omp target`` line uncommented and comment out the equivalent
 ``#pragma omp parallel`` line. Then compile to ``forces.x`` using one of the
 GPU build lines in ``build_forces.sh``.
 
@@ -26,11 +26,10 @@ Simulation function
 
 The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlighted:
 
-
 .. code-block:: python
     :linenos:
     :emphasize-lines: 5, 22, 24, 29-30
-    
+
     import numpy as np
 
     # To retrieve our MPI Executor and resources instances
@@ -39,7 +38,6 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
 
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
-
 
     def run_forces(H, persis_info, sim_specs, libE_info):
         calc_status = 0
@@ -53,7 +51,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         # Retrieve our MPI Executor instance and resources
         exctr = Executor.executor
         resources = Resources.resources.worker_resources
-        
+
         resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
         # Submit our forces app for execution. Block until the task starts.
@@ -86,11 +84,10 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
 
-  
 The above code can be run on most systems, and will assign a GPU to each worker,
 so long as the number of workers is chosen to fit the resources.
 
-The  :doc:`resource<../resource_manager/worker_resources>` attributes used are:
+The :doc:`resource<../resource_manager/worker_resources>` attributes used are:
 
 • **local_node_count**: The number of nodes available to this worker
 • **slot_count**: The number of slots per node for this worker
@@ -98,29 +95,28 @@ The  :doc:`resource<../resource_manager/worker_resources>` attributes used are:
 and the line::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
-    
-will set environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned
-slots (partitions on the node). 
+
+will set the environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned
+slots (partitions on the node).
 
 Note that if you are on a system that automatically assigns free GPUs on the node,
 then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure
 workers are strictly bound to GPUs. For example, on some **SLURM** systems, you
-can use ``--gpus-per-task=1`` (e.g. :doc:`Perlmutter<../platforms/perlmutter>`).
+can use ``--gpus-per-task=1`` (e.g., :doc:`Perlmutter<../platforms/perlmutter>`).
 
 Alternative environment variables could be simply substituted
-(e.g.,~ ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
-
+(e.g., ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
 
 Running the example
 -------------------
 
-As an example, if you have allocated two nodes, each with four GPUs, then assign
+As an example, if you have been allocated two nodes, each with four GPUs, then assign
 eight workers. For example::
 
     python run_libe_forces.py --comms local --nworkers 8
 
 If you are running one persistent generator which does not require
-resources, then assign nine workers, and set the following in your 
+resources, then assign nine workers, and set the following in your
 calling script::
 
     libE_specs['zero_resource_workers'] = [1]
@@ -129,7 +125,7 @@ Or - if you do not care which worker runs the generator, you could fix the
 *resource_sets*::
 
     libE_specs['num_resource_sets'] = 8
-    
+
 Changing number of GPUs per worker
 ----------------------------------
 
@@ -137,7 +133,7 @@ If you want to have two GPUs per worker on the same system (four GPUs per node),
 you could assign only four workers, and change line 24 to::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
-    
+
 In this case there are two GPUs per worker (and per slot).
 
 Varying resources
@@ -146,7 +142,7 @@ Varying resources
 The same code can be used when varying worker resources. In this case, you may
 choose to set one worker per GPU (as we did originally). Then add ``resource_sets``
 as a ``gen_specs['out']`` in your calling script. Simply assign the
-``resource_sets`` field of :doc:`H<../data_structures/history_array>` for each point 
+``resource_sets`` field of :doc:`H<../data_structures/history_array>` for each point
 generated.
 
 In this case the above code would still work, assigning one CPU processor and
@@ -155,7 +151,6 @@ change source lines 29/30 accordingly.
 
 Further guidance on varying resource to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>`.
-
 
 Example submission script
 -------------------------
@@ -183,5 +178,4 @@ where ``SLURM_EXACT`` and ``SLURM_MEM_PER_NODE`` are set to prevent
 resource conflicts on each node.
 
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
-
 .. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
