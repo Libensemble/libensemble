@@ -195,7 +195,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def set_mp_method(start_method):
+def set_mp_method(start_method=None):
     """
     Internal function for setting multiprocessing's process start method.
     For overriding the following defaults from Python's multiprocessing docs:
