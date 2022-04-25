@@ -14,7 +14,6 @@ force-exclude = '''
     | libensemble/resources
     | libensemble/executors
     | libensemble/tests/unit_tests
-    | libensemble/gen_funcs
     | examples
     | postproc_scripts
   )/
@@ -27,6 +26,10 @@ force-exclude = '''
     | libensemble/manager.py
     | libensemble/message_numbers.py
     | libensemble/output_directory.py
+    | libensemble/gen_funcs/old_aposmm.py
+    | libensemble/gen_funcs/persistent_aposmm.py
+    | libensemble/gen_funcs/persistent_ax_multitask.py
+    | libensemble/gen_funcs/aposmm_localopt_support.py
     | libensemble/version.py
     | libensemble/worker.py
 )
