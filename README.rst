@@ -1,6 +1,6 @@
-    .. image:: docs/images/libE_logo.png
-       :align: center
-       :alt: libEnsemble
+.. image:: docs/images/libEnsemble_Logo.svg
+   :align: center
+   :alt: libEnsemble
 
 |
 
