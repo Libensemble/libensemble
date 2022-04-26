@@ -4,9 +4,9 @@ Runs libEnsemble testing the MPI Runners command creation with uneven workers pe
 This test must be run on an odd number of workers >= 3 and <= 31 (e.g. even no. of procs when using mpi4py).
 
 Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 6 python3 test_mpi_runners_subnode_uneven.py
-   python3 test_mpi_runners_subnode_uneven.py --nworkers 5 --comms local
-   python3 test_mpi_runners_subnode_uneven.py --nworkers 5 --comms tcp
+   mpiexec -np 6 python test_mpi_runners_subnode_uneven.py
+   python test_mpi_runners_subnode_uneven.py --nworkers 5 --comms local
+   python test_mpi_runners_subnode_uneven.py --nworkers 5 --comms tcp
 """
 
 import sys

@@ -33,8 +33,8 @@ run with the generated ``x`` and ``theta`` values.
 For ease, the ``gen_f`` and ``sim_f`` are expected to return output as NumPy
 structured arrays. The output from the ``gen_f`` or ``sim_f`` functions can be
 the exact elements declared in the gen/sim_specs['out'] lists, or can be a
-subset of these lists. (The manager's history array will update any fields given
-back to it.)
+subset of these lists. (The manager's history array will update any fields
+returned to it.)
 
 The names of the input fields for ``gen_f`` and ``sim_f`` must exist in the manager's
 history array (i.e.,~ they must be output fields from ``gen_f`` or ``sim_f`` or
@@ -57,12 +57,13 @@ The reserved boolean field ``cancel_requested`` can also be set in a user
 function to request that libEnsemble cancels evaluation of the point.
 
 The remaining reserved fields are protected (populated by libEnsemble), and
-store information about each entry. These include boolean fields for the current
-scheduling status of the point (``given`` out for evaluation, ``returned`` from
-evaluation, and ``given_back`` to the generator). Timing fields give the time
-(since the epoch) corresponding to each state, and when the point was generated.
-Other protected fields include the worker IDs on which points were generated or
-evaluated.
+store information about each entry. These include boolean fields for the
+current scheduling status of the point (``sim_started`` when the sim evaluation
+has started out, ``sim_ended`` when sim evaluation has completed, and
+``gen_informed`` when the sim output has been passed back to the generator).
+Timing fields give the time (since the epoch) corresponding to each state, and
+when the point was generated. Other protected fields include the worker IDs on
+which points were generated or evaluated.
 
 The user fields and the reserved fields together make up the final history array
 returned by libEnsemble.
@@ -82,37 +83,27 @@ The full list of these reserved fields is given below.
 
 :*Protected fields*:
 
-* ``given`` [bool]: True if this ``gen_f`` output been given to a libEnsemble
-  worker to be evaluated by a ``sim_f``.
+``gen_worker`` [int]: Worker that generated this entry
 
-* ``given_time`` [float]: Time this entry
-  was *first* given to a worker to be evaluated by a ``sim_f``.
+``gen_started_time`` [ float]: Time gen_worker was initiated that produced this entry
 
-* ``last_given_time`` [float]: Time this entry
-  was *last* given to a worker to be evaluated by a ``sim_f``.
+``gen_ended_time`` [ float]: Time gen_worker requested this entry
 
-* ``returned`` [bool]: True if this entry has been evaluated by a ``sim_f``.
+``sim_worker`` [int]: Worker that did (or is doing) the sim evaluation for this entry
 
-* ``returned_time`` [float]: Time this entry was *last* returned from a ``sim_f``.
+``sim_started`` [bool]: True if entry was given to sim_worker for sim evaluation
 
-* ``given_back`` [bool]: True if this ``gen_f`` output been given back to a ``gen_f``
-  worker after being returned from evaluation.
+``sim_started_time`` [float]: Time entry was given to sim_worker for a sim evaluation
 
-.. * ``given_back_time`` [float]: Time this entry
-..   was *first* given back to a ``gen_f`` worker.
+``sim_ended`` [bool]: True if entry's sim evaluation completed
 
-* ``last_given_back_time`` [float]: Time this entry
-  was *last* given back to a ``gen_f`` worker.
+``sim_ended_time`` [float]: Time entry's sim evaluation completed
 
-* ``sim_worker`` [int]: libEnsemble worker that performed the ``sim_f`` evaluation.
+``gen_informed`` [bool]: True if gen_worker was informed about the sim evaluation of this entry
 
-* ``gen_worker`` [int]: libEnsemble worker that generated this entry.
+``gen_informed_time`` [float]: Time gen_worker was informed about the sim evaluation of this entry
 
-* ``gen_time`` [float]: Time this entry was put into ``H`` by the manager.
-
-* ``last_gen_time`` [float]: Time this entry was last requested by a ``gen_f``.
-
-* ``kill_sent`` [bool]: True if a kill signal has been sent to the worker evaluating this entry.
+``kill_sent`` [bool]: True if a kill signal was sent to worker for this entry
 
 Other than ``'sim_id'`` and ``cancel_requested``, reserved fields cannot be
 overwritten by user functions unless ``libE_specs['safe_mode']`` is set to ``False``.
@@ -128,7 +119,7 @@ Example workflow updating history array
 The history array is initialized using the libEnsemble reserved field and the
 user-provided ``gen_specs['out']`` and ``sim_specs['out']`` entries.
 In the figure below, only the
-reserved fields: ``sim_id``, ``given``, and ``returned`` are shown for brevity.
+reserved fields: ``sim_id``, ``sim_started``, and ``sim_ended`` are shown for brevity.
 
     .. figure:: ../images/history_init.png
        :scale: 40

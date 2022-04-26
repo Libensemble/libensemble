@@ -2,9 +2,9 @@
 Tests libEnsemble capability to abort persistent worker.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_6-hump_camel_active_persistent_worker_abort.py
-   python3 test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms local
-   python3 test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_6-hump_camel_active_persistent_worker_abort.py
+   python test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms local
+   python test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -63,7 +63,7 @@ alloc_specs = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Set sim_max small so persistent worker is quickly terminated
-exit_criteria = {'sim_max': 10, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 10, 'wallclock_max': 300}
 
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")

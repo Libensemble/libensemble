@@ -426,7 +426,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         g.setSizes(n)
         g.setFromOptions()
         tao.setObjectiveGradient(lambda tao, x, g: tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read,
-                                                                         parent_can_read, user_specs))
+                                                                         parent_can_read, user_specs), None)
 
     # Set everything for tao before solving
     PETSc.Options().setValue('-tao_max_funcs', str(user_specs.get('run_max_eval', 1000*n)))
@@ -563,10 +563,10 @@ def simulate_recv_from_manager(local_H, gen_specs):
     # output as if the calculations were performed externally by libEnsemble.
     user = gen_specs['user']['standalone']
 
-    if np.sum(local_H['returned']) >= user['eval_max']:
+    if np.sum(local_H['sim_ended']) >= user['eval_max']:
         return STOP_TAG, {}, {}
 
-    H_rows = np.where(~local_H['returned'])[0]
+    H_rows = np.where(~local_H['sim_ended'])[0]
     H_fields = [i[0] for i in gen_specs['out']]
 
     Work = {'libE_info': {'H_rows': H_rows}, 'H_fields': H_fields}

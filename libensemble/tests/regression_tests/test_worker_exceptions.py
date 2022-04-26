@@ -3,9 +3,9 @@ Runs libEnsemble on a gen_f that is missing necessary information; this tests
 libE worker exception raising
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_worker_exceptions.py
-   python3 test_worker_exceptions.py --nworkers 3 --comms local
-   python3 test_worker_exceptions.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_worker_exceptions.py
+   python test_worker_exceptions.py --nworkers 3 --comms local
+   python test_worker_exceptions.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -48,7 +48,7 @@ libE_specs['abort_on_exception'] = False
 libE_specs['save_H_and_persis_on_abort'] = False
 
 # Tell libEnsemble when to stop
-exit_criteria = {'elapsed_wallclock_time': 10}
+exit_criteria = {'wallclock_max': 10}
 
 # Perform the run
 return_flag = 1

@@ -5,8 +5,14 @@ This module contains a simple calibration example using the Surmise package.
 __all__ = ['surmise_calib']
 
 import numpy as np
-from libensemble.gen_funcs.surmise_calib_support import gen_xs, gen_thetas, gen_observations, gen_true_theta, \
-    thetaprior, select_next_theta
+from libensemble.gen_funcs.surmise_calib_support import (
+    gen_xs,
+    gen_thetas,
+    gen_observations,
+    gen_true_theta,
+    thetaprior,
+    select_next_theta,
+)
 from surmise.calibration import calibrator
 from surmise.emulation import emulator
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
@@ -16,10 +22,17 @@ from libensemble.tools.persistent_support import PersistentSupport
 def build_emulator(theta, x, fevals):
     """Build the emulator."""
     print(x.shape, theta.shape, fevals.shape)
-    emu = emulator(x, theta, fevals, method='PCGPwM',
-                   options={'xrmnan': 'all',
-                            'thetarmnan': 'never',
-                            'return_grad': True})
+    emu = emulator(
+        x,
+        theta,
+        fevals,
+        method='PCGPwM',
+        options={
+            'xrmnan': 'all',
+            'thetarmnan': 'never',
+            'return_grad': True,
+        },
+    )
     emu.fit()
     return emu
 
@@ -77,11 +90,11 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
     sim_ids_to_cancel = []
     columns = np.unique(c)
     for c in columns:
-        col_offset = c*n_x
+        col_offset = c * n_x
         for i in range(n_x):
-            sim_id_cancl = obs_offset + col_offset + i
+            sim_id_cancel = obs_offset + col_offset + i
             if pending[i, c]:
-                sim_ids_to_cancel.append(sim_id_cancl)
+                sim_ids_to_cancel.append(sim_id_cancel)
                 pending[i, c] = 0
 
     # Send only these fields to existing H rows and libEnsemble will slot in the change.
@@ -94,7 +107,7 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
 def assign_priority(n_x, n_thetas):
     """Assign priorities to points."""
     # Arbitrary priorities
-    priority = np.arange(n_x*n_thetas)
+    priority = np.arange(n_x * n_thetas)
     np.random.shuffle(priority)
     return priority
 
@@ -106,9 +119,9 @@ def load_H(H, xs, thetas, offset=0, set_priorities=False):
     """
     n_thetas = len(thetas)
     for i, x in enumerate(xs):
-        start = (i+offset)*n_thetas
-        H['x'][start:start+n_thetas] = x
-        H['thetas'][start:start+n_thetas] = thetas
+        start = (i + offset) * n_thetas
+        H['x'][start : start + n_thetas] = x
+        H['thetas'][start : start + n_thetas] = thetas
 
     if set_priorities:
         n_x = len(xs)
@@ -156,7 +169,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     obs, obsvar = gen_observations(true_fevals, obsvar_const, rand_stream)
 
     # Generate a batch of inputs and load into H
-    H_o = np.zeros(n_x*(n_thetas), dtype=gen_specs['out'])
+    H_o = np.zeros(n_x * (n_thetas), dtype=gen_specs['out'])
     theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -176,8 +189,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             update_model = False
         else:
             # Update fevals from calc_in
-            update_arrays(fevals, pending, complete, calc_in,
-                          obs_offset, n_x)
+            update_arrays(fevals, pending, complete, calc_in, obs_offset, n_x)
             update_model = rebuild_condition(pending, prev_pending)
             if not update_model:
                 tag, Work, calc_in = ps.recv()
@@ -185,21 +197,28 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                     break
 
         if update_model:
-            print('Percentage Cancelled: %0.2f ( %d / %d)' % (100*np.round(np.mean(1-pending-complete), 4),
-                                                              np.sum(1-pending-complete),
-                                                              np.prod(pending.shape)))
-            print('Percentage Pending: %0.2f ( %d / %d)' % (100*np.round(np.mean(pending), 4),
-                                                            np.sum(pending),
-                                                            np.prod(pending.shape)))
-            print('Percentage Complete: %0.2f ( %d / %d)' % (100*np.round(np.mean(complete), 4),
-                                                             np.sum(complete),
-                                                             np.prod(pending.shape)))
+            print(
+                'Percentage Cancelled: %0.2f ( %d / %d)'
+                % (
+                    100 * np.round(np.mean(1 - pending - complete), 4),
+                    np.sum(1 - pending - complete),
+                    np.prod(pending.shape),
+                )
+            )
+            print(
+                'Percentage Pending: %0.2f ( %d / %d)'
+                % (100 * np.round(np.mean(pending), 4), np.sum(pending), np.prod(pending.shape))
+            )
+            print(
+                'Percentage Complete: %0.2f ( %d / %d)'
+                % (100 * np.round(np.mean(complete), 4), np.sum(complete), np.prod(pending.shape))
+            )
 
             emu.update(theta=theta, f=fevals)
             cal.fit()
 
             samples = cal.theta.rnd(2500)
-            print(np.mean(np.sum((samples - np.array([0.5]*4))**2, 1)))
+            print(np.mean(np.sum((samples - np.array([0.5] * 4)) ** 2, 1)))
             print(np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
 
             step_add_theta += 2
@@ -211,11 +230,12 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
 
             # Add space for new thetas
-            theta, fevals, pending, prev_pending, complete = \
-                pad_arrays(n_x, new_theta, theta, fevals, pending, prev_pending, complete)
+            theta, fevals, pending, prev_pending, complete = pad_arrays(
+                n_x, new_theta, theta, fevals, pending, prev_pending, complete
+            )
 
             # n_thetas = step_add_theta
-            H_o = np.zeros(n_x*(len(new_theta)), dtype=gen_specs['out'])
+            H_o = np.zeros(n_x * (len(new_theta)), dtype=gen_specs['out'])
             load_H(H_o, x, new_theta, set_priorities=True)
             tag, Work, calc_in = ps.send_recv(H_o)
 

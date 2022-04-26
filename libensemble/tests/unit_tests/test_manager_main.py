@@ -28,14 +28,14 @@ def test_term_test_2():
     #
     # Terminate because we've found a good 'g' value
     hist.H['g'][0] = -1
-    hist.H['returned'][0] = True
+    hist.H['sim_ended'][0] = True
     hist.index = 1
-    hist.given_count = 1
+    hist.sim_started_count = 1
     assert mgr.term_test()
     #
     # Terminate because everything has been given.
-    hist.H['given'] = np.ones
-    hist.given_count = len(hist.H)
+    hist.H['sim_started'] = np.ones
+    hist.sim_started_count = len(hist.H)
     assert mgr.term_test()
 
 
@@ -46,9 +46,9 @@ def test_term_test_3():
     hist, sim_specs, gen_specs, exit_criteria, al = setup.hist_setup2(H0_in=H0)
     mgr = man.Manager(hist, libE_specs, al, sim_specs, gen_specs, exit_criteria)
     hist.index = 4
-    hist.H['given_time'][0] = time.time()
+    hist.H['sim_started_time'][0] = time.time()
     time.sleep(0.5)
-    hist.given_count = 4
+    hist.sim_started_count = 4
     assert mgr.term_test()
 
 

@@ -3,9 +3,9 @@ Runs libEnsemble with APOSMM with an NLopt local optimizer that uses gradient
 information from the sim_f
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_with_grad.py
-   python3 test_persistent_aposmm_with_grad.py --nworkers 3 --comms local
-   python3 test_persistent_aposmm_with_grad.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_with_grad.py
+   python test_persistent_aposmm_with_grad.py --nworkers 3 --comms local
+   python test_persistent_aposmm_with_grad.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -58,7 +58,7 @@ gen_out = [
     ('local_pt', bool),
 ]
 
-gen_in = ['x', 'f', 'grad', 'local_pt', 'sim_id', 'returned', 'x_on_cube', 'local_min']
+gen_in = ['x', 'f', 'grad', 'local_pt', 'sim_id', 'sim_ended', 'x_on_cube', 'local_min']
 
 gen_specs = {
     'gen_f': gen_f,
@@ -92,10 +92,10 @@ H0_dtype = [
     ('grad', float, n),
     ('sim_id', int),
     ('x_on_cube', float, n),
-    ('returned', bool),
+    ('sim_ended', bool),
     ('f', float),
-    ('given_back', bool),
-    ('given', bool),
+    ('gen_informed', bool),
+    ('sim_started', bool),
 ]
 H0 = np.zeros(sample_size, dtype=H0_dtype)
 
@@ -104,7 +104,7 @@ H0 = np.zeros(sample_size, dtype=H0_dtype)
 H0['x'] = np.round(minima, 1)
 H0['x_on_cube'] = (H0['x'] - gen_specs['user']['lb']) / (gen_specs['user']['ub'] - gen_specs['user']['lb'])
 H0['sim_id'] = range(sample_size)
-H0[['given', 'given_back', 'returned']] = True
+H0[['sim_started', 'gen_informed', 'sim_ended']] = True
 
 for i in range(sample_size):
     H0['f'][i] = six_hump_camel_func(H0['x'][i])

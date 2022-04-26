@@ -84,25 +84,45 @@ Systems with Launch/MOM nodes
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner which has some application-level scheduling
-capability (eg. aprun, jsrun). MPI applications can only be submitted from these nodes. Examples
+capability (eg. ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
 of these systems include: Summit, Sierra and Theta.
 
 There are two ways of running libEnsemble on these kind of systems. The first, and simplest,
-is to run libEnsemble on the launch nodes. This is often sufficient if the worker's sim or
-gen scripts are not doing too much work (other than launching applications). This approach
+is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
+or generation functions are not doing much work (other than launching applications). This approach
 is inherently centralized. The entire node allocation is available for the worker-launched
 tasks.
 
-To run libEnsemble on the compute nodes of these systems requires an alternative Executor,
-such as :doc:`Balsam<../executor/balsam_executor>`, which runs on the
-launch nodes and launches tasks submitted by workers. Running libEnsemble on the compute
-nodes is potentially more scalable and will better manage ``sim_f`` and ``gen_f`` functions
-that contain considerable computational work or I/O.
+However, running libEnsemble on the compute nodes is potentially more scalable and
+will better manage simulation and generation functions that contain considerable
+computational work or I/O. Therefore the second option is to use proxy task-execution
+services like Balsam_.
 
-    .. image:: ../images/centralized_new_detailed_balsam.png
+Balsam - Externally managed applications
+----------------------------------------
+
+Running libEnsemble on the compute nodes while still submitting additional applications
+requires alternative Executors that connect to external services like Balsam_. Balsam
+can take tasks submitted by workers and execute them on the remaining compute nodes,
+or if using Balsam 2, *to entirely different systems*.
+
+    .. figure:: ../images/centralized_new_detailed_balsam.png
         :alt: central_balsam
+        :scale: 30
+        :align: center
+
+        Single-System: libEnsemble + LegacyBalsamMPIExecutor
+
+    .. figure:: ../images/balsam2.png
+        :alt: balsam2
         :scale: 40
         :align: center
+
+        (New) Multi-System: libEnsemble + BalsamExecutor
+
+As of v0.8.0+dev, libEnsemble supports both "legacy" Balsam via the
+:doc:`LegacyBalsamMPIExecutor<../executor/legacy_balsam_executor>`
+and Balsam 2 via the :doc:`BalsamExecutor<../executor/balsam_2_executor>`.
 
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
 the :doc:`examples<example_scripts>`.
@@ -141,9 +161,9 @@ internet access (laptops, login nodes, other servers, etc.), workers can be inst
 launch generator or simulator user function instances to separate resources from
 themselves via funcX_, a distributed, high-performance function-as-a-service platform:
 
-    .. image:: ../images/funcxmodel.png
+    .. image:: ../images/funcx.png
         :alt: running_with_funcx
-        :scale: 50
+        :scale: 40
         :align: center
 
 This is useful for running ensembles across machines and heterogeneous resources, but
@@ -178,7 +198,7 @@ key. For example::
         'sim_f': sim_f,
         'in': ['x'],
         'out': [('f', float)],
-        'funcx_endpoint': 3af6dc24-3f27-4c49-8d11-e301ade15353,
+        'funcx_endpoint': '3af6dc24-3f27-4c49-8d11-e301ade15353',
     }
 
 See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
@@ -198,6 +218,8 @@ libEnsemble on specific HPC systems.
     cori
     theta
     summit
+    perlmutter
+    srun
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/

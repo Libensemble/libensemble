@@ -7,7 +7,7 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.executors.balsam_executor import BalsamMPIExecutor
+from libensemble.executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
@@ -32,7 +32,7 @@ cores_per_task = 1
 sim_app = './my_simtask.x'
 sim_app2 = six_hump_camel.__file__
 
-exctr = BalsamMPIExecutor()
+exctr = LegacyBalsamMPIExecutor()
 exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 exctr.register_app(full_path=sim_app2, app_name='sim_hump_camel_dry_run')

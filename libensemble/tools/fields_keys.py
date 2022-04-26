@@ -2,31 +2,35 @@
 Below are the fields used within libEnsemble
 """
 
-libE_fields = [('sim_id', int),             # Unique id of entry in H that was generated
-               ('gen_worker', int),         # Worker that (first) generated the entry
-               ('gen_time', float),         # Time (since epoch) entry (first) was entered into H from a gen
-               ('last_gen_time', float),    # Time (since epoch) entry was last requested by a gen
-               ('given', bool),             # True if entry has been given for sim eval
-               ('given_time', float),       # Time (since epoch) that the entry was (first) given to be evaluated
-               ('last_given_time', float),  # Time (since epoch) that the entry was last given to be evaluated
-               ('last_given_back_time', float),  # Time (since epoch) that the entry was last given back to the gen
-               ('returned', bool),          # True if entry has been returned from sim eval
-               ('returned_time', float),    # Time entry was (last) returned from sim eval
-               ('sim_worker', int),         # Worker that did (or is doing) the sim eval
-               ('cancel_requested', bool),  # True if cancellation of this entry is requested
-               ('kill_sent', bool),         # True if a kill signal has been sent to worker
-               ('given_back', bool)         # True if entry has been given back to the gen after evaluation.
+
+libE_fields = [('sim_id', int),               # Unique id of a generated entry in H
+               ('gen_worker', int),           # Worker that generated this entry
+               ('gen_started_time', float),     # Time gen_worker was initiated that produced this entry
+               ('gen_ended_time', float),       # Time gen_worker requested this entry
+               ('sim_worker', int),           # Worker that did (or is doing) the sim eval for this entry
+               ('sim_started', bool),         # True if entry was given to sim_worker for sim eval
+               ('sim_started_time', float),     # Time entry was given to sim_worker for a sim eval
+               ('sim_ended', bool),           # True if entry's sim eval completed
+               ('sim_ended_time', float),       # Time entry's sim eval completed
+               ('gen_informed', bool),        # True if gen_worker was informed about the sim eval of this entry
+               ('gen_informed_time', float),  # Time gen_worker was informed about the sim eval of this entry
+               ('cancel_requested', bool),    # True if cancellation was requested for this entry
+               ('kill_sent', bool),           # True if a kill signal was sent to worker for this entry
                ]
 # end_libE_fields_rst_tag
 
+
 protected_libE_fields = ['gen_worker',
-                         'gen_time',
-                         'given',
-                         'given_time',
-                         'returned',
-                         'returned_time',
-                         'given_back',
-                         'sim_worker']
+                         'gen_started_time',
+                         'gen_ended_time',
+                         'sim_worker',
+                         'sim_started',
+                         'sim_started_time',
+                         'sim_ended',
+                         'sim_ended_time',
+                         'gen_informed',
+                         'gen_informed_time',
+                         'kill_sent']
 
 allowed_sim_spec_keys = ['sim_f',  #
                          'in',     #

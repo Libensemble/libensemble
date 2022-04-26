@@ -3,9 +3,9 @@ Runs libEnsemble on a generator function that first does uniform sampling,
 then starts persistent local optimization runs.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_uniform_sampling_then_persistent_localopt_runs.py
-   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
-   python3 test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_uniform_sampling_then_persistent_localopt_runs.py
+   python test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
+   python test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -60,7 +60,7 @@ alloc_specs = {'alloc_f': alloc_f, 'out': gen_out, 'user': {'batch_mode': True, 
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 1000, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

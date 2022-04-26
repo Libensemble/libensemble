@@ -3,9 +3,9 @@ Runs libEnsemble on the 6-hump camel problem. Documented here:
    https://www.sfu.ca/~ssurjano/camel6.html
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_sim_uniform_sampling.py
-   python3 test_persistent_sim_uniform_sampling.py --nworkers 3 --comms local
-   python3 test_persistent_sim_uniform_sampling.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_sim_uniform_sampling.py
+   python test_persistent_sim_uniform_sampling.py --nworkers 3 --comms local
+   python test_persistent_sim_uniform_sampling.py --nworkers 3 --comms tcp
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -63,13 +63,13 @@ alloc_specs = {'alloc_f': alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_time'])) == 8
+    assert len(np.unique(H['gen_ended_time'])) == 8
     assert not any((H['f'] == 0))
     # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
     assert not np.isclose(H['f'][0], 3.23333333)

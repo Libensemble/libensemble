@@ -1,0 +1,8 @@
+[default.extend-words]
+als = "als"
+datas = "datas"
+numer = "numer"
+inout = "inout"
+
+[files]
+extend-exclude = ["*.bib"]

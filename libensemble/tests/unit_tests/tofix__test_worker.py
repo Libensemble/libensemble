@@ -19,7 +19,7 @@ def test_worker_init_run():
 
     # check
     H['sim_id'][-L:] = -1
-    H['given_time'][-L:] = np.inf
+    H['sim_started_time'][-L:] = np.inf
 
     # Create work
     sim_ids = np.zeros(1, dtype=int)

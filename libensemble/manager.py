@@ -30,6 +30,7 @@ from libensemble.tools.fields_keys import protected_libE_fields
 import cProfile
 import pstats
 import copy
+import time
 
 if tuple(np.__version__.split('.')) >= ('1', '15'):
     from numpy.lib.recfunctions import repack_fields
@@ -131,13 +132,13 @@ def filter_nans(array):
 
 
 _WALLCLOCK_MSG_ALL_RETURNED = """
-Termination due to elapsed_wallclock_time has occurred.
+Termination due to wallclock_max has occurred.
 All completed work has been returned.
 Posting kill messages for all workers.
 """
 
 _WALLCLOCK_MSG_ACTIVE = """
-Termination due to elapsed_wallclock_time has occurred.
+Termination due to wallclock_max has occurred.
 Some issued work has not been returned.
 Posting kill messages for all workers.
 """
@@ -150,6 +151,7 @@ class Manager:
                     ('active', int),
                     ('persis_state', int),
                     ('active_recv', int),
+                    ('gen_started_time', float),
                     ('zero_resource_worker', bool)]
 
     def __init__(self, hist, libE_specs, alloc_specs,
@@ -174,7 +176,7 @@ class Manager:
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W['worker_id'] = np.arange(len(self.wcomms)) + 1
         self.term_tests = \
-            [(2, 'elapsed_wallclock_time', self.term_test_wallclock),
+            [(2, 'wallclock_max', self.term_test_wallclock),
              (1, 'sim_max', self.term_test_sim_max),
              (1, 'gen_max', self.term_test_gen_max),
              (1, 'stop_val', self.term_test_stop_val)]
@@ -202,17 +204,17 @@ class Manager:
 
     def term_test_sim_max(self, sim_max):
         """Checks against max simulations"""
-        return self.hist.returned_count >= sim_max + self.hist.returned_offset
+        return self.hist.sim_ended_count >= sim_max + self.hist.sim_ended_offset
 
     def term_test_gen_max(self, gen_max):
         """Checks against max generator calls"""
-        return self.hist.index >= gen_max + self.hist.given_back_offset
+        return self.hist.index >= gen_max + self.hist.gen_informed_offset
 
     def term_test_stop_val(self, stop_val):
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
-        return np.any(filter_nans(H[key][H['returned']]) <= val)
+        return np.any(filter_nans(H[key][H['sim_ended']]) <= val)
 
     def term_test(self, logged=True):
         """Checks termination criteria"""
@@ -245,7 +247,7 @@ class Manager:
     def _save_every_k_sims(self):
         """Saves history every kth sim step"""
         self._save_every_k('libE_history_for_run_starting_{}_after_sim_{}.npy',
-                           self.hist.returned_count,
+                           self.hist.sim_ended_count,
                            self.libE_specs['save_every_k_sims'])
 
     def _save_every_k_gens(self):
@@ -314,6 +316,9 @@ class Manager:
 
         self.wcomms[w-1].send(Work['tag'], Work)
 
+        if Work['tag'] == EVAL_GEN_TAG:
+            self.W[w-1]['gen_started_time'] = time.time()
+
         work_rows = Work['libE_info']['H_rows']
         work_name = calc_type_strings[Work['tag']]
         logger.debug("Manager sending {} work to worker {}. Rows {}".
@@ -379,9 +384,9 @@ class Manager:
         looped back over.
         """
         new_stuff = True
-        while new_stuff and any(self.W['active']):
+        while new_stuff:
             new_stuff = False
-            for w in self.W['worker_id'][self.W['active'] > 0]:
+            for w in self.W['worker_id']:
                 if self.wcomms[w-1].mail_flag():
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
@@ -407,7 +412,7 @@ class Manager:
             final_data = D_recv.get('calc_out', None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get('use_persis_return_gen', False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode)
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w-1]['gen_started_time'])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get('use_persis_return_sim', False):
                     self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
@@ -424,7 +429,7 @@ class Manager:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode)
+                self.hist.update_history_x_in(w, D_recv['calc_out'], self.safe_mode, self.W[w-1]['gen_started_time'])
                 assert len(D_recv['calc_out']) or np.any(self.W['active']) or self.W[w-1]['persis_state'], \
                     "Gen must return work when is is the only thing active and not persistent."
             if 'libE_info' in D_recv and 'persistent' in D_recv['libE_info']:
@@ -463,8 +468,8 @@ class Manager:
     def _kill_cancelled_sims(self):
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
-            kill_sim = self.hist.H['given'] & self.hist.H['cancel_requested'] \
-                & ~self.hist.H['returned'] & ~self.hist.H['kill_sent']
+            kill_sim = self.hist.H['sim_started'] & self.hist.H['cancel_requested'] \
+                & ~self.hist.H['sim_ended'] & ~self.hist.H['kill_sent']
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
@@ -491,7 +496,7 @@ class Manager:
             for w in self.W['worker_id'][self.W['persis_state'] > 0]:
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 if 'final_fields' in self.libE_specs:
-                    rows_to_send = self.hist.trim_H()['returned']
+                    rows_to_send = self.hist.trim_H()['sim_ended']
                     fields_to_send = self.libE_specs['final_fields']
                     H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
                     self.wcomms[w-1].send(PERSIS_STOP, H_to_send)
@@ -523,7 +528,7 @@ class Manager:
 
     def _sim_max_given(self):
         if 'sim_max' in self.exit_criteria:
-            return self.hist.given_count >= self.exit_criteria['sim_max'] + self.hist.given_offset
+            return self.hist.sim_started_count >= self.exit_criteria['sim_max'] + self.hist.sim_started_offset
         else:
             return False
 
@@ -534,9 +539,9 @@ class Manager:
                 'exit_criteria': self.exit_criteria,
                 'elapsed_time': self.elapsed(),
                 'manager_kill_canceled_sims': self.kill_canceled_sims,
-                'given_count': self.hist.given_count,
-                'returned_count': self.hist.returned_count,
-                'given_back_count': self.hist.given_back_count,
+                'sim_started_count': self.hist.sim_started_count,
+                'sim_ended_count': self.hist.sim_ended_count,
+                'gen_informed_count': self.hist.gen_informed_count,
                 'sim_max_given': self._sim_max_given(),
                 'use_resource_sets': 'num_resource_sets' in self.libE_specs}
 

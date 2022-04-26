@@ -2,7 +2,7 @@
 Tests CUDA variable resource detection in libEnsemble
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_sampling_CUDA_variable_resources.py
+   mpiexec -np 4 python test_persistent_sampling_CUDA_variable_resources.py
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -61,11 +61,15 @@ gen_specs = {
 
 alloc_specs = {
     'alloc_f': alloc_f,
-    'user': {'give_all_with_same_priority': False},
+    'user': {
+        'give_all_with_same_priority': False,
+        'async_return': True,
+        'scheduler_opts': {'match_slots': True},
+    },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(

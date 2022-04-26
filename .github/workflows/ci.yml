@@ -9,7 +9,7 @@ jobs:
                 os: [ubuntu-latest]
                 do-balsam: [false]
                 mpi-version: [mpich]
-                python-version: [3.7, 3.8, 3.9]
+                python-version: [3.7, 3.8, 3.9, "3.10"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
@@ -22,6 +22,11 @@ jobs:
                       python-version: 3.8
                       mpi-version: 'mpich'
                       comms-type: l
+                    #- os: ubuntu-latest
+                    #  do-balsam: false
+                    #  python-version: '3.11'
+                    #  mpi-version: 'mpich'
+                    #  comms-type: l
                     - os: ubuntu-latest
                       do-balsam: false
                       python-version: 3.8
@@ -29,13 +34,8 @@ jobs:
                       comms-type: t
                     - os: ubuntu-latest
                       do-balsam: false
-                      python-version: '3.10'
-                      mpi-version: 'mpich'
-                      comms-type: l
-                    - os: ubuntu-latest
-                      do-balsam: false
-                      mpi-version: 'openmpi'
-                      python-version: 3.8
+                      mpi-version: 'openmpi=4.1.2'
+                      python-version: 3.9
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: 3.8
@@ -90,13 +90,6 @@ jobs:
             mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk
             conda install clang_osx-64=9.0.1
 
-        - name: Install Octave and bc on Ubuntu
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
-          run: |
-            sudo apt-get update
-            sudo apt-get install octave
-            sudo apt-get install bc
-
         - name: Install MPI, mpi4py from conda
           if: matrix.python-version != '3.10'
           run: |
@@ -110,26 +103,38 @@ jobs:
             pip install mpi4py
 
         - name: Install generator dependencies
-          if: contains('3.7_3.8_3.9', matrix.python-version) && matrix.do-balsam == false
+          if: contains('3.7_3.8_3.9_3.10', matrix.python-version) && matrix.do-balsam == false
           run: |
             python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
-            conda install libblas libopenblas psutil pyyaml
-            conda install superlu_dist=6.2.0
-            conda install hypre=2.22.0
+            conda install superlu_dist
+            conda install hypre
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
             pip install DFO-LS
-            pip install dragonfly-opt
-            pip install ax-platform
+
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
+
+        - name: Install generator dependencies for Ubuntu tests
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
+          run: |
+            sudo apt-get update
+            sudo apt-get install octave
+            sudo apt-get install bc
+
+            pip install dragonfly-opt
+            pip install torch
+            pip install gpytorch
+            pip install ax-platform
 
         - name: Install other testing dependencies
           run: |
             pip install -r install/testing_requirements.txt
+            pip install psutil
+            pip install pyyaml
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
@@ -170,15 +175,15 @@ jobs:
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
-        - name: Run extensive tests, Ubuntu, Python 3.7-3.9
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9', matrix.python-version)
+        - name: Run extensive tests, Ubuntu, Python 3.7-3.10
+          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9_3.10', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run simple tests, Ubuntu, Python 3.10
-          if: matrix.python-version == '3.10'
-          run: |
-           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+        #- name: Run simple tests, Ubuntu, Python 3.11
+        #  if: matrix.python-version == '3.11'
+        #  run: |
+        #   ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
@@ -215,3 +220,11 @@ jobs:
             coveralls --finish
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    spellcheck:
+        name: Spellcheck release branch
+        if: contains(github.base_ref, 'main')
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: crate-ci/typos@v1.0.4

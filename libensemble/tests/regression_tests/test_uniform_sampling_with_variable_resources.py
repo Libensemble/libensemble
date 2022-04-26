@@ -3,8 +3,8 @@ Runs libEnsemble doing uniform sampling and then evaluates those points with
 varying amount of resources.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_uniform_sampling_with_variable_resources.py
-   python3 test_uniform_sampling_with_variable_resources.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_uniform_sampling_with_variable_resources.py
+   python test_uniform_sampling_with_variable_resources.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -68,6 +68,9 @@ gen_specs = {
     },
 }
 
+# This can improve scheduling when tasks may run across multiple nodes
+scheduler_opts = {'match_slots': False}  # Does not need matching slots across nodes.
+
 alloc_specs = {
     'alloc_f': give_sim_work_first,
     'out': [],
@@ -75,11 +78,12 @@ alloc_specs = {
         'batch_mode': False,
         'give_all_with_same_priority': True,
         'num_active_gens': 1,
+        'async_return': True,
+        'scheduler_opts': scheduler_opts,
     },
 }
 
-
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 for prob_id in range(2):
     if prob_id == 0:

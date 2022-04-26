@@ -2,8 +2,8 @@
 Tests the persistent_independent_optimize generator function.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_independent.py
-   python3 test_persistent_independent.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_persistent_independent.py
+   python test_persistent_independent.py --nworkers 3 --comms local
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -95,11 +95,11 @@ libE_specs['safe_mode'] = False
 # i==0 is full run, i==1 is early termination
 for i in range(2):
     if i == 0:
-        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 1000000}
+        exit_criteria = {'wallclock_max': 600, 'sim_max': 1000000}
         if is_manager:
             print('=== Testing full independent optimize ===', flush=True)
     else:
-        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 10}
+        exit_criteria = {'wallclock_max': 600, 'sim_max': 10}
         if is_manager:
             print('=== Testing independent optimize w/ stoppage ===', flush=True)
 

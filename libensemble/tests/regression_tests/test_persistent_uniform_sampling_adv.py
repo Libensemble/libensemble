@@ -3,9 +3,9 @@ Tests the ability of libEnsemble to
  - give back all of the history to a persistent gen at shutdown
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_uniform_sampling_adv.py
-   python3 test_persistent_uniform_sampling_adv.py --nworkers 3 --comms local
-   python3 test_persistent_uniform_sampling_adv.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_uniform_sampling_adv.py
+   python test_persistent_uniform_sampling_adv.py --nworkers 3 --comms local
+   python test_persistent_uniform_sampling_adv.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -70,7 +70,7 @@ for prob_id in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        assert len(np.unique(H['gen_time'])) == 1, "Everything should have been generated in one batch"
+        assert len(np.unique(H['gen_ended_time'])) == 1, "Everything should have been generated in one batch"
         if prob_id == 1:
             assert np.all(H['x'][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
 

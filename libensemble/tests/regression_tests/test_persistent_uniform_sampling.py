@@ -3,9 +3,9 @@ Tests libEnsemble with a simple persistent uniform sampling generator
 function.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_uniform_sampling.py
-   python3 test_persistent_uniform_sampling.py --nworkers 3 --comms local
-   python3 test_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_uniform_sampling.py
+   python test_persistent_uniform_sampling.py --nworkers 3 --comms local
+   python test_persistent_uniform_sampling.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -55,13 +55,13 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 for i in persis_info:
     persis_info[i]['get_grad'] = True
 
-exit_criteria = {'gen_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'gen_max': 40, 'wallclock_max': 300}
 
 libE_specs['kill_canceled_sims'] = False
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_time'])) == 2
+    assert len(np.unique(H['gen_ended_time'])) == 2
 
     save_libE_output(H, persis_info, __file__, nworkers)

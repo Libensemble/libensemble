@@ -3,9 +3,9 @@ Tests libEnsemble's capability to take in an existing sample of points with
 sim_f values and do additional evaluations.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_evaluate_mixed_sample.py
-   python3 test_evaluate_mixed_sample.py --nworkers 3 --comms local
-   python3 test_evaluate_mixed_sample.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_evaluate_mixed_sample.py
+   python test_evaluate_mixed_sample.py --nworkers 3 --comms local
+   python test_evaluate_mixed_sample.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -27,24 +27,24 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 sim_specs = {
     'sim_f': sim_f,
     'in': ['x'],
-    'out': [('f', float, 8)],
+    'out': [('f', float)],
 }
 
 gen_specs = {}
 
-n_samp = 1000
+samp = 1000
 n = 8
 
-H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('f', float, 8), ('sim_id', int), ('given', bool), ('returned', bool)])
+H0 = np.zeros(samp, dtype=[('x', float, n), ('f', float), ('sim_id', int), ('sim_started', bool), ('sim_ended', bool)])
 
 np.random.seed(0)
-H0['x'] = gen_borehole_input(n_samp)
+H0['x'] = gen_borehole_input(samp)
 
 for i in range(500):
     H0['f'][i] = borehole_func(H0['x'][i])
 
-H0['given'][:500] = True
-H0['returned'][:500] = True
+H0['sim_started'][:500] = True
+H0['sim_ended'][:500] = True
 
 alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
 
@@ -56,6 +56,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=all
 if is_manager:
     assert len(H) == len(H0)
     assert np.array_equal(H0['x'], H['x'])
-    assert np.all(H['returned'])
+    assert np.all(H['sim_ended'])
     print("\nlibEnsemble correctly didn't add anything to initial sample")
     save_libE_output(H, persis_info, __file__, nworkers)

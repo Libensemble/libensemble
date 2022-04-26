@@ -2,9 +2,9 @@
 Runs libEnsemble with APOSMM and SciPy local optimization routines.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_6-hump_camel_persistent_uniform_sampling.py
-   python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
-   python3 test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_6-hump_camel_persistent_uniform_sampling.py
+   python test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms local
+   python test_6-hump_camel_persistent_uniform_sampling.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -124,4 +124,4 @@ gen_specs['persis_in'].remove('grad')
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert np.sum(H['returned']) >= exit_criteria['sim_max'], "Run didn't finish"
+    assert np.sum(H['sim_ended']) >= exit_criteria['sim_max'], "Run didn't finish"

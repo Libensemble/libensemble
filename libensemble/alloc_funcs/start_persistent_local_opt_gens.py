@@ -33,7 +33,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
     gen_count = support.count_persis_gens()
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
 
     # If a persistent localopt run has just finished, use run_order to update H
     # and then remove other information from persis_info
@@ -49,16 +49,16 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     # If wid is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
-        gen_inds = (H['gen_worker'] == wid)
-        if support.all_returned(H, gen_inds):
-            last_time_pos = np.argmax(H['given_time'][gen_inds])
+        gen_inds = H['gen_worker'] == wid
+        if support.all_sim_ended(H, gen_inds):
+            last_time_pos = np.argmax(H['sim_started_time'][gen_inds])
             last_ind = np.nonzero(gen_inds)[0][last_time_pos]
             Work[wid] = support.gen_work(wid, gen_specs['persis_in'], last_ind, persis_info[wid], persistent=True)
             persis_info[wid]['run_order'].append(last_ind)
 
     for wid in support.avail_worker_ids(persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
-        if np.any(np.logical_and(~H['local_pt'], H['returned'], ~H['cancel_requested'])):
+        if np.any(np.logical_and(~H['local_pt'], H['sim_ended'], ~H['cancel_requested'])):
             n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
             update_history_dist(H, n, gen_specs['user'], c_flag=False)
             starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
@@ -91,7 +91,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 break
             points_to_evaluate[sim_ids_to_send] = False
 
-        elif (gen_count == 0 and not np.any(np.logical_and(W['active'] == EVAL_GEN_TAG, W['persis_state'] == 0))):
+        elif gen_count == 0 and not np.any(np.logical_and(W['active'] == EVAL_GEN_TAG, W['persis_state'] == 0)):
             # Finally, generate points since there is nothing else to do (no resource sets req.)
             Work[wid] = support.gen_work(wid, gen_specs.get('in', []), [], persis_info[wid], rset_team=[])
             gen_count += 1
