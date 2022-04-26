@@ -32,10 +32,19 @@ On the remote machine (in a conda or other virtual environment):
     pip install balsam
     balsam login
     balsam site init ./my-site
-    cd my-site; balsam site start
 
 You may be asked to login and authenticate with the Balsam service. Do so with
-your ALCF credentials.
+your ALCF credentials. Now go into the site directory:
+
+    cd my-site
+
+To see if the site is active run:
+
+    balsam site ls
+
+If the site is not active, run:
+
+    balsam site start
 
 On any machine you've installed and logged into Balsam, you can run `balsam site ls`
 to list your sites and `balsam job rm --all` to remove extraneous jobs between runs.
