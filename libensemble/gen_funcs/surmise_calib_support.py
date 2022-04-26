@@ -6,6 +6,7 @@ import scipy.stats as sps
 
 class thetaprior:
     """Define the class instance of priors provided to the methods."""
+
     def __init__(self, loc, scale):
         self._loc = loc
         self._scale = scale
@@ -47,7 +48,7 @@ def gen_xs(nx, randstream):
 def gen_observations(fevals, obsvar_const, randstream):
     """Generate observations."""
     n_x = len(np.squeeze(fevals))
-    obsvar = np.maximum(obsvar_const*fevals, 5)
+    obsvar = np.maximum(obsvar_const * fevals, 5)
     obsvar = np.squeeze(obsvar)
     obs = fevals + randstream.normal(0, np.sqrt(obsvar), n_x).reshape((n_x))
 
@@ -59,12 +60,18 @@ def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
     # numnewtheta += 2
     thetachoices = cal.theta(numexplore)
     choicescost = np.ones(thetachoices.shape[0])
-    thetaneworig, info = emu.supplement(size=numnewtheta, thetachoices=thetachoices,
-                                        choicescost=choicescost,
-                                        cal=cal, overwrite=True,
-                                        args={'includepending': True,
-                                              'costpending': 0.01 + 0.99 * np.mean(pending, 0),
-                                              'pending': pending})
+    thetaneworig, info = emu.supplement(
+        size=numnewtheta,
+        thetachoices=thetachoices,
+        choicescost=choicescost,
+        cal=cal,
+        overwrite=True,
+        args={
+            'includepending': True,
+            'costpending': 0.01 + 0.99 * np.mean(pending, 0),
+            'pending': pending,
+        },
+    )
     thetaneworig = thetaneworig[:numnewtheta, :]
     thetanew = thetaneworig
     return thetanew, info
