@@ -18,8 +18,6 @@
     Author: S Hudson.
 -------------------------------------------------------------------- */
 
-#define _GNU_SOURCE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -48,18 +46,18 @@ double elapsed(struct timeval *tv1, struct timeval *tv2) {
 
 // Print from each thread.
 int check_threads(int rank) {
+    #if defined(_OPENMP)
     int tid, nthreads;
-
-    #pragma omp parallel private(tid,nthreads)
-    {
-        #if defined(_OPENMP)
+        #pragma omp parallel private(tid,nthreads)
+        {
             nthreads = omp_get_num_threads();
             tid = omp_get_thread_num();
             printf("Rank: %d:   ThreadID: %d    Num threads: %d\n",rank,tid,nthreads);
-        #else
-            printf("Rank: %d: OpenMP is disabled\n",rank);
-        #endif
-    }
+
+        }
+    #else
+        printf("Rank: %d: OpenMP is disabled\n",rank);
+    #endif
     return 0;
 }
 
@@ -320,6 +318,7 @@ int test_badrun(double rate) {
 
 int main(int argc, char **argv) {
 
+    int num_devices;
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
@@ -369,9 +368,20 @@ int main(int argc, char **argv) {
         printf("Random seed: %d\n",rand_seed);
     }
 
+     // For multi-gpu node - use one GPU per rank i
+     num_devices = 0;
+     #if defined(_OPENMP)
+     num_devices = omp_get_num_devices();
+     if (num_devices > 0) {
+         omp_set_default_device(rank % num_devices);
+     }
+     #endif
+
     if (PRINT_HOSTNAME_ALL_PROCS) {
         MPI_Barrier(MPI_COMM_WORLD);
-        check_threads(rank);
+        if (num_devices == 0) {
+            check_threads(rank);
+        }
         char processor_name[MPI_MAX_PROCESSOR_NAME];
         int name_len;
         MPI_Get_processor_name(processor_name, &name_len);
@@ -379,7 +389,9 @@ int main(int argc, char **argv) {
     }
 
     if (CHECK_THREADS) {
-        check_threads(rank);
+        if (num_devices == 0) {
+            check_threads(rank);
+        }
     }
 
     k = num_particles / num_procs;
