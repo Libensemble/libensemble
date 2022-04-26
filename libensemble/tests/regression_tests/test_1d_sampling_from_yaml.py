@@ -19,12 +19,12 @@ import numpy as np
 from libensemble import Ensemble
 
 sampling = Ensemble()
-sampling.from_yaml('1d_sampling.yaml')
+sampling.from_yaml("1d_sampling.yaml")
 
-sampling.gen_specs['user'].update(
+sampling.gen_specs["user"].update(
     {
-        'lb': np.array([-3]),
-        'ub': np.array([3]),
+        "lb": np.array([-3]),
+        "ub": np.array([3]),
     }
 )
 

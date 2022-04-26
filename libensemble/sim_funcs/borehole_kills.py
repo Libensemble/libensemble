@@ -13,14 +13,14 @@ def subproc_borehole(H, delay):
     so long as there are free contexts.
 
     """
-    with open('input', 'w') as f:
-        H['thetas'][0].tofile(f)
-        H['x'][0].tofile(f)
+    with open("input", "w") as f:
+        H["thetas"][0].tofile(f)
+        H["x"][0].tofile(f)
 
     exctr = Executor.executor
-    args = 'input' + ' ' + str(delay)
+    args = "input" + " " + str(delay)
 
-    task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
+    task = exctr.submit(app_name="borehole", app_args=args, stdout="out.txt", stderr="err.txt")
     calc_status = exctr.polling_loop(task, delay=0.01, poll_manager=True)
 
     if calc_status in [MAN_SIGNAL_KILL, TASK_FAILED]:
@@ -36,22 +36,22 @@ def borehole(H, persis_info, sim_specs, libE_info):
     Subprocess to test receiving kill signals from manager
     """
     calc_status = UNSET_TAG  # Calc_status gets printed in libE_stats.txt
-    H_o = np.zeros(H['x'].shape[0], dtype=sim_specs['out'])
+    H_o = np.zeros(H["x"].shape[0], dtype=sim_specs["out"])
 
     # Add a delay so subprocessed borehole takes longer
-    sim_id = libE_info['H_rows'][0]
+    sim_id = libE_info["H_rows"][0]
     delay = 0
-    if sim_id > sim_specs['user']['init_sample_size']:
+    if sim_id > sim_specs["user"]["init_sample_size"]:
         delay = 2 + np.random.normal(scale=0.5)
 
     f, calc_status = subproc_borehole(H, delay)
 
     # Failure model (excluding observations)
-    if sim_id > sim_specs['user']['num_obs']:
-        if (f / borehole_true(H['x'])) > 1.25:
+    if sim_id > sim_specs["user"]["num_obs"]:
+        if (f / borehole_true(H["x"])) > 1.25:
             f = np.inf
             calc_status = TASK_FAILED
-            print('Failure of sim_id {}'.format(sim_id), flush=True)
+            print("Failure of sim_id {}".format(sim_id), flush=True)
 
-    H_o['f'] = f
+    H_o["f"] = f
     return H_o, persis_info, calc_status

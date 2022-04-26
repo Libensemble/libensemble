@@ -14,13 +14,13 @@ from libensemble.tests.regression_tests.common import modify_Balsam_worker, modi
 
 
 def run_Balsam_job():
-    runstr = 'balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1'
-    print('Executing Balsam job with command: {}'.format(runstr))
+    runstr = "balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1"
+    print("Executing Balsam job with command: {}".format(runstr))
     subprocess.Popen(runstr.split())
 
 
 def build_simfunc():
-    buildstring = 'mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c'
+    buildstring = "mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
     subprocess.check_call(buildstring.split())
 
 
@@ -29,7 +29,7 @@ def wait_for_job_dir(basedb):
     limit = 15
 
     # Stop sleeping once database directory detected
-    print('Waiting for Balsam Database directory.')
+    print("Waiting for Balsam Database directory.")
     while sleeptime < limit:
         if os.path.isdir(basedb):
             break
@@ -39,7 +39,7 @@ def wait_for_job_dir(basedb):
     assert sleeptime < limit, "Balsam Database directory not created within {} seconds.".format(limit)
 
     # Stop sleeping once job directory detected within database directory
-    print('Waiting for Job Directory {}'.format(sleeptime))
+    print("Waiting for Job Directory {}".format(sleeptime))
     while sleeptime < limit:
         if len(os.listdir(basedb)) > 0:
             break
@@ -58,8 +58,8 @@ def wait_for_job_output(jobdir):
     sleeptime = 0
     limit = 60
 
-    output = os.path.join(jobdir, 'job_script_test_balsam_hworld.out')
-    print('Checking for Balsam output file: {}'.format(output))
+    output = os.path.join(jobdir, "job_script_test_balsam_hworld.out")
+    print("Checking for Balsam output file: {}".format(output))
 
     while sleeptime < limit:
         if os.path.isfile(output):
@@ -78,17 +78,17 @@ def print_job_output(outscript):
     sleeptime = 0
     limit = 80
 
-    print('Blank output file found. Waiting for expected complete Balsam Job Output.')
-    succeed_line = 'Received:  [34 34 31 31 34 34 32 32 33 33]\n'
+    print("Blank output file found. Waiting for expected complete Balsam Job Output.")
+    succeed_line = "Received:  [34 34 31 31 34 34 32 32 33 33]\n"
 
     while sleeptime < limit:
-        with open(outscript, 'r') as f:
+        with open(outscript, "r") as f:
             lines = f.readlines()
 
         print(sleeptime, end=" ", flush=True)
 
         if succeed_line in lines:
-            print('Success. Received task statuses match expected.')
+            print("Success. Received task statuses match expected.")
             break
 
         time.sleep(1)
@@ -99,9 +99,9 @@ def print_job_output(outscript):
 
 def move_job_coverage(jobdir):
     # Move coverage files from Balsam DB to ./regression_tests (for concatenation)
-    print('Moving job coverage results.')
+    print("Moving job coverage results.")
     here = os.getcwd()
-    covname = '.cov_reg_out.'
+    covname = ".cov_reg_out."
 
     assert any(
         [file.startswith(covname) for file in os.listdir(jobdir)]
@@ -114,18 +114,18 @@ def move_job_coverage(jobdir):
             os.rename(balsam_cov, here_cov)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Used by Balsam Coverage config file. Dont evaluate Balsam data dir
     libepath = os.path.dirname(libensemble.__file__)
-    os.environ['LIBE_PATH'] = libepath
+    os.environ["LIBE_PATH"] = libepath
     # os.environ['BALSAM_DB_PATH'] = '~/test-balsam'
 
-    basedb = os.environ['HOME'] + '/test-balsam/data/libe_test-balsam'
+    basedb = os.environ["HOME"] + "/test-balsam/data/libe_test-balsam"
 
-    subprocess.run('./scripts_used_by_reg_tests/configure-balsam-test.sh'.split())
+    subprocess.run("./scripts_used_by_reg_tests/configure-balsam-test.sh".split())
 
-    if not os.path.isfile('./my_simtask.x'):
+    if not os.path.isfile("./my_simtask.x"):
         build_simfunc()
 
     modify_Balsam_worker()
@@ -137,5 +137,5 @@ if __name__ == '__main__':
     print_job_output(output)
     move_job_coverage(jobdir)
 
-    print('Test complete.')
-    subprocess.run('./scripts_used_by_reg_tests/cleanup-balsam-test.sh'.split())
+    print("Test complete.")
+    subprocess.run("./scripts_used_by_reg_tests/cleanup-balsam-test.sh".split())

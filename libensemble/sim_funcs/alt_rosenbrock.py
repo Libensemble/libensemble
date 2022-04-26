@@ -39,14 +39,14 @@ def EvaluateJacobian(x, component=np.nan):
 
 def alt_rosenbrock_eval(H, persis_info, sim_specs, _):
 
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        obj_component = H['obj_component'][i]  # which f_i
-        if H[i]['get_grad']:
-            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component)
+    for i, x in enumerate(H["x"]):
+        obj_component = H["obj_component"][i]  # which f_i
+        if H[i]["get_grad"]:
+            H_o["gradf_i"][i] = EvaluateJacobian(x, obj_component)
         else:
-            H_o['f_i'][i] = EvaluateFunction(x, obj_component)
+            H_o["f_i"][i] = EvaluateFunction(x, obj_component)
 
     return H_o, persis_info

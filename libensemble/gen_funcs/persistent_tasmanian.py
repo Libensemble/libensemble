@@ -21,7 +21,7 @@ def lex_le(x, y, tol=1e-12):
     return x[ind] <= y[ind]
 
 
-def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1e-12):
+def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype="int"), y_ord=np.empty(0, dtype="int"), tol=1e-12):
     """
     Finds the row indices in a 2D numpy array `x` for which the sorted values of `y` can be inserted
     into. If `x_ord` (resp. `y_ord`) is empty, then `x` (resp. `y`) must be lexicographically
@@ -31,15 +31,15 @@ def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0
     assert len(x.shape) == 2
     assert len(y.shape) == 2
     if x.size == 0:
-        return np.zeros(y.shape[0], dtype='int')
+        return np.zeros(y.shape[0], dtype="int")
     else:
         if x_ord.size == 0:
-            x_ord = np.arange(x.shape[0], dtype='int')
+            x_ord = np.arange(x.shape[0], dtype="int")
         if y_ord.size == 0:
-            y_ord = np.arange(y.shape[0], dtype='int')
+            y_ord = np.arange(y.shape[0], dtype="int")
         x_ptr = 0
         y_ptr = 0
-        out_ord = np.empty(0, dtype='int')
+        out_ord = np.empty(0, dtype="int")
         while y_ptr < y.shape[0]:
             # The case where y[k] <= max of x[k:end, :]
             xk = x[x_ord[x_ptr], :]
@@ -58,7 +58,7 @@ def get_2D_insert_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0
         return out_ord
 
 
-def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empty(0, dtype='int'), tol=1e-12):
+def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype="int"), y_ord=np.empty(0, dtype="int"), tol=1e-12):
     """
     Finds the row indices of a 2D numpy array `x` which overlap with `y`. If `x_ord` (resp. `y_ord`)
     is empty, then `x` (resp. `y`) must be lexicographically sorted. Otherwise, `x[x_ord]` (resp.
@@ -67,15 +67,15 @@ def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype='int'), y_ord=np.empt
     assert len(x.shape) == 2
     assert len(y.shape) == 2
     if x.size == 0:
-        return np.empty(0, dtype='int')
+        return np.empty(0, dtype="int")
     else:
         if x_ord.size == 0:
-            x_ord = np.arange(x.shape[0], dtype='int')
+            x_ord = np.arange(x.shape[0], dtype="int")
         if y_ord.size == 0:
-            y_ord = np.arange(y.shape[0], dtype='int')
+            y_ord = np.arange(y.shape[0], dtype="int")
         x_ptr = 0
         y_ptr = 0
-        out_ord = np.empty(0, dtype='int')
+        out_ord = np.empty(0, dtype="int")
         while y_ptr < y.shape[0] and x_ptr < x.shape[0]:
             # The case where y[k] <= max of x[k:end, :]
             xk = x[x_ord[x_ptr], :]
@@ -122,16 +122,16 @@ def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1e-1
         return np.argmax(np.fabs(x - y)) <= tol
 
     num_ids = queued_ids.shape[0]
-    H0 = np.zeros(num_ids, dtype=gen_specs['out'])
-    refined_priority = np.flip(np.arange(refined_pts.shape[0], dtype='int'))
+    H0 = np.zeros(num_ids, dtype=gen_specs["out"])
+    refined_priority = np.flip(np.arange(refined_pts.shape[0], dtype="int"))
     rptr = 0
     for qptr in range(num_ids):
         while not approx_eq(refined_pts[refined_ord[rptr]], queued_pts[qptr]):
             rptr += 1
         assert rptr <= refined_pts.shape[0]
-        H0['x'][qptr] = queued_pts[qptr]
-        H0['sim_id'][qptr] = queued_ids[qptr]
-        H0['priority'][qptr] = refined_priority[refined_ord[rptr]]
+        H0["x"][qptr] = queued_pts[qptr]
+        H0["sim_id"][qptr] = queued_ids[qptr]
+        H0["priority"][qptr] = refined_priority[refined_ord[rptr]]
     return H0
 
 
@@ -147,31 +147,31 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     `sparse grid example <https://github.com/ORNL/TASMANIAN/blob/master/InterfacePython/example_sparse_grids_09.py>`_
 
     """
-    U = gen_specs['user']
+    U = gen_specs["user"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-    grid = U['tasmanian_init']()  # initialize the grid
+    grid = U["tasmanian_init"]()  # initialize the grid
     allowed_refinements = [
-        'setAnisotropicRefinement',
-        'getAnisotropicRefinement',
-        'setSurplusRefinement',
-        'getSurplusRefinement',
-        'none',
+        "setAnisotropicRefinement",
+        "getAnisotropicRefinement",
+        "setSurplusRefinement",
+        "getSurplusRefinement",
+        "none",
     ]
     assert (
-        'refinement' in U and U['refinement'] in allowed_refinements
+        "refinement" in U and U["refinement"] in allowed_refinements
     ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
 
-        H0 = np.zeros(len(aPoints), dtype=gen_specs['out'])
-        H0['x'] = aPoints
+        H0 = np.zeros(len(aPoints), dtype=gen_specs["out"])
+        H0["x"] = aPoints
 
         # Receive values from manager
         tag, Work, calc_in = ps.send_recv(H0)
         if tag in [STOP_TAG, PERSIS_STOP]:
             break
-        aModelValues = calc_in['f']
+        aModelValues = calc_in["f"]
 
         # Update surrogate on grid
         t = aModelValues.reshape((aModelValues.shape[0], grid.getNumOutputs()))
@@ -179,20 +179,20 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
         t = np.atleast_2d(t).T
         grid.loadNeededPoints(t)
 
-        if 'tasmanian_checkpoint_file' in U:
-            grid.write(U['tasmanian_checkpoint_file'])
+        if "tasmanian_checkpoint_file" in U:
+            grid.write(U["tasmanian_checkpoint_file"])
 
         # set refinement, using user['refinement'] to pick the refinement strategy
-        if U['refinement'] in ['setAnisotropicRefinement', 'getAnisotropicRefinement']:
-            assert 'sType' in U
-            assert 'iMinGrowth' in U
-            assert 'iOutput' in U
-            grid.setAnisotropicRefinement(U['sType'], U['iMinGrowth'], U['iOutput'])
-        elif U['refinement'] in ['setSurplusRefinement', 'getSurplusRefinement']:
-            assert 'fTolerance' in U
-            assert 'iOutput' in U
-            assert 'sCriteria' in U
-            grid.setSurplusRefinement(U['fTolerance'], U['iOutput'], U['sCriteria'])
+        if U["refinement"] in ["setAnisotropicRefinement", "getAnisotropicRefinement"]:
+            assert "sType" in U
+            assert "iMinGrowth" in U
+            assert "iOutput" in U
+            grid.setAnisotropicRefinement(U["sType"], U["iMinGrowth"], U["iOutput"])
+        elif U["refinement"] in ["setSurplusRefinement", "getSurplusRefinement"]:
+            assert "fTolerance" in U
+            assert "iOutput" in U
+            assert "sCriteria" in U
+            grid.setSurplusRefinement(U["fTolerance"], U["iOutput"], U["sCriteria"])
 
     return H0, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -204,28 +204,28 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     `sparse grid dynamic example <https://github.com/ORNL/TASMANIAN/blob/master/Addons/tsgConstructSurrogate.hpp>`_
 
     """
-    U = gen_specs['user']
+    U = gen_specs["user"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-    grid = U['tasmanian_init']()  # initialize the grid
-    allowed_refinements = ['getCandidateConstructionPoints', 'getCandidateConstructionPointsSurplus']
+    grid = U["tasmanian_init"]()  # initialize the grid
+    allowed_refinements = ["getCandidateConstructionPoints", "getCandidateConstructionPointsSurplus"]
     assert (
-        'refinement' in U and U['refinement'] in allowed_refinements
+        "refinement" in U and U["refinement"] in allowed_refinements
     ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
-    tol = U['_match_tolerance'] if '_match_tolerance' in U else 1.0e-12
+    tol = U["_match_tolerance"] if "_match_tolerance" in U else 1.0e-12
 
     # Choose the refinement function based on U['refinement'].
-    if U['refinement'] == 'getCandidateConstructionPoints':
-        assert 'sType' in U
-        assert 'liAnisotropicWeightsOrOutput' in U
-    if U['refinement'] == 'getCandidateConstructionPointsSurplus':
-        assert 'fTolerance' in U
-        assert 'sRefinementType' in U
+    if U["refinement"] == "getCandidateConstructionPoints":
+        assert "sType" in U
+        assert "liAnisotropicWeightsOrOutput" in U
+    if U["refinement"] == "getCandidateConstructionPointsSurplus":
+        assert "fTolerance" in U
+        assert "sRefinementType" in U
 
     def get_refined_points(g, U):
-        if U['refinement'] == 'getCandidateConstructionPoints':
-            return g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
-        elif U['refinement'] == 'getCandidateConstructionPointsSurplus':
-            return g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
+        if U["refinement"] == "getCandidateConstructionPoints":
+            return g.getCandidateConstructionPoints(U["sType"], U["liAnisotropicWeightsOrOutput"])
+        elif U["refinement"] == "getCandidateConstructionPointsSurplus":
+            return g.getCandidateConstructionPointsSurplus(U["fTolerance"], U["sRefinementType"])
         else:
             raise ValueError("Unknown refinement string")
 
@@ -233,37 +233,37 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     num_dims = grid.getNumDimensions()
     num_completed = 0
     offset = 0
-    queued_pts = np.empty((0, num_dims), dtype='float')
-    queued_ids = np.empty(0, dtype='int')
+    queued_pts = np.empty((0, num_dims), dtype="float")
+    queued_ids = np.empty(0, dtype="int")
 
     # First run.
     grid.beginConstruction()
     init_pts = get_refined_points(grid, U)
     queued_pts, queued_ids, offset = get_state(queued_pts, queued_ids, offset, new_points=init_pts, tol=tol)
-    H0 = np.zeros(init_pts.shape[0], dtype=gen_specs['out'])
-    H0['x'] = init_pts
-    H0['sim_id'] = np.arange(init_pts.shape[0], dtype='int')
-    H0['priority'] = np.flip(H0['sim_id'])
+    H0 = np.zeros(init_pts.shape[0], dtype=gen_specs["out"])
+    H0["x"] = init_pts
+    H0["sim_id"] = np.arange(init_pts.shape[0], dtype="int")
+    H0["priority"] = np.flip(H0["sim_id"])
     tag, Work, calc_in = ps.send_recv(H0)
 
     # Subsequent runs.
     while tag not in [STOP_TAG, PERSIS_STOP]:
 
         # Parse the points returned by the allocator.
-        num_completed += calc_in['x'].shape[0]
+        num_completed += calc_in["x"].shape[0]
         queued_pts, queued_ids, offset = get_state(
-            queued_pts, queued_ids, offset, completed_points=calc_in['x'], tol=tol
+            queued_pts, queued_ids, offset, completed_points=calc_in["x"], tol=tol
         )
 
         # Compute the next batch of points (if they exist).
-        new_pts = np.empty((0, num_dims), dtype='float')
-        refined_pts = np.empty((0, num_dims), dtype='float')
-        refined_ord = np.empty(0, dtype='int')
+        new_pts = np.empty((0, num_dims), dtype="float")
+        refined_pts = np.empty((0, num_dims), dtype="float")
+        refined_ord = np.empty(0, dtype="int")
         if grid.getNumLoaded() < 1000 or num_completed > 0.2 * grid.getNumLoaded():
             # A copy is needed because the data in the calc_in arrays are not contiguous.
-            grid.loadConstructedPoint(np.copy(calc_in['x']), np.copy(calc_in['f']))
-            if 'tasmanian_checkpoint_file' in U:
-                grid.write(U['tasmanian_checkpoint_file'])
+            grid.loadConstructedPoint(np.copy(calc_in["x"]), np.copy(calc_in["f"]))
+            if "tasmanian_checkpoint_file" in U:
+                grid.write(U["tasmanian_checkpoint_file"])
             refined_pts = get_refined_points(grid, U)
             # If the refined points are empty, then there is a stopping condition internal to the
             # Tasmanian sparse grid that is being triggered by the loaded points.
@@ -285,7 +285,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     return [], persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batched'):
+def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode="batched"):
     """
     Helper function that generates the simulator, generator, and allocator specs as well as the
     persis_info dictionary to ensure that they are compatible with the custom generators in this
@@ -317,40 +317,40 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode='batc
 
     """
 
-    assert 'tasmanian_init' in user_specs
-    assert mode in ['batched', 'async']
+    assert "tasmanian_init" in user_specs
+    assert mode in ["batched", "async"]
 
     sim_specs = {
-        'sim_f': sim_f,
-        'in': ['x'],
+        "sim_f": sim_f,
+        "in": ["x"],
     }
     gen_out = [
-        ('x', float, (num_dims,)),
-        ('sim_id', int),
-        ('priority', int),
+        ("x", float, (num_dims,)),
+        ("sim_id", int),
+        ("priority", int),
     ]
     gen_specs = {
-        'persis_in': [t[0] for t in gen_out] + ['f'],
-        'out': gen_out,
-        'user': user_specs,
+        "persis_in": [t[0] for t in gen_out] + ["f"],
+        "out": gen_out,
+        "user": user_specs,
     }
     alloc_specs = {
-        'alloc_f': allocf,
-        'user': {},
+        "alloc_f": allocf,
+        "user": {},
     }
 
-    if mode == 'batched':
-        gen_specs['gen_f'] = sparse_grid_batched
-        sim_specs['out'] = [('f', float, (num_outputs,))]
-    if mode == 'async':
-        gen_specs['gen_f'] = sparse_grid_async
-        sim_specs['out'] = [('x', float, (num_dims,)), ('f', float, (num_outputs,))]
-        alloc_specs['user']['active_recv_gen'] = True
-        alloc_specs['user']['async_return'] = True
+    if mode == "batched":
+        gen_specs["gen_f"] = sparse_grid_batched
+        sim_specs["out"] = [("f", float, (num_outputs,))]
+    if mode == "async":
+        gen_specs["gen_f"] = sparse_grid_async
+        sim_specs["out"] = [("x", float, (num_dims,)), ("f", float, (num_outputs,))]
+        alloc_specs["user"]["active_recv_gen"] = True
+        alloc_specs["user"]["async_return"] = True
 
     nworkers, _, _, _ = parse_args()
     persis_info = {}
     for i in range(nworkers + 1):
-        persis_info[i] = {'worker_num': i}
+        persis_info[i] = {"worker_num": i}
 
     return sim_specs, gen_specs, alloc_specs, persis_info

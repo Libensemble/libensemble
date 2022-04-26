@@ -13,27 +13,27 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     """Gradient sliding. Coordinates with alloc to do local and distributed
     (i.e., gradient of consensus step) calculations.
     """
-    ub = gen_specs['user']['ub']
-    lb = gen_specs['user']['lb']
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
     n = len(ub)
 
     # start with random x0
-    x0 = persis_info['rand_stream'].uniform(low=lb, high=ub, size=(n,))
+    x0 = persis_info["rand_stream"].uniform(low=lb, high=ub, size=(n,))
     x_k = x0
 
-    L = persis_info['params']['L']
-    eps = persis_info['params']['eps']
-    rho = persis_info['params']['rho']
-    N_const = persis_info['params']['N_const']
-    step_const = persis_info['params']['step_const']
+    L = persis_info["params"]["L"]
+    eps = persis_info["params"]["eps"]
+    rho = persis_info["params"]["rho"]
+    N_const = persis_info["params"]["N_const"]
+    step_const = persis_info["params"]["step_const"]
 
     N = int(N_const / eps + 1)
     eta = step_const * 1.0 / L * min(1 / 6, (1 - rho**2) ** 2 / (4 * rho**2 * (3 + 4 * rho**2)))
 
-    f_i_idxs = persis_info['f_i_idxs']
-    A_i_data = persis_info['A_i_data']
-    A_i_gen_ids = persis_info['A_i_gen_ids']
-    local_gen_id = persis_info['worker_num']
+    f_i_idxs = persis_info["f_i_idxs"]
+    A_i_data = persis_info["A_i_data"]
+    A_i_gen_ids = persis_info["A_i_gen_ids"]
+    local_gen_id = persis_info["worker_num"]
 
     # sort A_i to be increasing gen_id
     _perm_ids = np.argsort(A_i_gen_ids)
@@ -45,7 +45,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     prev_gradf_is = np.zeros((len(A_i_data), n), dtype=float)
 
     if local_gen_id == 1:
-        print('[{}%]: '.format(0), flush=True, end='')
+        print("[{}%]: ".format(0), flush=True, end="")
     print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
     percent = 0.1
 
@@ -81,7 +81,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
 
         if (k + 1) / N >= percent:
             if local_gen_id == 1:
-                print('[{}%]: '.format(int(percent * 100)), flush=True, end='')
+                print("[{}%]: ".format(int(percent * 100)), flush=True, end="")
             percent += 0.1
             print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
 

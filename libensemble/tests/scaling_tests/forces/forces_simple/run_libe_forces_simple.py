@@ -45,7 +45,7 @@ gen_specs = {
 }
 
 # Create and work inside separate per-simulation directories
-libE_specs['sim_dirs_make'] = True
+libE_specs["sim_dirs_make"] = True
 
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}

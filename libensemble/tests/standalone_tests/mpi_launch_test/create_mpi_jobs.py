@@ -12,14 +12,14 @@ size = MPI.COMM_WORLD.Get_size()
 rank = MPI.COMM_WORLD.Get_rank()
 runline = "mpirun -np ".split()
 runline.append(task_nprocs)
-runline.append('python')
-runline.append('helloworld.py')
+runline.append("python")
+runline.append("helloworld.py")
 
 if rank == 0:
     print("Total sub-task procs: {}".format(size * int(task_nprocs)))
     print("Total procs (parent + sub-tasks): {}".format(size * (int(task_nprocs) + 1)))
 
 # print("Rank {}: {}".format(rank, " ".join(runline)))
-output = 'task_' + str(rank) + '.out'
-p = subprocess.Popen(runline, stdout=open(output, 'w'), shell=False)
+output = "task_" + str(rank) + ".out"
+p = subprocess.Popen(runline, stdout=open(output, "w"), shell=False)
 p.wait()

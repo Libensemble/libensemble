@@ -33,9 +33,9 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 if nworkers < 5:
     sys.exit(
-        'This tests requires at least 5 workers (6 MPI processes). You can \
+        "This tests requires at least 5 workers (6 MPI processes). You can \
              decrease the number of workers by modifying the number of gens and \
-             communication graph @A in the calling script.'
+             communication graph @A in the calling script."
     )
 
 m = 16
@@ -47,83 +47,83 @@ eps = 1e-2
 A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x', 'obj_component', 'get_grad'],
-    'out': [
-        ('f_i', float),
-        ('gradf_i', float, (n,)),
+    "sim_f": sim_f,
+    "in": ["x", "obj_component", "get_grad"],
+    "out": [
+        ("f_i", float),
+        ("gradf_i", float, (n,)),
     ],
 }
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {
-    'gen_f': gen_f,
-    'out': [
-        ('x', float, (n,)),
-        ('f_i', float),
-        ('eval_pt', bool),  # eval point
-        ('consensus_pt', bool),  # does not require a sim
-        ('obj_component', int),  # which {f_i} to eval
-        ('get_grad', bool),
-        ('resource_sets', int),  # Just trying to cover in the alloc_f, not actually used
+    "gen_f": gen_f,
+    "out": [
+        ("x", float, (n,)),
+        ("f_i", float),
+        ("eval_pt", bool),  # eval point
+        ("consensus_pt", bool),  # does not require a sim
+        ("obj_component", int),  # which {f_i} to eval
+        ("get_grad", bool),
+        ("resource_sets", int),  # Just trying to cover in the alloc_f, not actually used
     ],
-    'user': {
-        'lb': np.array([-1.2, 1] * (n // 2)),
-        'ub': np.array([-1.2, 1] * (n // 2)),
+    "user": {
+        "lb": np.array([-1.2, 1] * (n // 2)),
+        "ub": np.array([-1.2, 1] * (n // 2)),
     },
 }
 
 alloc_specs = {
-    'alloc_f': alloc_f,
-    'user': {
-        'm': m,
-        'num_gens': num_gens,
+    "alloc_f": alloc_f,
+    "user": {
+        "m": m,
+        "num_gens": num_gens,
     },
 }
 
 persis_info = {}
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info['gen_params'] = {'eps': eps}
-persis_info['sim_params'] = {'const': 1}
-persis_info['A'] = A
+persis_info["gen_params"] = {"eps": eps}
+persis_info["sim_params"] = {"const": 1}
+persis_info["A"] = A
 
 assert n == 2 * m, "@n must be double of @m"
 
 # Perform the run
-libE_specs['safe_mode'] = False
+libE_specs["safe_mode"] = False
 
 # i==0 is full run, i==1 is early termination
 for i in range(2):
     if i == 0:
-        exit_criteria = {'wallclock_max': 600, 'sim_max': 1000000}
+        exit_criteria = {"wallclock_max": 600, "sim_max": 1000000}
         if is_manager:
-            print('=== Testing full independent optimize ===', flush=True)
+            print("=== Testing full independent optimize ===", flush=True)
     else:
-        exit_criteria = {'wallclock_max': 600, 'sim_max': 10}
+        exit_criteria = {"wallclock_max": 600, "sim_max": 10}
         if is_manager:
-            print('=== Testing independent optimize w/ stoppage ===', flush=True)
+            print("=== Testing independent optimize w/ stoppage ===", flush=True)
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        print('=== End algorithm ===', flush=True)
+        print("=== End algorithm ===", flush=True)
 
         # check we completed
         assert flag == 0
 
     if is_manager and i == 0:
         # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
-        eval_H = H[H['eval_pt']]
+        eval_H = H[H["eval_pt"]]
 
-        gen_ids = np.unique(eval_H['gen_worker'])
-        assert len(gen_ids) == num_gens, 'Gen did not submit any function eval requests'
+        gen_ids = np.unique(eval_H["gen_worker"])
+        assert len(gen_ids) == num_gens, "Gen did not submit any function eval requests"
 
         F = 0
         fstar = 0
 
         for i, gen_id in enumerate(gen_ids):
-            last_eval_idx = np.where(eval_H['gen_worker'] == gen_id)[0][-1]
-            f_i = eval_H[last_eval_idx]['f_i']
+            last_eval_idx = np.where(eval_H["gen_worker"] == gen_id)[0][-1]
+            f_i = eval_H[last_eval_idx]["f_i"]
             F += f_i
 
-        assert F - fstar < eps, 'Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})'.format(F - fstar, eps, fstar)
+        assert F - fstar < eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(F - fstar, eps, fstar)

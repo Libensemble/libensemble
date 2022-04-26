@@ -10,34 +10,34 @@ def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_i
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+    if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
-    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+    user = alloc_specs.get("user", {})
+    sched_opts = user.get("scheduler_opts", {})
+    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, sched_opts)
     Work = {}
 
     # Unless already defined, initialize next_to_give to be the first point in H
-    persis_info['next_to_give'] = persis_info.get('next_to_give', 0)
+    persis_info["next_to_give"] = persis_info.get("next_to_give", 0)
 
-    if persis_info['next_to_give'] >= len(H):
+    if persis_info["next_to_give"] >= len(H):
         return Work, persis_info, 1
 
     for i in support.avail_worker_ids():
         # Skip any cancelled points
-        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
-            persis_info['next_to_give'] += 1
+        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
+            persis_info["next_to_give"] += 1
 
         # Give sim work
         try:
-            Work[i] = support.sim_work(i, H, sim_specs['in'], [persis_info['next_to_give']], [])
+            Work[i] = support.sim_work(i, H, sim_specs["in"], [persis_info["next_to_give"]], [])
         except InsufficientFreeResources:
             break
-        persis_info['next_to_give'] += 1
+        persis_info["next_to_give"] += 1
 
-        if persis_info['next_to_give'] >= len(H):
+        if persis_info["next_to_give"] >= len(H):
             break
 
     return Work, persis_info
