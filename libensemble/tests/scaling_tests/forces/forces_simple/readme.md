@@ -9,9 +9,9 @@ https://libensemble.readthedocs.io/en/develop/tutorials/executor_forces_tutorial
 Build executable and run example::
 
     ./build_forces.sh
-    python run_libe_forces_simple.py --comms local --nworkers 4
+    python run_libe_forces.py --comms local --nworkers 4
 
-## Running test run_libe_forces_simple.py
+## Running test run_libe_forces.py
 
 Naive Electrostatics Code Test
 
@@ -34,10 +34,10 @@ Modify build_forces.sh for target platform and run to build forces.x:
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces_simple.py --comms local --nworkers N
+    python run_libe_forces.py --comms local --nworkers N
 
 To run with MPI comms using one manager and `N-1` workers:
 
-    mpirun -np N python run_libe_forces_simple.py
+    mpirun -np N python run_libe_forces.py
 
-Application parameters can be adjusted in the file `run_libe_forces_simple.py`.
+Application parameters can be adjusted in the file `run_libe_forces.py`.

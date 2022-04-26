@@ -39,7 +39,8 @@ Calling Script
 --------------
 
 Let's begin by writing our calling script to parameterize our simulation and
-generation functions and call libEnsemble. Create a Python file containing:
+generation functions and call libEnsemble. Create a Python file called `run_libe_forces.py`
+containing:
 
 .. code-block:: python
     :linenos:
@@ -283,7 +284,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    $ python my_calling_script.py --comms local --nworkers [nworkers]
+    $ python run_libe_forces.py --comms local --nworkers [nworkers]
 
 This may take up to a minute to complete. Output files---including ``forces.stat``
 and files containing ``stdout`` and ``stderr`` content for each task---should
@@ -381,6 +382,6 @@ These may require additional browsing of the documentation to complete.
 
         ...
 
-.. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
+.. _here: https://raw.githubusercontent.com/Libensemble/libensemble/main/libensemble/tests/scaling_tests/forces/forces.c
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
