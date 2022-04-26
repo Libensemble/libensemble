@@ -174,7 +174,7 @@ that runs 8 workers on 2 nodes:
     export SLURM_EXACT=1
     export SLURM_MEM_PER_NODE=0
 
-    python libe_calling_script.py --comms local --nworkers 8
+    python run_libe_forces.py --comms local --nworkers 8
 
 where ``SLURM_EXACT`` and ``SLURM_MEM_PER_NODE`` are set to prevent
 resource conflicts on each node.
