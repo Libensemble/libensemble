@@ -17,6 +17,7 @@ import sys
 
 class LogConfig:
     """Class for storing logging configuration info"""
+
     config = None
 
     def __init__(self, name):
@@ -40,14 +41,13 @@ class LogConfig:
             logger.setLevel(self.log_level)
 
     def set_stderr_level(self, level):
-        """ Set logger level for copying messages to stderr"""
+        """Set logger level for copying messages to stderr"""
         numeric_level = getattr(logging, level.upper(), 30)
         self.stderr_level = numeric_level
 
 
 class CommLogHandler(logging.Handler):
-    """Logging handler class that forwards LogRecords to a Comm.
-    """
+    """Logging handler class that forwards LogRecords to a Comm."""
 
     def __init__(self, comm, pack=None, level=logging.NOTSET):
         """Initialize the handler instance, setting the level and the comm."""
@@ -64,8 +64,7 @@ class CommLogHandler(logging.Handler):
 
 
 class WorkerIDFilter(logging.Filter):
-    """Logging filter to add worker ID to records.
-    """
+    """Logging filter to add worker ID to records."""
 
     def __init__(self, worker_id):
         super().__init__()
@@ -78,20 +77,19 @@ class WorkerIDFilter(logging.Filter):
 
 
 class ErrorFilter(logging.Filter):
-    """ Filter to choose messages for stderr of user-defined level"""
+    """Filter to choose messages for stderr of user-defined level"""
 
     def __init__(self, level):
         super().__init__()
         self.level = level
 
     def filter(self, record):
-        """ Confirm messages that exceed specified level """
+        """Confirm messages that exceed specified level"""
         return record.levelno >= self.level
 
 
 def worker_logging_config(comm, worker_id=None):
-    """Add a comm handler with worker ID filter to the indicated logger.
-    """
+    """Add a comm handler with worker ID filter to the indicated logger."""
 
     logconfig = LogConfig.config
     logger = logging.getLogger(logconfig.name)
@@ -111,8 +109,7 @@ def worker_logging_config(comm, worker_id=None):
 
 
 def manager_logging_config():
-    """Add file-based logging at manager.
-    """
+    """Add file-based logging at manager."""
 
     # Regular logging
     logconfig = LogConfig.config

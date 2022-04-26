@@ -71,15 +71,14 @@ class CommResultErr:
 def _timeout_fun(timeout):
     """Return a function that gets timeouts for time remaining."""
     if timeout is None:
-        return (lambda: None)
+        return lambda: None
     else:
         tdeath = time() + timeout
-        return (lambda: tdeath-time())
+        return lambda: tdeath - time()
 
 
 class Comm(ABC):
-    """Bidirectional communication
-    """
+    """Bidirectional communication"""
 
     @abstractmethod
     def send(self, *args):
@@ -149,8 +148,7 @@ class QComm(Comm):
 
 
 class QCommThread(Comm):
-    """Launch a user function in a thread with an attached QComm.
-    """
+    """Launch a user function in a thread with an attached QComm."""
 
     def __init__(self, main, *args, **kwargs):
         self.inbox = queue.Queue()
@@ -159,8 +157,7 @@ class QCommThread(Comm):
         self._result = None
         self._exception = None
         kwargs['comm'] = QComm(self.inbox, self.outbox, True)
-        self.thread = Thread(target=self._qcomm_main,
-                             args=args, kwargs=kwargs)
+        self.thread = Thread(target=self._qcomm_main, args=args, kwargs=kwargs)
 
     def send(self, *args):
         """Send a message to the thread (called from creator)"""
@@ -211,8 +208,7 @@ class QCommThread(Comm):
 
 
 class QCommProcess(Comm):
-    """Launch a user function in a process with an attached QComm.
-    """
+    """Launch a user function in a process with an attached QComm."""
 
     def __init__(self, main, *args, **kwargs):
         self.inbox = Queue()
@@ -223,8 +219,7 @@ class QCommProcess(Comm):
         comm = QComm(self.inbox, self.outbox)
         with QComm.lock:
             QComm._ncomms.value += 1
-        self.process = Process(target=QCommProcess._qcomm_main,
-                               args=(comm, main) + args, kwargs=kwargs)
+        self.process = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def _is_result_msg(self, msg):
         """Return true if message indicates final result (and set result/except)."""
@@ -350,8 +345,7 @@ class CommHandler(ABC):
 
     def on_unhandled_message(self, msg):
         """Handle any messages for which there are no named handlers."""
-        raise ValueError("No handler available for message {0}{1}".
-                         format(msg[0], msg[1:]))
+        raise ValueError("No handler available for message {0}{1}".format(msg[0], msg[1:]))
 
 
 class GenCommHandler(CommHandler):
@@ -427,8 +421,7 @@ class SimCommHandler(CommHandler):
 
 
 class CommEval(GenCommHandler):
-    """Future-based interface for generator comms
-    """
+    """Future-based interface for generator comms"""
 
     def __init__(self, comm, workers=0, gen_specs=None):
         super().__init__(comm)
@@ -454,14 +447,11 @@ class CommEval(GenCommHandler):
 
     def __call__(self, *args, **kwargs):
         """Request a simulation and return a promise"""
-        assert not (args and kwargs), \
-            "Must specify simulation args by position or keyword, but not both"
-        assert args or kwargs, \
-            "Must specify simulation arguments."
+        assert not (args and kwargs), "Must specify simulation args by position or keyword, but not both"
+        assert args or kwargs, "Must specify simulation arguments."
         rec = np.zeros(1, dtype=self.gen_specs['out'])
         if args:
-            assert len(args) == len(self.gen_specs['out']), \
-                "Wrong number of positional arguments in sim call."
+            assert len(args) == len(self.gen_specs['out']), "Wrong number of positional arguments in sim call."
             for k, spec in enumerate(self.gen_specs['out']):
                 name = spec[0]
                 rec[name] = args[k]
@@ -504,13 +494,13 @@ class CommEval(GenCommHandler):
         """Handle completed simulation"""
         for k, rec in enumerate(recs):
             self.sim_pending -= 1
-            self.promises[sim_id+k].on_result(rec)
+            self.promises[sim_id + k].on_result(rec)
         return sim_id
 
     def on_update(self, sim_id, recs):
         """Handle updated simulation"""
         for k, rec in enumerate(recs):
-            self.promises[sim_id+k].on_update(rec)
+            self.promises[sim_id + k].on_update(rec)
         return sim_id
 
     def on_killed(self, sim_id):
@@ -563,7 +553,7 @@ class Future:
             except Timeout:
                 pass
             if timeout is not None:
-                timeout -= (time() - tstart)
+                timeout -= time() - tstart
         return self._result
 
     # --- Message handlers
