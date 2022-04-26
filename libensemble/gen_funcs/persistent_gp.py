@@ -129,7 +129,11 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
         func_caller,
         ask_tell_mode=True,
         is_mf=True,
-        options=Namespace(acq='ts', build_new_model_every=number_of_gen_points, init_capital=number_of_gen_points),
+        options=Namespace(
+            acq='ts',
+            build_new_model_every=number_of_gen_points,
+            init_capital=number_of_gen_points,
+        ),
     )
     opt.initialise()
 
