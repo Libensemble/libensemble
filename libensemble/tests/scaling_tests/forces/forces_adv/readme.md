@@ -50,9 +50,12 @@ an ensemble object is created and parameters can be read from the `forces.yaml` 
 ### Running with Balsam
 
 These instructions refer to the use of Balsam before v0.6. This now uses the
-LegacyBalsam executor in libEnsemble.
+Legacy Balsam executor in libEnsemble.
 
 This Balsam does not support multi-site (see balsam_forces directory for multi-site Balsam forces).
+
+This version is only recommended if that one cannot be accessed on the system or does not support
+a required feature.
 
 To run with balsam, set `USE_BALSAM = True` in `run_libe_forces.py`.
 You need to have followed the instructions to install `balsam` and set-up/activate a database.
