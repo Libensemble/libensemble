@@ -28,7 +28,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 5, 22, 24, 29-30
+    :emphasize-lines: 5, 21, 23, 29-30
 
     import numpy as np
 
@@ -55,17 +55,19 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
         # Submit our forces app for execution. Block until the task starts.
-        task = exctr.submit(app_name="forces",
-                            app_args=args,
-                            num_nodes=resources.local_node_count,
-                            procs_per_node=resources.slot_count,
-                            wait_on_start=True)
+        task = exctr.submit(
+            app_name="forces",
+            app_args=args,
+            num_nodes=resources.local_node_count,
+            procs_per_node=resources.slot_count,
+            wait_on_start=True,
+        )
 
         # Block until the task finishes
         task.wait(timeout=60)
 
         # Stat file to check for bad runs
-        statfile = "forces{}.stat".format(particles)
+        statfile = "forces.stat"
 
         # Try loading final energy reading, set the sim's status
         try:
