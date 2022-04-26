@@ -21,7 +21,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
   * The entirety of ``sim_specs`` is passed from the worker each time a
     simulation is requested by the allocation function.
 
-  * The tuples in ``sim_specs['out']`` are entered into the master
+  * The tuples in ``sim_specs['out']`` are entered into the manager's
     :ref:`history array<datastruct-history-array>`.
 
 .. seealso::
