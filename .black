@@ -9,7 +9,6 @@ force-exclude = '''
     | \.github       
     | docs
     | libensemble/tools
-    | libensemble/utils
     | libensemble/resources
     | libensemble/executors
     | libensemble/tests/unit_tests
