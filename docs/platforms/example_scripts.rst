@@ -5,6 +5,13 @@ Below are example submission scripts used to configure and launch libEnsemble
 on a variety of high-powered systems. See :doc:`here<platforms_index>` for more
 information about the respective systems and configuration.
 
+Slurm - Basic
+-------------
+
+..  literalinclude:: ../../examples/libE_submission_scripts/submit_slurm_simple.sh
+    :caption: /examples/libE_submission_scripts/submit_slurm_simple.sh
+    :language: bash
+
 Bridges - Central Mode
 ----------------------
 
