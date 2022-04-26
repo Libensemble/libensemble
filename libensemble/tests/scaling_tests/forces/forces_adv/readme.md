@@ -16,19 +16,8 @@ is to test libEnsemble's capability to launch application instances via the `MPI
 
 A system of charged particles is initialized and simulated over a number of time-steps.
 
-Particles' position and charge are initiated using a random stream.
-Particles are replicated on all ranks.
-**Each rank** computes forces for a subset of particles (`O(N^2)` operations).
-Particle force arrays are `allreduced` across ranks.
-Particles are moved (replicated on each rank).
-Total energy is appended to the forces.stat file.
+See `forces_app` directory for details.
 
-To run forces as a standalone executable on `N` procs:
-
-    mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
-
-This application will need to be compiled on the remote machine where the sim_f will run.
-See below.
 
 ### Running with libEnsemble.
 
@@ -59,6 +48,11 @@ way as `run_libe_forces.py` above. This uses an alternative libEnsemble interfac
 an ensemble object is created and parameters can be read from the `forces.yaml` file.
 
 ### Running with Balsam
+
+These instructions refer to the use of Balsam before v0.6. This now uses the
+LegacyBalsam executor in libEnsemble.
+
+This Balsam does not support multi-site (see balsam_forces directory for multi-site Balsam forces).
 
 To run with balsam, set `USE_BALSAM = True` in `run_libe_forces.py`.
 You need to have followed the instructions to install `balsam` and set-up/activate a database.

@@ -16,21 +16,14 @@ the Balsam service.
 
 A system of charged particles is initialized and simulated over a number of time-steps.
 
-Particles' position and charge are initiated using a random stream.
-Particles are replicated on all ranks.
-**Each rank** computes forces for a subset of particles (`O(N^2)` operations).
-Particle force arrays are `allreduced` across ranks.
-Particles are moved (replicated on each rank).
-Total energy is appended to the forces.stat file.
+See `forces_app` directory for details.
 
-To run forces as a standalone executable on `N` procs:
+**This application will need to be compiled on the remote machine**
 
-    mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
+Choose or modify a build line from `build_forces.sh` for the target platform:
 
-**This application will need to be compiled on the remote machine:**
-
-  cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
-  ./build_forces.sh
+    cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
+    ./build_forces.sh
 
 ### Configuring Balsam
 
