@@ -35,22 +35,22 @@ in the first calling script.
 Traditional Version
 ~~~~~~~~~~~~~~~~~~~
 
-..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
+..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/run_libe_forces.py
     :language: python
-    :caption: tests/scaling_tests/forces/run_libe_forces.py
+    :caption: tests/scaling_tests/forces/forces_adv/run_libe_forces.py
     :linenos:
 
 Object + yaml Version
 ~~~~~~~~~~~~~~~~~~~~~
 
-..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces_from_yaml.py
+..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/run_libe_forces_from_yaml.py
     :language: python
-    :caption: tests/scaling_tests/forces/run_libe_forces_from_yaml.py
+    :caption: tests/scaling_tests/forces/forces_adv/run_libe_forces_from_yaml.py
     :linenos:
 
-..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces.yaml
+..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/forces.yaml
     :language: yaml
-    :caption: tests/scaling_tests/forces/forces.yaml
+    :caption: tests/scaling_tests/forces/forces_adv/forces.yaml
     :linenos:
 
 Persistent APOSMM with Gradients
