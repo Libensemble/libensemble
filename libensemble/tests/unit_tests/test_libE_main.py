@@ -7,10 +7,10 @@ from libensemble.libE import check_inputs, libE
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
-from numpy import inf
 
 
 class MPIAbortException(Exception):
@@ -56,7 +56,7 @@ class Fake_MPI_1P(Fake_MPI):
 fake_mpi = Fake_MPI()
 fake_mpi_1p = Fake_MPI_1P()
 
-alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
+alloc_specs = {'alloc_f': give_sim_work_first, 'out': []}
 hfile_abort = 'libE_history_at_abort_0.npy'
 pfile_abort = 'libE_persis_info_at_abort_0.pickle'
 
@@ -186,26 +186,21 @@ def test_checking_inputs_H0():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {'mpi_comm': fake_mpi, 'comms': 'mpi'}
 
-    # Should fail because H0 has points with 'return'==False
-    H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
-                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
-                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
-                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
-                         ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('sim_started', '?'),
-                         ('sim_worker', '<i8'), ('sim_ended', '?'), ('fvec', '<f8', (3,)),
-                         ('allocated', '?'), ('f', '<f8'), ('sim_started_time', '<f8')])
+    # Should fail because H0 has points with 'sim_ended'==False
+    H0 = np.zeros(5, dtype=libE_fields)
+    H0['sim_id'] = [0, 1, 2, -1, -1]
+    H0['sim_worker'][0:3] = range(1, 4)
+    H0[['sim_started', 'sim_ended']][0:3] = True
 
     # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # A value has not been returned
+    # A value has not been marked as sim_ended
     H0['sim_ended'][2] = False
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
-    # Ungiven points shown as returned
+    # Points that have not been marked as 'sim_started' have been marked 'sim_ended'
     H0['sim_ended'] = True
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr

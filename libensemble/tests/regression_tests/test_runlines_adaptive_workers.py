@@ -58,7 +58,6 @@ gen_specs = {
 
 alloc_specs = {
     'alloc_f': give_sim_work_first,
-    'out': [('allocated', bool)],
     'user': {
         'batch_mode': False,
         'give_all_with_same_priority': True,
