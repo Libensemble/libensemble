@@ -5,13 +5,13 @@ Overview
 --------
 
 libEnsemble comes with built-in resource management. This entails the
-:ref:`detection of available resources<resource_detection>` (e.g. nodelists and
+:ref:`detection of available resources<resource_detection>` (e.g., nodelists and
 core counts), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers (excluding
 any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's
 :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources,
-and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit
+and if not given any of ``num_nodes``, ``num_procs``, or ``procs_per_node`` in the submit
 function, it will try to use all nodes and CPU cores available to the worker.
 
 Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
@@ -27,20 +27,20 @@ In slightly more detail, the resource manager divides resources into **resource 
 One resource set is the smallest unit of resources that can be assigned (and
 dynamically reassigned) to workers. By default, the provisioned resources are 
 divided by the number of workers (excluding any workers given in the ``zero_resource_workers``
-*libE_specs*` option). However, it can also be set directly by the ``num_resource_sets``
-*libE_specs* option. If the latter is set, the dynamic resource assignment algorithm
+``libE_specs`` option). However, it can also be set directly by the ``num_resource_sets``
+``libE_specs`` option. If the latter is set, the dynamic resource assignment algorithm
 will always be used.
 
 If there are more resource sets than nodes, then the resource sets on each node
-will be given a slot number, enumerated from zero. E.g.~ If there are three slots
-on a node, they will have slot numbers 0, 1 and 2.
+will be given a slot number, enumerated from zero. For example, if there are three slots
+on a node, they will have slot numbers 0, 1, and 2.
 
 The resource manager will not split a resource set over nodes, rather the resource
 sets on each node will be the integer division of resource sets over nodes, with
 the remainder dealt out from the first node. Even breakdowns are generally
 preferable, however.
 
-For example, lets say a given system has four GPUs per node, and the user has run
+For example, say a given system has four GPUs per node, and the user has run
 libEnsemble on two nodes, with eight workers. The default division of resources would be:
 
 .. image:: ../images/variable_resources1.png
@@ -102,13 +102,13 @@ In short, the scheduler will preference fitting simulations onto a node, and usi
 even splits across nodes, if necessary.
 
 
-Accessing resources from simulation function
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Accessing resources from the simulation function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the user's simulation function, the resources supplied to the worker can be 
-:doc:`interogated directly via the resources class attribute<worker_resources>`.
+:doc:`interrogated directly via the resources class attribute<worker_resources>`.
 libEnsemble's executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are
-aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``
+aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
 cores available.
 
@@ -138,7 +138,7 @@ while worker five would set::
 
 .. note::
     If the user sets the number of resource sets directly using the ``num_resource_sets``
-    *libE_specs* option, then the dynamic resource assignment algorithm will always be 
+    ``libE_specs`` option, then the dynamic resource assignment algorithm will always be 
     used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
 
 
@@ -161,7 +161,7 @@ and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
     Default: True
  
 
-In the following example, lets assume the next simulation requires **four** resource
+In the following example, assume the next simulation requires **four** resource
 sets. This could fit on one node if all slots were free – but only two are free on each
 node.
 
@@ -188,8 +188,8 @@ to an integer value will provide resource sets to generators when they are start
 with the default to provide no resources. This could be set in the calling script
 or inside the allocation function.
 
-Note that persistent workers maintain their resources until coming out of persistent 
-state.
+Note that persistent workers maintain their resources until coming out of a
+persistent state.
 
 Example scenarios
 -----------------
@@ -212,7 +212,7 @@ Or explicitly set eight resource sets:
 
     libE_specs['num_resource_sets'] = 8
 
-Using the two node example above, initial worker mapping in this example will be:
+Using the two-node example above, the initial worker mapping in this example will be:
 
 .. image:: ../images/variable_resources_persis_gen1.png
     :width: 98%
