@@ -72,7 +72,8 @@ scripts such as `theta_submit_balsam.sh`.
 
 ### Using batch scripts
 
-The scripts are set up assuming a conda environment. To use script directly you will need to replace the following templated values:
+The scripts are set up assuming a conda environment. To use the script directly
+you will need to replace the following templated values:
 
   <projectID> in the COBALT -A directive with your project ID.
 
@@ -81,7 +82,7 @@ The scripts are set up assuming a conda environment. To use script directly you 
 and in Balsam scripts:
 
   <dbase_name> The name of an initialized balsam database.
-               (with max_connections enough for number of workers)
+               (with max_connections enough for the number of workers)
 
 The included scripts are.
 
@@ -95,11 +96,11 @@ The included scripts are.
 
 * theta_submit_balsam.sh:
 
-  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case libEnsemble manager and workers run on compute nodes and submit jobs via Balsam.
+  Example Theta submission script to run libEnsemble in central mode with MPI worker concurrency using Balsam. In this case, the libEnsemble manager and workers run on compute nodes and submit jobs via Balsam.
 
 #### Plotting Options
 
-If either of the plotting options in the submission scripts are set to true, the scripts must be in the directory specified by PLOT_DIR. These scripts can be found in the libEnsemble project in the postproc_scripts/ directory.
+If either of the plotting options in the submission scripts is set to true, the scripts must be in the directory specified by PLOT_DIR. These scripts can be found in the libEnsemble project in the postproc_scripts/ directory.
 
         export LIBE_PLOTS=true
         export BALSAM_PLOTS=true
@@ -113,5 +114,5 @@ dedicated node to run libEnsemble). If more workers are used then the variables
 NUM_NODES and RANKS_PER_NODE need to be explicitly set (these are for
 libEnsemble which will require one task for the manager and the rest will be
 workers). The total node allocation (in the COBALT -n directive) will need to
-be the number of nodes for libEnsemble + number of nodes for each worker to
+be the number of nodes for libEnsemble plus the number of nodes for each worker to
 launch jobs to.
