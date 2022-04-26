@@ -10,16 +10,21 @@ cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
 variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
 devices.
 
-The forces code is a modifcation of the sim_f in the
-:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>`.
+This example is based on the
+:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
+a slighly modified simulation function.
 
 To compile the forces application to use the GPU, ensure forces.c_ has the
 ``#pragma omp target`` line uncommented and comment out the equivalent
-``#pragma omp parallel`` line. Then compile to ``forces.x`` using one of the
-GPU build lines in ``build_forces.sh``.
+``#pragma omp parallel`` line. Then compile **forces.x** using one of the
+GPU build lines in build_forces.sh_ or similar for your platform.
 
 The libEnsemble scripts in this example are available under forces_gpu_ in
 the libEnsemble repository.
+
+Note that at time of writing the calling script ``run_libe_forces.py`` is identical
+to ``forces_simple``, and so is provided as a symlink. The ``forces_simf`` file has slight
+modifications to assign GPUs.
 
 Simulation function
 -------------------
@@ -109,6 +114,10 @@ can use ``--gpus-per-task=1`` (e.g., :doc:`Perlmutter<../platforms/perlmutter>`)
 Alternative environment variables could be simply substituted
 (e.g., ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
 
+.. note::
+    On some systems ``CUDA_VISIBLE_DEVICES`` may be overridden by other assignments
+    such as ``--gpus-per-task=1``
+
 Running the example
 -------------------
 
@@ -154,6 +163,31 @@ change source lines 29/30 accordingly.
 Further guidance on varying resource to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>`.
 
+Checking GPU usage
+------------------
+
+You can check you are running forces on the GPUs as expected by using profiling tools and/or by using
+a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is generally available
+and can be run from the command line. To simply run `forces.x` stand-alone you could run::
+
+    nsys profile --stats=true mpirun -n 2 ./forces.x
+
+To use the `nvidia-smi` monitoring tool while running, open another shell where your code is
+running (this may entail using *ssh* to get on to the node), and run::
+
+    watch -n 0.3 nvidia-smi
+
+This will update GPU usage information every 0.3 seconds. You would need to ensure the code
+runs for long enough to register on the monitor, so lets try 100,000 particles::
+
+  mpirun -n 2 ./forces.x 100000
+
+It is also recommended that you run without the profiler when using the `nvidia-smi` utility.
+
+This can also be used when running via libEnsemble, so long as you are on the node where the
+forces applications are being run.
+
+
 Example submission script
 -------------------------
 
@@ -181,3 +215,4 @@ resource conflicts on each node.
 
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
+.. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
