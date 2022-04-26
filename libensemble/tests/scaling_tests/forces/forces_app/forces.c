@@ -75,7 +75,7 @@ int seed_rand(int seed) {
 }
 
 // Return a random number from a persistent stream
-//TODO Use parallel RNG - As replicated data can currently do on master rank.
+//TODO Use parallel RNG - As replicated data can currently do on first rank.
 double get_rand() {
     double randnum;
     randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0, 1)
@@ -427,7 +427,7 @@ int main(int argc, char **argv) {
         // Note: Will need to add barrier to get pure comms time
         gettimeofday(&comms_start, NULL);
 
-        // Now allreduce forces and update particle positions on master
+        // Now allreduce forces and update particle positions on first rank
 
         // Forces array reduction
         comm_forces(num_particles, parr);

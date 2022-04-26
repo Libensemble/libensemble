@@ -273,7 +273,7 @@ that were marked as cancelled::
                                 alloc_specs=alloc_specs,
                                 libE_specs=libE_specs)
 
-    if is_master:
+    if is_manager:
         print('Cancelled sims', H['cancel_requested'])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
