@@ -19,3 +19,6 @@ To run forces as a standalone executable on `N` procs:
     mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
 
 This is a good test to make sure forces is working, before running via libEnsemble.
+
+The change the rate at which runs are declared bad runs (e.g.,~ for testing worker
+kills), add a fourth argument between 0 and 1.

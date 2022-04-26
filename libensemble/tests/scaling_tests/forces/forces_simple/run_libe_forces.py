@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
@@ -14,15 +15,12 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
 
-# Normally would be pre-compiled
-if not os.path.isfile("forces.x"):
-    if os.path.isfile("../forces_app/build_forces.sh"):
-        import subprocess
-
-        subprocess.check_call(["../forces_app/build_forces.sh"])
-
 # Register simulation executable with executor
-sim_app = os.path.join(os.getcwd(), "forces.x")
+sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+
+if not os.path.isfile(sim_app):
+    sys.exit('forces.x not found - please build first in ../forces_app dir')
+
 exctr.register_app(full_path=sim_app, app_name="forces")
 
 # State the sim_f, inputs, outputs

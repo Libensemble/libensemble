@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
@@ -27,17 +28,14 @@ logger.set_level('INFO')  # INFO is now default
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+
+if not os.path.isfile(sim_app):
+    sys.exit('forces.x not found - please build first in ../forces_app dir')
+
 if is_manager:
     print('\nRunning with {} workers\n'.format(nworkers))
 
-sim_app = os.path.join(os.getcwd(), 'forces.x')
-
-# Normally would be pre-compiled
-if not os.path.isfile('forces.x'):
-    if os.path.isfile('build_forces.sh'):
-        import subprocess
-
-        subprocess.check_call(['./build_forces.sh'])
 
 # Create executor and register sim to it.
 if USE_BALSAM:

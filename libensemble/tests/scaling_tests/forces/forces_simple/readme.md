@@ -6,9 +6,13 @@ https://libensemble.readthedocs.io/en/develop/tutorials/executor_forces_tutorial
 
 ## QuickStart
 
-Build executable and run example::
+Build executable and run example. Go to `forces_app` directory and build `forces.x`:
 
+    cd ../forces_app
     ./build_forces.sh
+
+Then return here and run:
+
     python run_libe_forces.py --comms local --nworkers 4
 
 ## Running test run_libe_forces.py
@@ -28,7 +32,8 @@ See `forces_app` directory for details.
 
 A random sample of seeds is taken and used as input to the sim func (forces miniapp).
 
-Modify build_forces.sh for target platform and run to build forces.x:
+In forces_app directory, modify build_forces.sh for target platform and run to
+build forces.x:
 
     ./build_forces.sh
 
@@ -41,3 +46,7 @@ To run with MPI comms using one manager and `N-1` workers:
     mpirun -np N python run_libe_forces.py
 
 Application parameters can be adjusted in the file `run_libe_forces.py`.
+
+To remove output before the next run:
+
+    ./cleanup.sh
