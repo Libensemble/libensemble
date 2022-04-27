@@ -287,7 +287,10 @@ def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
 def test_get_local_resources_dedicated_mode():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
-    libE_specs = {'resource_info': resource_info, 'dedicated_mode': True,}
+    libE_specs = {
+        'resource_info': resource_info,
+        'dedicated_mode': True,
+    }
     gresources = GlobalResources(libE_specs)
 
     # 8 Workers ---------------------------------------------------------------
@@ -314,7 +317,12 @@ def test_get_local_resources_dedicated_mode():
 
     # 4 Workers ---------------------------------------------------------------
     nworkers = 4
-    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234'],]
+    exp_out = [
+        ['knl-0020', 'knl-0021'],
+        ['knl-0022', 'knl-0036'],
+        ['knl-0137', 'knl-0138'],
+        ['knl-0139', 'knl-1234'],
+    ]
     for wrk in range(nworkers):
         workerID = wrk + 1
         exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
@@ -325,7 +333,7 @@ def test_get_local_resources_dedicated_mode():
 
     # 1 Worker ----------------------------------------------------------------
     nworkers = 1
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234'],]
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
 
     # Just write out this one as one worker.
     exp_slots = {
@@ -349,7 +357,11 @@ def test_get_local_resources_dedicated_mode():
 
     # 3 Workers (Test the best_split algorithm) -------------------------------
     nworkers = 3
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234'],]
+    exp_out = [
+        ['knl-0020', 'knl-0021', 'knl-0022'],
+        ['knl-0036', 'knl-0137', 'knl-0138'],
+        ['knl-0139', 'knl-1234'],
+    ]
     for wrk in range(nworkers):
         workerID = wrk + 1
         exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
@@ -443,7 +455,12 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
 
     # 4 Workers ---------------------------------------------------------------
     nworkers = 4
-    exp_out = [['knl-0020', 'knl-0021'], ['knl-0022', 'knl-0036'], ['knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234'],]
+    exp_out = [
+        ['knl-0020', 'knl-0021'],
+        ['knl-0022', 'knl-0036'],
+        ['knl-0137', 'knl-0138'],
+        ['knl-0139', 'knl-1234'],
+    ]
     for wrk in range(nworkers):
         workerID = wrk + 1
         exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
@@ -454,7 +471,7 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
 
     # 1 Worker ----------------------------------------------------------------
     nworkers = 1
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234'],]
+    exp_out = [['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']]
 
     # Just write out this one as one worker.
     exp_slots = {
@@ -478,7 +495,11 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
 
     # 3 Workers (Test the best_split algorithm) -------------------------------
     nworkers = 3
-    exp_out = [['knl-0020', 'knl-0021', 'knl-0022'], ['knl-0036', 'knl-0137', 'knl-0138'], ['knl-0139', 'knl-1234'],]
+    exp_out = [
+        ['knl-0020', 'knl-0021', 'knl-0022'],
+        ['knl-0036', 'knl-0137', 'knl-0138'],
+        ['knl-0139', 'knl-1234'],
+    ]
     for wrk in range(nworkers):
         workerID = wrk + 1
         exp_slots = {exp_out[wrk][0]: [0], exp_out[wrk][1]: [0]}
@@ -767,7 +788,10 @@ def test_machinefile_from_resources():
 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {'nodelist_env_slurm': "LIBE_RESOURCES_TEST_NODE_LIST"}
-    libE_specs = {'resource_info': resource_info, 'num_resource_sets': 8,}
+    libE_specs = {
+        'resource_info': resource_info,
+        'num_resource_sets': 8,
+    }
 
     exp_list = ['knl-0020\n', 'knl-0021\n', 'knl-0022\n', 'knl-0036\n']
 
