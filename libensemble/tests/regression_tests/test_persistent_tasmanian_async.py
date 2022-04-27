@@ -88,9 +88,14 @@ exit_criteria_arr = []
 exit_criteria_arr.append({'wallclock_max': 3})
 exit_criteria_arr.append({'gen_max': 100})
 
+run_num = 0 
 # Test over all possible parameter combinations.
 for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
     sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode='async')
+
+    if run_num == 0: 
+        gen_specs['user']['tasmanian_checkpoint_file'] = 'tasmanian.grid'
+
     if is_manager:
         print('[Manager]: user_specs = {0}'.format(user_specs))
         print('[Manager]: exit_criteria = {0}'.format(exit_criteria))
