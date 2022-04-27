@@ -16,7 +16,7 @@ function, it will try to use all nodes and CPU cores available to the worker.
 
 Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
 
-Resource management can be disabled by setting 
+Resource management can be disabled by setting
 ``libE_specs['disable_resource_manager'] = True``. This will prevent libEnsemble
 from doing any resource detection or management.
 
@@ -25,7 +25,7 @@ Variable resource assignment
 
 In slightly more detail, the resource manager divides resources into **resource sets**.
 One resource set is the smallest unit of resources that can be assigned (and
-dynamically reassigned) to workers. By default, the provisioned resources are 
+dynamically reassigned) to workers. By default, the provisioned resources are
 divided by the number of workers (excluding any workers given in the ``zero_resource_workers``
 ``libE_specs`` option). However, it can also be set directly by the ``num_resource_sets``
 ``libE_specs`` option. If the latter is set, the dynamic resource assignment algorithm
@@ -50,7 +50,7 @@ Variable Size simulations
 
 A dynamic assignment of resources to simulation workers can be achieved by the
 convention of using a field in the history array called ``resource_sets``. While
-this is technically a user space field, the allocation functions are set up to 
+this is technically a user space field, the allocation functions are set up to
 read this field, check available resources, and assign resource sets to workers,
 along with the work request (simulation).
 
@@ -101,11 +101,10 @@ an alternative scheduler via the :doc:`allocation function<../function_guides/al
 In short, the scheduler will preference fitting simulations onto a node, and using
 even splits across nodes, if necessary.
 
-
 Accessing resources from the simulation function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In the user's simulation function, the resources supplied to the worker can be 
+In the user's simulation function, the resources supplied to the worker can be
 :doc:`interrogated directly via the resources class attribute<worker_resources>`.
 libEnsemble's executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are
 aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
@@ -127,7 +126,7 @@ For example, in *six_hump_camel_CUDA_variable_resources*, the environment variab
         resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
         num_nodes = resources.local_node_count
         cores_per_node = resources.slot_count  # One CPU per GPU
-        
+
 In the figure above, this would result in worker one setting::
 
     export CUDA_VISIBLE_DEVICES=0,1
@@ -138,13 +137,12 @@ while worker five would set::
 
 .. note::
     If the user sets the number of resource sets directly using the ``num_resource_sets``
-    ``libE_specs`` option, then the dynamic resource assignment algorithm will always be 
+    ``libE_specs`` option, then the dynamic resource assignment algorithm will always be
     used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
-
 
 Resource Scheduler Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-         
+
 The following options are available for the :doc:`built-in scheduler<scheduler_module>`
 and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
 
@@ -153,13 +151,12 @@ and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
     available on the minimum node count required. Allows more efficient
     scheduling.
     Default: True
-    
+
  **match_slots** [boolean]:
     When splitting resource sets across multiple nodes, slot IDs must match.
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
     to specific slots counts, which should match over multiple nodes.
     Default: True
- 
 
 In the following example, assume the next simulation requires **four** resource
 sets. This could fit on one node if all slots were free – but only two are free on each
@@ -169,16 +166,15 @@ node.
 
 ``split2fit`` allows the two resource sets to be used on each node. However, the task
 will not be scheduled unless ``match_slots`` is set to *False*:
- 
+
 .. code-block:: python
 
     libE_specs['scheduler_opts'] = {'match_slots': False}
-    
+
 This is only recommended if not enumerating resources to slot IDs (e.g. via ``CUDA_VISIBLE_DEVICES``).
-    
+
 Note that if six resource sets were requested, then they would be split three per node, even
 if ``split2fit`` is *False*, as this could otherwise never be scheduled.
-
 
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -221,12 +217,12 @@ Using large resource sets
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Note that resource_sets and slot numbers are based on workers by default. If you
-halved the workers in this example you would have the following (each resource 
+halved the workers in this example you would have the following (each resource
 set has twice the CPUs and GPUs).
 
 .. image:: ../images/variable_resources_larger_rsets1.png
 
-To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier`` 
+To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier``
 argument in the ``set_env_to_slots`` function:
 
 .. code-block:: python

@@ -22,7 +22,6 @@ A system of charged particles is initialized and simulated over a number of time
 
 See `forces_app` directory for details.
 
-
 ### Running with libEnsemble.
 
 A random sample of seeds is taken and used as input to the sim func (forces miniapp).

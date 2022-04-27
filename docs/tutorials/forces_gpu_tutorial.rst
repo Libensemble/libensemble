@@ -12,7 +12,7 @@ devices.
 
 This example is based on the
 :doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
-a slighly modified simulation function.
+a slightly modified simulation function.
 
 To compile the forces application to use the GPU, ensure forces.c_ has the
 ``#pragma omp target`` line uncommented and comment out the equivalent
@@ -186,7 +186,6 @@ It is also recommended that you run without the profiler when using the `nvidia-
 
 This can also be used when running via libEnsemble, so long as you are on the node where the
 forces applications are being run.
-
 
 Example submission script
 -------------------------
