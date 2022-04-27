@@ -22,7 +22,6 @@ force-exclude = '''
     | libensemble/tests/unit_tests/test_loc_stack.py
     | libensemble/tests/unit_tests/test_allocation_funcs_and_support.py
     | libensemble/tests/unit_tests/test_sim_dir_properties.py
-    | libensemble/tests/unit_tests/test_persistent_aposmm.py
     | libensemble/tests/unit_tests/test_node_resources.py
 )
 '''
