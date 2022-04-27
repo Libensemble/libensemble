@@ -20,6 +20,9 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int]:
             Save history array to file after every k generated points.
+        'mp_start_method' [string]:
+            Multiprocessing only: instruct Python's multiprocessing library to start processes using
+            one of the 'spawn', 'fork', or 'forkserver' methods.
         'sim_dirs_make' [boolean]:
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is

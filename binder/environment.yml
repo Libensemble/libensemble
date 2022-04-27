@@ -9,3 +9,4 @@ dependencies:
     - openmpi-mpicc
     - mpi4py
     - libensemble
+    - jupyter_contrib_nbextensions
