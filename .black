@@ -9,13 +9,9 @@ force-exclude = '''
     | \.github       
     | docs
     | libensemble/tools
-    | libensemble/comms
-    | libensemble/utils
     | libensemble/resources
     | libensemble/executors
     | libensemble/tests/unit_tests
-    | examples
-    | postproc_scripts
   )/
     | setup.py
     | libensemble/__init__.py

@@ -94,7 +94,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain)
     - ``'combine_component_func' [func]``: Function to combine obj components
     - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: Fraction of the
+    - ``'dist_to_bound_multiple' [float in (0, 1]]``: Fraction of the
       distance to the nearest boundary to be used for the initial step size be
       in localopt runs
     - ``'high_priority_to_best_localopt_runs': [bool]``: True if localopt runs
@@ -195,7 +195,7 @@ def aposmm_logic(H, persis_info, gen_specs, _):
 
     n, n_s, c_flag, H_o, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
-    # np.savez('H'+str(len(H)),H=H,gen_specs=gen_specs,persis_info=persis_info)
+    # np.savez('H'+str(len(H)), H=H, gen_specs=gen_specs, persis_info=persis_info)
     if n_s < gen_specs['user']['initial_sample_size']:
         updated_inds = set()
 
@@ -357,7 +357,7 @@ def add_to_Out(H_o, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
     if local_flag:
         H_o['num_active_runs'][-num_pts] += 1
         # H_o['priority'][-num_pts:] = 1
-        # H_o['priority'][-num_pts:] = np.random.uniform(0,1,num_pts)
+        # H_o['priority'][-num_pts:] = np.random.uniform(0, 1, num_pts)
         if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
             H_o['priority'][-num_pts:] = -min(H['f'][persis_info['run_order'][run]])  # Give highest priority to run with lowest function value
         else:
@@ -365,12 +365,12 @@ def add_to_Out(H_o, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
         persis_info['run_order'][run].append(H_o[-num_pts]['sim_id'])
     else:
         if c_flag:
-            # p_tmp = np.sort(np.tile(np.random.uniform(0,1,num_pts/m),(m,1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
-            # p_tmp = np.random.uniform(0,1,num_pts)
+            # p_tmp = np.sort(np.tile(np.random.uniform(0, 1, num_pts/m), (m, 1))) # If you want all "duplicate points" to have the same priority (meaning libEnsemble gives them all at once)
+            # p_tmp = np.random.uniform(0, 1, num_pts)
             p_tmp = persis_info['rand_stream'].uniform(0, 1, num_pts)
         else:
-            # p_tmp = np.random.uniform(0,1,num_pts)
-            # persis_info['rand_stream'].uniform(lb,ub,(1,n))
+            # p_tmp = np.random.uniform(0, 1, num_pts)
+            # persis_info['rand_stream'].uniform(lb, ub, (1, n))
             if 'high_priority_to_best_localopt_runs' in gen_specs['user'] and gen_specs['user']['high_priority_to_best_localopt_runs']:
                 p_tmp = -np.inf*np.ones(num_pts)
             else:
@@ -449,8 +449,8 @@ def update_history_dist(H, n, gen_specs, c_flag):
             #     H['worse_within_rk'][new_ind][p] = np.logical_and.reduce((H['f'][new_ind] <= H['f'][p], dist_to_all <= r_k))
 
             #     # Add trues if new point is 'worse_within_rk'
-            #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p,new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['sim_id'][p] != new_ind))
-            #     H['worse_within_rk'][inds_to_change,new_ind] = True
+            #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p, new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['sim_id'][p] != new_ind))
+            #     H['worse_within_rk'][inds_to_change, new_ind] = True
 
             #     if not H['local_pt'][new_ind]:
             #         H['worse_within_rk'][H['dist_to_all'] > r_k] = False
@@ -464,7 +464,7 @@ def update_history_optimal(x_opt, H, run_inds):
     Updated the history after any point has been declared a local minimum
     """
 
-    # opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
+    # opt_ind = np.where(np.logical_and(np.equal(x_opt, H['x_on_cube']).all(1), ~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
     run_inds = np.unique(run_inds)
 
     dists = np.linalg.norm(H['x_on_cube'][run_inds]-x_opt, axis=1)
@@ -697,7 +697,7 @@ def set_up_and_run_tao(Run_H, user_specs):
 
         PETSc.Options().setValue('-tao_pounders_delta', str(delta_0))
 
-        # PETSc.Options().setValue('-pounders_subsolver_tao_type','bqpip')
+        # PETSc.Options().setValue('-pounders_subsolver_tao_type', 'bqpip')
         if hasattr(tao, 'setResidual'):
             tao.setResidual(lambda tao, x, f: pounders_obj_func(tao, x, f, Run_H), f)
         else:
@@ -767,7 +767,7 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
         Distance from the boundary that all starting points must satisfy
     nu: nonnegative float
         Distance from identified minima that all starting points must satisfy
-    gamma_quantile: float in (0,1]
+    gamma_quantile: float in (0, 1]
         Only sample points whose function values are in the lower
         gamma_quantile can start localopt runs
 
@@ -971,8 +971,8 @@ def display_exception(e):
 
 
 # if __name__ == "__main__":
-#     [H,gen_specs,persis_info] = [np.load('H20.npz')[i] for i in ['H','gen_specs','persis_info']]
+#     [H, gen_specs, persis_info] = [np.load('H20.npz')[i] for i in ['H', 'gen_specs', 'persis_info']]
 #     gen_specs = gen_specs.item()
 #     persis_info = persis_info.item()
 #     import ipdb; ipdb.set_trace()
-#     aposmm_logic(H,persis_info,gen_specs,{})
+#     aposmm_logic(H, persis_info, gen_specs, {})

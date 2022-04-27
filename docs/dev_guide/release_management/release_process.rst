@@ -39,7 +39,7 @@ Before release
 
   - Documentation must build and display correctly wherever hosted (currently readthedocs.com).
 
-- Pull request from either the develop or release branch to master requesting
+- Pull request from either the develop or release branch to main requesting
   one or more reviewers (including at least one other administrator).
 
 - Reviewer will check that all tests have passed and will then approve merge.
@@ -49,11 +49,11 @@ During release
 
 An administrator will take the following steps.
 
-- Merge the pull request into master.
+- Merge the pull request into main.
 
-- Once CI tests have passed on master:
+- Once CI tests have passed on main:
 
-  - A GitHub release will be taken from the master (:ref:`github release<rel-github>`).
+  - A GitHub release will be taken from the main (:ref:`github release<rel-github>`).
 
   - A tarball (source distribution) will be uploaded to PyPI (:ref:`PyPI release<rel-pypi>`).
 

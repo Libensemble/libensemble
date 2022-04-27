@@ -18,8 +18,7 @@ example = '''examples:
 
 np.set_printoptions(linewidth=1)
 
-parser = argparse.ArgumentParser(description=desc, epilog=example,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(description=desc, epilog=example, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-f', '--fields', nargs='+', default=[])
 parser.add_argument('-c', '--condition', nargs='+', default=[])
 parser.add_argument('-s', '--show-fields', dest='show_fields', action='store_true')

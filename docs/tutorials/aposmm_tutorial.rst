@@ -290,5 +290,5 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
 .. _SciPy: https://www.scipy.org/scipylib/index.html
-.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/master/libensemble/tests/scaling_tests/warpx
+.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
 .. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials

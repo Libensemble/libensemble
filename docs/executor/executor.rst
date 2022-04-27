@@ -39,7 +39,7 @@ polled/killed (or through other task or Executor functions).
 
 .. autoclass:: Task
   :members:
-  :exclude-members: calc_task_timing,check_poll
+  :exclude-members: calc_task_timing, check_poll
 ..  :member-order: bysource
 ..  :members: poll, kill, workdir_exists, file_exists_in_workdir,
               read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr

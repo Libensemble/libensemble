@@ -17,13 +17,13 @@ def get_pf(f):
         # Check whether any q in f_vals dominates p
         for q in f_vals:
             # If they are equal, there is no dominance
-            if (np.linalg.norm(p-q) < eps):
+            if np.linalg.norm(p - q) < eps:
                 continue
             # If q dominates p + a small perturbation, there is dominance
-            elif ((q < p + eps).all()):
+            elif (q < p + eps).all():
                 dom = True
         # Add nondominated points to the list
-        if (not dom):
+        if not dom:
             pareto_f.append(p)
     # Return the nondominated set
     return np.asarray(pareto_f)
