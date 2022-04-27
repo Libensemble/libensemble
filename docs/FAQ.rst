@@ -112,7 +112,7 @@ reduce the number of processes running or to specify a fallback fabric through
 environment variables::
 
     unset I_MPI_FABRICS
-    export I_MPI_FABRICS_LIST=tmi,tcp
+    export I_MPI_FABRICS_LIST=tmi, tcp
     export I_MPI_FALLBACK=1
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
