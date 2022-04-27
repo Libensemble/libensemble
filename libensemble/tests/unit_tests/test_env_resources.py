@@ -19,6 +19,7 @@ def teardown_function(function):
     print("teardown_function    function:%s" % function.__name__)
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
 
+
 # Tests ========================================================================================
 
 # Tests for obtaining nodelist from environment variables
@@ -82,8 +83,18 @@ def test_slurm_nodelist_groups_nodash():
 
 def test_slurm_nodelist_groups_longprefix():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "super-[000020-000022,000137-000139,001234,023456-023458]"
-    exp_out = ['super-000020', 'super-000021', 'super-000022', 'super-000137', 'super-000138', 'super-000139',
-               'super-001234', 'super-023456', 'super-023457', 'super-023458']
+    exp_out = [
+        'super-000020',
+        'super-000021',
+        'super-000022',
+        'super-000137',
+        'super-000138',
+        'super-000139',
+        'super-001234',
+        'super-023456',
+        'super-023457',
+        'super-023458',
+    ]
     nodelist = EnvResources.get_slurm_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
@@ -149,6 +160,7 @@ def test_lsf_nodelist_seq():
     exp_out = ['g06n02', 'h21n18']
     nodelist = EnvResources.get_lsf_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
+
 
 # These dont apply to the lsf lists as they are listed in full
 # def test_lsf_nodelist_groups():
