@@ -11,7 +11,6 @@ force-exclude = '''
     | libensemble/tools
     | libensemble/resources
     | libensemble/executors
-    | libensemble/tests/unit_tests
   )/
     | libensemble/history.py
     | libensemble/libE.py
@@ -20,5 +19,21 @@ force-exclude = '''
     | libensemble/gen_funcs/persistent_aposmm.py
     | libensemble/gen_funcs/persistent_ax_multitask.py
     | libensemble/gen_funcs/aposmm_localopt_support.py
+    | libensemble/tests/unit_tests/test_loc_stack.py
+    | libensemble/tests/unit_tests/test_launcher.py
+    | libensemble/tests/unit_tests/test_executor.py
+    | libensemble/tests/unit_tests/test_env_resources.py
+    | libensemble/tests/unit_tests/test_comms.py
+    | libensemble/tests/unit_tests/test_allocation_funcs_and_support.py
+    | libensemble/tests/unit_tests/setup.py
+    | libensemble/tests/unit_tests/mpich-only_test_api.py
+    | libensemble/tests/unit_tests/conftest.py
+    | libensemble/tests/unit_tests/test_timer.py
+    | libensemble/tests/unit_tests/test_sim_dir_properties.py
+    | libensemble/tests/unit_tests/test_scipy.py
+    | libensemble/tests/unit_tests/test_resources.py
+    | libensemble/tests/unit_tests/test_resource_scheduler.py
+    | libensemble/tests/unit_tests/test_persistent_aposmm.py
+    | libensemble/tests/unit_tests/test_node_resources.py
 )
 '''
