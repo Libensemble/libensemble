@@ -5,8 +5,7 @@ from itertools import groupby
 from operator import itemgetter
 
 from libensemble.utils.loc_stack import LocationStack
-from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, \
-    libE_spec_calc_dir_misc
+from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 
 
@@ -87,14 +86,14 @@ class EnsembleDirectory:
 
     @staticmethod
     def extract_H_ranges(Work):
-        """Convert received H_rows into ranges for labeling """
+        """Convert received H_rows into ranges for labeling"""
         work_H_rows = Work['libE_info']['H_rows']
         if len(work_H_rows) == 1:
             return str(work_H_rows[0])
         else:
             # From https://stackoverflow.com/a/30336492
             ranges = []
-            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0]-x[1]):
+            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0] - x[1]):
                 group = list(map(itemgetter(1), group))
                 if len(group) > 1:
                     ranges.append(str(group[0]) + '-' + str(group[-1]))
@@ -139,8 +138,14 @@ class EnsembleDirectory:
                 dir = self.prefix
                 prefix = None
 
-            locs.register_loc(key, dir, prefix=prefix, copy_files=copy_files,
-                              symlink_files=symlink_files, ignore_FileExists=True)
+            locs.register_loc(
+                key,
+                dir,
+                prefix=prefix,
+                copy_files=copy_files,
+                symlink_files=symlink_files,
+                ignore_FileExists=True,
+            )
             return key
 
         # All cases now should involve sim_dirs or gen_dirs
@@ -160,10 +165,13 @@ class EnsembleDirectory:
             calc_prefix = self.prefix
 
         # Register calc dir with adjusted parent dir and source-file location
-        locs.register_loc(calc_dir, calc_dir,  # Dir name also label in loc stack dict
-                          prefix=calc_prefix,
-                          copy_files=copy_files,
-                          symlink_files=symlink_files)
+        locs.register_loc(
+            calc_dir,
+            calc_dir,  # Dir name also label in loc stack dict
+            prefix=calc_prefix,
+            copy_files=copy_files,
+            symlink_files=symlink_files,
+        )
 
         return calc_dir
 
@@ -188,8 +196,7 @@ class EnsembleDirectory:
         """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.ensemble_copy_back:
 
-            no_calc_dirs = not self.sim_dirs_make or \
-                not self.gen_dirs_make
+            no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
 
             copybackdir = os.path.basename(self.prefix)
 
