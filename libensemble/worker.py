@@ -268,7 +268,10 @@ class Worker:
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
                     loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(
-                        Work, self.calc_iter, self.workerID, calc_type,
+                        Work,
+                        self.calc_iter,
+                        self.workerID,
+                        calc_type,
                     )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
