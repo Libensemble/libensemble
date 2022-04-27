@@ -46,13 +46,18 @@ class PersistentSupport:
         logger.debug('Persistent {} function sending data message to manager'.format(self.calc_str))
         self.comm.send(self.calc_type, D)
 
-    def recv(self):
+    def recv(self, blocking=True):
         """
         Receive message to worker from manager.
 
         :returns: message tag, Work dictionary, calc_in array
 
         """
+
+        if not blocking:
+            if not self.comm.mail_flag():
+                return None, None, None
+
         tag, Work = self.comm.recv()  # Receive meta-data or signal
         if tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug('Persistent {} received signal {} from manager'.format(self.calc_str, tag))

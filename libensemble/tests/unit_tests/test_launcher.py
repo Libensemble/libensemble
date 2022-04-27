@@ -13,8 +13,7 @@ def test_form_command():
 
     run_specs = {'mpirun': 'mpirun', 'nproc': 10, 'nrank': 5, 'mf': None}
 
-    cmd = ['{mpirun}', '-n {nproc}', '-nper {nrank}', '-machinefile {mf}',
-           'more arguments "ho hum"']
+    cmd = ['{mpirun}', '-n {nproc}', '-nper {nrank}', '-machinefile {mf}', 'more arguments "ho hum"']
     args = launcher.form_command(cmd, run_specs)
     aref = ['mpirun', '-n', '10', '-nper', '5', 'more', 'arguments', '"ho hum"']
 
@@ -37,14 +36,12 @@ def xtest_submit():
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, pay attention to term
-    process = launcher.launch([py_exe, "launch_busy.py"],
-                              start_new_session=True)
+    process = launcher.launch([py_exe, "launch_busy.py"], start_new_session=True)
     assert not launcher.process_is_stopped(process, 0.1), "Process stopped early."
     launcher.cancel(process, 0.5)
 
     # Launch infinite loop, ignore term
-    process = launcher.launch([py_exe, "launch_busy.py", "1"],
-                              start_new_session=True)
+    process = launcher.launch([py_exe, "launch_busy.py", "1"], start_new_session=True)
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0.5)
 

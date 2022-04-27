@@ -4,9 +4,7 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--runextra", action="store_true", default=False, help="run extra tests"
-    )
+    parser.addoption("--runextra", action="store_true", default=False, help="run extra tests")
 
 
 def pytest_configure(config):
