@@ -65,7 +65,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
     for i in range(n):
         for j in range(p):
-            # Fhist0[i,j,nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
+            # Fhist0[i, j, nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
             Fhist0[i, j, nf // 2] = U['f0'][j]
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)
@@ -90,11 +90,11 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                     logical_conds = (calc_in['x_ind'] == i, calc_in['f_ind'] == j, calc_in['n_ind'] == k)
                     Fhist0[i, j, k] = calc_in['f_val'][np.logical_and.reduce(logical_conds)]
 
-            # Compute noise for (i,j):
-            # [Fnoise(i,j),~,inform(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
-            # t = eng.ECnoise(nf+1,matlab.double(Fhist0[i,j,:nf+1]),nargout=3)
+            # Compute noise for (i, j):
+            # [Fnoise(i, j), ~, inform(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
+            # t = eng.ECnoise(nf+1, matlab.double(Fhist0[i, j, :nf+1]), nargout=3)
             # # Optional: check to see what would get with 2 fewer evals (requires nf>=4):
-            # [Fnoise2(i,j),~,inform2(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
+            # [Fnoise2(i, j), ~, inform2(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
 
             # cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab", "-batch",
             cmd = [
@@ -103,7 +103,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                 "--eval",
                 "F=[" + " ".join(["{:18.18f}".format(x) for x in Fhist0[i, j, : nf + 1]]) + "];"
                 "nf=" + str(nf) + "';"
-                "[fnoise,~,inform] = ECnoise(nf+1,F);"
+                "[fnoise, ~, inform] = ECnoise(nf+1, F);"
                 "dlmwrite('fnoise.out', fnoise, 'delimiter', ' ', 'precision', 16);"
                 "dlmwrite('inform.out', inform, 'delimiter', ' ', 'precision', 16);"
                 "exit",
