@@ -9,11 +9,11 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.version import __version__
 from libensemble import logger
 
-ATTR_ERR_MSG = "\n********** Unable to load \"{}\"." + " Is the function or submodule correctly named? **********\n"
+ATTR_ERR_MSG = "Unable to load \"{}\". Is the function or submodule correctly named?"
+ATTR_ERR_MSG = "\n" + 10* "*" + ATTR_ERR_MSG + 10*"*" + "\n"
 
-NOTFOUND_ERR_MSG = (
-    "\n********** Unable to load \"{}\"." + " Is the package installed or the relative path correct? **********\n"
-)
+NOTFOUND_ERR_MSG = "Unable to load \"{}\". Is the package installed or the relative path correct?"
+NOTFOUND_ERR_MSG = "\n" + 10* "*" + NOTFOUND_ERR_MSG + 10*"*" + "\n"
 
 
 class Persis_Info:
