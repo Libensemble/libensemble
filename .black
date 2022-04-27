@@ -17,7 +17,6 @@ force-exclude = '''
   )/
     | libensemble/history.py
     | libensemble/libE.py
-    | libensemble/logger.py
     | libensemble/manager.py
     | libensemble/gen_funcs/old_aposmm.py
     | libensemble/gen_funcs/persistent_aposmm.py
