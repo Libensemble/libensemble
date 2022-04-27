@@ -1,3 +1,5 @@
+.. _resources-scheduler:
+
 Scheduler Module
 ================
 

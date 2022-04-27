@@ -41,7 +41,7 @@ class ResourceScheduler:
 
         sched_opts: dict, optional
             A dictionary of scheduler options.
-            Normally passed via ``alloc_specs['user']['scheduler_opts']``
+            Normally passed via ``libE_specs['scheduler_opts']``
 
 
         The supported fields for sched_opts are::

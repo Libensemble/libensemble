@@ -67,9 +67,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     # Initialize alloc_specs['user'] as user.
     user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
     Work = {}
     is_first_iter = False

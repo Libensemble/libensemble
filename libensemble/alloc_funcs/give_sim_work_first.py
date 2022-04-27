@@ -28,7 +28,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     .. seealso::
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
-
     user = alloc_specs.get('user', {})
 
     if 'cancel_sims_time' in user:
@@ -43,12 +42,11 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
-    sched_opts = user.get('scheduler_opts', {})
     batch_give = user.get('give_all_with_same_priority', False)
     gen_in = gen_specs.get('in', [])
 
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_gens()
     Work = {}
 
