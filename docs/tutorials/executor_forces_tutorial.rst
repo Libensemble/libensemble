@@ -39,7 +39,8 @@ Calling Script
 --------------
 
 Let's begin by writing our calling script to parameterize our simulation and
-generation functions and call libEnsemble. Create a Python file containing:
+generation functions and call libEnsemble. Create a Python file called `run_libe_forces.py`
+containing:
 
 .. code-block:: python
     :linenos:
@@ -48,7 +49,7 @@ generation functions and call libEnsemble. Create a Python file containing:
     #!/usr/bin/env python
     import os
     import numpy as np
-    from tutorial_forces_simf_simple import run_forces  # Sim func from current dir
+    from forces_simf import run_forces  # Sim func from current dir
 
     from libensemble.libE import libE
     from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -157,7 +158,7 @@ Write an alternative Calling Script similar to above, but with the following dif
         #!/usr/bin/env python
         import os
         import numpy as np
-        from tutorial_forces import run_forces  # Sim func from current dir
+        from forces_simf import run_forces  # Sim func from current dir
 
         from libensemble import logger
         from libensemble.libE import libE
@@ -230,9 +231,13 @@ for starters:
         task.wait(timeout=60)
 
 We retrieve the generated number of particles from ``H`` and construct
-an argument string for our launched application. We retrieved our
-previously instantiated Executor instance from the class definition,
-where it was automatically stored as an attribute.
+an argument string for our launched application. The particle count doubles up
+as a random number seed here. Note a fourth argument can be added to forces
+that gives forces a chance of a 'bad run' (a float between 0 and 1), but
+for now that will default to zero.
+
+We then retrieve our previously instantiated Executor instance from the
+class definition, where it was automatically stored as an attribute.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
@@ -243,7 +248,7 @@ for the task to complete via ``task.wait()``.
 We can assume that afterward, any results are now available to parse. Our application
 produces a ``forces.stat`` file that contains either energy
 computations for every time-step or a "kill" message if particles were lost, which
-indicates a failed simulation.
+indicates a bad run - this can be ignored for now.
 
 To complete our simulation function, parse the last energy value from the output file into
 a local output :ref:`History array<datastruct-history-array>`, and if successful,
@@ -283,7 +288,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    $ python my_calling_script.py --comms local --nworkers [nworkers]
+    $ python run_libe_forces.py --comms local --nworkers [nworkers]
 
 This may take up to a minute to complete. Output files---including ``forces.stat``
 and files containing ``stdout`` and ``stderr`` content for each task---should
@@ -293,14 +298,14 @@ should appear in ``libE_stats.txt`` and ``ensemble.log`` as usual.
 For example, my ``libE_stats.txt`` resembled::
 
   Worker     1: Gen no     1: gen Time: 0.001 Start: ... End: ... Status: Not set
-  Worker     1: sim_id     0: sim Time: 3.201 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     1: sim Time: 3.208 Start: ... End: ... Status: Task Failed
-  Worker     1: sim_id     2: sim Time: 0.228 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     3: sim Time: 0.236 Start: ... End: ... Status: Task Failed
-  Worker     1: sim_id     4: sim Time: 0.229 Start: ... End: ... Status: Task Failed
-  Worker     2: sim_id     5: sim Time: 0.233 Start: ... End: ... Status: Task Failed
-  Worker     1: sim_id     6: sim Time: 0.227 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     7: sim Time: 0.228 Start: ... End: ... Status: Task Failed
+  Worker     1: sim_id     0: sim Time: 0.227 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     1: sim Time: 0.426 Start: ... End: ... Status: Completed
+  Worker     1: sim_id     2: sim Time: 0.627 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     3: sim Time: 0.225 Start: ... End: ... Status: Completed
+  Worker     1: sim_id     4: sim Time: 0.224 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     5: sim Time: 0.625 Start: ... End: ... Status: Completed
+  Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
+  Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
 Where ``status`` is set based on the simulation function's returned ``calc_status``.
 
@@ -348,9 +353,10 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch onto two nodes, with eight processes per node.
+  1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch with four processes.
   2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
-  3. Construct a ``while not task.finished:`` loop that periodically sleeps for one second, calls :meth:`task.poll()<executor.Task.poll>`,
+  3. Add a fourth argument to the args line to make 20% of simulations go bad.
+  4. Construct a ``while not task.finished:`` loop that periodically sleeps for one second, calls :meth:`task.poll()<executor.Task.poll>`,
      then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
 
@@ -365,8 +371,10 @@ These may require additional browsing of the documentation to complete.
 
         import time
         ...
+        args = particles + " " + str(10) + " " + particles + " " + str(0.2)
+        ...
         task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True,
-                            num_nodes=2, procs_per_node=8, stdout="stdout.txt", stderr="stderr.txt")
+                            num_procs=4, stdout="stdout.txt", stderr="stderr.txt")
 
         while not task.finished:
           time.sleep(1)
@@ -381,6 +389,6 @@ These may require additional browsing of the documentation to complete.
 
         ...
 
-.. _here: https://raw.githubusercontent.com/Libensemble/libensemble/master/libensemble/tests/scaling_tests/forces/forces.c
+.. _here: https://raw.githubusercontent.com/Libensemble/libensemble/main/libensemble/tests/scaling_tests/forces/forces.c
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
