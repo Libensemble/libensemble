@@ -30,7 +30,7 @@ def configure_coverage():
     with open(coveragerc, 'r') as f:
         lines = f.readlines()
 
-    newlines = [i for i in lines if i != '    */balsam_executor.py\n']
+    newlines = [i for i in lines if i != '    */legacy_balsam_executor.py\n']
 
     print('New libensemble/tests/.coveragerc: \n')
     with open(coveragerc, 'w') as f:
