@@ -140,14 +140,14 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
 
         received = False
         spin_count = 0
-        while (not received):
+        while not received:
             tag, Work, calc_in = ps.recv(blocking=False)
             if tag is not None:
                 received = True
             else:
                 spin_count += 1
 
-        assert spin_count > 0, 'Expected spin_count > 0 in non-blocking loop'
+        persis_info['spin_count'] = spin_count
 
         if hasattr(calc_in, '__len__'):
             b = len(calc_in)

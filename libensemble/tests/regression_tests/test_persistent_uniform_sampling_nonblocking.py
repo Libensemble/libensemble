@@ -57,11 +57,11 @@ for i in persis_info:
 
 exit_criteria = {'gen_max': 40, 'wallclock_max': 300}
 
-libE_specs['kill_canceled_sims'] = False
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    # Note assert also in gen func
     assert len(np.unique(H['gen_ended_time'])) == 2
     save_libE_output(H, persis_info, __file__, nworkers)
+
+    assert persis_info[1]['spin_count'] > 0, "This should have been a nonblocking receive"
