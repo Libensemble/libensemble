@@ -15,7 +15,6 @@ force-exclude = '''
     | examples
     | postproc_scripts
   )/
-    | libensemble/api.py
     | libensemble/history.py
     | libensemble/libE.py
     | libensemble/logger.py
