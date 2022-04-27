@@ -23,7 +23,7 @@ to main ``libE()`` routine::
 .. note::
 
   * The user may define fields only in ``'user'`` to be passed to the generator function.
-  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`.
+  * The tuples defined in the 'out' list are entered into the manager's :ref:`history array<datastruct-history-array>`.
   * The generator ``'out'`` field will usually include variable(s) appearing as a simulator 'in' field,
     in which case only the variable name is required for the simulator ``'in'``
     field. The example below, matches the corresponding

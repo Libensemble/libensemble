@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------
-    Non-MPI, Single Step, Electostatics Code Example
+    Non-MPI, Single Step, Electrostatics Code Example
 
     This is a complete working example to test threading/vectorization
     without MPI or other non-trivial features.
@@ -43,7 +43,7 @@ int seed_rand(int seed) {
 // Return a random number from a persistent stream
 double get_rand() {
     double randnum;
-    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)
+    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0, 1)
     return randnum;
 }
 
@@ -84,12 +84,12 @@ int init_forces(int lower, int upper, double* fx, double* fy, double* fz) {
 int check_threads() {
     int tid, nthreads;
 
-    #pragma omp parallel private(tid,nthreads)
+    #pragma omp parallel private(tid, nthreads)
     {
         #if defined(_OPENMP)
             nthreads = omp_get_num_threads();
             tid = omp_get_thread_num();
-            printf("ThreadID: %d    Num threads: %d\n",tid,nthreads);
+            printf("ThreadID: %d    Num threads: %d\n", tid, nthreads);
         #else
             printf("OpenMP is disabled\n");
         #endif
@@ -98,9 +98,9 @@ int check_threads() {
 }
 
 
-// Electostatics pairwise forces kernel (O(N^2))
+// Electrostatics pairwise forces kernel (O(N^2))
 double forces_naive(int n,  double* x, double* y, double* z, double* fx, double* fy, double* fz, double* q) {
-    int i,j;
+    int i, j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
     struct timeval tv1, tv2;
@@ -110,16 +110,16 @@ double forces_naive(int n,  double* x, double* y, double* z, double* fx, double*
     // For GPU/Accelerators
     /*
     #pragma omp target teams distribute parallel for map(to: n) \
-                       map(tofrom: x[:n],y[:n],z[:n],fx[:n],fy[:n],fz[:n],q[:n]) \
+                       map(tofrom: x[:n], y[:n], z[:n], fx[:n], fy[:n], fz[:n], q[:n]) \
                        reduction(+:ret) //thread_limit(128) //*/
 
     // For CPU
     //*
-    #pragma omp parallel for default(none) shared(n,x,y,z,fx,fy,fz,q) \
-                             private(i,j,dx,dy,dz,r,force) \
+    #pragma omp parallel for default(none) shared(n, x, y, z, fx, fy, fz, q) \
+                             private(i, j, dx, dy, dz, r, force) \
                              reduction(+:ret)  //*/
     for(i=0; i<n; i++) {
-        #pragma omp simd private(dx,dy,dz,r,force) reduction(+:fx[i],fy[i],fz[i],ret) // Enable vectorization
+        #pragma omp simd private(dx, dy, dz, r, force) reduction(+:fx[i], fy[i], fz[i], ret) // Enable vectorization
         for(j=0; j<n; j++){
             if (i==j) {
                 continue;
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
     build_system(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
     init_forces(0, num_particles, force_x, force_y, force_z);
     local_en = forces_naive(num_particles, pos_x, pos_y, pos_z, force_x, force_y, force_z, charge);
-    printf("energy is %f \n",local_en);
+    printf("energy is %f \n", local_en);
 
     free(pos_x  );
     free(pos_y  );

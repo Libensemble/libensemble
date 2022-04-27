@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
@@ -9,7 +10,9 @@ from libensemble.manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
-from libensemble.executors.mpi_executor import MPIExecutor
+
+# Note the Balsam option here is now LegacyBalsam - see balsam_forces for latest.
+USE_BALSAM = False
 
 PERSIS_GEN = False
 
@@ -25,21 +28,23 @@ logger.set_level('INFO')  # INFO is now default
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+
+if not os.path.isfile(sim_app):
+    sys.exit('forces.x not found - please build first in ../forces_app dir')
+
 if is_manager:
     print('\nRunning with {} workers\n'.format(nworkers))
 
-sim_app = os.path.join(os.getcwd(), 'forces.x')
 
-# Normally would be pre-compiled
-if not os.path.isfile('forces.x'):
-    if os.path.isfile('build_forces.sh'):
-        import subprocess
-
-        subprocess.check_call(['./build_forces.sh'])
-
-exctr = MPIExecutor()
+# Create executor and register sim to it.
+if USE_BALSAM:
+    from libensemble.executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
+    exctr = LegacyBalsamMPIExecutor()
+else:
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='forces')
-
 
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 

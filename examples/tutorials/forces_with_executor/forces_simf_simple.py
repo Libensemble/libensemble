@@ -1,1 +1,0 @@
-../../../libensemble/tests/scaling_tests/forces/forces_simple/forces_simf_simple.py

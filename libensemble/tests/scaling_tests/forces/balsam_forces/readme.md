@@ -5,7 +5,7 @@ Naive Electrostatics Code Test
 This is a synthetic, highly configurable simulation function. Its primary use
 is to test libEnsemble's capability to submit application instances via the Balsam service,
 including to separate machines from libEnsemble's processes. This means that although
-this is typically a HPC scaling test, this can be run on a laptop with the `forces.x`
+this is typically an HPC scaling test, this can be run on a laptop with the `forces.x`
 simulation submitted to the remote machine, and the resulting data-files transferred
 back to the machine that runs the libEnsemble calling script.
 
@@ -16,21 +16,14 @@ the Balsam service.
 
 A system of charged particles is initialized and simulated over a number of time-steps.
 
-Particles' position and charge are initiated using a random stream.
-Particles are replicated on all ranks.
-**Each rank** computes forces for a subset of particles (`O(N^2)` operations).
-Particle force arrays are `allreduced` across ranks.
-Particles are moved (replicated on each rank).
-Total energy is appended to the forces.stat file.
+See `forces_app` directory for details.
 
-To run forces as a standalone executable on `N` procs:
+**This application will need to be compiled on the remote machine**
 
-    mpirun -np N ./forces.x <NUM_PARTICLES> <NUM_TIMESTEPS> <SEED>
+Choose or modify a build line from `build_forces.sh` for the target platform:
 
-**This application will need to be compiled on the remote machine:**
-
-  cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
-  ./build_forces.sh
+    cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
+    ./build_forces.sh
 
 ### Configuring Balsam
 
@@ -39,10 +32,19 @@ On the remote machine (in a conda or other virtual environment):
     pip install balsam
     balsam login
     balsam site init ./my-site
-    cd my-site; balsam site start
 
 You may be asked to login and authenticate with the Balsam service. Do so with
-your ALCF credentials.
+your ALCF credentials. Now go into the site directory:
+
+    cd my-site
+
+To see if the site is active, run:
+
+    balsam site ls
+
+If the site is not active, run:
+
+    balsam site start
 
 On any machine you've installed and logged into Balsam, you can run `balsam site ls`
 to list your sites and `balsam job rm --all` to remove extraneous jobs between runs.
@@ -62,7 +64,7 @@ then Balsam to use Globus.
 - Download and run [Globus Connect Personal](https://app.globus.org/file-manager/gcp) to register your device as a Globus endpoint. Note the initialized collection name, e.g. ``test_collection``.
 - Once a Globus collection has been initialized in Globus Connect Personal, login to Globus, click "Endpoints" on the left.
 - Click the collection that was created on your personal device. Copy the string after "Endpoint UUID".
-- Login to the remote machine, switch to your Balsam site directory, run ``balsam site globus-login``.
+- Login to the remote machine, switch to your Balsam site directory, and run ``balsam site globus-login``.
 - Modify ``settings.yml`` to contain a new transfer_location that matches your device, with the copied endpoint UUID. e.g. ``test_collection: globus://19036a15-570a-12f8-bef8-22060b9b458d``
 - Run ``balsam site sync`` within the site directory to save these changes.
 - Locally, in the calling script (``run_libe_forces_balsam.py``), set ``GLOBUS_ENDPOINT`` to the collection name for the previously-defined transfer_location.
@@ -103,7 +105,7 @@ There are several scripts that each need to be adjusted. To explain each:
   libEnsemble on your personal machine, feel free comment-out ``RemoteLibensembleApp.sync()``.
 
   **Run this script each time you edit it,** since changes to each
-  ``ApplicationDefinition`` need to be synced with the Balsam service.
+  ``ApplicationDefinition`` needs to be synced with the Balsam service.
 
 2. ``run_libe_forces_balsam.py``:
 
@@ -114,7 +116,7 @@ There are several scripts that each need to be adjusted. To explain each:
   ``RemoteForces`` app synced with the Balsam service in ``define_apps.py``
   and registers it with libEnsemble's Balsam Executor. If running this
   script on your personal machine, it also uses the Balsam Executor to reserve
-  out resources at a Balsam site.
+  resources at a Balsam site.
 
   Configuring:
 
