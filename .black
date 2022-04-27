@@ -26,7 +26,6 @@ force-exclude = '''
     | libensemble/gen_funcs/persistent_aposmm.py
     | libensemble/gen_funcs/persistent_ax_multitask.py
     | libensemble/gen_funcs/aposmm_localopt_support.py
-    | libensemble/version.py
     | libensemble/worker.py
 )
 '''
