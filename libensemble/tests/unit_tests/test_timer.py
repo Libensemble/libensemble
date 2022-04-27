@@ -50,8 +50,10 @@ def test_timer():
     assert total1 >= 1 and total1 <= time_end, "Check cumulative timing (active)."
     assert timer.total >= 1 and timer.total <= time_end, "Check cumulative timing (not active)."
 
+
 def test_TaskTimer():
     print(TaskTimer())
+
 
 if __name__ == "__main__":
     test_timer()
