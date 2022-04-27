@@ -40,9 +40,11 @@ if is_manager:
 # Create executor and register sim to it.
 if USE_BALSAM:
     from libensemble.executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
+
     exctr = LegacyBalsamMPIExecutor()
 else:
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='forces')
 

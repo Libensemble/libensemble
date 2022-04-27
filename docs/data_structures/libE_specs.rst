@@ -15,7 +15,7 @@ Specifications for libEnsemble::
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'abort_on_exception' [boolean]:
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
-            IF False, an exception will be raised by the manager.
+            If False, an exception will be raised by the manager.
         'save_every_k_sims' [int]:
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int]:
