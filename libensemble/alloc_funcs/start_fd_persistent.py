@@ -7,7 +7,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
     """
     This allocation function will give simulation work if possible, but
     otherwise start 1 persistent generator.  If all points requested by
-    the persistent generator for a given (x_ind,f_ind) pair have been returned from the
+    the persistent generator for a given (x_ind, f_ind) pair have been returned from the
     simulation evaluation, then this information is given back to the
     persistent generator (where x_ind is in range(n) and f_ind is in range(p))
 

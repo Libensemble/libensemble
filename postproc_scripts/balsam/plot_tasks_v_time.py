@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use('Agg')
 
 from balsam.core import models

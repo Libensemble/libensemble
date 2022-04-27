@@ -127,7 +127,7 @@ class GlobalResources:
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding zero_resource_workers).
 
-        cores_on_node: tuple (int,int), optional
+        cores_on_node: tuple (int, int), optional
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 

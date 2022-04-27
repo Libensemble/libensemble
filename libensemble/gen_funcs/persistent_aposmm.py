@@ -75,7 +75,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       If more sample points are needed by APOSMM during the course of the
       optimization, points will be drawn uniformly over the domain
     - ``'components' [int]``: Number of objective components
-    - ``'dist_to_bound_multiple' [float in (0,1]]``: What fraction of the
+    - ``'dist_to_bound_multiple' [float in (0, 1]]``: What fraction of the
       distance to the nearest boundary should the initial step size be in
       localopt runs
     - ``'lhs_divisions' [int]``: Number of Latin hypercube sampling partitions
@@ -370,8 +370,8 @@ def update_history_dist(H, n):
             #     H['worse_within_rk'][new_ind][p] = np.logical_and.reduce((H['f'][new_ind] <= H['f'][p], dist_to_all <= r_k))
 
             #     # Add trues if new point is 'worse_within_rk'
-            #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p,new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['sim_id'][p] != new_ind))
-            #     H['worse_within_rk'][inds_to_change,new_ind] = True
+            #     inds_to_change = np.logical_and.reduce((H['dist_to_all'][p, new_ind] <= r_k, H['f'][new_ind] >= H['f'][p], H['sim_id'][p] != new_ind))
+            #     H['worse_within_rk'][inds_to_change, new_ind] = True
 
             #     if not H['local_pt'][new_ind]:
             #         H['worse_within_rk'][H['dist_to_all'] > r_k] = False
@@ -400,7 +400,7 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     Updated the history after any point has been declared a local minimum
     """
 
-    # opt_ind = np.where(np.logical_and(np.equal(x_opt,H['x_on_cube']).all(1),~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
+    # opt_ind = np.where(np.logical_and(np.equal(x_opt, H['x_on_cube']).all(1), ~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
     run_inds = np.unique(run_inds)
 
     dists = np.linalg.norm(H['x_on_cube'][run_inds]-x_opt, axis=1)
