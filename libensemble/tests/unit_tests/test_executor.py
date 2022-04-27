@@ -8,6 +8,7 @@ import time
 import pytest
 import socket
 import mpi4py
+
 mpi4py.rc.initialize = False
 from mpi4py import MPI
 
@@ -56,6 +57,7 @@ def teardown_module(module):
 
 def build_simfuncs():
     import subprocess
+
     for sim in build_sims:
         app_name = '.'.join([sim.split('.')[0], 'x'])
         if not os.path.isfile(app_name):
@@ -68,9 +70,11 @@ def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+
         exctr = LegacyBalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
+
         exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
@@ -78,6 +82,7 @@ def setup_executor():
 def setup_serial_executor():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
+
     exctr = Executor()
     exctr.register_app(full_path=serial_app, calc_type='sim')
 
@@ -85,6 +90,7 @@ def setup_serial_executor():
 def setup_executor_startups():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
+
     exctr = Executor()
     exctr.register_app(full_path=c_startup, app_name='c_startup')
     exctr.register_app(full_path=py_startup, app_name='py_startup')
@@ -94,9 +100,11 @@ def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
         from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+
         exctr = LegacyBalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor
+
         exctr = MPIExecutor()
         if exctr.workerID is not None:
             sys.exit("Something went wrong in creating Executor")
@@ -108,11 +116,14 @@ def setup_executor_fakerunner():
         print('Balsom does not support this feature - running MPIExecutor')
 
     # Create non-existent MPI runner.
-    customizer = {'mpi_runner': 'custom',
-                  'runner_name': 'non-existent-runner',
-                  'subgroup_launch': True}
+    customizer = {
+        'mpi_runner': 'custom',
+        'runner_name': 'non-existent-runner',
+        'subgroup_launch': True,
+    }
 
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor(custom_info=customizer)
     exctr.register_app(full_path=sim_app, calc_type='sim')
 
@@ -191,7 +202,7 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 
 # Tests ========================================================================================
 def test_launch_and_poll():
-    """ Test of launching and polling task and exiting on task finish"""
+    """Test of launching and polling task and exiting on task finish"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -205,7 +216,7 @@ def test_launch_and_poll():
 
 
 def test_launch_and_wait():
-    """ Test of launching and waiting on task"""
+    """Test of launching and waiting on task"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -221,7 +232,7 @@ def test_launch_and_wait():
 
 
 def test_launch_and_wait_timeout():
-    """ Test of launching and waiting on task timeout (and kill)"""
+    """Test of launching and waiting on task timeout (and kill)"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -238,7 +249,7 @@ def test_launch_and_wait_timeout():
 
 
 def test_launch_wait_on_start():
-    """ Test of launching task with wait_on_start """
+    """Test of launching task with wait_on_start"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -254,7 +265,7 @@ def test_launch_wait_on_start():
 
 
 def test_kill_on_file():
-    """ Test of killing task based on something in output file"""
+    """Test of killing task based on something in output file"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -300,7 +311,7 @@ def test_launch_and_poll_multitasks():
     for j in range(3):
         # outfilename = 'out_' + str(j) + '.txt' # Could allow launch to generate outfile names based on task.id
         outfile = 'multitask_task_' + str(j) + '.out'
-        sleeptime = 0.3 + (j*0.2)  # Change args
+        sleeptime = 0.3 + (j * 0.2)  # Change args
         args_for_sim = 'sleep' + ' ' + str(sleeptime)
         # rundir = 'run_' + str(sleeptime)
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfile)
@@ -333,13 +344,13 @@ def test_get_task():
     task0 = polling_loop(exctr, task0)
 
     # Get non-existent taskid
-    A = exctr.get_task(taskid+1)
+    A = exctr.get_task(taskid + 1)
     assert A is None, 'Task found when supplied taskid should not exist'
 
 
 @pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
-    """ Test of supplying various input configurations."""
+    """Test of supplying various input configurations."""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
 
     # Note: Could test task_partition routine directly - without launching tasks...
@@ -362,8 +373,14 @@ def test_procs_and_machinefile_logic():
 
     # Testing num_procs = num_nodes*procs_per_node (shouldn't fail)
     if is_ompi():
-        task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=1, procs_per_node=6,
-                            app_args=args_for_sim, extra_args='--oversubscribe')
+        task = exctr.submit(
+            calc_type='sim',
+            num_procs=6,
+            num_nodes=1,
+            procs_per_node=6,
+            app_args=args_for_sim,
+            extra_args='--oversubscribe',
+        )
     else:
         task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
@@ -380,8 +397,13 @@ def test_procs_and_machinefile_logic():
 
     # Testing no num_procs (shouldn't fail)
     if is_ompi():
-        task = exctr.submit(calc_type='sim', num_nodes=1, procs_per_node=3,
-                            app_args=args_for_sim, extra_args='--oversubscribe')
+        task = exctr.submit(
+            calc_type='sim',
+            num_nodes=1,
+            procs_per_node=3,
+            app_args=args_for_sim,
+            extra_args='--oversubscribe',
+        )
     else:
         task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
@@ -533,6 +555,7 @@ def test_launch_no_app():
 
 def test_kill_task_with_no_submit():
     from libensemble.executors.executor import Task
+
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
@@ -548,8 +571,7 @@ def test_kill_task_with_no_submit():
     # Create a task directly with no submit (Not supported for users)
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
-    exp_msg = ('Attempting to kill task libe_task_my_simtask.x_.+that has '
-               'no process ID - check tasks been launched')
+    exp_msg = 'Attempting to kill task libe_task_my_simtask.x_.+that has ' 'no process ID - check tasks been launched'
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
@@ -563,13 +585,13 @@ def test_kill_task_with_no_submit():
 
 def test_poll_task_with_no_submit():
     from libensemble.executors.executor import Task
+
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = ('Polled task libe_task_my_simtask.x_.+ '
-               'has no process ID - check tasks been launched')
+    exp_msg = 'Polled task libe_task_my_simtask.x_.+ ' 'has no process ID - check tasks been launched'
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout='stdout.txt')
@@ -696,12 +718,9 @@ def test_futures_interface():
     with Executor.executor as exctr:
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     time.sleep(0.1)
-    assert task.running(), \
-        "task.running() should return True after wait_on_start task submission."
-    assert task.result() == 'FINISHED',  \
-        "task.result() should return FINISHED. Returned " + str(task.state)
-    assert task.done(), \
-        "task.done() should return True after task finishes."
+    assert task.running(), "task.running() should return True after wait_on_start task submission."
+    assert task.result() == 'FINISHED', "task.result() should return FINISHED. Returned " + str(task.state)
+    assert task.done(), "task.done() should return True after task finishes."
 
 
 def test_futures_interface_cancel():
@@ -713,8 +732,7 @@ def test_futures_interface_cancel():
         task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     time.sleep(0.1)
     task.cancel()
-    assert task.cancelled() and task.done(), \
-        "Task should be both cancelled() and done() after cancellation."
+    assert task.cancelled() and task.done(), "Task should be both cancelled() and done() after cancellation."
 
 
 if __name__ == "__main__":
