@@ -216,10 +216,11 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
     test_list = test_list_base + test_list_exargs
     sim_specs['user'] = {
-        'tests': test_list,
         'expect': exp_list,
         'nodes_per_worker': nodes_per_worker,
+        'offset_for_scheduler': True,
         'persis_gens': 0,
+        'tests': test_list,
     }
 
     # Perform the run
