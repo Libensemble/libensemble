@@ -27,7 +27,7 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, manage_resources=False, persis_info={}, scheduler_opts={},
+    def __init__(self, W, manage_resources=False, persis_info={}, libE_info={},
                  user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance
 
@@ -51,6 +51,7 @@ class AllocSupport:
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
+            scheduler_opts = libE_info.get('scheduler_opts', {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
     def assign_resources(self, rsets_req):
