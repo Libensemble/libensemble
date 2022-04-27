@@ -78,7 +78,12 @@ class Ensemble:
             'user': None,
             'type': 'gen',
         }
-        self.alloc_specs = {'alloc_f': None, 'out': None, 'user': None, 'type': 'alloc'}
+        self.alloc_specs = {
+            'alloc_f': None,
+            'out': None,
+            'user': None,
+            'type': 'alloc',
+        }
         self.exit_criteria = {}
         self.H0 = None
         self._filename = inspect.stack()[1].filename
