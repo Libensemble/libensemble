@@ -21,6 +21,7 @@ omit =
     */sim_funcs/helloworld.py
     */sim_funcs/executor_hworld.py
     */balsam_executor.py
+    */legacy_balsam_executor.py
     */forkable_pdb.py
     */parse_args.py
     */gen_funcs/old_aposmm.py

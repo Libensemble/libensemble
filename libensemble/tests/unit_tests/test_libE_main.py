@@ -48,7 +48,6 @@ class Fake_MPI:
 
 
 class Fake_MPI_1P(Fake_MPI):
-
     def Get_size(self):
         return 1
 
@@ -140,8 +139,7 @@ def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(KeyError):
-        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1},
-                       libE_specs=libE_specs)
+        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs)
         pytest.fail('Expected KeyError exception')
 
 
@@ -149,8 +147,9 @@ def test_proc_not_in_communicator():
     """Checking proc not in communicator returns exit status of 3"""
     libE_specs = {}
     libE_specs['mpi_comm'], mpi_comm_null = mpi_comm_excl()
-    H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]},
-                      {'sim_max': 1}, libE_specs=libE_specs)
+    H, _, flag = libE(
+        {'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs
+    )
     assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
@@ -206,7 +205,7 @@ def test_checking_inputs_H0():
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
     # Return to correct state
-    H0['sim_ended'][3:len(H0)] = False
+    H0['sim_ended'][3 : len(H0)] = False
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Removing 'sim_ended' and then testing again. Should be successful as 'sim_ended' does not exist

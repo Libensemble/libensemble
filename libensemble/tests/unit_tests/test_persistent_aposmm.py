@@ -49,7 +49,7 @@ def test_update_history_optimal():
     # Perturb x_opt point to test the case where the reported minimum isn't
     # exactly in H. Also, a point in the neighborhood of x_opt has a better
     # function value.
-    opt_ind = al.update_history_optimal(H['x_on_cube'][-1]+1e-12, 1, H, np.arange(len(H)))
+    opt_ind = al.update_history_optimal(H['x_on_cube'][-1] + 1e-12, 1, H, np.arange(len(H)))
 
     assert opt_ind == 9, "Wrong point declared minimum"
 
@@ -71,27 +71,30 @@ def test_standalone_persistent_aposmm():
     n = 2
     eval_max = 2000
 
-    gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int),
-               ('local_min', bool), ('local_pt', bool)]
+    gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
 
-    gen_specs = {'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'sim_ended', 'x_on_cube', 'local_min'],
-                 'out': gen_out,
-                 'user': {'initial_sample_size': 100,
-                          # 'localopt_method': 'LD_MMA', # Needs gradients
-                          'sample_points': np.round(minima, 1),
-                          'localopt_method': 'LN_BOBYQA',
-                          'standalone': {'eval_max': eval_max,
-                                         'obj_func': six_hump_camel_func,
-                                         'grad_func': six_hump_camel_grad,
-                                         },
-                          'rk_const': 0.5*((gamma(1+(n/2))*5)**(1/n))/sqrt(pi),
-                          'xtol_abs': 1e-6,
-                          'ftol_abs': 1e-6,
-                          'dist_to_bound_multiple': 0.5,
-                          'max_active_runs': 6,
-                          'lb': np.array([-3, -2]),
-                          'ub': np.array([3, 2])}
-                 }
+    gen_specs = {
+        'in': ['x', 'f', 'grad', 'local_pt', 'sim_id', 'sim_ended', 'x_on_cube', 'local_min'],
+        'out': gen_out,
+        'user': {
+            'initial_sample_size': 100,
+            # 'localopt_method': 'LD_MMA', # Needs gradients
+            'sample_points': np.round(minima, 1),
+            'localopt_method': 'LN_BOBYQA',
+            'standalone': {
+                'eval_max': eval_max,
+                'obj_func': six_hump_camel_func,
+                'grad_func': six_hump_camel_grad,
+            },
+            'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            'xtol_abs': 1e-6,
+            'ftol_abs': 1e-6,
+            'dist_to_bound_multiple': 0.5,
+            'max_active_runs': 6,
+            'lb': np.array([-3, -2]),
+            'ub': np.array([3, 2]),
+        },
+    }
     H = []
     H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
@@ -103,8 +106,8 @@ def test_standalone_persistent_aposmm():
     for m in minima:
         # The minima are known on this test problem.
         # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)), flush=True)
-        if np.min(np.sum((H[H['local_min']]['x'] - m)**2, 1)) < tol:
+        print(np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)), flush=True)
+        if np.min(np.sum((H[H['local_min']]['x'] - m) ** 2, 1)) < tol:
             min_found += 1
     assert min_found >= 6, "Found {} minima".format(min_found)
 

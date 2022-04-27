@@ -11,7 +11,6 @@ force-exclude = '''
     | libensemble/tools
     | libensemble/resources
     | libensemble/executors
-    | libensemble/tests/unit_tests
   )/
     | libensemble/history.py
     | libensemble/libE.py
@@ -20,5 +19,9 @@ force-exclude = '''
     | libensemble/gen_funcs/persistent_aposmm.py
     | libensemble/gen_funcs/persistent_ax_multitask.py
     | libensemble/gen_funcs/aposmm_localopt_support.py
+    | libensemble/tests/unit_tests/test_allocation_funcs_and_support.py
+    | libensemble/tests/unit_tests/test_loc_stack.py
+    | libensemble/tests/unit_tests/test_resource_scheduler.py
+    | libensemble/tests/unit_tests/test_sim_dir_properties.py
 )
 '''
