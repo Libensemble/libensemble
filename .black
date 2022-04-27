@@ -12,7 +12,6 @@ force-exclude = '''
     | libensemble/resources
     | libensemble/executors
     | libensemble/tests/unit_tests
-    | examples
     | postproc_scripts
   )/
     | setup.py
