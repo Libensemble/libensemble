@@ -68,7 +68,7 @@ np.random.seed(0)
 gen_specs['user']['sample_points'] = np.random.uniform(0, 1, (budget, n)) * (UB - LB) + LB
 alloc_specs = {
     'alloc_f': alloc_f,
-    'out': [('allocated', bool)],
+    'out': [],
     'user': {
         'stop_on_NaNs': True,
         'batch_mode': True,

@@ -10,8 +10,8 @@
   .. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
     :target: https://github.com/Libensemble/libensemble/actions
 
-  .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=master
-    :target: https://coveralls.io/github/Libensemble/libensemble?branch=master
+  .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=main
+    :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
 
   .. image::  https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
     :target: https://libensemble.readthedocs.org/en/latest/

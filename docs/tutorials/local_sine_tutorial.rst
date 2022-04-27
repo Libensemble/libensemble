@@ -432,7 +432,7 @@ of the calling script as follows:
     libE_specs = {'comms': 'mpi'}                 # 'nworkers' removed, 'comms' now 'mpi'
 
     nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_manager = (MPI.COMM_WORLD.Get_rank() == 0)  # master process has MPI rank 0
+    is_manager = (MPI.COMM_WORLD.Get_rank() == 0)  # manager process has MPI rank 0
 
 So that only one process executes the graphing and printing portion of our code,
 modify the bottom of the calling script like this:
@@ -471,7 +471,7 @@ With these changes in place, our libEnsemble code can be run with MPI by
   $ mpirun -n 5 python calling_script.py
 
 where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
-the master process with the libEnsemble manager and the other four will run
+the manager process with the libEnsemble manager and the other four will run
 libEnsemble workers.
 
 This tutorial is only a tiny demonstration of the parallelism capabilities of

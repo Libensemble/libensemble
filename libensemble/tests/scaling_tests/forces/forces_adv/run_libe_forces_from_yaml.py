@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import numpy as np
 
 from libensemble import Ensemble
@@ -7,13 +8,11 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 ####################
 
-sim_app = os.path.join(os.getcwd(), 'forces.x')
+sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
-if not os.path.isfile('forces.x'):
-    if os.path.isfile('build_forces.sh'):
-        import subprocess
+if not os.path.isfile(sim_app):
+    sys.exit('forces.x not found - please build first in ../forces_app dir')
 
-        subprocess.check_call(['./build_forces.sh'])
 
 ####################
 

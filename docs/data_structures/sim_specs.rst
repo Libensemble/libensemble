@@ -21,7 +21,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
   * The entirety of ``sim_specs`` is passed from the worker each time a
     simulation is requested by the allocation function.
 
-  * The tuples in ``sim_specs['out']`` are entered into the master
+  * The tuples in ``sim_specs['out']`` are entered into the manager's
     :ref:`history array<datastruct-history-array>`.
 
 .. seealso::
@@ -42,7 +42,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
     user-specific fields. These are given to the corresponding sim_f, which
     can be found at forces_simf.py_.
 
-  ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/run_libe_forces.py
+  ..  literalinclude:: ../../libensemble/tests/scaling_tests/forces/forces_adv/run_libe_forces.py
       :start-at: sim_f
       :end-before: end_sim_specs_rst_tag
 

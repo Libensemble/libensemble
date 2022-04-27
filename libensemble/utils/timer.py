@@ -38,8 +38,7 @@ class Timer:
 
     def __str__(self):
         """Return a string representation of the timer."""
-        return ("Time: {0:.3f} Start: {1} End: {2}".
-                format(self.total, self.date_start, self.date_end))
+        return "Time: {0:.3f} Start: {1} End: {2}".format(self.total, self.date_start, self.date_end)
 
     @property
     def date_start(self):
@@ -75,7 +74,7 @@ class Timer:
         """Stop the timer."""
         self.tend = TimestampMillisec64()
         self.timing = False
-        self.tcum += (self.tend-self.tstart)
+        self.tcum += self.tend - self.tstart
 
     def __enter__(self):
         """Enter a timing context."""
@@ -89,7 +88,7 @@ class Timer:
 
 class TaskTimer(Timer):
     """Timer class used in executor tasks."""
+
     def __str__(self):
         """Return a string representation of the timer."""
-        return ("TaskTime: {0:.2f} JStart: {1} JEnd: {2}".
-                format(self.total, self.date_start, self.date_end))
+        return "TaskTime: {0:.2f} JStart: {1} JEnd: {2}".format(self.total, self.date_start, self.date_end)

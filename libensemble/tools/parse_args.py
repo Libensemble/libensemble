@@ -147,7 +147,7 @@ def parse_args():
 
     .. code-block:: bash
 
-        usage: test_... [-h] [--comms [{local,tcp,ssh,client,mpi}]]
+        usage: test_... [-h] [--comms [{local, tcp, ssh, client, mpi}]]
                         [--nworkers [NWORKERS]] [--workers WORKERS [WORKERS ...]]
                         [--nsim_workers [NSIM_WORKERS]]
                         [--nresource_sets [NRESOURCE_SETS]]

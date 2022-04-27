@@ -86,7 +86,7 @@ for run in range(2):
         assert persis_info[1].get('run_order'), "Run_order should have been given back"
         min_ids = np.where(H['local_min'])
 
-        # The minima are known on this test problem. If the above [lb,ub] domain is
+        # The minima are known on this test problem. If the above [lb, ub] domain is
         # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
         minima = np.array([[0.25, 0.75], [0.75, 0.25]])
         tol = 2e-4

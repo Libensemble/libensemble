@@ -10,12 +10,12 @@ with open(infile) as f:
         foundend = False
         for i, val in enumerate(lst):
             if val == 'JStart:':
-                startdate = lst[i+1]
-                starttime = lst[i+2]
+                startdate = lst[i + 1]
+                starttime = lst[i + 2]
                 foundstart = True
             if val == 'JEnd:':
-                enddate = lst[i+1]
-                endtime = lst[i+2]
+                enddate = lst[i + 1]
+                endtime = lst[i + 2]
                 foundend = True
             if foundstart and foundend:
                 run_datetime = {'start': startdate + ' ' + starttime, 'end': enddate + ' ' + endtime}
@@ -48,9 +48,11 @@ final = df_list.join(df_count)
 # print(final)
 
 import matplotlib
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
+
 final.plot(x='datetime', y='count')
 # plt._show()
 plt.savefig('runs_util_v_time.png')

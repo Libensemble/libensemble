@@ -4,32 +4,55 @@ Dynamic Assignment of Resources
 Overview
 --------
 
-libEnsemble comes with built-in resource management. This entails the :ref:`detection of available resources<resource_detection>` (e.g. nodelists and core counts), and the allocation of resources to workers.
+libEnsemble comes with built-in resource management. This entails the
+:ref:`detection of available resources<resource_detection>` (e.g., nodelists and
+core counts), and the allocation of resources to workers.
 
-By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources, and if not given any of *num_nodes*, *num_procs* or *procs_per_node* in the submit function, it will try to use all nodes and CPU cores available to the worker.
+By default, the provisioned resources are divided by the number of workers (excluding
+any workers given in the ``zero_resource_workers`` libE_specs option). libEnsemble's
+:doc:`MPI Executor<../executor/mpi_executor>` is aware of these supplied resources,
+and if not given any of ``num_nodes``, ``num_procs``, or ``procs_per_node`` in the submit
+function, it will try to use all nodes and CPU cores available to the worker.
 
 Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
 
-Resource management can be disabled by setting ``libE_specs['disable_resource_manager'] = True`` This will prevent libEnsemble
+Resource management can be disabled by setting
+``libE_specs['disable_resource_manager'] = True``. This will prevent libEnsemble
 from doing any resource detection or management.
 
 Variable resource assignment
 ----------------------------
 
-In slightly more detail, the resource manager divides resources into **resource sets**.  One resource set is the smallest unit of resources that can be assigned (and dynamically reassigned) to workers. By default, the provisioned resources are divided by the number of workers (excluding any workers given in the ``zero_resource_workers`` ``libE_specs`` option). However, it can also be set directly by the ``num_resource_sets`` libE_specs option. If the latter is set, the dynamic resource assignment algorithm will always be used.
+In slightly more detail, the resource manager divides resources into **resource sets**.
+One resource set is the smallest unit of resources that can be assigned (and
+dynamically reassigned) to workers. By default, the provisioned resources are
+divided by the number of workers (excluding any workers given in the ``zero_resource_workers``
+``libE_specs`` option). However, it can also be set directly by the ``num_resource_sets``
+``libE_specs`` option. If the latter is set, the dynamic resource assignment algorithm
+will always be used.
 
-If there are more resource sets than nodes, then the resource sets on each node will be given a slot number, enumerated from zero. E.g.~ If there are three slots on a node, they will have slot numbers 0, 1 and 2.
+If there are more resource sets than nodes, then the resource sets on each node
+will be given a slot number, enumerated from zero. For example, if there are three slots
+on a node, they will have slot numbers 0, 1, and 2.
 
-The resource manager will not split a resource set over nodes, rather the resource sets on each node will be the integer division of resource sets over nodes, with the remainder dealt out from the first node. Even breakdowns are generally preferable, however.
+The resource manager will not split a resource set over nodes, rather the resource
+sets on each node will be the integer division of resource sets over nodes, with
+the remainder dealt out from the first node. Even breakdowns are generally
+preferable, however.
 
-For example, lets say a given system has four GPUs per node, and the user has run libEnsemble on two nodes, with eight workers. The default division of resources would be:
+For example, say a given system has four GPUs per node, and the user has run
+libEnsemble on two nodes, with eight workers. The default division of resources would be:
 
 .. image:: ../images/variable_resources1.png
 
 Variable Size simulations
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A dynamic assignment of resources to simulation workers can be achieved by the convention of using a field in the history array called ``resource_sets``. While this is technically a user space field, the allocation functions are set up to read this field, check available resources, and assign resource sets to workers, along with the work request (simulation).
+A dynamic assignment of resources to simulation workers can be achieved by the
+convention of using a field in the history array called ``resource_sets``. While
+this is technically a user space field, the allocation functions are set up to
+read this field, check available resources, and assign resource sets to workers,
+along with the work request (simulation).
 
 In the calling script, use a ``gen_specs['out']`` field called ``resource_sets``:
 
@@ -43,9 +66,12 @@ In the calling script, use a ``gen_specs['out']`` field called ``resource_sets``
                          ('x', float, n)]
                 }
 
-For an example calling script, see The libEnsemble regression test `test_persistent_sampling_CUDA_variable_resources.py`_
+For an example calling script, see The libEnsemble regression test
+`test_persistent_sampling_CUDA_variable_resources.py`_
 
-In the generator, the ``resource_sets`` field must be set to a value for each point (simulation) generated (if it is not set, it will have the initialized value of zero, and supply zero resources).
+In the generator, the ``resource_sets`` field must be set to a value for each point
+(simulation) generated (if it is not set, it will have the initialized value of zero,
+and supply zero resources).
 
 .. code-block:: python
     :emphasize-lines: 4
@@ -55,19 +81,42 @@ In the generator, the ``resource_sets`` field must be set to a value for each po
         H_o['x'][i] = x[b]
         H_o['resource_sets'][i] = sim_size[b]
 
-For an example generator, see the *uniform_random_sample_with_variable_resources* function in `persistent_uniform_sampling.py`_
+For an example generator, see the *uniform_random_sample_with_variable_resources*
+function in `persistent_uniform_sampling.py`_
 
-When the allocation function assigns points to workers for evaluation, it will check if the requested number of resource sets are available for each point to evaluate. If they are not available, then the evaluation will not be given to a worker until enough resources become available. This functionality is built into the supplied allocation functions, and generally requires no modification from the user.
+When the allocation function assigns the points to workers for evaluation, it
+will check if the requested number of resource sets are available for each point
+to evaluate. If they are not available, then the evaluation will not be given to
+a worker until enough resources become available. This functionality is built
+into the supplied allocation functions, and generally requires no modification
+from the user.
 
 .. image:: ../images/variable_resources2.png
 
-The particular nodes and slots assigned to each worker will be determined by the libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`. In short, the scheduler will preference fitting simulations onto a node, and using even splits across nodes, if necessary.
+.. image:: ../images/variable_resources3.png
 
-In the user's simulation function, the resources supplied to the worker can be :doc:`interogated directly via the resources class attribute<worker_resources>`. Note also that libEnsembles executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs`` or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU cores available.
+The particular nodes and slots assigned to each worker will be determined by the
+libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide
+an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`.
+In short, the scheduler will preference fitting simulations onto a node, and using
+even splits across nodes, if necessary.
 
-`six_hump_camel.py`_ has two examples of how resource information for the worker may be accessed in the sim function (functions *six_hump_camel_with_variable_resources* and *six_hump_camel_CUDA_variable_resources*).
+Accessing resources from the simulation function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For example, in *six_hump_camel_CUDA_variable_resources*, the environment variable ``CUDA_VISIBLE_DEVICES`` is set to slots:
+In the user's simulation function, the resources supplied to the worker can be
+:doc:`interrogated directly via the resources class attribute<worker_resources>`.
+libEnsemble's executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are
+aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
+or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
+cores available.
+
+`six_hump_camel.py`_ has two examples of how resource information for the worker may be
+accessed in the sim function ( *six_hump_camel_with_variable_resources* and
+*six_hump_camel_CUDA_variable_resources*).
+
+For example, in *six_hump_camel_CUDA_variable_resources*, the environment variable
+``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
     :emphasize-lines: 3
@@ -87,14 +136,56 @@ while worker five would set::
     export CUDA_VISIBLE_DEVICES=2,3
 
 .. note::
-    If the user sets the number of resource sets directly using the ``num_resource_sets`` ``libE_specs`` option, then the dynamic resource assignment algorithm will always be used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
+    If the user sets the number of resource sets directly using the ``num_resource_sets``
+    ``libE_specs`` option, then the dynamic resource assignment algorithm will always be
+    used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
+
+Resource Scheduler Options
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following options are available for the :doc:`built-in scheduler<scheduler_module>`
+and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
+
+ **split2fit** [boolean]
+    Try to split resource sets across more nodes if space is not currently
+    available on the minimum node count required. Allows more efficient
+    scheduling.
+    Default: True
+
+ **match_slots** [boolean]:
+    When splitting resource sets across multiple nodes, slot IDs must match.
+    Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
+    to specific slots counts, which should match over multiple nodes.
+    Default: True
+
+In the following example, assume the next simulation requires **four** resource
+sets. This could fit on one node if all slots were free – but only two are free on each
+node.
+
+.. image:: ../images/variable_resources_sched_opts.png
+
+``split2fit`` allows the two resource sets to be used on each node. However, the task
+will not be scheduled unless ``match_slots`` is set to *False*:
+
+.. code-block:: python
+
+    libE_specs['scheduler_opts'] = {'match_slots': False}
+
+This is only recommended if not enumerating resources to slot IDs (e.g. via ``CUDA_VISIBLE_DEVICES``).
+
+Note that if six resource sets were requested, then they would be split three per node, even
+if ``split2fit`` is *False*, as this could otherwise never be scheduled.
 
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For all supporting allocation functions, setting the ``persis_info['gen_resources']`` to an integer value will provide resource sets to generators when they are started, with the default to provide no resources. This could be set in the calling script or inside the allocation function.
+For all supporting allocation functions, setting the ``persis_info['gen_resources']``
+to an integer value will provide resource sets to generators when they are started,
+with the default to provide no resources. This could be set in the calling script
+or inside the allocation function.
 
-Note that persistent workers maintain their resources until coming out of persistent state.
+Note that persistent workers maintain their resources until coming out of a
+persistent state.
 
 Example scenarios
 -----------------
@@ -102,7 +193,8 @@ Example scenarios
 Persistent generator
 ^^^^^^^^^^^^^^^^^^^^
 
-You have *one* persistent generator and want *eight* workers for running concurrent simulations. In this case you can run with *nine* workers.
+You have *one* persistent generator and want *eight* workers for running concurrent
+simulations. In this case you can run with *nine* workers.
 
 Either use one zero resource worker, if the generator should always be the same worker:
 
@@ -116,18 +208,22 @@ Or explicitly set eight resource sets:
 
     libE_specs['num_resource_sets'] = 8
 
-Using the two node example above, initial worker mapping in this example will be:
+Using the two-node example above, the initial worker mapping in this example will be:
 
 .. image:: ../images/variable_resources_persis_gen1.png
+    :width: 98%
 
 Using large resource sets
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note that resource_sets and slot numbers are based on workers by default. If you halved the workers in this example you would have the following (each resource set has twice the CPUs and GPUs).
+Note that resource_sets and slot numbers are based on workers by default. If you
+halved the workers in this example you would have the following (each resource
+set has twice the CPUs and GPUs).
 
 .. image:: ../images/variable_resources_larger_rsets1.png
 
-To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier`` argument in the ``set_env_to_slots`` function:
+To set CUDA_VISIBLE_DEVICES to slots in this case, use the  ``multiplier``
+argument in the ``set_env_to_slots`` function:
 
 .. code-block:: python
     :emphasize-lines: 2
@@ -143,6 +239,7 @@ example there are 5 workers (one for the generator) and 8 resource sets. The add
 resources will be used for larger simulations.
 
 .. image:: ../images/variable_resources_more_rsets1.png
+    :width: 98%
 
 This could be achieved by setting:
 

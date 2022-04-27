@@ -14,8 +14,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 # import dragonfly Gaussian Process functions
 from dragonfly.exd.domains import EuclideanDomain
-from dragonfly.exd.experiment_caller import (EuclideanFunctionCaller,
-                                             CPFunctionCaller)
+from dragonfly.exd.experiment_caller import EuclideanFunctionCaller, CPFunctionCaller
 from dragonfly.opt.gp_bandit import EuclideanGPBandit, CPGPBandit
 from dragonfly.exd.cp_domain_utils import load_config
 from argparse import Namespace
@@ -40,10 +39,15 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     # Initialize the dragonfly GP optimizer
     domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
     func_caller = EuclideanFunctionCaller(None, domain)
-    opt = EuclideanGPBandit(func_caller, ask_tell_mode=True,
-                            options=Namespace(
-                                acq='ts', build_new_model_every=number_of_gen_points,
-                                init_capital=number_of_gen_points))
+    opt = EuclideanGPBandit(
+        func_caller,
+        ask_tell_mode=True,
+        options=Namespace(
+            acq='ts',
+            build_new_model_every=number_of_gen_points,
+            init_capital=number_of_gen_points,
+        ),
+    )
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -114,17 +118,23 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     # Initialize the dragonfly GP optimizer
     domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
     fidel_space = EuclideanDomain([fidel_range])
-    func_caller = EuclideanFunctionCaller(None,
-                                          raw_domain=domain,
-                                          raw_fidel_space=fidel_space,
-                                          fidel_cost_func=cost_func,
-                                          raw_fidel_to_opt=fidel_range[-1])
-    opt = EuclideanGPBandit(func_caller,
-                            ask_tell_mode=True,
-                            is_mf=True,
-                            options=Namespace(acq='ts',
-                                              build_new_model_every=number_of_gen_points,
-                                              init_capital=number_of_gen_points))
+    func_caller = EuclideanFunctionCaller(
+        None,
+        raw_domain=domain,
+        raw_fidel_space=fidel_space,
+        fidel_cost_func=cost_func,
+        raw_fidel_to_opt=fidel_range[-1],
+    )
+    opt = EuclideanGPBandit(
+        func_caller,
+        ask_tell_mode=True,
+        is_mf=True,
+        options=Namespace(
+            acq='ts',
+            build_new_model_every=number_of_gen_points,
+            init_capital=number_of_gen_points,
+        ),
+    )
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -148,7 +158,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
             z, input_vector = opt.ask()
             H_o['x'][i] = input_vector
             H_o['z'][i] = z[0]
-            H_o['resource_sets'][i] = max(1, int(z[0]/2))
+            H_o['resource_sets'][i] = max(1, int(z[0] / 2))
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -202,13 +212,15 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
         domain_dict = {
             'max': ub,
             'min': lb,
-            'type': 'float'
+            'type': 'float',
         }
         config_params['domain'].append(domain_dict)
-    config_params['fidel_space'] = [{
-        'type': 'discrete',
-        'items': fidel_range
-    }]
+    config_params['fidel_space'] = [
+        {
+            'type': 'discrete',
+            'items': fidel_range,
+        }
+    ]
     config_params['fidel_to_opt'] = [fidel_range[-1]]
     config = load_config(config_params)
 
@@ -220,12 +232,19 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
         fidel_space=config.fidel_space,
         fidel_cost_func=cost_func,
         fidel_to_opt=config.fidel_to_opt,
-        fidel_space_orderings=config.fidel_space_orderings)
+        fidel_space_orderings=config.fidel_space_orderings,
+    )
+
     opt = CPGPBandit(
-        func_caller, ask_tell_mode=True, is_mf=True,
+        func_caller,
+        ask_tell_mode=True,
+        is_mf=True,
         options=Namespace(
-            acq='ts', build_new_model_every=number_of_gen_points,
-            init_capital=number_of_gen_points))
+            acq='ts',
+            build_new_model_every=number_of_gen_points,
+            init_capital=number_of_gen_points,
+        ),
+    )
     opt.initialise()
 
     # If there is any past history, feed it to the GP
@@ -249,7 +268,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
             z, input_vector = opt.ask()
             H_o['x'][i] = input_vector
             H_o['z'][i] = z[0]
-            H_o['resource_sets'][i] = max(1, int(z[0]/2))
+            H_o['resource_sets'][i] = max(1, int(z[0] / 2))
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager

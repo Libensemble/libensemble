@@ -18,9 +18,11 @@ import sys
 import numpy as np
 
 import matplotlib
+
 matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
+
 # import csv
 
 
@@ -59,20 +61,20 @@ with open(infile) as f:
         found_status = False
         for i, val in enumerate(lst):
             if val == time_key:
-                if sim_only and lst[i-1] != 'sim':
+                if sim_only and lst[i - 1] != 'sim':
                     break
-                in_times.append(lst[i+1])
+                in_times.append(lst[i + 1])
                 found_time = True
             if val == status_key:
-                if lst[i+1] in ran_ok:
+                if lst[i + 1] in ran_ok:
                     append_to_list(in_times_ran, in_times, found_time)  # Assumes Time comes first
-                elif search_for_keyword(lst[i+1:len(lst)], run_killed):
+                elif search_for_keyword(lst[i + 1 : len(lst)], run_killed):
                     append_to_list(in_times_kill, in_times, found_time)  # Assumes Time comes first
-                elif search_for_keyword(lst[i+1:len(lst)], run_exception):
+                elif search_for_keyword(lst[i + 1 : len(lst)], run_exception):
                     exceptions = True
                     append_to_list(in_times_exception, in_times, found_time)  # Assumes Time comes first
                 else:
-                    print('Error: Unknown status - rest of line: {}'.format(lst[i+1:len(lst)]))
+                    print('Error: Unknown status - rest of line: {}'.format(lst[i + 1 : len(lst)]))
                     sys.exit()
                 found_status = True
             if found_time and found_status:
@@ -102,7 +104,7 @@ if sim_only:
 else:
     calc = 'calc'
 
-titl = ('Histogram of ' + calc + ' times' + ' (' + str(active_line_count) + ' user calcs)' + str(num_bins) + ' bins')
+titl = 'Histogram of ' + calc + ' times' + ' (' + str(active_line_count) + ' user calcs)' + str(num_bins) + ' bins'
 
 plt.title(titl)
 plt.xlabel('Calculation run time (sec)', fontsize=14)

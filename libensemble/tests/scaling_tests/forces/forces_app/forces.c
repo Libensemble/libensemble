@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------
-    Naive Electostatics Code Example
-    This is designed only as an artificial, highly conifurable test
+    Naive Electrostatics Code Example
+    This is designed only as an artificial, highly configurable test
     code for a libEnsemble sim func.
 
     Particles position and charge are initiated by a random stream.
@@ -25,7 +25,7 @@
 #include <mpi.h>
 #include <omp.h>
 
-#define min(a,b) \
+#define min(a, b) \
   ({ __typeof__ (a) _a = (a); \
      __typeof__ (b) _b = (b); \
     _a < _b ? _a : _b; })
@@ -46,18 +46,18 @@ double elapsed(struct timeval *tv1, struct timeval *tv2) {
 
 // Print from each thread.
 int check_threads(int rank) {
+    #if defined(_OPENMP)
     int tid, nthreads;
-
-    #pragma omp parallel private(tid,nthreads)
-    {
-        #if defined(_OPENMP)
+        #pragma omp parallel private(tid, nthreads)
+        {
             nthreads = omp_get_num_threads();
             tid = omp_get_thread_num();
-            printf("Rank: %d:   ThreadID: %d    Num threads: %d\n",rank,tid,nthreads);
-        #else
-            printf("Rank: %d: OpenMP is disabled\n",rank);
-        #endif
-    }
+            printf("Rank: %d:   ThreadID: %d    Num threads: %d\n", rank, tid, nthreads);
+
+        }
+    #else
+        printf("Rank: %d: OpenMP is disabled\n", rank);
+    #endif
     return 0;
 }
 
@@ -75,10 +75,10 @@ int seed_rand(int seed) {
 }
 
 // Return a random number from a persistent stream
-//TODO Use parallel RNG - As replicated data can currently do on master rank.
+//TODO Use parallel RNG - As replicated data can currently do on first rank.
 double get_rand() {
     double randnum;
-    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0,1)
+    randnum = (double)rand()/(double)(RAND_MAX + 1.0); //[0, 1)
     return randnum;
 }
 
@@ -113,24 +113,24 @@ int init_forces(int lower, int upper, particle* parr) {
 }
 
 
-// Electostatics pairwise forces kernel (O(N^2))
+// Electrostatics pairwise forces kernel (O(N^2))
 // No Eq/Opp - no reduction required (poss adv on fine-grained parallel arch).
 double forces_naive(int n, int lower, int upper, particle* parr) {
 
-    int i,j;
+    int i, j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
     // For GPU/Accelerators
     /*
     #pragma omp target teams distribute parallel for \
-                map(to: lower,upper,n) map(tofrom: parr[0:n]) \
+                map(to: lower, upper, n) map(tofrom: parr[0:n]) \
                 reduction(+: ret) //thread_limit(128) //*/
 
     // For CPU
     //*
-    #pragma omp parallel for default(none) shared(n,lower,upper,parr) \
-                             private(i,j,dx,dy,dz,r,force) \
+    #pragma omp parallel for default(none) shared(n, lower, upper, parr) \
+                             private(i, j, dx, dy, dz, r, force) \
                              reduction(+:ret)  //*/
     for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
@@ -156,11 +156,11 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
 }
 
 
-// Electostatics pairwise forces kernel (O(N^2))
+// Electrostatics pairwise forces kernel (O(N^2))
 // Triangle loop structure (eq/opp)
 double forces_eqopp(int n, int lower, int upper, particle* parr) {
 
-    int i,j;
+    int i, j;
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
@@ -219,7 +219,7 @@ int print_particles(int n, particle* parr) {
     printf("\nPrinting %d particles:\n", n);
 
     for(i=0; i<n; i++) {
-        printf("Point %4d: ",i);
+        printf("Point %4d: ", i);
 
         // Positions
         x = parr[i].p[0];
@@ -241,12 +241,13 @@ int print_particles(int n, particle* parr) {
 int print_step_summary(int step, double total_en,
                        double compute_forces_time,
                        double comms_time) {
-    printf("\nStep: %d\n",step);
-    printf("Forces kernel returned: %f \n",total_en);
-    printf("Forces compute time: %.3f seconds\n",compute_forces_time);
-    printf("Forces comms time:   %.3f seconds\n",comms_time);
+    printf("\nStep: %d\n", step);
+    printf("Forces kernel returned: %f \n", total_en);
+    printf("Forces compute time: %.3f seconds\n", compute_forces_time);
+    printf("Forces comms time:   %.3f seconds\n", comms_time);
     return 0;
 }
+
 
 int open_stat_file() {
     char *statfile = "forces.stat";
@@ -264,7 +265,7 @@ int close_stat_file() {
 }
 
 int write_stat_file(double value) {
-    fprintf(stat_fp,"%.5f\n",value);
+    fprintf(stat_fp,"%.5f\n", value);
     fflush(stat_fp);
     return 0;
 }
@@ -317,10 +318,11 @@ int test_badrun(double rate) {
 
 int main(int argc, char **argv) {
 
+    int num_devices;
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
     int rand_seed = 1; // default seed
-    double kill_rate = 0.5; // default proportion of tasks to kill
+    double kill_rate = 0.0; // default proportion of tasks to kill
 
     int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
@@ -360,15 +362,26 @@ int main(int argc, char **argv) {
     ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     if (rank == 0) {
-        printf("Particles: %d\n",num_particles);
-        printf("Timesteps: %d\n",num_steps);
-        printf("MPI Ranks: %d\n",num_procs);
-        printf("Random seed: %d\n",rand_seed);
+        printf("Particles: %d\n", num_particles);
+        printf("Timesteps: %d\n", num_steps);
+        printf("MPI Ranks: %d\n", num_procs);
+        printf("Random seed: %d\n", rand_seed);
     }
+
+     // For multi-gpu node - use one GPU per rank i
+     num_devices = 0;
+     #if defined(_OPENMP)
+     num_devices = omp_get_num_devices();
+     if (num_devices > 0) {
+         omp_set_default_device(rank % num_devices);
+     }
+     #endif
 
     if (PRINT_HOSTNAME_ALL_PROCS) {
         MPI_Barrier(MPI_COMM_WORLD);
-        check_threads(rank);
+        if (num_devices == 0) {
+            check_threads(rank);
+        }
         char processor_name[MPI_MAX_PROCESSOR_NAME];
         int name_len;
         MPI_Get_processor_name(processor_name, &name_len);
@@ -376,7 +389,9 @@ int main(int argc, char **argv) {
     }
 
     if (CHECK_THREADS) {
-        check_threads(rank);
+        if (num_devices == 0) {
+            check_threads(rank);
+        }
     }
 
     k = num_particles / num_procs;
@@ -412,7 +427,7 @@ int main(int argc, char **argv) {
         // Note: Will need to add barrier to get pure comms time
         gettimeofday(&comms_start, NULL);
 
-        // Now allreduce forces and update particle positions on master
+        // Now allreduce forces and update particle positions on first rank
 
         // Forces array reduction
         comm_forces(num_particles, parr);
@@ -448,7 +463,7 @@ int main(int argc, char **argv) {
     total_time = elapsed(&tstart, &tend);
 
     if (rank == 0) {
-        printf("\nFinal total %f after total time of %.3f seconds.",total_en, total_time);
+        printf("\nFinal total %f after total time of %.3f seconds.", total_en, total_time);
         if (badrun) {
             printf(" Kill flag set.");
         }

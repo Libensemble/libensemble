@@ -15,7 +15,7 @@ class LocationStack:
         self.stack = []
 
     def copy_or_symlink(self, destdir, copy_files=[], symlink_files=[], ignore_FileExists=False):
-        """ Inspired by https://stackoverflow.com/a/9793699.
+        """Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
         for file_path in copy_files:
@@ -105,6 +105,7 @@ class LocationStack:
 
     class Saved:
         """Context object for use with a with statement"""
+
         def __init__(self, ls, dirname):
             self.ls = ls
             self.dirname = dirname

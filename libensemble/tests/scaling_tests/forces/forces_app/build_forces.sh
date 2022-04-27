@@ -35,5 +35,9 @@ mpicc -O3 -o forces.x forces.c -lm
 # xl
 # xlc_r -O3 -qsmp=omp -qoffload -o forces.x forces.c
 
-# IRIS node (Intel Gen9 GPU)
+# Nvidia (nvc) compiler with mpicc and on Cray system with target (Perlmutter)
+# mpicc -O3 -fopenmp -mp=gpu -o forces_gpu.x forces_gpu.c
+# cc -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
+
+# Intel Gen9 GPU
 # env MPICH_CC=icx mpigcc -g -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c

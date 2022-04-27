@@ -60,8 +60,15 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
             return float(H['f'])
 
         # Send back x to the manager, then receive info or stop tag
-        H_o = add_to_Out(np.zeros(1, dtype=gen_specs['out']), x, 0,
-                         gen_specs['user']['ub'], gen_specs['user']['lb'], local=True, active=True)
+        H_o = add_to_Out(
+            np.zeros(1, dtype=gen_specs['out']),
+            x,
+            0,
+            gen_specs['user']['ub'],
+            gen_specs['user']['lb'],
+            local=True,
+            active=True,
+        )
         tag, Work, calc_in = ps.send_recv(H_o)
         if tag in [STOP_TAG, PERSIS_STOP]:
             raise nlopt.forced_stop
@@ -84,11 +91,11 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
     # Care must be taken with NLopt because a too-large initial step causes
     # nlopt to move the starting point!
-    dist_to_bound = min(min(ub-x0), min(x0-lb))
-    init_step = dist_to_bound*gen_specs['user'].get('dist_to_bound_multiple', 1)
+    dist_to_bound = min(min(ub - x0), min(x0 - lb))
+    init_step = dist_to_bound * gen_specs['user'].get('dist_to_bound_multiple', 1)
     opt.set_initial_step(init_step)
 
-    opt.set_maxeval(gen_specs['user'].get('localopt_maxeval', 100*n))
+    opt.set_maxeval(gen_specs['user'].get('localopt_maxeval', 100 * n))
     opt.set_min_objective(nlopt_obj_fun)
     opt.set_xtol_rel(gen_specs['user']['xtol_rel'])
 
@@ -114,7 +121,7 @@ def add_to_Out(H_o, x, i, ub, lb, local=False, active=False):
     back to the manager.
     """
     H_o['x'][i] = x
-    H_o['x_on_cube'][i] = (x-lb)/(ub-lb)
+    H_o['x_on_cube'][i] = (x - lb) / (ub - lb)
     H_o['dist_to_unit_bounds'][i] = np.inf
     H_o['dist_to_better_l'][i] = np.inf
     H_o['dist_to_better_s'][i] = np.inf
