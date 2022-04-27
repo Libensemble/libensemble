@@ -26,17 +26,16 @@ def test_qcomm():
 
     comm.send('a', 1)
     comm.send('b')
-    assert outq.get() == ('a', 1) and outq.get() == ('b',) and outq.empty(), \
-        "Check send appropriately goes to output queue."
+    assert (
+        outq.get() == ('a', 1) and outq.get() == ('b',) and outq.empty()
+    ), "Check send appropriately goes to output queue."
 
     comm.push_to_buffer('b', 0)
     inq.put(('c', 3))
     inq.put(('d',))
-    assert (comm.recv() == ('b', 0)
-            and comm.recv() == ('c', 3)
-            and comm.recv() == ('d',)
-            and inq.empty()), \
-        "Check recv appropriately comes from input queue."
+    assert (
+        comm.recv() == ('b', 0) and comm.recv() == ('c', 3) and comm.recv() == ('d',) and inq.empty()
+    ), "Check recv appropriately comes from input queue."
 
     flag = True
     try:
@@ -52,6 +51,7 @@ def test_missing_handler():
 
     flag = True
     try:
+
         class TestHandler(comms.GenCommHandler):
             "Dummy GenCommHandler"
 
