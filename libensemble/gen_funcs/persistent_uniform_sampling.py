@@ -115,3 +115,41 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
             break  # End the persistent gen
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
+    """
+    This generation function is designed to test non-blocking receives.
+
+    .. seealso::
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
+
+    """
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+    n = len(lb)
+    b = gen_specs['user']['initial_batch_size']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    # Send batches until manager sends stop tag
+    tag = None
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs['out'])
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+        ps.send(H_o)
+
+        received = False
+        spin_count = 0
+        while not received:
+            tag, Work, calc_in = ps.recv(blocking=False)
+            if tag is not None:
+                received = True
+            else:
+                spin_count += 1
+
+        persis_info['spin_count'] = spin_count
+
+        if hasattr(calc_in, '__len__'):
+            b = len(calc_in)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
