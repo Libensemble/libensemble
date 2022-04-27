@@ -26,13 +26,8 @@ with the allocation function is usually not necessary::
 If allocation is to continue, a support class is instantiated (see below), and a
 :doc:`Work dictionary<../data_structures/work_dict>` is initialized::
 
-        user = alloc_specs.get('user', {})
-        sched_opts = user.get('scheduler_opts', {})
         manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-
-        support = AllocSupport(W, manage_resources, persis_info, sched_opts)
-
-        gen_count = support.count_gens()
+        support = AllocSupport(W, manage_resources, persis_info, libE_info)
         Work = {}
 
 This Work dictionary is populated with integer keys ``wid`` for each worker and

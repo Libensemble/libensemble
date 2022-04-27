@@ -68,9 +68,6 @@ gen_specs = {
     },
 }
 
-# This can improve scheduling when tasks may run across multiple nodes
-scheduler_opts = {'match_slots': False}  # Does not need matching slots across nodes.
-
 alloc_specs = {
     'alloc_f': give_sim_work_first,
     'out': [],
@@ -79,9 +76,11 @@ alloc_specs = {
         'give_all_with_same_priority': True,
         'num_active_gens': 1,
         'async_return': True,
-        'scheduler_opts': scheduler_opts,
     },
 }
+
+# This can improve scheduling when tasks may run across multiple nodes
+libE_specs['scheduler_opts'] = {'match_slots': False}
 
 exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 

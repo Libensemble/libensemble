@@ -538,10 +538,11 @@ class Manager:
         return {'any_idle_workers': any(self.W['active'] == 0),
                 'exit_criteria': self.exit_criteria,
                 'elapsed_time': self.elapsed(),
+                'gen_informed_count': self.hist.gen_informed_count,
                 'manager_kill_canceled_sims': self.kill_canceled_sims,
+                'scheduler_opts': self.libE_specs.get('scheduler_opts', {}),
                 'sim_started_count': self.hist.sim_started_count,
                 'sim_ended_count': self.hist.sim_ended_count,
-                'gen_informed_count': self.hist.gen_informed_count,
                 'sim_max_given': self._sim_max_given(),
                 'use_resource_sets': 'num_resource_sets' in self.libE_specs}
 
