@@ -405,3 +405,5 @@ def test_mp_start_method():
     assert (
         multiprocessing.get_start_method() == "spawn"
     ), "set_mp_method() didn't correctly set the multiprocessing start method"
+
+    set_mp_method("fork")
