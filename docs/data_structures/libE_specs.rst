@@ -15,7 +15,7 @@ Specifications for libEnsemble::
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'abort_on_exception' [boolean]:
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
-            IF False, an exception will be raised by the manager.
+            If False, an exception will be raised by the manager.
         'save_every_k_sims' [int]:
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int]:
@@ -116,6 +116,14 @@ Specifications for libEnsemble::
             The allowable fields are given below in 'Overriding Auto-detection'
             Note that if ``disable_resource_manager`` is set then
             this option is ignored.
+        'scheduler_opts' [dict]:
+            A dictionary of options for the resource scheduler.
+            See 'Scheduler Options' for more.
+
+Scheduler Options
+-----------------
+
+See options for :ref:`built-in scheduler<resources-scheduler>`.
 
 .. _resource_info:
 

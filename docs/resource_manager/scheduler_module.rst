@@ -1,3 +1,5 @@
+.. _resources-scheduler:
+
 Scheduler Module
 ================
 
@@ -10,7 +12,8 @@ The alloc_support module allows users to supply an alternative scheduler
 that fits this interface. This could be achieved, for example, by inheriting
 the built-in scheduler and making modifications.
 
-Options can also be provided to the scheduler though the ``alloc_specs['user']['scheduler_opts']`` dictionary.
+Options can also be provided to the scheduler though the
+``libE_specs['scheduler_opts']`` dictionary.
 
 .. automodule:: resources.scheduler
 

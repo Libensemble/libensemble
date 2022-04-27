@@ -20,13 +20,9 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
         return {}, persis_info
 
-    # Initialize alloc_specs['user'] as user.
-    user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
-
     init_sample_size = gen_specs['user']['initial_sample_size']
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
     Work = {}
 

@@ -40,8 +40,7 @@ class ResourceScheduler:
             A resources object. If present overrides the class variable.
 
         sched_opts: dict, optional
-            A dictionary of scheduler options.
-            Normally passed via ``alloc_specs['user']['scheduler_opts']``
+            A dictionary of scheduler options. Passed via ``libE_specs['scheduler_opts']``
 
 
         The supported fields for sched_opts are::
