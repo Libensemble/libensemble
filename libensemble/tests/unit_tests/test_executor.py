@@ -201,6 +201,17 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 
 
 # Tests ========================================================================================
+def test_dry_run():
+    """Test of dry_run in poll"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 0.2'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task.dry_run = True
+    task.poll()
+
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
@@ -242,6 +253,8 @@ def test_launch_and_wait_timeout():
     try:
         task.wait(timeout=0.5)
     except TimeoutExpired:
+        print(task)
+        print(TimeoutExpired)
         assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
         task.kill()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -737,29 +750,30 @@ def test_futures_interface_cancel():
 
 if __name__ == "__main__":
     setup_module(__file__)
-    test_launch_and_poll()
-    test_launch_and_wait()
-    test_launch_and_wait_timeout()
-    test_launch_wait_on_start()
-    test_kill_on_file()
-    test_kill_on_timeout()
-    test_kill_on_timeout_polling_loop_method()
-    test_launch_and_poll_multitasks()
-    test_get_task()
-    test_procs_and_machinefile_logic()
-    test_doublekill()
-    test_finish_and_kill()
-    test_launch_and_kill()
-    test_launch_as_gen()
-    test_launch_no_app()
-    test_kill_task_with_no_submit()
-    test_poll_task_with_no_submit()
-    test_task_failure()
-    test_retries_launch_fail()
-    test_retries_run_fail()
-    test_register_apps()
-    test_serial_exes()
-    test_serial_startup_times()
-    test_futures_interface()
-    test_futures_interface_cancel()
+    test_dry_run()
+    # test_launch_and_poll()
+    # test_launch_and_wait()
+    # test_launch_and_wait_timeout()
+    # test_launch_wait_on_start()
+    # test_kill_on_file()
+    # test_kill_on_timeout()
+    # test_kill_on_timeout_polling_loop_method()
+    # test_launch_and_poll_multitasks()
+    # test_get_task()
+    # test_procs_and_machinefile_logic()
+    # test_doublekill()
+    # test_finish_and_kill()
+    # test_launch_and_kill()
+    # test_launch_as_gen()
+    # test_launch_no_app()
+    # test_kill_task_with_no_submit()
+    # test_poll_task_with_no_submit()
+    # test_task_failure()
+    # test_retries_launch_fail()
+    # test_retries_run_fail()
+    # test_register_apps()
+    # test_serial_exes()
+    # test_serial_startup_times()
+    # test_futures_interface()
+    # test_futures_interface_cancel()
     teardown_module(__file__)
