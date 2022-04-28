@@ -120,7 +120,7 @@ or if using Balsam 2, *to entirely different systems*.
 
         (New) Multi-System: libEnsemble + BalsamExecutor
 
-As of v0.8.0+dev, libEnsemble supports both "legacy" Balsam via the
+As of v0.9.0, libEnsemble supports both "legacy" Balsam via the
 :doc:`LegacyBalsamMPIExecutor<../executor/legacy_balsam_executor>`
 and Balsam 2 via the :doc:`BalsamExecutor<../executor/balsam_2_executor>`.
 
