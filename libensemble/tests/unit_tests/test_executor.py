@@ -212,6 +212,7 @@ def test_dry_run():
     task.dry_run = True
     task.poll()
 
+
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
