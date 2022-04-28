@@ -224,10 +224,11 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     def get_refined_points(g, U):
         if U['refinement'] == 'getCandidateConstructionPoints':
             return g.getCandidateConstructionPoints(U['sType'], U['liAnisotropicWeightsOrOutput'])
-        elif U['refinement'] == 'getCandidateConstructionPointsSurplus':
-            return g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
         else:
-            raise ValueError("Unknown refinement string")
+            assert U['refinement'] == 'getCandidateConstructionPointsSurplus'
+            return g.getCandidateConstructionPointsSurplus(U['fTolerance'], U['sRefinementType'])
+        # else:
+        #     raise ValueError("Unknown refinement string")
 
     # Asynchronous helper and state variables.
     num_dims = grid.getNumDimensions()

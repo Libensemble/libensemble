@@ -104,3 +104,10 @@ for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
     if is_manager:
         print('[Manager]: Time taken = ', time() - start_time, '\n', flush=True)
+
+sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode='batched')
+
+H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+if is_manager:
+    print('[Manager]: Time taken = ', time() - start_time, '\n', flush=True)
