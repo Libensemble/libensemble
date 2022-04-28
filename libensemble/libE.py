@@ -126,7 +126,7 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING, set_mp_method
+from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
 from libensemble.tools.check_inputs import check_inputs
 
 logger = logging.getLogger(__name__)
@@ -432,7 +432,12 @@ def libE_local(sim_specs, gen_specs, exit_criteria,
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    set_mp_method(libE_specs.get('mp_start_method'))
+    # On Python 3.8 on macOS, the default start method for new processes was
+    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
+    #  warnings about leaked semaphore objects are displayed instead.
+    # This function enforces 'fork' on macOS (Python 3.8)
+    osx_set_mp_method()
 
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
@@ -557,7 +562,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria,
     port = libE_specs.get('port', 0)
     authkey = libE_specs.get('authkey', libE_tcp_authkey())
 
-    set_mp_method(libE_specs.get('mp_start_method'))
+    osx_set_mp_method()
 
     with ServerQCommManager(port, authkey.encode('utf-8')) as tcp_manager:
 
