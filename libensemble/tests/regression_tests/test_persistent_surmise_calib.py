@@ -120,4 +120,4 @@ if __name__ == '__main__':
         assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
 
         # The following line is only to cover parts of tstd2theta
-        tstd2theta(H[0]['thetas'], squeeze(), hard=False)
+        tstd2theta(H[0]['thetas'].squeeze(), hard=False)
