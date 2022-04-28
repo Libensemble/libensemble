@@ -7,14 +7,14 @@ Unit test of comms for libensemble.
 import time
 import queue
 import logging
-from libensemble.tools.tools import set_mp_method
+from libensemble.tools.tools import osx_set_mp_method
 
 import numpy as np
 import libensemble.comms.comms as comms
 import libensemble.comms.logs as commlogs
 
 
-set_mp_method()
+osx_set_mp_method()
 
 
 def test_qcomm():

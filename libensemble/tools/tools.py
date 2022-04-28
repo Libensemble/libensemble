@@ -194,35 +194,13 @@ def eprint(*args, **kwargs):
     """Prints a user message to standard error"""
     print(*args, file=sys.stderr, **kwargs)
 
-
-def set_mp_method(start_method=None):
-    """
-    Internal function for setting multiprocessing's process start method.
-    For overriding the following defaults from Python's multiprocessing docs:
-
-    'spawn': Available on Unix and Windows. The default on Windows and macOS.
-
-    'fork': Available on Unix only. The default on Unix.
-
-    'forkserver': Available on Unix platforms which support passing file descriptors over Unix pipes.
-
-    macOS Note:
-
-    From the multiprocessing docs:
-
-    "Changed in version 3.8: On macOS, the spawn start method is now the default.
-    The fork start method should be considered unsafe as it can lead to crashes of
-    the subprocess. See bpo-33725."
-
-    These crashes haven't yet been observed with libE, but with 'spawn' runs,
-    warnings about leaked semaphore objects are displayed instead. So by default
-    we're enforcing 'fork' on macOS.
-    """
-    from multiprocessing import set_start_method
-
-    if start_method:
-        set_start_method(start_method, force=True)
-
-    else:
-        if platform.system() == "Darwin":
-            set_start_method("fork", force=True)
+# ===================== OSX set multiprocessing start =======================
+# On Python 3.8 on macOS, the default start method for new processes was
+#  switched to 'spawn' by default due to 'fork' potentially causing crashes.
+# These crashes haven't yet been observed with libE, but with 'spawn' runs,
+#  warnings about leaked semaphore objects are displayed instead.
+# The next several statements enforce 'fork' on macOS (Python 3.8)
+def osx_set_mp_method():
+    if platform.system() == 'Darwin':
+        from multiprocessing import set_start_method
+        set_start_method('fork', force=True)
