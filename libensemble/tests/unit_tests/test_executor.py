@@ -744,8 +744,7 @@ def test_dry_run():
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    task.dry_run = True
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, dry_run=True)
     task.poll()
 
 
