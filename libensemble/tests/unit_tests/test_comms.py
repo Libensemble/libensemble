@@ -395,15 +395,3 @@ def test_comm_logging():
     with comms.QCommProcess(worker_main) as mgr_comm:
         msg = mgr_comm.recv()
         assert isinstance(msg[0], logging.LogRecord)
-
-
-def test_mp_start_method():
-    "Test if specifying multiprocessing start method succeeds"
-    import multiprocessing
-
-    set_mp_method("spawn")
-    assert (
-        multiprocessing.get_start_method() == "spawn"
-    ), "set_mp_method() didn't correctly set the multiprocessing start method"
-
-    set_mp_method("fork")
