@@ -201,18 +201,6 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 
 
 # Tests ========================================================================================
-def test_dry_run():
-    """Test of dry_run in poll"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
-    setup_executor()
-    exctr = Executor.executor
-    cores = NCORES
-    args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    task.dry_run = True
-    task.poll()
-
-
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
@@ -749,9 +737,20 @@ def test_futures_interface_cancel():
     assert task.cancelled() and task.done(), "Task should be both cancelled() and done() after cancellation."
 
 
+def test_dry_run():
+    """Test of dry_run in poll"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 0.2'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    task.dry_run = True
+    task.poll()
+
+
 if __name__ == "__main__":
     setup_module(__file__)
-    test_dry_run()
     test_launch_and_poll()
     test_launch_and_wait()
     test_launch_and_wait_timeout()
@@ -777,4 +776,5 @@ if __name__ == "__main__":
     test_serial_startup_times()
     test_futures_interface()
     test_futures_interface_cancel()
+    test_dry_run()
     teardown_module(__file__)
