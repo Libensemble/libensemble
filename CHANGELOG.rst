@@ -8,6 +8,61 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+
+Release 0.9.0
+-------------
+
+:Date: Apr 29, 2022
+
+Featured new capabilities:
+
+* New `Balsam` Executor with multi-site capability (run user applications on remote systems). #631, #729
+* Support for `funcX` (place user functions on remote systems).  #712 / #713
+* Added partial support for concurrent/futures interface. #719
+> (cancel(), cancelled(), done(), running(), result(), exception() and context manager)
+
+Breaking API / helper function changes:
+
+See "Updating for libEnsemble v0.9.0" wiki for details:
+https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.9.0
+
+* Scheduler options moved from `alloc_specs['user']` to `libE_specs`. #790
+* `BalsamMPIExecutor` is now `LegacyBalsamMPIExecutor`. #729
+* The exit_criteria `elapsed_wallclock_time` has been renamed `wallclock_max`.  #750 (with a deprecation warning)
+* Improved libE field naming in history array. #760
+
+Updates to example functions:
+
+* Moved some examples to new repository - [libe-community-examples](https://github.com/Libensemble/libe-community-examples) (VTMOP, DEAP, DeepDriveMD).  #716,  #721, #726
+* Updates to tasmanian examples to include asynchronous generator example. #727 / #732
+* Added multi-task, multi-fidelity optimization regression tests using `ax`. #717 / #720
+
+Other functionality enhancements:
+
+* Non-blocking option added for worker receives. #752
+* Added `match_slots` option to resource scheduler. #746
+
+Documentation:
+
+* Added tutorial on assigning tasks to GPUs. #768
+* Refactored Executor tutorial for simplicity. #749
+* Added Perlmutter guide. #728
+* Added Slurm guide. #728
+* Refactored examples and tutorials - added exercises. #736 / #737
+* Updated history array documentation with visual workflow example. #723
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system), Perlmutter (HPE Cray EX with A100 NVIDIA GPUs).
+* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9, 3.10.
+
+:Known issues:
+
+* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
+  since it does not support nested MPI launches.
+  (Either use local mode or the Balsam Executor.)
+* See known issues section in the documentation for more issues.
+
 Release 0.8.0
 -------------
 
