@@ -4,7 +4,7 @@ Runs libEnsemble run-lines for adaptive workers in non-persistent case.
 Default setup is designed to run on 4*N workers - to modify, change total_nodes.
 
 Execute via one of the following commands (e.g. 8 workers):
-   mpiexec -np 9 python3 test_runlines_adaptive_workers.py
+   mpiexec -np 9 python test_runlines_adaptive_workers.py
 
 This is a dry run test, mocking up the nodes available. To test the run-lines
 requires running a fixed, rather than random number of resource sets for a given sim_id.
@@ -15,10 +15,10 @@ requires running a fixed, rather than random number of resource sets for a given
 # TESTSUITE_NPROCS: 5
 
 import numpy as np
-import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -31,7 +31,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 # For varying size test - relate node count to nworkers
 total_nodes = nworkers // 4  # 4 workers per node - run on 4N workers
 
-sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
+sim_app = helloworld.__file__
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='helloworld')
 
@@ -58,7 +58,6 @@ gen_specs = {
 
 alloc_specs = {
     'alloc_f': give_sim_work_first,
-    'out': [('allocated', bool)],
     'user': {
         'batch_mode': False,
         'give_all_with_same_priority': True,
@@ -81,7 +80,7 @@ libE_specs['resource_info'] = {
 }  # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(

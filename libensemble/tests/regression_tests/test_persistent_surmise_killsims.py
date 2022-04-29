@@ -2,9 +2,9 @@
 Tests libEnsemble's capability to kill/cancel  simulations that are in progress.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_surmise_killsims.py
-   python3 test_persistent_surmise_killsims.py --nworkers 3 --comms local
-   python3 test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_surmise_killsims.py
+   python test_persistent_surmise_killsims.py --nworkers 3 --comms local
+   python test_persistent_surmise_killsims.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     gen_specs = {
         'gen_f': gen_f,
-        'persis_in': [o[0] for o in gen_out] + ['f', 'returned', 'sim_id'],
+        'persis_in': [o[0] for o in gen_out] + ['f', 'sim_ended', 'sim_id'],
         'out': gen_out,
         'user': {
             'n_init_thetas': n_init_thetas,  # Num thetas in initial batch
@@ -131,6 +131,6 @@ if __name__ == '__main__':
     if is_manager:
         print('Cancelled sims', H['sim_id'][H['cancel_requested']])
         print('Killed sims', H['sim_id'][H['kill_sent']])
-        sims_done = np.count_nonzero(H['returned'])
+        sims_done = np.count_nonzero(H['sim_ended'])
         save_libE_output(H, persis_info, __file__, nworkers)
         assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)

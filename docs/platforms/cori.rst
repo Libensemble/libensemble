@@ -101,8 +101,8 @@ allocated compute node, with three nodes available for the workers to launch
 user applications (via the Executor or a direct run command such as ``mpiexec``).
 
 This is an example of running in :doc:`centralized<platforms_index>` mode;
-if using the :doc:`Executor<../executor/ex_index>`, it should
-be initiated with ``dedicated_mode=True``. libEnsemble must be run in central mode
+if using the :doc:`Executor<../executor/ex_index>`, libEnsemble should
+be initiated with ``libE_specs['dedicated_mode']=True``. libEnsemble must be run in central mode
 on Cori because jobs cannot share nodes.
 
 Batch Runs

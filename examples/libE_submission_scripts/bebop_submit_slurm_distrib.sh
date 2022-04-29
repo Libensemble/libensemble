@@ -57,7 +57,7 @@ head -n 1 node_list > machinefile.$SLURM_JOBID
 
 # Add worker nodes to machinefile
 if [[ $SUB_NODE_WORKERS = "true" ]]; then
-  awk -v repeat=$WORKERS_PER_NODE '{for(i=0;i<repeat;i++)print}' node_list \
+  awk -v repeat=$WORKERS_PER_NODE '{for(i=0; i<repeat; i++)print}' node_list \
   >>machinefile.$SLURM_JOBID
 else
   awk -v patt="$NODES_PER_WORKER" 'NR % patt == 1' node_list \

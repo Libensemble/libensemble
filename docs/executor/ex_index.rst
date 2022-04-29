@@ -1,16 +1,18 @@
 .. _executor_index:
 
-Executor
-========
+Executors
+=========
 
-libEnsemble's Executor can be used within the simulator (and, potentially, the generator)
-functions to provide a simple, portable interface for running and managing user
-applications.
+libEnsemble's Executors can be used within user functions to provide a simple,
+portable interface for running and managing user applications.
 
 .. toctree::
    :maxdepth: 2
    :titlesonly:
-   :caption: libEnsemble Executor:
+   :caption: libEnsemble Executors:
 
    overview
    executor
+   mpi_executor
+   legacy_balsam_executor
+   balsam_2_executor

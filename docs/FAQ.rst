@@ -25,7 +25,7 @@ Some possible causes of this error are:
 
 - An MPI libEnsemble run was initiated with only one process, resulting in one
   manager but no workers. Similarly, the error may arise when running with only
-  two processes when using a persistent generator. The generator will occupy the
+  two processes when using a persistent generator. The generator will occupy
   one worker, leaving none to run simulation functions.
 
 - An error in the allocation function. For example, perhaps the allocation
@@ -39,7 +39,7 @@ Some possible causes of this error are:
 - A persistent worker (usually a generator) has sent a message back to the manager
   but is still performing work and may return further points. In this case, consider
   starting the generator in :ref:`active_recv<gen_active_recv>` mode. This can be
-  specified in the allocation function, and will cause the worker maintain its
+  specified in the allocation function and will cause the worker to maintain its
   active status.
 
 - A persistent worker has requested resources that prevents any simulations from
@@ -53,7 +53,7 @@ Some possible causes of this error are:
 **I keep getting: "Not enough processors per worker to honor arguments." when
 using the Executor. Can I submit tasks to allocated processors anyway?**
 
-It is possible that you have set `enforce_worker_core_bounds` to True when setting
+You may have set `enforce_worker_core_bounds` to True when setting
 up the Executor. Also, the resource manager can be completely disabled
 with::
 
@@ -65,11 +65,8 @@ which will attempt to use all hyperthreads/SMT threads available if set to ``Tru
 **FileExistsError: [Errno 17] File exists: './ensemble'**
 
 This can happen when libEnsemble tries to create ensemble or simulation directories
-that already exist.
-
-To create uniquely-named ensemble directories, set the ``ensemble_dir_suffix``
-option in :doc:`libE_specs<history_output_logging>` to some unique value.
-Alternatively, append some unique value to ``libE_specs['ensemble_dir']``
+that already exist from previous runs. To avoid this, ensure the ensemble directory
+paths are unique by appending some unique value to ``libE_specs['ensemble_dir_path']``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
@@ -119,7 +116,8 @@ environment variables::
     export I_MPI_FALLBACK=1
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
-nodes, while launching all tasks onto other nodes.
+nodes while launching all tasks onto other nodes. To do this add a node for libEnsemble,
+and add ``libE_specs['dedicated_mode'] = True`` to your calling script.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
@@ -134,6 +132,43 @@ For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpickli
 
 This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
 Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
+
+**srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
+
+You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
+
+When running on a SLURM system, this implies that you are trying to run on a resource
+that is already dedicated to another task. The reason can vary, some reasons are:
+
+- All the contexts are in use. This has occurred when using TMI fabric on clusters.
+  See question **can't open hfi unit: -1 (err=23)** for more info.
+
+- All the memory is assigned to the first job-step (srun application), due to a default
+  exclusive mode scheduling policy. This has been observed on `Perlmutter`_ and `SDF`_.
+
+  In some cases using these environment variables will stop the issue::
+
+    export SLURM_EXACT=1
+    export SLURM_MEM_PER_NODE=0
+
+  Alternatively, this can be resolved by limiting the memory and other
+  resources given to each task using the ``--exact`` `option to srun`_ along with other
+  relevant options. For example::
+
+      srun --exact -n 4 -c 1 --mem-per-cpu=4G
+
+  would ensure that one CPU and 4 Gigabytes of memory are assigned to each MPI process.
+  The amount of memory should be determined by the memory on the node divided by
+  the number of CPUs. In the executor, this can be expressed via the ``extra_args`` option.
+
+  If libEnsemble is sharing nodes with submitted tasks (user applications launched by workers),
+  then you may need to do this for your launch of libEnsemble also, ensuring there are enough
+  resources for both the libEnsemble manager and workers and the launched tasks. If this is
+  complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
+
+.. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
+.. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 
 libEnsemble Help
 ----------------
@@ -172,6 +207,19 @@ dictionaries will be dumped. This can be suppressed by
 setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
 
 See :doc:`here<history_output_logging>` for more information about these files.
+
+**How can I silence libEnsemble or prevent printed warnings?**
+
+Some logger messages at or above the ``MANAGER_WARNING`` level are mirrored
+to stderr automatically. To disable this, set the minimum stderr displaying level
+to ``CRITICAL`` via the following::
+
+    from libensemble import logger
+    logger.set_stderr_level('CRITICAL')
+
+This effectively puts libEnsemble in silent mode.
+
+See the :ref:`Logger Configuration<logger_config>` docs for more information.
 
 macOS-Specific Errors
 ---------------------

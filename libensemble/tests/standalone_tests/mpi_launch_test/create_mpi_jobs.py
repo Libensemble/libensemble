@@ -1,4 +1,5 @@
 import mpi4py
+
 mpi4py.rc.recv_mprobe = False
 
 from mpi4py import MPI  # for libE communicator
@@ -15,8 +16,8 @@ runline.append('python')
 runline.append('helloworld.py')
 
 if rank == 0:
-    print("Total sub-task procs: {}".format(size*int(task_nprocs)))
-    print("Total procs (parent + sub-tasks): {}".format(size*(int(task_nprocs)+1)))
+    print("Total sub-task procs: {}".format(size * int(task_nprocs)))
+    print("Total procs (parent + sub-tasks): {}".format(size * (int(task_nprocs) + 1)))
 
 # print("Rank {}: {}".format(rank, " ".join(runline)))
 output = 'task_' + str(rank) + '.out'

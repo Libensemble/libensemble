@@ -2,9 +2,9 @@
 Runs libEnsemble with Surmise calibration test.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_surmise_calib.py
-   python3 test_persistent_surmise_calib.py --nworkers 3 --comms local
-   python3 test_persistent_surmise_calib.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_surmise_calib.py
+   python test_persistent_surmise_calib.py --nworkers 3 --comms local
+   python test_persistent_surmise_calib.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -36,6 +36,7 @@ from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
+from libensemble.sim_funcs.surmise_test_function import tstd2theta
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
@@ -77,7 +78,7 @@ if __name__ == '__main__':
 
     gen_specs = {
         'gen_f': gen_f,
-        'persis_in': [o[0] for o in gen_out] + ['f', 'returned', 'sim_id'],
+        'persis_in': [o[0] for o in gen_out] + ['f', 'sim_ended', 'sim_id'],
         'out': gen_out,
         'user': {
             'n_init_thetas': n_init_thetas,  # Num thetas in initial batch
@@ -114,6 +115,9 @@ if __name__ == '__main__':
 
     if is_manager:
         print('Cancelled sims', H['sim_id'][H['cancel_requested']])
-        sims_done = np.count_nonzero(H['returned'])
+        sims_done = np.count_nonzero(H['sim_ended'])
         save_libE_output(H, persis_info, __file__, nworkers)
         assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
+
+        # The following line is only to cover parts of tstd2theta
+        tstd2theta(H[0]['thetas'].squeeze(), hard=False)

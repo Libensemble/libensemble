@@ -14,10 +14,8 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
         return {}, persis_info
 
-    user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
 
     Work = {}
     gen_flag = True
@@ -38,7 +36,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
 
         elif not support.test_any_gen() and gen_flag:
 
-            if not support.all_returned(H):
+            if not support.all_sim_ended(H):
                 break
 
             # Give gen work

@@ -23,13 +23,13 @@ def form_command(cmd_template, specs):
             return shlex.split(fmt.format(**specs), posix=False)
         except KeyError:
             return None
+
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))
 
 
 def launch(cmd_template, specs=None, **kwargs):
     "Launch a new subprocess (with command templating and Python 3 help)."
-    cmd = (form_command(cmd_template, specs) if specs is not None
-           else cmd_template)
+    cmd = form_command(cmd_template, specs) if specs is not None else cmd_template
     return subprocess.Popen(cmd, **kwargs)
 
 

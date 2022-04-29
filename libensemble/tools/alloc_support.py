@@ -27,7 +27,7 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, manage_resources=False, persis_info={}, scheduler_opts={},
+    def __init__(self, W, manage_resources=False, persis_info={}, libE_info={},
                  user_resources=None, user_scheduler=None):
         """Instantiate a new AllocSupport instance
 
@@ -38,7 +38,7 @@ class AllocSupport:
         module and the built-in libEnsemble scheduler.
 
         :param W: A :doc:`Worker array<../data_structures/worker_array>`
-        :param manage_resources: Optional, Boolean for if to assign resource sets when creating work units
+        :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
         :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
@@ -51,6 +51,7 @@ class AllocSupport:
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
+            scheduler_opts = libE_info.get('scheduler_opts', {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
     def assign_resources(self, rsets_req):
@@ -75,8 +76,8 @@ class AllocSupport:
         """Returns available workers as a list of IDs, filtered by the given options.
 
         :param persistent: Optional int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
-        :param active_recv: Optional Boolean. Only return workers with given active_recv state.
-        :param zero_resource_workers: Optional Boolean. Only return workers that require no resources
+        :param active_recv: Optional boolean. Only return workers with given active_recv state.
+        :param zero_resource_workers: Optional boolean. Only return workers that require no resources
         :returns: List of worker IDs
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
@@ -237,50 +238,50 @@ class AllocSupport:
                 pfilter = pt_filter
         return H, pfilter
 
-    def all_given(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have been given to sim
+    def all_sim_started(self, H, pt_filter=None, low_bound=None):
+        """Returns ``True`` if all expected points have started their sim
 
         Excludes cancelled points.
 
         :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
         :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have been returned
+        :returns: True if all expected points have started their sim
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H['cancel_requested']
-        return np.all(H['given'][pfilter & ~excluded_points])
+        return np.all(H['sim_started'][pfilter & ~excluded_points])
 
-    def all_returned(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have returned from sim
+    def all_sim_ended(self, H, pt_filter=None, low_bound=None):
+        """Returns ``True`` if all expected points have had their sim_end
 
-        Excludes cancelled points that were not already given out.
-
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have been returned
-        """
-        H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['given']
-        return np.all(H['returned'][pfilter & ~excluded_points])
-
-    def all_given_back(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have been given back to gen.
-
-        Excludes cancelled points that were not already given out.
+        Excludes cancelled points that were not already sim_started.
 
         :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
         :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have been returned
+        :returns: True if all expected points have had their sim_end
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['given']
-        return np.all(H['given_back'][pfilter & ~excluded_points])
+        excluded_points = H['cancel_requested'] & ~H['sim_started']
+        return np.all(H['sim_ended'][pfilter & ~excluded_points])
+
+    def all_gen_informed(self, H, pt_filter=None, low_bound=None):
+        """Returns ``True`` if gen has been informed of all expected points
+
+        Excludes cancelled points that were not already given out.
+
+        :param pt_filter: Optional boolean array filtering expected sim_end points in ``H``.
+        :param low_bound: Optional lower bound for testing all returned.
+        :returns: True if gen have been informed of all expected points
+        """
+        H, pfilter = self._filter_points(H, pt_filter, low_bound)
+        excluded_points = H['cancel_requested'] & ~H['sim_started']
+        return np.all(H['gen_informed'][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):
         """Returns indices of points to give by priority
 
         :param points_avail: Indices of points that are available to give
-        :param batch: Optional Boolean. Should batches of points with the same priority be given simultaneously.
+        :param batch: Optional boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
         if 'priority' in H.dtype.fields:

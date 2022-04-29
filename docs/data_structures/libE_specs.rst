@@ -104,8 +104,8 @@ Specifications for libEnsemble::
             When the libE_specs option `disable_resource_manager` is True,
             this argument is ignored. Default: False
         'dedicated_mode' [boolean]:
-            If true, then running in central mode, otherwise in distributed
-            mode. Central mode means libE processes (manager and workers) are
+            If true, then running in dedicated mode, otherwise in distributed
+            mode. Dedicated mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
             Default: False
@@ -116,6 +116,14 @@ Specifications for libEnsemble::
             The allowable fields are given below in 'Overriding Auto-detection'
             Note that if ``disable_resource_manager`` is set then
             this option is ignored.
+        'scheduler_opts' [dict]:
+            A dictionary of options for the resource scheduler.
+            See 'Scheduler Options' for more.
+
+Scheduler Options
+-----------------
+
+See options for :ref:`built-in scheduler<resources-scheduler>`.
 
 .. _resource_info:
 
@@ -124,7 +132,7 @@ Overriding Auto-detection
 
 The allowable fields are::
 
-    'cores_on_node' [tuple (int,int)]:
+    'cores_on_node' [tuple (int, int)]:
         Tuple (physical cores, logical cores) on nodes.
     'node_file' [string]:
         Name of file containing a node-list. Default is 'node_list'.

@@ -4,9 +4,9 @@ All 214 residual calculations for a given point are performed as a single
 simulation evaluation.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_pounders.py
-   python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms local
-   python3 test_persistent_aposmm_pounders.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_pounders.py
+   python test_persistent_aposmm_pounders.py --nworkers 3 --comms local
+   python test_persistent_aposmm_pounders.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -91,7 +91,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {'sim_max': 500}
 
 sample_points = np.zeros((0, n))
-rand_stream = np.random.RandomState(0)
+rand_stream = np.random.default_rng(0)
 for i in range(ceil(exit_criteria['sim_max'] / gen_specs['user']['lhs_divisions'])):
     sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions'], rand_stream), axis=0)
 

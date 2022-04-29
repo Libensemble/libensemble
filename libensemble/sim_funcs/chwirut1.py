@@ -6,6 +6,7 @@ NOBSERVATIONS = 214
 y = np.zeros(214)
 t = np.zeros(214)
 
+# fmt: off
 y[0] =    92.9000;    t[0] =   0.5000;
 y[1] =    78.7000;    t[1] =   0.6250;
 y[2] =    64.2000;    t[2] =   0.7500;
@@ -220,6 +221,7 @@ y[210] =    16.6500;  t[210] =   2.7500;
 y[211] =    10.0500;  t[211] =   3.7500;
 y[212] =    28.9000;  t[212] =   1.7500;
 y[213] =    28.9500;  t[213] =   1.7500;
+#fmt: off
 
 
 def EvaluateFunction(x, component=np.nan):
@@ -229,10 +231,10 @@ def EvaluateFunction(x, component=np.nan):
     if np.isnan(component):
         f = np.zeros(NOBSERVATIONS)
         for i in range(NOBSERVATIONS):
-            f[i] = y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+            f[i] = y[i] - np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
     else:
         i = component
-        f = y[i] - np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+        f = y[i] - np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
 
     return f
 
@@ -244,11 +246,11 @@ def EvaluateJacobian(x):
     j = np.zeros((NOBSERVATIONS, 3))
 
     for i in range(NOBSERVATIONS):
-        base = np.exp(-x[0]*t[i])/(x[1] + x[2]*t[i])
+        base = np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
 
-        j[i][0] = t[i]*base
-        j[i][1] = base/(x[1] + x[2]*t[i])
-        j[i][2] = base*t[i]/(x[1] + x[2]*t[i])
+        j[i][0] = t[i] * base
+        j[i][1] = base / (x[1] + x[2] * t[i])
+        j[i][2] = base * t[i] / (x[1] + x[2] * t[i])
 
     return j
 
@@ -274,7 +276,11 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 
     for i, x in enumerate(H['x']):
         if 'obj_component' in H.dtype.names:
-            if 'user' in sim_specs and 'component_nan_frequency' in sim_specs['user'] and np.random.uniform(0, 1) < sim_specs['user']['component_nan_frequency']:
+            if (
+                'user' in sim_specs
+                and 'component_nan_frequency' in sim_specs['user']
+                and np.random.uniform(0, 1) < sim_specs['user']['component_nan_frequency']
+            ):
                 O['f_i'][i] = np.nan
             else:
                 O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
@@ -285,6 +291,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 
     return O, persis_info
 
+
 # if __name__ == '__main__':
 #     x = np.zeros(3)
 #     x[0] = 0.15;
@@ -294,4 +301,4 @@ def chwirut_eval(H, persis_info, sim_specs, _):
 #     f = EvaluateFunction(x)
 #     J = EvaluateJacobian(x)
 
-#     print(f,J)
+#     print(f, J)

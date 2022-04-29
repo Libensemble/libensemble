@@ -28,7 +28,7 @@ from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
-# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 STATES = """
 UNKNOWN
@@ -77,7 +77,7 @@ class Application:
 
     prefix = 'libe_app'
 
-    def __init__(self, full_path, name=None, calc_type='sim', desc=None):
+    def __init__(self, full_path, name=None, calc_type='sim', desc=None, pyobj=None):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
@@ -86,6 +86,7 @@ class Application:
         if self.exe.endswith('.py'):
             self.full_path = ' '.join((sys.executable, full_path))
         self.name = name or self.exe
+        self.pyobj = pyobj
         self.desc = desc or (self.exe + ' app')
         self.gname = '_'.join([Application.prefix, self.name])
 
@@ -254,6 +255,36 @@ class Task:
 
         self._set_complete()
 
+    def result(self, timeout=None):
+        """Wrapper for task.wait() that also returns the task's status on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+        self.wait(timeout=timeout)
+        return self.state
+
+    def exception(self, timeout=None):
+        """Wrapper for task.wait() that instead returns the task's error code on completion.
+
+        Parameters
+        ----------
+
+        timeout:
+            Time in seconds after which a TimeoutExpired exception is raised"""
+        self.wait(timeout=timeout)
+        return self.errcode
+
+    def running(self):
+        """ Return ```True`` if task is currently running."""
+        return self.state == 'RUNNING'
+
+    def done(self):
+        """ Return ```True`` if task is finished."""
+        return self.finished
+
     def kill(self, wait_time=60):
         """Kills or cancels the supplied task
 
@@ -281,6 +312,14 @@ class Task:
         self.state = 'USER_KILLED'
         self.finished = True
         self.calc_task_timing()
+
+    def cancel(self):
+        """Wrapper for task.kill() without waiting"""
+        self.kill(wait_time=None)
+
+    def cancelled(self):
+        """ Return ```True`` if task successfully cancelled."""
+        return self.state == 'USER_KILLED'
 
 
 class Executor:
@@ -339,6 +378,12 @@ class Executor:
         self.workerID = None
         self.comm = None
         Executor.executor = self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        pass
 
     def serial_setup(self):
         """Set up to be called by only one process"""

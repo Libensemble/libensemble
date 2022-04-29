@@ -25,7 +25,7 @@ Results analysis scripts
 
 * ``print_npy.py``: Prints to screen from a given ``*.npy`` file containing a
   NumPy structured array. Use ``done`` to print only the lines containing
-  ``'returned'`` points. Example::
+  ``'sim_ended'`` points. Example::
 
     ./print_npy.py run_libe_forces_results_History_length=1000_evals=8.npy done
 

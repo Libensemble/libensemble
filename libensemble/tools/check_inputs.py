@@ -1,7 +1,10 @@
 import os
 import numpy as np
+import logging
 from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
     allowed_sim_spec_keys, allowed_alloc_spec_keys, allowed_libE_spec_keys
+
+logger = logging.getLogger(__name__)
 
 
 def _check_consistent_field(name, field0, field1):
@@ -30,7 +33,7 @@ def check_libE_specs(libE_specs, serial_check=False):
             "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
 
         if k in ['ensemble_copy_back', 'use_worker_dirs', 'sim_dirs_make', 'gen_dirs_make']:
-            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be Boolean".format(k)
+            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be boolean".format(k)
 
         if k in ['sim_input_dir', 'gen_input_dir']:
             assert isinstance(libE_specs[k], str), \
@@ -97,9 +100,17 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
 
     assert len(exit_criteria) > 0, "Must have some exit criterion"
 
+    if 'elapsed_wallclock_time' in exit_criteria:
+        logger.warning(
+            "exit_criteria['elapsed_wallclock_time'] is deprecated.'\n"
+            + "This will break in the future. Use exit_criteria['wallclock_max']"
+        )
+
+        exit_criteria['wallclock_max'] = exit_criteria.pop('elapsed_wallclock_time')
+
     # Ensure termination criteria are valid
     valid_term_fields = ['sim_max', 'gen_max',
-                         'elapsed_wallclock_time', 'stop_val']
+                         'wallclock_max', 'stop_val']
     assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
         "Valid termination options: " + str(valid_term_fields)
 
@@ -129,11 +140,11 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             format(set(fields).difference(set(Dummy_H.dtype.names)))
 
         # Prior history cannot contain unreturned points
-        # assert 'returned' not in fields or np.all(H0['returned']), \
+        # assert 'sim_ended' not in fields or np.all(H0['sim_ended']), \
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points (or returned but not given).
-        assert('returned' not in fields or np.all(H0['given'] == H0['returned'])), \
+        assert('sim_ended' not in fields or np.all(H0['sim_started'] == H0['sim_ended'])), \
             'H0 contains unreturned or invalid points'
 
         # # Fail if points in prior history don't have a sim_id.
@@ -195,14 +206,14 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
-        for name in alloc_specs.get('in', []):
-            assert name in out_names, \
-                name + " in alloc_specs['in'] is not in sim_specs['out'], "\
-                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+        assert 'in' not in alloc_specs, "alloc_specs['in'] is not needed as all of the history is available alloc_f."
 
         check_alloc_specs(alloc_specs)
 
     if sim_specs is not None:
+        if 'in' in sim_specs:
+            assert isinstance(sim_specs['in'], list), "sim_specs['in'] must be a list"
+
         for name in sim_specs.get('in', []):
             assert name in out_names, \
                 name + " in sim_specs['in'] is not in sim_specs['out'], "\
@@ -211,6 +222,9 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
         check_sim_specs(sim_specs)
 
     if gen_specs is not None:
+        if 'in' in gen_specs:
+            assert isinstance(gen_specs['in'], list), "gen_specs['in'] must be a list"
+
         for name in gen_specs.get('in', []):
             assert name in out_names, \
                 name + " in gen_specs['in'] is not in sim_specs['out'], "\

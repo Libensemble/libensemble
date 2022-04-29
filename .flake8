@@ -33,6 +33,9 @@ per-file-ignores =
         libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
         libensemble/tests/regression_tests/test_uniform_sampling_with_different_resources.py:E402
 
+        # Similar reasoning for configuring mpi4py
+        libensemble/tests/unit_tests/test_executor.py:E402
+
         # Matplotlib needs something set before import
         postproc_scripts/*:E402
 

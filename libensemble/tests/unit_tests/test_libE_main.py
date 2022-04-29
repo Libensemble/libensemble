@@ -7,11 +7,10 @@ from libensemble.libE import check_inputs, libE
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from mpi4py import MPI
+from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
 from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
-from numpy import inf
 
 
 class MPIAbortException(Exception):
@@ -48,9 +47,15 @@ class Fake_MPI:
         raise MPIAbortException()
 
 
-fake_mpi = Fake_MPI()
+class Fake_MPI_1P(Fake_MPI):
+    def Get_size(self):
+        return 1
 
-alloc_specs = {'alloc_f': give_sim_work_first, 'out': [('allocated', bool)]}
+
+fake_mpi = Fake_MPI()
+fake_mpi_1p = Fake_MPI_1P()
+
+alloc_specs = {'alloc_f': give_sim_work_first, 'out': []}
 hfile_abort = 'libE_history_at_abort_0.npy'
 pfile_abort = 'libE_persis_info_at_abort_0.pickle'
 
@@ -134,8 +139,7 @@ def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     libE_specs = {'mpi_comm': fake_mpi, 'disable_resource_manager': True}
     with pytest.raises(KeyError):
-        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1},
-                       libE_specs=libE_specs)
+        H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs)
         pytest.fail('Expected KeyError exception')
 
 
@@ -143,8 +147,9 @@ def test_proc_not_in_communicator():
     """Checking proc not in communicator returns exit status of 3"""
     libE_specs = {}
     libE_specs['mpi_comm'], mpi_comm_null = mpi_comm_excl()
-    H, _, flag = libE({'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]},
-                      {'sim_max': 1}, libE_specs=libE_specs)
+    H, _, flag = libE(
+        {'in': ['x'], 'out': [('f', float)]}, {'out': [('x', float)]}, {'sim_max': 1}, libE_specs=libE_specs
+    )
     assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
@@ -171,7 +176,7 @@ def test_checking_inputs_noworkers():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     H0 = np.empty(0)
     # Should fail because only got a manager
-    libE_specs = {'mpi_comm': MPI.COMM_WORLD, 'comms': 'mpi'}
+    libE_specs = {'mpi_comm': fake_mpi_1p, 'comms': 'mpi'}
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'must be at least one worker' in errstr, 'Incorrect assertion error: ' + errstr
 
@@ -180,36 +185,31 @@ def test_checking_inputs_H0():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {'mpi_comm': fake_mpi, 'comms': 'mpi'}
 
-    # Should fail because H0 has points with 'return'==False
-    H0 = np.array([(False, 0., 0, 0., 1, True, 1, True, [0., 0., 0.], True, 0.1, 1.1),
-                   (False, 0., 0, 0., 1, True, 2, True, [0., 0., 0.], True, 0.2, 1.2),
-                   (False, 0., 0, 0., 1, True, 3, True, [0., 0., 0.], True, 0.3, 1.3),
-                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf),
-                   (False, 0., 0, 0., -1, False, 0, False, [0., 0., 0.], False, 0., inf)],
-                  dtype=[('local_pt', '?'), ('priority', '<f8'), ('gen_worker', '<i8'),
-                         ('x_on_cube', '<f8'), ('sim_id', '<i8'), ('given', '?'),
-                         ('sim_worker', '<i8'), ('returned', '?'), ('fvec', '<f8', (3,)),
-                         ('allocated', '?'), ('f', '<f8'), ('given_time', '<f8')])
+    # Should fail because H0 has points with 'sim_ended'==False
+    H0 = np.zeros(5, dtype=libE_fields)
+    H0['sim_id'] = [0, 1, 2, -1, -1]
+    H0['sim_worker'][0:3] = range(1, 4)
+    H0[['sim_started', 'sim_ended']][0:3] = True
 
     # This should work
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # A value has not been returned
-    H0['returned'][2] = False
+    # A value has not been marked as sim_ended
+    H0['sim_ended'][2] = False
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
-    # Ungiven points shown as returned
-    H0['returned'] = True
+    # Points that have not been marked as 'sim_started' have been marked 'sim_ended'
+    H0['sim_ended'] = True
     errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     assert 'H0 contains unreturned or invalid points' in errstr, 'Incorrect assertion error: ' + errstr
 
     # Return to correct state
-    H0['returned'][3:len(H0)] = False
+    H0['sim_ended'][3 : len(H0)] = False
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # Removing 'returned' and then testing again. Should be successful as 'returned' does not exist
-    H0 = rmfield(H0, 'returned')
+    # Removing 'sim_ended' and then testing again. Should be successful as 'sim_ended' does not exist
+    H0 = rmfield(H0, 'sim_ended')
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Should fail because H0 has fields not in H

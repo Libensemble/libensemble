@@ -28,11 +28,10 @@ example = '''examples:
  ./compare_npy.py out1.npy out2.npy --rtol 1e-03 --atol 1e-06
  '''
 
-exclude_fields = ['gen_worker', 'sim_worker', 'gen_time', 'given_time']  # list of fields to ignore
+exclude_fields = ['gen_worker', 'sim_worker', 'gen_ended_time', 'sim_started_time']  # list of fields to ignore
 locate_mismatch = True
 
-parser = argparse.ArgumentParser(description=desc, epilog=example,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(description=desc, epilog=example, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-r', '--rtol', dest='rtol', type=float, default=1e-05, help='rel. tolerance')
 parser.add_argument('-a', '--atol', dest='atol', type=float, default=1e-08, help='abs. tolerance')
 parser.add_argument('args', nargs='*', help='*.npy files to compare')
@@ -50,9 +49,9 @@ else:
     sys.exit()
 
 compare_fields = tuple(filter(lambda x: x not in exclude_fields, exp_results.dtype.names))
-match = all([np.allclose(exp_results[name], results[name],
-                         rtol=rtol, atol=atol, equal_nan=True)
-            for name in compare_fields])
+match = all(
+    [np.allclose(exp_results[name], results[name], rtol=rtol, atol=atol, equal_nan=True) for name in compare_fields]
+)
 
 print('Compare results: {}\n'.format(match))
 
@@ -62,7 +61,13 @@ if not locate_mismatch:
 if not match:
     for name in compare_fields:
         for i in range(len(results)):
-            assert np.allclose(exp_results[name][i],
-                   results[name][i], rtol=rtol, atol=atol, equal_nan=True), \
-                'Mismatch in row ' + str(i) + ' field: ' + name + '. ' \
-                + str(exp_results[name][i]) + ' ' + str(results[name][i])
+            assert np.allclose(exp_results[name][i], results[name][i], rtol=rtol, atol=atol, equal_nan=True), (
+                'Mismatch in row '
+                + str(i)
+                + ' field: '
+                + name
+                + '. '
+                + str(exp_results[name][i])
+                + ' '
+                + str(results[name][i])
+            )

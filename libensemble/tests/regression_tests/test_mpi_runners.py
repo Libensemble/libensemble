@@ -2,9 +2,9 @@
 Runs libEnsemble testing the MPI Runners command creation.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_mpi_runners.py
-   python3 test_mpi_runners.py --nworkers 3 --comms local
-   python3 test_mpi_runners.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_mpi_runners.py
+   python test_mpi_runners.py --nworkers 3 --comms local
+   python test_mpi_runners.py --nworkers 3 --comms tcp
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -216,10 +216,11 @@ def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
     test_list = test_list_base + test_list_exargs
     sim_specs['user'] = {
-        'tests': test_list,
         'expect': exp_list,
         'nodes_per_worker': nodes_per_worker,
+        'offset_for_scheduler': True,
         'persis_gens': 0,
+        'tests': test_list,
     }
 
     # Perform the run

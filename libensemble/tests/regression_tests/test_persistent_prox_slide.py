@@ -8,8 +8,8 @@ You can specify which problem to test by setting @prob_id in {0,1}.
 
 This call script uses proximal gradient sliding (https://doi.org/10.1007/s10107-015-0955-5)
 to solve the following problems. To test, run using, for any p >= 6,
-   mpiexec -np p python3 test_persistent_prox_slide.py
-   python3 test_persistent_prox_slide.py --nworkers p --comms local
+   mpiexec -np p python test_persistent_prox_slide.py
+   python test_persistent_prox_slide.py --nworkers p --comms local
 
 The number gens will be 4.
 """
@@ -18,6 +18,7 @@ The number gens will be 4.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np
@@ -56,9 +57,9 @@ for prob_id in range(0, 4):
     persis_info['gen_params'] = {}
 
     if prob_id < 3:
-        exit_criteria = {'elapsed_wallclock_time': 600}
+        exit_criteria = {'wallclock_max': 600}
     else:
-        exit_criteria = {'elapsed_wallclock_time': 600, 'sim_max': 1}
+        exit_criteria = {'wallclock_max': 600, 'sim_max': 1}
 
     libE_specs['safe_mode'] = False
 
@@ -67,7 +68,7 @@ for prob_id in range(0, 4):
         sim_f = geomedian_eval
         m, n = 10, 20
         prob_name = 'Geometric median'
-        M = num_gens / (m ** 2)
+        M = num_gens / (m**2)
         N_const = 4
         err_const = 1e2
 
@@ -140,7 +141,7 @@ for prob_id in range(0, 4):
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
     persis_info['gen_params'].update(
-        {'M': M, 'R': 10 ** 2, 'nu': 1, 'eps': eps, 'D': 2 * n, 'N_const': N_const, 'lam_max': lam_max}
+        {'M': M, 'R': 10**2, 'nu': 1, 'eps': eps, 'D': 2 * n, 'N_const': N_const, 'lam_max': lam_max}
     )
 
     if is_manager:

@@ -34,7 +34,7 @@ if generator_type == 'aposmm':
     nbatches = len(pickle_data[1]['run_order'])
 
 # Remove un-returned (i.e., not submitted) simulations
-results = results[results['returned'] == 1]
+results = results[results['sim_ended'] == 1]
 
 # Re-organize results into a dictionary. Each key is a field in libE_output,
 # each value is an array with the value of this field for all WarpX simulations
@@ -58,11 +58,11 @@ plot_input = ['ramp_down_1', 'zlens_1', 'adjust_factor', 'ramp_down_2']
 # For convenience, dictionary with pyplot.ylim
 # tuples for all elements in plot_output
 d_ylim = {
-    'f': (3.e-7, 5.e-3),
-    'emittance': (3.e-7, 5.e-3),
-    'charge': (1.e-7, 1.e-5),
-    'energy_avg': (5.e1, 5.e2),
-    'energy_std': (1.e-2, 1.e-1)
+    'f': (3.0e-7, 5.0e-3),
+    'emittance': (3.0e-7, 5.0e-3),
+    'charge': (1.0e-7, 1.0e-5),
+    'energy_avg': (5.0e1, 5.0e2),
+    'energy_std': (1.0e-2, 1.0e-1),
 }
 
 # For convenience, dictionary with units for all elements in plot_output
@@ -71,7 +71,7 @@ d_yunits = {
     'emittance': " (m rad)",
     'charge': " (pC/m)",
     'energy_avg': " (MeV)",
-    'energy_std': " (dimless)"
+    'energy_std': " (dimless)",
 }
 
 # Print input and output parameters for the optimal run
@@ -79,8 +79,7 @@ print("Best run:")
 ind_best = np.argmin(results_dict['f'])
 for key in plot_input + plot_output:
     print(key, results_dict[key][ind_best])
-print("charge_f/charge_i ",
-      results[ind_best]['charge']/np.max(results_dict['charge']))
+print("charge_f/charge_i ", results[ind_best]['charge'] / np.max(results_dict['charge']))
 
 # And now plotting begins
 plt.figure(figsize=(16, 10))
@@ -89,24 +88,24 @@ plt.style.use('dark_background')
 for icount, iname in enumerate(plot_input):
     # Loop over all output parameters in plot_output
     for count, name in enumerate(plot_output):
-        plt.subplot(len(plot_input), len(plot_output),
-                    len(plot_output)*icount + count+1)
+        plt.subplot(len(plot_input), len(plot_output), len(plot_output) * icount + count + 1)
         if generator_type == 'aposmm':
             # Plot 1 point per run. Runs that are part of the same local
             # minimum search are batched together and plotted with the
             # same color.
             for batch in pickle_data[1]['run_order']:
-                my_sims = np.isin(results_dict['sim_id'],
-                                  pickle_data[1]['run_order'][batch])
-                plt.scatter(np.squeeze(results_dict[iname][my_sims]),
-                            np.squeeze(results_dict[name][my_sims]),
-                            s=2)
+                my_sims = np.isin(results_dict['sim_id'], pickle_data[1]['run_order'][batch])
+                plt.scatter(np.squeeze(results_dict[iname][my_sims]), np.squeeze(results_dict[name][my_sims]), s=2)
         elif generator_type == 'random':
             # Plot 1 point per run. Colorbar stands for sim ID
             # (larger value = later run).
-            plt.scatter(np.squeeze(results_dict[iname]),
-                        np.squeeze(results_dict[name]),
-                        c=results_dict['sim_id'], s=2, cmap='viridis')
+            plt.scatter(
+                np.squeeze(results_dict[iname]),
+                np.squeeze(results_dict[name]),
+                c=results_dict['sim_id'],
+                s=2,
+                cmap='viridis',
+            )
             cbar = plt.colorbar()
             cbar.ax.set_ylabel('start time (arb. units)')
         else:

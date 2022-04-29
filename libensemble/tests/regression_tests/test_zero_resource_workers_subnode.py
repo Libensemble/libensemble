@@ -6,9 +6,9 @@ This test must be run on an odd number of workers >= 3 (e.g. even number of
 procs when using mpi4py).
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_zero_resource_workers_subnode.py
-   python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms local
-   python3 test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_zero_resource_workers_subnode.py
+   python test_zero_resource_workers_subnode.py --nworkers 3 --comms local
+   python test_zero_resource_workers_subnode.py --nworkers 3 --comms tcp
 """
 
 import sys

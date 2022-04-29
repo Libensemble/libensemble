@@ -1,0 +1,35 @@
+.wy-nav-content {
+max-width: 860px !important;
+}
+
+.toggle {
+  margin-bottom: 40px;
+}
+
+
+.toggle .header {
+  cursor: pointer;
+  overflow: auto;
+  padding-top: 20px;
+  background-color: rgb(86,189,119);
+  border: 2px solid;
+  text-align: center;
+  display: flex;
+}
+
+.toggle .header:before {
+  padding-left: 10px;
+  padding-right: 10px;
+
+  content: " ▶ Show ";
+}
+
+.toggle .header.open:before {
+  padding-right: 10px;
+  padding-left: 10px;
+  content: " ▼ Hide ";
+}
+
+.underline {
+  font-weight: bold;
+}

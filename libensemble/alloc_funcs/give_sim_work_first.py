@@ -23,6 +23,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     This is the default allocation function if one is not defined.
 
+    tags: alloc, default, batch, priority
+
     .. seealso::
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
@@ -31,8 +33,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     if 'cancel_sims_time' in user:
         # Cancel simulations that are taking too long
-        rows = np.where(np.logical_and.reduce((H['given'], ~H['returned'], ~H['cancel_requested'])))[0]
-        inds = time.time() - H['last_given_time'][rows] > user['cancel_sims_time']
+        rows = np.where(np.logical_and.reduce((H['sim_started'], ~H['sim_ended'], ~H['cancel_requested'])))[0]
+        inds = time.time() - H['sim_started_time'][rows] > user['cancel_sims_time']
         to_request_cancel = rows[inds]
         for row in to_request_cancel:
             H[row]['cancel_requested'] = True
@@ -41,16 +43,15 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
-    sched_opts = user.get('scheduler_opts', {})
     batch_give = user.get('give_all_with_same_priority', False)
     gen_in = gen_specs.get('in', [])
 
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_gens()
     Work = {}
 
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):
@@ -67,7 +68,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_returned(H):
+            if user.get('batch_mode') and not support.all_sim_ended(H):
                 break
 
             # Give gen work

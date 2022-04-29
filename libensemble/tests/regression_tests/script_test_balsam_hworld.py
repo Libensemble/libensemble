@@ -7,7 +7,7 @@ import numpy as np
 import mpi4py
 from mpi4py import MPI
 
-from libensemble.executors.balsam_executor import BalsamMPIExecutor
+from libensemble.executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
 from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld
@@ -32,7 +32,7 @@ cores_per_task = 1
 sim_app = './my_simtask.x'
 sim_app2 = six_hump_camel.__file__
 
-exctr = BalsamMPIExecutor()
+exctr = LegacyBalsamMPIExecutor()
 exctr.register_app(full_path=sim_app, calc_type='sim')  # Default 'sim' app - backward compatible
 exctr.register_app(full_path=sim_app2, app_name='six_hump_camel')  # Named app
 exctr.register_app(full_path=sim_app2, app_name='sim_hump_camel_dry_run')
@@ -60,7 +60,7 @@ gen_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'elapsed_wallclock_time': 60}
+exit_criteria = {'sim_max': nworkers * 5}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
@@ -68,7 +68,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 if is_manager:
     print('\nChecking expected task status against Workers ...\n')
     calc_status_list_in = np.asarray(
-        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED, 0]
+        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
     )
     calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
@@ -81,7 +81,7 @@ if is_manager:
     with open('ensemble.log', 'r') as f:
         lines = f.readlines()
 
-    test = len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in) - 1) * nworkers
+    test = len([i for i in lines if 'Test (No submit) Runline:' in i]) == (len(calc_status_list_in)) * nworkers
     assert test, "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
 
     # Cleanup (maybe cover del_apps() and del_tasks())

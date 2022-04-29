@@ -18,12 +18,12 @@ def build_H0(x_f_pairs, gen_specs, noise_h_mat):
     E = np.eye(n)
     nf = U['nf']
 
-    H0 = np.zeros(len(x_f_pairs)*nf, dtype=gen_specs['out'])
+    H0 = np.zeros(len(x_f_pairs) * nf, dtype=gen_specs['out'])
     ind = 0
     for i, j in x_f_pairs:
-        for k in range(nf+1):
-            if k != nf//2:
-                H0['x'][ind] = x0 + (k-nf/2)*noise_h_mat[i, j]*E[i]
+        for k in range(nf + 1):
+            if k != nf // 2:
+                H0['x'][ind] = x0 + (k - nf / 2) * noise_h_mat[i, j] * E[i]
                 H0['x_ind'][ind] = i
                 H0['f_ind'][ind] = j
                 H0['n_ind'][ind] = k
@@ -52,7 +52,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     n = len(x0)
-    Fhist0 = np.zeros((n, p, nf+1))
+    Fhist0 = np.zeros((n, p, nf + 1))
     tag = None
 
     # # Request evaluations of the base point x0 at all p f_inds
@@ -65,8 +65,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
     for i in range(n):
         for j in range(p):
-            # Fhist0[i,j,nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
-            Fhist0[i, j, nf//2] = U['f0'][j]
+            # Fhist0[i, j, nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
+            Fhist0[i, j, nf // 2] = U['f0'][j]
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)
     H0 = build_H0(x_f_pairs, gen_specs, noise_h_mat)
@@ -85,26 +85,29 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
 
         # Update Fhist0
         for i, j in x_f_pairs:
-            for k in range(nf+1):
-                if k != nf/2:
+            for k in range(nf + 1):
+                if k != nf / 2:
                     logical_conds = (calc_in['x_ind'] == i, calc_in['f_ind'] == j, calc_in['n_ind'] == k)
                     Fhist0[i, j, k] = calc_in['f_val'][np.logical_and.reduce(logical_conds)]
 
-            # Compute noise for (i,j):
-            # [Fnoise(i,j),~,inform(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
-            # t = eng.ECnoise(nf+1,matlab.double(Fhist0[i,j,:nf+1]),nargout=3)
+            # Compute noise for (i, j):
+            # [Fnoise(i, j), ~, inform(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
+            # t = eng.ECnoise(nf+1, matlab.double(Fhist0[i, j, :nf+1]), nargout=3)
             # # Optional: check to see what would get with 2 fewer evals (requires nf>=4):
-            # [Fnoise2(i,j),~,inform2(i,j)] = ECnoise(nf-1,Fhist0(i,j,2:nf));
+            # [Fnoise2(i, j), ~, inform2(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));
 
             # cmd = ["/home/jlarson/software/MATLAB/R2019a/bin/matlab", "-batch",
-            cmd = ["octave", "--no-window-system", "--eval",
-                   "F=[" + " ".join(["{:18.18f}".format(x) for x in Fhist0[i, j, :nf+1]]) + "];"
-                   "nf=" + str(nf) + "';"
-                   "[fnoise,~,inform] = ECnoise(nf+1,F);"
-                   "dlmwrite('fnoise.out', fnoise, 'delimiter', ' ', 'precision', 16);"
-                   "dlmwrite('inform.out', inform, 'delimiter', ' ', 'precision', 16);"
-                   "exit"
-                   ]
+            cmd = [
+                "octave",
+                "--no-window-system",
+                "--eval",
+                "F=[" + " ".join(["{:18.18f}".format(x) for x in Fhist0[i, j, : nf + 1]]) + "];"
+                "nf=" + str(nf) + "';"
+                "[fnoise, ~, inform] = ECnoise(nf+1, F);"
+                "dlmwrite('fnoise.out', fnoise, 'delimiter', ' ', 'precision', 16);"
+                "dlmwrite('inform.out', inform, 'delimiter', ' ', 'precision', 16);"
+                "exit",
+            ]
 
             p = subprocess.call(cmd, shell=False, stdout=subprocess.DEVNULL)
 
@@ -117,9 +120,9 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                     x_f_pairs_new.append((i, j))
 
                     if inform[i, j] == 3:
-                        noise_h_mat[i, j] = noise_h_mat[i, j]/100
+                        noise_h_mat[i, j] = noise_h_mat[i, j] / 100
                     else:
-                        noise_h_mat[i, j] = noise_h_mat[i, j]*100
+                        noise_h_mat[i, j] = noise_h_mat[i, j] * 100
             else:
                 # We have successfully identified the Fnoise
                 Fnoise[i, j] = np.loadtxt('fnoise.out')

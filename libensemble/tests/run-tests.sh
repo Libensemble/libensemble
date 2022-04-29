@@ -203,7 +203,7 @@ usage() {
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
-  echo "  -e              Run extra regression tests that require additional dependencies"
+  echo "  -e              Run extra unit and regression tests that require additional dependencies"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -A {-flag arg}  Supply arguments to python"
@@ -259,7 +259,7 @@ while getopts ":p:n:a:y:A:hcszurmlte" opt; do
       export RUN_TCP=true
       ;;
     e)
-      echo "Running extra regression tests with additional dependencies"
+      echo "Running extra tests with additional dependencies"
       export RUN_EXTRA=true
       ;;
     m)
@@ -294,7 +294,7 @@ done
 # fi
 
 # If none selected default to running all tests
-if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ];then
+if [ "$RUN_MPI" = false ] && [ "$RUN_LOCAL" = false ] && [ "$RUN_TCP" = false ]; then
     RUN_MPI=true && RUN_LOCAL=true && RUN_TCP=false
 fi
 
@@ -337,10 +337,10 @@ PYTHON_RUN="python$PYTHON_VER $PYTHON_FLAGS"
 echo -e "Python run: $PYTHON_RUN"
 
 textreset=$(tput sgr0)
-fail_color=$(tput bold;tput setaf 1) #red
-pass_color=$(tput bold;tput setaf 2) #green
-titl_color=$(tput bold;tput setaf 6) #cyan
-hint_color=$(tput bold;tput setaf 4) #blue
+fail_color=$(tput bold; tput setaf 1) #red
+pass_color=$(tput bold; tput setaf 2) #green
+titl_color=$(tput bold; tput setaf 6) #cyan
+hint_color=$(tput bold; tput setaf 4) #blue
 
 # Note - pytest exit codes
 # Exit code 0:  All tests were collected and passed successfully
@@ -384,27 +384,36 @@ if [ "$root_found" = true ]; then
   # Run Unit Tests -----------------------------------------------------------------------
 
   if [ "$RUN_UNIT_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running unit tests"
     tput sgr 0
 
+    if [ "$RUN_EXTRA" = true ]; then
+        EXTRA_UNIT_ARG="--runextra"
+    fi
+
     for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
     cd $ROOT_DIR/$DIR
-#     $PYTHON_RUN -m pytest --fulltrace $COV_LINE_SERIAL
+
+    # unit test subdirs dont contain pytest's conftest.py that defines extra arg
+    if [ $DIR = $UNIT_TEST_NOMPI_SUBDIR ]; then
+        EXTRA_UNIT_ARG=""
+    fi
+
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL #To see std out/err while running
+      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL
+      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
     fi;
 
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
-      tput bold;tput setaf 2; echo "Unit tests passed. Continuing...";tput sgr 0
+      tput bold; tput setaf 2; echo "Unit tests passed. Continuing..."; tput sgr 0
       echo
     else
       echo
-      tput bold;tput setaf 1;echo -e "Abort $RUN_PREFIX: Unit tests failed: $code";tput sgr 0
+      tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX: Unit tests failed: $code"; tput sgr 0
       exit $code #return pytest exit code
     fi;
     done
@@ -414,7 +423,7 @@ if [ "$root_found" = true ]; then
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
 
@@ -470,6 +479,7 @@ if [ "$root_found" = true ]; then
         #Need proc count here for now - still stop on failure etc.
         NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
         OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
+        OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
         if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
         for NPROCS in ${NPROCS_LIST}
         do
@@ -482,6 +492,11 @@ if [ "$root_found" = true ]; then
 
           if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
             echo "Skipping test number for OSX: " $test_num
+            continue
+          fi
+
+          if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
+            echo "Skipping test number for Open MPI: " $test_num
             continue
           fi
 
@@ -617,19 +632,19 @@ if [ "$root_found" = true ]; then
     #All reg tests - summary ----------------------------------------------
     if [ "$code" -eq "0" ]; then
       echo
-      #tput bold;tput setaf 2
+      #tput bold; tput setaf 2
 
       if [ "$REG_USE_PYTEST" != true ]; then
         #sh - temp formatting similar(ish) to pytest - update in python (as with timing)
-        #tput bold;tput setaf 4; echo -e "***Note***: temporary formatting/timing ......"
+        #tput bold; tput setaf 4; echo -e "***Note***: temporary formatting/timing ......"
 
         summ_line="$reg_pass passed in $reg_time seconds"
-        tput bold;tput setaf 2;
+        tput bold; tput setaf 2;
         print_summary_line $summ_line
         tput sgr 0
       fi;
 
-      tput bold;tput setaf 2;echo -e "\nRegression tests passed ..."
+      tput bold; tput setaf 2; echo -e "\nRegression tests passed ..."
       tput sgr 0
       echo
     else
@@ -639,12 +654,12 @@ if [ "$root_found" = true ]; then
           echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
         fi
         summ_line="$reg_fail failed, $reg_pass passed in $reg_time seconds"
-        tput bold;tput setaf 1;
+        tput bold; tput setaf 1;
         print_summary_line $summ_line
         tput sgr 0
       fi;
       echo
-      tput bold;tput setaf 1;echo -e "\nAbort $RUN_PREFIX: Regression tests failed (exit code $code)";tput sgr 0
+      tput bold; tput setaf 1; echo -e "\nAbort $RUN_PREFIX: Regression tests failed (exit code $code)"; tput sgr 0
       echo
       exit $code
     fi;
@@ -654,7 +669,7 @@ if [ "$root_found" = true ]; then
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR
   if [ "$RUN_PEP_TESTS" = true ]; then
-    tput bold;tput setaf 6
+    tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running PEP tests - All python src below $PEP_SCOPE"
     tput sgr 0
     pytest --$PYTHON_PEP_STANDARD $ROOT_DIR/$PEP_SCOPE
@@ -662,19 +677,19 @@ if [ "$root_found" = true ]; then
     code=$?
     if [ "$code" -eq "0" ]; then
       echo
-      tput bold;tput setaf 2; echo "PEP tests passed. Continuing...";tput sgr 0
+      tput bold; tput setaf 2; echo "PEP tests passed. Continuing..."; tput sgr 0
       echo
     else
       echo
-      tput bold;tput setaf 1;echo -e "Abort $RUN_PREFIX: PEP tests failed: $code";tput sgr 0
+      tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX: PEP tests failed: $code"; tput sgr 0
        exit $code #return pytest exit code
     fi;
   fi;
 
   # ------------------------------------------------------------------
-  tput bold;tput setaf 2; echo -e "\n$RUN_PREFIX --$PYTHON_RUN: All tests passed\n"; tput sgr 0
+  tput bold; tput setaf 2; echo -e "\n$RUN_PREFIX --$PYTHON_RUN: All tests passed\n"; tput sgr 0
   exit 0
 else
-  tput bold;tput setaf 1; echo -e "Abort $RUN_PREFIX:  Project root dir not found"; tput sgr 0
+  tput bold; tput setaf 1; echo -e "Abort $RUN_PREFIX:  Project root dir not found"; tput sgr 0
   exit 1
 fi

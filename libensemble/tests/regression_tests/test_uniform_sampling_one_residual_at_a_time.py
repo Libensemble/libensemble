@@ -8,7 +8,7 @@ corresponding to points with partial sum-squared error worse than the
 best-evaluated point so far.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_uniform_sampling_one_residual_at_a_time.py
+   mpiexec -np 4 python test_uniform_sampling_one_residual_at_a_time.py
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -78,7 +78,7 @@ alloc_specs = {
 persis_info = add_unique_random_streams(persis_info, nworkers + 1)
 persis_info_safe = deepcopy(persis_info)
 
-exit_criteria = {'sim_max': budget, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': budget, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

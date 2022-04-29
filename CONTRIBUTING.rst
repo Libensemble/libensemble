@@ -6,7 +6,7 @@ Contributions may be made via a GitHub pull request to
     https://github.com/Libensemble/libensemble
 
 libEnsemble uses the Gitflow model. Contributors should branch from, and
-make pull requests to, the develop branch. The master branch is used only
+make pull requests to, the develop branch. The main branch is used only
 for releases. Pull requests may be made from a fork, for those without
 repository write access.
 
@@ -24,20 +24,22 @@ will add issues, as appropriate, to the project board at
 
 By convention, user branch names should have a <type>/<name> format, where
 example types are feature, bugfix, testing, docs, and experimental.
-Administrators may take a hotfix branch from the master, which will be
-merged into master (as a patch) and develop. Administrators may also take a
-release branch off develop and then merge this branch into master and develop
+Administrators may take a hotfix branch from the main, which will be
+merged into main (as a patch) and develop. Administrators may also take a
+release branch off develop and then merge this branch into main and develop
 for a release. Most branches should relate to an issue or feature.
 
 When a branch closes a related issue, the pull request message should include
 the phrase "Closes #N," where N is the issue number. This will automatically
 close out the issues when they are pulled into the default branch (currently
-master).
+main).
 
 libEnsemble is distributed under a 3-clause BSD license (see LICENSE).  The
 act of submitting a pull request (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
+
+::
 
   Developer's Certificate of Origin 1.1
 

@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-# unlesss resource sets is set explicitly. This class maps rsets to hardware resources.
 class RSetResources():
     """A class that creates a fixed mapping of resource sets to the available resources.
 

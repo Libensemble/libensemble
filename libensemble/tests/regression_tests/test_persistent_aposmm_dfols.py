@@ -4,9 +4,9 @@ All 214 residual calculations for a given point are performed as a single
 simulation evaluation.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_dfols.py
-   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms local
-   python3 test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_dfols.py
+   python test_persistent_aposmm_dfols.py --nworkers 3 --comms local
+   python test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -83,7 +83,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 # Tell libEnsemble when to stop (stop_val key must be in H)
 exit_criteria = {
     'sim_max': 1000,
-    'elapsed_wallclock_time': 100,
+    'wallclock_max': 100,
     'stop_val': ('f', 3000),
 }
 # end_exit_criteria_rst_tag
@@ -94,7 +94,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 if is_manager:
     assert persis_info[1].get('run_order'), "Run_order should have been given back"
     assert flag == 0
-    assert np.min(H['f'][H['returned']]) <= 3000, "Didn't find a value below 3000"
+    assert np.min(H['f'][H['sim_ended']]) <= 3000, "Didn't find a value below 3000"
 
     save_libE_output(H, persis_info, __file__, nworkers)
 
@@ -104,15 +104,17 @@ if is_manager:
     for i in np.where(H['local_min'])[0]:
         F = EvaluateFunction(H['x'][i])
         J = EvaluateJacobian(H['x'][i])
-    #     u = gen_specs['user']['ub']-H['x'][i]
-    #     l = H['x'][i]-gen_specs['user']['lb']
-    #     if np.any(u <= 1e-7) or np.any(l <= 1e-7):
-    #         grad = -2*np.dot(J.T,F)
-    #         assert np.all(grad[u<=1e-7] >= 0)
-    #         assert np.all(grad[l<=1e-7] <= 0)
+        # u = gen_specs['user']['ub'] - H['x'][i]
+        # l = H['x'][i] - gen_specs['user']['lb']
+        # if np.any(u <= 1e-7) or np.any(l <= 1e-7):
+        #     grad = -2 * np.dot(J.T, F)
+        #     assert np.all(grad[u <= 1e-7] >= 0)
+        #     assert np.all(grad[l <= 1e-7] <= 0)
 
-    #         if not np.all(grad[np.logical_and(u>=1e-7,l>=1e-7)] <= 1e-5):
-    #             import ipdb; ipdb.set_trace()
-    #     else:
-    #         d = np.linalg.solve(np.dot(J.T,J),np.dot(J.T,F))
-    #         assert np.linalg.norm(d) <= 1e-5
+        #     if not np.all(grad[np.logical_and(u >= 1e-7, l >= 1e-7)] <= 1e-5):
+        #         import ipdb
+
+        #         ipdb.set_trace()
+        # else:
+        #     d = np.linalg.solve(np.dot(J.T, J), np.dot(J.T, F))
+        #     assert np.linalg.norm(d) <= 1e-5

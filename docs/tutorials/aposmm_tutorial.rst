@@ -18,10 +18,10 @@ depict evaluations. We'll use the `Six-Hump Camel function`_, known to have six
 global minima. A sample space of this function, containing all minima, appears
 below:
 
-.. image:: ../images/basic_6hc.png
-    :alt: Six-Hump Camel
-    :scale: 60
-    :align: center
+    .. image:: ../images/basic_6hc.png
+        :alt: Six-Hump Camel
+        :scale: 60
+        :align: center
 
 Create a new Python file named ``six_hump_camel.py``. This will be our
 ``sim_f``, incorporating the above function. Write the following:
@@ -64,10 +64,10 @@ Before APOSMM can start local optimization runs, some number of uniformly
 sampled points must be evaluated (if no prior simulation evaluations are
 provided). User-requested sample points can also be provided to APOSMM:
 
-.. image:: ../images/sampling_6hc.png
-    :alt: Six-Hump Camel Sampling
-    :scale: 60
-    :align: center
+    .. image:: ../images/sampling_6hc.png
+        :alt: Six-Hump Camel Sampling
+        :scale: 60
+        :align: center
 
 Specifically, APOSMM will begin local optimization runs from evaluated points that
 don't have points with smaller function values nearby (within a threshold
@@ -85,10 +85,10 @@ sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
 the manager, for example when the budget of simulation evaluations has been
 exhausted, or when a sufficiently "good" simulation output has been observed.
 
-.. image:: ../images/localopt_6hc.png
-    :alt: Six-Hump Camel Local Optimization Points
-    :scale: 60
-    :align: center
+    .. image:: ../images/localopt_6hc.png
+        :alt: Six-Hump Camel Local Optimization Points
+        :scale: 60
+        :align: center
 
 Throughout, generated and evaluated points are appended to the
 :ref:`History<datastruct-history-array>` array, with the field
@@ -274,6 +274,8 @@ APOSMM with libEnsemble should be listed directly below the warning.
 Please see the API reference :doc:`here<../examples/aposmm>` for
 more APOSMM configuration options and other information.
 
+Each of these example files can be found in the repository in `examples/tutorials/aposmm`_.
+
 Applications
 ------------
 
@@ -288,4 +290,5 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
 .. _SciPy: https://www.scipy.org/scipylib/index.html
-.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/master/libensemble/tests/scaling_tests/warpx
+.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
+.. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials

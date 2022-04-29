@@ -12,9 +12,7 @@ from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
 
-from libensemble.message_numbers import \
-    EVAL_SIM_TAG, EVAL_GEN_TAG, \
-    UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 from libensemble.output_directory import EnsembleDirectory
@@ -92,7 +90,6 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
 
 
 class WorkerErrMsg:
-
     def __init__(self, msg, exc):
         self.msg = msg
         self.exc = exc
@@ -123,37 +120,73 @@ class Worker:
     """
 
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
-        """Initializes new worker object
-
-        """
+        """Initializes new worker object"""
         self.comm = comm
         self.dtypes = dtypes
         self.workerID = workerID
-        self.sim_specs = sim_specs
         self.libE_specs = libE_specs
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
-        # self._calc_id_counter = count()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
-    def _make_runners(sim_specs, gen_specs):
-        """Creates functions to run a sim or gen"""
+    def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
+        libE_info['comm'] = None  # 'comm' object not pickle-able
+        Worker._set_executor(0, None)  # ditto for executor
 
+        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info, endpoint_id=specs['funcx_endpoint'])
+        remote_exc = future.exception()  # blocks until exception or None
+        if remote_exc is None:
+            return future.result()
+        else:
+            raise remote_exc
+
+    @staticmethod
+    def _get_funcx_exctr(sim_specs, gen_specs):
+        funcx_sim = len(sim_specs.get('funcx_endpoint', '')) > 0
+        funcx_gen = len(gen_specs.get('funcx_endpoint', '')) > 0
+
+        if any([funcx_sim, funcx_gen]):
+            try:
+                from funcx import FuncXClient
+                from funcx.sdk.executor import FuncXExecutor
+
+                return FuncXExecutor(FuncXClient()), funcx_sim, funcx_gen
+            except ModuleNotFoundError:
+                logger.warning("funcX use detected but funcX not importable. Is it installed?")
+                return None, False, False
+            except Exception:
+                return None, False, False
+        else:
+            return None, False, False
+
+    @staticmethod
+    def _make_runners(sim_specs, gen_specs):
+        """Creates functions to run a sim or gen. These functions are either
+        called directly by the worker or submitted to a funcX endpoint."""
+
+        funcx_exctr, funcx_sim, funcx_gen = Worker._get_funcx_exctr(sim_specs, gen_specs)
         sim_f = sim_specs['sim_f']
 
         def run_sim(calc_in, persis_info, libE_info):
-            """Calls the sim func."""
-            return sim_f(calc_in, persis_info, sim_specs, libE_info)
+            """Calls or submits the sim func."""
+            if funcx_sim and funcx_exctr:
+                return Worker._funcx_result(funcx_exctr, sim_f, calc_in, persis_info, sim_specs, libE_info)
+            else:
+                return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
             gen_f = gen_specs['gen_f']
 
             def run_gen(calc_in, persis_info, libE_info):
-                """Calls the gen func."""
-                return gen_f(calc_in, persis_info, gen_specs, libE_info)
+                """Calls or submits the gen func."""
+                if funcx_gen and funcx_exctr:
+                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in, persis_info, gen_specs, libE_info)
+                else:
+                    return gen_f(calc_in, persis_info, gen_specs, libE_info)
+
         else:
             run_gen = []
 
@@ -177,7 +210,7 @@ class Worker:
             exctr.set_worker_info(comm, workerID)  # When merge update
             return True
         else:
-            logger.debug("No xecutor set on worker {}".format(workerID))
+            logger.debug("No executor set on worker {}".format(workerID))
             return False
 
     @staticmethod
@@ -234,8 +267,12 @@ class Worker:
             calc = self._run_calc[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
-                    loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(Work, self.calc_iter,
-                                                                               self.workerID, calc_type)
+                    loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(
+                        Work,
+                        self.calc_iter,
+                        self.workerID,
+                        calc_type,
+                    )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
                         out = calc(calc_in, Work['persis_info'], Work['libE_info'])
                 else:
@@ -243,10 +280,8 @@ class Worker:
 
                 logger.debug("Returned from user function for {} {}".format(enum_desc, calc_id))
 
-            assert isinstance(out, tuple), \
-                "Calculation output must be a tuple."
-            assert len(out) >= 2, \
-                "Calculation output must be at least two elements."
+            assert isinstance(out, tuple), "Calculation output must be a tuple."
+            assert len(out) >= 2, "Calculation output must be at least two elements."
 
             calc_status = out[2] if len(out) >= 3 else UNSET_TAG
 
@@ -270,20 +305,22 @@ class Worker:
             if task_timing and Executor.executor.list_of_tasks:
                 # Initially supporting one per calc. One line output.
                 task = Executor.executor.list_of_tasks[-1]
-                calc_msg = "{} {}: {} {} {} Status: {}".\
-                    format(enum_desc,
-                           calc_id,
-                           calc_type_strings[calc_type],
-                           timer,
-                           task.timer,
-                           calc_status_strings.get(calc_status, "Not set"))
+                calc_msg = "{} {}: {} {} {} Status: {}".format(
+                    enum_desc,
+                    calc_id,
+                    calc_type_strings[calc_type],
+                    timer,
+                    task.timer,
+                    calc_status_strings.get(calc_status, "Not set"),
+                )
             else:
-                calc_msg = "{} {}: {} {} Status: {}".\
-                    format(enum_desc,
-                           calc_id,
-                           calc_type_strings[calc_type],
-                           timer,
-                           calc_status_strings.get(calc_status, "Not set"))
+                calc_msg = "{} {}: {} {} Status: {}".format(
+                    enum_desc,
+                    calc_id,
+                    calc_type_strings[calc_type],
+                    timer,
+                    calc_status_strings.get(calc_status, "Not set"),
+                )
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 
@@ -297,10 +334,8 @@ class Worker:
         else:
             calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
-        logger.debug("Received calc_in ({}) of len {}".
-                     format(calc_type_strings[calc_type], np.size(calc_in)))
-        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], \
-            "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
+        logger.debug("Received calc_in ({}) of len {}".format(calc_type_strings[calc_type], np.size(calc_in)))
+        assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         return libE_info, calc_type, calc_in
 
@@ -330,25 +365,26 @@ class Worker:
 
         # Otherwise, send a calc result back to manager
         logger.debug("Sending to Manager with status {}".format(calc_status))
-        return {'calc_out': calc_out,
-                'persis_info': persis_info,
-                'libE_info': libE_info,
-                'calc_status': calc_status,
-                'calc_type': calc_type}
+        return {
+            'calc_out': calc_out,
+            'persis_info': persis_info,
+            'libE_info': libE_info,
+            'calc_status': calc_status,
+            'calc_type': calc_type,
+        }
 
     def run(self):
         """Runs the main worker loop."""
 
         try:
-            logger.info("Worker {} initiated on node {}".
-                        format(self.workerID, socket.gethostname()))
+            logger.info("Worker {} initiated on node {}".format(self.workerID, socket.gethostname()))
 
             for worker_iter in count(start=1):
                 logger.debug("Iteration {}".format(worker_iter))
 
                 mtag, Work = self.comm.recv()
 
-                if mtag == STOP_TAG:
+                if mtag in [STOP_TAG, PERSIS_STOP]:
                     if Work is MAN_SIGNAL_FINISH:
                         break
                     elif Work is MAN_SIGNAL_KILL:

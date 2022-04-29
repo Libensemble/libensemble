@@ -28,6 +28,8 @@ Two other libEnsemble files produced by default:
 
 To suppress libEnsemble from producing these two files, set ``libE_specs['disable_log_files']`` to ``True``.
 
+.. _logger_config:
+
 Logger Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -58,6 +60,8 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
   :members:
   :no-undoc-members:
 
+.. _output_dirs:
+
 Working Directories for User Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 libEnsemble features configurable output and working directory structuring for
@@ -75,7 +79,7 @@ they contain is configurable through settings in :ref:`libE_specs<datastruct-lib
 Defining any compatible settings initiates this system with default settings for
 unspecified options. Each setting will be described in detail here:
 
-* ``'sim_dirs_make'``: Boolean. Enables per-simulation directories with default
+* ``'sim_dirs_make'``: boolean. Enables per-simulation directories with default
   settings. Directories are labeled in the form ``'sim0-worker1'``, by sim ID
   and initiating worker. Without further configuration, directories are placed
   in the ensemble directory ``./ensemble``, relative to where libEnsemble was
@@ -83,7 +87,7 @@ unspecified options. Each setting will be described in detail here:
   ``False``, all workers will operate within the ensemble directory without
   producing per-simulation directories.
 
-* ``'gen_dirs_make'``: Boolean. Enabled per-generator instance directories with
+* ``'gen_dirs_make'``: boolean. Enabled per-generator instance directories with
   default settings. Directories are labeled in the form ``'gen1-worker1'``. by
   initiating worker and how many times that worker has initiated the generator.
   These behave similarly to simulation directories. Default: ``True`` with
@@ -100,7 +104,7 @@ unspecified options. Each setting will be described in detail here:
 
       libE_specs['ensemble_dir_path'] = "/scratch/my_ensemble"
 
-* ``'use_worker_dirs'``: Boolean. Sorts calculation directories into
+* ``'use_worker_dirs'``: boolean. Sorts calculation directories into
   per-worker directories at runtime. Particularly useful for organization when
   running with multiple workers on global scratch spaces or the same node, and
   may produce performance benefits. Default: ``False``.
@@ -140,7 +144,7 @@ unspecified options. Each setting will be described in detail here:
 * ``'gen_dir_symlink_files'``: A list of paths for files to symlink into
   generator directories.
 
-* ``'ensemble_copy_back'``: Boolean. Instructs the manager to create an empty
+* ``'ensemble_copy_back'``: boolean. Instructs the manager to create an empty
   directory where libEnsemble was launched where workers copy back their calculation
   directories when a run concludes or an exception occurs. Especially useful when
   ``'ensemble_dir_path'`` has been set to some scratch space or another temporary

@@ -3,9 +3,7 @@ import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
-__all__ = ['persistent_uniform',
-           'uniform_random_sample_with_variable_resources',
-           'persistent_request_shutdown']
+__all__ = ['persistent_uniform', 'uniform_random_sample_with_variable_resources', 'persistent_request_shutdown']
 
 
 def persistent_uniform(H, persis_info, gen_specs, libE_info):
@@ -74,8 +72,8 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o = np.zeros(b, dtype=gen_specs['out'])
         # H_o['x'] = len(H)*np.ones(n)
         H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
-        H_o['resource_sets'] = persis_info['rand_stream'].randint(1, gen_specs['user']['max_resource_sets']+1, b)
-        H_o['priority'] = 10*H_o['resource_sets']
+        H_o['resource_sets'] = persis_info['rand_stream'].integers(1, gen_specs['user']['max_resource_sets'] + 1, b)
+        H_o['priority'] = 10 * H_o['resource_sets']
         print('Created {} sims, with worker_teams req. of size(s) {}'.format(b, H_o['resource_sets']), flush=True)
         tag, Work, calc_in = ps.send_recv(H_o)
 
@@ -115,5 +113,43 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
         if f_count >= shutdown_limit:
             print('Reached threshold.', f_count, flush=True)
             break  # End the persistent gen
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
+    """
+    This generation function is designed to test non-blocking receives.
+
+    .. seealso::
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
+
+    """
+    ub = gen_specs['user']['ub']
+    lb = gen_specs['user']['lb']
+    n = len(lb)
+    b = gen_specs['user']['initial_batch_size']
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    # Send batches until manager sends stop tag
+    tag = None
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs['out'])
+        H_o['x'] = persis_info['rand_stream'].uniform(lb, ub, (b, n))
+        ps.send(H_o)
+
+        received = False
+        spin_count = 0
+        while not received:
+            tag, Work, calc_in = ps.recv(blocking=False)
+            if tag is not None:
+                received = True
+            else:
+                spin_count += 1
+
+        persis_info['spin_count'] = spin_count
+
+        if hasattr(calc_in, '__len__'):
+            b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

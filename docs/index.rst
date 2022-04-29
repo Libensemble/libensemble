@@ -22,9 +22,18 @@
 
    tutorials/local_sine_tutorial
    tutorials/executor_forces_tutorial
+   tutorials/forces_gpu_tutorial
    tutorials/aposmm_tutorial
    tutorials/calib_cancel_tutorial
-   examples/examples_index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples:
+
+   examples/gen_funcs
+   examples/sim_funcs
+   examples/alloc_funcs
+   examples/calling_scripts
 
 .. toctree::
    :maxdepth: 2

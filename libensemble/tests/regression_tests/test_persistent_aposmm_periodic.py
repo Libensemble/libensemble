@@ -3,8 +3,8 @@ Tests the 'periodic' domain use case for APOSMM with both NLopt and SciPy
 local optimization methods.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_periodic.py
-   python3 test_persistent_aposmm_periodic.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_persistent_aposmm_periodic.py
+   python test_persistent_aposmm_periodic.py --nworkers 3 --comms local
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -86,9 +86,15 @@ for run in range(2):
         assert persis_info[1].get('run_order'), "Run_order should have been given back"
         min_ids = np.where(H['local_min'])
 
-        # The minima are known on this test problem. If the above [lb,ub] domain is
+        # The minima are known on this test problem. If the above [lb, ub] domain is
         # shifted/scaled to [0,1]^n, they all have value [0.25, 0.75] or [0.75, 0.25]
         minima = np.array([[0.25, 0.75], [0.75, 0.25]])
-        tol = 1e-4
+        tol = 2e-4
+
+        for x in H['x_on_cube'][min_ids]:
+            print(x)
+            print(np.linalg.norm(x - minima[0]))
+            print(np.linalg.norm(x - minima[1]), flush=True)
+
         for x in H['x_on_cube'][min_ids]:
             assert np.linalg.norm(x - minima[0]) < tol or np.linalg.norm(x - minima[1]) < tol

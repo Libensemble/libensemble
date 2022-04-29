@@ -7,7 +7,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
     """
     This allocation function will give simulation work if possible, but
     otherwise start 1 persistent generator.  If all points requested by
-    the persistent generator for a given (x_ind,f_ind) pair have been returned from the
+    the persistent generator for a given (x_ind, f_ind) pair have been returned from the
     simulation evaluation, then this information is given back to the
     persistent generator (where x_ind is in range(n) and f_ind is in range(p))
 
@@ -18,11 +18,8 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
     if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
         return {}, persis_info
 
-    user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_persis_gens()
 
@@ -36,21 +33,22 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
 
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.
-        inds_not_sent_back = ~H['given_back']
+        inds_not_sent_back = ~H['gen_informed']
         H_tmp = H[inds_not_sent_back]
 
         inds_to_send = np.array([], dtype=int)
         for x_ind in range(gen_specs['user']['n']):
             for f_ind in range(gen_specs['user']['p']):
-                inds = np.logical_and.reduce((H_tmp['x_ind'] == x_ind, H_tmp['f_ind'] == f_ind, H_tmp['returned']))
+                inds = np.logical_and.reduce((H_tmp['x_ind'] == x_ind, H_tmp['f_ind'] == f_ind, H_tmp['sim_ended']))
                 if sum(inds) == gen_specs['user']['nf']:
                     inds_to_send = np.append(inds_to_send, H_tmp['sim_id'][inds])
 
         if len(inds_to_send):
-            Work[wid] = support.gen_work(wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid),
-                                         persistent=True)
+            Work[wid] = support.gen_work(
+                wid, gen_specs['persis_in'], inds_to_send, persis_info.get(wid), persistent=True
+            )
 
-    points_to_evaluate = ~H['given'] & ~H['cancel_requested']
+    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
     for wid in support.avail_worker_ids(persistent=False):
         if np.any(points_to_evaluate):
             # perform sim evaluations (if they exist in History).

@@ -5,7 +5,7 @@ Unit test of timers for libensemble.
 """
 
 import time
-from libensemble.utils.timer import Timer
+from libensemble.utils.timer import Timer, TaskTimer
 
 
 def test_timer():
@@ -37,8 +37,7 @@ def test_timer():
     assert s2[0:2] == "20", "End year is 20xx"
 
     s3 = "{}".format(timer)
-    assert s3 == "Time: {0:.3f} Start: {1} End: {2}".format(e3, s1, s2), \
-        "Check string formatting."
+    assert s3 == "Time: {0:.3f} Start: {1} End: {2}".format(e3, s1, s2), "Check string formatting."
 
     time.sleep(0.2)
     time_start = time.time()
@@ -48,11 +47,14 @@ def test_timer():
 
     time_end = time.time() - time_start + time_mid
 
-    assert total1 >= 1 and total1 <= time_end, \
-        "Check cumulative timing (active)."
-    assert timer.total >= 1 and timer.total <= time_end, \
-        "Check cumulative timing (not active)."
+    assert total1 >= 1 and total1 <= time_end, "Check cumulative timing (active)."
+    assert timer.total >= 1 and timer.total <= time_end, "Check cumulative timing (not active)."
+
+
+def test_TaskTimer():
+    print(TaskTimer())
 
 
 if __name__ == "__main__":
     test_timer()
+    test_TaskTimer()

@@ -4,7 +4,7 @@ Allocation Functions
 Although the included allocation functions, or ``alloc_f``'s are sufficient for
 most users, those who want to fine-tune how data or resources are allocated to their ``gen_f``
 and ``sim_f`` can write their own. The ``alloc_f`` is unique since it is called
-by the libEnsemble's manager instead of a worker.
+by libEnsemble's manager instead of a worker.
 
 Most ``alloc_f`` function definitions written by users resemble::
 
@@ -24,15 +24,10 @@ with the allocation function is usually not necessary::
             return {}, persis_info
 
 If allocation is to continue, a support class is instantiated (see below), and a
-:doc:`Work dictionary<../data_structures/work_dict>` is inititialized::
+:doc:`Work dictionary<../data_structures/work_dict>` is initialized::
 
-        user = alloc_specs.get('user', {})
-        sched_opts = user.get('scheduler_opts', {})
         manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-
-        support = AllocSupport(W, manage_resources, persis_info, sched_opts)
-
-        gen_count = support.count_gens()
+        support = AllocSupport(W, manage_resources, persis_info, libE_info)
         Work = {}
 
 This Work dictionary is populated with integer keys ``wid`` for each worker and
@@ -96,9 +91,9 @@ routine can be found in ``libE_info``, passed into the allocation function::
     libE_info =  {'exit_criteria': dict,               # Criteria for ending routine
                   'elapsed_time': float,               # Time elapsed since start of routine
                   'manager_kill_canceled_sims': bool,  # True if manager is to send kills to cancelled simulations
-                  'given_count': int,                  # Total number of points given for simulation function evaluation
-                  'returned_count': int,               # Total number of points returned from simulation function evaluations
-                  'given_back_count': int,             # Total number of evaluated points given back to a generator function
+                  'sim_started_count': int,              # Total number of points given for simulation function evaluation
+                  'sim_ended_count': int,                # Total number of points returned from simulation function evaluations
+                  'gen_informed_count': int,           # Total number of evaluated points given back to a generator function
                   'sim_max_given': bool,               # True if `sim_max` simulations have been given out to workers
                   'use_resource_sets': bool}           # True if num_resource_sets has been explicitly set.
 
@@ -113,7 +108,7 @@ allocation function and detect impending timeouts, then pack up cleanup work req
 or mark points for cancellation.
 
 The remaining values above are useful for efficient filtering of H values
-(e.g. ``returned_count``), saves a filtering an entire column of H.
+(e.g. ``sim_ended_count``), saves a filtering an entire column of H.
 
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle

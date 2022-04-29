@@ -5,12 +5,14 @@ Six-hump camel function is documented here:
   https://www.sfu.ca/~ssurjano/camel6.html
 
 """
-__all__ = ['six_hump_camel', 'six_hump_camel_simple',
-           'six_hump_camel_with_variable_resources',
-           'six_hump_camel_CUDA_variable_resources',
-           'persistent_six_hump_camel']
+__all__ = [
+    'six_hump_camel',
+    'six_hump_camel_simple',
+    'six_hump_camel_with_variable_resources',
+    'six_hump_camel_CUDA_variable_resources',
+    'persistent_six_hump_camel',
+]
 
-# import subprocess
 import os
 import sys
 import numpy as np
@@ -86,22 +88,23 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
     exctr = Executor.executor  # Get Executor
     task_states = []
     for i, x in enumerate(H['x']):
-        # If set_cores_by_rsets is set - set nprocs here (you can oversubscribe on node)
-        # else let automatic resources set nodes/procs to use all available set.
         nprocs = None  # Will be as if argument is not present
         if set_cores_by_rsets:
             resources = Resources.resources.worker_resources
             nprocs = resources.num_rsets * core_multiplier
-            # print('nprocs is',nprocs,flush=True)
 
         inpt = None  # Will be as if argument is not present
         if app == 'six_hump_camel':
             inpt = ' '.join(map(str, H['x'][i]))
 
-        task = exctr.submit(app_name=app, app_args=inpt,
-                            num_procs=nprocs,
-                            stdout='out.txt', stderr='err.txt',
-                            dry_run=dry_run)
+        task = exctr.submit(
+            app_name=app,
+            app_args=inpt,
+            num_procs=nprocs,
+            stdout='out.txt',
+            stderr='err.txt',
+            dry_run=dry_run,
+        )
         task.wait()
         # while(not task.finished):
         #     time.sleep(0.1)
@@ -116,10 +119,6 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
         else:
             # To return something in test
             H_o['f'][i] = six_hump_camel_func(x)
-
-        # v = np.random.uniform(0, 10)
-        # print('About to sleep for :' + str(v))
-        # time.sleep(v)
 
     calc_status = UNSET_TAG  # Returns to worker
     if all(t == 'FINISHED' for t in task_states):
@@ -141,27 +140,35 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
-    if resources.even_slots:  # Need same slots on each node
-        resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
-        num_nodes = resources.local_node_count
-        cores_per_node = resources.slot_count  # One CPU per GPU
-        print('CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}'
-              .format(os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node), flush=True)
-    else:
-        # Unless use a matching sub-set, but usually you probably don't want this
-        print('Error: Cannot set CUDA_VISIBLE_DEVICES when uneven slots on nodes {}'.format(resources.slots))
+    slots = resources.slots
+
+    assert resources.matching_slots, "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}".format(
+        slots
+    )
+
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    num_nodes = resources.local_node_count
+    cores_per_node = resources.slot_count  # One CPU per GPU
+
+    print(
+        'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
+            libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
+        )
+    )
 
     # Create application input file
     inpt = ' '.join(map(str, x))
     exctr = Executor.executor  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
-    task = exctr.submit(app_name='six_hump_camel',
-                        app_args=inpt,
-                        num_nodes=num_nodes,
-                        procs_per_node=cores_per_node,
-                        stdout='out.txt',
-                        stderr='err.txt')
+    task = exctr.submit(
+        app_name='six_hump_camel',
+        app_args=inpt,
+        num_nodes=num_nodes,
+        procs_per_node=cores_per_node,
+        stdout='out.txt',
+        stderr='err.txt',
+    )
 
     task.wait()  # Wait for run to complete
 
@@ -217,9 +224,9 @@ def six_hump_camel_func(x):
     """
     x1 = x[0]
     x2 = x[1]
-    term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2
-    term2 = x1*x2
-    term3 = (-4+4*x2**2) * x2**2
+    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+    term2 = x1 * x2
+    term3 = (-4 + 4 * x2**2) * x2**2
 
     return term1 + term2 + term3
 
@@ -233,8 +240,8 @@ def six_hump_camel_grad(x):
     x2 = x[1]
     grad = np.zeros(2)
 
-    grad[0] = 2.0*(x1**5 - 4.2*x1**3 + 4.0*x1 + 0.5*x2)
-    grad[1] = x1 + 16*x2**3 - 8*x2
+    grad[0] = 2.0 * (x1**5 - 4.2 * x1**3 + 4.0 * x1 + 0.5 * x2)
+    grad[1] = x1 + 16 * x2**3 - 8 * x2
 
     return grad
 

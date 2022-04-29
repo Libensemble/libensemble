@@ -1,5 +1,5 @@
-MPI Executor
-============
+MPI Executor - MPI apps
+=======================
 
 .. automodule:: mpi_executor
   :no-undoc-members:

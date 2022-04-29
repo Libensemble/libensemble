@@ -11,6 +11,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
     for a ``'batch_mode'``.
 
+    tags: alloc, simple, fast, batch, aposmm
+
     .. seealso::
         `test_old_aposmm_with_gradients.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
@@ -19,10 +21,9 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         return {}, persis_info
 
     user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
 
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_gens()
 
@@ -47,13 +48,13 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if user.get('batch_mode') and not support.all_returned(pt_filter=~H['paused'], low_bound=last_size):
+                if user.get('batch_mode') and not support.all_sim_ended(pt_filter=~H['paused'], low_bound=last_size):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
                     runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']), dtype=bool)
                     for run, inds in enumerate(persis_info[lw]['run_order'].values()):
-                        runs_needing_to_advance[run] = H['returned'][inds[-1]]
+                        runs_needing_to_advance[run] = H['sim_ended'][inds[-1]]
 
                     if not np.any(runs_needing_to_advance):
                         break

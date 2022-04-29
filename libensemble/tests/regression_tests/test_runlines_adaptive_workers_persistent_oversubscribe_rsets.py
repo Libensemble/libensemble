@@ -5,7 +5,7 @@ Default setup is designed to run on 2*N + 1 workers - to modify, change total_no
 where one worker is a zero-resource persistent gen.
 
 Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 6 python3 test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
+   mpiexec -np 6 python test_runlines_adaptive_workers_persistent_oversubscribe_rsets.py
 
 This is a dry run test, mocking up the nodes available. To test the run-lines
 requires running a fixed, rather than random number of resource sets for a given sim_id.
@@ -16,10 +16,10 @@ requires running a fixed, rather than random number of resource sets for a given
 # TESTSUITE_NPROCS: 6
 
 import numpy as np
-import pkg_resources
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
 from libensemble.gen_funcs.persistent_uniform_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
@@ -44,7 +44,7 @@ if total_nodes == 1:
 else:
     max_rsets = 6  # Will expand to 2 full nodes
 
-sim_app = pkg_resources.resource_filename('libensemble.sim_funcs', 'helloworld.py')
+sim_app = helloworld.__file__
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name='helloworld')
 
@@ -89,7 +89,7 @@ libE_specs['resource_info'] = {
 }  # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': 40, 'elapsed_wallclock_time': 300}
+exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
 
 # Perform the run
 H, persis_info, flag = libE(

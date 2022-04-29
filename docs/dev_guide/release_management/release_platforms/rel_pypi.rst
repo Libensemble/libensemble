@@ -15,7 +15,7 @@ and does not contain the required PKG-INFO file.
 You will need logon credentials for the libEnsemble PyPI. You will also need
 twine (which can be pip or Conda installed).
 
-In the package directory on the master branch (the one containing setup.py) do
+In the package directory on the main branch (the one containing setup.py) do
 the following:
 
 Create distribution::

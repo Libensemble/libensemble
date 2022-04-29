@@ -11,18 +11,18 @@ def EvaluateFunction(theta, component, X, b, c, reg):
     b_i = b[i]
     X_i = X[:, i]
 
-    f_i = max(0, 1-b_i*np.dot(X_i, theta))
+    f_i = max(0, 1 - b_i * np.dot(X_i, theta))
 
     assert reg == 'l1', "Only l1 regularization allowed"
 
     # if reg is None:
     #     reg_val = 0
     # elif reg == 'l1':
-    reg_val = (c/m) * np.sum(np.abs(theta))
+    reg_val = (c / m) * np.sum(np.abs(theta))
     # else:
     #     reg_val = (c/m) * np.dot(theta, theta)
 
-    return f_i+reg_val
+    return f_i + reg_val
 
 
 def EvaluateJacobian(theta, component, X, b, c, reg):
@@ -36,7 +36,7 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     b_i = b[i]
     X_i = X[:, i]
 
-    score = b_i*np.dot(X_i, theta)
+    score = b_i * np.dot(X_i, theta)
 
     if score >= 1:
         df_i = np.zeros(len(theta))
@@ -48,11 +48,11 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     # if reg is None:
     #     reg_val = 0
     # elif reg == 'l1':
-    reg_val = (c/m) * np.sign(theta)
+    reg_val = (c / m) * np.sign(theta)
     # else:
     #     reg_val = (2*c/m) * theta
 
-    return df_i+reg_val
+    return df_i + reg_val
 
 
 def svm_eval(H, persis_info, sim_specs, _):
@@ -62,8 +62,7 @@ def svm_eval(H, persis_info, sim_specs, _):
     c = persis_info['params']['c']
     reg = persis_info['params'].get('reg', None)
 
-    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), \
-        'Incompatable regularization {}'.format(reg)
+    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), 'Incompatible regularization {}'.format(reg)
 
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])

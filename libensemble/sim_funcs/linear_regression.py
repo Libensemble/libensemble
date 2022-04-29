@@ -12,16 +12,16 @@ def EvaluateFunction(theta, component, X, y, c, reg):
     X_i = X[:, i]
     XT_theta = np.dot(X_i, theta)
 
-    f_i = (1/m) * (np.dot(y_i, y_i) - 2*y_i*XT_theta + XT_theta**2)
+    f_i = (1 / m) * (np.dot(y_i, y_i) - 2 * y_i * XT_theta + XT_theta**2)
 
     assert reg == 'l2', "Only l2 regularization allowed"
     # if reg is None:
     #     reg_val = 0
     # elif reg == 'l1':
     #     reg_val = (c/m) * np.sum(np.abs(theta))
-    reg_val = (c/m) * np.dot(theta, theta)
+    reg_val = (c / m) * np.dot(theta, theta)
 
-    return f_i+reg_val
+    return f_i + reg_val
 
 
 def EvaluateJacobian(theta, component, X, y, c, reg):
@@ -35,7 +35,7 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
     y_i = y[i]
     X_i = X[:, i]
 
-    df_i = (2/m) * (-y_i + np.dot(X_i, theta)) * X_i
+    df_i = (2 / m) * (-y_i + np.dot(X_i, theta)) * X_i
 
     assert reg == 'l2', "Only l2 regularization allowed"
 
@@ -43,9 +43,9 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
     #     reg_val = 0
     # elif reg == 'l1':
     #     reg_val = (c/m) * np.sign(theta)
-    reg_val = (2*c/m) * theta
+    reg_val = (2 * c / m) * theta
 
-    return df_i+reg_val
+    return df_i + reg_val
 
 
 def linear_regression_eval(H, persis_info, sim_specs, _):
@@ -55,8 +55,7 @@ def linear_regression_eval(H, persis_info, sim_specs, _):
     c = persis_info['params']['c']
     reg = persis_info['params'].get('reg', None)
 
-    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), \
-        'Incompatable regularization {}'.format(reg)
+    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), 'Incompatible regularization {}'.format(reg)
 
     batch = len(H['x'])
     H_o = np.zeros(batch, dtype=sim_specs['out'])

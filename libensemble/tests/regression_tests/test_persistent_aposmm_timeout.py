@@ -3,9 +3,9 @@ Test the APOSMM generator function's capabilities to properly exit when a
 timeout has occurred.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python3 test_persistent_aposmm_timeout.py
-   python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms local
-   python3 test_persistent_aposmm_timeout.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_timeout.py
+   python test_persistent_aposmm_timeout.py --nworkers 3 --comms local
+   python test_persistent_aposmm_timeout.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -66,8 +66,8 @@ gen_specs = {
 
 alloc_specs = {'alloc_f': alloc_f}
 
-# Setting a very high sim_max value and a short elapsed_wallclock_time so timeout will occur
-exit_criteria = {'sim_max': 50000, 'elapsed_wallclock_time': 5}
+# Setting a very high sim_max value and a short wallclock_max so timeout will occur
+exit_criteria = {'sim_max': 50000, 'wallclock_max': 5}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 

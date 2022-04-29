@@ -27,19 +27,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
         return {}, persis_info
 
-    user = alloc_specs.get('user', {})
-    sched_opts = user.get('scheduler_opts', {})
     manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
-
-    support = AllocSupport(W, manage_resources, persis_info, sched_opts)
+    support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_gens()
 
     if gen_specs['user'].get('single_component_at_a_time'):
-        assert alloc_specs['user']['batch_mode'], ("Must be in batch mode when using 'single_component_at_a_time'")
+        assert alloc_specs['user']['batch_mode'], "Must be in batch mode when using 'single_component_at_a_time'"
     if len(H) != persis_info['H_len']:
         # Something new is in the history.
-        persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len']:].tolist())
+        persis_info['need_to_give'].update(H['sim_id'][persis_info['H_len'] :].tolist())
         persis_info['H_len'] = len(H)
         persis_info['pt_ids'] = set(np.unique(H['pt_id']))
         for pt_id in persis_info['pt_ids']:
@@ -78,7 +75,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                     if 'local_pt' in H.dtype.names and H['local_pt'][a1][0]:
                         persis_info['local_pt_ids'].add(pt_id)
 
-                    if np.all(H['returned'][a1]):
+                    if np.all(H['sim_ended'][a1]):
                         persis_info['complete'].add(pt_id)
                         values = gen_specs['user']['combine_component_func'](H['f_i'][a1])
                         persis_info['best_complete_val'] = min(persis_info['best_complete_val'], values)
@@ -91,10 +88,12 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
                     worse_flag = np.zeros(len(pt_ids), dtype=bool)
                     for j, pt_id in enumerate((pt_ids)):
-                        if (not np.isnan(partial_fvals[j])) and \
-                           (pt_id not in persis_info['local_pt_ids']) and \
-                           (pt_id not in persis_info['complete']) and \
-                           (partial_fvals[j] > persis_info['best_complete_val']):
+                        if (
+                            (not np.isnan(partial_fvals[j]))
+                            and (pt_id not in persis_info['local_pt_ids'])
+                            and (pt_id not in persis_info['complete'])
+                            and (partial_fvals[j] > persis_info['best_complete_val'])
+                        ):
                             worse_flag[j] = True
 
                     # Pause incomplete evaluations with worse_flag==True
@@ -123,14 +122,15 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             last_size = persis_info.get('last_size')
             if len(H):
                 # Don't give gen instances in batch mode if points are unfinished
-                if (alloc_specs['user'].get('batch_mode')
-                        and not all(np.logical_or(H['returned'][last_size:], H['paused'][last_size:]))):
+                if alloc_specs['user'].get('batch_mode') and not all(
+                    np.logical_or(H['sim_ended'][last_size:], H['paused'][last_size:])
+                ):
                     break
                 # Don't call APOSMM if there are runs going but none need advancing
                 if len(persis_info[lw]['run_order']):
                     runs_needing_to_advance = np.zeros(len(persis_info[lw]['run_order']), dtype=bool)
                     for run, inds in enumerate(persis_info[lw]['run_order'].values()):
-                        runs_needing_to_advance[run] = np.all(H['returned'][inds])
+                        runs_needing_to_advance[run] = np.all(H['sim_ended'][inds])
 
                     if not np.any(runs_needing_to_advance):
                         break
