@@ -85,9 +85,9 @@ The full list of these reserved fields is given below.
 
 ``gen_worker`` [int]: Worker that generated this entry
 
-``gen_started_time`` [ float]: Time gen_worker was initiated that produced this entry
+``gen_started_time`` [float]: Time gen_worker was initiated that produced this entry
 
-``gen_ended_time`` [ float]: Time gen_worker requested this entry
+``gen_ended_time`` [float]: Time gen_worker requested this entry
 
 ``sim_worker`` [int]: Worker that did (or is doing) the sim evaluation for this entry
 

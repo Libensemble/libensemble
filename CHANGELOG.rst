@@ -8,7 +8,6 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
-
 Release 0.9.0
 -------------
 
@@ -29,12 +28,12 @@ https://github.com/Libensemble/libensemble/wiki/Updating-for-libEnsemble-v0.9.0
 * Scheduler options moved from `alloc_specs['user']` to `libE_specs`. #790
 * `BalsamMPIExecutor` is now `LegacyBalsamMPIExecutor`. #729
 * The exit_criteria `elapsed_wallclock_time` has been renamed `wallclock_max`.  #750 (with a deprecation warning)
-* Improved libE field naming in history array. #760
+* Clearer and consistent naming of libE-protected fields in history array. #760
 
 Updates to example functions:
 
 * Moved some examples to new repository - [libe-community-examples](https://github.com/Libensemble/libe-community-examples) (VTMOP, DEAP, DeepDriveMD).  #716,  #721, #726
-* Updates to tasmanian examples to include asynchronous generator example. #727 / #732
+* Updates to Tasmanian examples to include asynchronous generator example. #727 / #732
 * Added multi-task, multi-fidelity optimization regression tests using `ax`. #717 / #720
 
 Other functionality enhancements:
