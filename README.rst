@@ -1,6 +1,6 @@
-    .. image:: docs/images/libE_logo.png
-       :align: center
-       :alt: libEnsemble
+.. image:: docs/images/libEnsemble_Logo.svg
+   :align: center
+   :alt: libEnsemble
 
 |
 
@@ -82,7 +82,7 @@ Optional dependencies:
 
 * Balsam_
 
-As of v0.8.0+dev, libEnsemble features an updated `Balsam Executor`_
+As of v0.9.0, libEnsemble features an updated `Balsam Executor`_
 for workers to schedule and launch applications to *anywhere* with a running
 Balsam site, including to remote machines.
 
@@ -93,7 +93,7 @@ As of v0.8.0, libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
-As of v0.8.0+dev, libEnsemble features a cross-system capability powered by funcX_,
+As of v0.9.0, libEnsemble features a cross-system capability powered by funcX_,
 a function-as-a-service platform to which workers can submit remote generator or
 simulator function instances. This feature can help distribute an ensemble
 across systems and heterogeneous resources.
@@ -238,8 +238,8 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.8.0+dev},
-    year    = {2021},
+    number  = {Revision 0.9.0},
+    year    = {2022},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
 

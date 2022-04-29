@@ -36,6 +36,7 @@ from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
+from libensemble.sim_funcs.surmise_test_function import tstd2theta
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
@@ -117,3 +118,6 @@ if __name__ == '__main__':
         sims_done = np.count_nonzero(H['sim_ended'])
         save_libE_output(H, persis_info, __file__, nworkers)
         assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
+
+        # The following line is only to cover parts of tstd2theta
+        tstd2theta(H[0]['thetas'].squeeze(), hard=False)

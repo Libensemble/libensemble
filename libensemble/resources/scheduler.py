@@ -289,8 +289,8 @@ class ResourceScheduler:
                     orig_rsets_req = rsets_req
                     rsets_req = num_groups_req * rsets_per_group
                     self.log_msg = (
-                        "Increasing resource requirement to obtain an even partition of resource sets"
-                        "\nto nodes. rsets_req orig: {} New: {}  num_groups_req {} rsets_per_group {}".
+                        "Increasing resource requirement to obtain an even partition of resource sets\n"
+                        "to nodes. rsets_req orig: {} New: {}  num_groups_req {} rsets_per_group {}".
                         format(orig_rsets_req, rsets_req, num_groups_req, rsets_per_group)
                     )
                 else:

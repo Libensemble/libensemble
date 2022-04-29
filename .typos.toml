@@ -5,4 +5,4 @@ numer = "numer"
 inout = "inout"
 
 [files]
-extend-exclude = ["*.bib"]
+extend-exclude = ["*.bib", "*.xml"]

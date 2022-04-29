@@ -242,6 +242,8 @@ def test_launch_and_wait_timeout():
     try:
         task.wait(timeout=0.5)
     except TimeoutExpired:
+        print(task)
+        print(TimeoutExpired)
         assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
         task.kill()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -735,6 +737,18 @@ def test_futures_interface_cancel():
     assert task.cancelled() and task.done(), "Task should be both cancelled() and done() after cancellation."
 
 
+def test_dry_run():
+    """Test of dry_run in poll"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = 'sleep 0.2'
+    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, dry_run=True)
+    task.poll()
+    task.kill()
+
+
 if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
@@ -762,4 +776,5 @@ if __name__ == "__main__":
     test_serial_startup_times()
     test_futures_interface()
     test_futures_interface_cancel()
+    test_dry_run()
     teardown_module(__file__)
