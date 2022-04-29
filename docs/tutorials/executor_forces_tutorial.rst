@@ -312,7 +312,7 @@ Where ``status`` is set based on the simulation function's returned ``calc_statu
 My ``ensemble.log`` (on a ten-core laptop) resembled::
 
   [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
-  [0]  ... libensemble.libE (INFO): libE version v0.8.0+dev
+  [0]  ... libensemble.libE (INFO): libE version v0.9.0
   [0]  ... libensemble.manager (INFO): Manager initiated on node my_laptop
   [0]  ... libensemble.manager (INFO): Manager exit_criteria: {'sim_max': 8}
   [1]  ... libensemble.worker (INFO): Worker 1 initiated on node my_laptop
