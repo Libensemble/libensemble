@@ -3,6 +3,19 @@
 # This is for setting up libEnsemble, license and details can be
 # found at https://github.com/Libensemble/libensemble/
 
+"""libEnsemble
+
+libEnsemble is a Python toolkit for coordinating workflows of asynchronous
+and dynamic ensembles of calculations.
+
+libEnsemble can help users take advantage of massively parallel resources to
+solve design, decision, and inference problems and expand the class of
+problems that can benefit from increased parallelism.
+
+"""
+
+DOCLINES = (__doc__ or '').split("\n")
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
@@ -36,6 +49,7 @@ setup(
     name='libensemble',
     version=__version__,
     description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
+    long_description="\n".join(DOCLINES[2:]),
     url='https://github.com/Libensemble/libensemble',
     author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
     author_email='libensemble@lists.mcs.anl.gov',
