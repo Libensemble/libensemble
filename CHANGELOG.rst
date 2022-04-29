@@ -38,7 +38,7 @@ Updates to example functions:
 
 Other functionality enhancements:
 
-* Non-blocking option added for worker receives. #752
+* Non-blocking option added for persistent user function receives. #752
 * Added `match_slots` option to resource scheduler. #746
 
 Documentation:
@@ -53,7 +53,7 @@ Documentation:
 :Note:
 
 * Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system), Perlmutter (HPE Cray EX with A100 NVIDIA GPUs).
-* Tested Python versions: (Cpython) 3.6, 3.7, 3.8, 3.9, 3.10.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10.
 
 :Known issues:
 
