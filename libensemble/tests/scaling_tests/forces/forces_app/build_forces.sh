@@ -41,3 +41,6 @@ mpicc -O3 -o forces.x forces.c -lm
 
 # Intel Gen9 GPU
 # env MPICH_CC=icx mpigcc -g -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
+
+# Crusher (AMD ROCm compiler)
+# cc -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
