@@ -5,9 +5,9 @@ description: |
   libEnsemble is a Python toolkit for coordinating workflows of asynchronous
   and dynamic ensembles of calculations.
 
-  Users write generator and simulator python functions to express their
-  ensembles. Select from a library of existing functions and modify as
-  desired.
+  Users write generator and simulator functions to express their ensembles.
+  Or users can modify functions from a library of example use cases.
+  These functions can be pure Python or depend on external executables.
 
 language: Python
 
