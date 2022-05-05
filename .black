@@ -32,7 +32,6 @@ force-exclude = '''
     | libensemble/resources/node_resources.py
     | libensemble/resources/mpi_resources.py
     | libensemble/resources/worker_resources.py
-    | libensemble/resources/resources.py
     | libensemble/resources/scheduler.py
 )
 '''
