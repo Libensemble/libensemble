@@ -14,10 +14,10 @@ problems that can benefit from increased parallelism.
 
 """
 
-DOCLINES = (__doc__ or '').split("\n")
-
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
+
+DOCLINES = (__doc__ or '').split("\n")
 
 exec(open('libensemble/version.py').read())
 
