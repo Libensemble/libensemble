@@ -17,10 +17,15 @@ import logging
 import itertools
 import time
 
-from libensemble.message_numbers import (UNSET_TAG, MAN_SIGNAL_FINISH,
-                                         MAN_SIGNAL_KILL, WORKER_DONE,
-                                         TASK_FAILED, WORKER_KILL_ON_TIMEOUT,
-                                         STOP_TAG)
+from libensemble.message_numbers import (
+    UNSET_TAG,
+    MAN_SIGNAL_FINISH,
+    MAN_SIGNAL_KILL,
+    WORKER_DONE,
+    TASK_FAILED,
+    WORKER_KILL_ON_TIMEOUT,
+    STOP_TAG,
+)
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
@@ -57,12 +62,13 @@ class ExecutorException(Exception):
 
 class TimeoutExpired(Exception):
     """Timeout exception raised when Timeout expires"""
+
     def __init__(self, task, timeout):
         self.task = task
         self.timeout = timeout
 
     def __str__(self):
-        return ("Task {} timed out after {} seconds".format(self.task, self.timeout))
+        return "Task {} timed out after {} seconds".format(self.task, self.timeout)
 
 
 def jassert(test, *args):
@@ -100,8 +106,7 @@ class Task:
     prefix = 'libe_task'
     newid = itertools.count()
 
-    def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None, dry_run=False):
+    def __init__(self, app=None, app_args=None, workdir=None, stdout=None, stderr=None, workerid=None, dry_run=False):
         """Instantiate a new Task instance.
 
         A new task object is created with an id, status and configuration
@@ -118,9 +123,7 @@ class Task:
         self.app_args = app_args
         self.workerID = workerid
 
-        jassert(app is not None,
-                "Task must be created with an app - no app found for task {}".
-                format(self.id))
+        jassert(app is not None, "Task must be created with an app - no app found for task {}".format(self.id))
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = Task.prefix + "_{}{}_{}".format(app.name, worker_name, self.id)
@@ -148,15 +151,13 @@ class Task:
 
     def file_exists_in_workdir(self, filename):
         """Returns true if the named file exists in the task's workdir"""
-        return (self.workdir
-                and os.path.exists(os.path.join(self.workdir, filename)))
+        return self.workdir and os.path.exists(os.path.join(self.workdir, filename))
 
     def read_file_in_workdir(self, filename):
-        """Opens and reads the named file in the task's workdir """
+        """Opens and reads the named file in the task's workdir"""
         path = os.path.join(self.workdir, filename)
         if not os.path.exists(path):
-            raise ValueError("{} not found in working directory".
-                             format(filename))
+            raise ValueError("{} not found in working directory".format(filename))
         with open(path) as f:
             return f.read()
 
@@ -190,13 +191,13 @@ class Task:
 
     def _check_poll(self):
         """Check whether polling this task makes sense."""
-        jassert(self.process is not None,
-                "Polled task {} has no process ID - check tasks been launched".
-                format(self.name))
+        jassert(
+            self.process is not None, "Polled task {} has no process ID - check tasks been launched".format(self.name)
+        )
         if self.finished:
-            logger.debug("Polled task {} has already finished. "
-                         "Not re-polling. Status is {}".
-                         format(self.name, self.state))
+            logger.debug(
+                "Polled task {} has already finished. " "Not re-polling. Status is {}".format(self.name, self.state)
+            )
             return False
         return True
 
@@ -209,10 +210,9 @@ class Task:
         else:
             self.calc_task_timing()
             self.errcode = self.process.returncode
-            self.success = (self.errcode == 0)
+            self.success = self.errcode == 0
             self.state = 'FINISHED' if self.success else 'FAILED'
-            logger.info("Task {} finished with errcode {} ({})".
-                        format(self.name, self.errcode, self.state))
+            logger.info("Task {} finished with errcode {} ({})".format(self.name, self.errcode, self.state))
 
     def poll(self):
         """Polls and updates the status attributes of the task"""
@@ -278,11 +278,11 @@ class Task:
         return self.errcode
 
     def running(self):
-        """ Return ```True`` if task is currently running."""
+        """Return ```True`` if task is currently running."""
         return self.state == 'RUNNING'
 
     def done(self):
-        """ Return ```True`` if task is finished."""
+        """Return ```True`` if task is finished."""
         return self.finished
 
     def kill(self, wait_time=60):
@@ -297,15 +297,17 @@ class Task:
             return
 
         if self.finished:
-            logger.warning("Trying to kill task that is no longer running. "
-                           "Task {}: Status is {}".format(self.name, self.state))
+            logger.warning(
+                "Trying to kill task that is no longer running. Task {}: Status is {}".format(self.name, self.state)
+            )
             return
 
         if self.process is None:
             time.sleep(0.2)
-            jassert(self.process is not None,
-                    "Attempting to kill task {} that has no process ID - "
-                    "check tasks been launched".format(self.name))
+            jassert(
+                self.process is not None,
+                "Attempting to kill task {} that has no process ID - check tasks been launched".format(self.name),
+            )
 
         logger.info("Killing task {}".format(self.name))
         launcher.cancel(self.process, wait_time)
@@ -318,7 +320,7 @@ class Task:
         self.kill(wait_time=None)
 
     def cancelled(self):
-        """ Return ```True`` if task successfully cancelled."""
+        """Return ```True`` if task successfully cancelled."""
         return self.state == 'USER_KILLED'
 
 
@@ -350,7 +352,7 @@ class Executor:
         while task.state in NOT_STARTED_STATES:
             time.sleep(0.02)
             task.poll()
-        logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time()-start))
+        logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time() - start))
         if not task.finished:
             task.timer.start()
             task.submit_time = task.timer.tstart
@@ -405,15 +407,15 @@ class Executor:
             app = self.apps[app_name]
         except KeyError:
             app_keys = list(self.apps.keys())
-            raise ExecutorException("Application {} not found in registry".format(app_name),
-                                    "Registered applications: {}".format(app_keys))
+            raise ExecutorException(
+                "Application {} not found in registry".format(app_name), "Registered applications: {}".format(app_keys)
+            )
         return app
 
     def default_app(self, calc_type):
         """Gets the default app for a given calc type"""
         app = self.default_apps.get(calc_type)
-        jassert(calc_type in ['sim', 'gen'],
-                "Unrecognized calculation type", calc_type)
+        jassert(calc_type in ['sim', 'gen'], "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
@@ -452,8 +454,7 @@ class Executor:
 
         # Default sim/gen apps will be deprecated. Just use names.
         if calc_type is not None:
-            jassert(calc_type in self.default_apps,
-                    "Unrecognized calculation type", calc_type)
+            jassert(calc_type in self.default_apps, "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
     def manager_poll(self):
@@ -482,13 +483,12 @@ class Executor:
         elif man_signal == MAN_SIGNAL_KILL:
             self.manager_signal = 'kill'
         else:
-            logger.warning("Received unrecognized manager signal {} - "
-                           "ignoring".format(man_signal))
+            logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
     def polling_loop(self, task, timeout=None, delay=0.1, poll_manager=False):
-        """ Optional, blocking, generic task status polling loop. Operates until the task
+        """Optional, blocking, generic task status polling loop. Operates until the task
         finishes, times out, or is optionally killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
         for running an application via the Executor until it stops without monitoring
@@ -543,13 +543,14 @@ class Executor:
             elif task.state == 'FAILED':
                 calc_status = TASK_FAILED
             else:
-                logger.warning("Warning: Task {} in unknown state {}. Error code {}"
-                               .format(self.name, self.state, self.errcode))
+                logger.warning(
+                    "Warning: Task {} in unknown state {}. Error code {}".format(self.name, self.state, self.errcode)
+                )
 
         return calc_status
 
     def get_task(self, taskid):
-        """ Returns the task object for the supplied task ID """
+        """Returns the task object for the supplied task ID"""
         task = next((j for j in self.list_of_tasks if j.id == taskid), None)
         if task is None:
             logger.warning("Task {} not found in tasklist".format(taskid))
@@ -564,8 +565,9 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
-    def submit(self, calc_type=None, app_name=None, app_args=None,
-               stdout=None, stderr=None, dry_run=False, wait_on_start=False):
+    def submit(
+        self, calc_type=None, app_name=None, app_args=None, stdout=None, stderr=None, dry_run=False, wait_on_start=False
+    ):
         """Create a new task and run as a local serial subprocess.
 
         The created task object is returned.
@@ -623,14 +625,16 @@ class Executor:
             logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
         else:
             # Launch Task
-            logger.info("Launching task {}: {}".
-                        format(task.name, " ".join(runline)))
+            logger.info("Launching task {}: {}".format(task.name, " ".join(runline)))
             with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
-                task.process = launcher.launch(runline, cwd='./',
-                                               stdout=out,
-                                               stderr=err,
-                                               start_new_session=False)
-            if (wait_on_start):
+                task.process = launcher.launch(
+                    runline,
+                    cwd='./',
+                    stdout=out,
+                    stderr=err,
+                    start_new_session=False,
+                )
+            if wait_on_start:
                 self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
 
             if not task.timer.timing:
