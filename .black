@@ -8,9 +8,6 @@ force-exclude = '''
     | \.git       
     | \.github       
     | docs
-    | libensemble/tools
-    | libensemble/resources
-    | libensemble/executors
   )/
     | libensemble/history.py
     | libensemble/libE.py
@@ -23,5 +20,28 @@ force-exclude = '''
     | libensemble/tests/unit_tests/test_loc_stack.py
     | libensemble/tests/unit_tests/test_resource_scheduler.py
     | libensemble/tests/unit_tests/test_sim_dir_properties.py
+    | libensemble/tools/forkable_pdb.py
+    | libensemble/tools/__init__.py
+    | libensemble/tools/consensus_subroutines.py
+    | libensemble/tools/persistent_support.py
+    | libensemble/tools/check_inputs.py
+    | libensemble/tools/alloc_support.py
+    | libensemble/tools/parse_args.py
+    | libensemble/tools/tools.py
+    | libensemble/tools/fields_keys.py
+    | libensemble/executors/mpi_runner.py
+    | libensemble/executors/mpi_executor.py
+    | libensemble/executors/legacy_balsam_executor.py
+    | libensemble/executors/__init__.py
+    | libensemble/executors/executor.py
+    | libensemble/executors/balsam_executor.py
+    | libensemble/resources/rset_resources.py
+    | libensemble/resources/__init__.py
+    | libensemble/resources/env_resources.py
+    | libensemble/resources/node_resources.py
+    | libensemble/resources/mpi_resources.py
+    | libensemble/resources/worker_resources.py
+    | libensemble/resources/resources.py
+    | libensemble/resources/scheduler.py
 )
 '''
