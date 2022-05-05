@@ -9,7 +9,6 @@ force-exclude = '''
     | \.github       
     | docs
   )/
-    | libensemble/history.py
     | libensemble/libE.py
     | libensemble/manager.py
     | libensemble/gen_funcs/old_aposmm.py
