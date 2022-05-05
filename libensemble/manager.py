@@ -114,7 +114,10 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
             EVAL_GEN_TAG: repack_fields(hist.H[gen_specs['in']]).dtype,
         }
     else:
-        dtypes = {EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype, EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype, }
+        dtypes = {
+            EVAL_SIM_TAG: hist.H[sim_specs['in']].dtype,
+            EVAL_GEN_TAG: hist.H[gen_specs['in']].dtype,
+        }
 
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
@@ -203,7 +206,9 @@ class Manager:
             logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
             self._kill_workers()
             raise ManagerException(
-                "Manager errored on initialization", "Ensemble directory already existed and wasn't empty.", e,
+                "Manager errored on initialization",
+                "Ensemble directory already existed and wasn't empty.",
+                e,
             )
 
     # --- Termination logic routines
@@ -265,7 +270,9 @@ class Manager:
     def _save_every_k_gens(self):
         """Saves history every kth gen step"""
         self._save_every_k(
-            'libE_history_for_run_starting_{}_after_gen_{}.npy', self.hist.index, self.libE_specs['save_every_k_gens'],
+            'libE_history_for_run_starting_{}_after_gen_{}.npy',
+            self.hist.index,
+            self.libE_specs['save_every_k_gens'],
         )
 
     # --- Handle outgoing messages to workers (work orders from alloc)
@@ -580,7 +587,13 @@ class Manager:
 
         alloc_f = self.alloc_specs['alloc_f']
         output = alloc_f(
-            self.W, H, self.sim_specs, self.gen_specs, self.alloc_specs, persis_info, self._get_alloc_libE_info(),
+            self.W,
+            H,
+            self.sim_specs,
+            self.gen_specs,
+            self.alloc_specs,
+            persis_info,
+            self._get_alloc_libE_info(),
         )
 
         if self.safe_mode:
