@@ -23,7 +23,6 @@ force-exclude = '''
     | libensemble/tools/alloc_support.py
     | libensemble/tools/parse_args.py
     | libensemble/executors/mpi_runner.py
-    | libensemble/executors/mpi_executor.py
     | libensemble/resources/mpi_resources.py
     | libensemble/resources/scheduler.py
 )
