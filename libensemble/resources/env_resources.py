@@ -33,11 +33,13 @@ class EnvResources:
     default_nodelist_env_lsf = 'LSB_HOSTS'
     default_nodelist_env_lsf_shortform = 'LSB_MCPU_HOSTS'
 
-    def __init__(self,
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+    def __init__(
+        self,
+        nodelist_env_slurm=None,
+        nodelist_env_cobalt=None,
+        nodelist_env_lsf=None,
+        nodelist_env_lsf_shortform=None,
+    ):
 
         """Initializes a new EnvResources instance
 
