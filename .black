@@ -7,7 +7,6 @@ force-exclude = '''
   /(
     | \.git       
     | \.github       
-    | docs
   )/
     | libensemble/libE.py
     | libensemble/gen_funcs/old_aposmm.py
