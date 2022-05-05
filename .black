@@ -22,7 +22,6 @@ force-exclude = '''
     | libensemble/tests/unit_tests/test_sim_dir_properties.py
     | libensemble/tools/forkable_pdb.py
     | libensemble/tools/consensus_subroutines.py
-    | libensemble/tools/persistent_support.py
     | libensemble/tools/check_inputs.py
     | libensemble/tools/alloc_support.py
     | libensemble/tools/parse_args.py
