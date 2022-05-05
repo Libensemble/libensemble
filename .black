@@ -26,7 +26,6 @@ force-exclude = '''
     | libensemble/tools/check_inputs.py
     | libensemble/tools/alloc_support.py
     | libensemble/tools/parse_args.py
-    | libensemble/tools/tools.py
     | libensemble/executors/mpi_runner.py
     | libensemble/executors/mpi_executor.py
     | libensemble/executors/legacy_balsam_executor.py
