@@ -10,7 +10,6 @@ force-exclude = '''
     | docs
   )/
     | libensemble/libE.py
-    | libensemble/manager.py
     | libensemble/gen_funcs/old_aposmm.py
     | libensemble/gen_funcs/persistent_aposmm.py
     | libensemble/gen_funcs/persistent_ax_multitask.py
