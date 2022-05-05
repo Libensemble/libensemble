@@ -17,8 +17,7 @@ Featured new capabilities:
 
 * New `Balsam` Executor with multi-site capability (run user applications on remote systems). #631, #729
 * Support for `funcX` (place user functions on remote systems).  #712 / #713
-* Added partial support for concurrent/futures interface. #719
-> (cancel(), cancelled(), done(), running(), result(), exception() and context manager)
+* Added partial support for concurrent/futures interface. (cancel(), cancelled(), done(), running(), result(), exception() and context manager) #719
 
 Breaking API / helper function changes:
 
