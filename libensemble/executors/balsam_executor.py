@@ -377,7 +377,7 @@ class BalsamExecutor(Executor):
             project=project,
             optional_params=optional_params,
             filter_tags=filter_tags,
-            partitions=partitions
+            partitions=partitions,
         )
 
         self.allocations.append(allocation)
