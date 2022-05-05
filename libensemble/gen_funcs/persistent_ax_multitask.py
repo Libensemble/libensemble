@@ -58,7 +58,12 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     parameters = []
     for i, (ub, lb) in enumerate(zip(ub_list, lb_list)):
         parameters.append(
-            RangeParameter(name='x{}'.format(i), parameter_type=ParameterType.FLOAT, lower=float(lb), upper=float(ub))
+            RangeParameter(
+                name='x{}'.format(i),
+                parameter_type=ParameterType.FLOAT,
+                lower=float(lb),
+                upper=float(ub),
+            )
         )
     search_space = SearchSpace(parameters=parameters)
 
