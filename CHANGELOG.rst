@@ -19,7 +19,6 @@ Featured new capabilities:
 * Support for `funcX` (place user functions on remote systems).  #712 / #713
 * Added partial support for concurrent/futures interface. (cancel(), cancelled(), done(), running(), result(), exception() and context manager) #719
 
-
 Breaking API / helper function changes:
 
 See "Updating for libEnsemble v0.9.0" wiki for details:
