@@ -16,7 +16,6 @@ force-exclude = '''
     | libensemble/tests/unit_tests/test_loc_stack.py
     | libensemble/tests/unit_tests/test_sim_dir_properties.py
     | libensemble/tools/check_inputs.py
-    | libensemble/tools/alloc_support.py
     | libensemble/tools/parse_args.py
     | libensemble/executors/mpi_runner.py
     | libensemble/resources/mpi_resources.py

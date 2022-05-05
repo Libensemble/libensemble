@@ -27,8 +27,9 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, manage_resources=False, persis_info={}, libE_info={},
-                 user_resources=None, user_scheduler=None):
+    def __init__(
+        self, W, manage_resources=False, persis_info={}, libE_info={}, user_resources=None, user_scheduler=None
+    ):
         """Instantiate a new AllocSupport instance
 
         ``W`` is. They are referenced by the various methods,
@@ -83,6 +84,7 @@ class AllocSupport:
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
+
         def fltr(wrk, field, option):
             """Filter by condition if supplied"""
             if option is None:
@@ -132,12 +134,12 @@ class AllocSupport:
 
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         if self.manage_resources and not libE_info.get('rset_team'):
-            if self.W[wid-1]['persis_state']:
+            if self.W[wid - 1]['persis_state']:
                 return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
                 if H is not None and H_rows is not None:
                     if 'resource_sets' in H.dtype.names:
-                        num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                        num_rsets_req = np.max(H[H_rows]['resource_sets'])  # sim rsets
                     else:
                         num_rsets_req = 1
                 else:
@@ -164,18 +166,23 @@ class AllocSupport:
         any resource checking has already been done.
 
         """
-        libE_info['rset_team'] = self._update_rset_team(libE_info, wid,
-                                                        H=H, H_rows=H_rows)  # to parse out resource_sets
+        # Parse out resource_sets
+        libE_info['rset_team'] = self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
 
-        work = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_SIM_TAG,
-                'libE_info': libE_info}
+        work = {
+            'H_fields': H_fields,
+            'persis_info': persis_info,
+            'tag': EVAL_SIM_TAG,
+            'libE_info': libE_info,
+        }
 
-        logger.debug("Alloc func packing SIM work for worker {}. Packing sim_ids: {}".
-                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        logger.debug(
+            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(
+                wid, EnsembleDirectory.extract_H_ranges(work) or None
+            )
+        )
         return work
 
     def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
@@ -201,20 +208,25 @@ class AllocSupport:
 
         libE_info['rset_team'] = self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid-1]['persis_state']:
+        if not self.W[wid - 1]['persis_state']:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info['gen_count'] = AllocSupport.gen_counter
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
 
-        work = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_GEN_TAG,
-                'libE_info': libE_info}
+        work = {
+            'H_fields': H_fields,
+            'persis_info': persis_info,
+            'tag': EVAL_GEN_TAG,
+            'libE_info': libE_info,
+        }
 
-        logger.debug("Alloc func packing GEN work for worker {}. Packing sim_ids: {}".
-                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        logger.debug(
+            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(
+                wid, EnsembleDirectory.extract_H_ranges(work) or None
+            )
+        )
         return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):
@@ -287,7 +299,7 @@ class AllocSupport:
         if 'priority' in H.dtype.fields:
             priorities = H['priority'][points_avail]
             if batch:
-                q_inds = (priorities == np.max(priorities))
+                q_inds = priorities == np.max(priorities)
             else:
                 q_inds = np.argmax(priorities)
         else:
@@ -308,8 +320,7 @@ class AllocSupport:
         try:
             H_rows = np.fromiter(H_rows, int)
         except Exception:
-            raise AllocException("H_rows could not be converted to a numpy array. Type {}".
-                                 format(type(H_rows)))
+            raise AllocException("H_rows could not be converted to a numpy array. Type {}".format(type(H_rows)))
         return H_rows
 
     @staticmethod
