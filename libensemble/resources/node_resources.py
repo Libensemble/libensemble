@@ -41,6 +41,7 @@ def _print_local_cpu_resources():
 def _get_remote_cpu_resources(launcher):
     """Launches a probe job to obtain logical and physical cores on remote node"""
     import subprocess
+
     output = subprocess.check_output([launcher, 'python', __file__])
     return output.decode()
 
@@ -86,7 +87,7 @@ def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None)
         if launcher in REMOTE_LAUNCH_LIST:
             cores_info = _get_cpu_resources_from_env(env_resources=env_resources)
             if cores_info:
-                return (cores_info)
+                return cores_info
             remote_detection = True  # Cannot obtain from environment
 
     if remote_detection:
@@ -95,7 +96,7 @@ def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None)
         cores_info = (int(cores_log), int(cores_phy))
     else:
         cores_info = _get_local_cpu_resources()
-    return (cores_info)
+    return cores_info
 
 
 if __name__ == "__main__":
