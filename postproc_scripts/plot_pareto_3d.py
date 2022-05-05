@@ -38,16 +38,16 @@ def get_pf(f):
 if len(sys.argv) > 1:
     hist = np.load(sys.argv[1])
 else:
-    print('You need to supply an .npy file - aborting')
+    print("You need to supply an .npy file - aborting")
     sys.exit()
 
 # Get first n results
 if len(sys.argv) > 2:
     n = int(sys.argv[2])
-    f_vals = hist['f'][:n]
+    f_vals = hist["f"][:n]
     pts = get_pf(f_vals)
 else:
-    print('You need to supply the budget - aborting')
+    print("You need to supply the budget - aborting")
     sys.exit()
 
 # Plot the contents of argv[1] when P=3.
@@ -65,12 +65,12 @@ ax = plt.axes(projection="3d")
 
 # Scatter the Pareto points.
 ax.scatter(obj1, obj2, obj3)
-ax.set_xlabel('F1')
-ax.set_ylabel('F2')
-ax.set_zlabel('F3')
+ax.set_xlabel("F1")
+ax.set_ylabel("F2")
+ax.set_zlabel("F3")
 
 # Print the title.
-plt.title('Tradeoff curve between objectives F1, F2, and F3')
+plt.title("Tradeoff curve between objectives F1, F2, and F3")
 
 # Display the figure.
 plt.show()

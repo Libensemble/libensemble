@@ -47,7 +47,7 @@ def add_app(name, exepath, desc):
 # import balsam.launcher.dag as dag
 stage_in = os.getcwd()
 
-default_script = 'test_jobexecutor.py'
+default_script = "test_jobexecutor.py"
 
 # if script provided use that - else default
 if len(sys.argv) > 1:
@@ -58,14 +58,14 @@ else:
 # print("script is", script)
 
 script_basename = os.path.splitext(script)[0]  # rm .py extension
-app_name = script_basename + '.app'
+app_name = script_basename + ".app"
 
 # Add app if its not already there
 AppDef = models.ApplicationDefinition
 app_exists = AppDef.objects.filter(name__contains=app_name)
 if not app_exists:
-    app_path = sys.executable + ' ' + script
-    app_desc = 'Test ' + script
+    app_path = sys.executable + " " + script
+    app_desc = "Test " + script
     add_app(app_name, app_path, app_desc)
 
 # Delete existing jobs
@@ -73,7 +73,7 @@ del_jobs()
 
 # Add the job
 job = dag.add_job(
-    name='job_' + script_basename,
+    name="job_" + script_basename,
     workflow="libe_workflow",  # add arg for this
     application=app_name,
     # application_args=job.app_args,

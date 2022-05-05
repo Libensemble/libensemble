@@ -28,7 +28,7 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = 'petsc'
+libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.gen_funcs.sampling import lhs_sample
@@ -46,20 +46,20 @@ n = 3
 budget = 10
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('fvec', float, m)],
-    'user': {
-        'combine_component_func': lambda x: np.sum(np.power(x, 2)),
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float), ("fvec", float, m)],
+    "user": {
+        "combine_component_func": lambda x: np.sum(np.power(x, 2)),
     },
 }
 
 gen_out = [
-    ('x', float, n),
-    ('x_on_cube', float, n),
-    ('sim_id', int),
-    ('local_min', bool),
-    ('local_pt', bool),
+    ("x", float, n),
+    ("x_on_cube", float, n),
+    ("sim_id", int),
+    ("local_min", bool),
+    ("local_pt", bool),
 ]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
@@ -67,35 +67,35 @@ lb = (-2 - np.pi / 10) * np.ones(n)
 ub = 2 * np.ones(n)
 
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['f', 'fvec'] + [n[0] for n in gen_out],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 100,
-        'localopt_method': 'pounders',
-        'rk_const': 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        'grtol': 1e-6,
-        'gatol': 1e-6,
-        'dist_to_bound_multiple': 0.5,
-        'lhs_divisions': 100,
-        'components': m,
-        'lb': lb,
-        'ub': ub,
+    "gen_f": gen_f,
+    "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
+    "out": gen_out,
+    "user": {
+        "initial_sample_size": 100,
+        "localopt_method": "pounders",
+        "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        "grtol": 1e-6,
+        "gatol": 1e-6,
+        "dist_to_bound_multiple": 0.5,
+        "lhs_divisions": 100,
+        "components": m,
+        "lb": lb,
+        "ub": ub,
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f, 'user': {'batch_mode': True, 'num_active_gens': 1}}
+alloc_specs = {"alloc_f": alloc_f, "user": {"batch_mode": True, "num_active_gens": 1}}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 500}
+exit_criteria = {"sim_max": 500}
 
 sample_points = np.zeros((0, n))
 rand_stream = np.random.default_rng(0)
-for i in range(ceil(exit_criteria['sim_max'] / gen_specs['user']['lhs_divisions'])):
-    sample_points = np.append(sample_points, lhs_sample(n, gen_specs['user']['lhs_divisions'], rand_stream), axis=0)
+for i in range(ceil(exit_criteria["sim_max"] / gen_specs["user"]["lhs_divisions"])):
+    sample_points = np.append(sample_points, lhs_sample(n, gen_specs["user"]["lhs_divisions"], rand_stream), axis=0)
 
-gen_specs['user']['sample_points'] = sample_points * (ub - lb) + lb
+gen_specs["user"]["sample_points"] = sample_points * (ub - lb) + lb
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

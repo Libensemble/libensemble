@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs['disable_resource_manager'] = True
+libE_specs["disable_resource_manager"] = True
 exctr = MPIExecutor()
 
 array_size = int(1e6)  # Size of large array in sim_specs
@@ -32,25 +32,25 @@ rounds = 2  # Number of work units for each worker
 sim_max = nworkers * rounds
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('arr_vals', float, array_size), ('scal_val', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("arr_vals", float, array_size), ("scal_val", float)],
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [('x', float, (2,))],
-    'user': {
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
-        'gen_batch_size': sim_max,
+    "gen_f": gen_f,
+    "in": ["sim_id"],
+    "out": [("x", float, (2,))],
+    "user": {
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
+        "gen_batch_size": sim_max,
     },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': sim_max, 'wallclock_max': 300}
+exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
@@ -58,9 +58,9 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 if is_manager:
     assert flag == 0
     for i in range(sim_max):
-        x1 = H['x'][i][0] * 1000.0
-        x2 = H['x'][i][1]
-        assert np.all(H['arr_vals'][i] == x1), "Array values do not all match"
-        assert H['scal_val'][i] == x2 + x2 / 1e7, "Scalar values do not all match"
+        x1 = H["x"][i][0] * 1000.0
+        x2 = H["x"][i][1]
+        assert np.all(H["arr_vals"][i] == x1), "Array values do not all match"
+        assert H["scal_val"][i] == x2 + x2 / 1e7, "Scalar values do not all match"
 
     save_libE_output(H, persis_info, __file__, nworkers)

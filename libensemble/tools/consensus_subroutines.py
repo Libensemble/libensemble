@@ -28,11 +28,11 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # evaluate { f_i(x) } first
-    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
-    H_o['x'][:] = x
-    H_o['consensus_pt'][:] = False
-    H_o['obj_component'][:] = f_i_idxs
-    H_o['get_grad'][:] = False
+    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs["out"])
+    H_o["x"][:] = x
+    H_o["consensus_pt"][:] = False
+    H_o["obj_component"][:] = f_i_idxs
+    H_o["get_grad"][:] = False
     H_o = np.reshape(H_o, newshape=(-1,))
 
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -40,15 +40,15 @@ def print_final_score(x, f_i_idxs, gen_specs, libE_info):
     if tag in [PERSIS_STOP, STOP_TAG]:
         return
 
-    f_is = calc_in['f_i']
+    f_is = calc_in["f_i"]
     F_i = np.sum(f_is)
 
     # get alloc to print sum of f_i
-    H_o = np.zeros(1, dtype=gen_specs['out'])
-    H_o['x'][0] = x
-    H_o['f_i'][0] = F_i
-    H_o['eval_pt'][0] = True
-    H_o['consensus_pt'][0] = True
+    H_o = np.zeros(1, dtype=gen_specs["out"])
+    H_o["x"][0] = x
+    H_o["f_i"][0] = F_i
+    H_o["eval_pt"][0] = True
+    H_o["consensus_pt"][0] = True
 
     ps.send_recv(H_o)
 
@@ -70,11 +70,11 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
     """
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
-    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs['out'])
-    H_o['x'][:] = x
-    H_o['consensus_pt'][:] = False
-    H_o['obj_component'][:] = f_i_idxs
-    H_o['get_grad'][:] = get_grad
+    H_o = np.zeros(len(f_i_idxs), dtype=gen_specs["out"])
+    H_o["x"][:] = x
+    H_o["consensus_pt"][:] = False
+    H_o["obj_component"][:] = f_i_idxs
+    H_o["get_grad"][:] = get_grad
     H_o = np.reshape(H_o, newshape=(-1,))  # unfold into 1d array
 
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -83,11 +83,11 @@ def get_func_or_grad(x, f_i_idxs, gen_specs, libE_info, get_grad):
         return tag, None
 
     if get_grad:
-        gradf_is = calc_in['gradf_i']
+        gradf_is = calc_in["gradf_i"]
         gradf = np.sum(gradf_is, axis=0)
         return tag, gradf
     else:
-        f_is = calc_in['f_i']
+        f_is = calc_in["f_i"]
         f = np.sum(f_is)
         return tag, f
 
@@ -145,21 +145,21 @@ def get_neighbor_vals(x, local_gen_id, A_gen_ids_no_local, gen_specs, libE_info)
     X : np.ndarray
         - 2D array of neighbors and local x values sorted by gen_ids
     """
-    H_o = np.zeros(1, dtype=gen_specs['out'])
-    H_o['x'][0] = x
-    H_o['consensus_pt'][0] = True
+    H_o = np.zeros(1, dtype=gen_specs["out"])
+    H_o["x"][0] = x
+    H_o["consensus_pt"][0] = True
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     tag, Work, calc_in = ps.send_recv(H_o)
     if tag in [STOP_TAG, PERSIS_STOP]:
         return tag, None
 
-    neighbor_X = calc_in['x']
-    neighbor_gen_ids = calc_in['gen_worker']
+    neighbor_X = calc_in["x"]
+    neighbor_gen_ids = calc_in["gen_worker"]
 
-    assert local_gen_id not in neighbor_gen_ids, 'Local data should not be sent back from manager'
+    assert local_gen_id not in neighbor_gen_ids, "Local data should not be sent back from manager"
 
-    assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids), 'Expected gen_ids {}, received {}'.format(
+    assert np.array_equal(A_gen_ids_no_local, neighbor_gen_ids), "Expected gen_ids {}, received {}".format(
         A_gen_ids_no_local, neighbor_gen_ids
     )
 
@@ -192,9 +192,9 @@ def get_consensus_gradient(x, gen_specs, libE_info):
         - Returns this node's corresponding gradient of consensus
     """
     tag = None
-    H_o = np.zeros(1, dtype=gen_specs['out'])
-    H_o['x'][0] = x
-    H_o['consensus_pt'][0] = True
+    H_o = np.zeros(1, dtype=gen_specs["out"])
+    H_o["x"][0] = x
+    H_o["consensus_pt"][0] = True
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -202,7 +202,7 @@ def get_consensus_gradient(x, gen_specs, libE_info):
     if tag in [PERSIS_STOP, STOP_TAG]:
         return tag, np.zeros(len(x))
 
-    neighbor_X = calc_in['x']
+    neighbor_X = calc_in["x"]
     num_neighbors = len(neighbor_X)
     grad_cons = (num_neighbors * x) - np.sum(neighbor_X, axis=0)
 
@@ -284,7 +284,7 @@ def readin_csv(fname):
     """
     n = 569
     try:
-        fp = open(fname, 'r+')
+        fp = open(fname, "r+")
     except FileNotFoundError:
         print(
             "# Missing file 'wdbc.data' (must be placed in same directory where you run 'mpirun -np ...'). "
@@ -295,22 +295,22 @@ def readin_csv(fname):
         m = 30
         np.random.seed(0)
         label = 2 * np.random.randint(low=0, high=1, size=m) - 1
-        datas = (5 * np.random.random(size=(n, m))).astype('int')
+        datas = (5 * np.random.random(size=(n, m))).astype("int")
 
         return label, datas
 
-    label = np.zeros(n, dtype='int')
+    label = np.zeros(n, dtype="int")
     datas = np.zeros((n, 30))
     i = 0
 
     for line in fp.readlines():
         line = line.rsplit()[0]
-        data = line.split(',')
-        label[i] = data[1] == 'M'
+        data = line.split(",")
+        label[i] = data[1] == "M"
         datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
 
-    assert i == n, 'Expected {} datapoints, recorded {}'.format(n, i)
+    assert i == n, "Expected {} datapoints, recorded {}".format(n, i)
 
     return label, datas
 
@@ -360,9 +360,9 @@ def regls_opt(X, y, c, reg=None):
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    if reg == 'l1':
+    if reg == "l1":
         p = 1
-    elif reg == 'l2':
+    elif reg == "l2":
         p = 2
     elif reg is None:
         p = -1
@@ -402,7 +402,7 @@ def log_opt(X, y, c, reg=None):
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    assert reg == 'l2', "Only l2 regularization allowed"
+    assert reg == "l2", "Only l2 regularization allowed"
     # if reg == 'l1':
     #     p = 1
     # elif reg == 'l2':
@@ -435,7 +435,7 @@ def log_opt(X, y, c, reg=None):
     return minf
 
 
-def svm_opt(X, b, c, reg='l1'):
+def svm_opt(X, b, c, reg="l1"):
     """Computes optimal support vector machine (SVM) with l1 regularization.
 
     Parameters
@@ -447,7 +447,7 @@ def svm_opt(X, b, c, reg='l1'):
     - reg : str
         Denotes which regularization to use. Either 'l1', 'l2', or None
     """
-    assert reg == 'l1', "Only l1 regularization allowed"
+    assert reg == "l1", "Only l1 regularization allowed"
 
     # if reg == 'l1':
     p = 1

@@ -47,14 +47,14 @@ class Resources:
 
     resources = None
 
-    DEFAULT_NODEFILE = 'node_list'
+    DEFAULT_NODEFILE = "node_list"
 
     @classmethod
     def init_resources(cls, libE_specs):
         """Initiate resource management"""
 
         # If disable_resource_manager is True, then Resources.resources will remain None.
-        disable_resource_manager = libE_specs.get('disable_resource_manager', False)
+        disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
             if Resources.resources is None:
@@ -159,21 +159,21 @@ class GlobalResources:
 
         """
         self.top_level_dir = top_level_dir
-        self.dedicated_mode = libE_specs.get('dedicated_mode', False)
-        self.zero_resource_workers = libE_specs.get('zero_resource_workers', [])
-        self.num_resource_sets = libE_specs.get('num_resource_sets', None)
-        self.enforce_worker_core_bounds = libE_specs.get('enforce_worker_core_bounds', False)
+        self.dedicated_mode = libE_specs.get("dedicated_mode", False)
+        self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
+        self.num_resource_sets = libE_specs.get("num_resource_sets", None)
+        self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
 
         if self.dedicated_mode:
-            logger.debug('Running in central mode')
+            logger.debug("Running in central mode")
 
-        resource_info = libE_specs.get('resource_info', {})
-        cores_on_node = resource_info.get('cores_on_node', None)
-        node_file = resource_info.get('node_file', None)
-        nodelist_env_slurm = resource_info.get('nodelist_env_slurm', None)
-        nodelist_env_cobalt = resource_info.get('nodelist_env_cobalt', None)
-        nodelist_env_lsf = resource_info.get('nodelist_env_lsf', None)
-        nodelist_env_lsf_shortform = resource_info.get('nodelist_env_lsf_shortform', None)
+        resource_info = libE_specs.get("resource_info", {})
+        cores_on_node = resource_info.get("cores_on_node", None)
+        node_file = resource_info.get("node_file", None)
+        nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)
+        nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
+        nodelist_env_lsf = resource_info.get("nodelist_env_lsf", None)
+        nodelist_env_lsf_shortform = resource_info.get("nodelist_env_lsf_shortform", None)
 
         self.env_resources = EnvResources(
             nodelist_env_slurm=nodelist_env_slurm,
@@ -233,7 +233,7 @@ class GlobalResources:
     def is_nodelist_shortnames(nodelist):
         """Returns True if any entry contains a '.', else False"""
         for item in nodelist:
-            if '.' in item:
+            if "." in item:
                 return False
         return True
 
@@ -260,7 +260,7 @@ class GlobalResources:
         global_nodelist = []
         if os.path.isfile(node_filepath):
             logger.debug("node_file found - getting nodelist from node_file")
-            with open(node_filepath, 'r') as f:
+            with open(node_filepath, "r") as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
         else:

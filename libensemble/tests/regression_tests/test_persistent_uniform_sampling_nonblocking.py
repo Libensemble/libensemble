@@ -33,35 +33,35 @@ if nworkers < 2:
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('grad', float, n)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float), ("grad", float, n)],
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['x', 'f', 'grad', 'sim_id'],
-    'out': [('x', float, (n,))],
-    'user': {
-        'initial_batch_size': 20,
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
+    "gen_f": gen_f,
+    "persis_in": ["x", "f", "grad", "sim_id"],
+    "out": [("x", float, (n,))],
+    "user": {
+        "initial_batch_size": 20,
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f}
+alloc_specs = {"alloc_f": alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 for i in persis_info:
-    persis_info[i]['get_grad'] = True
+    persis_info[i]["get_grad"] = True
 
-exit_criteria = {'gen_max': 40, 'wallclock_max': 300}
+exit_criteria = {"gen_max": 40, "wallclock_max": 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert len(np.unique(H['gen_ended_time'])) == 2
+    assert len(np.unique(H["gen_ended_time"])) == 2
     save_libE_output(H, persis_info, __file__, nworkers)
 
-    assert persis_info[1]['spin_count'] > 0, "This should have been a nonblocking receive"
+    assert persis_info[1]["spin_count"] > 0, "This should have been a nonblocking receive"

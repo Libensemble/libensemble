@@ -22,9 +22,9 @@ class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
     rset_dtype = [
-        ('assigned', int),  # Holds worker ID assigned to or zero
-        ('group', int),  # Group ID this resource set belongs to
-        ('slot', int)  # Slot ID this resource set belongs to
+        ("assigned", int),  # Holds worker ID assigned to or zero
+        ("group", int),  # Group ID this resource set belongs to
+        ("slot", int)  # Slot ID this resource set belongs to
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 
@@ -52,13 +52,13 @@ class ResourceManager(RSetResources):
         )
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
-        self.rsets['assigned'] = 0
-        self.rsets['group'], self.rsets['slot'] = ResourceManager.get_group_list(self.split_list)
-        self.num_groups = self.rsets['group'][-1]
+        self.rsets["assigned"] = 0
+        self.rsets["group"], self.rsets["slot"] = ResourceManager.get_group_list(self.split_list)
+        self.num_groups = self.rsets["group"][-1]
         self.rsets_free = self.total_num_rsets
 
         # Useful for scheduling tasks with different sized groups (resource sets per node).
-        unique, counts = np.unique(self.rsets['group'], return_counts=True)
+        unique, counts = np.unique(self.rsets["group"], return_counts=True)
         self.group_sizes = dict(zip(unique, counts))
         self.ngroups_by_size = Counter(counts)
         self.even_groups = True if len(self.ngroups_by_size) == 1 else False
@@ -67,10 +67,10 @@ class ResourceManager(RSetResources):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
 
         if rset_team:
-            rteam = self.rsets['assigned'][rset_team]
+            rteam = self.rsets["assigned"][rset_team]
             for i, wid in enumerate(rteam):
                 if wid == 0:
-                    self.rsets['assigned'][rset_team[i]] = worker_id
+                    self.rsets["assigned"][rset_team[i]] = worker_id
                     self.rsets_free -= 1
                 elif wid != worker_id:
                     ResourceManagerException(
@@ -81,11 +81,11 @@ class ResourceManager(RSetResources):
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
-            self.rsets['assigned'] = 0
+            self.rsets["assigned"] = 0
             self.rsets_free = self.total_num_rsets
         else:
-            rsets_to_free = np.where(self.rsets['assigned'] == worker)[0]
-            self.rsets['assigned'][rsets_to_free] = 0
+            rsets_to_free = np.where(self.rsets["assigned"] == worker)[0]
+            self.rsets["assigned"][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
 
     @staticmethod
@@ -213,7 +213,7 @@ class WorkerResources(RSetResources):
 
     # User convenience functions ----------------------------------------------
 
-    def get_slots_as_string(self, multiplier=1, delimiter=','):
+    def get_slots_as_string(self, multiplier=1, delimiter=","):
         """Returns list of slots as a string
 
         :param multiplier: Optional int. Assume this many items per slot.
@@ -229,7 +229,7 @@ class WorkerResources(RSetResources):
         slots = delimiter.join(map(str, slot_list))
         return slots
 
-    def set_env_to_slots(self, env_var, multiplier=1, delimiter=','):
+    def set_env_to_slots(self, env_var, multiplier=1, delimiter=","):
         """Sets the given environment variable to slots
 
         :param env_var: String. Name of environment variable to set.

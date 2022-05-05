@@ -20,17 +20,17 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     """
     # Send batches until manager sends stop tag
     tag = None
-    local_gen_id = persis_info['worker_num']
+    local_gen_id = persis_info["worker_num"]
 
     # each gen has unique internal id
-    ub = gen_specs['user']['ub']
-    lb = gen_specs['user']['lb']
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
     n = len(ub)
 
-    f_i_idxs = persis_info['f_i_idxs']
+    f_i_idxs = persis_info["f_i_idxs"]
 
     # start with random x_0
-    x_0 = persis_info['rand_stream'].uniform(low=lb, high=ub, size=(n,))
+    x_0 = persis_info["rand_stream"].uniform(low=lb, high=ub, size=(n,))
     # ===== NOTATION =====
     # x_hk == \hat{x}_k
     # x_tk == \tilde{x}_k
@@ -45,13 +45,13 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     prevprev_x_k = x_0.copy()
     prev_penult_k = x_0.copy()
 
-    mu = persis_info['params']['mu']
-    L = persis_info['params']['L']
-    A_norm = persis_info['params']['A_norm']
-    Vx_0x = persis_info['params']['Vx_0x']
-    eps = persis_info['params']['eps']
-    f_i_eval = persis_info['params'].get('f_i_eval', None)
-    df_i_eval = persis_info['params'].get('df_i_eval', None)
+    mu = persis_info["params"]["mu"]
+    L = persis_info["params"]["L"]
+    A_norm = persis_info["params"]["A_norm"]
+    Vx_0x = persis_info["params"]["Vx_0x"]
+    eps = persis_info["params"]["eps"]
+    f_i_eval = persis_info["params"].get("f_i_eval", None)
+    df_i_eval = persis_info["params"].get("df_i_eval", None)
 
     R = 1.0 / (4 * (Vx_0x) ** 0.5)
     N = int(4 * (L * Vx_0x / eps) ** 0.5 + 1)
@@ -63,7 +63,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     prev_T_k = 0
 
     if local_gen_id == 1:
-        print('[{}%]: '.format(0), flush=True, end='')
+        print("[{}%]: ".format(0), flush=True, end="")
     print_final_score(prev_x_k, f_i_idxs, gen_specs, libE_info)
     percent = 0.1
 
@@ -86,15 +86,15 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
             return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
         settings = {
-            'T_k': T_k,
-            'b_k': k,
-            'p_k': p_k,
-            'mu': mu,
-            'L': L,
-            'R': R,
-            'k': k,
-            'prev_b_k': prev_b_k,
-            'prev_T_k': prev_T_k,
+            "T_k": T_k,
+            "b_k": k,
+            "p_k": p_k,
+            "mu": mu,
+            "L": L,
+            "R": R,
+            "k": k,
+            "prev_b_k": prev_b_k,
+            "prev_T_k": prev_T_k,
         }
 
         [tag, x_k, x_k_1, z_k, x_hk] = primaldual_slide(
@@ -118,7 +118,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         if k / N >= percent:
             curr_x_star = 1.0 / b_k_sum * weighted_x_hk_sum
             if local_gen_id == 1:
-                print('[{}%]: '.format(int(percent * 100)), flush=True, end='')
+                print("[{}%]: ".format(int(percent * 100)), flush=True, end="")
             percent += 0.1
             print_final_score(curr_x_star, f_i_idxs, gen_specs, libE_info)
 
@@ -129,15 +129,15 @@ def primaldual_slide(y_k, x_curr, x_prev, z_t, settings, gen_specs, libE_info):
     tag = None
 
     # define params
-    T_k = settings['T_k']
-    b_k = settings['b_k']
-    p_k = settings['p_k']
-    mu = settings['mu']
-    L = settings['L']
-    R = settings['R']
-    k = settings['k']
-    prev_b_k = settings['prev_b_k']
-    prev_T_k = settings['prev_T_k']
+    T_k = settings["T_k"]
+    b_k = settings["b_k"]
+    p_k = settings["p_k"]
+    mu = settings["mu"]
+    L = settings["L"]
+    R = settings["R"]
+    k = settings["k"]
+    prev_b_k = settings["prev_b_k"]
+    prev_T_k = settings["prev_T_k"]
 
     x_k_1 = x_curr.copy()
     xsum = np.zeros(len(x_curr), dtype=float)

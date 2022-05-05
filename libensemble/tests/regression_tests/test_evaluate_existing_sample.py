@@ -25,9 +25,9 @@ from libensemble.tools import parse_args, save_libE_output
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
 }
 
 gen_specs = {}
@@ -35,23 +35,23 @@ gen_specs = {}
 n_samp = 1000
 n = 8
 
-H0 = np.zeros(n_samp, dtype=[('x', float, 8), ('sim_id', int), ('sim_started', bool)])
+H0 = np.zeros(n_samp, dtype=[("x", float, 8), ("sim_id", int), ("sim_started", bool)])
 
 np.random.seed(0)
-H0['x'] = gen_borehole_input(n_samp)
-H0['sim_id'] = range(n_samp)
-H0['sim_started'] = False
+H0["x"] = gen_borehole_input(n_samp)
+H0["sim_id"] = range(n_samp)
+H0["sim_started"] = False
 
-alloc_specs = {'alloc_f': alloc_f, 'out': [('x', float, n)]}
+alloc_specs = {"alloc_f": alloc_f, "out": [("x", float, n)]}
 
-exit_criteria = {'sim_max': len(H0)}
+exit_criteria = {"sim_max": len(H0)}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
 
 if is_manager:
     assert len(H) == len(H0)
-    assert np.array_equal(H0['x'], H['x'])
-    assert np.all(H['sim_ended'])
+    assert np.array_equal(H0["x"], H["x"])
+    assert np.all(H["sim_ended"])
     print("\nlibEnsemble correctly didn't add anything to initial sample")
     save_libE_output(H, persis_info, __file__, nworkers)

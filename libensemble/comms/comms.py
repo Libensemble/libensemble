@@ -106,7 +106,7 @@ class QComm(Comm):
 
     # Integer count - shared amongst processes
     lock = Lock()
-    _ncomms = Value('i', 0)
+    _ncomms = Value("i", 0)
 
     def __init__(self, inbox, outbox, copy_msg=False):
         """Set the inbox and outbox queues."""
@@ -156,7 +156,7 @@ class QCommThread(Comm):
         self.main = main
         self._result = None
         self._exception = None
-        kwargs['comm'] = QComm(self.inbox, self.outbox, True)
+        kwargs["comm"] = QComm(self.inbox, self.outbox, True)
         self.thread = Thread(target=self._qcomm_main, args=args, kwargs=kwargs)
 
     def send(self, *args):
@@ -337,7 +337,7 @@ class CommHandler(ABC):
         msg_type = msg[0]
         args = msg[1:]
         try:
-            method = 'on_{}'.format(msg_type)
+            method = "on_{}".format(msg_type)
             handler = getattr(self, method)
         except AttributeError:
             return self.on_unhandled_message(msg)
@@ -353,19 +353,19 @@ class GenCommHandler(CommHandler):
 
     def send_request(self, recs):
         """Request new evaluations."""
-        self.send('request', recs)
+        self.send("request", recs)
 
     def send_kill(self, sim_id):
         """Kill an evaluation."""
-        self.send('kill', sim_id)
+        self.send("kill", sim_id)
 
     def send_get_history(self, lo, hi):
         """Request history from manager."""
-        self.send('get_history', lo, hi)
+        self.send("get_history", lo, hi)
 
     def send_subscribe(self):
         """Request subscription to updates on sims not launched by this gen."""
-        self.send('subscribe')
+        self.send("subscribe")
 
     def on_stop(self):
         """Handle stop message."""
@@ -397,15 +397,15 @@ class SimCommHandler(CommHandler):
 
     def send_result(self, sim_id, recs):
         """Send a simulation result"""
-        self.send('result', sim_id, recs)
+        self.send("result", sim_id, recs)
 
     def send_update(self, sim_id, recs):
         """Send a simulation update"""
-        self.send('update', sim_id, recs)
+        self.send("update", sim_id, recs)
 
     def send_killed(self, sim_id):
         """Send notification that a simulation was killed"""
-        self.send('killed', sim_id)
+        self.send("killed", sim_id)
 
     def on_stop(self):
         """Handle stop message."""
@@ -449,10 +449,10 @@ class CommEval(GenCommHandler):
         """Request a simulation and return a promise"""
         assert not (args and kwargs), "Must specify simulation args by position or keyword, but not both"
         assert args or kwargs, "Must specify simulation arguments."
-        rec = np.zeros(1, dtype=self.gen_specs['out'])
+        rec = np.zeros(1, dtype=self.gen_specs["out"])
         if args:
-            assert len(args) == len(self.gen_specs['out']), "Wrong number of positional arguments in sim call."
-            for k, spec in enumerate(self.gen_specs['out']):
+            assert len(args) == len(self.gen_specs["out"]), "Wrong number of positional arguments in sim call."
+            for k, spec in enumerate(self.gen_specs["out"]):
                 name = spec[0]
                 rec[name] = args[k]
         else:

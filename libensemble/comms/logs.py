@@ -28,8 +28,8 @@ class LogConfig:
         self.name = name
         self.stats_name = name + ".calc stats"
         self.filename = "ensemble.log"
-        self.stat_filename = 'libE_stats.txt'
-        self.fmt = '[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s'
+        self.stat_filename = "libE_stats.txt"
+        self.fmt = "[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s"
         self.stderr_level = logging.MANAGER_WARNING
 
     def set_level(self, level):
@@ -72,7 +72,7 @@ class WorkerIDFilter(logging.Filter):
 
     def filter(self, record):
         """Add worker ID to a LogRecord"""
-        record.worker = getattr(record, 'worker', self.worker_id)
+        record.worker = getattr(record, "worker", self.worker_id)
         return True
 
 
@@ -116,7 +116,7 @@ def manager_logging_config():
     if not logconfig.logger_set:
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
-        fh = logging.FileHandler(logconfig.filename, mode='w')
+        fh = logging.FileHandler(logconfig.filename, mode="w")
         fh.addFilter(wfilter)
         fh.setFormatter(formatter)
         logger = logging.getLogger(logconfig.name)
@@ -127,9 +127,9 @@ def manager_logging_config():
 
         # Stats logging
         # NB: Could add a specialized handler for immediate flushing
-        fhs = logging.FileHandler(logconfig.stat_filename, mode='w')
+        fhs = logging.FileHandler(logconfig.stat_filename, mode="w")
         fhs.addFilter(wfilter)
-        fhs.setFormatter(logging.Formatter('Worker %(worker)5d: %(message)s'))
+        fhs.setFormatter(logging.Formatter("Worker %(worker)5d: %(message)s"))
         stat_logger = logging.getLogger(logconfig.stats_name)
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)

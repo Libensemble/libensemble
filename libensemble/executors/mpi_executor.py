@@ -82,9 +82,9 @@ class MPIExecutor(Executor):
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
 
         # Apply custom options
-        mpi_runner_type = custom_info.get('mpi_runner', None)
-        runner_name = custom_info.get('runner_name', None)
-        subgroup_launch = custom_info.get('subgroup_launch', None)
+        mpi_runner_type = custom_info.get("mpi_runner", None)
+        runner_name = custom_info.get("runner_name", None)
+        subgroup_launch = custom_info.get("subgroup_launch", None)
 
         if not mpi_runner_type:
             mpi_runner_type = get_MPI_variant()
@@ -105,17 +105,17 @@ class MPIExecutor(Executor):
                 retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
                 logger.info("Launching task {}{}: {}".format(task.name, retry_string, " ".join(runline)))
                 task.run_attempts += 1
-                with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
+                with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
                         runline,
-                        cwd='./',
+                        cwd="./",
                         stdout=out,
                         stderr=err,
                         start_new_session=subgroup_launch,
                     )
             except Exception as e:
                 logger.warning(
-                    'task {} submit command failed on try {} with error {}'.format(task.name, retry_count, e)
+                    "task {} submit command failed on try {} with error {}".format(task.name, retry_count, e)
                 )
                 retry = True
                 retry_count += 1
@@ -123,16 +123,16 @@ class MPIExecutor(Executor):
                 if wait_on_start:
                     self._wait_on_start(task, self.fail_time)
 
-                if task.state == 'FAILED':
+                if task.state == "FAILED":
                     logger.warning(
-                        'task {} failed within fail_time on '
-                        'try {} with err code {}'.format(task.name, retry_count, task.errcode)
+                        "task {} failed within fail_time on "
+                        "try {} with err code {}".format(task.name, retry_count, task.errcode)
                     )
                     retry = True
                     retry_count += 1
 
             if retry and retry_count < self.max_launch_attempts:
-                logger.debug('Retry number {} for task {}'.format(retry_count, task.name))
+                logger.debug("Retry number {} for task {}".format(retry_count, task.name))
                 time.sleep(retry_count * self.retry_delay_incr)
                 task.reset()  # Some cases may require user cleanup
             else:
@@ -259,10 +259,10 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        task.runline = ' '.join(runline)  # Allow to be queried
+        task.runline = " ".join(runline)  # Allow to be queried
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+            logger.info("Test (No submit) Runline: {}".format(" ".join(runline)))
             task._set_complete(dry_run=True)
         else:
             # Launch Task

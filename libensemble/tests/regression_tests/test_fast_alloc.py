@@ -29,28 +29,28 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 num_pts = 30 * (nworkers)
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('large', float, 1000000)],
-    'user': {},
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float), ("large", float, 1000000)],
+    "user": {},
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [('x', float, (2,))],
-    'user': {
-        'gen_batch_size': num_pts,
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
+    "gen_f": gen_f,
+    "in": ["sim_id"],
+    "out": [("x", float, (2,))],
+    "user": {
+        "gen_batch_size": num_pts,
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
     },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 2 * num_pts, 'wallclock_max': 300}
+exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
 
-if libE_specs['comms'] == 'tcp':
+if libE_specs["comms"] == "tcp":
     # Can't use the same interface for manager and worker if we want
     # repeated calls to libE -- the manager sets up a different server
     # each time, and the worker will not know what port to connect to.
@@ -59,19 +59,19 @@ if libE_specs['comms'] == 'tcp':
 for time in np.append([0], np.logspace(-5, -1, 5)):
     print("Starting for time: ", time, flush=True)
     if time == 0:
-        alloc_specs = {'alloc_f': alloc_f2, 'out': []}
+        alloc_specs = {"alloc_f": alloc_f2, "out": []}
     else:
-        alloc_specs = {'alloc_f': alloc_f, 'out': [], 'user': {'num_active_gens': 1}}
+        alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
 
     for rep in range(1):
-        sim_specs['user']['pause_time'] = time
+        sim_specs["user"]["pause_time"] = time
 
         if time == 0:
-            sim_specs['user'].pop('pause_time')
-            gen_specs['user']['gen_batch_size'] = num_pts // 2
+            sim_specs["user"].pop("pause_time")
+            gen_specs["user"]["gen_batch_size"] = num_pts // 2
 
-        persis_info['next_to_give'] = 0
-        persis_info['total_gen_calls'] = 1
+        persis_info["next_to_give"] = 0
+        persis_info["total_gen_calls"] = 1
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 

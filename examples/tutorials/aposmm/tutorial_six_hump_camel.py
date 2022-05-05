@@ -4,11 +4,11 @@ import numpy as np
 def six_hump_camel(H, persis_info, sim_specs, _):
     """Six-Hump Camel sim_f."""
 
-    batch = len(H['x'])  # Num evaluations each sim_f call.
-    H_o = np.zeros(batch, dtype=sim_specs['out'])  # Define output array H
+    batch = len(H["x"])  # Num evaluations each sim_f call.
+    H_o = np.zeros(batch, dtype=sim_specs["out"])  # Define output array H
 
-    for i, x in enumerate(H['x']):
-        H_o['f'][i] = six_hump_camel_func(x)  # Function evaluations placed into H
+    for i, x in enumerate(H["x"]):
+        H_o["f"][i] = six_hump_camel_func(x)  # Function evaluations placed into H
 
     return H_o, persis_info
 

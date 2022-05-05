@@ -25,7 +25,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = 'petsc'
+libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
@@ -38,41 +38,41 @@ if nworkers < 2:
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('grad', float, n)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float), ("grad", float, n)],
 }
 
 gen_out = [
-    ('x', float, n),
-    ('x_on_cube', float, n),
-    ('sim_id', int),
-    ('local_min', bool),
-    ('local_pt', bool),
+    ("x", float, n),
+    ("x_on_cube", float, n),
+    ("sim_id", int),
+    ("local_min", bool),
+    ("local_pt", bool),
 ]
 
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['f', 'grad'] + [n[0] for n in gen_out],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 100,
-        'localopt_method': 'nm',
-        'lb': np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
-        'ub': np.array([3, 2]),
+    "gen_f": gen_f,
+    "persis_in": ["f", "grad"] + [n[0] for n in gen_out],
+    "out": gen_out,
+    "user": {
+        "initial_sample_size": 100,
+        "localopt_method": "nm",
+        "lb": np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
+        "ub": np.array([3, 2]),
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f}
+alloc_specs = {"alloc_f": alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {"sim_max": 1000}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    print('[Manager]:', H[np.where(H['local_min'])]['x'])
-    assert np.sum(~H['local_pt']) > 100, "Had to do at least 100 sample points"
-    assert np.sum(H['local_pt']) > 100, "Why didn't at least 100 local points occur?"
+    print("[Manager]:", H[np.where(H["local_min"])]["x"])
+    assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
+    assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"

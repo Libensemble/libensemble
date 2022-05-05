@@ -7,13 +7,13 @@ import json
 import os.path
 
 
-def create_node_file(num_nodes, name='node_list'):
+def create_node_file(num_nodes, name="node_list"):
     """Create a nodelist file"""
     if os.path.exists(name):
         os.remove(name)
-    with open(name, 'w') as f:
+    with open(name, "w") as f:
         for i in range(1, num_nodes + 1):
-            f.write('node-' + str(i) + '\n')
+            f.write("node-" + str(i) + "\n")
         f.flush()
         os.fsync(f)
 
@@ -53,7 +53,7 @@ def build_simfunc():
 
     # Build simfunc
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c'
+    buildstring = "mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -61,7 +61,7 @@ def build_simfunc():
 def build_borehole():
     import subprocess
 
-    buildstring = 'gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm'
+    buildstring = "gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm"
     subprocess.check_call(buildstring.split())
 
 
@@ -78,18 +78,18 @@ def modify_Balsam_worker():
         "            self.workers.append(w)\n",
     ]
 
-    workerfile = 'worker.py'
-    balsam_path = os.path.dirname(balsam.__file__) + '/launcher'
+    workerfile = "worker.py"
+    balsam_path = os.path.dirname(balsam.__file__) + "/launcher"
     balsam_worker_path = os.path.join(balsam_path, workerfile)
 
-    with open(balsam_worker_path, 'r') as f:
+    with open(balsam_worker_path, "r") as f:
         lines = f.readlines()
 
     if lines[-3] != new_lines[0]:
         lines = lines[:-2]  # effectively inserting new_lines[0] above
         lines.extend(new_lines)
 
-    with open(balsam_worker_path, 'w') as f:
+    with open(balsam_worker_path, "w") as f:
         for line in lines:
             f.write(line)
 
@@ -101,7 +101,7 @@ def modify_Balsam_pyCoverage():
     #   modules. This hack specifies the coverage module and some options.
     import balsam
 
-    rcfile = os.path.abspath('./libensemble/tests/regression_tests/.bal_coveragerc')
+    rcfile = os.path.abspath("./libensemble/tests/regression_tests/.bal_coveragerc")
 
     old_line = "            path = ' '.join((exe, script_path, args))\n"
     new_line = (
@@ -109,32 +109,32 @@ def modify_Balsam_pyCoverage():
         + "--parallel-mode --rcfile={}', script_path, args))\n".format(rcfile)
     )
 
-    commandfile = 'cli_commands.py'
-    balsam_path = os.path.dirname(balsam.__file__) + '/scripts'
+    commandfile = "cli_commands.py"
+    balsam_path = os.path.dirname(balsam.__file__) + "/scripts"
     balsam_commands_path = os.path.join(balsam_path, commandfile)
 
-    with open(balsam_commands_path, 'r') as f:
+    with open(balsam_commands_path, "r") as f:
         lines = f.readlines()
 
     for i in range(len(lines)):
         if lines[i] == old_line:
             lines[i] = new_line
 
-    with open(balsam_commands_path, 'w') as f:
+    with open(balsam_commands_path, "w") as f:
         for line in lines:
             f.write(line)
 
 
 def modify_Balsam_settings():
     # Set $HOME/.balsam/settings.json to DEFAULT instead of Theta worker setup
-    settingsfile = os.path.join(os.environ.get('HOME'), '.balsam/settings.json')
-    with open(settingsfile, 'r') as f:
+    settingsfile = os.path.join(os.environ.get("HOME"), ".balsam/settings.json")
+    with open(settingsfile, "r") as f:
         lines = json.load(f)
 
-    lines['MPI_RUN_TEMPLATE'] = "MPICHCommand"
-    lines['WORKER_DETECTION_TYPE'] = "DEFAULT"
+    lines["MPI_RUN_TEMPLATE"] = "MPICHCommand"
+    lines["WORKER_DETECTION_TYPE"] = "DEFAULT"
 
-    with open(settingsfile, 'w') as f:
+    with open(settingsfile, "w") as f:
         json.dump(lines, f)
 
 
@@ -148,17 +148,17 @@ def modify_Balsam_JobEnv():
     bad_line = "        'COOLEY' : 'cooley cc'.split()\n"
     new_line = "        'COOLEY' : 'cooley'.split()\n"
 
-    jobenv_file = 'JobEnvironment.py'
-    balsam_path = os.path.dirname(balsam.__file__) + '/service/schedulers'
+    jobenv_file = "JobEnvironment.py"
+    balsam_path = os.path.dirname(balsam.__file__) + "/service/schedulers"
     balsam_jobenv_path = os.path.join(balsam_path, jobenv_file)
 
-    with open(balsam_jobenv_path, 'r') as f:
+    with open(balsam_jobenv_path, "r") as f:
         lines = f.readlines()
 
     for i in range(len(lines)):
         if lines[i] == bad_line:
             lines[i] = new_line
 
-    with open(balsam_jobenv_path, 'w') as f:
+    with open(balsam_jobenv_path, "w") as f:
         for line in lines:
             f.write(line)

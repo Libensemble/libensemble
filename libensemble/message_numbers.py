@@ -15,7 +15,7 @@ PERSIS_STOP = 4  # Manager tells persistent calculation to stop
 
 # last_message_number_rst_tag
 
-calc_type_strings = {EVAL_SIM_TAG: 'sim', EVAL_GEN_TAG: 'gen', PERSIS_STOP: 'STOP with work', None: 'No type set'}
+calc_type_strings = {EVAL_SIM_TAG: "sim", EVAL_GEN_TAG: "gen", PERSIS_STOP: "STOP with work", None: "No type set"}
 
 
 # --- Signal flags (in message body vs tags)
