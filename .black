@@ -27,7 +27,6 @@ force-exclude = '''
     | libensemble/executors/legacy_balsam_executor.py
     | libensemble/executors/executor.py
     | libensemble/executors/balsam_executor.py
-    | libensemble/resources/rset_resources.py
     | libensemble/resources/mpi_resources.py
     | libensemble/resources/scheduler.py
 )
