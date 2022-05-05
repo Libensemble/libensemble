@@ -22,6 +22,7 @@ class ForkablePdb(pdb.Pdb):
         ForkablePdb().set_trace()
 
     """
+
     def interaction(self, *args, **kwargs):
         _stdin = sys.stdin
         try:
