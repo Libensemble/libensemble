@@ -13,11 +13,11 @@ Release 0.9.1
 
 :Date: May 11, 2022
 
-This release has minimal changes, but a large number of touched lines. 
+This release has minimal changes, but a large number of touched lines.
 
-* Many `black` changes, including string normalization. #811, #814 
+* Many `black` changes, including string normalization. #811, #814
 * Some small hotfixes. #810, #813
-* A new workflows community initiative file. #804 
+* A new workflows community initiative file. #804
 
 Release 0.9.0
 -------------
