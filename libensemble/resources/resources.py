@@ -9,8 +9,7 @@ import logging
 from libensemble.resources import node_resources
 from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.worker_resources import (WorkerResources,
-                                                    ResourceManager)
+from libensemble.resources.worker_resources import WorkerResources, ResourceManager
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -62,7 +61,7 @@ class Resources:
                 Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
     def __init__(self, libE_specs, top_level_dir=None):
-        """ Initiate a new resources object """
+        """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
         self.resource_manager = None  # For Manager
@@ -176,18 +175,21 @@ class GlobalResources:
         nodelist_env_lsf = resource_info.get('nodelist_env_lsf', None)
         nodelist_env_lsf_shortform = resource_info.get('nodelist_env_lsf_shortform', None)
 
-        self.env_resources = EnvResources(nodelist_env_slurm=nodelist_env_slurm,
-                                          nodelist_env_cobalt=nodelist_env_cobalt,
-                                          nodelist_env_lsf=nodelist_env_lsf,
-                                          nodelist_env_lsf_shortform=nodelist_env_lsf_shortform)
+        self.env_resources = EnvResources(
+            nodelist_env_slurm=nodelist_env_slurm,
+            nodelist_env_cobalt=nodelist_env_cobalt,
+            nodelist_env_lsf=nodelist_env_lsf,
+            nodelist_env_lsf_shortform=nodelist_env_lsf_shortform,
+        )
 
         if node_file is None:
             node_file = Resources.DEFAULT_NODEFILE
 
-        self.global_nodelist = \
-            GlobalResources.get_global_nodelist(node_file=node_file,
-                                                rundir=self.top_level_dir,
-                                                env_resources=self.env_resources)
+        self.global_nodelist = GlobalResources.get_global_nodelist(
+            node_file=node_file,
+            rundir=self.top_level_dir,
+            env_resources=self.env_resources,
+        )
 
         self.shortnames = GlobalResources.is_nodelist_shortnames(self.global_nodelist)
         if self.shortnames:
@@ -202,10 +204,11 @@ class GlobalResources:
             remote_detect = True
 
         if not cores_on_node:
-            cores_on_node = \
-                node_resources.get_sub_node_resources(launcher=self.launcher,
-                                                      remote_mode=remote_detect,
-                                                      env_resources=self.env_resources)
+            cores_on_node = node_resources.get_sub_node_resources(
+                launcher=self.launcher,
+                remote_mode=remote_detect,
+                env_resources=self.env_resources,
+            )
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.libE_nodes = None
@@ -242,9 +245,7 @@ class GlobalResources:
         return global_nodelist
 
     @staticmethod
-    def get_global_nodelist(node_file=Resources.DEFAULT_NODEFILE,
-                            rundir=None,
-                            env_resources=None):
+    def get_global_nodelist(node_file=Resources.DEFAULT_NODEFILE, rundir=None, env_resources=None):
         """
         Returns the list of nodes available to all libEnsemble workers.
 

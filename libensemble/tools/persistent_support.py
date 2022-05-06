@@ -1,5 +1,6 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, EVAL_SIM_TAG, calc_type_strings
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,8 +18,10 @@ class PersistentSupport:
         self.libE_info = libE_info
         self.comm = self.libE_info['comm']
         self.calc_type = calc_type
-        assert self.calc_type in [EVAL_GEN_TAG, EVAL_SIM_TAG], \
-            "User function value {} specifies neither a simulator nor generator.".format(self.calc_type)
+        assert self.calc_type in [
+            EVAL_GEN_TAG,
+            EVAL_SIM_TAG,
+        ], "The calc_type: {} specifies neither a simulator nor generator.".format(self.calc_type)
         self.calc_str = calc_type_strings[self.calc_type]
 
     def send(self, output, calc_status=UNSET_TAG):
@@ -38,11 +41,12 @@ class PersistentSupport:
         else:
             libE_info = self.libE_info
 
-        D = {'calc_out': output,
-             'libE_info': libE_info,
-             'calc_status': calc_status,
-             'calc_type': self.calc_type
-             }
+        D = {
+            'calc_out': output,
+            'libE_info': libE_info,
+            'calc_status': calc_status,
+            'calc_type': self.calc_type,
+        }
         logger.debug('Persistent {} function sending data message to manager'.format(self.calc_str))
         self.comm.send(self.calc_type, D)
 
@@ -76,8 +80,10 @@ class PersistentSupport:
 
         # Check for unexpected STOP (e.g. error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
-            logger.debug('Persistent {} received signal {} '.format(self.calc_str, tag) +
-                         'from manager while expecting work rows')
+            logger.debug(
+                'Persistent {} received signal {} '.format(self.calc_str, tag)
+                + 'from manager while expecting work rows'
+            )
             self.comm.push_to_buffer(data_tag, calc_in)
             return data_tag, calc_in, None  # calc_in is signal identifier
 

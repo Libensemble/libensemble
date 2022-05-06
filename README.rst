@@ -17,6 +17,10 @@
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: Code style: black
+
 |
 
 .. after_badges_rst_tag

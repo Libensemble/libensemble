@@ -21,11 +21,12 @@ class ResourceManagerException(Exception):
 class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
-    rset_dtype = [('assigned', int),  # Holds worker ID assigned to or zero
-                  ('group', int),     # Group ID this resource set belongs to
-                  ('slot', int)       # Slot ID this resource set belongs to
-                  # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
-                  ]
+    rset_dtype = [
+        ('assigned', int),  # Holds worker ID assigned to or zero
+        ('group', int),  # Group ID this resource set belongs to
+        ('slot', int)  # Slot ID this resource set belongs to
+        # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
+    ]
 
     def __init__(self, num_workers, resources):
         """Initializes a new ResourceManager instance
@@ -44,9 +45,11 @@ class ResourceManager(RSetResources):
 
         """
         super().__init__(num_workers, resources)
-        self.index_list = ResourceManager.get_index_list(self.num_workers,
-                                                         self.total_num_rsets,
-                                                         resources.zero_resource_workers)
+        self.index_list = ResourceManager.get_index_list(
+            self.num_workers,
+            self.total_num_rsets,
+            resources.zero_resource_workers,
+        )
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
         self.rsets['assigned'] = 0
@@ -70,9 +73,10 @@ class ResourceManager(RSetResources):
                     self.rsets['assigned'][rset_team[i]] = worker_id
                     self.rsets_free -= 1
                 elif wid != worker_id:
-                    ResourceManagerException("Error: Attempting to assign rsets {}"
-                                             " already assigned to workers: {}".
-                                             format(rset_team, rteam))
+                    ResourceManagerException(
+                        "Error: Attempting to assign rsets {}"
+                        " already assigned to workers: {}".format(rset_team, rteam)
+                    )
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -111,7 +115,7 @@ class ResourceManager(RSetResources):
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
-        for i in range(1, num_workers+1):
+        for i in range(1, num_workers + 1):
             if i in zero_resource_list:
                 index_list.append(None)
             else:
@@ -221,7 +225,7 @@ class WorkerResources(RSetResources):
             return None
 
         n = multiplier
-        slot_list = [j for i in self.slots_on_node for j in range(i*n, (i+1)*n)]
+        slot_list = [j for i in self.slots_on_node for j in range(i * n, (i + 1) * n)]
         slots = delimiter.join(map(str, slot_list))
         return slots
 
@@ -268,9 +272,12 @@ class WorkerResources(RSetResources):
         if rset_team != self.rset_team:  # Order matters
             self.rset_team = rset_team
             self.num_rsets = len(rset_team)
-            self.local_nodelist, self.slots = \
-                WorkerResources.get_local_nodelist(self.workerID, self.rset_team,
-                                                   self.split_list, self.rsets_per_node)
+            self.local_nodelist, self.slots = WorkerResources.get_local_nodelist(
+                self.workerID,
+                self.rset_team,
+                self.split_list,
+                self.rsets_per_node,
+            )
             self.set_slot_count()
             self.local_node_count = len(self.local_nodelist)
 

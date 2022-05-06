@@ -59,21 +59,21 @@ class History:
             fields = H0.dtype.names
 
             for field in fields:
-                H[field][:len(H0)] = H0[field]
+                H[field][: len(H0)] = H0[field]
                 # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
                 #     H[field][ind] = val
 
             if 'sim_started' not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
-                H['sim_started'][:len(H0)] = 1
-                H['sim_ended'][:len(H0)] = 1
+                H['sim_started'][: len(H0)] = 1
+                H['sim_ended'][: len(H0)] = 1
             elif 'sim_ended' not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_ended' if 'sim_started'")
-                H['sim_ended'][:len(H0)] = H0['sim_started']
+                H['sim_ended'][: len(H0)] = H0['sim_started']
 
             if 'sim_id' not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
-                H['sim_id'][:len(H0)] = np.arange(0, len(H0))
+                H['sim_id'][: len(H0)] = np.arange(0, len(H0))
 
         H['sim_id'][-L:] = -1
         H['sim_started_time'][-L:] = np.inf
@@ -110,8 +110,9 @@ class History:
                 else:
                     # len or np.size
                     H0_size = len(returned_H[field][j])
-                    assert H0_size <= len(self.H[field][ind]),\
+                    assert H0_size <= len(self.H[field][ind]), (
                         "History update Error: Too many values received for " + field
+                    )
                     assert H0_size, "History update Error: No values in this field " + field
                     if H0_size == len(self.H[field][ind]):
                         self.H[field][ind] = returned_H[field][j]  # ref
@@ -158,7 +159,8 @@ class History:
 
             if self.using_H0 and not self.given_back_warned:
                 logger.manager_warning(
-                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'.")
+                    "Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'."
+                )
                 self.given_back_warned = True
 
             self.H['gen_informed_time'][q_inds] = t
@@ -180,29 +182,30 @@ class History:
             return
 
         t = time.time()
-        rows_remaining = len(self.H)-self.index
+        rows_remaining = len(self.H) - self.index
 
         if 'sim_id' not in D.dtype.names:
             # gen method must not be adjusting sim_id, just append to self.H
             num_new = len(D)
 
             if num_new > rows_remaining:
-                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_count = max(num_new - rows_remaining, 2 * self.grow_count)
                 self.grow_H(self.grow_count)
 
-            update_inds = np.arange(self.index, self.index+num_new)
-            self.H['sim_id'][self.index:self.index+num_new] = range(self.index, self.index+num_new)
+            update_inds = np.arange(self.index, self.index + num_new)
+            self.H['sim_id'][self.index : self.index + num_new] = range(self.index, self.index + num_new)
         else:
             # gen method is building sim_id or adjusting values in existing sim_id rows.
 
             # Ensure there aren't any gaps in the generated sim_id values:
-            assert np.all(np.in1d(np.arange(self.index, np.max(D['sim_id'])+1), D['sim_id'])),\
-                "The generator function has produced sim_id that are not in order."
+            assert np.all(
+                np.in1d(np.arange(self.index, np.max(D['sim_id']) + 1), D['sim_id'])
+            ), "The generator function has produced sim_id that are not in order."
 
             num_new = len(np.setdiff1d(D['sim_id'], self.H['sim_id']))
 
             if num_new > rows_remaining:
-                self.grow_count = max(num_new-rows_remaining, 2*self.grow_count)
+                self.grow_count = max(num_new - rows_remaining, 2 * self.grow_count)
                 self.grow_H(self.grow_count)
 
             update_inds = D['sim_id']
@@ -237,4 +240,4 @@ class History:
     # Could be arguments here to return different truncations eg. all done, given etc...
     def trim_H(self):
         """Returns truncated array"""
-        return self.H[:self.index]
+        return self.H[: self.index]
