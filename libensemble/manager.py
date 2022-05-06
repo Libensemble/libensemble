@@ -388,7 +388,7 @@ class Manager:
             EVAL_GEN_TAG,
         ], "Aborting, Unknown calculation type received. " "Received type: {}".format(calc_type)
 
-        assert calc_status in [
+        assert (calc_status in [
             FINISHED_PERSISTENT_SIM_TAG,
             FINISHED_PERSISTENT_GEN_TAG,
             UNSET_TAG,
@@ -400,7 +400,7 @@ class Manager:
             WORKER_KILL,
             TASK_FAILED,
             WORKER_DONE,
-        ], "Aborting: Unknown calculation status received. " "Received status: {}".format(calc_status)
+        ] or isinstance(calc_status, str)), "Aborting: Unknown calculation status received. " "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receives calculation output from workers. Loops over all
