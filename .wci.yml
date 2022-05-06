@@ -6,8 +6,13 @@ description: |
   and dynamic ensembles of calculations.
 
   Users write generator and simulator functions to express their ensembles.
-  Or users can modify functions from a library of example use cases.
-  These functions can be pure Python or depend on external executables.
+  A library of example functions is available which can be modified as needed.
+  These functions can submit unmodified external executables at any scale and
+  in a portable way. System details are detected, and resource management
+  provided.
+
+  libEnsemble can be used in a consistent way on laptops, clusters and
+  supercomputers with minimal required dependencies.
 
 language: Python
 
