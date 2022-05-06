@@ -1,4 +1,4 @@
-__all__ = ['geomedian_eval']
+__all__ = ["geomedian_eval"]
 import numpy as np
 import numpy.linalg as la
 
@@ -33,17 +33,17 @@ def EvaluateJacobian(x, component, B):
 
 def geomedian_eval(H, persis_info, sim_specs, _):
 
-    B = persis_info['params']['B']
+    B = persis_info["params"]["B"]
 
-    num_xs = len(H['x'])  # b==1 always?
-    H_o = np.zeros(num_xs, dtype=sim_specs['out'])
+    num_xs = len(H["x"])  # b==1 always?
+    H_o = np.zeros(num_xs, dtype=sim_specs["out"])
 
-    for k, x in enumerate(H['x']):
-        i = H[k]['obj_component']  # f_i
+    for k, x in enumerate(H["x"]):
+        i = H[k]["obj_component"]  # f_i
 
-        if H[k]['get_grad']:
-            H_o['gradf_i'][k] = EvaluateJacobian(x, i, B)
+        if H[k]["get_grad"]:
+            H_o["gradf_i"][k] = EvaluateJacobian(x, i, B)
         else:
-            H_o['f_i'][k] = EvaluateFunction(x, i, B)
+            H_o["f_i"][k] = EvaluateFunction(x, i, B)
 
     return H_o, persis_info

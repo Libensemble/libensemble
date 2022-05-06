@@ -24,7 +24,7 @@ from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = 'nlopt'
+libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
@@ -33,7 +33,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 def assertion(passed):
     """Raise assertion or MPI Abort"""
-    if libE_specs['comms'] == 'mpi':
+    if libE_specs["comms"] == "mpi":
         from mpi4py import MPI
 
         if passed:
@@ -53,38 +53,38 @@ if nworkers < 2:
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
 }
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
+gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
 
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['f'] + [n[0] for n in gen_out],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 100,
-        'localopt_method': 'LN_BOBYQA',
-        'lb': np.array([0, -np.pi / 2]),
-        'ub': np.array([2 * np.pi, 3 * np.pi / 2]),
+    "gen_f": gen_f,
+    "persis_in": ["f"] + [n[0] for n in gen_out],
+    "out": gen_out,
+    "user": {
+        "initial_sample_size": 100,
+        "localopt_method": "LN_BOBYQA",
+        "lb": np.array([0, -np.pi / 2]),
+        "ub": np.array([2 * np.pi, 3 * np.pi / 2]),
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f}
+alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {'sim_max': 1000}
+exit_criteria = {"sim_max": 1000}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-libE_specs['abort_on_exception'] = False
+libE_specs["abort_on_exception"] = False
 try:
     # Perform the run, which will fail because we want to test exception handling
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 except Exception as e:
     if is_manager:
-        if e.args[1].endswith('NLopt roundoff-limited'):
+        if e.args[1].endswith("NLopt roundoff-limited"):
             assertion(True)
         else:
             assertion(False)

@@ -20,32 +20,32 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+    if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    user = alloc_specs.get('user', {})
-    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+    user = alloc_specs.get("user", {})
+    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
 
     gen_count = support.count_gens()
     Work = {}
-    gen_in = gen_specs.get('in', [])
+    gen_in = gen_specs.get("in", [])
 
     for wid in support.avail_worker_ids():
         # Skip any cancelled points
-        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
-            persis_info['next_to_give'] += 1
+        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
+            persis_info["next_to_give"] += 1
 
         # Give sim work if possible
-        if persis_info['next_to_give'] < len(H):
+        if persis_info["next_to_give"] < len(H):
             try:
-                Work[wid] = support.sim_work(wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
+                Work[wid] = support.sim_work(wid, H, sim_specs["in"], [persis_info["next_to_give"]], [])
             except InsufficientFreeResources:
                 break
-            persis_info['next_to_give'] += 1
+            persis_info["next_to_give"] += 1
 
-        elif gen_count < user.get('num_active_gens', gen_count + 1):
+        elif gen_count < user.get("num_active_gens", gen_count + 1):
 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
@@ -54,6 +54,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             except InsufficientFreeResources:
                 break
             gen_count += 1
-            persis_info['total_gen_calls'] += 1
+            persis_info["total_gen_calls"] += 1
 
     return Work, persis_info

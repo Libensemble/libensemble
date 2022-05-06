@@ -14,7 +14,7 @@ def build_simfunc():
 
     # Build simfunc
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simtask.x simdir/my_simtask.c'
+    buildstring = "mpicc -o my_simtask.x simdir/my_simtask.c"
     # subprocess.run(buildstring.split(),check=True) # Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -24,7 +24,7 @@ def build_simfunc():
 # gen_app = 'gendir/my_genjob.x'
 
 # temp
-sim_app = './my_simtask.x'
+sim_app = "./my_simtask.x"
 
 if not os.path.isfile(sim_app):
     build_simfunc()
@@ -42,7 +42,7 @@ else:
 
     exctr = MPIExecutor()
 
-exctr.register_app(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type="sim")
 
 # Alternative to IF could be using eg. fstring to specify: e.g:
 # EXECUTOR = 'Balsam'
@@ -69,19 +69,19 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
         for task in task_list:
             if not task.finished:
                 time.sleep(delay)
-                print('Polling task {0} at time {1}'.format(task.id, time.time() - start))
+                print("Polling task {0} at time {1}".format(task.id, time.time() - start))
                 task.poll()
 
                 if task.finished:
                     continue
-                elif task.state == 'WAITING':
-                    print('Task {0} waiting to execute'.format(task.id))
-                elif task.state == 'RUNNING':
-                    print('Task {0} still running ....'.format(task.id))
+                elif task.state == "WAITING":
+                    print("Task {0} waiting to execute".format(task.id))
+                elif task.state == "RUNNING":
+                    print("Task {0} still running ....".format(task.id))
 
                 # Check output file for error
                 if task.stdout_exists():
-                    if 'Error' in task.read_stdout():
+                    if "Error" in task.read_stdout():
                         print("Found (deliberate) Error in output file - " "cancelling task {}".format(task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
@@ -94,26 +94,26 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
                 # path = os.path.join(task.workdir,'newfile'+str(time.time()))
                 # open(path, 'a')
 
-    print('Loop time', time.time() - start)
+    print("Loop time", time.time() - start)
 
     for task in task_list:
         if task.finished:
-            if task.state == 'FINISHED':
-                print('Task {0} finished successfully. Status: {1}'.format(task.id, task.state))
-            elif task.state == 'FAILED':
-                print('Task {0} failed. Status: {1}'.format(task.id, task.state))
-            elif task.state == 'USER_KILLED':
-                print('Task {0} has been killed. Status: {1}'.format(task.id, task.state))
+            if task.state == "FINISHED":
+                print("Task {0} finished successfully. Status: {1}".format(task.id, task.state))
+            elif task.state == "FAILED":
+                print("Task {0} failed. Status: {1}".format(task.id, task.state))
+            elif task.state == "USER_KILLED":
+                print("Task {0} has been killed. Status: {1}".format(task.id, task.state))
             else:
-                print('Task {0} status: {1}'.format(task.id, task.state))
+                print("Task {0} status: {1}".format(task.id, task.state))
         else:
-            print('Task {0} timed out. Status: {1}'.format(task.id, task.state))
+            print("Task {0} timed out. Status: {1}".format(task.id, task.state))
             exctr.kill(task)
             if task.finished:
-                print('Task {0} Now killed. Status: {1}'.format(task.id, task.state))
+                print("Task {0} Now killed. Status: {1}".format(task.id, task.state))
                 # double check
                 task.poll()
-                print('Task {0} state is {1}'.format(task.id, task.state))
+                print("Task {0} state is {1}".format(task.id, task.state))
 
 
 # Tests
@@ -123,7 +123,7 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
 exctr = Executor.executor
 
 
-print('\nTest 1 - 3 tasks should complete successfully with status FINISHED :\n')
+print("\nTest 1 - 3 tasks should complete successfully with status FINISHED :\n")
 
 task_list = []
 cores = 4
@@ -132,9 +132,9 @@ for j in range(3):
     # Could allow submission to generate outfile names based on task.id
     # outfilename = 'out_' + str(j) + '.txt'
     sleeptime = 6 + j * 3  # Change args
-    args_for_sim = 'sleep' + ' ' + str(sleeptime)
-    rundir = 'run_' + str(sleeptime)
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep" + " " + str(sleeptime)
+    rundir = "run_" + str(sleeptime)
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task_list.append(task)
 
 

@@ -19,12 +19,12 @@ from libensemble.executors.executor import NOT_STARTED_STATES
 
 USE_BALSAM = False
 NCORES = 1
-build_sims = ['my_simtask.c', 'my_serialtask.c', 'c_startup.c']
+build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]
 
-sim_app = 'simdir/my_simtask.x'
-serial_app = 'simdir/my_serialtask.x'
-c_startup = 'simdir/c_startup.x'
-py_startup = 'simdir/py_startup.py'
+sim_app = "simdir/my_simtask.x"
+serial_app = "simdir/my_serialtask.x"
+c_startup = "simdir/c_startup.x"
+py_startup = "simdir/py_startup.py"
 
 
 def setup_module(module):
@@ -59,9 +59,9 @@ def build_simfuncs():
     import subprocess
 
     for sim in build_sims:
-        app_name = '.'.join([sim.split('.')[0], 'x'])
+        app_name = ".".join([sim.split(".")[0], "x"])
         if not os.path.isfile(app_name):
-            buildstring = 'mpicc -o ' + os.path.join('simdir', app_name) + ' ' + os.path.join('simdir', sim)
+            buildstring = "mpicc -o " + os.path.join("simdir", app_name) + " " + os.path.join("simdir", sim)
             subprocess.check_call(buildstring.split())
 
 
@@ -76,7 +76,7 @@ def setup_executor():
         from libensemble.executors.mpi_executor import MPIExecutor
 
         exctr = MPIExecutor()
-    exctr.register_app(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
 def setup_serial_executor():
@@ -84,7 +84,7 @@ def setup_serial_executor():
     from libensemble.executors.executor import Executor
 
     exctr = Executor()
-    exctr.register_app(full_path=serial_app, calc_type='sim')
+    exctr.register_app(full_path=serial_app, calc_type="sim")
 
 
 def setup_executor_startups():
@@ -92,8 +92,8 @@ def setup_executor_startups():
     from libensemble.executors.executor import Executor
 
     exctr = Executor()
-    exctr.register_app(full_path=c_startup, app_name='c_startup')
-    exctr.register_app(full_path=py_startup, app_name='py_startup')
+    exctr.register_app(full_path=c_startup, app_name="c_startup")
+    exctr.register_app(full_path=py_startup, app_name="py_startup")
 
 
 def setup_executor_noapp():
@@ -113,19 +113,19 @@ def setup_executor_noapp():
 def setup_executor_fakerunner():
     """Set up an MPI Executor with a non-existent MPI runner"""
     if USE_BALSAM:
-        print('Balsom does not support this feature - running MPIExecutor')
+        print("Balsom does not support this feature - running MPIExecutor")
 
     # Create non-existent MPI runner.
     customizer = {
-        'mpi_runner': 'custom',
-        'runner_name': 'non-existent-runner',
-        'subgroup_launch': True,
+        "mpi_runner": "custom",
+        "runner_name": "non-existent-runner",
+        "subgroup_launch": True,
     }
 
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor(custom_info=customizer)
-    exctr.register_app(full_path=sim_app, calc_type='sim')
+    exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
 def is_ompi():
@@ -144,23 +144,23 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
 
         # Check output file for error
         if task.stdout_exists():
-            if 'Error' in task.read_stdout() or 'error' in task.read_stdout():
+            if "Error" in task.read_stdout() or "error" in task.read_stdout():
                 print("Found(deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
                 break
 
-        print('Polling at time', time.time() - start)
+        print("Polling at time", time.time() - start)
         task.poll()
         if task.finished:
             break
-        elif task.state == 'WAITING':
-            print('Task waiting to execute')
-        elif task.state == 'RUNNING':
-            print('Task still running ....')
+        elif task.state == "WAITING":
+            print("Task waiting to execute")
+        elif task.state == "RUNNING":
+            print("Task still running ....")
 
     if not task.finished:
-        assert task.state == 'RUNNING', "task.state expected to be RUNNING. Returned: " + str(task.state)
+        assert task.state == "RUNNING", "task.state expected to be RUNNING. Returned: " + str(task.state)
         print("Task timed out - killing")
         exctr.kill(task)
         time.sleep(delay)  # Give time for kill
@@ -181,18 +181,18 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
         for task in task_list:
             if not task.finished:
                 time.sleep(delay)
-                print('Polling task %d at time %f' % (task.id, time.time() - start))
+                print("Polling task %d at time %f" % (task.id, time.time() - start))
                 task.poll()
                 if task.finished:
                     continue
-                elif task.state == 'WAITING':
-                    print('Task %d waiting to execute' % (task.id))
-                elif task.state == 'RUNNING':
-                    print('Task %d still running ....' % (task.id))
+                elif task.state == "WAITING":
+                    print("Task %d waiting to execute" % (task.id))
+                elif task.state == "RUNNING":
+                    print("Task %d still running ...." % (task.id))
 
                 # Check output file for error
                 if task.stdout_exists():
-                    if 'Error' in task.read_stdout():
+                    if "Error" in task.read_stdout():
                         print("Found (deliberate) Error in output file - cancelling task %d" % (task.id))
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
@@ -207,11 +207,11 @@ def test_launch_and_poll():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 0.2"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     assert task.run_attempts == 1, "task.run_attempts should be 1. Returned " + str(task.run_attempts)
 
 
@@ -221,14 +221,14 @@ def test_launch_and_wait():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 1'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 1"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task.wait()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     task.wait()  # Already complete
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 def test_launch_and_wait_timeout():
@@ -237,8 +237,8 @@ def test_launch_and_wait_timeout():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 5'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 5"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     try:
         task.wait(timeout=0.5)
     except TimeoutExpired:
@@ -247,7 +247,7 @@ def test_launch_and_wait_timeout():
         assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
         task.kill()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_wait_on_start():
@@ -256,14 +256,14 @@ def test_launch_wait_on_start():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+    args_for_sim = "sleep 0.2"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(task.state)
     exctr.poll(task)
     if not task.finished:
         task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 def test_kill_on_file():
@@ -272,11 +272,11 @@ def test_kill_on_file():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.1 Error'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 0.1 Error"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_kill_on_timeout():
@@ -284,11 +284,11 @@ def test_kill_on_timeout():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 10'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 10"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_kill_on_timeout_polling_loop_method():
@@ -296,11 +296,11 @@ def test_kill_on_timeout_polling_loop_method():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 10'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 10"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     exctr.polling_loop(task, timeout=1)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_and_poll_multitasks():
@@ -312,17 +312,17 @@ def test_launch_and_poll_multitasks():
 
     for j in range(3):
         # outfilename = 'out_' + str(j) + '.txt' # Could allow launch to generate outfile names based on task.id
-        outfile = 'multitask_task_' + str(j) + '.out'
+        outfile = "multitask_task_" + str(j) + ".out"
         sleeptime = 0.3 + (j * 0.2)  # Change args
-        args_for_sim = 'sleep' + ' ' + str(sleeptime)
+        args_for_sim = "sleep" + " " + str(sleeptime)
         # rundir = 'run_' + str(sleeptime)
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, stdout=outfile)
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, stdout=outfile)
         task_list.append(task)
 
     task_list_return = polling_loop_multitask(exctr, task_list)
     for task in task_list_return:
         assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-        assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+        assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 def test_get_task():
@@ -332,22 +332,22 @@ def test_get_task():
     exctr = Executor.executor
 
     # Try with no tasks set up
-    A = exctr.get_task('a')
-    assert A is None, 'Task found when tasklist should be empty'
+    A = exctr.get_task("a")
+    assert A is None, "Task found when tasklist should be empty"
 
     # Set up task and getid
     cores = NCORES
-    args_for_sim = 'sleep 0'
-    task0 = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 0"
+    task0 = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     taskid = task0.id
     print("taskid is: {}".format(taskid))
     A = exctr.get_task(taskid)
-    assert A is task0, 'Task get_task returned unexpected task' + str(A)
+    assert A is task0, "Task get_task returned unexpected task" + str(A)
     task0 = polling_loop(exctr, task0)
 
     # Get non-existent taskid
     A = exctr.get_task(taskid + 1)
-    assert A is None, 'Task found when supplied taskid should not exist'
+    assert A is None, "Task found when supplied taskid should not exist"
 
 
 @pytest.mark.timeout(30)
@@ -360,80 +360,80 @@ def test_procs_and_machinefile_logic():
     # Testing machinefile
     setup_executor()
     exctr = Executor.executor
-    args_for_sim = 'sleep 0'
+    args_for_sim = "sleep 0"
 
     machinefilename = "my_machinefile"
     cores = NCORES
-    with open(machinefilename, 'w') as f:
+    with open(machinefilename, "w") as f:
         for rank in range(cores):
-            f.write(socket.gethostname() + '\n')
+            f.write(socket.gethostname() + "\n")
 
-    task = exctr.submit(calc_type='sim', machinefile=machinefilename, app_args=args_for_sim)
+    task = exctr.submit(calc_type="sim", machinefile=machinefilename, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing num_procs = num_nodes*procs_per_node (shouldn't fail)
     if is_ompi():
         task = exctr.submit(
-            calc_type='sim',
+            calc_type="sim",
             num_procs=6,
             num_nodes=1,
             procs_per_node=6,
             app_args=args_for_sim,
-            extra_args='--oversubscribe',
+            extra_args="--oversubscribe",
         )
     else:
-        task = exctr.submit(calc_type='sim', num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
+        task = exctr.submit(calc_type="sim", num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing num_procs not num_nodes*procs_per_node (should fail)
     try:
-        task = exctr.submit(calc_type='sim', num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
+        task = exctr.submit(calc_type="sim", num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
     except MPIResourcesException as e:
-        assert e.args[0] == 'num_procs does not equal num_nodes*procs_per_node'
+        assert e.args[0] == "num_procs does not equal num_nodes*procs_per_node"
     else:
         assert 0
 
     # Testing no num_procs (shouldn't fail)
     if is_ompi():
         task = exctr.submit(
-            calc_type='sim',
+            calc_type="sim",
             num_nodes=1,
             procs_per_node=3,
             app_args=args_for_sim,
-            extra_args='--oversubscribe',
+            extra_args="--oversubscribe",
         )
     else:
-        task = exctr.submit(calc_type='sim', num_nodes=2, procs_per_node=3, app_args=args_for_sim)
+        task = exctr.submit(calc_type="sim", num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing nothing given (should fail)
     try:
-        task = exctr.submit(calc_type='sim', app_args=args_for_sim)
+        task = exctr.submit(calc_type="sim", app_args=args_for_sim)
     except MPIResourcesException as e:
-        assert e.args[0] == 'Need num_procs, num_nodes/procs_per_node, or machinefile'
+        assert e.args[0] == "Need num_procs, num_nodes/procs_per_node, or machinefile"
     else:
         assert 0
 
     # Testing no num_nodes (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_procs=2, procs_per_node=2, app_args=args_for_sim)
+    task = exctr.submit(calc_type="sim", num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing no procs_per_node (shouldn't fail)
-    task = exctr.submit(calc_type='sim', num_nodes=1, num_procs=2, app_args=args_for_sim)
+    task = exctr.submit(calc_type="sim", num_nodes=1, num_procs=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 @pytest.mark.timeout(20)
@@ -446,17 +446,17 @@ def test_doublekill():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 2.0'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 2.0"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task.poll()
     exctr.wait_time = 5
 
     exctr.kill(task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
     exctr.kill(task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+    assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 @pytest.mark.timeout(20)
@@ -469,20 +469,20 @@ def test_finish_and_kill():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.1'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     while not task.finished:
         time.sleep(0.1)
         task.poll()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     exctr.kill(task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     # Try polling after finish - should return with no effect
     task.poll()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 @pytest.mark.timeout(20)
@@ -492,17 +492,17 @@ def test_launch_and_kill():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 2.0'
+    args_for_sim = "sleep 2.0"
     task_list = []
     exctr.wait_time = 1
     for taskid in range(5):
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
         exctr.kill(task)
         task_list.append(task)
 
     for task in task_list:
         assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-        assert task.state == 'USER_KILLED', "task.state should be USER_KILLED. Returned " + str(task.state)
+        assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
 def test_launch_as_gen():
@@ -510,27 +510,27 @@ def test_launch_as_gen():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.1'
+    args_for_sim = "sleep 0.1"
 
     # Try launching as gen when not registered as gen
     try:
-        task = exctr.submit(calc_type='gen', num_procs=cores, app_args=args_for_sim)
+        task = exctr.submit(calc_type="gen", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
-        assert e.args[0] == 'Default gen app is not set'
+        assert e.args[0] == "Default gen app is not set"
     else:
         assert 0
 
-    exctr.register_app(full_path=sim_app, calc_type='gen')
-    task = exctr.submit(calc_type='gen', num_procs=cores, app_args=args_for_sim)
+    exctr.register_app(full_path=sim_app, calc_type="gen")
+    task = exctr.submit(calc_type="gen", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Try launching as 'alloc' which is not a type
     try:
-        task = exctr.submit(calc_type='alloc', num_procs=cores, app_args=args_for_sim)
+        task = exctr.submit(calc_type="alloc", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
-        assert e.args[0] + e.args[1] == 'Unrecognized calculation type' + 'alloc'
+        assert e.args[0] + e.args[1] == "Unrecognized calculation type" + "alloc"
     else:
         assert 0
 
@@ -540,17 +540,17 @@ def test_launch_no_app():
     setup_executor_noapp()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.1'
+    args_for_sim = "sleep 0.1"
     try:
-        _ = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+        _ = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
-        assert e.args[0] == 'Default sim app is not set'
+        assert e.args[0] == "Default sim app is not set"
     else:
         assert 0
     try:
         _ = exctr.submit(num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
-        assert e.args[0] == 'Either app_name or calc_type must be set'
+        assert e.args[0] == "Either app_name or calc_type must be set"
     else:
         assert 0
 
@@ -564,19 +564,19 @@ def test_kill_task_with_no_submit():
 
     # Try kill invalid task
     try:
-        exctr.kill('mytask')
+        exctr.kill("mytask")
     except ExecutorException as e:
-        assert e.args[0] == 'Invalid task has been provided'
+        assert e.args[0] == "Invalid task has been provided"
     else:
         assert 0
 
     # Create a task directly with no submit (Not supported for users)
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
-    exp_msg = 'Attempting to kill task libe_task_my_simtask.x_.+that has ' 'no process ID - check tasks been launched'
+    exp_msg = "Attempting to kill task libe_task_my_simtask.x_.+that has " "no process ID - check tasks been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
-    task1 = Task(app=myapp, stdout='stdout.txt')
+    task1 = Task(app=myapp, stdout="stdout.txt")
     try:
         exctr.kill(task1)
     except ExecutorException as e:
@@ -593,10 +593,10 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = 'Polled task libe_task_my_simtask.x_.+ ' 'has no process ID - check tasks been launched'
+    exp_msg = "Polled task libe_task_my_simtask.x_.+ " "has no process ID - check tasks been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
-    task1 = Task(app=myapp, stdout='stdout.txt')
+    task1 = Task(app=myapp, stdout="stdout.txt")
     try:
         task1.poll()
     except ExecutorException as e:
@@ -610,11 +610,11 @@ def test_task_failure():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 1.0 Fail'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+    args_for_sim = "sleep 1.0 Fail"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task, timeout_sec=3)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
+    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
 
 
 def test_retries_launch_fail():
@@ -623,9 +623,9 @@ def test_retries_launch_fail():
     exctr = Executor.executor
     exctr.retry_delay_incr = 0.05
     cores = NCORES
-    args_for_sim = 'sleep 0'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
-    assert task.state == 'CREATED', "task.state should be CREATED. Returned " + str(task.state)
+    args_for_sim = "sleep 0"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    assert task.state == "CREATED", "task.state should be CREATED. Returned " + str(task.state)
     assert exctr.mpi_runner.subgroup_launch, "subgroup_launch should be True"
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
@@ -637,9 +637,9 @@ def test_retries_run_fail():
     exctr.retry_delay_incr = 0.05
     exctr.fail_time = 3
     cores = NCORES
-    args_for_sim = 'sleep 0 Fail'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
-    assert task.state == 'FAILED', "task.state should be FAILED. Returned " + str(task.state)
+    args_for_sim = "sleep 0 Fail"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
@@ -647,32 +647,32 @@ def test_register_apps():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()  # This registers an app my_simtask.x (default sim)
     exctr = Executor.executor
-    exctr.register_app(full_path='/path/to/fake_app1.x', app_name='fake_app1')
-    exctr.register_app(full_path='/path/to/fake_app2.py', app_name='fake_app2')
+    exctr.register_app(full_path="/path/to/fake_app1.x", app_name="fake_app1")
+    exctr.register_app(full_path="/path/to/fake_app2.py", app_name="fake_app2")
 
     # Check selected attributes
-    app = exctr.get_app('my_simtask.x')
-    assert app.name == 'my_simtask.x'
-    assert app.gname == 'libe_app_my_simtask.x'
+    app = exctr.get_app("my_simtask.x")
+    assert app.name == "my_simtask.x"
+    assert app.gname == "libe_app_my_simtask.x"
 
-    app = exctr.get_app('fake_app1')
-    assert app.name == 'fake_app1'
-    assert app.gname == 'libe_app_fake_app1'
-    assert app.exe == 'fake_app1.x'
-    assert app.calc_dir == '/path/to'
+    app = exctr.get_app("fake_app1")
+    assert app.name == "fake_app1"
+    assert app.gname == "libe_app_fake_app1"
+    assert app.exe == "fake_app1.x"
+    assert app.calc_dir == "/path/to"
 
-    app = exctr.get_app('fake_app2')
-    assert app.name == 'fake_app2'
-    assert app.gname == 'libe_app_fake_app2'
+    app = exctr.get_app("fake_app2")
+    assert app.name == "fake_app2"
+    assert app.gname == "libe_app_fake_app2"
 
     py_exe, app_exe = app.full_path.split()
-    assert os.path.split(py_exe)[1].startswith('python')
-    assert app_exe == '/path/to/fake_app2.py'
+    assert os.path.split(py_exe)[1].startswith("python")
+    assert app_exe == "/path/to/fake_app2.py"
 
     try:
-        app = exctr.get_app('fake_app3')
+        app = exctr.get_app("fake_app3")
     except ExecutorException as e:
-        assert e.args[0] == 'Application fake_app3 not found in registry'
+        assert e.args[0] == "Application fake_app3 not found in registry"
         # Ordering of dictionary may vary
         # assert e.args[1] == "Registered applications: ['my_simtask.x', 'fake_app1', 'fake_app2']"
 
@@ -680,11 +680,11 @@ def test_register_apps():
 def test_serial_exes():
     setup_serial_executor()
     exctr = Executor.executor
-    args_for_sim = 'sleep 0.1'
-    task = exctr.submit(calc_type='sim', app_args=args_for_sim, wait_on_start=True)
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", app_args=args_for_sim, wait_on_start=True)
     task.wait()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 def test_serial_startup_times():
@@ -692,23 +692,23 @@ def test_serial_startup_times():
     exctr = Executor.executor
 
     t1 = time.time()
-    task = exctr.submit(app_name='c_startup')
+    task = exctr.submit(app_name="c_startup")
     task.wait()
     stime = float(task.read_stdout())
     startup_time = stime - t1
-    print('start up time for c program', startup_time)
+    print("start up time for c program", startup_time)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     assert 0 < startup_time < 1, "Start up time for C program took " + str(startup_time)
 
     t1 = time.time()
-    task = exctr.submit(app_name='py_startup')
+    task = exctr.submit(app_name="py_startup")
     task.wait()
     stime = float(task.read_stdout())
     startup_time = stime - t1
-    print('start up time for python program', startup_time)
+    print("start up time for python program", startup_time)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == 'FINISHED', "task.state should be FINISHED. Returned " + str(task.state)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
     assert 0 < startup_time < 1, "Start up time for python program took " + str(startup_time)
 
 
@@ -716,12 +716,12 @@ def test_futures_interface():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     cores = NCORES
-    args_for_sim = 'sleep 3'
+    args_for_sim = "sleep 3"
     with Executor.executor as exctr:
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     time.sleep(0.1)
     assert task.running(), "task.running() should return True after wait_on_start task submission."
-    assert task.result() == 'FINISHED', "task.result() should return FINISHED. Returned " + str(task.state)
+    assert task.result() == "FINISHED", "task.result() should return FINISHED. Returned " + str(task.state)
     assert task.done(), "task.done() should return True after task finishes."
 
 
@@ -729,9 +729,9 @@ def test_futures_interface_cancel():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     setup_executor()
     cores = NCORES
-    args_for_sim = 'sleep 3'
+    args_for_sim = "sleep 3"
     with Executor.executor as exctr:
-        task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     time.sleep(0.1)
     task.cancel()
     assert task.cancelled() and task.done(), "Task should be both cancelled() and done() after cancellation."
@@ -743,8 +743,8 @@ def test_dry_run():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = 'sleep 0.2'
-    task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim, dry_run=True)
+    args_for_sim = "sleep 0.2"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, dry_run=True)
     task.poll()
     task.kill()
 

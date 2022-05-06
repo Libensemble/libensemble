@@ -44,14 +44,14 @@ def run_cmd(cmd, echo=False):
 # Use relative paths to balsam_tests dir
 work_dir = os.path.dirname(os.path.abspath(__file__))
 
-sim_input_dir = os.path.abspath('../../examples/sim_funcs')
+sim_input_dir = os.path.abspath("../../examples/sim_funcs")
 sim_app = "helloworld.py"
 
 # For host code
 num_nodes = 1
 procs_per_node = 4
 
-job_list = ['test_balsam_1__runjobs.py', 'test_balsam_2__workerkill.py', 'test_balsam_3__managerkill.py']
+job_list = ["test_balsam_1__runjobs.py", "test_balsam_2__workerkill.py", "test_balsam_3__managerkill.py"]
 
 
 # Currently think only CLI interface for this stuff??
@@ -62,8 +62,8 @@ run_cmd("balsam rm jobs --all", True)
 # Add user apps - eg helloworld.py
 sim_app_name = os.path.splitext(sim_app)[0]  # rm .py extension
 sim_app_path = os.path.join(sim_input_dir, sim_app)  # Full path
-sim_app_desc = 'Run ' + sim_app_name
-run_line = sys.executable + ' ' + sim_app_path
+sim_app_desc = "Run " + sim_app_name
+run_line = sys.executable + " " + sim_app_path
 add_app(sim_app_name, run_line, sim_app_desc)
 
 
@@ -74,11 +74,11 @@ for job in job_list:
 
     app_name = os.path.splitext(job)[0]
     app_path = os.path.join(work_dir, job)
-    app_desc = 'Run ' + app_name
-    run_line = sys.executable + ' ' + app_path
+    app_desc = "Run " + app_name
+    run_line = sys.executable + " " + app_path
     add_app(app_name, run_line, app_desc)
 
-    job_name = 'job_' + app_name
+    job_name = "job_" + app_name
     dag.add_job(
         name=job_name,
         workflow="libe_workflow",

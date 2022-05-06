@@ -14,23 +14,23 @@ def test_set_log_level():
     level = logger.get_level()
     assert level == 20, "Log level should be 20. Found: " + str(level)
 
-    logger.set_level('DEBUG')
+    logger.set_level("DEBUG")
     level = logger.get_level()
     assert level == 10, "Log level should be 10. Found: " + str(level)
 
-    logger.set_level('WARNING')
+    logger.set_level("WARNING")
     level = logger.get_level()
     assert level == 30, "Log level should be 30. Found: " + str(level)
 
-    logger.set_level('MANAGER_WARNING')
+    logger.set_level("MANAGER_WARNING")
     level = logger.get_level()
     assert level == 35, "Log level should be 35. Found: " + str(level)
 
-    logger.set_level('ERROR')
+    logger.set_level("ERROR")
     level = logger.get_level()
     assert level == 40, "Log level should be 40. Found: " + str(level)
 
-    logger.set_level('INFO')
+    logger.set_level("INFO")
     level = logger.get_level()
     assert level == 20, "Log level should be 20. Found: " + str(level)
 
@@ -65,18 +65,18 @@ def test_set_filename():
     assert logs.filename == alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
 
     manager_logging_config()
-    logger.set_filename('toolate.log')
+    logger.set_filename("toolate.log")
     assert logs.filename == alt_name, "Log filename expected " + str(alt_name) + ". Found: " + logs.filename
 
     assert os.path.isfile(alt_name), "Expected creation of file" + str(alt_name)
-    with open(alt_name, 'r') as f:
+    with open(alt_name, "r") as f:
         line = f.readline()
         assert "Cannot set filename after loggers initialized" in line
     os.remove(alt_name)
 
     logs = LogConfig.config
     logs.logger_set = True
-    logs.set_level('DEBUG')
+    logs.set_level("DEBUG")
 
 
 def test_set_stderr_level():
@@ -84,29 +84,29 @@ def test_set_stderr_level():
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 35, "Default stderr copying level is 35, found " + str(stderr_level)
 
-    logger.set_stderr_level('DEBUG')
+    logger.set_stderr_level("DEBUG")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 10, "Log level should be 10. Found: " + str(stderr_level)
 
-    logger.set_stderr_level('INFO')
+    logger.set_stderr_level("INFO")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 20, "Log level should be 20. Found: " + str(stderr_level)
 
-    logger.set_stderr_level('WARNING')
+    logger.set_stderr_level("WARNING")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 30, "Log level should be 30. Found: " + str(stderr_level)
 
-    logger.set_stderr_level('MANAGER_WARNING')
+    logger.set_stderr_level("MANAGER_WARNING")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 35, "Log level should be 35. Found: " + str(stderr_level)
 
-    logger.set_stderr_level('ERROR')
+    logger.set_stderr_level("ERROR")
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 40, "Log level should be 40. Found: " + str(stderr_level)
 
-    logger.set_level('ERROR')
-    logger_test = logging.getLogger('libensemble')
-    logger_test.manager_warning('This test message should not log')
+    logger.set_level("ERROR")
+    logger_test = logging.getLogger("libensemble")
+    logger_test.manager_warning("This test message should not log")
 
 
 # Need setup/teardown here to kill loggers if running file without pytest

@@ -19,7 +19,7 @@ exctr = MPIExecutor()
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
 if not os.path.isfile(sim_app):
-    sys.exit('forces.x not found - please build first in ../forces_app dir')
+    sys.exit("forces.x not found - please build first in ../forces_app dir")
 
 exctr.register_app(full_path=sim_app, app_name="forces")
 
@@ -43,7 +43,7 @@ gen_specs = {
 }
 
 # Create and work inside separate per-simulation directories
-libE_specs['sim_dirs_make'] = True
+libE_specs["sim_dirs_make"] = True
 
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}

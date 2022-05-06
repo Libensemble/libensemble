@@ -1,4 +1,4 @@
-__all__ = ['chwirut_eval']
+__all__ = ["chwirut_eval"]
 import numpy as np
 
 NOBSERVATIONS = 214

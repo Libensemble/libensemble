@@ -11,11 +11,11 @@ import libensemble.utils.launcher as launcher
 def test_form_command():
     "Test the command templating."
 
-    run_specs = {'mpirun': 'mpirun', 'nproc': 10, 'nrank': 5, 'mf': None}
+    run_specs = {"mpirun": "mpirun", "nproc": 10, "nrank": 5, "mf": None}
 
-    cmd = ['{mpirun}', '-n {nproc}', '-nper {nrank}', '-machinefile {mf}', 'more arguments "ho hum"']
+    cmd = ["{mpirun}", "-n {nproc}", "-nper {nrank}", "-machinefile {mf}", 'more arguments "ho hum"']
     args = launcher.form_command(cmd, run_specs)
-    aref = ['mpirun', '-n', '10', '-nper', '5', 'more', 'arguments', '"ho hum"']
+    aref = ["mpirun", "-n", "10", "-nper", "5", "more", "arguments", '"ho hum"']
 
     assert args == aref, "Command templating test failed."
 

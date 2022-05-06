@@ -59,18 +59,18 @@ if nworkers < 2:
 
 num_dimensions = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
 }
 
 gen_specs = {
-    'gen_f': gen_f_batched,
-    'persis_in': ['x', 'f', 'sim_id'],
-    'out': [('x', float, num_dimensions)],
+    "gen_f": gen_f_batched,
+    "persis_in": ["x", "f", "sim_id"],
+    "out": [("x", float, num_dimensions)],
 }
 
-alloc_specs = {'alloc_f': alloc_f}
+alloc_specs = {"alloc_f": alloc_f}
 
 grid_files = []
 
@@ -83,42 +83,42 @@ for run in range(3):
     if run != 1:
         # note that using 'setAnisotropicRefinement' without 'gen_max' will create an infinite loop
         # other stopping criteria could be used with 'setSurplusRefinement' or no refinement
-        exit_criteria = {'wallclock_max': 10}
+        exit_criteria = {"wallclock_max": 10}
     elif run == 1:
-        exit_criteria = {'gen_max': 100}  # This will test persistent_tasmanian stopping early.
+        exit_criteria = {"gen_max": 100}  # This will test persistent_tasmanian stopping early.
 
     # tasmanian_init has to be a method that returns an initialized TasmanianSparseGrid object
     # tasmanian_checkpoint_file will be overwritten between each step of the iterative refinement
     #   the final grid will also be stored in the file
-    gen_specs['user'] = {
-        'tasmanian_init': tasmanian_init_global if run < 2 else tasmanian_init_localp,
-        'tasmanian_checkpoint_file': 'tasmanian{0}.grid'.format(run),
+    gen_specs["user"] = {
+        "tasmanian_init": tasmanian_init_global if run < 2 else tasmanian_init_localp,
+        "tasmanian_checkpoint_file": "tasmanian{0}.grid".format(run),
     }
 
     # setup the refinement criteria
     if run == 0:
-        gen_specs['user']['refinement'] = 'none'
+        gen_specs["user"]["refinement"] = "none"
 
     if run == 1:
         # See Tasmanian manual: https://ornl.github.io/TASMANIAN/stable/classTasGrid_1_1TasmanianSparseGrid.html
-        gen_specs['user']['refinement'] = 'setAnisotropicRefinement'
-        gen_specs['user']['sType'] = 'iptotal'
-        gen_specs['user']['iMinGrowth'] = 10
-        gen_specs['user']['iOutput'] = 0
+        gen_specs["user"]["refinement"] = "setAnisotropicRefinement"
+        gen_specs["user"]["sType"] = "iptotal"
+        gen_specs["user"]["iMinGrowth"] = 10
+        gen_specs["user"]["iOutput"] = 0
 
     if run == 2:
-        gen_specs['user']['refinement'] = 'setSurplusRefinement'
-        gen_specs['user']['fTolerance'] = 1.0e-2
-        gen_specs['user']['sCriteria'] = 'classic'
-        gen_specs['user']['iOutput'] = 0
+        gen_specs["user"]["refinement"] = "setSurplusRefinement"
+        gen_specs["user"]["fTolerance"] = 1.0e-2
+        gen_specs["user"]["sCriteria"] = "classic"
+        gen_specs["user"]["iOutput"] = 0
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        grid_files.append(gen_specs['user']['tasmanian_checkpoint_file'])
+        grid_files.append(gen_specs["user"]["tasmanian_checkpoint_file"])
 
         if run == 0:
-            print('[Manager]: Time taken =', time() - start_time, flush=True)
+            print("[Manager]: Time taken =", time() - start_time, flush=True)
 
             save_libE_output(H, persis_info, __file__, nworkers)
 

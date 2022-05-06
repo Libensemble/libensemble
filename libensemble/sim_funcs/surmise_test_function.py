@@ -11,14 +11,14 @@ def borehole(H, persis_info, sim_specs, libE_info):
     Wraps the borehole function
     """
 
-    H_o = np.zeros(H['x'].shape[0], dtype=sim_specs['out'])
+    H_o = np.zeros(H["x"].shape[0], dtype=sim_specs["out"])
 
     # If observation do not use failure model
-    sim_id = libE_info['H_rows'][0]
-    if sim_id > sim_specs['user']['num_obs']:
-        H_o['f'] = borehole_failmodel(H['x'], H['thetas'])
+    sim_id = libE_info["H_rows"][0]
+    if sim_id > sim_specs["user"]["num_obs"]:
+        H_o["f"] = borehole_failmodel(H["x"], H["thetas"])
     else:
-        H_o['f'] = borehole_model(H['x'], H['thetas'])
+        H_o["f"] = borehole_model(H["x"], H["thetas"])
     return H_o, persis_info
 
 

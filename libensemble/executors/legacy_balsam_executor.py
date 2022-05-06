@@ -70,7 +70,7 @@ class LegacyBalsamTask(Task):
         # but otherwise that will return time from task submission. Get from Balsam.
 
         # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
-        balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
+        balsam_launch_datetime = self.process.get_state_times().get("RUNNING", None)
         current_datetime = datetime.datetime.now()
         if balsam_launch_datetime:
             return (current_datetime - balsam_launch_datetime).total_seconds()
@@ -95,21 +95,21 @@ class LegacyBalsamTask(Task):
         self.finished = True
         if dry_run:
             self.success = True
-            self.state = 'FINISHED'
+            self.state = "FINISHED"
         else:
             balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
             self.calc_task_timing()
-            self.success = balsam_state == 'JOB_FINISHED'
-            if balsam_state == 'JOB_FINISHED':
-                self.state = 'FINISHED'
-            elif balsam_state == 'PARENT_KILLED':  # Not currently used
-                self.state = 'USER_KILLED'
+            self.success = balsam_state == "JOB_FINISHED"
+            if balsam_state == "JOB_FINISHED":
+                self.state = "FINISHED"
+            elif balsam_state == "PARENT_KILLED":  # Not currently used
+                self.state = "USER_KILLED"
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
                 logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
-                self.state = 'UNKNOWN'
+                self.state = "UNKNOWN"
 
             logger.info("Task {} ended with state {}".format(self.name, self.state))
 
@@ -130,11 +130,11 @@ class LegacyBalsamTask(Task):
             self._set_complete()
 
         elif balsam_state in models.ACTIVE_STATES:
-            self.state = 'RUNNING'
+            self.state = "RUNNING"
             self.workdir = self.workdir or self.process.working_directory
 
         elif balsam_state in models.PROCESSABLE_STATES or balsam_state in models.RUNNABLE_STATES:
-            self.state = 'WAITING'
+            self.state = "WAITING"
 
         else:
             raise ExecutorException(
@@ -181,7 +181,7 @@ class LegacyBalsamTask(Task):
         # but not implemented yet.
 
         logger.info("Killing task {}".format(self.name))
-        self.state = 'USER_KILLED'
+        self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
 
@@ -272,7 +272,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         hyperthreads=False,
         dry_run=False,
         wait_on_start=False,
-        extra_args='',
+        extra_args="",
     ):
         """Creates a new task, and either executes or schedules to execute
         in the executor
@@ -305,25 +305,25 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         task = LegacyBalsamTask(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         add_task_args = {
-            'name': task.name,
-            'workflow': self.workflow_name,
-            'user_workdir': default_workdir,
-            'application': app.gname,
-            'args': task.app_args,
-            'num_nodes': num_nodes,
-            'procs_per_node': procs_per_node,
-            'mpi_flags': extra_args,
+            "name": task.name,
+            "workflow": self.workflow_name,
+            "user_workdir": default_workdir,
+            "application": app.gname,
+            "args": task.app_args,
+            "num_nodes": num_nodes,
+            "procs_per_node": procs_per_node,
+            "mpi_flags": extra_args,
         }
 
         if stage_inout is not None:
             # For now hardcode staging - for testing
-            add_task_args['stage_in_url'] = "local:" + stage_inout + "/*"
-            add_task_args['stage_out_url'] = "local:" + stage_inout
-            add_task_args['stage_out_files'] = "*.out"
+            add_task_args["stage_in_url"] = "local:" + stage_inout + "/*"
+            add_task_args["stage_out_url"] = "local:" + stage_inout
+            add_task_args["stage_out_files"] = "*.out"
 
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
+            logger.info("Test (No submit) Runline: {}".format(" ".join(add_task_args)))
             task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)

@@ -36,18 +36,18 @@ def create_H0(persis_info, gen_specs, sim_max):
     """Create an H0 for give_pregenerated_sim_work"""
 
     # Manually creating H0
-    ub = gen_specs['user']['ub']
-    lb = gen_specs['user']['lb']
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
     n = len(lb)
     b = sim_max
 
-    H0 = np.zeros(b, dtype=[('x', float, 2), ('sim_id', int), ('sim_started', bool), ('cancel_requested', bool)])
-    H0['x'] = persis_info[0]['rand_stream'].uniform(lb, ub, (b, n))
-    H0['sim_id'] = range(b)
-    H0['sim_started'] = False
+    H0 = np.zeros(b, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool), ("cancel_requested", bool)])
+    H0["x"] = persis_info[0]["rand_stream"].uniform(lb, ub, (b, n))
+    H0["sim_id"] = range(b)
+    H0["sim_started"] = False
     for i in range(b):
         if i % 10 == 0:
-            H0[i]['cancel_requested'] = True
+            H0[i]["cancel_requested"] = True
 
     # Using uniform_random_sample_cancel call - need to adjust some gen_specs though
     # gen_specs['out'].append(('sim_id', int))
@@ -62,9 +62,9 @@ def create_H0(persis_info, gen_specs, sim_max):
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 sim_specs = {
-    'sim_f': six_hump_camel,  # Function whose output is being minimized
-    'in': ['x'],  # Keys to be given to sim_f
-    'out': [('f', float)],  # Name of the outputs from sim_f
+    "sim_f": six_hump_camel,  # Function whose output is being minimized
+    "in": ["x"],  # Keys to be given to sim_f
+    "out": [("f", float)],  # Name of the outputs from sim_f
 }
 # end_sim_specs_rst_tag
 
@@ -72,74 +72,74 @@ sim_specs = {
 # so that cancellations are combined with regular generator outputs for testing purposes.
 # For a typical use case see test_persistent_surmise_calib.py.
 gen_specs = {
-    'gen_f': uniform_random_sample_cancel,  # Function generating sim_f input
-    'out': [('x', float, (2,)), ('cancel_requested', bool)],
-    'user': {
-        'gen_batch_size': 50,  # Used by this specific gen_f
-        'lb': np.array([-3, -2]),  # Used by this specific gen_f
-        'ub': np.array([3, 2]),  # Used by this specific gen_f
+    "gen_f": uniform_random_sample_cancel,  # Function generating sim_f input
+    "out": [("x", float, (2,)), ("cancel_requested", bool)],
+    "user": {
+        "gen_batch_size": 50,  # Used by this specific gen_f
+        "lb": np.array([-3, -2]),  # Used by this specific gen_f
+        "ub": np.array([3, 2]),  # Used by this specific gen_f
     },
 }
 # end_gen_specs_rst_tag
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 sim_max = 500
-exit_criteria = {'sim_max': sim_max, 'wallclock_max': 300}
+exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
 aspec1 = {
-    'alloc_f': gswf,
-    'out': [],
-    'user': {
-        'batch_mode': True,
-        'num_active_gens': 1,
+    "alloc_f": gswf,
+    "out": [],
+    "user": {
+        "batch_mode": True,
+        "num_active_gens": 1,
     },
 }
 
 aspec2 = {
-    'alloc_f': gswf,
-    'out': [],
-    'user': {
-        'batch_mode': True,
-        'num_active_gens': 2,
+    "alloc_f": gswf,
+    "out": [],
+    "user": {
+        "batch_mode": True,
+        "num_active_gens": 2,
     },
 }
 
 aspec3 = {
-    'alloc_f': fast_gswf,
-    'out': [],
-    'user': {},
+    "alloc_f": fast_gswf,
+    "out": [],
+    "user": {},
 }
 
 aspec4 = {
-    'alloc_f': ensure_one_active_gen,
-    'out': [],
-    'user': {},
+    "alloc_f": ensure_one_active_gen,
+    "out": [],
+    "user": {},
 }
 
 aspec5 = {
-    'alloc_f': give_pregenerated_sim_work,
-    'out': [],
-    'user': {},
+    "alloc_f": give_pregenerated_sim_work,
+    "out": [],
+    "user": {},
 }
 
 allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 
 if is_manager:
-    print('Testing cancellations with non-persistent gen functions')
+    print("Testing cancellations with non-persistent gen functions")
 
 for testnum in range(1, 6):
     alloc_specs = allocs[testnum]
     if is_manager:
-        print('\nRunning with alloc specs', alloc_specs, flush=True)
+        print("\nRunning with alloc specs", alloc_specs, flush=True)
 
-    if alloc_specs['alloc_f'] == give_pregenerated_sim_work:
+    if alloc_specs["alloc_f"] == give_pregenerated_sim_work:
         H0 = create_H0(persis_info, gen_specs, sim_max)
     else:
         H0 = None
 
     # Reset for those that use them
-    persis_info['next_to_give'] = 0
-    persis_info['total_gen_calls'] = 0  # 1
+    persis_info["next_to_give"] = 0
+    persis_info["total_gen_calls"] = 0  # 1
 
     # Perform the run - do not overwrite persis_info
     H, persis_out, flag = libE(
@@ -148,11 +148,11 @@ for testnum in range(1, 6):
 
     if is_manager:
         assert flag == 0
-        assert np.all(H['cancel_requested'][::10]), 'Some values should be cancelled but are not'
-        assert np.all(~H['sim_started'][::10]), 'Some values are given that should not have been'
+        assert np.all(H["cancel_requested"][::10]), "Some values should be cancelled but are not"
+        assert np.all(~H["sim_started"][::10]), "Some values are given that should not have been"
         tol = 0.1
         for m in minima:
-            assert np.min(np.sum((H['x'] - m) ** 2, 1)) < tol
+            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
         print("libEnsemble found the 6 minima within a tolerance " + str(tol))
         del H

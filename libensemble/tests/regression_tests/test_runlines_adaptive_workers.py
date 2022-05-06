@@ -33,54 +33,54 @@ total_nodes = nworkers // 4  # 4 workers per node - run on 4N workers
 
 sim_app = helloworld.__file__
 exctr = MPIExecutor()
-exctr.register_app(full_path=sim_app, app_name='helloworld')
+exctr.register_app(full_path=sim_app, app_name="helloworld")
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
+    "sim_f": sim_f,
     # 'in': ['x', 'resource_sets'], # Dont need if letting it just use all resources available
-    'in': ['x'],
-    'out': [('f', float)],
-    'user': {'dry_run': True},
+    "in": ["x"],
+    "out": [("f", float)],
+    "user": {"dry_run": True},
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [('priority', float), ('resource_sets', int), ('x', float, n), ('x_on_cube', float, n)],
-    'user': {
-        'initial_batch_size': 5,
-        'max_resource_sets': 4,
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
+    "gen_f": gen_f,
+    "in": ["sim_id"],
+    "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+    "user": {
+        "initial_batch_size": 5,
+        "max_resource_sets": 4,
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
     },
 }
 
 alloc_specs = {
-    'alloc_f': give_sim_work_first,
-    'user': {
-        'batch_mode': False,
-        'give_all_with_same_priority': True,
-        'num_active_gens': 1,
+    "alloc_f": give_sim_work_first,
+    "user": {
+        "batch_mode": False,
+        "give_all_with_same_priority": True,
+        "num_active_gens": 1,
     },
 }
 
-comms = libE_specs['comms']
-node_file = 'nodelist_adaptive_workers_comms_' + str(comms) + '_wrks_' + str(nworkers)
+comms = libE_specs["comms"]
+node_file = "nodelist_adaptive_workers_comms_" + str(comms) + "_wrks_" + str(nworkers)
 if is_manager:
     create_node_file(num_nodes=total_nodes, name=node_file)
 
-if comms == 'mpi':
-    libE_specs['mpi_comm'].Barrier()
+if comms == "mpi":
+    libE_specs["mpi_comm"].Barrier()
 
 # Mock up system
-libE_specs['resource_info'] = {
-    'cores_on_node': (16, 64),  # Tuple (physical cores, logical cores)
-    'node_file': node_file,
+libE_specs["resource_info"] = {
+    "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
+    "node_file": node_file,
 }  # Name of file containing a node-list
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
+exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
 # Perform the run
 H, persis_info, flag = libE(

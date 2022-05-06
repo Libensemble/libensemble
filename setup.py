@@ -17,7 +17,7 @@ problems that can benefit from increased parallelism.
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-DOCLINES = (__doc__ or '').split("\n")
+DOCLINES = (__doc__ or "").split("\n")
 
 exec(open('libensemble/version.py').read())
 
@@ -28,7 +28,7 @@ class Run_TestSuite(TestCommand):
         import sys
 
         py_version = sys.version_info[0]
-        print('Python version from setup.py is', py_version)
+        print("Python version from setup.py is", py_version)
         run_string = "libensemble/tests/run-tests.sh -p " + str(py_version)
         os.system(run_string)
 
@@ -46,75 +46,75 @@ class ToxTest(TestCommand):
 
 
 setup(
-    name='libensemble',
+    name="libensemble",
     version=__version__,
-    description='Library to coordinate the concurrent evaluation of dynamic ensembles of calculations',
+    description="Library to coordinate the concurrent evaluation of dynamic ensembles of calculations",
     long_description="\n".join(DOCLINES[2:]),
-    url='https://github.com/Libensemble/libensemble',
-    author='Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro',
-    author_email='libensemble@lists.mcs.anl.gov',
-    license='BSD 3-clause',
+    url="https://github.com/Libensemble/libensemble",
+    author="Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro",
+    author_email="libensemble@lists.mcs.anl.gov",
+    license="BSD 3-clause",
     packages=[
-        'libensemble',
-        'libensemble.gen_funcs',
-        'libensemble.sim_funcs',
-        'libensemble.sim_funcs.branin',
-        'libensemble.alloc_funcs',
-        'libensemble.tests',
-        'libensemble.comms',
-        'libensemble.utils',
-        'libensemble.tools',
-        'libensemble.executors',
-        'libensemble.resources',
-        'libensemble.tests.unit_tests',
-        'libensemble.tests.regression_tests',
+        "libensemble",
+        "libensemble.gen_funcs",
+        "libensemble.sim_funcs",
+        "libensemble.sim_funcs.branin",
+        "libensemble.alloc_funcs",
+        "libensemble.tests",
+        "libensemble.comms",
+        "libensemble.utils",
+        "libensemble.tools",
+        "libensemble.executors",
+        "libensemble.resources",
+        "libensemble.tests.unit_tests",
+        "libensemble.tests.regression_tests",
     ],
-    package_data={'libensemble.sim_funcs.branin': ['known_minima_and_func_values']},
-    install_requires=['numpy', 'psutil'],
+    package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
+    install_requires=["numpy", "psutil"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
-        'pytest>=3.1',
-        'pytest-cov>=2.5',
-        'pytest-pep8>=1.0',
-        'pytest-timeout',
-        'mock',
+        "pytest>=3.1",
+        "pytest-cov>=2.5",
+        "pytest-pep8>=1.0",
+        "pytest-timeout",
+        "mock",
     ],
     extras_require={
-        'extras': [
-            'pyyaml',
-            'scipy',
-            'nlopt',
-            'mpi4py',
-            'petsc',
-            'petsc4py',
-            'DFO-LS',
-            'mpmath',
-            'dragonfly-opt',
-            'ax-platform',
+        "extras": [
+            "pyyaml",
+            "scipy",
+            "nlopt",
+            "mpi4py",
+            "petsc",
+            "petsc4py",
+            "DFO-LS",
+            "mpmath",
+            "dragonfly-opt",
+            "ax-platform",
         ],
-        'docs': [
-            'sphinx',
-            'sphinxcontrib.bibtex',
-            'sphinx_rtd_theme',
+        "docs": [
+            "sphinx",
+            "sphinxcontrib.bibtex",
+            "sphinx_rtd_theme",
         ],
     },
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: Unix',
-        'Operating System :: MacOS',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Software Development :: Libraries :: Python Modules',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Unix",
+        "Operating System :: MacOS",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    cmdclass={'test': Run_TestSuite, 'tox': ToxTest},
+    cmdclass={"test": Run_TestSuite, "tox": ToxTest},
 )

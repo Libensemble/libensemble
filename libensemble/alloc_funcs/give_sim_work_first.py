@@ -29,46 +29,46 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
 
-    user = alloc_specs.get('user', {})
+    user = alloc_specs.get("user", {})
 
-    if 'cancel_sims_time' in user:
+    if "cancel_sims_time" in user:
         # Cancel simulations that are taking too long
-        rows = np.where(np.logical_and.reduce((H['sim_started'], ~H['sim_ended'], ~H['cancel_requested'])))[0]
-        inds = time.time() - H['sim_started_time'][rows] > user['cancel_sims_time']
+        rows = np.where(np.logical_and.reduce((H["sim_started"], ~H["sim_ended"], ~H["cancel_requested"])))[0]
+        inds = time.time() - H["sim_started_time"][rows] > user["cancel_sims_time"]
         to_request_cancel = rows[inds]
         for row in to_request_cancel:
-            H[row]['cancel_requested'] = True
+            H[row]["cancel_requested"] = True
 
-    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+    if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
     # Initialize alloc_specs['user'] as user.
-    batch_give = user.get('give_all_with_same_priority', False)
-    gen_in = gen_specs.get('in', [])
+    batch_give = user.get("give_all_with_same_priority", False)
+    gen_in = gen_specs.get("in", [])
 
-    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_gens()
     Work = {}
 
-    points_to_evaluate = ~H['sim_started'] & ~H['cancel_requested']
+    points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
     for wid in support.avail_worker_ids():
 
         if np.any(points_to_evaluate):
             sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
             try:
-                Work[wid] = support.sim_work(wid, H, sim_specs['in'], sim_ids_to_send, persis_info.get(wid))
+                Work[wid] = support.sim_work(wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
         else:
 
             # Allow at most num_active_gens active generator instances
-            if gen_count >= user.get('num_active_gens', gen_count + 1):
+            if gen_count >= user.get("num_active_gens", gen_count + 1):
                 break
 
             # Do not start gen instances in batch mode if workers still working
-            if user.get('batch_mode') and not support.all_sim_ended(H):
+            if user.get("batch_mode") and not support.all_sim_ended(H):
                 break
 
             # Give gen work

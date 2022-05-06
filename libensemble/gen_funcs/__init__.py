@@ -16,4 +16,4 @@ def rc(**kargs):
 
 
 rc.aposmm_optimizers = None
-__import__('sys').modules[__name__ + '.rc'] = rc
+__import__("sys").modules[__name__ + ".rc"] = rc
