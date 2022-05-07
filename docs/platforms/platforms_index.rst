@@ -219,6 +219,7 @@ libEnsemble on specific HPC systems.
     theta
     summit
     perlmutter
+    spock
     srun
     example_scripts
 
