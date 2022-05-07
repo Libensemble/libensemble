@@ -110,8 +110,14 @@ Note that if you are on a system that automatically assigns free GPUs on the nod
 then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure
 workers are strictly bound to GPUs. For example, on some **SLURM** systems, you
 can use ``--gpus-per-task=1`` (e.g., :doc:`Perlmutter<../platforms/perlmutter>`).
+Such options can be added to the `exctr.submit` call as ``extra_args``::
 
-Alternative environment variables could be simply substituted
+    task = exctr.submit(
+    ...
+        extra_args='--gpus-per-task=1'
+    )
+
+Alternative environment variables can be simply substituted in ``set_env_to_slots``.
 (e.g., ``HIP_VISIBLE_DEVICES``, ``ROCR_VISIBLE_DEVICES``).
 
 .. note::
