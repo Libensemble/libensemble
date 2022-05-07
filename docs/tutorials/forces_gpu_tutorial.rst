@@ -108,7 +108,7 @@ slots (partitions on the node).
 
 Note that if you are on a system that automatically assigns free GPUs on the node,
 then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure
-workers are strictly bound to GPUs. For example, on some **SLURM** systems, you
+workers are strictly bound to GPUs. For example, on many **SLURM** systems, you
 can use ``--gpus-per-task=1`` (e.g., :doc:`Perlmutter<../platforms/perlmutter>`).
 Such options can be added to the `exctr.submit` call as ``extra_args``::
 
@@ -181,17 +181,25 @@ and can be run from the command line. To simply run `forces.x` stand-alone you c
 To use the `nvidia-smi` monitoring tool while running, open another shell where your code is
 running (this may entail using *ssh* to get on to the node), and run::
 
-    watch -n 0.3 nvidia-smi
+    watch -n 0.1 nvidia-smi
 
-This will update GPU usage information every 0.3 seconds. You would need to ensure the code
+This will update GPU usage information every 0.1 seconds. You would need to ensure the code
 runs for long enough to register on the monitor, so lets try 100,000 particles::
 
-  mpirun -n 2 ./forces.x 100000
+    mpirun -n 2 ./forces.x 100000
 
 It is also recommended that you run without the profiler when using the `nvidia-smi` utility.
 
 This can also be used when running via libEnsemble, so long as you are on the node where the
-forces applications are being run.
+forces applications are being run. As the default particles in libEnsemble forces is 1000, you
+will need to to increase particles to see clear GPU usage in the live monitor. E.g.,~ in line 14
+to multiply the particles by 10::
+
+        # Parse out num particles, from generator function
+        particles = str(int(H["x"][0][0]) * 10)
+
+Alternative monitoring devices include ``rocm-smi`` (AMD) and ``intel_gpu_top`` (Intel). The latter
+does not need the *watch* command.
 
 Example submission script
 -------------------------
