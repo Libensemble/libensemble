@@ -23,8 +23,8 @@ The libEnsemble scripts in this example are available under forces_gpu_ in
 the libEnsemble repository.
 
 Note that at time of writing the calling script ``run_libe_forces.py`` is identical
-to ``forces_simple``, and so is provided as a symlink. The ``forces_simf`` file has slight
-modifications to assign GPUs.
+to that in ``forces_simple``. The ``forces_simf`` file has slight modifications to
+assign GPUs.
 
 Simulation function
 -------------------
