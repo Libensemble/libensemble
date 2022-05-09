@@ -5,7 +5,7 @@ Spock/Crusher
 Spock_ and Crusher_ are early-access testbed systems located at Oak Ridge
 Leadership Computing Facility (OLCF).
 
-Each Spock compute node consists of one 64-core AMD EPYC “Rome” CPU  and four
+Each Spock compute node consists of one 64-core AMD EPYC "Rome" CPU and four
 AMD MI100 GPUs.
 
 Each compute node contains a 64-core AMD EPYC and 4 AMD MI250X GPUs (8 Graphics
@@ -32,7 +32,6 @@ resource conflicts::
 
     export SLURM_EXACT=1
     export SLURM_MEM_PER_NODE=0
-
 
 Installing libEnsemble and dependencies
 ---------------------------------------
