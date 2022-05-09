@@ -216,10 +216,10 @@ libEnsemble on specific HPC systems.
 
     bebop
     cori
-    theta
-    summit
     perlmutter
-    spock
+    spock/crusher <spock_crusher>
+    summit
+    theta
     srun
     example_scripts
 
