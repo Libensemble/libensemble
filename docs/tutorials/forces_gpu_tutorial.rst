@@ -191,7 +191,7 @@ runs for long enough to register on the monitor, so lets try 100,000 particles::
 It is also recommended that you run without the profiler when using the `nvidia-smi` utility.
 
 This can also be used when running via libEnsemble, so long as you are on the node where the
-forces applications are being run. As the default particles in libEnsemble forces is 1000, you
+forces applications are being run. As the default particles in the forces example is 1000, you
 will need to to increase particles to see clear GPU usage in the live monitor. E.g.,~ in line 14
 to multiply the particles by 10::
 
