@@ -39,5 +39,8 @@ mpicc -O3 -o forces.x forces.c -lm
 # mpicc -O3 -fopenmp -mp=gpu -o forces_gpu.x forces_gpu.c
 # cc -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
 
-# Intel Gen9 GPU
-# env MPICH_CC=icx mpigcc -g -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
+# Spock/Crusher (AMD ROCm compiler)
+# cc -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
+
+# Intel oneAPI (Clang based) Compiler (JIT compiled for device)
+# mpiicx -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
