@@ -8,8 +8,8 @@ Leadership Computing Facility (OLCF).
 Each Spock compute node consists of one 64-core AMD EPYC “Rome” CPU  and four
 AMD MI100 GPUs.
 
-Each compute node contains a 64-core AMD EPYC and 4 AMD MI250X GPUs (8 Graphics
-Compute Dies).
+Each Crusher compute node contains a 64-core AMD EPYC and 4 AMD MI250X GPUs
+(8 Graphics Compute Dies).
 
 These systems use the SLURM scheduler to submit jobs from login nodes to run on the
 compute nodes.
