@@ -15,11 +15,11 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
         `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
 
-    batch = len(H['x'])
-    H0 = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    H0 = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        H0['f_val'][i] = noisy_function(x)[H['f_ind'][i]]
+    for i, x in enumerate(H["x"]):
+        H0["f_val"][i] = noisy_function(x)[H["f_ind"][i]]
 
     return H0, persis_info
 

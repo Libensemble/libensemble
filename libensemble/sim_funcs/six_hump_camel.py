@@ -6,11 +6,11 @@ Six-hump camel function is documented here:
 
 """
 __all__ = [
-    'six_hump_camel',
-    'six_hump_camel_simple',
-    'six_hump_camel_with_variable_resources',
-    'six_hump_camel_CUDA_variable_resources',
-    'persistent_six_hump_camel',
+    "six_hump_camel",
+    "six_hump_camel_simple",
+    "six_hump_camel_with_variable_resources",
+    "six_hump_camel_CUDA_variable_resources",
+    "persistent_six_hump_camel",
 ]
 
 import os
@@ -35,17 +35,17 @@ def six_hump_camel(H, persis_info, sim_specs, _):
         `test_old_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
 
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        H_o['f'][i] = six_hump_camel_func(x)
+    for i, x in enumerate(H["x"]):
+        H_o["f"][i] = six_hump_camel_func(x)
 
-        if 'grad' in H_o.dtype.names:
-            H_o['grad'][i] = six_hump_camel_grad(x)
+        if "grad" in H_o.dtype.names:
+            H_o["grad"][i] = six_hump_camel_grad(x)
 
-        if 'user' in sim_specs and 'pause_time' in sim_specs['user']:
-            time.sleep(sim_specs['user']['pause_time'])
+        if "user" in sim_specs and "pause_time" in sim_specs["user"]:
+            time.sleep(sim_specs["user"]["pause_time"])
 
     return H_o, persis_info
 
@@ -58,12 +58,12 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    H_o = np.zeros(1, dtype=sim_specs['out'])
+    H_o = np.zeros(1, dtype=sim_specs["out"])
 
-    H_o['f'] = six_hump_camel_func(x[0][0])
+    H_o["f"] = six_hump_camel_func(x[0][0])
 
-    if 'pause_time' in sim_specs['user']:
-        time.sleep(sim_specs['user']['pause_time'])
+    if "pause_time" in sim_specs["user"]:
+        time.sleep(sim_specs["user"]["pause_time"])
 
     return H_o, persis_info
 
@@ -78,31 +78,31 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
-    app = sim_specs['user'].get('app', 'helloworld')
-    dry_run = sim_specs['user'].get('dry_run', False)  # dry_run only prints run lines in ensemble.log
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
+    app = sim_specs["user"].get("app", "helloworld")
+    dry_run = sim_specs["user"].get("dry_run", False)  # dry_run only prints run lines in ensemble.log
     set_cores_by_rsets = True  # If True use rset count to set num procs, else use all available to this worker.
     core_multiplier = 1  # Only used with set_cores_by_rsets as a multiplier.
 
     exctr = Executor.executor  # Get Executor
     task_states = []
-    for i, x in enumerate(H['x']):
+    for i, x in enumerate(H["x"]):
         nprocs = None  # Will be as if argument is not present
         if set_cores_by_rsets:
             resources = Resources.resources.worker_resources
             nprocs = resources.num_rsets * core_multiplier
 
         inpt = None  # Will be as if argument is not present
-        if app == 'six_hump_camel':
-            inpt = ' '.join(map(str, H['x'][i]))
+        if app == "six_hump_camel":
+            inpt = " ".join(map(str, H["x"][i]))
 
         task = exctr.submit(
             app_name=app,
             app_args=inpt,
             num_procs=nprocs,
-            stdout='out.txt',
-            stderr='err.txt',
+            stdout="out.txt",
+            stderr="err.txt",
             dry_run=dry_run,
         )
         task.wait()
@@ -112,18 +112,18 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
 
         task_states.append(task.state)
 
-        if app == 'six_hump_camel':
+        if app == "six_hump_camel":
             # H_o['f'][i] = float(task.read_stdout())  # Reads whole file
-            with open('out.txt') as f:
-                H_o['f'][i] = float(f.readline().strip())  # Read just first line
+            with open("out.txt") as f:
+                H_o["f"][i] = float(f.readline().strip())  # Read just first line
         else:
             # To return something in test
-            H_o['f'][i] = six_hump_camel_func(x)
+            H_o["f"][i] = six_hump_camel_func(x)
 
     calc_status = UNSET_TAG  # Returns to worker
-    if all(t == 'FINISHED' for t in task_states):
+    if all(t == "FINISHED" for t in task_states):
         calc_status = WORKER_DONE
-    elif any(t == 'FAILED' for t in task_states):
+    elif any(t == "FAILED" for t in task_states):
         calc_status = TASK_FAILED
 
     return H_o, persis_info, calc_status
@@ -135,8 +135,8 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     The standard test apps do not run on GPU, but demonstrates accessing resource
     information to set ``CUDA_VISIBLE_DEVICES``, and typical run configuration.
     """
-    x = H['x'][0]
-    H_o = np.zeros(1, dtype=sim_specs['out'])
+    x = H["x"][0]
+    H_o = np.zeros(1, dtype=sim_specs["out"])
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
@@ -151,32 +151,32 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     cores_per_node = resources.slot_count  # One CPU per GPU
 
     print(
-        'Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}'.format(
-            libE_info['workerID'], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
+        "Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}".format(
+            libE_info["workerID"], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
         )
     )
 
     # Create application input file
-    inpt = ' '.join(map(str, x))
+    inpt = " ".join(map(str, x))
     exctr = Executor.executor  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
-        app_name='six_hump_camel',
+        app_name="six_hump_camel",
         app_args=inpt,
         num_nodes=num_nodes,
         procs_per_node=cores_per_node,
-        stdout='out.txt',
-        stderr='err.txt',
+        stdout="out.txt",
+        stderr="err.txt",
     )
 
     task.wait()  # Wait for run to complete
 
     # Access app output
-    with open('out.txt') as f:
-        H_o['f'] = float(f.readline().strip())  # Read just first line
+    with open("out.txt") as f:
+        H_o["f"] = float(f.readline().strip())  # Read just first line
 
-    calc_status = WORKER_DONE if task.state == 'FINISHED' else 'FAILED'
+    calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
     return H_o, persis_info, calc_status
 
 
@@ -199,8 +199,8 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
 
         # calc_in: This should either be a function (unpack_work ?) or included/unpacked in ps.recv/ps.send_recv.
         if Work is not None:
-            persis_info = Work.get('persis_info', persis_info)
-            libE_info = Work.get('libE_info', libE_info)
+            persis_info = Work.get("persis_info", persis_info)
+            libE_info = Work.get("libE_info", libE_info)
 
         # Call standard six_hump_camel sim
         H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
@@ -210,8 +210,8 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
     final_return = None
 
     # Overwrite final point - for testing only
-    if sim_specs['user'].get('replace_final_fields', 0):
-        calc_in = np.ones(1, dtype=[('x', float, (2,))])
+    if sim_specs["user"].get("replace_final_fields", 0):
+        calc_in = np.ones(1, dtype=[("x", float, (2,))])
         H_o, persis_info = six_hump_camel(calc_in, persis_info, sim_specs, libE_info)
         final_return = H_o
 

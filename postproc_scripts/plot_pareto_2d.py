@@ -33,16 +33,16 @@ def get_pf(f):
 if len(sys.argv) > 1:
     hist = np.load(sys.argv[1])
 else:
-    print('You need to supply an .npy file - aborting')
+    print("You need to supply an .npy file - aborting")
     sys.exit()
 
 # Get first n results
 if len(sys.argv) > 2:
     n = int(sys.argv[2])
-    f_vals = hist['f'][:n]
+    f_vals = hist["f"][:n]
     pts = get_pf(f_vals)
 else:
-    print('You need to supply the budget - aborting')
+    print("You need to supply the budget - aborting")
     sys.exit()
 
 # Plot the contents of argv[1] when P=2.
@@ -61,9 +61,9 @@ obj1.sort()
 
 # Plot the Pareto points.
 plt.plot(obj1, obj2)
-plt.xlabel('F1')
-plt.ylabel('F2')
-plt.title('Tradeoff curve between objectives F1 and F2')
+plt.xlabel("F1")
+plt.ylabel("F2")
+plt.title("Tradeoff curve between objectives F1 and F2")
 
 # Display the figure.
 plt.show()

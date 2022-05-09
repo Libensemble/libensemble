@@ -13,21 +13,21 @@ def test_worker_init_run():
 
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
-    L = exit_criteria['sim_max']
+    L = exit_criteria["sim_max"]
     # H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
-    H = np.zeros(L, dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'])))
+    H = np.zeros(L, dtype=list(set(libE_fields + sim_specs["out"] + gen_specs["out"])))
 
     # check
-    H['sim_id'][-L:] = -1
-    H['sim_started_time'][-L:] = np.inf
+    H["sim_id"][-L:] = -1
+    H["sim_started_time"][-L:] = np.inf
 
     # Create work
     sim_ids = np.zeros(1, dtype=int)
 
     # For loop - increment sim_ids here
 
-    Work = {'tag': EVAL_SIM_TAG, 'persis_info': {}, 'libE_info': {'H_rows': sim_ids}, 'H_fields': sim_specs['in']}
-    calc_in = H[Work['H_fields']][Work['libE_info']['H_rows']]
+    Work = {"tag": EVAL_SIM_TAG, "persis_info": {}, "libE_info": {"H_rows": sim_ids}, "H_fields": sim_specs["in"]}
+    calc_in = H[Work["H_fields"]][Work["libE_info"]["H_rows"]]
 
     Worker.init_workers(sim_specs, gen_specs)
 

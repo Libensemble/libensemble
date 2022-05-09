@@ -37,7 +37,7 @@ def killpg(process):
     "Kill the process (and group if it is group leader)."
     try:
         pid = process.pid
-        pgid = os.getpgid(pid) if hasattr(os, 'killpg') else -1
+        pgid = os.getpgid(pid) if hasattr(os, "killpg") else -1
         if pgid == pid:
             os.killpg(pgid, signal.SIGKILL)
         else:
@@ -51,7 +51,7 @@ def terminatepg(process):
     "Send termination signal to the process (and group if it is group leader)"
     try:
         pid = process.pid
-        pgid = os.getpgid(pid) if hasattr(os, 'killpg') else -1
+        pgid = os.getpgid(pid) if hasattr(os, "killpg") else -1
         if pgid == pid:
             os.killpg(pgid, signal.SIGTERM)
         else:

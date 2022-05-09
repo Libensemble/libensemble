@@ -198,7 +198,7 @@ def eprint(*args, **kwargs):
 #  warnings about leaked semaphore objects are displayed instead.
 # The next several statements enforce 'fork' on macOS (Python 3.8)
 def osx_set_mp_method():
-    if platform.system() == 'Darwin':
+    if platform.system() == "Darwin":
         from multiprocessing import set_start_method
 
-        set_start_method('fork', force=True)
+        set_start_method("fork", force=True)

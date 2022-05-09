@@ -44,16 +44,16 @@ FINISHED
 USER_KILLED
 FAILED""".split()
 
-NOT_STARTED_STATES = '''
+NOT_STARTED_STATES = """
 CREATED
 WAITING
-'''.split()
+""".split()
 
-END_STATES = '''
+END_STATES = """
 FINISHED
 USER_KILLED
 FAILED
-'''.split()
+""".split()
 
 
 class ExecutorException(Exception):
@@ -81,20 +81,20 @@ class Application:
     """An application is an executable user-program
     (e.g., implementing a sim/gen function)."""
 
-    prefix = 'libe_app'
+    prefix = "libe_app"
 
-    def __init__(self, full_path, name=None, calc_type='sim', desc=None, pyobj=None):
+    def __init__(self, full_path, name=None, calc_type="sim", desc=None, pyobj=None):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
 
-        if self.exe.endswith('.py'):
-            self.full_path = ' '.join((sys.executable, full_path))
+        if self.exe.endswith(".py"):
+            self.full_path = " ".join((sys.executable, full_path))
         self.name = name or self.exe
         self.pyobj = pyobj
-        self.desc = desc or (self.exe + ' app')
-        self.gname = '_'.join([Application.prefix, self.name])
+        self.desc = desc or (self.exe + " app")
+        self.gname = "_".join([Application.prefix, self.name])
 
 
 class Task:
@@ -103,7 +103,7 @@ class Task:
 
     """
 
-    prefix = 'libe_task'
+    prefix = "libe_task"
     newid = itertools.count()
 
     def __init__(self, app=None, app_args=None, workdir=None, stdout=None, stderr=None, workerid=None, dry_run=False):
@@ -127,8 +127,8 @@ class Task:
 
         worker_name = "_worker{}".format(self.workerID) if self.workerID else ""
         self.name = Task.prefix + "_{}{}_{}".format(app.name, worker_name, self.id)
-        self.stdout = stdout or self.name + '.out'
-        self.stderr = stderr or self.name + '.err'
+        self.stdout = stdout or self.name + ".out"
+        self.stderr = stderr or self.name + ".err"
         self.workdir = workdir
         self.dry_run = dry_run
         self.runline = None
@@ -136,7 +136,7 @@ class Task:
 
     def reset(self):
         # Status attributes
-        self.state = 'CREATED'
+        self.state = "CREATED"
         self.process = None
         self.errcode = None
         self.finished = False  # True means task ran, not that it succeeded
@@ -206,12 +206,12 @@ class Task:
         self.finished = True
         if dry_run:
             self.success = True
-            self.state = 'FINISHED'
+            self.state = "FINISHED"
         else:
             self.calc_task_timing()
             self.errcode = self.process.returncode
             self.success = self.errcode == 0
-            self.state = 'FINISHED' if self.success else 'FAILED'
+            self.state = "FINISHED" if self.success else "FAILED"
             logger.info("Task {} finished with errcode {} ({})".format(self.name, self.errcode, self.state))
 
     def poll(self):
@@ -225,7 +225,7 @@ class Task:
         # Poll the task
         poll = self.process.poll()
         if poll is None:
-            self.state = 'RUNNING'
+            self.state = "RUNNING"
             self.runtime = self.timer.elapsed
             return
 
@@ -279,7 +279,7 @@ class Task:
 
     def running(self):
         """Return ```True`` if task is currently running."""
-        return self.state == 'RUNNING'
+        return self.state == "RUNNING"
 
     def done(self):
         """Return ```True`` if task is finished."""
@@ -311,7 +311,7 @@ class Task:
 
         logger.info("Killing task {}".format(self.name))
         launcher.cancel(self.process, wait_time)
-        self.state = 'USER_KILLED'
+        self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
 
@@ -321,7 +321,7 @@ class Task:
 
     def cancelled(self):
         """Return ```True`` if task successfully cancelled."""
-        return self.state == 'USER_KILLED'
+        return self.state == "USER_KILLED"
 
 
 class Executor:
@@ -340,12 +340,12 @@ class Executor:
     executor = None
 
     def _wait_on_start(self, task, fail_time=None):
-        '''Called by submit when wait_on_start is True.
+        """Called by submit when wait_on_start is True.
 
         Blocks until task polls as having started.
         If fail_time is supplied, will also block until either task is in an
         end state or fail_time has expired.
-        '''
+        """
         start = time.time()
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         task.submit_time = task.timer.tstart
@@ -371,8 +371,8 @@ class Executor:
         This is typically created in the user calling script.
 
         """
-        self.manager_signal = 'none'
-        self.default_apps = {'sim': None, 'gen': None}
+        self.manager_signal = "none"
+        self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
 
         self.wait_time = 60
@@ -394,12 +394,12 @@ class Executor:
     @property
     def sim_default_app(self):
         """Returns the default simulation app"""
-        return self.default_apps['sim']
+        return self.default_apps["sim"]
 
     @property
     def gen_default_app(self):
         """Returns the default generator app"""
-        return self.default_apps['gen']
+        return self.default_apps["gen"]
 
     def get_app(self, app_name):
         """Gets the app for a given app_name or raise exception"""
@@ -415,7 +415,7 @@ class Executor:
     def default_app(self, calc_type):
         """Gets the default app for a given calc type"""
         app = self.default_apps.get(calc_type)
-        jassert(calc_type in ['sim', 'gen'], "Unrecognized calculation type", calc_type)
+        jassert(calc_type in ["sim", "gen"], "Unrecognized calculation type", calc_type)
         jassert(app, "Default {} app is not set".format(calc_type))
         return app
 
@@ -467,7 +467,7 @@ class Executor:
 
         """
 
-        self.manager_signal = 'none'  # Reset
+        self.manager_signal = "none"  # Reset
 
         # Check for messages; disregard anything but a stop signal
         if not self.comm.mail_flag():
@@ -477,11 +477,11 @@ class Executor:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info('Worker received kill signal {} from manager'.format(man_signal))
+        logger.info("Worker received kill signal {} from manager".format(man_signal))
         if man_signal == MAN_SIGNAL_FINISH:
-            self.manager_signal = 'finish'
+            self.manager_signal = "finish"
         elif man_signal == MAN_SIGNAL_KILL:
-            self.manager_signal = 'kill'
+            self.manager_signal = "kill"
         else:
             logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
         self.comm.push_to_buffer(mtag, man_signal)
@@ -525,7 +525,7 @@ class Executor:
 
             if poll_manager:
                 man_signal = self.manager_poll()
-                if self.manager_signal != 'none':
+                if self.manager_signal != "none":
                     task.kill()
                     calc_status = man_signal
                     break
@@ -538,9 +538,9 @@ class Executor:
             time.sleep(delay)
 
         if calc_status == UNSET_TAG:
-            if task.state == 'FINISHED':
+            if task.state == "FINISHED":
                 calc_status = WORKER_DONE
-            elif task.state == 'FAILED':
+            elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
                 logger.warning(
@@ -622,14 +622,14 @@ class Executor:
             runline.extend(task.app_args.split())
 
         if dry_run:
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+            logger.info("Test (No submit) Runline: {}".format(" ".join(runline)))
         else:
             # Launch Task
             logger.info("Launching task {}: {}".format(task.name, " ".join(runline)))
-            with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
+            with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                 task.process = launcher.launch(
                     runline,
-                    cwd='./',
+                    cwd="./",
                     stdout=out,
                     stderr=err,
                     start_new_session=False,

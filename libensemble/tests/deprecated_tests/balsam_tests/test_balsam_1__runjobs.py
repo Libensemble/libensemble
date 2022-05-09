@@ -22,7 +22,7 @@ sleep_time = 3  # + myrank
 
 # Create output dir
 script_name = os.path.splitext(os.path.basename(__file__))[0]
-sim_input_dir = 'simdir_' + script_name.split("test_", 1).pop()
+sim_input_dir = "simdir_" + script_name.split("test_", 1).pop()
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sim_path = os.path.join(dir_path, sim_input_dir)
 
@@ -39,7 +39,7 @@ print("Host job rank is %d Output dir is %s" % (myrank, sim_input_dir))
 
 start = time.time()
 for sim_id in range(steps):
-    jobname = 'outfile_t1_' + 'for_sim_id_' + str(sim_id) + '_ranks_' + str(myrank) + '.txt'
+    jobname = "outfile_t1_" + "for_sim_id_" + str(sim_id) + "_ranks_" + str(myrank) + ".txt"
 
     current_job = dag.add_job(
         name=jobname,
@@ -52,7 +52,7 @@ for sim_id in range(steps):
         stage_out_files=jobname + ".out",
     )
 
-    success = poll_until_state(current_job, 'JOB_FINISHED')  # OR job killed
+    success = poll_until_state(current_job, "JOB_FINISHED")  # OR job killed
     if success:
         print("Completed job: %s rank=%d time=%f" % (jobname, myrank, time.time() - start))
     else:

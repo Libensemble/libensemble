@@ -13,7 +13,7 @@ def EvaluateFunction(theta, component, X, b, c, reg):
 
     f_i = max(0, 1 - b_i * np.dot(X_i, theta))
 
-    assert reg == 'l1', "Only l1 regularization allowed"
+    assert reg == "l1", "Only l1 regularization allowed"
 
     # if reg is None:
     #     reg_val = 0
@@ -43,7 +43,7 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     else:
         df_i = -b_i * X_i
 
-    assert reg == 'l1', "Only l1 regularization allowed"
+    assert reg == "l1", "Only l1 regularization allowed"
 
     # if reg is None:
     #     reg_val = 0
@@ -57,22 +57,22 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
 
 def svm_eval(H, persis_info, sim_specs, _):
 
-    X = persis_info['params']['X']
-    b = persis_info['params']['b']
-    c = persis_info['params']['c']
-    reg = persis_info['params'].get('reg', None)
+    X = persis_info["params"]["X"]
+    b = persis_info["params"]["b"]
+    c = persis_info["params"]["c"]
+    reg = persis_info["params"].get("reg", None)
 
-    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), 'Incompatible regularization {}'.format(reg)
+    assert (reg is None) or (reg == "l1") or (reg == "l2"), "Incompatible regularization {}".format(reg)
 
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        obj_component = H['obj_component'][i]  # which f_i
+    for i, x in enumerate(H["x"]):
+        obj_component = H["obj_component"][i]  # which f_i
 
-        if H[i]['get_grad']:
-            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component, X, b, c, reg)
+        if H[i]["get_grad"]:
+            H_o["gradf_i"][i] = EvaluateJacobian(x, obj_component, X, b, c, reg)
         else:
-            H_o['f_i'][i] = EvaluateFunction(x, obj_component, X, b, c, reg)
+            H_o["f_i"][i] = EvaluateFunction(x, obj_component, X, b, c, reg)
 
     return H_o, persis_info

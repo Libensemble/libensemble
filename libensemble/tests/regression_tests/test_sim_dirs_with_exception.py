@@ -25,34 +25,34 @@ from libensemble.manager import LoggedException
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-e_ensemble = './ensemble_ex_w' + str(nworkers) + '_' + libE_specs.get('comms')
+e_ensemble = "./ensemble_ex_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
 if not os.path.isdir(e_ensemble):
-    os.makedirs(os.path.join(e_ensemble, 'sim0_worker0'), exist_ok=True)
+    os.makedirs(os.path.join(e_ensemble, "sim0_worker0"), exist_ok=True)
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = e_ensemble
-libE_specs['abort_on_exception'] = False
+libE_specs["sim_dirs_make"] = True
+libE_specs["ensemble_dir_path"] = e_ensemble
+libE_specs["abort_on_exception"] = False
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'out': [('x', float, (1,))],
-    'user': {
-        'gen_batch_size': 20,
-        'lb': np.array([-3]),
-        'ub': np.array([3]),
+    "gen_f": gen_f,
+    "out": [("x", float, (1,))],
+    "user": {
+        "gen_batch_size": 20,
+        "lb": np.array([-3]),
+        "ub": np.array([3]),
     },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 21}
+exit_criteria = {"sim_max": 21}
 
 return_flag = 1
 try:

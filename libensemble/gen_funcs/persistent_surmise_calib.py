@@ -2,7 +2,7 @@
 This module contains a simple calibration example using the Surmise package.
 """
 
-__all__ = ['surmise_calib']
+__all__ = ["surmise_calib"]
 
 import numpy as np
 from libensemble.gen_funcs.surmise_calib_support import (
@@ -26,11 +26,11 @@ def build_emulator(theta, x, fevals):
         x,
         theta,
         fevals,
-        method='PCGPwM',
+        method="PCGPwM",
         options={
-            'xrmnan': 'all',
-            'thetarmnan': 'never',
-            'return_grad': True,
+            "xrmnan": "all",
+            "thetarmnan": "never",
+            "return_grad": True,
         },
     )
     emu.fit()
@@ -52,7 +52,7 @@ def rebuild_condition(pending, prev_pending, n_theta=5):  # needs changes
 
 def create_arrays(calc_in, n_thetas, n_x):
     """Create 2D (point * rows) arrays fevals, pending and complete"""
-    fevals = np.reshape(calc_in['f'], (n_x, n_thetas))
+    fevals = np.reshape(calc_in["f"], (n_x, n_thetas))
     pending = np.full(fevals.shape, False)
     prev_pending = pending.copy()
     complete = np.full(fevals.shape, True)
@@ -76,10 +76,10 @@ def pad_arrays(n_x, thetanew, theta, fevals, pending, prev_pending, complete):
 
 def update_arrays(fevals, pending, complete, calc_in, obs_offset, n_x):
     """Unpack from calc_in into 2D (point * rows) fevals"""
-    sim_id = calc_in['sim_id']
+    sim_id = calc_in["sim_id"]
     c, r = divmod(sim_id - obs_offset, n_x)  # r, c are arrays if sim_id is an array
 
-    fevals[r, c] = calc_in['f']
+    fevals[r, c] = calc_in["f"]
     pending[r, c] = False
     complete[r, c] = True
     return
@@ -98,9 +98,9 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
                 pending[i, c] = 0
 
     # Send only these fields to existing H rows and libEnsemble will slot in the change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
-    H_o['sim_id'] = sim_ids_to_cancel
-    H_o['cancel_requested'] = True
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[("sim_id", int), ("cancel_requested", bool)])
+    H_o["sim_id"] = sim_ids_to_cancel
+    H_o["cancel_requested"] = True
     ps.send(H_o)
 
 
@@ -120,36 +120,36 @@ def load_H(H, xs, thetas, offset=0, set_priorities=False):
     n_thetas = len(thetas)
     for i, x in enumerate(xs):
         start = (i + offset) * n_thetas
-        H['x'][start : start + n_thetas] = x
-        H['thetas'][start : start + n_thetas] = thetas
+        H["x"][start : start + n_thetas] = x
+        H["thetas"][start : start + n_thetas] = thetas
 
     if set_priorities:
         n_x = len(xs)
-        H['priority'] = assign_priority(n_x, n_thetas)
+        H["priority"] = assign_priority(n_x, n_thetas)
 
 
 def gen_truevals(x, gen_specs):
     """Generate true values using libE."""
     n_x = len(x)
-    H_o = np.zeros((1) * n_x, dtype=gen_specs['out'])
+    H_o = np.zeros((1) * n_x, dtype=gen_specs["out"])
 
     # Generate true theta and load into H
     true_theta = gen_true_theta()
-    H_o['x'][0:n_x] = x
-    H_o['thetas'][0:n_x] = true_theta
+    H_o["x"][0:n_x] = x
+    H_o["thetas"][0:n_x] = true_theta
     return H_o
 
 
 def surmise_calib(H, persis_info, gen_specs, libE_info):
     """Generator to select and obviate parameters for calibration."""
-    rand_stream = persis_info['rand_stream']
-    n_thetas = gen_specs['user']['n_init_thetas']
-    n_x = gen_specs['user']['num_x_vals']  # Num of x points
-    step_add_theta = gen_specs['user']['step_add_theta']  # No. of thetas to generate per step
-    n_explore_theta = gen_specs['user']['n_explore_theta']  # No. of thetas to explore
-    obsvar_const = gen_specs['user']['obsvar']  # Constant for generator
-    priorloc = gen_specs['user']['priorloc']
-    priorscale = gen_specs['user']['priorscale']
+    rand_stream = persis_info["rand_stream"]
+    n_thetas = gen_specs["user"]["n_init_thetas"]
+    n_x = gen_specs["user"]["num_x_vals"]  # Num of x points
+    step_add_theta = gen_specs["user"]["step_add_theta"]  # No. of thetas to generate per step
+    n_explore_theta = gen_specs["user"]["n_explore_theta"]  # No. of thetas to explore
+    obsvar_const = gen_specs["user"]["obsvar"]  # Constant for generator
+    priorloc = gen_specs["user"]["priorloc"]
+    priorscale = gen_specs["user"]["priorscale"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     prior = thetaprior(priorloc, priorscale)
@@ -164,12 +164,12 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
     if tag in [STOP_TAG, PERSIS_STOP]:
         return H, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-    returned_fevals = np.reshape(calc_in['f'], (1, n_x))
+    returned_fevals = np.reshape(calc_in["f"], (1, n_x))
     true_fevals = returned_fevals
     obs, obsvar = gen_observations(true_fevals, obsvar_const, rand_stream)
 
     # Generate a batch of inputs and load into H
-    H_o = np.zeros(n_x * (n_thetas), dtype=gen_specs['out'])
+    H_o = np.zeros(n_x * (n_thetas), dtype=gen_specs["out"])
     theta = gen_thetas(prior, n_thetas)
     load_H(H_o, x, theta, set_priorities=True)
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -183,9 +183,9 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             fevals, pending, prev_pending, complete = create_arrays(calc_in, n_thetas, n_x)
             emu = build_emulator(theta, x, fevals)
             # Refer to surmise package for additional options
-            cal = calibrator(emu, obs, x, prior, obsvar, method='directbayes')
+            cal = calibrator(emu, obs, x, prior, obsvar, method="directbayes")
 
-            print('quantiles:', np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
+            print("quantiles:", np.round(np.quantile(cal.theta.rnd(10000), (0.01, 0.99), axis=0), 3))
             update_model = False
         else:
             # Update fevals from calc_in
@@ -198,7 +198,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
 
         if update_model:
             print(
-                'Percentage Cancelled: %0.2f ( %d / %d)'
+                "Percentage Cancelled: %0.2f ( %d / %d)"
                 % (
                     100 * np.round(np.mean(1 - pending - complete), 4),
                     np.sum(1 - pending - complete),
@@ -206,11 +206,11 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
                 )
             )
             print(
-                'Percentage Pending: %0.2f ( %d / %d)'
+                "Percentage Pending: %0.2f ( %d / %d)"
                 % (100 * np.round(np.mean(pending), 4), np.sum(pending), np.prod(pending.shape))
             )
             print(
-                'Percentage Complete: %0.2f ( %d / %d)'
+                "Percentage Complete: %0.2f ( %d / %d)"
                 % (100 * np.round(np.mean(complete), 4), np.sum(complete), np.prod(pending.shape))
             )
 
@@ -235,14 +235,14 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             )
 
             # n_thetas = step_add_theta
-            H_o = np.zeros(n_x * (len(new_theta)), dtype=gen_specs['out'])
+            H_o = np.zeros(n_x * (len(new_theta)), dtype=gen_specs["out"])
             load_H(H_o, x, new_theta, set_priorities=True)
             tag, Work, calc_in = ps.send_recv(H_o)
 
             # Determine evaluations to cancel
-            c_obviate = info['obviatesugg']
+            c_obviate = info["obviatesugg"]
             if len(c_obviate) > 0:
-                print('columns sent for cancel is:  {}'.format(c_obviate), flush=True)
+                print("columns sent for cancel is:  {}".format(c_obviate), flush=True)
                 cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
             pending[:, c_obviate] = False
 

@@ -41,25 +41,25 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     worker and does not return until the end of the whole libEnsemble run.
     """
     # Extract bounds of the parameter space, and batch size
-    ub_list = gen_specs['user']['ub']
-    lb_list = gen_specs['user']['lb']
+    ub_list = gen_specs["user"]["ub"]
+    lb_list = gen_specs["user"]["lb"]
 
     # Get task names.
-    hifi_task = gen_specs['user']['name_hifi']
-    lofi_task = gen_specs['user']['name_lofi']
+    hifi_task = gen_specs["user"]["name_hifi"]
+    lofi_task = gen_specs["user"]["name_lofi"]
 
     # Number of points to generate initially and during optimization.
-    n_init_hifi = gen_specs['user']['n_init_hifi']
-    n_init_lofi = gen_specs['user']['n_init_lofi']
-    n_opt_hifi = gen_specs['user']['n_opt_hifi']
-    n_opt_lofi = gen_specs['user']['n_opt_lofi']
+    n_init_hifi = gen_specs["user"]["n_init_hifi"]
+    n_init_lofi = gen_specs["user"]["n_init_lofi"]
+    n_opt_hifi = gen_specs["user"]["n_opt_hifi"]
+    n_opt_lofi = gen_specs["user"]["n_opt_lofi"]
 
     # Create search space.
     parameters = []
     for i, (ub, lb) in enumerate(zip(ub_list, lb_list)):
         parameters.append(
             RangeParameter(
-                name='x{}'.format(i),
+                name="x{}".format(i),
                 parameter_type=ParameterType.FLOAT,
                 lower=float(lb),
                 upper=float(ub),
@@ -68,8 +68,8 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     search_space = SearchSpace(parameters=parameters)
 
     # Create metrics.
-    hifi_objective = AxMetric(name='hifi_metric', lower_is_better=True)
-    lofi_objective = AxMetric(name='lofi_metric', lower_is_better=True)
+    hifi_objective = AxMetric(name="hifi_metric", lower_is_better=True)
+    lofi_objective = AxMetric(name="lofi_metric", lower_is_better=True)
 
     # Create optimization config.
     opt_config = OptimizationConfig(objective=Objective(hifi_objective, minimize=True))
@@ -87,7 +87,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     )
 
     exp.add_trial_type(lofi_task, ax_runner)
-    exp.add_tracking_metric(metric=lofi_objective, trial_type=lofi_task, canonical_name='hifi_metric')
+    exp.add_tracking_metric(metric=lofi_objective, trial_type=lofi_task, canonical_name="hifi_metric")
 
     # TODO: Implement reading past history (by reading saved experiment or
     # libEnsemble hystory file).
@@ -106,7 +106,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
                 trial = exp.new_batch_trial(trial_type=model, generator_run=gr)
                 trial.run()
                 trial.mark_completed()
-                tag = trial.run_metadata['tag']
+                tag = trial.run_metadata["tag"]
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     break
                 if model == hifi_task:
@@ -133,7 +133,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             tr = exp.new_batch_trial(trial_type=lofi_task, generator_run=gr)
             tr.run()
             tr.mark_completed()
-            tag = tr.run_metadata['tag']
+            tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
                 break
 
@@ -149,15 +149,15 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             tr = exp.new_batch_trial(trial_type=hifi_task, generator_run=gr)
             tr.run()
             tr.mark_completed()
-            tag = tr.run_metadata['tag']
+            tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
                 break
             hifi_trials.append(tr.index)
 
         if model_iteration == 0:
             # Initialize folder to log the model.
-            if not os.path.exists('model_history'):
-                os.mkdir('model_history')
+            if not os.path.exists("model_history"):
+                os.mkdir("model_history")
             # Register metric and runner in order to be able to save to json.
             _, encoder_registry, decoder_registry = register_metric(AxMetric)
             _, encoder_registry, decoder_registry = register_runner(
@@ -179,7 +179,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             trial._runner = SyntheticRunner()
         exp.update_runner(lofi_task, SyntheticRunner())
         exp.update_runner(hifi_task, SyntheticRunner())
-        save_experiment(exp, 'model_history/experiment_%05d.json' % model_iteration, encoder_registry=encoder_registry)
+        save_experiment(exp, "model_history/experiment_%05d.json" % model_iteration, encoder_registry=encoder_registry)
         exp.update_runner(lofi_task, ax_runner)
         exp.update_runner(hifi_task, ax_runner)
 
@@ -202,7 +202,7 @@ class AxRunner(Runner):
         trial_metadata = {"name": str(trial.index)}
         task = trial.trial_type
         number_of_gen_points = len(trial.arms)
-        H_o = np.zeros(number_of_gen_points, dtype=self.gen_specs['out'])
+        H_o = np.zeros(number_of_gen_points, dtype=self.gen_specs["out"])
 
         for i, (arm_name, arm) in enumerate(trial.arms_by_name.items()):
             # fill H_o
@@ -210,21 +210,21 @@ class AxRunner(Runner):
             n_param = len(params)
             param_array = np.zeros(n_param)
             for j in range(n_param):
-                param_array[j] = params['x{}'.format(j)]
-            H_o['x'][i] = param_array
-            H_o['resource_sets'][i] = 1
-            H_o['task'][i] = task
+                param_array[j] = params["x{}".format(j)]
+            H_o["x"][i] = param_array
+            H_o["resource_sets"][i] = 1
+            H_o["task"][i] = task
 
         tag, Work, calc_in = self.ps.send_recv(H_o)
 
-        trial_metadata['tag'] = tag
+        trial_metadata["tag"] = tag
         for i, (arm_name, arm) in enumerate(trial.arms_by_name.items()):
             # fill metadata
             params = arm.parameters
             trial_metadata[arm_name] = {
                 "arm_name": arm_name,
                 "trial_index": trial.index,
-                "f": calc_in['f'][i] if calc_in is not None else None,
+                "f": calc_in["f"][i] if calc_in is not None else None,
             }
         return trial_metadata
 
@@ -240,7 +240,7 @@ class AxMetric(Metric):
                     "arm_name": arm_name,
                     "metric_name": self.name,
                     "trial_index": trial.index,
-                    "mean": trial.run_metadata[arm_name]['f'],
+                    "mean": trial.run_metadata[arm_name]["f"],
                     "sem": 0.0,
                 }
             )
@@ -257,12 +257,12 @@ def max_utility_from_GP(n, m, gr, hifi_task):
     obsf = []
     for arm in gr.arms:
         params = deepcopy(arm.parameters)
-        params['trial_type'] = hifi_task
+        params["trial_type"] = hifi_task
         obsf.append(ObservationFeatures(parameters=params))
     # Make predictions
     f, cov = m.predict(obsf)
     # Compute expected utility
-    u = -np.array(f['hifi_metric'])
+    u = -np.array(f["hifi_metric"])
     best_arm_indx = np.flip(np.argsort(u))[:n]
     gr_new = GeneratorRun(
         arms=[gr.arms[i] for i in best_arm_indx],

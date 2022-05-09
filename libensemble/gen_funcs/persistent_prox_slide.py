@@ -19,33 +19,33 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     """
     # Send batches until manager sends stop tag
     tag = None
-    local_gen_id = persis_info['worker_num']
+    local_gen_id = persis_info["worker_num"]
     # each gen has unique internal id
-    ub = gen_specs['user']['ub']
-    lb = gen_specs['user']['lb']
-    f_i_idxs = persis_info['f_i_idxs']
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
+    f_i_idxs = persis_info["f_i_idxs"]
     n = len(ub)
 
     # start with random x0
-    x0 = persis_info['rand_stream'].uniform(low=lb, high=ub, size=(n,))
+    x0 = persis_info["rand_stream"].uniform(low=lb, high=ub, size=(n,))
     x_k = x0
     post_x_k = x0
 
     # define variables
-    M = persis_info['params']['M']
-    R = persis_info['params']['R']
-    nu = persis_info['params']['nu']
-    eps = persis_info['params']['eps']
-    D = persis_info['params']['D']
-    N_const = persis_info['params']['N_const']
-    lam_max = persis_info['params']['lam_max']
-    df_i_eval = persis_info['params'].get('df_i_eval', None)
+    M = persis_info["params"]["M"]
+    R = persis_info["params"]["R"]
+    nu = persis_info["params"]["nu"]
+    eps = persis_info["params"]["eps"]
+    D = persis_info["params"]["D"]
+    N_const = persis_info["params"]["N_const"]
+    lam_max = persis_info["params"]["lam_max"]
+    df_i_eval = persis_info["params"].get("df_i_eval", None)
 
     L = 2 * R * lam_max
     N = N_const * int(((L * D) / (nu * eps)) ** 0.5 + 1)
 
     if local_gen_id == 1:
-        print('[{}%]: '.format(0), flush=True, end='')
+        print("[{}%]: ".format(0), flush=True, end="")
     print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
     percent = 0.1
 
@@ -72,7 +72,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
 
         if k / N >= percent:
             if local_gen_id == 1:
-                print('[{}%]: '.format(int(percent * 100)), flush=True, end='')
+                print("[{}%]: ".format(int(percent * 100)), flush=True, end="")
             percent += 0.1
             print_final_score(post_x_k, f_i_idxs, gen_specs, libE_info)
 

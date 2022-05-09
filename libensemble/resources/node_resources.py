@@ -10,7 +10,7 @@ import collections
 
 logger = logging.getLogger(__name__)
 
-REMOTE_LAUNCH_LIST = ['aprun', 'jsrun', 'srun']  # Move to feature of mpi_runner
+REMOTE_LAUNCH_LIST = ["aprun", "jsrun", "srun"]  # Move to feature of mpi_runner
 
 
 def get_cpu_cores(hyperthreads=False):
@@ -42,7 +42,7 @@ def _get_remote_cpu_resources(launcher):
     """Launches a probe job to obtain logical and physical cores on remote node"""
     import subprocess
 
-    output = subprocess.check_output([launcher, 'python', __file__])
+    output = subprocess.check_output([launcher, "python", __file__])
     return output.decode()
 
 
@@ -53,16 +53,16 @@ def _get_cpu_resources_from_env(env_resources=None):
         return None
 
     found_count = False
-    if env_resources.nodelists['LSF'] in os.environ:
-        full_list = os.environ.get(env_resources.nodelists['LSF']).split()
-        nodes = [n for n in full_list if 'batch' not in n]
+    if env_resources.nodelists["LSF"] in os.environ:
+        full_list = os.environ.get(env_resources.nodelists["LSF"]).split()
+        nodes = [n for n in full_list if "batch" not in n]
         counter = list(collections.Counter(nodes).values())
         found_count = True
-    elif env_resources.nodelists['LSF_shortform'] in os.environ:
-        full_list = os.environ.get(env_resources.nodelists['LSF_shortform']).split()
+    elif env_resources.nodelists["LSF_shortform"] in os.environ:
+        full_list = os.environ.get(env_resources.nodelists["LSF_shortform"]).split()
         iter_list = iter(full_list)
         zipped_list = list(zip(iter_list, iter_list))
-        nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
+        nodes_with_count = [n for n in zipped_list if "batch" not in n[0]]
         counter = [int(n[1]) for n in nodes_with_count]
         found_count = True
 
