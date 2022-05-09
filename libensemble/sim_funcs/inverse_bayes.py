@@ -12,7 +12,7 @@ def likelihood_calculator(H, persis_info, sim_specs, _):
     for i, x in enumerate(H["x"]):
         H_o["like"][i] = six_hump_camel_func(x)
 
-    return H_o, persis_info
+    return H_o, persis_info, "custom_status"
 
 
 def six_hump_camel_func(x):
