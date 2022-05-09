@@ -12,22 +12,19 @@ import traceback
 import numpy as np
 
 from libensemble.utils.timer import Timer
+
 from libensemble.message_numbers import (
     EVAL_SIM_TAG,
-    FINISHED_PERSISTENT_SIM_TAG,
     EVAL_GEN_TAG,
-    FINISHED_PERSISTENT_GEN_TAG,
-    STOP_TAG,
-    UNSET_TAG,
     PERSIS_STOP,
-    WORKER_KILL,
-    WORKER_KILL_ON_ERR,
-    WORKER_KILL_ON_TIMEOUT,
-    TASK_FAILED,
-    WORKER_DONE,
+    STOP_TAG,
     MAN_SIGNAL_FINISH,
     MAN_SIGNAL_KILL,
+    FINISHED_PERSISTENT_SIM_TAG,
+    FINISHED_PERSISTENT_GEN_TAG,
+    calc_status_strings,
 )
+
 from libensemble.message_numbers import calc_type_strings
 from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
@@ -388,19 +385,8 @@ class Manager:
             EVAL_GEN_TAG,
         ], "Aborting, Unknown calculation type received. " "Received type: {}".format(calc_type)
 
-        assert (calc_status in [
-            FINISHED_PERSISTENT_SIM_TAG,
-            FINISHED_PERSISTENT_GEN_TAG,
-            UNSET_TAG,
-            PERSIS_STOP,
-            MAN_SIGNAL_FINISH,
-            MAN_SIGNAL_KILL,
-            WORKER_KILL_ON_ERR,
-            WORKER_KILL_ON_TIMEOUT,
-            WORKER_KILL,
-            TASK_FAILED,
-            WORKER_DONE,
-        ] or isinstance(calc_status, str)), \
+        assert (calc_status in list(calc_status_strings.keys())+[PERSIS_STOP]
+                or isinstance(calc_status, str)), \
             "Aborting: Unknown calculation status received. " "Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
