@@ -1,12 +1,17 @@
-=====
-Spock
-=====
+=============
+Spock/Crusher
+=============
 
-Spock_ is an early-access testbed system located at Oak Ridge Leadership
-Computing Facility (OLCF). Each Spock compute node consists of one 64-core AMD
-EPYC “Rome” CPU  and four AMD MI100 GPUs. .
+Spock_ and Crusher_ are early-access testbed systems located at Oak Ridge
+Leadership Computing Facility (OLCF).
 
-It uses the SLURM scheduler to submit jobs from login nodes to run on the
+Each Spock compute node consists of one 64-core AMD EPYC “Rome” CPU  and four
+AMD MI100 GPUs.
+
+Each compute node contains a 64-core AMD EPYC and 4 AMD MI250X GPUs (8 Graphics
+Compute Dies).
+
+These systems use the SLURM scheduler to submit jobs from login nodes to run on the
 compute nodes.
 
 Configuring Python and Installation
@@ -19,8 +24,8 @@ Begin by loading the ``python`` module::
 Job Submission
 --------------
 
-Spock uses Slurm_ for job submission and management. libEnsemble runs on the
-compute nodes on Spock using either ``multi-processing`` or ``mpi4py``.
+Slurm_ is used for job submission and management. libEnsemble runs on the
+compute nodes using either ``multi-processing`` or ``mpi4py``.
 
 If running more than one worker per node, the following is recommended to prevent
 resource conflicts::
@@ -39,13 +44,17 @@ libEnsemble can be installed via pip::
 Example
 -------
 
-To run the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial on Spock.
+To run the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial on Spock or Crusher.
 
 To obtain the example you can git clone libEnsemble - although only
 the forces sub-directory is needed::
 
     git clone https://github.com/Libensemble/libensemble
     cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
+
+To build the forces application to use the GPU, ensure *forces.c* has the
+``#pragma omp target`` line uncommented and comment out the equivalent
+``#pragma omp parallel`` line.
 
 To compile forces (in addition to cray-python module)::
 
@@ -58,9 +67,10 @@ Now go to forces_gpu directory::
     cd ../forces_gpu
 
 and modify the following lines in *forces_simf.py*. Multiply particles by 10 and change
-``CUDA_VISIBLE_DEVICES`` to ``ROCR_VISIBLE_DEVICES``. So you have these lines::
+``CUDA_VISIBLE_DEVICES`` to ``ROCR_VISIBLE_DEVICES``. So you have these modified lines::
 
     particles = str(int(H["x"][0][0]) * 10)
+    ...
     resources.set_env_to_slots("ROCR_VISIBLE_DEVICES")
 
 The first change will make the simulation take long enough to see.
@@ -81,3 +91,4 @@ To see GPU usage, ssh into the node you are on in another window and run::
 
 .. _Spock:  https://docs.olcf.ornl.gov/systems/spock_quick_start_guide.html
 .. _Slurm: https://slurm.schedmd.com/
+.. _Crusher: https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html
