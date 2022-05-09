@@ -24,6 +24,8 @@ Before release
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
 
+- Update ``.wci.yml`` in root directory (version, date and any other information).
+
 - ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
   contains correct files and directories for PyPI package.
 

@@ -10,7 +10,7 @@ This assumes you have already:
 
 Details on how to create forks can be found at https://help.github.com/articles/fork-a-repo.
 
-You now have a configuration like that shown at
+You now have a configuration like that shown at (but without the upstream/local connection).
 https://stackoverflow.com/questions/6286571/are-git-forks-actually-git-clones.
 
 Upstream, in this case, is the official Spack repository on GitHub. Origin is
@@ -70,18 +70,19 @@ This may requires a forced push::
 Making changes
 --------------
 
-You can optionally create a branch to make changes on. Doing so may be a good idea, especially if
-you have multiple packages, to make separate branches for each package.
+The instructions below assume you make changes on the default develop branch.
+You can optionally create a branch to make changes on. Doing so may be a good
+idea, especially if you have multiple packages, to make separate branches for
+each package.
 
 See the Spack [packaging](https://spack.readthedocs.io/en/latest/packaging_guide.html) and
 [contribution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
 
-Quick example to update libEnsemble::
+Quick example to update libEnsemble
+-----------------------------------
 
-    git branch update_libensemble
-    git checkout update_libensemble
-
-This will open the libEnsemble ``package.py`` file in your editor (given by environment variable ``EDITOR``)::
+This will open the libEnsemble ``package.py`` file in your editor (given by
+environment variable ``EDITOR``)::
 
     spack edit py-libensemble  # SPACK_ROOT must be set (see above) (python packages use "py-" prefix)
 
@@ -94,17 +95,21 @@ Get the tarball (see PyPI instructions), for the new release and use::
     sha256sum libensemble-*.tar.gz
 
 Update the ``package.py`` file by pasting in the new checksum lines (and make
-sure the URL line points to the latest version).
-Also update any dependencies for the new version.
+sure the URL line points to the latest version). Also update any dependencies
+for the new version.
 
 Check package::
 
-     spack flake8
+     spack style
 
-If okay add, commit, and push to origin (forked repo)::
+This will install a few python spack packages and run style checks on just
+your changes. Make adjustments if needed, until this passes.
 
-     git commit -am "Update libensemble"
-     git push origin update_libensemble --force
+If okay - add, commit, and push to origin (forked repo). E.g.,~ If your version
+number is 0.9.0 you would do::
+
+     git commit -am "libEnsemble: add v0.9.0"
+     git push origin develop --force
 
 Once the branch is pushed to the forked repo, go to GitHub and do a pull request from this
 branch on the fork to the develop branch on the upstream.
