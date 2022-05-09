@@ -12,7 +12,7 @@ are currently used by the manager, but others can still provide a useful summary
 The user is responsible for determining the status of a user function instance, since
 a given instance could include multiple application runs of mixed rates of success.
 
-The ``calc_status`` is the third optional return value from a user function
+The ``calc_status`` is the third optional return value from a user function.
 Built-in codes are available in the ``libensemble.message_numbers`` module, but
 users are also free to return any custom string.
 
