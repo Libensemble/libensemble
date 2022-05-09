@@ -1,18 +1,23 @@
 import os
 import numpy as np
 import logging
-from libensemble.tools.fields_keys import libE_fields, allowed_gen_spec_keys, \
-    allowed_sim_spec_keys, allowed_alloc_spec_keys, allowed_libE_spec_keys
+from libensemble.tools.fields_keys import (
+    libE_fields,
+    allowed_gen_spec_keys,
+    allowed_sim_spec_keys,
+    allowed_alloc_spec_keys,
+    allowed_libE_spec_keys,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def _check_consistent_field(name, field0, field1):
     """Checks that new field (field1) is compatible with an old field (field0)."""
-    assert field0.ndim == field1.ndim, \
-        "H0 and H have different ndim for field {}".format(name)
-    assert (np.all(np.array(field1.shape) >= np.array(field0.shape))), \
-        "H too small to receive all components of H0 in field {}".format(name)
+    assert field0.ndim == field1.ndim, "H0 and H have different ndim for field {}".format(name)
+    assert np.all(
+        np.array(field1.shape) >= np.array(field0.shape)
+    ), "H too small to receive all components of H0 in field {}".format(name)
 
 
 def check_libE_specs(libE_specs, serial_check=False):
@@ -29,28 +34,31 @@ def check_libE_specs(libE_specs, serial_check=False):
         assert libE_specs['nworkers'] >= 1, "Must specify at least one worker"
 
     for k in libE_specs.keys():
-        assert k in allowed_libE_spec_keys,\
-            "Key %s is not allowed in libE_specs. Supported keys are: %s " % (k, allowed_libE_spec_keys)
+        assert k in allowed_libE_spec_keys, "Key %s is not allowed in libE_specs. Supported keys are: %s " % (
+            k,
+            allowed_libE_spec_keys,
+        )
 
         if k in ['ensemble_copy_back', 'use_worker_dirs', 'sim_dirs_make', 'gen_dirs_make']:
             assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be boolean".format(k)
 
         if k in ['sim_input_dir', 'gen_input_dir']:
-            assert isinstance(libE_specs[k], str), \
-                "Value for libE_specs['{}'] must be a single path-like string".format(k)
-            assert os.path.exists(libE_specs[k]), \
-                "libE_specs['{}'] does not refer to an existing path.".format(k)
+            assert isinstance(
+                libE_specs[k], str
+            ), "Value for libE_specs['{}'] must be a single path-like string".format(k)
+            assert os.path.exists(libE_specs[k]), "libE_specs['{}'] does not refer to an existing path.".format(k)
 
         if k == 'ensemble_dir_path':
-            assert isinstance(libE_specs[k], str), \
-                "Value for libE_specs['{}'] must be a single path-like string".format(k)
+            assert isinstance(
+                libE_specs[k], str
+            ), "Value for libE_specs['{}'] must be a single path-like string".format(k)
 
         if k in ['sim_dir_copy_files', 'sim_dir_symlink_files', 'gen_dir_copy_files', 'gen_dir_symlink_files']:
-            assert isinstance(libE_specs[k], list), \
-                "Value for libE_specs['{}'] must be a list of path-like strings".format(k)
+            assert isinstance(
+                libE_specs[k], list
+            ), "Value for libE_specs['{}'] must be a list of path-like strings".format(k)
             for j in libE_specs[k]:
-                assert os.path.exists(j), \
-                    "'{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
+                assert os.path.exists(j), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
 
 
 def check_alloc_specs(alloc_specs):
@@ -59,26 +67,32 @@ def check_alloc_specs(alloc_specs):
     assert alloc_specs['alloc_f'], "Allocation function must be specified"
 
     for k in alloc_specs.keys():
-        assert k in allowed_alloc_spec_keys,\
-            "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (k, allowed_alloc_spec_keys)
+        assert k in allowed_alloc_spec_keys, "Key %s is not allowed in alloc_specs. Supported keys are: %s " % (
+            k,
+            allowed_alloc_spec_keys,
+        )
 
 
 def check_sim_specs(sim_specs):
     assert isinstance(sim_specs, dict), "sim_specs must be a dictionary"
 
-    assert any([term_field in sim_specs for term_field in ['sim_f', 'in', 'persis_in', 'out']]), \
-        "sim_specs must contain 'sim_f', 'in', 'out'"
+    assert any(
+        [term_field in sim_specs for term_field in ['sim_f', 'in', 'persis_in', 'out']]
+    ), "sim_specs must contain 'sim_f', 'in', 'out'"
 
-    assert all(isinstance(i, str) for i in sim_specs['in']), \
-        "Entries in sim_specs['in'] must be strings. Also can't be lists or tuples of strings."
+    assert all(
+        isinstance(i, str) for i in sim_specs['in']
+    ), "Entries in sim_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
     assert len(sim_specs['out']), "sim_specs must have 'out' entries"
 
     assert isinstance(sim_specs['in'], list), "'in' field must exist and be a list of field names"
 
     for k in sim_specs.keys():
-        assert k in allowed_sim_spec_keys,\
-            "Key %s is not allowed in sim_specs. Supported keys are: %s " % (k, allowed_sim_spec_keys)
+        assert k in allowed_sim_spec_keys, "Key %s is not allowed in sim_specs. Supported keys are: %s " % (
+            k,
+            allowed_sim_spec_keys,
+        )
 
 
 def check_gen_specs(gen_specs):
@@ -87,12 +101,15 @@ def check_gen_specs(gen_specs):
     assert not bool(gen_specs) or len(gen_specs['out']), "gen_specs must have 'out' entries"
 
     if 'in' in gen_specs:
-        assert all(isinstance(i, str) for i in gen_specs['in']), \
-            "Entries in gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
+        assert all(
+            isinstance(i, str) for i in gen_specs['in']
+        ), "Entries in gen_specs['in'] must be strings. Also can't be lists or tuples of strings."
 
     for k in gen_specs.keys():
-        assert k in allowed_gen_spec_keys,\
-            "Key %s is not allowed in gen_specs. Supported keys are: %s " % (k, allowed_gen_spec_keys)
+        assert k in allowed_gen_spec_keys, "Key %s is not allowed in gen_specs. Supported keys are: %s " % (
+            k,
+            allowed_gen_spec_keys,
+        )
 
 
 def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
@@ -109,18 +126,19 @@ def check_exit_criteria(exit_criteria, sim_specs, gen_specs):
         exit_criteria['wallclock_max'] = exit_criteria.pop('elapsed_wallclock_time')
 
     # Ensure termination criteria are valid
-    valid_term_fields = ['sim_max', 'gen_max',
-                         'wallclock_max', 'stop_val']
-    assert all([term_field in valid_term_fields for term_field in exit_criteria]), \
-        "Valid termination options: " + str(valid_term_fields)
+    valid_term_fields = ['sim_max', 'gen_max', 'wallclock_max', 'stop_val']
+    assert all([term_field in valid_term_fields for term_field in exit_criteria]), "Valid termination options: " + str(
+        valid_term_fields
+    )
 
     # Make sure stop-values match parameters in gen_specs or sim_specs
     if 'stop_val' in exit_criteria:
         stop_name = exit_criteria['stop_val'][0]
         sim_out_names = [e[0] for e in sim_specs['out']]
         gen_out_names = [e[0] for e in gen_specs['out']]
-        assert stop_name in sim_out_names + gen_out_names, \
-            "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
+        assert stop_name in sim_out_names + gen_out_names, "Can't stop on {} if it's not in a sim/gen output".format(
+            stop_name
+        )
 
 
 def check_H(H0, sim_specs, alloc_specs, gen_specs):
@@ -135,17 +153,18 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
         fields = H0.dtype.names
 
         # Prior history must contain the fields in new history
-        assert set(fields).issubset(set(Dummy_H.dtype.names)), \
-            "H0 contains fields {} not in the History.".\
-            format(set(fields).difference(set(Dummy_H.dtype.names)))
+        assert set(fields).issubset(set(Dummy_H.dtype.names)), "H0 contains fields {} not in the History.".format(
+            set(fields).difference(set(Dummy_H.dtype.names))
+        )
 
         # Prior history cannot contain unreturned points
         # assert 'sim_ended' not in fields or np.all(H0['sim_ended']), \
         #     "H0 contains unreturned points."
 
         # Fail if prior history contains unreturned points (or returned but not given).
-        assert('sim_ended' not in fields or np.all(H0['sim_started'] == H0['sim_ended'])), \
-            'H0 contains unreturned or invalid points'
+        assert 'sim_ended' not in fields or np.all(
+            H0['sim_started'] == H0['sim_ended']
+        ), 'H0 contains unreturned or invalid points'
 
         # # Fail if points in prior history don't have a sim_id.
         # assert('sim_id' in fields), 'Points in H0 must have sim_ids'
@@ -155,8 +174,9 @@ def check_H(H0, sim_specs, alloc_specs, gen_specs):
             _check_consistent_field(field, H0[field], Dummy_H[field])
 
 
-def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
-                 gen_specs=None, exit_criteria=None, H0=None, serial_check=False):
+def check_inputs(
+    libE_specs=None, alloc_specs=None, sim_specs=None, gen_specs=None, exit_criteria=None, H0=None, serial_check=False
+):
     """
     Checks whether the libEnsemble arguments are of the correct data type and
     contain sufficient information to perform a run. There is no return value.
@@ -200,9 +220,10 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
     # Detailed checking based on Required Keys in docs for each specs
     if libE_specs is not None:
         for name in libE_specs.get('final_fields', []):
-            assert name in out_names, \
-                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "\
+            assert name in out_names, (
+                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
         check_libE_specs(libE_specs, serial_check)
 
     if alloc_specs is not None:
@@ -215,9 +236,10 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
             assert isinstance(sim_specs['in'], list), "sim_specs['in'] must be a list"
 
         for name in sim_specs.get('in', []):
-            assert name in out_names, \
-                name + " in sim_specs['in'] is not in sim_specs['out'], "\
+            assert name in out_names, (
+                name + " in sim_specs['in'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
 
         check_sim_specs(sim_specs)
 
@@ -226,18 +248,21 @@ def check_inputs(libE_specs=None, alloc_specs=None, sim_specs=None,
             assert isinstance(gen_specs['in'], list), "gen_specs['in'] must be a list"
 
         for name in gen_specs.get('in', []):
-            assert name in out_names, \
-                name + " in gen_specs['in'] is not in sim_specs['out'], "\
+            assert name in out_names, (
+                name + " in gen_specs['in'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
 
         check_gen_specs(gen_specs)
 
     if exit_criteria is not None:
-        assert sim_specs is not None and gen_specs is not None, \
-            "Can't check exit_criteria without sim_specs and gen_specs"
+        assert (
+            sim_specs is not None and gen_specs is not None
+        ), "Can't check exit_criteria without sim_specs and gen_specs"
         check_exit_criteria(exit_criteria, sim_specs, gen_specs)
 
     if H0 is not None:
-        assert sim_specs is not None and alloc_specs is not None and gen_specs is not None, \
-            "Can't check H0 without sim_specs, alloc_specs, gen_specs"
+        assert (
+            sim_specs is not None and alloc_specs is not None and gen_specs is not None
+        ), "Can't check H0 without sim_specs, alloc_specs, gen_specs"
         check_H(H0, sim_specs, alloc_specs, gen_specs)
