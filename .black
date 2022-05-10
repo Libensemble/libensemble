@@ -7,17 +7,8 @@ force-exclude = '''
     | \.git       
     | \.github       
   )/
-    | libensemble/libE.py
     | libensemble/gen_funcs/old_aposmm.py
     | libensemble/gen_funcs/persistent_aposmm.py
     | libensemble/gen_funcs/aposmm_localopt_support.py
-    | libensemble/tests/unit_tests/test_allocation_funcs_and_support.py
-    | libensemble/tests/unit_tests/test_loc_stack.py
-    | libensemble/tests/unit_tests/test_sim_dir_properties.py
-    | libensemble/tools/check_inputs.py
-    | libensemble/tools/parse_args.py
-    | libensemble/executors/mpi_runner.py
-    | libensemble/resources/mpi_resources.py
-    | libensemble/resources/scheduler.py
 )
 '''
