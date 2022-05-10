@@ -283,9 +283,9 @@ class Worker:
             assert isinstance(out, tuple), "Calculation output must be a tuple."
             assert len(out) >= 2, "Calculation output must be at least two elements."
 
-            calc_status = out[2] if len(out) >= 3 else UNSET_TAG
-
-            if calc_status is None:
+            if len(out) >= 3:
+                calc_status = out[2]
+            else:
                 calc_status = UNSET_TAG
 
             # Check for buffered receive
@@ -311,7 +311,7 @@ class Worker:
                     calc_type_strings[calc_type],
                     timer,
                     task.timer,
-                    calc_status_strings.get(calc_status, "Not set"),
+                    calc_status_strings.get(calc_status, calc_status),
                 )
             else:
                 calc_msg = "{} {}: {} {} Status: {}".format(
@@ -319,7 +319,7 @@ class Worker:
                     calc_id,
                     calc_type_strings[calc_type],
                     timer,
-                    calc_status_strings.get(calc_status, "Not set"),
+                    calc_status_strings.get(calc_status, calc_status),
                 )
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)

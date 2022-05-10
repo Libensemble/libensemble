@@ -19,7 +19,7 @@ from setuptools.command.test import test as TestCommand
 
 DOCLINES = (__doc__ or "").split("\n")
 
-exec(open('libensemble/version.py').read())
+exec(open("libensemble/version.py").read())
 
 
 class Run_TestSuite(TestCommand):

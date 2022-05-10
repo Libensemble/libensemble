@@ -12,22 +12,19 @@ import traceback
 import numpy as np
 
 from libensemble.utils.timer import Timer
+
 from libensemble.message_numbers import (
     EVAL_SIM_TAG,
-    FINISHED_PERSISTENT_SIM_TAG,
     EVAL_GEN_TAG,
-    FINISHED_PERSISTENT_GEN_TAG,
-    STOP_TAG,
-    UNSET_TAG,
     PERSIS_STOP,
-    WORKER_KILL,
-    WORKER_KILL_ON_ERR,
-    WORKER_KILL_ON_TIMEOUT,
-    TASK_FAILED,
-    WORKER_DONE,
+    STOP_TAG,
     MAN_SIGNAL_FINISH,
     MAN_SIGNAL_KILL,
+    FINISHED_PERSISTENT_SIM_TAG,
+    FINISHED_PERSISTENT_GEN_TAG,
+    calc_status_strings,
 )
+
 from libensemble.message_numbers import calc_type_strings
 from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
@@ -287,7 +284,7 @@ class Manager:
             )
         else:
             assert self.W[w - 1]["active"] == 0, (
-                "Allocation function requested work be sent to worker %d, an " "already active worker." % w
+                "Allocation function requested work be sent to worker %d, an already active worker." % w
             )
         work_rows = Work["libE_info"]["H_rows"]
         if len(work_rows):
@@ -300,7 +297,7 @@ class Manager:
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
 
-            assert not diff_fields, "Allocation function requested invalid fields {}" "be sent to worker={}.".format(
+            assert not diff_fields, "Allocation function requested invalid fields {} be sent to worker={}.".format(
                 diff_fields, w
             )
 
@@ -386,21 +383,11 @@ class Manager:
         assert calc_type in [
             EVAL_SIM_TAG,
             EVAL_GEN_TAG,
-        ], "Aborting, Unknown calculation type received. " "Received type: {}".format(calc_type)
+        ], "Aborting, Unknown calculation type received. Received type: {}".format(calc_type)
 
-        assert calc_status in [
-            FINISHED_PERSISTENT_SIM_TAG,
-            FINISHED_PERSISTENT_GEN_TAG,
-            UNSET_TAG,
-            PERSIS_STOP,
-            MAN_SIGNAL_FINISH,
-            MAN_SIGNAL_KILL,
-            WORKER_KILL_ON_ERR,
-            WORKER_KILL_ON_TIMEOUT,
-            WORKER_KILL,
-            TASK_FAILED,
-            WORKER_DONE,
-        ], "Aborting: Unknown calculation status received. " "Received status: {}".format(calc_status)
+        assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
+            calc_status, str
+        ), "Aborting: Unknown calculation status received. Received status: {}".format(calc_status)
 
     def _receive_from_workers(self, persis_info):
         """Receives calculation output from workers. Loops over all
