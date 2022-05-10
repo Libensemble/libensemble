@@ -15,9 +15,11 @@ Release 0.9.1
 
 This release has minimal changes, but a large number of touched lines.
 
-* Many `black` changes, including string normalization. #811, #814
+* Reformatted code for **black** compliance, including string normalization. #811, #814, #821
 * Some small hotfixes. #810, #813
 * A new workflows community initiative file. #817
+* Added Spock and Crusher guides. #802
+* User can now set ``calc_status`` to any string (for output in libE_stats). #808
 
 Release 0.9.0
 -------------
