@@ -20,6 +20,15 @@ This release has minimal changes, but a large number of touched lines.
 * User can now set ``calc_status`` to any string (for output in libE_stats). #808
 * Added a workflows community initiative file. #817
 
+:Note:
+
+* Tested platforms include Linux, MacOS, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system), Perlmutter (HPE Cray EX with A100 NVIDIA GPUs).
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10.
+
+:Known issues:
+
+* See known issues section in the documentation.
+
 Release 0.9.0
 -------------
 
