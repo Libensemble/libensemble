@@ -24,54 +24,54 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_input_dir = './sim_input_dir'
-dir_to_copy_sim = sim_input_dir + '/copy_this_sim'
-dir_to_symlink_sim = sim_input_dir + '/symlink_this_sim'
+sim_input_dir = "./sim_input_dir"
+dir_to_copy_sim = sim_input_dir + "/copy_this_sim"
+dir_to_symlink_sim = sim_input_dir + "/symlink_this_sim"
 
-gen_input_dir = './gen_input_dir'
-dir_to_copy_gen = gen_input_dir + '/copy_this_gen'
-dir_to_symlink_gen = gen_input_dir + '/symlink_this_gen'
+gen_input_dir = "./gen_input_dir"
+dir_to_copy_gen = gen_input_dir + "/copy_this_gen"
+dir_to_symlink_gen = gen_input_dir + "/symlink_this_gen"
 
-c_ensemble = './ensemble_combined_calcdirs_w' + str(nworkers) + '_' + libE_specs.get('comms')
-print('creating ensemble dir: ', c_ensemble, flush=True)
+c_ensemble = "./ensemble_combined_calcdirs_w" + str(nworkers) + "_" + libE_specs.get("comms")
+print("creating ensemble dir: ", c_ensemble, flush=True)
 
 for dir in [sim_input_dir, dir_to_copy_sim, dir_to_symlink_sim, gen_input_dir, dir_to_copy_gen, dir_to_symlink_gen]:
     if not os.path.isdir(dir):
         os.makedirs(dir, exist_ok=True)
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['gen_dirs_make'] = True
+libE_specs["sim_dirs_make"] = True
+libE_specs["gen_dirs_make"] = True
 
-libE_specs['ensemble_dir_path'] = c_ensemble
-libE_specs['use_worker_dirs'] = False
+libE_specs["ensemble_dir_path"] = c_ensemble
+libE_specs["use_worker_dirs"] = False
 
-libE_specs['sim_dir_copy_files'] = [dir_to_copy_sim]
-libE_specs['sim_dir_symlink_files'] = [dir_to_symlink_sim]
+libE_specs["sim_dir_copy_files"] = [dir_to_copy_sim]
+libE_specs["sim_dir_symlink_files"] = [dir_to_symlink_sim]
 
-libE_specs['gen_dir_copy_files'] = [dir_to_copy_gen]
-libE_specs['gen_dir_symlink_files'] = [dir_to_symlink_gen]
+libE_specs["gen_dir_copy_files"] = [dir_to_copy_gen]
+libE_specs["gen_dir_symlink_files"] = [dir_to_symlink_gen]
 
-libE_specs['ensemble_copy_back'] = True
+libE_specs["ensemble_copy_back"] = True
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'out': [('x', float, (1,))],
-    'user': {
-        'gen_batch_size': 20,
-        'lb': np.array([-3]),
-        'ub': np.array([3]),
+    "gen_f": gen_f,
+    "out": [("x", float, (1,))],
+    "user": {
+        "gen_batch_size": 20,
+        "lb": np.array([-3]),
+        "ub": np.array([3]),
     },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'sim_max': 21}
+exit_criteria = {"sim_max": 21}
 
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
@@ -79,32 +79,32 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, li
 def check_copied(type):
     input_copied = []
     for base, files, _ in os.walk(c_ensemble):
-        basedir = base.split('/')[-1]
+        basedir = base.split("/")[-1]
         if basedir.startswith(type):
             input_copied.append(
                 all(
                     [
                         os.path.basename(j) in files
-                        for j in libE_specs[type + '_dir_copy_files'] + libE_specs[type + '_dir_symlink_files']
+                        for j in libE_specs[type + "_dir_copy_files"] + libE_specs[type + "_dir_symlink_files"]
                     ]
                 )
             )
 
-    assert all(input_copied), 'All input files not copied or symlinked to each {} calc dir'.format(type)
+    assert all(input_copied), "All input files not copied or symlinked to each {} calc dir".format(type)
 
 
 if is_manager:
-    assert os.path.isdir(c_ensemble), 'Ensemble directory {} not created.'.format(c_ensemble)
-    sim_dir_sum = sum(['sim' in i for i in os.listdir(c_ensemble)])
+    assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
+    sim_dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
     assert (
-        sim_dir_sum == exit_criteria['sim_max']
-    ), 'Number of sim directories ({}) does not match sim_max ({}).'.format(sim_dir_sum, exit_criteria['sim_max'])
+        sim_dir_sum == exit_criteria["sim_max"]
+    ), "Number of sim directories ({}) does not match sim_max ({}).".format(sim_dir_sum, exit_criteria["sim_max"])
 
-    assert any(['gen' in i for i in os.listdir(c_ensemble)]), 'No gen directories created.'
+    assert any(["gen" in i for i in os.listdir(c_ensemble)]), "No gen directories created."
 
-    check_copied('sim')
-    check_copied('gen')
+    check_copied("sim")
+    check_copied("gen")
 
     assert all(
-        [i in os.listdir(c_ensemble) for i in os.listdir(c_ensemble + '_back')]
+        [i in os.listdir(c_ensemble) for i in os.listdir(c_ensemble + "_back")]
     ), "Copyback dir doesn't contain the same contents as ensemble dir"

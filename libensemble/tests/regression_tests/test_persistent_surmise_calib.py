@@ -42,7 +42,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # from libensemble import logger
 # logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -62,42 +62,42 @@ if __name__ == '__main__':
     max_evals = init_sample_size + max_add_thetas * n_x
 
     sim_specs = {
-        'sim_f': sim_f,
-        'in': ['x', 'thetas'],
-        'out': [('f', float)],
-        'user': {'num_obs': n_x},
+        "sim_f": sim_f,
+        "in": ["x", "thetas"],
+        "out": [("f", float)],
+        "user": {"num_obs": n_x},
     }
 
     gen_out = [
-        ('x', float, ndims),
-        ('thetas', float, nparams),
-        ('priority', int),
-        ('obs', float, n_x),
-        ('obsvar', float, n_x),
+        ("x", float, ndims),
+        ("thetas", float, nparams),
+        ("priority", int),
+        ("obs", float, n_x),
+        ("obsvar", float, n_x),
     ]
 
     gen_specs = {
-        'gen_f': gen_f,
-        'persis_in': [o[0] for o in gen_out] + ['f', 'sim_ended', 'sim_id'],
-        'out': gen_out,
-        'user': {
-            'n_init_thetas': n_init_thetas,  # Num thetas in initial batch
-            'num_x_vals': n_x,  # Num x points to create
-            'step_add_theta': step_add_theta,  # No. of thetas to generate per step
-            'n_explore_theta': n_explore_theta,  # No. of thetas to explore each step
-            'obsvar': obsvar,  # Variance for generating noise in obs
-            'init_sample_size': init_sample_size,  # Initial batch size inc. observations
-            'priorloc': 1,  # Prior location in the unit cube
-            'priorscale': 0.5,  # Standard deviation of prior
+        "gen_f": gen_f,
+        "persis_in": [o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
+        "out": gen_out,
+        "user": {
+            "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
+            "num_x_vals": n_x,  # Num x points to create
+            "step_add_theta": step_add_theta,  # No. of thetas to generate per step
+            "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
+            "obsvar": obsvar,  # Variance for generating noise in obs
+            "init_sample_size": init_sample_size,  # Initial batch size inc. observations
+            "priorloc": 1,  # Prior location in the unit cube
+            "priorscale": 0.5,  # Standard deviation of prior
         },
     }
 
     alloc_specs = {
-        'alloc_f': alloc_f,
-        'user': {
-            'init_sample_size': init_sample_size,
-            'async_return': True,  # True = Return results to gen as they come in (after sample)
-            'active_recv_gen': True,  # Persistent gen can handle irregular communications
+        "alloc_f": alloc_f,
+        "user": {
+            "init_sample_size": init_sample_size,
+            "async_return": True,  # True = Return results to gen as they come in (after sample)
+            "active_recv_gen": True,  # Persistent gen can handle irregular communications
         },
     }
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # Currently just allow gen to exit if mse goes below threshold value
     # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
 
-    exit_criteria = {'sim_max': max_evals}  # Now just a set number of sims.
+    exit_criteria = {"sim_max": max_evals}  # Now just a set number of sims.
 
     # Perform the run
     H, persis_info, flag = libE(
@@ -114,10 +114,10 @@ if __name__ == '__main__':
     )
 
     if is_manager:
-        print('Cancelled sims', H['sim_id'][H['cancel_requested']])
-        sims_done = np.count_nonzero(H['sim_ended'])
+        print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
+        sims_done = np.count_nonzero(H["sim_ended"])
         save_libE_output(H, persis_info, __file__, nworkers)
-        assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
+        assert sims_done == max_evals, "Num of completed simulations should be {}. Is {}".format(max_evals, sims_done)
 
         # The following line is only to cover parts of tstd2theta
-        tstd2theta(H[0]['thetas'].squeeze(), hard=False)
+        tstd2theta(H[0]["thetas"].squeeze(), hard=False)

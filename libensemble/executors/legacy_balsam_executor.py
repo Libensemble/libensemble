@@ -26,8 +26,7 @@ import time
 import datetime
 
 from libensemble.resources import mpi_resources
-from libensemble.executors.executor import \
-    Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
+from libensemble.executors.executor import Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
 from libensemble.executors.mpi_executor import MPIExecutor
 
 import balsam.launcher.dag as dag
@@ -45,8 +44,7 @@ class LegacyBalsamTask(Task):
 
     """
 
-    def __init__(self, app=None, app_args=None, workdir=None,
-                 stdout=None, stderr=None, workerid=None):
+    def __init__(self, app=None, app_args=None, workdir=None, stdout=None, stderr=None, workerid=None):
         """Instantiate a new LegacyBalsamTask instance.
 
         A new LegacyBalsamTask object is created with an id, status and
@@ -72,7 +70,7 @@ class LegacyBalsamTask(Task):
         # but otherwise that will return time from task submission. Get from Balsam.
 
         # self.runtime = self.process.runtime_seconds # Only reports at end of run currently
-        balsam_launch_datetime = self.process.get_state_times().get('RUNNING', None)
+        balsam_launch_datetime = self.process.get_state_times().get("RUNNING", None)
         current_datetime = datetime.datetime.now()
         if balsam_launch_datetime:
             return (current_datetime - balsam_launch_datetime).total_seconds()
@@ -97,25 +95,23 @@ class LegacyBalsamTask(Task):
         self.finished = True
         if dry_run:
             self.success = True
-            self.state = 'FINISHED'
+            self.state = "FINISHED"
         else:
             balsam_state = self.process.state
             self.workdir = self.workdir or self.process.working_directory
             self.calc_task_timing()
-            self.success = (balsam_state == 'JOB_FINISHED')
-            if balsam_state == 'JOB_FINISHED':
-                self.state = 'FINISHED'
-            elif balsam_state == 'PARENT_KILLED':  # Not currently used
-                self.state = 'USER_KILLED'
+            self.success = balsam_state == "JOB_FINISHED"
+            if balsam_state == "JOB_FINISHED":
+                self.state = "FINISHED"
+            elif balsam_state == "PARENT_KILLED":  # Not currently used
+                self.state = "USER_KILLED"
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
-                logger.warning("Task finished, but in unrecognized "
-                               "Balsam state {}".format(balsam_state))
-                self.state = 'UNKNOWN'
+                logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
+                self.state = "UNKNOWN"
 
-            logger.info("Task {} ended with state {}".
-                        format(self.name, self.state))
+            logger.info("Task {} ended with state {}".format(self.name, self.state))
 
     def poll(self):
         """Polls and updates the status attributes of the supplied task"""
@@ -134,17 +130,17 @@ class LegacyBalsamTask(Task):
             self._set_complete()
 
         elif balsam_state in models.ACTIVE_STATES:
-            self.state = 'RUNNING'
+            self.state = "RUNNING"
             self.workdir = self.workdir or self.process.working_directory
 
-        elif (balsam_state in models.PROCESSABLE_STATES or
-              balsam_state in models.RUNNABLE_STATES):
-            self.state = 'WAITING'
+        elif balsam_state in models.PROCESSABLE_STATES or balsam_state in models.RUNNABLE_STATES:
+            self.state = "WAITING"
 
         else:
             raise ExecutorException(
                 "Task state returned from Balsam is not in known list of "
-                "Balsam states. Task state is {}".format(balsam_state))
+                "Balsam states. Task state is {}".format(balsam_state)
+            )
 
     def wait(self, timeout=None):
         """Waits on completion of the task or raises TimeoutExpired exception
@@ -177,7 +173,7 @@ class LegacyBalsamTask(Task):
         self._set_complete()
 
     def kill(self, wait_time=None):
-        """ Kills or cancels the supplied task """
+        """Kills or cancels the supplied task"""
 
         dag.kill(self.process)
 
@@ -185,7 +181,7 @@ class LegacyBalsamTask(Task):
         # but not implemented yet.
 
         logger.info("Killing task {}".format(self.name))
-        self.state = 'USER_KILLED'
+        self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
 
@@ -196,6 +192,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
+
     def __init__(self, custom_info={}):
         """Instantiate a new LegacyBalsamMPIExecutor instance.
 
@@ -236,10 +233,9 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
 
     @staticmethod
     def del_tasks():
-        """Deletes all Balsam tasks """
+        """Deletes all Balsam tasks"""
         for app_type in [Task.prefix]:
-            deletion_objs = models.BalsamJob.objects.filter(
-                name__contains=app_type)
+            deletion_objs = models.BalsamJob.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
                     logger.debug("Deleting task {}".format(del_task.name))
@@ -247,7 +243,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
 
     @staticmethod
     def add_app(name, exepath, desc):
-        """ Add application to Balsam database """
+        """Add application to Balsam database"""
         AppDef = models.ApplicationDefinition
         app = AppDef()
         app.name = name
@@ -261,11 +257,23 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
     def set_resources(self, resources):
         self.resources = resources
 
-    def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, procs_per_node=None, machinefile=None,
-               app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_start=False,
-               extra_args=''):
+    def submit(
+        self,
+        calc_type=None,
+        app_name=None,
+        num_procs=None,
+        num_nodes=None,
+        procs_per_node=None,
+        machinefile=None,
+        app_args=None,
+        stdout=None,
+        stderr=None,
+        stage_inout=None,
+        hyperthreads=False,
+        dry_run=False,
+        wait_on_start=False,
+        extra_args="",
+    ):
         """Creates a new task, and either executes or schedules to execute
         in the executor
 
@@ -282,56 +290,54 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         # Specific to this class
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(num_procs or num_nodes or procs_per_node,
-                    "No procs/nodes provided - aborting")
+            jassert(num_procs or num_nodes or procs_per_node, "No procs/nodes provided - aborting")
 
-        num_procs, num_nodes, procs_per_node = \
-            mpi_resources.task_partition(num_procs, num_nodes, procs_per_node)
+        num_procs, num_nodes, procs_per_node = mpi_resources.task_partition(num_procs, num_nodes, procs_per_node)
 
         if stdout is not None or stderr is not None:
-            logger.warning("Balsam does not currently accept a stdout "
-                           "or stderr name - ignoring")
+            logger.warning("Balsam does not currently accept a stdout " "or stderr name - ignoring")
             stdout = None
             stderr = None
 
         # Will be possible to override with arg when implemented
         # (or can have option to let Balsam assign)
         default_workdir = os.getcwd()
-        task = LegacyBalsamTask(app, app_args, default_workdir,
-                                stdout, stderr, self.workerID)
+        task = LegacyBalsamTask(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
-        add_task_args = {'name': task.name,
-                         'workflow': self.workflow_name,
-                         'user_workdir': default_workdir,
-                         'application': app.gname,
-                         'args': task.app_args,
-                         'num_nodes': num_nodes,
-                         'procs_per_node': procs_per_node,
-                         'mpi_flags': extra_args}
+        add_task_args = {
+            "name": task.name,
+            "workflow": self.workflow_name,
+            "user_workdir": default_workdir,
+            "application": app.gname,
+            "args": task.app_args,
+            "num_nodes": num_nodes,
+            "procs_per_node": procs_per_node,
+            "mpi_flags": extra_args,
+        }
 
         if stage_inout is not None:
             # For now hardcode staging - for testing
-            add_task_args['stage_in_url'] = "local:" + stage_inout + "/*"
-            add_task_args['stage_out_url'] = "local:" + stage_inout
-            add_task_args['stage_out_files'] = "*.out"
+            add_task_args["stage_in_url"] = "local:" + stage_inout + "/*"
+            add_task_args["stage_out_url"] = "local:" + stage_inout
+            add_task_args["stage_out_files"] = "*.out"
 
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(add_task_args)))
+            logger.info("Test (No submit) Runline: {}".format(" ".join(add_task_args)))
             task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)
 
-            if (wait_on_start):
+            if wait_on_start:
                 self._wait_on_start(task)
 
             if not task.timer.timing:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info("Added task to Balsam database {}: "
-                        "nodes {} ppn {}".
-                        format(task.name, num_nodes, procs_per_node))
+            logger.info(
+                "Added task to Balsam database {}: " "nodes {} ppn {}".format(task.name, num_nodes, procs_per_node)
+            )
 
             # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)

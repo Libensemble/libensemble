@@ -1,0 +1,36 @@
+name: libEnsemble
+icon: https://github.com/Libensemble/libensemble/blob/main/docs/images/libE_logo.png
+headline: Tool for running dynamic ensembles.
+description: |
+  libEnsemble is a Python toolkit for coordinating workflows of asynchronous
+  and dynamic ensembles of calculations.
+
+  Users write generator and simulator functions to express their ensembles.
+  A library of example functions is available which can be modified as needed.
+  These functions can submit unmodified external executables at any scale and
+  in a portable way. System details are detected, and resource management is
+  provided.
+
+  libEnsemble can be used in a consistent manner on laptops, clusters, and
+  supercomputers with minimal required dependencies.
+
+language: Python
+
+release:
+  version: 0.9.1
+  date: 2022-05-11
+
+documentation:
+  general: https://libensemble.readthedocs.io
+  installation: https://libensemble.readthedocs.io/en/main/introduction.html#installation
+  tutorial: https://libensemble.readthedocs.io/en/main/tutorials/local_sine_tutorial.html
+
+execution_environment:
+  interfaces:
+    - Python API
+  resource_managers:
+    - Slurm
+    - LSF
+    - Cobalt
+  transfer_protocols:
+    - Globus

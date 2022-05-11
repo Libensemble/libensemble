@@ -23,8 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MPIExecutor(Executor):
-    """The MPI executor can create, poll and kill runnable MPI tasks
-    """
+    """The MPI executor can create, poll and kill runnable MPI tasks"""
 
     def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
@@ -83,9 +82,9 @@ class MPIExecutor(Executor):
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
 
         # Apply custom options
-        mpi_runner_type = custom_info.get('mpi_runner', None)
-        runner_name = custom_info.get('runner_name', None)
-        subgroup_launch = custom_info.get('subgroup_launch', None)
+        mpi_runner_type = custom_info.get("mpi_runner", None)
+        runner_name = custom_info.get("runner_name", None)
+        subgroup_launch = custom_info.get("subgroup_launch", None)
 
         if not mpi_runner_type:
             mpi_runner_type = get_MPI_variant()
@@ -98,49 +97,64 @@ class MPIExecutor(Executor):
         self.resources = resources
 
     def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_start):
-        """ Launch task with retry mechanism"""
+        """Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
                 retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
-                logger.info("Launching task {}{}: {}".
-                            format(task.name, retry_string, " ".join(runline)))
+                logger.info("Launching task {}{}: {}".format(task.name, retry_string, " ".join(runline)))
                 task.run_attempts += 1
-                with open(task.stdout, 'w') as out, open(task.stderr, 'w') as err:
-                    task.process = launcher.launch(runline, cwd='./',
-                                                   stdout=out,
-                                                   stderr=err,
-                                                   start_new_session=subgroup_launch)
+                with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
+                    task.process = launcher.launch(
+                        runline,
+                        cwd="./",
+                        stdout=out,
+                        stderr=err,
+                        start_new_session=subgroup_launch,
+                    )
             except Exception as e:
-                logger.warning('task {} submit command failed on '
-                               'try {} with error {}'
-                               .format(task.name, retry_count, e))
+                logger.warning(
+                    "task {} submit command failed on try {} with error {}".format(task.name, retry_count, e)
+                )
                 retry = True
                 retry_count += 1
             else:
-                if (wait_on_start):
+                if wait_on_start:
                     self._wait_on_start(task, self.fail_time)
 
-                if task.state == 'FAILED':
-                    logger.warning('task {} failed within fail_time on '
-                                   'try {} with err code {}'
-                                   .format(task.name, retry_count, task.errcode))
+                if task.state == "FAILED":
+                    logger.warning(
+                        "task {} failed within fail_time on "
+                        "try {} with err code {}".format(task.name, retry_count, task.errcode)
+                    )
                     retry = True
                     retry_count += 1
 
             if retry and retry_count < self.max_launch_attempts:
-                logger.debug('Retry number {} for task {}'.format(retry_count, task.name))
-                time.sleep(retry_count*self.retry_delay_incr)
+                logger.debug("Retry number {} for task {}".format(retry_count, task.name))
+                time.sleep(retry_count * self.retry_delay_incr)
                 task.reset()  # Some cases may require user cleanup
             else:
                 break
 
-    def submit(self, calc_type=None, app_name=None, num_procs=None,
-               num_nodes=None, procs_per_node=None, machinefile=None,
-               app_args=None, stdout=None, stderr=None, stage_inout=None,
-               hyperthreads=False, dry_run=False, wait_on_start=False,
-               extra_args=None):
+    def submit(
+        self,
+        calc_type=None,
+        app_name=None,
+        num_procs=None,
+        num_nodes=None,
+        procs_per_node=None,
+        machinefile=None,
+        app_args=None,
+        stdout=None,
+        stderr=None,
+        stage_inout=None,
+        hyperthreads=False,
+        dry_run=False,
+        wait_on_start=False,
+        extra_args=None,
+    ):
         """Creates a new task, and either executes or schedules execution.
 
         The created task object is returned.
@@ -223,14 +237,19 @@ class MPIExecutor(Executor):
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
         if stage_inout is not None:
-            logger.warning("stage_inout option ignored in this "
-                           "executor - runs in-place")
+            logger.warning("stage_inout option ignored in this " "executor - runs in-place")
 
-        mpi_specs = self.mpi_runner.get_mpi_specs(task, num_procs, num_nodes,
-                                                  procs_per_node, machinefile,
-                                                  hyperthreads, extra_args,
-                                                  self.resources,
-                                                  self.workerID)
+        mpi_specs = self.mpi_runner.get_mpi_specs(
+            task,
+            num_procs,
+            num_nodes,
+            procs_per_node,
+            machinefile,
+            hyperthreads,
+            extra_args,
+            self.resources,
+            self.workerID,
+        )
 
         mpi_command = self.mpi_runner.mpi_command
         sglaunch = self.mpi_runner.subgroup_launch
@@ -240,10 +259,10 @@ class MPIExecutor(Executor):
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
-        task.runline = ' '.join(runline)  # Allow to be queried
+        task.runline = " ".join(runline)  # Allow to be queried
         if dry_run:
             task.dry_run = True
-            logger.info('Test (No submit) Runline: {}'.format(' '.join(runline)))
+            logger.info("Test (No submit) Runline: {}".format(" ".join(runline)))
             task._set_complete(dry_run=True)
         else:
             # Launch Task

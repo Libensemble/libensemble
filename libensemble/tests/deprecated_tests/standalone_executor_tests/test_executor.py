@@ -10,7 +10,7 @@ def build_simfunc():
 
     # Build simfunc
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
-    buildstring = 'mpicc -o my_simtask.x simdir/my_simtask.c'
+    buildstring = "mpicc -o my_simtask.x simdir/my_simtask.c"
     # subprocess.run(buildstring.split(),check=True) # Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -22,7 +22,7 @@ def build_simfunc():
 # gen_app = 'gendir/my_genjob.x'
 
 # temp
-sim_app = './my_simtask.x'
+sim_app = "./my_simtask.x"
 
 if not os.path.isfile(sim_app):
     build_simfunc()
@@ -40,7 +40,7 @@ else:
 
     exctr = MPIExecutor()
 
-exctr.register_app(full_path=sim_app, calc_type='sim')
+exctr.register_app(full_path=sim_app, calc_type="sim")
 
 # Alternative to IF could be using eg. fstring to specify: e.g:
 # EXECUTOR = 'Balsam'
@@ -58,40 +58,40 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 
     while time.time() - start < timeout_sec:
         time.sleep(delay)
-        print('Polling at time', time.time() - start)
+        print("Polling at time", time.time() - start)
         task.poll()
         if task.finished:
             break
-        elif task.state == 'WAITING':
-            print('Task waiting to execute')
-        elif task.state == 'RUNNING':
-            print('Task still running ....')
+        elif task.state == "WAITING":
+            print("Task waiting to execute")
+        elif task.state == "RUNNING":
+            print("Task still running ....")
 
         # Check output file for error
         if task.stdout_exists():
-            if 'Error' in task.read_stdout():
+            if "Error" in task.read_stdout():
                 print("Found (deliberate) Error in output file - cancelling task")
                 exctr.kill(task)
                 time.sleep(delay)  # Give time for kill
                 break
 
     if task.finished:
-        if task.state == 'FINISHED':
-            print('Task finished successfully. Status:', task.state)
-        elif task.state == 'FAILED':
-            print('Task failed. Status:', task.state)
-        elif task.state == 'USER_KILLED':
-            print('Task has been killed. Status:', task.state)
+        if task.state == "FINISHED":
+            print("Task finished successfully. Status:", task.state)
+        elif task.state == "FAILED":
+            print("Task failed. Status:", task.state)
+        elif task.state == "USER_KILLED":
+            print("Task has been killed. Status:", task.state)
         else:
-            print('Task status:', task.state)
+            print("Task status:", task.state)
     else:
         print("Task timed out")
         exctr.kill(task)
         if task.finished:
-            print('Now killed')
+            print("Now killed")
             # double check
             task.poll()
-            print('Task state is', task.state)
+            print("Task state is", task.state)
 
 
 # Tests
@@ -100,16 +100,16 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 # getting registered app from Executor
 exctr = Executor.executor
 
-print('\nTest 1 - should complete successfully with status FINISHED :\n')
+print("\nTest 1 - should complete successfully with status FINISHED :\n")
 cores = 4
-args_for_sim = 'sleep 5'
+args_for_sim = "sleep 5"
 
-task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
 polling_loop(exctr, task)
 
-print('\nTest 2 - Task should be USER_KILLED \n')
+print("\nTest 2 - Task should be USER_KILLED \n")
 cores = 4
-args_for_sim = 'sleep 5 Error'
+args_for_sim = "sleep 5 Error"
 
-task = exctr.submit(calc_type='sim', num_procs=cores, app_args=args_for_sim)
+task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
 polling_loop(exctr, task)

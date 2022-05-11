@@ -59,7 +59,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
         Whether to send logging over comm
     """
 
-    if libE_specs.get('profile'):
+    if libE_specs.get("profile"):
         pr = cProfile.Profile()
         pr.enable()
 
@@ -75,12 +75,12 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     worker.run()
 
-    if libE_specs.get('profile'):
+    if libE_specs.get("profile"):
         pr.disable()
-        profile_state_fname = 'worker_%d.prof' % (workerID)
+        profile_state_fname = "worker_%d.prof" % (workerID)
 
-        with open(profile_state_fname, 'w') as f:
-            ps = pstats.Stats(pr, stream=f).sort_stats('cumulative')
+        with open(profile_state_fname, "w") as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
             ps.print_stats()
 
 
@@ -133,10 +133,10 @@ class Worker:
 
     @staticmethod
     def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
-        libE_info['comm'] = None  # 'comm' object not pickle-able
+        libE_info["comm"] = None  # 'comm' object not pickle-able
         Worker._set_executor(0, None)  # ditto for executor
 
-        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info, endpoint_id=specs['funcx_endpoint'])
+        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info, endpoint_id=specs["funcx_endpoint"])
         remote_exc = future.exception()  # blocks until exception or None
         if remote_exc is None:
             return future.result()
@@ -145,8 +145,8 @@ class Worker:
 
     @staticmethod
     def _get_funcx_exctr(sim_specs, gen_specs):
-        funcx_sim = len(sim_specs.get('funcx_endpoint', '')) > 0
-        funcx_gen = len(gen_specs.get('funcx_endpoint', '')) > 0
+        funcx_sim = len(sim_specs.get("funcx_endpoint", "")) > 0
+        funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
 
         if any([funcx_sim, funcx_gen]):
             try:
@@ -168,7 +168,7 @@ class Worker:
         called directly by the worker or submitted to a funcX endpoint."""
 
         funcx_exctr, funcx_sim, funcx_gen = Worker._get_funcx_exctr(sim_specs, gen_specs)
-        sim_f = sim_specs['sim_f']
+        sim_f = sim_specs["sim_f"]
 
         def run_sim(calc_in, persis_info, libE_info):
             """Calls or submits the sim func."""
@@ -178,7 +178,7 @@ class Worker:
                 return sim_f(calc_in, persis_info, sim_specs, libE_info)
 
         if gen_specs:
-            gen_f = gen_specs['gen_f']
+            gen_f = gen_specs["gen_f"]
 
             def run_gen(calc_in, persis_info, libE_info):
                 """Calls or submits the gen func."""
@@ -240,7 +240,7 @@ class Worker:
             Rows from the :ref:`history array<datastruct-history-array>`
             for processing
         """
-        calc_type = Work['tag']
+        calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
         # calc_stats stores timing and summary info for this Calc (sim or gen)
@@ -248,17 +248,17 @@ class Worker:
 
         # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
-            enum_desc = 'sim_id'
+            enum_desc = "sim_id"
             calc_id = EnsembleDirectory.extract_H_ranges(Work)
         else:
-            enum_desc = 'Gen no'
+            enum_desc = "Gen no"
             # Use global gen count if available
-            if Work['libE_info'].get('gen_count'):
-                calc_id = str(Work['libE_info']['gen_count'])
+            if Work["libE_info"].get("gen_count"):
+                calc_id = str(Work["libE_info"]["gen_count"])
             else:
                 calc_id = str(self.calc_iter[calc_type])
         # Add a right adjust (minimum width).
-        calc_id = calc_id.rjust(5, ' ')
+        calc_id = calc_id.rjust(5, " ")
 
         timer = Timer()
 
@@ -274,18 +274,18 @@ class Worker:
                         calc_type,
                     )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
-                        out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+                        out = calc(calc_in, Work["persis_info"], Work["libE_info"])
                 else:
-                    out = calc(calc_in, Work['persis_info'], Work['libE_info'])
+                    out = calc(calc_in, Work["persis_info"], Work["libE_info"])
 
                 logger.debug("Returned from user function for {} {}".format(enum_desc, calc_id))
 
             assert isinstance(out, tuple), "Calculation output must be a tuple."
             assert len(out) >= 2, "Calculation output must be at least two elements."
 
-            calc_status = out[2] if len(out) >= 3 else UNSET_TAG
-
-            if calc_status is None:
+            if len(out) >= 3:
+                calc_status = out[2]
+            else:
                 calc_status = UNSET_TAG
 
             # Check for buffered receive
@@ -311,7 +311,7 @@ class Worker:
                     calc_type_strings[calc_type],
                     timer,
                     task.timer,
-                    calc_status_strings.get(calc_status, "Not set"),
+                    calc_status_strings.get(calc_status, calc_status),
                 )
             else:
                 calc_msg = "{} {}: {} {} Status: {}".format(
@@ -319,7 +319,7 @@ class Worker:
                     calc_id,
                     calc_type_strings[calc_type],
                     timer,
-                    calc_status_strings.get(calc_status, "Not set"),
+                    calc_status_strings.get(calc_status, calc_status),
                 )
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
@@ -327,9 +327,9 @@ class Worker:
     def _recv_H_rows(self, Work):
         """Unpacks Work request and receives any history rows"""
 
-        libE_info = Work['libE_info']
-        calc_type = Work['tag']
-        if len(libE_info['H_rows']) > 0:
+        libE_info = Work["libE_info"]
+        calc_type = Work["tag"]
+        if len(libE_info["H_rows"]) > 0:
             _, calc_in = self.comm.recv()
         else:
             calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
@@ -346,18 +346,18 @@ class Worker:
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
 
         # Call user function
-        libE_info['comm'] = self.comm
-        libE_info['workerID'] = self.workerID
-        libE_info['rset_team'] = libE_info.get('rset_team', [])
-        Worker._set_rset_team(libE_info['rset_team'])
+        libE_info["comm"] = self.comm
+        libE_info["workerID"] = self.workerID
+        libE_info["rset_team"] = libE_info.get("rset_team", [])
+        Worker._set_rset_team(libE_info["rset_team"])
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
-        if 'libE_info' in Work:
-            libE_info = Work['libE_info']
+        if "libE_info" in Work:
+            libE_info = Work["libE_info"]
 
-        if 'comm' in libE_info:
-            del libE_info['comm']
+        if "comm" in libE_info:
+            del libE_info["comm"]
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
@@ -366,11 +366,11 @@ class Worker:
         # Otherwise, send a calc result back to manager
         logger.debug("Sending to Manager with status {}".format(calc_status))
         return {
-            'calc_out': calc_out,
-            'persis_info': persis_info,
-            'libE_info': libE_info,
-            'calc_status': calc_status,
-            'calc_type': calc_type,
+            "calc_out": calc_out,
+            "persis_info": persis_info,
+            "libE_info": libE_info,
+            "calc_status": calc_status,
+            "calc_type": calc_type,
         }
 
     def run(self):
@@ -391,9 +391,9 @@ class Worker:
                         continue
 
                 # Active recv is for persistent worker only - throw away here
-                if Work.get('libE_info', False):
-                    if Work['libE_info'].get('active_recv', False) and not Work['libE_info'].get('persistent', False):
-                        if len(Work['libE_info']['H_rows']) > 0:
+                if Work.get("libE_info", False):
+                    if Work["libE_info"].get("active_recv", False) and not Work["libE_info"].get("persistent", False):
+                        if len(Work["libE_info"]["H_rows"]) > 0:
                             _, _, _ = self._recv_H_rows(Work)
                         continue
 
@@ -403,7 +403,7 @@ class Worker:
                 self.comm.send(0, response)
 
         except Exception as e:
-            self.comm.send(0, WorkerErrMsg(' '.join(format_exc_msg(type(e), e)).strip(), format_exc()))
+            self.comm.send(0, WorkerErrMsg(" ".join(format_exc_msg(type(e), e)).strip(), format_exc()))
         else:
             self.comm.kill_pending()
         finally:

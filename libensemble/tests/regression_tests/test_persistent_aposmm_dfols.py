@@ -27,7 +27,7 @@ from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = 'dfols'
+libensemble.gen_funcs.rc.aposmm_optimizers = "dfols"
 
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
@@ -44,47 +44,47 @@ n = 3
 budget = 10
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float), ('fvec', float, m)],
-    'user': {
-        'combine_component_func': lambda x: np.sum(np.power(x, 2)),
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float), ("fvec", float, m)],
+    "user": {
+        "combine_component_func": lambda x: np.sum(np.power(x, 2)),
     },
 }
 
-gen_out = [('x', float, n), ('x_on_cube', float, n), ('sim_id', int), ('local_min', bool), ('local_pt', bool)]
+gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['f', 'fvec'] + [n[0] for n in gen_out],
-    'out': gen_out,
-    'user': {
-        'initial_sample_size': 100,
-        'localopt_method': 'dfols',
-        'components': m,
-        'dfols_kwargs': {
-            'do_logging': False,
-            'rhoend': 1e-5,
-            'user_params': {
-                'model.abs_tol': 1e-10,
-                'model.rel_tol': 1e-4,
+    "gen_f": gen_f,
+    "persis_in": ["f", "fvec"] + [n[0] for n in gen_out],
+    "out": gen_out,
+    "user": {
+        "initial_sample_size": 100,
+        "localopt_method": "dfols",
+        "components": m,
+        "dfols_kwargs": {
+            "do_logging": False,
+            "rhoend": 1e-5,
+            "user_params": {
+                "model.abs_tol": 1e-10,
+                "model.rel_tol": 1e-4,
             },
         },
-        'lb': (-2 - np.pi / 10) * np.ones(n),
-        'ub': 2 * np.ones(n),
+        "lb": (-2 - np.pi / 10) * np.ones(n),
+        "ub": 2 * np.ones(n),
     },
 }
 
-alloc_specs = {'alloc_f': alloc_f}
+alloc_specs = {"alloc_f": alloc_f}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop (stop_val key must be in H)
 exit_criteria = {
-    'sim_max': 1000,
-    'wallclock_max': 100,
-    'stop_val': ('f', 3000),
+    "sim_max": 1000,
+    "wallclock_max": 100,
+    "stop_val": ("f", 3000),
 }
 # end_exit_criteria_rst_tag
 
@@ -92,18 +92,18 @@ exit_criteria = {
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    assert persis_info[1].get('run_order'), "Run_order should have been given back"
+    assert persis_info[1].get("run_order"), "Run_order should have been given back"
     assert flag == 0
-    assert np.min(H['f'][H['sim_ended']]) <= 3000, "Didn't find a value below 3000"
+    assert np.min(H["f"][H["sim_ended"]]) <= 3000, "Didn't find a value below 3000"
 
     save_libE_output(H, persis_info, __file__, nworkers)
 
     # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
     from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
 
-    for i in np.where(H['local_min'])[0]:
-        F = EvaluateFunction(H['x'][i])
-        J = EvaluateJacobian(H['x'][i])
+    for i in np.where(H["local_min"])[0]:
+        F = EvaluateFunction(H["x"][i])
+        J = EvaluateJacobian(H["x"][i])
         # u = gen_specs['user']['ub'] - H['x'][i]
         # l = H['x'][i] - gen_specs['user']['lb']
         # if np.any(u <= 1e-7) or np.any(l <= 1e-7):

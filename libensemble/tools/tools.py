@@ -115,14 +115,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
 
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
-    prob_str = (
-        "length="
-        + str(len(H))
-        + "_evals="
-        + str(sum(H["sim_ended"]))
-        + "_workers="
-        + str(nworkers)
-    )
+    prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
 
     h_filename = short_name + "_history_" + prob_str
     p_filename = short_name + "_persis_info_" + prob_str
@@ -179,7 +172,10 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
 
         if i in persis_info:
             persis_info[i].update(
-                {"rand_stream": np.random.default_rng(random_seed), "worker_num": i}
+                {
+                    "rand_stream": np.random.default_rng(random_seed),
+                    "worker_num": i,
+                }
             )
         else:
             persis_info[i] = {
@@ -202,6 +198,7 @@ def eprint(*args, **kwargs):
 #  warnings about leaked semaphore objects are displayed instead.
 # The next several statements enforce 'fork' on macOS (Python 3.8)
 def osx_set_mp_method():
-    if platform.system() == 'Darwin':
+    if platform.system() == "Darwin":
         from multiprocessing import set_start_method
-        set_start_method('fork', force=True)
+
+        set_start_method("fork", force=True)

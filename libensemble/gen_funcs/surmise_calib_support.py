@@ -67,9 +67,9 @@ def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
         cal=cal,
         overwrite=True,
         args={
-            'includepending': True,
-            'costpending': 0.01 + 0.99 * np.mean(pending, 0),
-            'pending': pending,
+            "includepending": True,
+            "costpending": 0.01 + 0.99 * np.mean(pending, 0),
+            "pending": pending,
         },
     )
     thetaneworig = thetaneworig[:numnewtheta, :]
@@ -78,4 +78,4 @@ def select_next_theta(numnewtheta, cal, emu, pending, numexplore):
 
 
 def obviate_pend_theta(info, pending):
-    return pending, info['obviatesugg']
+    return pending, info["obviatesugg"]

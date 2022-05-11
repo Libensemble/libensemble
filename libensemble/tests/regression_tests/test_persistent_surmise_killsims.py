@@ -44,7 +44,7 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 # from libensemble import logger
 # logger.set_level('DEBUG')  # To get debug logging in ensemble.log
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -68,60 +68,60 @@ if __name__ == '__main__':
         build_borehole()
 
     exctr = Executor()  # Run serial sub-process in place
-    exctr.register_app(full_path=sim_app, app_name='borehole')
+    exctr.register_app(full_path=sim_app, app_name="borehole")
 
     # Subprocess variant creates input and output files for each sim
-    libE_specs['sim_dirs_make'] = True  # To keep all - make sim dirs
+    libE_specs["sim_dirs_make"] = True  # To keep all - make sim dirs
     # libE_specs['use_worker_dirs'] = True  # To overwrite - make worker dirs only
 
     # Rename ensemble dir for non-inteference with other regression tests
-    libE_specs['ensemble_dir_path'] = 'ensemble_calib_kills'
+    libE_specs["ensemble_dir_path"] = "ensemble_calib_kills"
 
     sim_specs = {
-        'sim_f': sim_f,
-        'in': ['x', 'thetas'],
-        'out': [('f', float)],
-        'user': {
-            'num_obs': n_x,
-            'init_sample_size': init_sample_size,
+        "sim_f": sim_f,
+        "in": ["x", "thetas"],
+        "out": [("f", float)],
+        "user": {
+            "num_obs": n_x,
+            "init_sample_size": init_sample_size,
         },
     }
 
     gen_out = [
-        ('x', float, ndims),
-        ('thetas', float, nparams),
-        ('priority', int),
-        ('obs', float, n_x),
-        ('obsvar', float, n_x),
+        ("x", float, ndims),
+        ("thetas", float, nparams),
+        ("priority", int),
+        ("obs", float, n_x),
+        ("obsvar", float, n_x),
     ]
 
     gen_specs = {
-        'gen_f': gen_f,
-        'persis_in': [o[0] for o in gen_out] + ['f', 'sim_ended', 'sim_id'],
-        'out': gen_out,
-        'user': {
-            'n_init_thetas': n_init_thetas,  # Num thetas in initial batch
-            'num_x_vals': n_x,  # Num x points to create
-            'step_add_theta': step_add_theta,  # No. of thetas to generate per step
-            'n_explore_theta': n_explore_theta,  # No. of thetas to explore each step
-            'obsvar': obsvar,  # Variance for generating noise in obs
-            'init_sample_size': init_sample_size,  # Initial batch size inc. observations
-            'priorloc': 1,  # Prior location in the unit cube.
-            'priorscale': 0.2,  # Standard deviation of prior
+        "gen_f": gen_f,
+        "persis_in": [o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
+        "out": gen_out,
+        "user": {
+            "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
+            "num_x_vals": n_x,  # Num x points to create
+            "step_add_theta": step_add_theta,  # No. of thetas to generate per step
+            "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
+            "obsvar": obsvar,  # Variance for generating noise in obs
+            "init_sample_size": init_sample_size,  # Initial batch size inc. observations
+            "priorloc": 1,  # Prior location in the unit cube.
+            "priorscale": 0.2,  # Standard deviation of prior
         },
     }
 
     alloc_specs = {
-        'alloc_f': alloc_f,
-        'user': {
-            'init_sample_size': init_sample_size,
-            'async_return': True,  # True = Return results to gen as they come in (after sample)
-            'active_recv_gen': True,  # Persistent gen can handle irregular communications
+        "alloc_f": alloc_f,
+        "user": {
+            "init_sample_size": init_sample_size,
+            "async_return": True,  # True = Return results to gen as they come in (after sample)
+            "active_recv_gen": True,  # Persistent gen can handle irregular communications
         },
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {'sim_max': max_evals}
+    exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
     H, persis_info, flag = libE(
@@ -129,8 +129,8 @@ if __name__ == '__main__':
     )
 
     if is_manager:
-        print('Cancelled sims', H['sim_id'][H['cancel_requested']])
-        print('Killed sims', H['sim_id'][H['kill_sent']])
-        sims_done = np.count_nonzero(H['sim_ended'])
+        print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
+        print("Killed sims", H["sim_id"][H["kill_sent"]])
+        sims_done = np.count_nonzero(H["sim_ended"])
         save_libE_output(H, persis_info, __file__, nworkers)
-        assert sims_done == max_evals, 'Num of completed simulations should be {}. Is {}'.format(max_evals, sims_done)
+        assert sims_done == max_evals, "Num of completed simulations should be {}. Is {}".format(max_evals, sims_done)

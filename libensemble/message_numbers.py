@@ -1,4 +1,6 @@
-# --- Tags
+# -------------------------------
+# -- Basic User Function Tags ---
+# -------------------------------
 
 UNSET_TAG = 0
 
@@ -10,18 +12,23 @@ EVAL_SIM_TAG = 1
 # When received by the manager, tells manager that worker is done with sim eval.
 EVAL_GEN_TAG = 2
 
-STOP_TAG = 3  # Manager tells worker (or persistent calc) to stop
-PERSIS_STOP = 4  # Manager tells persistent calculation to stop
+STOP_TAG = 3  # Manager tells worker (or persistent user_f) to stop
+PERSIS_STOP = 4  # Manager tells persistent user_f to stop
 
 # last_message_number_rst_tag
 
-calc_type_strings = {EVAL_SIM_TAG: 'sim', EVAL_GEN_TAG: 'gen', PERSIS_STOP: 'STOP with work', None: 'No type set'}
+calc_type_strings = {
+    EVAL_SIM_TAG: "sim",
+    EVAL_GEN_TAG: "gen",
+    PERSIS_STOP: "STOP with work",
+    None: "No type set",
+}
 
-
-# --- Signal flags (in message body vs tags)
+# --------------------------------------
+# -- Calculation Status/Signal Tags ----
+# --------------------------------------
 
 # first_calc_status_rst_tag
-# CALC STATUS/SIGNAL FLAGS
 FINISHED_PERSISTENT_SIM_TAG = 11  # tells manager sim_f done persistent mode
 FINISHED_PERSISTENT_GEN_TAG = 12  # tells manager gen_f done persistent mode
 MAN_SIGNAL_FINISH = 20  # Kill tasks and shutdown worker
@@ -32,9 +39,10 @@ WORKER_KILL_ON_TIMEOUT = 32  # Worker killed on timeout
 TASK_FAILED = 33  # Calc had tasks that failed
 WORKER_DONE = 34  # Calculation was successful
 # last_calc_status_rst_tag
-CALC_EXCEPTION = 35  # Reserved: Automatically used if gen_f or sim_f raised an exception.
+CALC_EXCEPTION = 35  # Reserved: Automatically used if user_f raised an exception
 
 calc_status_strings = {
+    UNSET_TAG: "Not set",
     FINISHED_PERSISTENT_SIM_TAG: "Persis sim finished",
     FINISHED_PERSISTENT_GEN_TAG: "Persis gen finished",
     MAN_SIGNAL_FINISH: "Manager killed on finish",

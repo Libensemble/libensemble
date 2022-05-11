@@ -18,7 +18,7 @@ class ServerQCommManager:
 
     def __init__(self, port, authkey):
         """Initialize the server on localhost at an indicated TCP port and key."""
-        queues = {'shared': Queue()}
+        queues = {"shared": Queue()}
 
         class ServerQueueManager(BaseManager):
             pass
@@ -28,8 +28,8 @@ class ServerQCommManager:
                 queues[name] = Queue()
             return queues[name]
 
-        ServerQueueManager.register('get_queue', callable=get_queue)
-        self.manager = ServerQueueManager(address=('', port), authkey=authkey)
+        ServerQueueManager.register("get_queue", callable=get_queue)
+        self.manager = ServerQueueManager(address=("", port), authkey=authkey)
         self.manager.start()
 
     def shutdown(self):
@@ -47,15 +47,15 @@ class ServerQCommManager:
 
     def get_inbox(self, workerID):
         """Get a worker inbox queue."""
-        return self.get_queue('inbox{}'.format(workerID))
+        return self.get_queue("inbox{}".format(workerID))
 
     def get_outbox(self, workerID):
         """Get a worker outbox queue."""
-        return self.get_queue('outbox{}'.format(workerID))
+        return self.get_queue("outbox{}".format(workerID))
 
     def get_shared(self):
         """Get a shared queue for worker subscription."""
-        return self.get_queue('shared')
+        return self.get_queue("shared")
 
     def await_workers(self, nworkers):
         """Wait for a pool of workers to join."""
@@ -91,7 +91,7 @@ class ClientQCommManager:
         class ClientQueueManager(BaseManager):
             pass
 
-        ClientQueueManager.register('get_queue')
+        ClientQueueManager.register("get_queue")
         self.manager = ClientQueueManager(address=(ip, port), authkey=authkey)
         self.manager.connect()
         sharedq = self.get_shared()
@@ -103,15 +103,15 @@ class ClientQCommManager:
 
     def get_inbox(self):
         """Get this worker's inbox."""
-        return self.get_queue('inbox{}'.format(self.workerID))
+        return self.get_queue("inbox{}".format(self.workerID))
 
     def get_outbox(self):
         """Get this worker's outbox."""
-        return self.get_queue('outbox{}'.format(self.workerID))
+        return self.get_queue("outbox{}".format(self.workerID))
 
     def get_shared(self):
         """Get the shared queue for worker sign-up."""
-        return self.get_queue('shared')
+        return self.get_queue("shared")
 
     def __enter__(self):
         """Enter the context."""

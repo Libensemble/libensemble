@@ -28,16 +28,18 @@ class EnvResources:
     :ivar dict ndlist_funcs: Functions to extract nodelists from environment by scheduler
     """
 
-    default_nodelist_env_slurm = 'SLURM_NODELIST'
-    default_nodelist_env_cobalt = 'COBALT_PARTNAME'
-    default_nodelist_env_lsf = 'LSB_HOSTS'
-    default_nodelist_env_lsf_shortform = 'LSB_MCPU_HOSTS'
+    default_nodelist_env_slurm = "SLURM_NODELIST"
+    default_nodelist_env_cobalt = "COBALT_PARTNAME"
+    default_nodelist_env_lsf = "LSB_HOSTS"
+    default_nodelist_env_lsf_shortform = "LSB_MCPU_HOSTS"
 
-    def __init__(self,
-                 nodelist_env_slurm=None,
-                 nodelist_env_cobalt=None,
-                 nodelist_env_lsf=None,
-                 nodelist_env_lsf_shortform=None):
+    def __init__(
+        self,
+        nodelist_env_slurm=None,
+        nodelist_env_cobalt=None,
+        nodelist_env_lsf=None,
+        nodelist_env_lsf_shortform=None,
+    ):
 
         """Initializes a new EnvResources instance
 
@@ -66,16 +68,16 @@ class EnvResources:
 
         self.scheduler = None
         self.nodelists = {}
-        self.nodelists['Slurm'] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
-        self.nodelists['Cobalt'] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt
-        self.nodelists['LSF'] = nodelist_env_lsf or EnvResources.default_nodelist_env_lsf
-        self.nodelists['LSF_shortform'] = nodelist_env_lsf_shortform or EnvResources.default_nodelist_env_lsf_shortform
+        self.nodelists["Slurm"] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
+        self.nodelists["Cobalt"] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt
+        self.nodelists["LSF"] = nodelist_env_lsf or EnvResources.default_nodelist_env_lsf
+        self.nodelists["LSF_shortform"] = nodelist_env_lsf_shortform or EnvResources.default_nodelist_env_lsf_shortform
 
         self.ndlist_funcs = {}
-        self.ndlist_funcs['Slurm'] = EnvResources.get_slurm_nodelist
-        self.ndlist_funcs['Cobalt'] = EnvResources.get_cobalt_nodelist
-        self.ndlist_funcs['LSF'] = EnvResources.get_lsf_nodelist
-        self.ndlist_funcs['LSF_shortform'] = EnvResources.get_lsf_nodelist_frm_shortform
+        self.ndlist_funcs["Slurm"] = EnvResources.get_slurm_nodelist
+        self.ndlist_funcs["Cobalt"] = EnvResources.get_cobalt_nodelist
+        self.ndlist_funcs["LSF"] = EnvResources.get_lsf_nodelist
+        self.ndlist_funcs["LSF_shortform"] = EnvResources.get_lsf_nodelist_frm_shortform
 
         for env, env_var in self.nodelists.items():
             if os.environ.get(env_var):
@@ -100,15 +102,15 @@ class EnvResources:
         return newlist
 
     @staticmethod
-    def cobalt_abbrev_nodenames(node_list, prefix='nid'):
+    def cobalt_abbrev_nodenames(node_list, prefix="nid"):
         """Returns nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
-        newlist = [s.lstrip('0') for s in newlist]
+        newlist = [s.lstrip("0") for s in newlist]
         return newlist
 
     def shortnames(self, node_list):
         """Returns nodelist with entries in abbreviated form"""
-        if self.scheduler == 'Cobalt':
+        if self.scheduler == "Cobalt":
             return EnvResources.cobalt_abbrev_nodenames(node_list)
         elif self.scheduler is not None:
             return EnvResources.abbrev_nodenames(node_list)
@@ -130,7 +132,7 @@ class EnvResources:
     def _noderange_append(prefix, nidstr, suffix):
         """Formats and appends nodes to overall nodelist"""
         nidlst = []
-        for nidgroup in nidstr.split(','):
+        for nidgroup in nidstr.split(","):
             a, b, nnum_len = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(prefix + str(nid).zfill(nnum_len) + suffix)
@@ -143,18 +145,18 @@ class EnvResources:
         if not fullstr:
             return []
         # Split at commas outside of square brackets
-        r = re.compile(r'(?:[^,\[]|\[[^\]]*\])+')
+        r = re.compile(r"(?:[^,\[]|\[[^\]]*\])+")
         part_splitstr = r.findall(fullstr)
         nidlst = []
         for i in range(len(part_splitstr)):
             part = part_splitstr[i]
-            splitstr = part.split('[', 1)
+            splitstr = part.split("[", 1)
             if len(splitstr) == 1:
                 nidlst.append(splitstr[0])
             else:
                 prefix = splitstr[0]
                 remainder = splitstr[1]
-                splitstr = remainder.split(']', 1)
+                splitstr = remainder.split("]", 1)
                 nidstr = splitstr[0]
                 suffix = splitstr[1]
                 nidlst.extend(EnvResources._noderange_append(prefix, nidstr, suffix))
@@ -167,7 +169,7 @@ class EnvResources:
         nidstr = os.environ[node_list_env]
         if not nidstr:
             return []
-        for nidgroup in nidstr.split(','):
+        for nidgroup in nidstr.split(","):
             a, b, _ = EnvResources._range_split(nidgroup)
             for nid in range(a, b):
                 nidlst.append(str(nid))
@@ -180,7 +182,7 @@ class EnvResources:
         entries = full_list.split()
         # unique_entries = list(set(entries)) # This will not retain order
         unique_entries = list(OrderedDict.fromkeys(entries))
-        nodes = [n for n in unique_entries if 'batch' not in n]
+        nodes = [n for n in unique_entries if "batch" not in n]
         return nodes
 
     @staticmethod
@@ -190,6 +192,6 @@ class EnvResources:
         entries = full_list.split()
         iter_list = iter(entries)
         zipped_list = list(zip(iter_list, iter_list))
-        nodes_with_count = [n for n in zipped_list if 'batch' not in n[0]]
+        nodes_with_count = [n for n in zipped_list if "batch" not in n[0]]
         nodes = [n[0] for n in nodes_with_count]
         return nodes

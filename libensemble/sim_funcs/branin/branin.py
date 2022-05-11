@@ -22,8 +22,8 @@ def branin(x1, x2):
 
 if __name__ == "__main__":
 
-    x = np.loadtxt('./x.in')
+    x = np.loadtxt("./x.in")
     assert len(x) == 2, "branin.py is two dimensional"
 
     f = branin(x[0], x[1])
-    np.savetxt('f.out', [f])
+    np.savetxt("f.out", [f])

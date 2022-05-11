@@ -3,16 +3,18 @@
 calc_status
 ===========
 
-The ``calc_status`` is an integer attribute with named (enumerated) values and
-a corresponding description that can be used in :ref:`sim_f<api_sim_f>` or
-:ref:`gen_f<api_gen_f>` functions to capture the status of a calculation. This
-is returned to the manager and printed to the ``libE_stats.txt`` file. Only the
-status values ``FINISHED_PERSISTENT_SIM_TAG`` and
-``FINISHED_PERSISTENT_GEN_TAG`` are currently used by the manager,  but others
-can still provide a useful summary in libE_stats.txt. The user determines the
-status of the calculation, since it could include multiple application runs. It
-can be added as a third return variable in sim_f or gen_f functions.
-The calc_status codes are in the ``libensemble.message_numbers`` module.
+The ``calc_status`` is similar to an exit code, and is either a built-in integer
+attribute with a named (enumerated) value and corresponding description, or a
+user-specified string. They are determined within user functions to capture the
+status of a calculation, and returned to the manager and printed to the ``libE_stats.txt`` file.
+Only the status values ``FINISHED_PERSISTENT_SIM_TAG`` and ``FINISHED_PERSISTENT_GEN_TAG``
+are currently used by the manager, but others can still provide a useful summary in ``libE_stats.txt``.
+The user is responsible for determining the status of a user function instance, since
+a given instance could include multiple application runs of mixed rates of success.
+
+The ``calc_status`` is the third optional return value from a user function.
+Built-in codes are available in the ``libensemble.message_numbers`` module, but
+users are also free to return any custom string.
 
 Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in sim_f:
 
@@ -44,6 +46,33 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
             calc_status = WORKER_KILL
         else:
             print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+
+    outspecs = sim_specs['out']
+    output = np.zeros(1, dtype=outspecs)
+    output['energy'][0] = final_energy
+
+    return output, persis_info, calc_status
+
+Example of defining and returning a custom ``calc_status`` if the built-in values
+are insufficient:
+
+.. code-block:: python
+  :linenos:
+
+    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+
+    task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_start=True)
+
+    task.wait(timeout=60)
+
+    file_output = read_task_output(task)
+    if task.errcode == 0:
+      if "fail" in file_output:
+        calc_status = "Task failed successfully?"
+      else:
+        calc_status = WORKER_DONE
+    else:
+      calc_status = TASK_FAILED
 
     outspecs = sim_specs['out']
     output = np.zeros(1, dtype=outspecs)

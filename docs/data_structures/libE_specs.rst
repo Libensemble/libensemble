@@ -11,7 +11,7 @@ Specifications for libEnsemble::
             Options are 'mpi', 'local', 'tcp'
         'nworkers' [int]:
             Number of worker processes to spawn (in local/tcp modes)
-        'comm' [MPI communicator]:
+        'mpi_comm' [MPI communicator]:
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'abort_on_exception' [boolean]:
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
@@ -20,6 +20,10 @@ Specifications for libEnsemble::
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int]:
             Save history array to file after every k generated points.
+        'save_H_and_persis_on_abort' [boolean]:
+            Whether libEnsemble should save the states of H and persis_info on
+            aborting after an error.
+            Default: True
         'sim_dirs_make' [boolean]:
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is
@@ -57,19 +61,29 @@ Specifications for libEnsemble::
         'gen_input_dir' [string]:
             Copy this directory and its contents for each generator-instance specific dir.
             If not using calc directories, contents are copied to the ensemble directory.
-        'profile_worker' [boolean]:
-            Profile using cProfile. Default: False
+        'profile' [boolean]:
+            Profile manager and worker logic using cProfile. Default: False
         'disable_log_files' [boolean]:
             Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files.
             Default: False
         'workers' [list]:
             TCP Only: A list of worker hostnames.
         'ip' [string]:
-            TCP Only: IP address
+            TCP Only: IP address for Manager's system
         'port' [int]:
-            TCP Only: Port number
+            TCP Only: Port number for Manager's system
         'authkey' [string]:
-            TCP Only: Authkey
+            TCP Only: Authkey for Manager's system
+        'workerID' [int]:
+            TCP Only: Worker ID number assigned to the new process.
+        'worker_cmd' [list]:
+            TCP Only: Split string corresponding to worker/client Python process invocation. Contains
+            a local Python path, calling script, and manager/server format-fields for manager_ip,
+            manager_port, authkey, and workerID. nworkers is specified normally.
+        'worker_timeout' [int]:
+            When libEnsemble concludes and attempts to close down worker processes,
+            the number of seconds after which workers are considered timed out. Worker
+            processes are then terminated. multiprocessing default: 1
         'safe_mode' [boolean]:
             Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.

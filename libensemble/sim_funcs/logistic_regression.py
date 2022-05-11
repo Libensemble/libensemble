@@ -15,7 +15,7 @@ def EvaluateFunction(theta, component, X, y, c, reg):
 
     f_i = (1 / m) * np.log(1 + base)
 
-    assert reg == 'l2', "Only l2 regularization allowed"
+    assert reg == "l2", "Only l2 regularization allowed"
     # if reg is None:
     #     reg_val = 0
     # elif reg == 'l1':
@@ -40,7 +40,7 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
 
     df_i = (1 / m) * (-y_i * base) / (1 + base) * X_i
 
-    assert reg == 'l2', "Only l2 regularization allowed"
+    assert reg == "l2", "Only l2 regularization allowed"
     # if reg is None:
     #     reg_val = 0
     # elif reg == 'l1':
@@ -52,22 +52,22 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
 
 def logistic_regression_eval(H, persis_info, sim_specs, _):
 
-    X = persis_info['params']['X']
-    y = persis_info['params']['y']
-    c = persis_info['params']['c']
-    reg = persis_info['params'].get('reg', None)
+    X = persis_info["params"]["X"]
+    y = persis_info["params"]["y"]
+    c = persis_info["params"]["c"]
+    reg = persis_info["params"].get("reg", None)
 
-    assert (reg is None) or (reg == 'l1') or (reg == 'l2'), 'Incompatible regularization {}'.format(reg)
+    assert (reg is None) or (reg == "l1") or (reg == "l2"), "Incompatible regularization {}".format(reg)
 
-    batch = len(H['x'])
-    H_o = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        obj_component = H['obj_component'][i]  # which f_i
+    for i, x in enumerate(H["x"]):
+        obj_component = H["obj_component"][i]  # which f_i
 
-        if H[i]['get_grad']:
-            H_o['gradf_i'][i] = EvaluateJacobian(x, obj_component, X, y, c, reg)
+        if H[i]["get_grad"]:
+            H_o["gradf_i"][i] = EvaluateJacobian(x, obj_component, X, y, c, reg)
         else:
-            H_o['f_i'][i] = EvaluateFunction(x, obj_component, X, y, c, reg)
+            H_o["f_i"][i] = EvaluateFunction(x, obj_component, X, y, c, reg)
 
     return H_o, persis_info

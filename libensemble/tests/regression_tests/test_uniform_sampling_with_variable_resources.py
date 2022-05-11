@@ -27,10 +27,10 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs['sim_dirs_make'] = True
-libE_specs['ensemble_dir_path'] = './ensemble_diff_nodes_w' + str(nworkers) + '_' + libE_specs.get('comms')
+libE_specs["sim_dirs_make"] = True
+libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
-if libE_specs['comms'] == 'tcp':
+if libE_specs["comms"] == "tcp":
     sys.exit("This test only runs with MPI or local -- aborting...")
 
 # Get paths for applications to run
@@ -39,57 +39,57 @@ six_hump_camel_app = six_hump_camel.__file__
 
 # Sim can run either helloworld or six_hump_camel
 exctr = MPIExecutor()
-exctr.register_app(full_path=hello_world_app, app_name='helloworld')
-exctr.register_app(full_path=six_hump_camel_app, app_name='six_hump_camel')
+exctr.register_app(full_path=hello_world_app, app_name="helloworld")
+exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
-    'user': {'app': 'helloworld'},  # helloworld or six_hump_camel
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
+    "user": {"app": "helloworld"},  # helloworld or six_hump_camel
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'in': ['sim_id'],
-    'out': [
-        ('priority', float),
-        ('resource_sets', int),  # Set in gen func, resourced by alloc func.
-        ('x', float, n),
-        ('x_on_cube', float, n),
+    "gen_f": gen_f,
+    "in": ["sim_id"],
+    "out": [
+        ("priority", float),
+        ("resource_sets", int),  # Set in gen func, resourced by alloc func.
+        ("x", float, n),
+        ("x_on_cube", float, n),
     ],
-    'user': {
-        'initial_batch_size': 5,
-        'max_resource_sets': nworkers,
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
+    "user": {
+        "initial_batch_size": 5,
+        "max_resource_sets": nworkers,
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
     },
 }
 
 alloc_specs = {
-    'alloc_f': give_sim_work_first,
-    'out': [],
-    'user': {
-        'batch_mode': False,
-        'give_all_with_same_priority': True,
-        'num_active_gens': 1,
-        'async_return': True,
+    "alloc_f": give_sim_work_first,
+    "out": [],
+    "user": {
+        "batch_mode": False,
+        "give_all_with_same_priority": True,
+        "num_active_gens": 1,
+        "async_return": True,
     },
 }
 
 # This can improve scheduling when tasks may run across multiple nodes
-libE_specs['scheduler_opts'] = {'match_slots': False}
+libE_specs["scheduler_opts"] = {"match_slots": False}
 
-exit_criteria = {'sim_max': 40, 'wallclock_max': 300}
+exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
 for prob_id in range(2):
     if prob_id == 0:
-        sim_specs['user']['app'] = 'six_hump_camel'
+        sim_specs["user"]["app"] = "six_hump_camel"
     else:
-        sim_specs['user']['app'] = 'helloworld'
-        libE_specs['ensemble_dir_path'] = 'ensemble_dummy'
+        sim_specs["user"]["app"] = "helloworld"
+        libE_specs["ensemble_dir_path"] = "ensemble_dummy"
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 

@@ -11,27 +11,27 @@ from libensemble.executors.mpi_executor import MPIExecutor
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
 if not os.path.isfile(sim_app):
-    sys.exit('forces.x not found - please build first in ../forces_app dir')
+    sys.exit("forces.x not found - please build first in ../forces_app dir")
 
 
 ####################
 
 forces = Ensemble()
-forces.from_yaml('forces.yaml')
+forces.from_yaml("forces.yaml")
 
-forces.logger.set_level('INFO')
+forces.logger.set_level("INFO")
 
 if forces.is_manager:
-    print('\nRunning with {} workers\n'.format(forces.nworkers))
+    print("\nRunning with {} workers\n".format(forces.nworkers))
 
 exctr = MPIExecutor()
-exctr.register_app(full_path=sim_app, app_name='forces')
+exctr.register_app(full_path=sim_app, app_name="forces")
 
-forces.libE_specs['ensemble_dir_path'] = './ensemble'
-forces.gen_specs['user'].update(
+forces.libE_specs["ensemble_dir_path"] = "./ensemble"
+forces.gen_specs["user"].update(
     {
-        'lb': np.array([0]),
-        'ub': np.array([32767]),
+        "lb": np.array([0]),
+        "ub": np.array([32767]),
     }
 )
 

@@ -11,28 +11,28 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
 
-    if libE_info['sim_max_given'] or not libE_info['any_idle_workers']:
+    if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    manage_resources = 'resource_sets' in H.dtype.names or libE_info['use_resource_sets']
+    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
 
     Work = {}
     gen_flag = True
-    gen_in = gen_specs.get('in', [])
+    gen_in = gen_specs.get("in", [])
 
     for wid in support.avail_worker_ids():
 
         # Skip any cancelled points
-        while persis_info['next_to_give'] < len(H) and H[persis_info['next_to_give']]['cancel_requested']:
-            persis_info['next_to_give'] += 1
+        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
+            persis_info["next_to_give"] += 1
 
-        if persis_info['next_to_give'] < len(H):
+        if persis_info["next_to_give"] < len(H):
             try:
-                Work[wid] = support.sim_work(wid, H, sim_specs['in'], [persis_info['next_to_give']], [])
+                Work[wid] = support.sim_work(wid, H, sim_specs["in"], [persis_info["next_to_give"]], [])
             except InsufficientFreeResources:
                 break
-            persis_info['next_to_give'] += 1
+            persis_info["next_to_give"] += 1
 
         elif not support.test_any_gen() and gen_flag:
 
@@ -46,6 +46,6 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
             except InsufficientFreeResources:
                 break
             gen_flag = False
-            persis_info['total_gen_calls'] += 1
+            persis_info["total_gen_calls"] += 1
 
     return Work, persis_info

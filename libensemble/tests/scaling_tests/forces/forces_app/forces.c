@@ -353,7 +353,7 @@ int main(int argc, char **argv) {
         step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
 
-    particle* parr = malloc(num_particles * sizeof(particle));
+    particle* parr = (particle*)malloc(num_particles * sizeof(particle));
     build_system(num_particles, parr);
     //printf("\n");
 

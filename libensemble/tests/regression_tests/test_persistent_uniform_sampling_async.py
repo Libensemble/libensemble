@@ -33,39 +33,39 @@ if nworkers < 2:
 
 n = 2
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('f', float)],
-    'user': {'uniform_random_pause_ub': 0.5},
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("f", float)],
+    "user": {"uniform_random_pause_ub": 0.5},
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'persis_in': ['f', 'x', 'sim_id'],
-    'out': [('x', float, (n,))],
-    'user': {
-        'initial_batch_size': nworkers,  # Ensure > 1 alloc to send all sims
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
+    "gen_f": gen_f,
+    "persis_in": ["f", "x", "sim_id"],
+    "out": [("x", float, (n,))],
+    "user": {
+        "initial_batch_size": nworkers,  # Ensure > 1 alloc to send all sims
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
     },
 }
 
 alloc_specs = {
-    'alloc_f': alloc_f,
-    'out': [],
-    'user': {'async_return': True},
+    "alloc_f": alloc_f,
+    "out": [],
+    "user": {"async_return": True},
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {'gen_max': 100, 'wallclock_max': 300}
+exit_criteria = {"gen_max": 100, "wallclock_max": 300}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
 if is_manager:
-    [_, counts] = np.unique(H['gen_ended_time'], return_counts=True)
-    print('Num. points in each gen iteration:', counts)
+    [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)
+    print("Num. points in each gen iteration:", counts)
     assert counts[0] == nworkers, "The first gen_ended_time should be common among initial_batch_size number of points"
     assert len(np.unique(counts)) > 1, "All gen_ended_times are the same; they should be different for the async case"
 

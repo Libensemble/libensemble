@@ -34,34 +34,34 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 sim_specs = {
-    'sim_f': sim_f,
-    'in': ['x'],
-    'out': [('like', float)],
+    "sim_f": sim_f,
+    "in": ["x"],
+    "out": [("like", float)],
 }
 
 gen_specs = {
-    'gen_f': gen_f,
-    'in': [],
-    'out': [('x', float, 2), ('batch', int), ('subbatch', int), ('prior', float), ('prop', float), ('weight', float)],
-    'user': {
-        'lb': np.array([-3, -2]),
-        'ub': np.array([3, 2]),
-        'subbatch_size': 3,
-        'num_subbatches': 2,
-        'num_batches': 10,
+    "gen_f": gen_f,
+    "in": [],
+    "out": [("x", float, 2), ("batch", int), ("subbatch", int), ("prior", float), ("prop", float), ("weight", float)],
+    "user": {
+        "lb": np.array([-3, -2]),
+        "ub": np.array([3, 2]),
+        "subbatch_size": 3,
+        "num_subbatches": 2,
+        "num_batches": 10,
     },
 }
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Tell libEnsemble when to stop
-val = gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches'] * gen_specs['user']['num_batches']
+val = gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"] * gen_specs["user"]["num_batches"]
 exit_criteria = {
-    'sim_max': val,
-    'wallclock_max': 300,
+    "sim_max": val,
+    "wallclock_max": 300,
 }
 
-alloc_specs = {'out': [], 'alloc_f': alloc_f}
+alloc_specs = {"out": [], "alloc_f": alloc_f}
 
 # Perform the run
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
@@ -69,6 +69,6 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 if is_manager:
     assert flag == 0
     # Change the last weights to correct values (H is a list on other cores and only array on manager)
-    ind = 2 * gen_specs['user']['subbatch_size'] * gen_specs['user']['num_subbatches']
-    H[-ind:] = H['prior'][-ind:] + H['like'][-ind:] - H['prop'][-ind:]
+    ind = 2 * gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"]
+    H[-ind:] = H["prior"][-ind:] + H["like"][-ind:] - H["prop"][-ind:]
     assert len(H) == 60, "Failed"

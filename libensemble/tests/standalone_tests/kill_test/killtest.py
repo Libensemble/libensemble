@@ -37,22 +37,22 @@ print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num
 # Create common components of submit line (currently all of it)
 
 # Am I in an aprun environment
-launcher = 'mpich'  # Includes mpich based - eg. intelmpi
+launcher = "mpich"  # Includes mpich based - eg. intelmpi
 try:
-    subprocess.check_call(['aprun', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(["aprun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 except OSError:
-    launcher = 'mpich'
+    launcher = "mpich"
 else:
-    launcher = 'aprun'
+    launcher = "aprun"
 
-if launcher == 'mpich':
-    mpicmd_launcher = 'mpirun'
-    mpicmd_numprocs = '-np'
-    mpicmd_ppn = '-ppn'
-elif launcher == 'aprun':
-    mpicmd_launcher = 'aprun'
-    mpicmd_numprocs = '-n'
-    mpicmd_ppn = '-N'
+if launcher == "mpich":
+    mpicmd_launcher = "mpirun"
+    mpicmd_numprocs = "-np"
+    mpicmd_ppn = "-ppn"
+elif launcher == "aprun":
+    mpicmd_launcher = "aprun"
+    mpicmd_numprocs = "-n"
+    mpicmd_ppn = "-N"
 
 # As runline common to tasks currently - construct here.
 runline = []  # E.g: 2 nodes run
@@ -71,14 +71,14 @@ for run_num in range(2):
     time.sleep(4)  # Show gap where none should be running
     stdout = "out_" + str(run_num) + ".txt"
     # runline = ['mpirun', '-np', str(num_procs), user_code]
-    print('---------------------------------------------------------------')
-    print('\nRun num: {}   Runline: {}\n'.format(run_num, " ".join(runline)))
+    print("---------------------------------------------------------------")
+    print("\nRun num: {}   Runline: {}\n".format(run_num, " ".join(runline)))
 
     if kill_type == 1:
-        process = subprocess.Popen(runline, cwd='./', stdout=open(stdout, 'w'), shell=False)  # with kill 1
+        process = subprocess.Popen(runline, cwd="./", stdout=open(stdout, "w"), shell=False)  # with kill 1
     elif kill_type == 2:
         process = subprocess.Popen(
-            runline, cwd='./', stdout=open(stdout, 'w'), shell=False, preexec_fn=os.setsid
+            runline, cwd="./", stdout=open(stdout, "w"), shell=False, preexec_fn=os.setsid
         )  # kill 2
     else:
         raise Exception("kill_type not recognized")
@@ -92,29 +92,29 @@ for run_num in range(2):
         time.sleep(2)
         poll = process.poll()
         if poll is None:
-            state = 'RUNNING'
-            print('Running....')
+            state = "RUNNING"
+            print("Running....")
 
         else:
             finished = True
             if process.returncode == 0:
-                state = 'PASSED'
+                state = "PASSED"
             else:
-                state = 'FAILED'
+                state = "FAILED"
 
         if time.time() - start_time > time_limit:
-            print('Killing task', run_num)
+            print("Killing task", run_num)
             # kill_task(process, user_code)
 
             if kill_type == 1:
                 kill_task_1(process)
             elif kill_type == 2:
                 kill_task_2(process)
-            state = 'KILLED'
+            state = "KILLED"
             finished = True
 
     # Assert task killed
-    assert state == 'KILLED', "Task not registering as killed. State is: " + state
+    assert state == "KILLED", "Task not registering as killed. State is: " + state
 
     # Checking if processes still running and producing output
     grace_period = 1  # Seconds after kill when first read last line
@@ -124,16 +124,16 @@ for run_num in range(2):
     time.sleep(grace_period)  # Give chance to kill
 
     # Test if task is still producing output
-    with open(stdout, 'rb') as fh:
+    with open(stdout, "rb") as fh:
         line_on_kill = fh.readlines()[-1].decode().rstrip()
     print("Last line after task kill:  {}".format(line_on_kill))
 
-    if 'has finished' in line_on_kill:
-        raise Exception('Task may have already finished - test invalid')
+    if "has finished" in line_on_kill:
+        raise Exception("Task may have already finished - test invalid")
 
     for recheck in range(1, num_rechecks + 1):
         time.sleep(recheck_period)
-        with open(stdout, 'rb') as fh:
+        with open(stdout, "rb") as fh:
             lastline = fh.readlines()[-1].decode().rstrip()
         print("Last line after {} seconds: {}".format(recheck_period * recheck, lastline))
 

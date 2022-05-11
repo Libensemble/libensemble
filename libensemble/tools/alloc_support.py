@@ -27,8 +27,9 @@ class AllocSupport:
 
     gen_counter = 0
 
-    def __init__(self, W, manage_resources=False, persis_info={}, libE_info={},
-                 user_resources=None, user_scheduler=None):
+    def __init__(
+        self, W, manage_resources=False, persis_info={}, libE_info={}, user_resources=None, user_scheduler=None
+    ):
         """Instantiate a new AllocSupport instance
 
         ``W`` is. They are referenced by the various methods,
@@ -51,7 +52,7 @@ class AllocSupport:
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
-            scheduler_opts = libE_info.get('scheduler_opts', {})
+            scheduler_opts = libE_info.get("scheduler_opts", {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
     def assign_resources(self, rsets_req):
@@ -83,6 +84,7 @@ class AllocSupport:
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
+
         def fltr(wrk, field, option):
             """Filter by condition if supplied"""
             if option is None:
@@ -93,55 +95,55 @@ class AllocSupport:
         def fltr_persis():
             if persistent is None:
                 return True
-            return wrk['persis_state'] == persistent
+            return wrk["persis_state"] == persistent
 
         def fltr_zrw():
             # If none exist or you did not ask for zrw then return True
             if no_zrw or zero_resource_workers is None:
                 return True
-            return wrk['zero_resource_worker'] == zero_resource_workers
+            return wrk["zero_resource_worker"] == zero_resource_workers
 
         def fltr_recving():
             if active_recv:
-                return wrk['active_recv']
+                return wrk["active_recv"]
             else:
-                return not wrk['active']
+                return not wrk["active"]
 
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
         # If there are no zero resource workers - then ignore zrw (i.e. use only if they exist)
-        no_zrw = not any(self.W['zero_resource_worker'])
+        no_zrw = not any(self.W["zero_resource_worker"])
         wrks = []
         for wrk in self.W:
             if fltr_recving() and fltr_persis() and fltr_zrw():
-                wrks.append(wrk['worker_id'])
+                wrks.append(wrk["worker_id"])
         return wrks
 
     def count_gens(self):
         """Returns the number of active generators."""
-        return sum(self.W['active'] == EVAL_GEN_TAG)
+        return sum(self.W["active"] == EVAL_GEN_TAG)
 
     def test_any_gen(self):
         """Returns ``True`` if a generator worker is active."""
-        return any(self.W['active'] == EVAL_GEN_TAG)
+        return any(self.W["active"] == EVAL_GEN_TAG)
 
     def count_persis_gens(self):
         """Return the number of active persistent generators."""
-        return sum(self.W['persis_state'] == EVAL_GEN_TAG)
+        return sum(self.W["persis_state"] == EVAL_GEN_TAG)
 
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
-        if self.manage_resources and not libE_info.get('rset_team'):
-            if self.W[wid-1]['persis_state']:
+        if self.manage_resources and not libE_info.get("rset_team"):
+            if self.W[wid - 1]["persis_state"]:
                 return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
                 if H is not None and H_rows is not None:
-                    if 'resource_sets' in H.dtype.names:
-                        num_rsets_req = (np.max(H[H_rows]['resource_sets']))  # sim rsets
+                    if "resource_sets" in H.dtype.names:
+                        num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     else:
                         num_rsets_req = 1
                 else:
-                    num_rsets_req = self.persis_info.get('gen_resources', 0)
+                    num_rsets_req = self.persis_info.get("gen_resources", 0)
                 return self.assign_resources(num_rsets_req)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
@@ -164,18 +166,23 @@ class AllocSupport:
         any resource checking has already been done.
 
         """
-        libE_info['rset_team'] = self._update_rset_team(libE_info, wid,
-                                                        H=H, H_rows=H_rows)  # to parse out resource_sets
+        # Parse out resource_sets
+        libE_info["rset_team"] = self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
         H_fields = AllocSupport._check_H_fields(H_fields)
-        libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
+        libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
 
-        work = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_SIM_TAG,
-                'libE_info': libE_info}
+        work = {
+            "H_fields": H_fields,
+            "persis_info": persis_info,
+            "tag": EVAL_SIM_TAG,
+            "libE_info": libE_info,
+        }
 
-        logger.debug("Alloc func packing SIM work for worker {}. Packing sim_ids: {}".
-                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        logger.debug(
+            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(
+                wid, EnsembleDirectory.extract_H_ranges(work) or None
+            )
+        )
         return work
 
     def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
@@ -199,22 +206,27 @@ class AllocSupport:
         ensure that no resources are assigned.
         """
 
-        libE_info['rset_team'] = self._update_rset_team(libE_info, wid)
+        libE_info["rset_team"] = self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid-1]['persis_state']:
+        if not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
-            libE_info['gen_count'] = AllocSupport.gen_counter
+            libE_info["gen_count"] = AllocSupport.gen_counter
 
         H_fields = AllocSupport._check_H_fields(H_fields)
-        libE_info['H_rows'] = AllocSupport._check_H_rows(H_rows)
+        libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
 
-        work = {'H_fields': H_fields,
-                'persis_info': persis_info,
-                'tag': EVAL_GEN_TAG,
-                'libE_info': libE_info}
+        work = {
+            "H_fields": H_fields,
+            "persis_info": persis_info,
+            "tag": EVAL_GEN_TAG,
+            "libE_info": libE_info,
+        }
 
-        logger.debug("Alloc func packing GEN work for worker {}. Packing sim_ids: {}".
-                     format(wid, EnsembleDirectory.extract_H_ranges(work) or None))
+        logger.debug(
+            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(
+                wid, EnsembleDirectory.extract_H_ranges(work) or None
+            )
+        )
         return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):
@@ -248,8 +260,8 @@ class AllocSupport:
         :returns: True if all expected points have started their sim
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested']
-        return np.all(H['sim_started'][pfilter & ~excluded_points])
+        excluded_points = H["cancel_requested"]
+        return np.all(H["sim_started"][pfilter & ~excluded_points])
 
     def all_sim_ended(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if all expected points have had their sim_end
@@ -261,8 +273,8 @@ class AllocSupport:
         :returns: True if all expected points have had their sim_end
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['sim_started']
-        return np.all(H['sim_ended'][pfilter & ~excluded_points])
+        excluded_points = H["cancel_requested"] & ~H["sim_started"]
+        return np.all(H["sim_ended"][pfilter & ~excluded_points])
 
     def all_gen_informed(self, H, pt_filter=None, low_bound=None):
         """Returns ``True`` if gen has been informed of all expected points
@@ -274,8 +286,8 @@ class AllocSupport:
         :returns: True if gen have been informed of all expected points
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
-        excluded_points = H['cancel_requested'] & ~H['sim_started']
-        return np.all(H['gen_informed'][pfilter & ~excluded_points])
+        excluded_points = H["cancel_requested"] & ~H["sim_started"]
+        return np.all(H["gen_informed"][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):
         """Returns indices of points to give by priority
@@ -284,10 +296,10 @@ class AllocSupport:
         :param batch: Optional boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
-        if 'priority' in H.dtype.fields:
-            priorities = H['priority'][points_avail]
+        if "priority" in H.dtype.fields:
+            priorities = H["priority"][points_avail]
             if batch:
-                q_inds = (priorities == np.max(priorities))
+                q_inds = priorities == np.max(priorities)
             else:
                 q_inds = np.argmax(priorities)
         else:
@@ -308,8 +320,7 @@ class AllocSupport:
         try:
             H_rows = np.fromiter(H_rows, int)
         except Exception:
-            raise AllocException("H_rows could not be converted to a numpy array. Type {}".
-                                 format(type(H_rows)))
+            raise AllocException("H_rows could not be converted to a numpy array. Type {}".format(type(H_rows)))
         return H_rows
 
     @staticmethod

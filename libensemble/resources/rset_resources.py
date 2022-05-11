@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-class RSetResources():
+class RSetResources:
     """A class that creates a fixed mapping of resource sets to the available resources.
 
     **Object Attributes:**
@@ -42,15 +42,14 @@ class RSetResources():
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
-        self.split_list, self.local_rsets_list = \
-            RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
+        self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
 
     @staticmethod
     def best_split(a, n):
         """Creates the most even split of list a into n parts and return list of lists"""
         k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+        return (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))
 
     @staticmethod
     def get_rsets_on_a_node(num_rsets, resources):
@@ -60,7 +59,7 @@ class RSetResources():
         """
         num_nodes = len(resources.global_nodelist)
         # Round up if there's a remainder
-        rsets_per_node = num_rsets//num_nodes + (num_rsets % num_nodes > 0)
+        rsets_per_node = num_rsets // num_nodes + (num_rsets % num_nodes > 0)
         return rsets_per_node
 
     @staticmethod
@@ -101,14 +100,14 @@ class RSetResources():
         num_nodes = len(global_nodelist)
 
         if not RSetResources.even_assignment(num_nodes, num_rsets):
-            logger.warning('Resource sets ({}) are not distributed evenly to available nodes ({})'
-                           .format(num_rsets, num_nodes))
+            logger.warning(
+                "Resource sets ({}) are not distributed evenly to available nodes ({})".format(num_rsets, num_nodes)
+            )
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
-        sub_node_workers = (num_rsets >= num_nodes)
+        sub_node_workers = num_rsets >= num_nodes
         if sub_node_workers:
-            global_nodelist, local_rsets_list = \
-                RSetResources.expand_list(num_nodes, num_rsets, global_nodelist)
+            global_nodelist, local_rsets_list = RSetResources.expand_list(num_nodes, num_rsets, global_nodelist)
         else:
             local_rsets_list = [1] * num_rsets
 
