@@ -1,5 +1,5 @@
 name: libEnsemble
-icon: https://github.com/Libensemble/libensemble/blob/main/docs/images/libE_logo.png
+icon: https://raw.githubusercontent.com/Libensemble/libensemble/main/docs/images/libE_logo.png
 headline: Tool for running dynamic ensembles.
 description: |
   libEnsemble is a Python toolkit for coordinating workflows of asynchronous
