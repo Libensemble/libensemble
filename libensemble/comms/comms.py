@@ -104,20 +104,23 @@ class QComm(Comm):
     These can be used with threads or multiprocessing.
     """
 
-    # Integer count - shared amongst processes
-    lock = Lock()
-    _ncomms = Value("i", 0)
+    # Integer count  - shared amongst processes
+    # Supports adding/removing workers - only works with 'fork'
+    # lock = Lock()
+    # _ncomms = Value("i", 0)
 
-    def __init__(self, inbox, outbox, copy_msg=False):
+    def __init__(self, inbox, outbox, nworkers, copy_msg=False):
         """Set the inbox and outbox queues."""
         self._inbox = inbox
         self._outbox = outbox
         self._copy = copy_msg
         self.recv_buffer = None
+        self.nworkers = nworkers
 
     def get_num_workers(self):
         """Return global _ncomms"""
-        return QComm._ncomms.value
+        return self.nworkers
+        # return QComm._ncomms.value
 
     def send(self, *args):
         """Place a message on the outbox queue."""
@@ -210,15 +213,17 @@ class QCommThread(Comm):
 class QCommProcess(Comm):
     """Launch a user function in a process with an attached QComm."""
 
-    def __init__(self, main, *args, **kwargs):
+    def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = Queue()
         self.outbox = Queue()
         self._result = None
         self._exception = None
         self._done = False
-        comm = QComm(self.inbox, self.outbox)
-        with QComm.lock:
-            QComm._ncomms.value += 1
+        comm = QComm(self.inbox, self.outbox, nworkers)
+
+        # with QComm.lock:
+        #     QComm._ncomms.value += 1
+
         self.process = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def _is_result_msg(self, msg):
@@ -277,8 +282,8 @@ class QCommProcess(Comm):
             raise Timeout()
         if self._exception is not None:
             raise RemoteException(self._exception.msg, self._exception.exc)
-        with QComm.lock:
-            QComm._ncomms.value -= 1
+        # with QComm.lock:
+        #     QComm._ncomms.value -= 1
         return self._result
 
     def terminate(self, timeout=None):
@@ -288,8 +293,8 @@ class QCommProcess(Comm):
         self.process.join(timeout=timeout)
         if self.running:
             raise Timeout()
-        with QComm.lock:
-            QComm._ncomms.value -= 1
+        # with QComm.lock:
+        #     QComm._ncomms.value -= 1
 
     @property
     def running(self):
