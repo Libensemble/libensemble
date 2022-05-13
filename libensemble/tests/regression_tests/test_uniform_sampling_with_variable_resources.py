@@ -27,7 +27,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 from multiprocessing import set_start_method
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -95,10 +95,10 @@ if __name__ == '__main__':
             sim_specs["user"]["app"] = "helloworld"
             if prob_id == 1:
                 libE_specs["ensemble_dir_path"] = "ensemble_hw_fork"
-                set_start_method('fork', force=True)
+                set_start_method("fork", force=True)
             else:
                 libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn"
-                set_start_method('spawn', force=True)
+                set_start_method("spawn", force=True)
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 

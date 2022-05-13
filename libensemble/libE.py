@@ -403,9 +403,10 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     resources = Resources.resources
     executor = Executor.executor
 
-    wcomms = [QCommProcess(worker_main, nworkers, sim_specs, gen_specs, libE_specs,
-                           w, log_comm, resources, executor)
-              for w in range(1, nworkers+1)]
+    wcomms = [
+        QCommProcess(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        for w in range(1, nworkers + 1)
+    ]
 
     for wcomm in wcomms:
         wcomm.run()
