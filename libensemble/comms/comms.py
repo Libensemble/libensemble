@@ -25,6 +25,8 @@ access and monitoring (for persistent gens):
 from abc import ABC, abstractmethod
 from time import time
 from threading import Thread
+
+# from multiprocessing import Process, Queue, Value, Lock
 from multiprocessing import Process, Queue
 from traceback import format_exc
 import queue
@@ -153,13 +155,13 @@ class QComm(Comm):
 class QCommThread(Comm):
     """Launch a user function in a thread with an attached QComm."""
 
-    def __init__(self, main, *args, **kwargs):
+    def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = queue.Queue()
         self.outbox = queue.Queue()
         self.main = main
         self._result = None
         self._exception = None
-        kwargs["comm"] = QComm(self.inbox, self.outbox, True)
+        kwargs["comm"] = QComm(self.inbox, self.outbox, nworkers, True)
         self.thread = Thread(target=self._qcomm_main, args=args, kwargs=kwargs)
 
     def send(self, *args):
