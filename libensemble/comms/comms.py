@@ -111,7 +111,7 @@ class QComm(Comm):
     # lock = Lock()
     # _ncomms = Value("i", 0)
 
-    def __init__(self, inbox, outbox, nworkers, copy_msg=False):
+    def __init__(self, inbox, outbox, nworkers=None, copy_msg=False):
         """Set the inbox and outbox queues."""
         self._inbox = inbox
         self._outbox = outbox
