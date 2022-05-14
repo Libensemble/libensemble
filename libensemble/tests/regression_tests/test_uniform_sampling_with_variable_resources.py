@@ -87,7 +87,12 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-    for prob_id in range(3):
+    if libE_specs["comms"] == "local":
+        iterations = 3
+    else:
+        iterations = 2
+
+    for prob_id in range(iterations):
         if prob_id == 0:
             sim_specs["user"]["app"] = "six_hump_camel"
 
