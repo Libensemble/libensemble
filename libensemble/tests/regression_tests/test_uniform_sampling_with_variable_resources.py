@@ -88,22 +88,24 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     if libE_specs["comms"] == "local":
-        iterations = 3
+        iterations = 4
     else:
         iterations = 2
 
     for prob_id in range(iterations):
         if prob_id == 0:
             sim_specs["user"]["app"] = "six_hump_camel"
-
         else:
             sim_specs["user"]["app"] = "helloworld"
             if prob_id == 1:
                 libE_specs["ensemble_dir_path"] = "ensemble_hw_fork"
                 set_start_method("fork", force=True)
-            else:
+            elif prob_id == 2:
                 libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn"
                 set_start_method("spawn", force=True)
+            else:
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver"
+                set_start_method("forkserver", force=True)
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 
