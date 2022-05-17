@@ -23,40 +23,43 @@ from libensemble.manager import LoggedException
 from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
-n = 2
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+if __name__ == '__main__':
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": [],
-    "out": [("x", float, 2)],
-    "user": {
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "initial_sample": 100,
-    },
-}
+    n = 2
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-libE_specs["abort_on_exception"] = False
-libE_specs["save_H_and_persis_on_abort"] = False
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": [],
+        "out": [("x", float, 2)],
+        "user": {
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "initial_sample": 100,
+        },
+    }
 
-# Tell libEnsemble when to stop
-exit_criteria = {"wallclock_max": 10}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-return_flag = 1
-try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-except LoggedException as e:
-    print("Caught deliberate exception: {}".format(e))
-    return_flag = 0
+    libE_specs["abort_on_exception"] = False
+    libE_specs["save_H_and_persis_on_abort"] = False
 
-if is_manager:
-    assert return_flag == 0
+    # Tell libEnsemble when to stop
+    exit_criteria = {"wallclock_max": 10}
+
+    # Perform the run
+    return_flag = 1
+    try:
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    except LoggedException as e:
+        print("Caught deliberate exception: {}".format(e))
+        return_flag = 0
+
+    if is_manager:
+        assert return_flag == 0

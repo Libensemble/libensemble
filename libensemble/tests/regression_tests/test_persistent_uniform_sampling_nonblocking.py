@@ -26,42 +26,44 @@ from libensemble.gen_funcs.persistent_uniform_sampling import uniform_nonblockin
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+if __name__ == '__main__':
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float), ("grad", float, n)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["x", "f", "grad", "sim_id"],
-    "out": [("x", float, (n,))],
-    "user": {
-        "initial_batch_size": 20,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("grad", float, n)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["x", "f", "grad", "sim_id"],
+        "out": [("x", float, (n,))],
+        "user": {
+            "initial_batch_size": 20,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
-for i in persis_info:
-    persis_info[i]["get_grad"] = True
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"gen_max": 40, "wallclock_max": 300}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    for i in persis_info:
+        persis_info[i]["get_grad"] = True
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"gen_max": 40, "wallclock_max": 300}
 
-if is_manager:
-    assert len(np.unique(H["gen_ended_time"])) == 2
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    assert persis_info[1]["spin_count"] > 0, "This should have been a nonblocking receive"
+    if is_manager:
+        assert len(np.unique(H["gen_ended_time"])) == 2
+        save_libE_output(H, persis_info, __file__, nworkers)
+
+        assert persis_info[1]["spin_count"] > 0, "This should have been a nonblocking receive"

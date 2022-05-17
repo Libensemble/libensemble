@@ -25,41 +25,43 @@ from libensemble.manager import LoggedException
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-e_ensemble = "./ensemble_ex_w" + str(nworkers) + "_" + libE_specs.get("comms")
+if __name__ == '__main__':
 
-if not os.path.isdir(e_ensemble):
-    os.makedirs(os.path.join(e_ensemble, "sim0_worker0"), exist_ok=True)
+    e_ensemble = "./ensemble_ex_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
-libE_specs["sim_dirs_make"] = True
-libE_specs["ensemble_dir_path"] = e_ensemble
-libE_specs["abort_on_exception"] = False
+    if not os.path.isdir(e_ensemble):
+        os.makedirs(os.path.join(e_ensemble, "sim0_worker0"), exist_ok=True)
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    libE_specs["sim_dirs_make"] = True
+    libE_specs["ensemble_dir_path"] = e_ensemble
+    libE_specs["abort_on_exception"] = False
 
-gen_specs = {
-    "gen_f": gen_f,
-    "out": [("x", float, (1,))],
-    "user": {
-        "gen_batch_size": 20,
-        "lb": np.array([-3]),
-        "ub": np.array([3]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "out": [("x", float, (1,))],
+        "user": {
+            "gen_batch_size": 20,
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        },
+    }
 
-exit_criteria = {"sim_max": 21}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-return_flag = 1
-try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-except LoggedException as e:
-    print("Caught deliberate exception: {}".format(e))
-    return_flag = 0
+    exit_criteria = {"sim_max": 21}
 
-if is_manager:
-    assert return_flag == 0
+    return_flag = 1
+    try:
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    except LoggedException as e:
+        print("Caught deliberate exception: {}".format(e))
+        return_flag = 0
+
+    if is_manager:
+        assert return_flag == 0
