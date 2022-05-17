@@ -42,7 +42,8 @@ if __name__ == '__main__':
     nsim_workers = nworkers
 
     if nsim_workers % 2 == 0:
-        sys.exit("This test must be run with an odd of workers >= 3 and <= 31. There are {} workers.".format(nsim_workers))
+        sys.exit("This test must be run with an odd of workers >= 3 and <= 31. There are {} workers."
+                 .format(nsim_workers))
 
     comms = libE_specs["comms"]
     node_file = "nodelist_mpi_runners_subnode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)

@@ -25,7 +25,7 @@ logger.set_level("INFO")
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
     rounds = 1
@@ -36,7 +36,9 @@ if __name__ == '__main__':
     libE_specs["enforce_worker_core_bounds"] = True
 
     # To allow visual checking - log file not used in test
-    log_file = "ensemble_mpi_runners_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+    log_file = (
+        "ensemble_mpi_runners_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+    )
     logger.set_filename(log_file)
 
     nodes_per_worker = 2
@@ -81,44 +83,93 @@ if __name__ == '__main__':
 
     # Each worker has 2 nodes. Basic test list for portable options
     test_list_base = [
-        {"testid": "base1", "nprocs": 2, "nnodes": 1, "ppn": 2, "e_args": "--xarg 1"},  # Under use
+        {
+            "testid": "base1",
+            "nprocs": 2,
+            "nnodes": 1,
+            "ppn": 2,
+            "e_args": "--xarg 1",
+        },  # Under use
         {"testid": "base2"},  # Give no config and no extra_args
         {"testid": "base3", "e_args": "--xarg 1"},  # Give no config with extra_args
-        {"testid": "base4", "e_args": "--xarg 1", "ht": True},  # Give no config but with HT
-        {"testid": "base5", "nprocs": 16, "e_args": "--xarg 1"},  # Just nprocs (will use one node)
-        {"testid": "base6", "nprocs": 16, "nnodes": 2, "e_args": "--xarg 1"},  # nprocs, nnodes
+        {
+            "testid": "base4",
+            "e_args": "--xarg 1",
+            "ht": True,
+        },  # Give no config but with HT
+        {
+            "testid": "base5",
+            "nprocs": 16,
+            "e_args": "--xarg 1",
+        },  # Just nprocs (will use one node)
+        {
+            "testid": "base6",
+            "nprocs": 16,
+            "nnodes": 2,
+            "e_args": "--xarg 1",
+        },  # nprocs, nnodes
     ]
 
     # extra_args tests for each mpi runner
     # extra_args should be parsed - however, the string should stay intact, inc abbreviated/different expressions
     eargs_mpich = [
-        {"testid": "mp1", "nprocs": 16, "e_args": "--xarg 1 --ppn 16"},  # nprocs + parse extra_args
+        {
+            "testid": "mp1",
+            "nprocs": 16,
+            "e_args": "--xarg 1 --ppn 16",
+        },  # nprocs + parse extra_args
         {"testid": "mp2", "e_args": "-np 8 --xarg 1 --ppn 4"},  # parse extra_args
     ]
 
     eargs_openmpi = [
-        {"testid": "ompi1", "nprocs": 16, "e_args": "--xarg 1 -npernode 16"},  # nprocs + parse extra_args
+        {
+            "testid": "ompi1",
+            "nprocs": 16,
+            "e_args": "--xarg 1 -npernode 16",
+        },  # nprocs + parse extra_args
         {"testid": "ompi2", "e_args": "-np 8 --xarg 1 -npernode 4"},  # parse extra_args
     ]
 
     eargs_aprun = [
-        {"testid": "ap1", "nprocs": 16, "e_args": "--xarg 1 -N 16"},  # nprocs + parse extra_args
+        {
+            "testid": "ap1",
+            "nprocs": 16,
+            "e_args": "--xarg 1 -N 16",
+        },  # nprocs + parse extra_args
         {"testid": "ap2", "e_args": "-n 8 --xarg 1 -N 4"},  # parse extra_args
     ]
 
     # Note in a8: -n 8 is abbreviated form of --ntasks, this should be unaltered while --nodes is derived and inserted.
     eargs_srun = [
-        {"testid": "sr1", "nprocs": 16, "e_args": "--xarg 1 --ntasks-per-node 16"},  # nprocs + parse extra_args
-        {"testid": "sr2", "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
+        {
+            "testid": "sr1",
+            "nprocs": 16,
+            "e_args": "--xarg 1 --ntasks-per-node 16",
+        },  # nprocs + parse extra_args
+        {
+            "testid": "sr2",
+            "e_args": "-n 8 --xarg 1 --ntasks-per-node 4",
+        },  # parse extra_args
     ]
 
     # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.
     # Define extra_args as minimal relation of tasks/cores/gpus (one resource set), then n (nprocs) as multiplier.
     eargs_jsrun = [
-        {"testid": "jsr1", "nprocs": 16, "e_args": "--xarg 1 -r 16"},  # nprocs + parse extra_args
+        {
+            "testid": "jsr1",
+            "nprocs": 16,
+            "e_args": "--xarg 1 -r 16",
+        },  # nprocs + parse extra_args
         {"testid": "jsr2", "e_args": "-n 8 --xarg 1 -r 4"},  # parse extra_args
-        {"testid": "jsr3", "nprocs": 3, "e_args": '-a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"'},  # combine r-sets
-        {"testid": "jsr4", "e_args": '-n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"'},  # r-sets all in extra_args
+        {
+            "testid": "jsr3",
+            "nprocs": 3,
+            "e_args": '-a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"',
+        },  # combine r-sets
+        {
+            "testid": "jsr4",
+            "e_args": '-n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"',
+        },  # r-sets all in extra_args
     ]
 
     eargs_custom = [{"testid": "cust1", "e_args": "--xarg 1 --ppn 16"}]
@@ -204,7 +255,6 @@ if __name__ == '__main__':
         "myrunner --xarg 1 --ppn 16 /path/to/fakeapp.x --testid cust1",
     ]
 
-
     # Loop here for mocking different systems.
     def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
@@ -226,8 +276,9 @@ if __name__ == '__main__':
         }
 
         # Perform the run
-        H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
+        H, pinfo, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+        )
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:

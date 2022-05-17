@@ -24,7 +24,7 @@ from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     sim_input_dir = "./sim_input_dir"
     dir_to_copy = sim_input_dir + "/copy_this"
@@ -63,12 +63,18 @@ if __name__ == '__main__':
 
     exit_criteria = {"sim_max": 21}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
     if is_manager:
-        assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
+        assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(
+            c_ensemble
+        )
         dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
-        assert dir_sum == exit_criteria["sim_max"], "Number of sim directories ({}) does not match sim_max ({}).".format(
+        assert (
+            dir_sum == exit_criteria["sim_max"]
+        ), "Number of sim directories ({}) does not match sim_max ({}).".format(
             dir_sum, exit_criteria["sim_max"]
         )
 
@@ -81,9 +87,12 @@ if __name__ == '__main__':
                     all(
                         [
                             os.path.basename(j) in files
-                            for j in libE_specs["sim_dir_copy_files"] + libE_specs["sim_dir_symlink_files"]
+                            for j in libE_specs["sim_dir_copy_files"]
+                            + libE_specs["sim_dir_symlink_files"]
                         ]
                     )
                 )
 
-        assert all(input_copied), "Exact input files not copied or symlinked to each calculation directory"
+        assert all(
+            input_copied
+        ), "Exact input files not copied or symlinked to each calculation directory"

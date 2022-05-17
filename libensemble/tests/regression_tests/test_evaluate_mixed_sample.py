@@ -18,11 +18,17 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input, borehole_func
-from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
+from libensemble.sim_funcs.borehole import (
+    borehole as sim_f,
+    gen_borehole_input,
+    borehole_func,
+)
+from libensemble.alloc_funcs.give_pregenerated_work import (
+    give_pregenerated_sim_work as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -37,7 +43,16 @@ if __name__ == '__main__':
     samp = 1000
     n = 8
 
-    H0 = np.zeros(samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
+    H0 = np.zeros(
+        samp,
+        dtype=[
+            ("x", float, n),
+            ("f", float),
+            ("sim_id", int),
+            ("sim_started", bool),
+            ("sim_ended", bool),
+        ],
+    )
 
     np.random.seed(0)
     H0["x"] = gen_borehole_input(samp)
@@ -53,7 +68,14 @@ if __name__ == '__main__':
     exit_criteria = {"sim_max": len(H0)}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
+        H0=H0,
+    )
 
     if is_manager:
         assert len(H) == len(H0)

@@ -77,7 +77,6 @@ if __name__ == '__main__':
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-
     def check_copied(type):
         input_copied = []
         for base, files, _ in os.walk(c_ensemble):
@@ -93,7 +92,6 @@ if __name__ == '__main__':
                 )
 
         assert all(input_copied), "All input files not copied or symlinked to each {} calc dir".format(type)
-
 
     if is_manager:
         assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)

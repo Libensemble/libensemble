@@ -26,7 +26,6 @@ if __name__ == '__main__':
     def six_hump_camel_err(H, persis_info, sim_specs, _):
         raise Exception("Deliberate error")
 
-
     sim_specs = {
         "sim_f": six_hump_camel_err,
         "in": ["x"],

@@ -15,16 +15,14 @@ from libensemble.tools import parse_args
 # TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 if __name__ == '__main__':
-    
+
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     assert libE_specs["comms"] == "mpi", "This test can only be run with mpi comms -- aborting..."
 
-
     def check_recv(comm, expected_msg):
         msg = comm.recv()
         assert msg == expected_msg, "Expected {}, received {}".format(expected_msg, msg)
-
 
     def worker_main(mpi_comm):
         "Worker main routine"
@@ -34,7 +32,6 @@ if __name__ == '__main__':
         check_recv(comm, comm.rank)
         comm.send(comm.rank)
         check_recv(comm, "Goodbye")
-
 
     def manager_main(mpi_comm):
         "Manager main routine"
@@ -55,13 +52,11 @@ if __name__ == '__main__':
             check_recv(comm, comm.remote_rank)
             comm.send("Goodbye")
 
-
     def mpi_comm_excl(exc=[0]):
         world_group = MPI.COMM_WORLD.Get_group()
         new_group = world_group.Excl(exc)
         mpi_comm = MPI.COMM_WORLD.Create(new_group)
         return mpi_comm
-
 
     def check_ranks(mpi_comm, test_exp, test_num):
         try:
@@ -77,7 +72,6 @@ if __name__ == '__main__':
         if rank == -1:
             return False
         return True
-
 
     # Run Tests
     all_ranks = list(range(MPI.COMM_WORLD.Get_size()))
