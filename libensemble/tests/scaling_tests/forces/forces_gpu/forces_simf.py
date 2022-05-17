@@ -23,7 +23,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
-    print(f"SIM Nodes {resources.local_node_count} Slots per node: {resources.slot_count}")
+    # print(f"SIM Nodes {resources.local_node_count} Slots per node: {resources.slot_count}")
 
     # Submit our forces app for execution. Block until the task starts.
     task = exctr.submit(
