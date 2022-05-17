@@ -23,6 +23,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
+    print(f"SIM Nodes {resources.local_node_count} Slots per node: {resources.slot_count}")
+
     # Submit our forces app for execution. Block until the task starts.
     task = exctr.submit(
         app_name="forces",
@@ -30,6 +32,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         num_nodes=resources.local_node_count,
         procs_per_node=resources.slot_count,
         wait_on_start=True,
+        # extra_args="--gpus-per-task=1"  # Let slurm assign GPUs
     )
 
     # Block until the task finishes
