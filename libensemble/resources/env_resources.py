@@ -16,7 +16,8 @@ class EnvResources:
     **Class Attributes:**
 
     :cvar string default_nodelist_env_slurm: Default SLRUM nodelist environment variable
-    :cvar string default_nodelist_env_cobalt: Default Cobal nodelist environment variable
+    :cvar string default_nodelist_env_cobalt: Default Cobalt nodelist environment variable
+    :cvar string default_nodelist_env_pbs: Default PBS nodelist environment variable (points to nodefile)
     :cvar string default_nodelist_env_lsf: Default LSF nodelist environment variable
     :cvar string default_nodelist_env_lsf_shortform: Default LSF short-form nodelist environment variable
 
@@ -30,6 +31,7 @@ class EnvResources:
 
     default_nodelist_env_slurm = "SLURM_NODELIST"
     default_nodelist_env_cobalt = "COBALT_PARTNAME"
+    default_nodelist_env_pbs = "PBS_NODEFILE"
     default_nodelist_env_lsf = "LSB_HOSTS"
     default_nodelist_env_lsf_shortform = "LSB_MCPU_HOSTS"
 
@@ -37,6 +39,7 @@ class EnvResources:
         self,
         nodelist_env_slurm=None,
         nodelist_env_cobalt=None,
+        nodelist_env_pbs=None,
         nodelist_env_lsf=None,
         nodelist_env_lsf_shortform=None,
     ):
@@ -57,6 +60,10 @@ class EnvResources:
             The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
             Note: This is queried only if a node_list file is not provided and disable_resource_manager=True.
 
+        nodelist_env_pbs: String, optional
+            The environment variable giving a path to a nodefile in PBS format (Default: uses PBS_NODEFILE).
+            This is queried if a node_list file is not provided.
+
         nodelist_env_lsf: String, optional
             The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
             Note: This is queried only if a node_list file is not provided.
@@ -70,12 +77,14 @@ class EnvResources:
         self.nodelists = {}
         self.nodelists["Slurm"] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm
         self.nodelists["Cobalt"] = nodelist_env_cobalt or EnvResources.default_nodelist_env_cobalt
+        self.nodelists["PBS"] = nodelist_env_pbs or EnvResources.default_nodelist_env_pbs
         self.nodelists["LSF"] = nodelist_env_lsf or EnvResources.default_nodelist_env_lsf
         self.nodelists["LSF_shortform"] = nodelist_env_lsf_shortform or EnvResources.default_nodelist_env_lsf_shortform
 
         self.ndlist_funcs = {}
         self.ndlist_funcs["Slurm"] = EnvResources.get_slurm_nodelist
         self.ndlist_funcs["Cobalt"] = EnvResources.get_cobalt_nodelist
+        self.ndlist_funcs["PBS"] = EnvResources.get_pbs_nodelist
         self.ndlist_funcs["LSF"] = EnvResources.get_lsf_nodelist
         self.ndlist_funcs["LSF_shortform"] = EnvResources.get_lsf_nodelist_frm_shortform
 
@@ -174,6 +183,21 @@ class EnvResources:
             for nid in range(a, b):
                 nidlst.append(str(nid))
         return sorted(nidlst, key=int)
+
+    @staticmethod
+    def get_pbs_nodelist(node_list_env):
+        """Gets global libEnsemble nodelist path from PBS environment"""
+        nidstr_path = os.environ[node_list_env]
+        if not nidstr_path:
+            return []
+        try:
+            with open(nidstr_path, "r") as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            return []
+        node_list = [nid.strip("\n") for nid in lines]
+        unique_nodelist = list(OrderedDict.fromkeys(node_list))
+        return unique_nodelist
 
     @staticmethod
     def get_lsf_nodelist(node_list_env):
