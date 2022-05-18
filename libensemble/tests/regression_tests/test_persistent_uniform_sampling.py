@@ -51,20 +51,20 @@ gen_specs = {
 
 alloc_specs = {"alloc_f": alloc_f}
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
-for i in persis_info:
-    persis_info[i]["get_grad"] = True
-
 exit_criteria = {"gen_max": 40, "wallclock_max": 300}
 
 libE_specs["kill_canceled_sims"] = False
 
 for run in range(2):
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    for i in persis_info:
+        persis_info[i]["get_grad"] = True
+
     if run == 0:
+        gen_specs["gen_f"] = gen_f1
+    elif run == 1:
         gen_specs["gen_f"] = gen_f2
         gen_specs["user"]["num_best_vals"] = 5
-    elif run == 1:
-        gen_specs["gen_f"] = gen_f1
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
