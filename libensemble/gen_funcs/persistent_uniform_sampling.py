@@ -157,8 +157,8 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
 
 def Bayesian_history_matching(H, persis_info, gen_specs, libE_info):
     """
-    Given 
-    - sim_f with an input of x with len(x)=n 
+    Given
+    - sim_f with an input of x with len(x)=n
     - b, the batch size of points to generate
     - q<b, the number of best samples to use in the following iteration
 
@@ -196,9 +196,7 @@ def Bayesian_history_matching(H, persis_info, gen_specs, libE_info):
         if calc_in is not None:
             all_inds = np.argsort(calc_in["f"])
             best_inds = all_inds[:q]
-            mu = np.mean(H_o['x'][best_inds],axis = 0)
-            Sigma = np.cov(H_o['x'][best_inds].T)
+            mu = np.mean(H_o["x"][best_inds], axis=0)
+            Sigma = np.cov(H_o["x"][best_inds].T)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
-
-
