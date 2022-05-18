@@ -13,7 +13,7 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 
 import sys
@@ -22,7 +22,8 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f1 
+from libensemble.gen_funcs.persistent_uniform_sampling import Bayesian_history_matching as gen_f2
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
@@ -39,7 +40,6 @@ sim_specs = {
 }
 
 gen_specs = {
-    "gen_f": gen_f,
     "persis_in": ["x", "f", "grad", "sim_id"],
     "out": [("x", float, (n,))],
     "user": {
@@ -58,10 +58,19 @@ for i in persis_info:
 exit_criteria = {"gen_max": 40, "wallclock_max": 300}
 
 libE_specs["kill_canceled_sims"] = False
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if is_manager:
-    assert len(np.unique(H["gen_ended_time"])) == 2
+for run in range(2):
+    if run == 0:
+        gen_specs['gen_f'] = gen_f2
+        gen_specs['user']['num_best_vals'] = 5
+    elif run == 1:
+        gen_specs['gen_f'] = gen_f1
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        print(H["gen_ended_time"])
+        assert len(np.unique(H["gen_ended_time"])) == 2
+
+        save_libE_output(H, persis_info, __file__, nworkers)

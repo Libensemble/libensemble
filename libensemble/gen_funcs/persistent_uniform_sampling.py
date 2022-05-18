@@ -153,3 +153,52 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
             b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def Bayesian_history_matching(H, persis_info, gen_specs, libE_info):
+    """
+    Given 
+    - sim_f with an input of x with len(x)=n 
+    - b, the batch size of points to generate
+    - q<b, the number of best samples to use in the following iteration
+
+    Pseudocode:
+    Let (mu, Sigma) denote a mean and covariance matrix initialized to the
+    origin and the identity, respectively.
+
+    While true (batch synchronous for now):
+
+        Draw b samples x_1, ... , x_b from MVN( mu, Sigma)
+        Evaluate f(x_1), ... , f(x_b) and determine the set of q x_i whose f(x_i) values are smallest (breaking ties lexicographically)
+        Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
+
+    .. seealso::
+        `test_Bayesian_history_matching.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_Bayesian_history_matching.py>`_ # noqa
+    """
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
+
+    n = len(lb)
+    b = gen_specs["user"]["initial_batch_size"]
+    q = gen_specs["user"]["num_best_vals"]
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    mu = np.zeros(n)
+    Sigma = np.eye(n)
+    tag = None
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o["x"] = persis_info["rand_stream"].multivariate_normal(mu, Sigma, b)
+
+        # Send data and get next assignment
+        tag, Work, calc_in = ps.send_recv(H_o)
+        if calc_in is not None:
+            all_inds = np.argsort(calc_in["f"])
+            best_inds = all_inds[:q]
+            mu = np.mean(H_o['x'][best_inds],axis = 0)
+            Sigma = np.cov(H_o['x'][best_inds].T)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
