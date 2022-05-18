@@ -3,9 +3,9 @@ Tests libEnsemble's generator function requesting/receiving sim_f evaluations
 asynchronously
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_uniform_sampling_async.py
-   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms local
-   python test_persistent_uniform_sampling_async.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_sampling_async.py
+   python test_persistent_sampling_async.py --nworkers 3 --comms local
+   python test_persistent_sampling_async.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -22,7 +22,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 

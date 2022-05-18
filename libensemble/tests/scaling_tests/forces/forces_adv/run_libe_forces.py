@@ -17,7 +17,7 @@ USE_BALSAM = False
 PERSIS_GEN = False
 
 if PERSIS_GEN:
-    from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+    from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
     from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 else:
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
