@@ -12,8 +12,8 @@ repository write access.
 
 Code should pass flake8 tests, allowing for the exceptions
 given in the flake8_ file in the project directory.
-Python code should be formatted with black_ by running the following in the
-base libensemble directory::
+Python code should be formatted using the latest version of black_ by running
+the following in the base libensemble directory::
 
   black --config=.black .
 
