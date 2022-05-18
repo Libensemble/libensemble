@@ -3,7 +3,7 @@ import numpy as np
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
-__all__ = ["persistent_uniform", "uniform_random_sample_with_variable_resources", "persistent_request_shutdown"]
+__all__ = ["persistent_uniform", "uniform_random_sample_with_variable_resources", "persistent_request_shutdown", "Bayesian_history_matching"]
 
 
 def persistent_uniform(H, persis_info, gen_specs, libE_info):
@@ -173,7 +173,7 @@ def Bayesian_history_matching(H, persis_info, gen_specs, libE_info):
         Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
 
     .. seealso::
-        `test_Bayesian_history_matching.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_Bayesian_history_matching.py>`_ # noqa
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
