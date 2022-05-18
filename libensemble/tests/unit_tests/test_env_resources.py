@@ -169,6 +169,7 @@ def test_pbs_nodelist_nofile():
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned should be empty if nodefile inaccessible"
 
+
 def test_pbs_nodelist_empty():
     nodefile = "pbs_empty"
     open(nodefile, "w").close()
@@ -178,6 +179,7 @@ def test_pbs_nodelist_empty():
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned should be empty if nodefile empty"
     os.remove(nodefile)
+
 
 def test_pbs_nodelist_single():
     nodefile = "pbs_single"
@@ -192,6 +194,7 @@ def test_pbs_nodelist_single():
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)
 
+
 def test_pbs_nodelist_seq():
     nodefile = "pbs_seq"
     in_lines = ['edtb-01.mcp.alcf.anl.gov\n', 'edtb-02.mcp.alcf.anl.gov\n']
@@ -204,6 +207,7 @@ def test_pbs_nodelist_seq():
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)
+
 
 # These dont apply to the lsf lists as they are listed in full
 # def test_lsf_nodelist_groups():
