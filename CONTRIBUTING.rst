@@ -12,6 +12,10 @@ repository write access.
 
 Code should pass flake8 tests, allowing for the exceptions
 given in the flake8_ file in the project directory.
+Python code should be formatted using the latest version of black_ by running
+the following in the base libensemble directory::
+
+  black --config=.black .
 
 Issues can be raised at
 
@@ -67,4 +71,5 @@ following:
       maintained indefinitely and may be redistributed consistent with
       this project or the open source license(s) involved.
 
+.. _black: https://pypi.org/project/black/
 .. _flake8: https://github.com/Libensemble/libensemble/blob/develop/.flake8
