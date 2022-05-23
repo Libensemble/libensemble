@@ -265,7 +265,7 @@ while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
       export RUN_ARTIFICIAL_REG_TESTS=true
       export RUN_UNIT_TESTS=false
       ;;
-    f)
+    i)
       echo "Running only integration regression tests"
       export RUN_INTEGRATION_REG_TESTS=true
       export RUN_UNIT_TESTS=false
