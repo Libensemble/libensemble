@@ -211,7 +211,7 @@ usage() {
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
-  echo "  -e              Run extra unit and regression tests that require additional dependencies"
+  echo "  -e              Run extra unit tests that require additional dependencies"
   echo "  -p {version}    Select a version of python. E.g. -p 2 will run with the python2 exe"
   echo "                  Note: This will literally run the python2/python3 exe. Default runs python"
   echo "  -A {-flag arg}  Supply arguments to python"
@@ -279,7 +279,7 @@ while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
       export RUN_TCP=true
       ;;
     e)
-      echo "Running extra tests with additional dependencies"
+      echo "Running extra unit tests with additional dependencies"
       export RUN_EXTRA=true
       ;;
     m)
@@ -503,10 +503,6 @@ if [ "$root_found" = true ]; then
       do
         COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
         IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
-
-        if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
-          continue
-        fi
 
         for LAUNCHER in $COMMS_LIST
         do
