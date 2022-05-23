@@ -18,8 +18,8 @@ def install_balsam():
 
 
 def move_test_balsam():
-    current_dir_with_btest = "./libensemble/tests/regression_tests/scripts_used_by_reg_tests/test_balsam_hworld.py"
-    reg_dir_with_btest = "./libensemble/tests/regression_tests/test_balsam_hworld.py"
+    current_dir_with_btest = "./libensemble/tests/regression_tests/integration_tests/scripts_used_by_reg_tests/test_balsam_hworld.py"
+    reg_dir_with_btest = "./libensemble/tests/regression_tests/integration_tests/test_balsam_hworld.py"
     if not os.path.isfile(reg_dir_with_btest):
         os.rename(current_dir_with_btest, reg_dir_with_btest)
 

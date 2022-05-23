@@ -8,6 +8,8 @@
 export RUN_UNIT_TESTS=true    #Recommended for pre-push / CI tests
 export RUN_COV_TESTS=true     #Provide coverage report
 export RUN_REG_TESTS=true     #Recommended for pre-push / CI tests
+export RUN_ARTIFICIAL_REG_TESTS=false
+export RUN_INTEGRATION_REG_TESTS=false
 export RUN_PEP_TESTS=false    #Code style conventions
 export PYTHON_FLAGS=''        #Flags for PYTHON_RUN
 
@@ -30,6 +32,8 @@ export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
 export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
+export REG_TEST_ARTIFICIAL_SUBDIR=$REG_TEST_SUBDIR/artificial_tests
+export REG_TEST_INTEGRATION_SUBDIR=$REG_TEST_SUBDIR/integration_tests
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
 #export COV_MERGE_DIR='' #root dir
@@ -146,7 +150,8 @@ cleanup() {
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(H_test.npy);              [ -e ${filelist[0]} ] && rm H_test.npy
   done
-  cd $ROOT_DIR/$REG_TEST_SUBDIR
+  for DIR in $REG_TEST_ARTIFICIAL_SUBDIR $REG_TEST_INTEGRATION_SUBDIR ; do
+  cd $ROOT_DIR/$DIR
     filelist=(*.$REG_TEST_OUTPUT_EXT);  [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                   [ -e ${filelist[0]} ] && rm *.npy
     filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
@@ -166,6 +171,7 @@ cleanup() {
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
     filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
     filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
+  done
   cd $THISDIR
 }
 
@@ -191,7 +197,7 @@ export RUN_TCP=false
 
 usage() {
   echo -e "\nUsage:"
-  echo "  $0 [-hcszurmlte] [-p <2|3>] [-A <string>] [-n <string>] [-a <string>] [-y <string>]" 1>&2;
+  echo "  $0 [-hcszufirmlte] [-p <2|3>] [-A <string>] [-n <string>] [-a <string>] [-y <string>]" 1>&2;
   echo ""
   echo "Options:"
   echo "  -h              Show this help message and exit"
@@ -200,6 +206,8 @@ usage() {
   echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
   echo "  -u              Run only the unit tests"
   echo "  -r              Run only the regression tests"
+  echo "  -f              Run only the artificial regression tests"
+  echo "  -i              Run only the integration regression tests"
   echo "  -m              Run the regression tests using MPI comms"
   echo "  -l              Run the regression tests using Local comms"
   echo "  -t              Run the regression tests using TCP comms"
@@ -216,7 +224,7 @@ usage() {
   exit 1
 }
 
-while getopts ":p:n:a:y:A:hcszurmlte" opt; do
+while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
   case $opt in
     p)
       echo "Parameter supplied for Python version: $OPTARG" >&2
@@ -248,6 +256,16 @@ while getopts ":p:n:a:y:A:hcszurmlte" opt; do
       ;;
     r)
       echo "Running only the regression tests"
+      export RUN_UNIT_TESTS=false
+      ;;
+    f)
+      echo "Running only artificial regression tests"
+      export RUN_ARTIFICIAL_REG_TESTS=true
+      export RUN_UNIT_TESTS=false
+      ;;
+    f)
+      echo "Running only integration regression tests"
+      export RUN_INTEGRATION_REG_TESTS=true
       export RUN_UNIT_TESTS=false
       ;;
     l)
@@ -465,112 +483,127 @@ if [ "$root_found" = true ]; then
     reg_fail=0
     test_num=0
 
-    for TEST_SCRIPT in $REG_TEST_LIST
-    do
-      COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
-      IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+    for DIR in $REG_TEST_ARTIFICIAL_SUBDIR $REG_TEST_INTEGRATION_SUBDIR ; do
 
-      if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
-        continue
+      if [[ $DIR = $REG_TEST_ARTIFICIAL_SUBDIR ]] && [[ $RUN_ARTIFICIAL_REG_TESTS = false ]]; then
+          echo "Skipping Artifical Regression Tests"
+          continue
       fi
 
-      for LAUNCHER in $COMMS_LIST
+      if [[ $DIR = $REG_TEST_INTEGRATION_SUBDIR ]] && [[ $RUN_INTEGRATION_REG_TESTS = false ]]; then
+          echo "Skipping Integration Regression Tests"
+          continue
+      fi
+
+      cd $ROOT_DIR/$DIR
+
+      for TEST_SCRIPT in $REG_TEST_LIST
       do
-        #Need proc count here for now - still stop on failure etc.
-        NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
-        OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
-        OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
-        if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
-        for NPROCS in ${NPROCS_LIST}
+        COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
+        IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+
+        if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
+          continue
+        fi
+
+        for LAUNCHER in $COMMS_LIST
         do
-          NWORKERS=$((NPROCS-1))
+          #Need proc count here for now - still stop on failure etc.
+          NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
+          OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
+          OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
+          if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+          for NPROCS in ${NPROCS_LIST}
+          do
+            NWORKERS=$((NPROCS-1))
 
-          RUN_TEST=false
-          if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-          if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
-          if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
+            RUN_TEST=false
+            if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+            if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
-          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
-            echo "Skipping test number for OSX: " $test_num
-            continue
-          fi
-
-          if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
-            echo "Skipping test number for Open MPI: " $test_num
-            continue
-          fi
-
-          if [ $REG_STOP_ON_FAILURE = "true" ]; then
-            #Before Each Test check code is 0 (passed so far) - or skip to test summary
-            if [ "$code" -ne "0" ]; then
-              RUN_TEST=false
-              break
+            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+              echo "Skipping test number for OSX: " $test_num
+              continue
             fi
-          fi
 
-          if [ "$RUN_TEST" = "true" ]; then
-             test_num=$((test_num+1))
-             test_start=$(current_time)
+            if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
+              echo "Skipping test number for Open MPI: " $test_num
+              continue
+            fi
 
-             echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
+            if [ $REG_STOP_ON_FAILURE = "true" ]; then
+              #Before Each Test check code is 0 (passed so far) - or skip to test summary
+              if [ "$code" -ne "0" ]; then
+                RUN_TEST=false
+                break
+              fi
+            fi
 
-             if [ "$REG_USE_PYTEST" = true ]; then
-               if [ "$LAUNCHER" = mpi ]; then
-                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-                 test_code=$?
-               else
-                 $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-               fi
-             else
-               if [ "$LAUNCHER" = mpi ]; then
-                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+            if [ "$RUN_TEST" = "true" ]; then
+               test_num=$((test_num+1))
+               test_start=$(current_time)
+
+               echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
+
+               if [ "$REG_USE_PYTEST" = true ]; then
+                 if [ "$LAUNCHER" = mpi ]; then
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
                  else
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-                   test_code=$?
+                   $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                  fi
                else
-                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
-                   test_code=$?
+                 if [ "$LAUNCHER" = mpi ]; then
+                   if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                     mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+                     test_code=$?
+                   else
+                     mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+                     test_code=$?
+                   fi
                  else
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-                   test_code=$?
+                   if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                     $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
+                     test_code=$?
+                   else
+                     $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                     test_code=$?
+                   fi
                  fi
                fi
-             fi
-             reg_count_runs=$((reg_count_runs+1))
-             test_end=$(current_time)
-             test_time=$(total_time $test_start $test_end)
+               reg_count_runs=$((reg_count_runs+1))
+               test_end=$(current_time)
+               test_time=$(total_time $test_start $test_end)
 
-             if [ "$test_code" -eq "0" ]; then
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
-               reg_pass=$((reg_pass+1))
-               #continue testing
-             else
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
-               code=$test_code #sh - currently stop on failure
-               if [ $REG_STOP_ON_FAILURE != "true" ]; then
-                 #Dump error to log file
-                 echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
-                 [ -e test.err ] && cat test.err >>log.err
+               if [ "$test_code" -eq "0" ]; then
+                 echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
+                 reg_pass=$((reg_pass+1))
+                 #continue testing
+               else
+                 echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
+                 code=$test_code #sh - currently stop on failure
+                 if [ $REG_STOP_ON_FAILURE != "true" ]; then
+                   #Dump error to log file
+                   echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
+                   [ -e test.err ] && cat test.err >>log.err
+                 fi;
+                 reg_fail=$((reg_fail+1))
                fi;
-               reg_fail=$((reg_fail+1))
-             fi;
 
-             #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
-             #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
+               #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
+               #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
 
-          fi; #if [ "$RUN_TEST" = "true" ];
+            fi; #if [ "$RUN_TEST" = "true" ];
 
-        done #nprocs
-      done #launcher
+          done #nprocs
+        done #launcher
 
-      [ $REG_STOP_ON_FAILURE = "true" ] && [ "$code" -ne "0" ] && cat test.err && break
-      reg_count_tests=$((reg_count_tests+1))
+        [ $REG_STOP_ON_FAILURE = "true" ] && [ "$code" -ne "0" ] && cat test.err && break
+        reg_count_tests=$((reg_count_tests+1))
 
-    done #tests
+      done #tests
+    done #reg test subdir
     reg_end=$(current_time)
     reg_time=$(total_time $reg_start $reg_end)
 
