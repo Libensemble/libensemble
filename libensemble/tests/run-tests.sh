@@ -205,7 +205,7 @@ usage() {
   echo "  -s              Print stdout and stderr to screen when running pytest (unit tests)"
   echo "  -z              Print stdout and stderr to screen when running regression tests (run without pytest)"
   echo "  -u              Run only the unit tests"
-  echo "  -r              Run only the regression tests"
+  echo "  -r              Run only the regression tests, both artificial and integration"
   echo "  -f              Run only the artificial regression tests"
   echo "  -i              Run only the integration regression tests"
   echo "  -m              Run the regression tests using MPI comms"
@@ -273,10 +273,12 @@ while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
     l)
       echo "Running only the local regression tests"
       export RUN_LOCAL=true
+      export RUN_ARTIFICIAL_REG_TESTS=true
       ;;
     t)
       echo "Running only the TCP regression tests"
       export RUN_TCP=true
+      export RUN_ARTIFICIAL_REG_TESTS=true
       ;;
     e)
       echo "Running extra unit tests with additional dependencies"
@@ -285,6 +287,7 @@ while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
     m)
       echo "Running only the MPI regression tests"
       export RUN_MPI=true
+      export RUN_ARTIFICIAL_REG_TESTS=true
       ;;
     y)
       echo "Running with user supplied test list"
