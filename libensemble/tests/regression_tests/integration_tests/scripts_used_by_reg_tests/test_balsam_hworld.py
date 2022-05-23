@@ -20,7 +20,7 @@ def run_Balsam_job():
 
 
 def build_simfunc():
-    buildstring = "mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
+    buildstring = "mpicc -o my_simtask.x ../../unit_tests/simdir/my_simtask.c"
     subprocess.check_call(buildstring.split())
 
 
