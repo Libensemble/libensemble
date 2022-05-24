@@ -623,7 +623,8 @@ if [ "$root_found" = true ]; then
       fi;
 
       #sh - shld active_runs be prefixed for each job
-      filelist=(*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv *.$REG_TEST_OUTPUT_EXT output/
+      filelist=($REG_TEST_ARTIFICIAL_SUBDIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $REG_TEST_ARTIFICIAL_SUBDIR/*.$REG_TEST_OUTPUT_EXT output/
+      filelist=($REG_TEST_INTEGRATION_SUBDIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $REG_TEST_INTEGRATION_SUBDIR/*.$REG_TEST_OUTPUT_EXT output/
       filelist=(*.npy);                    [ -e ${filelist[0]} ] && mv *.npy output/
       filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
 
@@ -643,10 +644,11 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
-          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$REG_TEST_ARTIFICIAL_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$REG_TEST_INTEGRATION_SUBDIR/.cov_reg_out1 .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out1 #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
@@ -654,9 +656,10 @@ if [ "$root_found" = true ]; then
 
           # Still need to move reg cov results to COV_MERGE_DIR
           cd $ROOT_DIR/$COV_MERGE_DIR
-          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$REG_TEST_ARTIFICIAL_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$REG_TEST_INTEGRATION_SUBDIR/.cov_reg_out1 .
 
-          coverage combine .cov_reg_out
+          coverage combine .cov_reg_out .cov_reg_out1
           coverage html
           echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
