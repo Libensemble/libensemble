@@ -221,7 +221,7 @@ y[210] =    16.6500;  t[210] =   2.7500;
 y[211] =    10.0500;  t[211] =   3.7500;
 y[212] =    28.9000;  t[212] =   1.7500;
 y[213] =    28.9500;  t[213] =   1.7500;
-#fmt: off
+# fmt: on
 
 
 def EvaluateFunction(x, component=np.nan):
@@ -271,23 +271,23 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         for an example where one component of fvec is computed per call
     """
 
-    batch = len(H['x'])
-    O = np.zeros(batch, dtype=sim_specs['out'])
+    batch = len(H["x"])
+    O = np.zeros(batch, dtype=sim_specs["out"])
 
-    for i, x in enumerate(H['x']):
-        if 'obj_component' in H.dtype.names:
+    for i, x in enumerate(H["x"]):
+        if "obj_component" in H.dtype.names:
             if (
-                'user' in sim_specs
-                and 'component_nan_frequency' in sim_specs['user']
-                and np.random.uniform(0, 1) < sim_specs['user']['component_nan_frequency']
+                "user" in sim_specs
+                and "component_nan_frequency" in sim_specs["user"]
+                and np.random.uniform(0, 1) < sim_specs["user"]["component_nan_frequency"]
             ):
-                O['f_i'][i] = np.nan
+                O["f_i"][i] = np.nan
             else:
-                O['f_i'][i] = EvaluateFunction(x, H['obj_component'][i])
+                O["f_i"][i] = EvaluateFunction(x, H["obj_component"][i])
 
         else:
-            O['fvec'][i] = EvaluateFunction(x)
-            O['f'][i] = sim_specs['user']['combine_component_func'](O['fvec'][i])
+            O["fvec"][i] = EvaluateFunction(x)
+            O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
 
     return O, persis_info
 

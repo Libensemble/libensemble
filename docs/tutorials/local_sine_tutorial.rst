@@ -121,7 +121,7 @@ Exercise
 ^^^^^^^^
 
 Write a simple generator function that instead produces random integers, using
-the ``numpy.random.RandomState.randint(low, high, size)`` function.
+the ``numpy.random.Generator.integers(low, high, size)`` function.
 
 .. container:: toggle
 
@@ -143,7 +143,7 @@ the ``numpy.random.RandomState.randint(low, high, size)`` function.
            batch_size = user_specs['gen_batch_size']
 
            out = np.zeros(batch_size, dtype=gen_specs['out'])
-           out['x'] = persis_info['rand_stream'].randint(lower, upper, (batch_size, num))
+           out['x'] = persis_info['rand_stream'].integers(lower, upper, (batch_size, num))
 
            return out, persis_info
 

@@ -7,7 +7,7 @@ __all__ = [
     "persistent_uniform",
     "uniform_random_sample_with_variable_resources",
     "persistent_request_shutdown",
-    "Bayesian_history_matching",
+    "batched_history_matching",
 ]
 
 
@@ -160,7 +160,7 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def Bayesian_history_matching(H, persis_info, gen_specs, libE_info):
+def batched_history_matching(H, persis_info, gen_specs, libE_info):
     """
     Given
     - sim_f with an input of x with len(x)=n

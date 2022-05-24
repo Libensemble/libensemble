@@ -28,24 +28,24 @@ may resemble:
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs['save_every_k_gens'] = 20
+    libE_specs["save_every_k_gens"] = 20
 
-    gen_specs = {'gen_f': gen_random_sample,
-                 'out': [('x', float, (1,))],
-                 'user': {
-                    'lower': np.array([-3]),
-                    'upper': np.array([3]),
-                    'gen_batch_size': 5
+    gen_specs = {"gen_f": gen_random_sample,
+                 "out": [("x", float, (1,))],
+                 "user": {
+                    "lower": np.array([-3]),
+                    "upper": np.array([3]),
+                    "gen_batch_size": 5
                     }
                  }
 
-    sim_specs = {'sim_f': sim_find_sine,
-                 'in': ['x'],
-                 'out': [('y', float)]}
+    sim_specs = {"sim_f": sim_find_sine,
+                 "in": ["x"],
+                 "out": [("y", float)]}
 
     persis_info = add_unique_random_streams({}, nworkers+1)
 
-    exit_criteria = {'sim_max': 80}
+    exit_criteria = {"sim_max": 80}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
@@ -66,10 +66,10 @@ to be installed. The equivalent of above resembles:
     from libensemble import Ensemble
 
     my_experiment = Ensemble()
-    my_experiment.from_yaml('my_parameters.yaml')
+    my_experiment.from_yaml("my_parameters.yaml")
 
-    my_experiment.gen_specs['user']['lower'] = np.array([-3])
-    my_experiment.gen_specs['user']['upper'] = np.array([3])
+    my_experiment.gen_specs["user"]["lower"] = np.array([-3])
+    my_experiment.gen_specs["user"]["upper"] = np.array([3])
 
     H, persis_info, flag = my_experiment.run()
 
