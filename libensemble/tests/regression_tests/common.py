@@ -53,7 +53,7 @@ def build_simfunc():
 
     # Build simfunc
     # buildstring='mpif90 -o my_simtask.x my_simtask.f90' # On cray need to use ftn
-    buildstring = "mpicc -o my_simtask.x ../unit_tests/simdir/my_simtask.c"
+    buildstring = "mpicc -o my_simtask.x ../../unit_tests/simdir/my_simtask.c"
     # subprocess.run(buildstring.split(),check=True) #Python3.5+
     subprocess.check_call(buildstring.split())
 
@@ -61,7 +61,7 @@ def build_simfunc():
 def build_borehole():
     import subprocess
 
-    buildstring = "gcc -o borehole.x ../unit_tests/simdir/borehole.c -lm"
+    buildstring = "gcc -o borehole.x ../../unit_tests/simdir/borehole.c -lm"
     subprocess.check_call(buildstring.split())
 
 
