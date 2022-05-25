@@ -255,20 +255,16 @@ while getopts ":p:n:a:y:A:hcszurfimlte" opt; do
       export RUN_REG_TESTS=false
       ;;
     r)
-      echo "Running only the regression tests"
+      echo "Running only base regression tests"
       export RUN_UNIT_TESTS=false
-      export RUN_ARTIFICIAL_REG_TESTS=true
-      export RUN_INTEGRATION_REG_TESTS=true
       ;;
     f)
-      echo "Running only artificial regression tests"
+      echo "Running artificial regression tests"
       export RUN_ARTIFICIAL_REG_TESTS=true
-      export RUN_UNIT_TESTS=false
       ;;
     i)
-      echo "Running only integration regression tests"
+      echo "Running integration regression tests"
       export RUN_INTEGRATION_REG_TESTS=true
-      export RUN_UNIT_TESTS=false
       ;;
     l)
       echo "Running only the local regression tests"
@@ -623,17 +619,20 @@ if [ "$root_found" = true ]; then
       fi;
 
       #sh - shld active_runs be prefixed for each job
-      filelist=($REG_TEST_ARTIFICIAL_SUBDIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $REG_TEST_ARTIFICIAL_SUBDIR/*.$REG_TEST_OUTPUT_EXT output/
-      filelist=($REG_TEST_INTEGRATION_SUBDIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $REG_TEST_INTEGRATION_SUBDIR/*.$REG_TEST_OUTPUT_EXT output/
-      filelist=(*.npy);                    [ -e ${filelist[0]} ] && mv *.npy output/
-      filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
+
+      for DIR in $REG_TEST_ARTIFICIAL_SUBDIR $REG_TEST_INTEGRATION_SUBDIR; do
+        filelist=($DIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $DIR/*.$REG_TEST_OUTPUT_EXT output/
+        filelist=($DIR/*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv $DIR/*.$REG_TEST_OUTPUT_EXT output/
+        filelist=($DIR/*.npy);                    [ -e ${filelist[0]} ] && mv $DIR/*.npy output/
+        filelist=($DIR/*active_runs.txt);         [ -e ${filelist[0]} ] && mv $DIR/*active_runs.txt output/
+      done
 
       if [ "$RUN_COV_TESTS" = true ]; then
 
         # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
 
         # Must combine all if in sep sub-dirs will copy to dir above
-        coverage combine .cov_reg_out.* #Name of coverage data file must match that in .coveragerc in reg test dir.
+        coverage combine $ROOT_DIR/$REG_TEST_ARTIFICIAL_SUBDIR/.cov_reg_out.* $ROOT_DIR/$REG_TEST_INTEGRATION_SUBDIR/.cov_reg_out.* #Name of coverage data file must match that in .coveragerc in reg test dir.
         coverage html
         echo -e "..Coverage HTML written to dir $REG_TEST_SUBDIR/cov_reg/"
 
@@ -644,11 +643,10 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
-          cp $ROOT_DIR/$REG_TEST_ARTIFICIAL_SUBDIR/.cov_reg_out .
-          cp $ROOT_DIR/$REG_TEST_INTEGRATION_SUBDIR/.cov_reg_out1 .
+          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out1 #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
@@ -656,10 +654,9 @@ if [ "$root_found" = true ]; then
 
           # Still need to move reg cov results to COV_MERGE_DIR
           cd $ROOT_DIR/$COV_MERGE_DIR
-          cp $ROOT_DIR/$REG_TEST_ARTIFICIAL_SUBDIR/.cov_reg_out .
-          cp $ROOT_DIR/$REG_TEST_INTEGRATION_SUBDIR/.cov_reg_out1 .
+          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
 
-          coverage combine .cov_reg_out .cov_reg_out1
+          coverage combine .cov_reg_out
           coverage html
           echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
