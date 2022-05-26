@@ -82,7 +82,7 @@ and supply zero resources).
         H_o['resource_sets'][i] = sim_size[b]
 
 For an example generator, see the *uniform_random_sample_with_variable_resources*
-function in `persistent_uniform_sampling.py`_
+function in `persistent_sampling.py`_
 
 When the allocation function assigns the points to workers for evaluation, it
 will check if the requested number of resource sets are available for each point
@@ -257,6 +257,6 @@ Also, this can be set on the command line as a convenience.
 
 .. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
 
-.. _persistent_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_uniform_sampling.py
+.. _persistent_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling.py
 
 .. _six_hump_camel.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/six_hump_camel.py

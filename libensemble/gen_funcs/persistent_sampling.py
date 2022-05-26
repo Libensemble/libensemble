@@ -20,8 +20,8 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     function.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
-        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
+        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
+        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_async.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -127,7 +127,7 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
     This generation function is designed to test non-blocking receives.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
+        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
 
     """
     ub = gen_specs["user"]["ub"]
@@ -178,7 +178,7 @@ def batched_history_matching(H, persis_info, gen_specs, libE_info):
         Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_sampling.py>`_ # noqa
+        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
     """
     lb = gen_specs["user"]["lb"]
 
