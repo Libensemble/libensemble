@@ -17,7 +17,7 @@ def EvaluateFunction(x, component):
         - index
     """
 
-    assert len(x) % 2 == 0, print("must be even lengthed input vector")
+    assert len(x) % 2 == 0, "Length of input vector must be even"
 
     n = len(x) // 2
 
