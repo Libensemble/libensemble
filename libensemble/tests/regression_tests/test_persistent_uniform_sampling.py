@@ -34,7 +34,7 @@ if nworkers < 2:
 
 n = 2
 batch = 20
-num_batches = 10 
+num_batches = 10
 
 sim_specs = {
     "sim_f": sim_f,
@@ -54,7 +54,7 @@ gen_specs = {
 
 alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"gen_max": num_batches*batch , "wallclock_max": 300}
+exit_criteria = {"gen_max": num_batches * batch, "wallclock_max": 300}
 
 libE_specs["kill_canceled_sims"] = False
 
@@ -97,10 +97,10 @@ for run in range(2):
 
             fig, ax = plt.subplots()
             levels = [0.1, 1, 5, 10, 30, 50, 70]
-            colormap = plt.get_cmap('hsv')
+            colormap = plt.get_cmap("hsv")
             scale = 100  # Scaling Rosenbrock function values makes it much easier to see meaningful contours.
 
-            pts = H['x']
+            pts = H["x"]
 
             CS = ax.contourf(X, Y, Z / 100, levels, cmap=colormap, alpha=0.2)
             CS = ax.contour(X, Y, Z / 100, levels, cmap=colormap)
@@ -110,7 +110,7 @@ for run in range(2):
                 ax.scatter(
                     pts[i * batch : (i + 1) * batch, 0],
                     pts[i * batch : (i + 1) * batch, 1],
-                    color='b',
-                    edgecolors='k',
+                    color="b",
+                    edgecolors="k",
                 )
-                plt.savefig('plot_after_batch_' + str(i))
+                plt.savefig("plot_after_batch_" + str(i))
