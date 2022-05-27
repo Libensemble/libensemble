@@ -21,9 +21,9 @@ fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
 arg1 = ["-no-reorder", "-reorder"]
 arg2 = ["-a2a", "-a2av", "-p2p", "-p2p_pl"]
 
-l = list(itertools.product(fixed, arg1, arg2))
+part_list = list(itertools.product(fixed, arg1, arg2))
 
-full_list = list(map(" ".join, l))
+full_list = list(map(" ".join, part_list))
 
 max_len = max([len(item) for item in full_list])
 
