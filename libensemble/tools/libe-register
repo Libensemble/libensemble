@@ -1,0 +1,33 @@
+#! /usr/bin/python3
+
+import os
+import sys
+import argparse
+from psij import Job, JobSpec
+from psij.resource_spec import ResourceSpecV1
+from psij.serialize import Export
+from libensemble.tools.parse_args import parser
+
+if __name__ == '__main__':
+
+    parser.description = "Produce a serialization for a libEnsemble submission on a resource."
+    parser.prog = "libe-register"
+    parser.add_argument("--nnodes", type=int, nargs="?", help="Number of nodes")
+    script = sys.argv[1]
+    my_args, unknown = parser.parse_known_args(sys.argv[2:])
+
+    assert script.endswith(".py"), "First argument doesn't appear to be a Python script."
+
+    name =  "libE-" + script.split(".py")[0]
+
+    jobspec = JobSpec(name="libe-job",
+                      arguments=[script,
+                                "--comms",
+                                my_args.comms,
+                                "--nworkers",
+                                my_args.nworkers],
+                      directory="/Users/jnavarro/Desktop/libensemble/libensemble/libensemble/tests/regression_tests",
+                      resources=ResourceSpecV1(node_count=4)
+                     )
+
+    # Export().export(obj=jobspec, dest="libe-job.json")
