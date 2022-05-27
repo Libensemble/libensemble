@@ -17,8 +17,8 @@ from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim
 from libensemble.tools import parse_args, save_libE_output
 
 fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
-arg1 = ['-no-reorder', '-reorder']
-arg2 = ['-a2a', '-a2av', '-p2p', '-p2p_pl']
+arg1 = ["-no-reorder", "-reorder"]
+arg2 = ["-a2a", "-a2av", "-p2p", "-p2p_pl"]
 
 l = list(itertools.product(fixed, arg1, arg2))
 
