@@ -124,6 +124,7 @@ jobs:
             sudo apt-get update
             sudo apt-get install octave
             sudo apt-get install bc
+            sudo apt install libfftw3-dev 
 
             pip install dragonfly-opt
             pip install torch
