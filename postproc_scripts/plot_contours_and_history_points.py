@@ -1,7 +1,7 @@
 """
-This function plots 
+This function plots
 - Rosenbrock function contours on lb = [-3, 2] ub = [3, 2]
-- Batches of requested points in the sys.argv[1] filename 
+- Batches of requested points in the sys.argv[1] filename
 
 batch size must be declared
 num_batches is determined by the unique "gen_ended_time" values
@@ -16,9 +16,7 @@ Working case:
 """
 import numpy as np
 import sys
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-import matplotlib.colors as LogNorm
 
 from libensemble.sim_funcs.rosenbrock import EvaluateFunction as obj_f
 
