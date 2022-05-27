@@ -33,6 +33,9 @@ if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
 n = 2
+batch = 20
+num_batches = 10
+
 sim_specs = {
     "sim_f": sim_f,
     "in": ["x"],
@@ -43,7 +46,7 @@ gen_specs = {
     "persis_in": ["x", "f", "grad", "sim_id"],
     "out": [("x", float, (n,))],
     "user": {
-        "initial_batch_size": 20,
+        "initial_batch_size": batch,
         "lb": np.array([-3, -2]),
         "ub": np.array([3, 2]),
     },
@@ -51,7 +54,7 @@ gen_specs = {
 
 alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"gen_max": 40, "wallclock_max": 300}
+exit_criteria = {"gen_max": num_batches * batch, "wallclock_max": 300}
 
 libE_specs["kill_canceled_sims"] = False
 
@@ -70,7 +73,6 @@ for run in range(2):
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        print(H["gen_ended_time"])
-        assert len(np.unique(H["gen_ended_time"])) == 2
+        assert len(np.unique(H["gen_ended_time"])) == num_batches
 
         save_libE_output(H, persis_info, __file__, nworkers)
