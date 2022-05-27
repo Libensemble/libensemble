@@ -42,6 +42,7 @@ gnt.set_xlabel("Seconds since start")
 for i in range(1, num_workers + 1):
     inds = np.where(H["gen_worker"] == i)[0]
     b = [(H[i]["gen_started_time"] - mint, H[i]["gen_ended_time"] - H[i]["gen_started_time"]) for i in inds]
+    # Note: broken_barh takes (start, duration) not (start, end) pairs!
     gnt.broken_barh(b, (i+0.1, 0.35), facecolors=gen_work_color, edgecolor=gen_work_color)
 
     inds = np.where(H["sim_worker"] == i)[0]
