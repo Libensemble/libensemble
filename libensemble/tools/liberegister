@@ -3,8 +3,8 @@
 import os
 import sys
 import shutil
-import pathlib
 import argparse
+from pathlib import Path
 from psij import Job, JobSpec
 from psij.resource_spec import ResourceSpecV1
 from psij.job_attributes import JobAttributes
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         outfile_type = argparse.FileType('w')
         assert script.endswith(".py"), "First argument doesn't appear to be a Python script."
 
-    parser = argparse.ArgumentParser(prog="libe-register",
+    parser = argparse.ArgumentParser(prog="liberegister",
         description="Produce a PSI/J representation for a libEnsemble execution.",
         epilog="Output representations can be passed to `libe-submit`",
         parents=[callscript_parser],
@@ -37,11 +37,11 @@ if __name__ == '__main__':
 
     parser.add_argument("-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=4)
 
-    parser.add_argument("-p", "--python-path", type=pathlib.Path, nargs="?",
+    parser.add_argument("-p", "--python-path", type=Path, nargs="?",
                         help="Which Python to use. Default is current Python.", default=sys.executable)
 
-    parser.add_argument("-m", "--mpirun-path", type=pathlib.Path, nargs="?",
-                        help="Which `mpirun` to use (if using MPI comms). Default is `which mpirun`.", default=shutil.which('mpirun'))
+    parser.add_argument("-m", "--mpirunner", type=Path, nargs="?",
+                        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.", default=shutil.which('mpirun'))
 
     parser.add_argument("-j", "--jobname", type=str, nargs="?",
                         help="Scheduler job name.", default="libe-job")
@@ -55,18 +55,8 @@ if __name__ == '__main__':
     parser.add_argument("-t", "--wallclock", type=int, nargs="?",
                         help="Total wallclock for job.", default=30)
 
-    parser.add_argument("-d", "--directory", type=pathlib.Path, nargs="?",
+    parser.add_argument("-d", "--directory", type=Path, nargs="?",
                         help="Working directory for job. Default is current directory.", default=os.getcwd())
-
-    parser.add_argument("-s", "--sched", type=str, nargs="?",
-                        help="Target scheduler name", choices = ["cobalt",
-                                        "local",
-                                        "batch-test",
-                                        "flux",
-                                        "lsf",
-                                        "rp",
-                                        "slurm"
-                                        ], default=None)
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
@@ -74,7 +64,9 @@ if __name__ == '__main__':
         executable = jobargs.python_path
         arguments = [script, "--comms", jobargs.comms, "--nworkers", jobargs.nworkers]
     else: # jobargs.comms == "mpi":
-        executable = jobargs.mpirun_path
+        executable = Path(jobargs.mpirunner)
+        if not executable.exists():
+            executable = shutil.which(jobargs.mpirunner)
         arguments = ["-n", jobargs.nworkers+1, str(jobargs.python_path), script]
 
     jobspec = JobSpec(name=jobargs.jobname,
@@ -85,7 +77,6 @@ if __name__ == '__main__':
                       attributes=JobAttributes(duration=jobargs.wallclock,
                                                queue_name=jobargs.queue,
                                                project_name=jobargs.project),
-                      launcher=jobargs.sched
                      )
 
     Export().export(obj=jobspec, dest=outfile_default)

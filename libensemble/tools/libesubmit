@@ -1,0 +1,45 @@
+#! /usr/bin/python3
+
+import os
+import sys
+import shutil
+import argparse
+from pathlib import Path
+from psij import JobExecutor
+from libensemble.version import __version__
+
+if __name__ == '__main__':
+
+    script = sys.argv[1]
+    basename = script.split(".json")[0]
+
+    assert script.endswith(".json"), "First argument doesn't appear to be a json file."
+
+    parser = argparse.ArgumentParser(prog="libesubmit",
+        description="Submit a libEnsemble PSI/J job representation for execution. Additional options may overwrite the input file.",
+        conflict_handler="resolve"
+    )
+
+    parser.add_argument("-p", "--python-path", type=Path, nargs="?",
+                        help="Which Python to use. Default is current Python.", default=sys.executable)
+
+    parser.add_argument("-m", "--mpirunner", type=Path, nargs="?",
+                        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.", default=shutil.which('mpirun'))
+
+    parser.add_argument("-q", "--queue", type=str, nargs="?",
+                        help="Scheduler queue name.", default=None)
+
+    parser.add_argument("-A", "--project", type=str, nargs="?",
+                        help="Scheduler project name.", default=None)
+
+    parser.add_argument("-t", "--wallclock", type=int, nargs="?",
+                        help="Total wallclock for job.", default=30)
+
+    parser.add_argument("-d", "--directory", type=Path, nargs="?",
+                        help="Working directory for job. Default is current directory.", default=os.getcwd())
+
+    jobargs, unknown = parser.parse_known_args(sys.argv[1:])
+
+    print(f"libEnsemble {__version__}")
+    print(f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libe-submit`.")
+#! /usr/bin/python3
