@@ -12,73 +12,126 @@ from psij.serialize import Export
 from libensemble.version import __version__
 from libensemble.tools.parse_args import parser as callscript_parser
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     script = sys.argv[1]
     basename = script.split(".py")[0]
 
     if basename == "-h":
         outfile_default = "libe-job.json"
-        outfile_type=str
+        outfile_type = str
     else:
         outfile_default = basename + ".json"
-        outfile_type = argparse.FileType('w')
-        assert script.endswith(".py"), "First argument doesn't appear to be a Python script."
+        outfile_type = argparse.FileType("w")
+        assert script.endswith(
+            ".py"
+        ), "First argument doesn't appear to be a Python script."
 
-    parser = argparse.ArgumentParser(prog="liberegister",
+    parser = argparse.ArgumentParser(
+        prog="liberegister",
         description="Produce a PSI/J representation for a libEnsemble execution.",
         epilog="Output representations can be passed to `libe-submit`",
         parents=[callscript_parser],
-        conflict_handler="resolve"
+        conflict_handler="resolve",
     )
 
-    parser.add_argument("-o", "--outfile", type=outfile_type, nargs="?",
-                        help="Output PSI/J representation filename.", default=outfile_default)
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        type=outfile_type,
+        nargs="?",
+        help="Output PSI/J representation filename.",
+        default=outfile_default,
+    )
 
-    parser.add_argument("-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=4)
+    parser.add_argument(
+        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=4
+    )
 
-    parser.add_argument("-p", "--python-path", type=Path, nargs="?",
-                        help="Which Python to use. Default is current Python.", default=sys.executable)
+    parser.add_argument(
+        "-p",
+        "--python-path",
+        type=Path,
+        nargs="?",
+        help="Which Python to use. Default is current Python.",
+        default=sys.executable,
+    )
 
-    parser.add_argument("-m", "--mpirunner", type=Path, nargs="?",
-                        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.", default=shutil.which('mpirun'))
+    parser.add_argument(
+        "-m",
+        "--mpirunner",
+        type=Path,
+        nargs="?",
+        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.",
+        default=shutil.which("mpirun"),
+    )
 
-    parser.add_argument("-j", "--jobname", type=str, nargs="?",
-                        help="Scheduler job name.", default="libe-job")
+    parser.add_argument(
+        "-j",
+        "--jobname",
+        type=str,
+        nargs="?",
+        help="Scheduler job name.",
+        default="libe-job",
+    )
 
-    parser.add_argument("-q", "--queue", type=str, nargs="?",
-                        help="Scheduler queue name.", default=None)
+    parser.add_argument(
+        "-q", "--queue", type=str, nargs="?", help="Scheduler queue name.", default=None
+    )
 
-    parser.add_argument("-A", "--project", type=str, nargs="?",
-                        help="Scheduler project name.", default=None)
+    parser.add_argument(
+        "-A",
+        "--project",
+        type=str,
+        nargs="?",
+        help="Scheduler project name.",
+        default=None,
+    )
 
-    parser.add_argument("-t", "--wallclock", type=int, nargs="?",
-                        help="Total wallclock for job.", default=30)
+    parser.add_argument(
+        "-t",
+        "--wallclock",
+        type=int,
+        nargs="?",
+        help="Total wallclock for job.",
+        default=30,
+    )
 
-    parser.add_argument("-d", "--directory", type=Path, nargs="?",
-                        help="Working directory for job. Default is current directory.", default=os.getcwd())
+    parser.add_argument(
+        "-d",
+        "--directory",
+        type=Path,
+        nargs="?",
+        help="Working directory for job. Default is current directory.",
+        default=os.getcwd(),
+    )
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
     if jobargs.comms == "local":
         executable = jobargs.python_path
         arguments = [script, "--comms", jobargs.comms, "--nworkers", jobargs.nworkers]
-    else: # jobargs.comms == "mpi":
+    else:  # jobargs.comms == "mpi":
         executable = Path(jobargs.mpirunner)
         if not executable.exists():
             executable = shutil.which(jobargs.mpirunner)
-        arguments = ["-n", jobargs.nworkers+1, str(jobargs.python_path), script]
+        arguments = ["-n", jobargs.nworkers + 1, str(jobargs.python_path), script]
 
-    jobspec = JobSpec(name=jobargs.jobname,
-                      executable=str(executable),
-                      arguments=arguments,
-                      directory=jobargs.directory,
-                      resources=ResourceSpecV1(node_count=jobargs.nnodes),
-                      attributes=JobAttributes(duration=jobargs.wallclock,
-                                               queue_name=jobargs.queue,
-                                               project_name=jobargs.project),
-                     )
+    jobspec = JobSpec(
+        name=jobargs.jobname,
+        executable=str(executable),
+        arguments=arguments,
+        directory=jobargs.directory,
+        resources=ResourceSpecV1(node_count=jobargs.nnodes),
+        attributes=JobAttributes(
+            duration=jobargs.wallclock,
+            queue_name=jobargs.queue,
+            project_name=jobargs.project,
+        ),
+    )
 
     Export().export(obj=jobspec, dest=outfile_default)
     print(f"libEnsemble {__version__}")
-    print(f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libe-submit`.")
+    print(
+        f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libe-submit`."
+    )
