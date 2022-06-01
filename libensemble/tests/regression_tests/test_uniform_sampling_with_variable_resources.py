@@ -7,6 +7,8 @@ Execute via one of the following commands (e.g. 3 workers):
    python test_uniform_sampling_with_variable_resources.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
+
+Note: This test contains multiple iterations to test different configurations.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -64,7 +66,7 @@ if __name__ == "__main__":
             ("x_on_cube", float, n),
         ],
         "user": {
-            "initial_batch_size": 5,
+            "gen_batch_size": 5,
             "max_resource_sets": nworkers,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),

@@ -20,7 +20,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
