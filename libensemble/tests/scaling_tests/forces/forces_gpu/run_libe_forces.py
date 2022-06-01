@@ -7,10 +7,11 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 
 # Fixed resources (one resource set per worker)
-from libensemble.gen_funcs.sampling import uniform_random_sample as sim_f
+
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Uncomment for var resources
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as sim_f
+# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors import MPIExecutor
@@ -38,7 +39,7 @@ sim_specs = {
 
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
-    "gen_f": sim_f,  # Generator function
+    "gen_f": gen_f,  # Generator function
     "in": ["sim_id"],  # Generator input
     "out": [
         ("x", float, (1,)),  # Name, type and size of data from gen_f
