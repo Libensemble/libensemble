@@ -28,9 +28,16 @@ import urllib.request
 
 from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
-from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_persistent_consensus import (
+    start_consensus_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, readin_csv, gm_opt, svm_opt
+from libensemble.tools.consensus_subroutines import (
+    get_k_reach_chain_matrix,
+    readin_csv,
+    gm_opt,
+    svm_opt,
+)
 
 from libensemble.sim_funcs.geomedian import geomedian_eval
 from libensemble.sim_funcs.svm import svm_eval
@@ -141,13 +148,25 @@ for prob_id in range(0, 4):
 
     # Include @f_i_eval and @df_i_eval if we want to compute gradient in gen
     persis_info["gen_params"].update(
-        {"M": M, "R": 10**2, "nu": 1, "eps": eps, "D": 2 * n, "N_const": N_const, "lam_max": lam_max}
+        {
+            "M": M,
+            "R": 10**2,
+            "nu": 1,
+            "eps": eps,
+            "D": 2 * n,
+            "N_const": N_const,
+            "lam_max": lam_max,
+        }
     )
 
     if is_manager:
         print("=== Optimizing {} ===".format(prob_name), flush=True)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    if __name__ == "__main__":
+
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
 
     if is_manager:
         print("=== End algorithm ===", flush=True)
@@ -185,7 +204,13 @@ for prob_id in range(0, 4):
         A_kron_I = spp.kron(A, spp.eye(n))
         consensus_val = np.dot(x, A_kron_I.dot(x))
 
-        assert F - fstar < err_const * eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
+        assert (
+            F - fstar < err_const * eps
+        ), "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
             F - fstar, err_const * eps, fstar
         )
-        assert consensus_val < eps, "Consensus score of {:.4e}, expected {:.4e}\nx={}".format(consensus_val, eps, x)
+        assert (
+            consensus_val < eps
+        ), "Consensus score of {:.4e}, expected {:.4e}\nx={}".format(
+            consensus_val, eps, x
+        )

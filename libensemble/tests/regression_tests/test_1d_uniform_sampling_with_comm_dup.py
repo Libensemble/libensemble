@@ -59,19 +59,24 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"gen_max": 501}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if is_manager:
-    # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
-    # Potential to cause a hang
-    worker_ids = []
-    exp_worker_ids = list(range(1, nworkers + 1))
-    mpi_status = MPI.Status()
-    for worker in range(1, nworkers + 1):
-        worker_rank = world.recv(source=worker, status=mpi_status)
-        worker_ids.append(worker_rank)
-    assert worker_ids == exp_worker_ids, "MPI World values are not as expected"
-    assert len(H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
-    save_libE_output(H, persis_info, __file__, nworkers)
+if __name__ == "__main__":
+
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
+
+    if is_manager:
+        # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+        # Potential to cause a hang
+        worker_ids = []
+        exp_worker_ids = list(range(1, nworkers + 1))
+        mpi_status = MPI.Status()
+        for worker in range(1, nworkers + 1):
+            worker_rank = world.recv(source=worker, status=mpi_status)
+            worker_ids.append(worker_rank)
+        assert worker_ids == exp_worker_ids, "MPI World values are not as expected"
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
+        save_libE_output(H, persis_info, __file__, nworkers)

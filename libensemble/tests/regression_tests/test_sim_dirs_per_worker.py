@@ -61,32 +61,45 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 21}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert os.path.isdir(w_ensemble), "Ensemble directory {} not created.".format(w_ensemble)
-    worker_dir_sum = sum(["worker" in i for i in os.listdir(w_ensemble)])
-    assert worker_dir_sum == nworkers, "Number of worker dirs ({}) does not match nworkers ({}).".format(
-        worker_dir_sum, nworkers
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
     )
 
-    input_copied = []
-    sim_dir_sum = 0
+    if is_manager:
+        assert os.path.isdir(w_ensemble), "Ensemble directory {} not created.".format(
+            w_ensemble
+        )
+        worker_dir_sum = sum(["worker" in i for i in os.listdir(w_ensemble)])
+        assert (
+            worker_dir_sum == nworkers
+        ), "Number of worker dirs ({}) does not match nworkers ({}).".format(
+            worker_dir_sum, nworkers
+        )
 
-    for base, files, _ in os.walk(w_ensemble):
-        basedir = base.split("/")[-1]
-        if basedir.startswith("sim"):
-            sim_dir_sum += 1
-            input_copied.append(
-                all(
-                    [
-                        os.path.basename(j) in files
-                        for j in libE_specs["sim_dir_copy_files"] + libE_specs["sim_dir_symlink_files"]
-                    ]
+        input_copied = []
+        sim_dir_sum = 0
+
+        for base, files, _ in os.walk(w_ensemble):
+            basedir = base.split("/")[-1]
+            if basedir.startswith("sim"):
+                sim_dir_sum += 1
+                input_copied.append(
+                    all(
+                        [
+                            os.path.basename(j) in files
+                            for j in libE_specs["sim_dir_copy_files"]
+                            + libE_specs["sim_dir_symlink_files"]
+                        ]
+                    )
                 )
-            )
 
-    assert (
-        sim_dir_sum == exit_criteria["sim_max"]
-    ), "Number of sim directories ({}) does not match sim_max ({}).".format(sim_dir_sum, exit_criteria["sim_max"])
-    assert all(input_copied), "Exact input files not copied or symlinked to each calculation directory"
+        assert (
+            sim_dir_sum == exit_criteria["sim_max"]
+        ), "Number of sim directories ({}) does not match sim_max ({}).".format(
+            sim_dir_sum, exit_criteria["sim_max"]
+        )
+        assert all(
+            input_copied
+        ), "Exact input files not copied or symlinked to each calculation directory"

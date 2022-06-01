@@ -63,29 +63,32 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {"sim_max": nworkers * 5}
 
 # Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-if is_manager:
-    print("\nChecking expected task status against Workers ...\n")
-    calc_status_list_in = np.asarray(
-        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
-    )
-    calc_status_list = np.repeat(calc_status_list_in, nworkers)
+if __name__ == '__main__':
 
-    print("Expecting: {}".format(calc_status_list))
-    print("Received:  {}\n".format(H["cstat"]))
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-    assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(H["cstat"])
+    if is_manager:
+        print("\nChecking expected task status against Workers ...\n")
+        calc_status_list_in = np.asarray(
+            [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
+        )
+        calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-    # Check dry_run submissions inside ensemble.log
-    with open("ensemble.log", "r") as f:
-        lines = f.readlines()
+        print("Expecting: {}".format(calc_status_list))
+        print("Received:  {}\n".format(H["cstat"]))
 
-    test = len([i for i in lines if "Test (No submit) Runline:" in i]) == (len(calc_status_list_in)) * nworkers
-    assert test, "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
+        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(H["cstat"])
 
-    # Cleanup (maybe cover del_apps() and del_tasks())
-    exctr.del_apps()
-    exctr.del_tasks()
+        # Check dry_run submissions inside ensemble.log
+        with open("ensemble.log", "r") as f:
+            lines = f.readlines()
 
-    print("\n\n\nRun completed.")
+        test = len([i for i in lines if "Test (No submit) Runline:" in i]) == (len(calc_status_list_in)) * nworkers
+        assert test, "Dry run runlines not listed in ensemble.log for each dry_run submission instance."
+
+        # Cleanup (maybe cover del_apps() and del_tasks())
+        exctr.del_apps()
+        exctr.del_tasks()
+
+        print("\n\n\nRun completed.")

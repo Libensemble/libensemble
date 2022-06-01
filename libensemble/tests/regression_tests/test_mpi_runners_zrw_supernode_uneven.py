@@ -13,7 +13,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -36,7 +38,13 @@ libE_specs["dedicated_mode"] = True
 libE_specs["enforce_worker_core_bounds"] = True
 
 # To allow visual checking - log file not used in test
-log_file = "ensemble_mpi_runners_zrw_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+log_file = (
+    "ensemble_mpi_runners_zrw_supernode_uneven_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+    + ".log"
+)
 logger.set_filename(log_file)
 
 nodes_per_worker = 2.5
@@ -46,7 +54,12 @@ in_place = libE_specs["zero_resource_workers"]
 n_gens = len(in_place)
 nsim_workers = nworkers - n_gens
 comms = libE_specs["comms"]
-node_file = "nodelist_mpi_runners_zrw_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_mpi_runners_zrw_supernode_uneven_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+)
 nnodes = int(nsim_workers * nodes_per_worker)
 
 # Mock up system
@@ -126,7 +139,15 @@ for i in range(nsim_workers):
     ntasks = 16 * npw
     loc_nodes = npw
     exp_tasks.append(ntasks)
-    exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(loc_nodes) + srun_p4)
+    exp_srun.append(
+        srun_p1
+        + str(nodename)
+        + srun_p2
+        + str(ntasks)
+        + srun_p3
+        + str(loc_nodes)
+        + srun_p4
+    )
 
 test_list = test_list_base
 exp_list = exp_srun
@@ -136,7 +157,11 @@ sim_specs["user"] = {
     "persis_gens": n_gens,
 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    # All asserts are in sim func

@@ -24,7 +24,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -71,11 +73,15 @@ exit_criteria = {"sim_max": 50000, "wallclock_max": 5}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 2, "Test should have timed out"
-    assert persis_info[1].get("run_order"), "Run_order should have been given back"
-    min_ids = np.where(H["local_min"])
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    if is_manager:
+        assert flag == 2, "Test should have timed out"
+        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        min_ids = np.where(H["local_min"])
+        save_libE_output(H, persis_info, __file__, nworkers)

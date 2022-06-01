@@ -23,14 +23,20 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from math import gamma, pi, sqrt
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f, six_hump_camel_func, six_hump_camel_grad
+from libensemble.sim_funcs.six_hump_camel import (
+    six_hump_camel as sim_f,
+    six_hump_camel_func,
+    six_hump_camel_grad,
+)
 
 import libensemble.gen_funcs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
@@ -102,7 +108,9 @@ H0 = np.zeros(sample_size, dtype=H0_dtype)
 # Two points in the following sample have the same best function value, which
 # tests the corner case for some APOSMM logic
 H0["x"] = np.round(minima, 1)
-H0["x_on_cube"] = (H0["x"] - gen_specs["user"]["lb"]) / (gen_specs["user"]["ub"] - gen_specs["user"]["lb"])
+H0["x_on_cube"] = (H0["x"] - gen_specs["user"]["lb"]) / (
+    gen_specs["user"]["ub"] - gen_specs["user"]["lb"]
+)
 H0["sim_id"] = range(sample_size)
 H0[["sim_started", "gen_informed", "sim_ended"]] = True
 
@@ -110,20 +118,24 @@ for i in range(sample_size):
     H0["f"][i] = six_hump_camel_func(H0["x"][i])
     H0["grad"][i] = six_hump_camel_grad(H0["x"][i])
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+if __name__ == "__main__":
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0
+    )
 
-    tol = 1e-5
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
 
-    assert len(H) < exit_criteria["sim_max"], "Test should have stopped early"
+        tol = 1e-5
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        assert len(H) < exit_criteria["sim_max"], "Test should have stopped early"
+
+        save_libE_output(H, persis_info, __file__, nworkers)

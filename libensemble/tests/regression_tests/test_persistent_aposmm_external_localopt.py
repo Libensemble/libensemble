@@ -35,7 +35,9 @@ import libensemble.gen_funcs
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
@@ -87,25 +89,30 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 500}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+if __name__ == "__main__":
 
-    # Note: This regression test considers only the global minima because it's
-    # not possible to pass an initial simplex to fminsearch in Octave/Matlab.
-    # As such, localopt runs in APOSMM that are started near 4 of the 6 local
-    # minima "jump out", even when 'sim_max' is increased. (Matlab's fminsearch
-    # has a smaller initial simplex and appears to be less susceptible to
-    # this.)
-    minima = minima[:2]
-    tol = 1e-3
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
+
+        # Note: This regression test considers only the global minima because it's
+        # not possible to pass an initial simplex to fminsearch in Octave/Matlab.
+        # As such, localopt runs in APOSMM that are started near 4 of the 6 local
+        # minima "jump out", even when 'sim_max' is increased. (Matlab's fminsearch
+        # has a smaller initial simplex and appears to be less susceptible to
+        # this.)
+        minima = minima[:2]
+        tol = 1e-3
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+
+        save_libE_output(H, persis_info, __file__, nworkers)

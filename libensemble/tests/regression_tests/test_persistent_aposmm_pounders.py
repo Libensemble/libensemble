@@ -32,7 +32,9 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 from libensemble.gen_funcs.sampling import lhs_sample
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -93,19 +95,27 @@ exit_criteria = {"sim_max": 500}
 sample_points = np.zeros((0, n))
 rand_stream = np.random.default_rng(0)
 for i in range(ceil(exit_criteria["sim_max"] / gen_specs["user"]["lhs_divisions"])):
-    sample_points = np.append(sample_points, lhs_sample(n, gen_specs["user"]["lhs_divisions"], rand_stream), axis=0)
+    sample_points = np.append(
+        sample_points,
+        lhs_sample(n, gen_specs["user"]["lhs_divisions"], rand_stream),
+        axis=0,
+    )
 
 gen_specs["user"]["sample_points"] = sample_points * (ub - lb) + lb
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
-    assert len(H) >= budget
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    save_libE_output(H, persis_info, __file__, nworkers)
-    # # Calculating the Jacobian at the best point (though this information was not used by pounders)
-    # from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
-    # J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
-    # assert np.linalg.norm(J) < 2000
+    if is_manager:
+        assert flag == 0
+        assert len(H) >= budget
+
+        save_libE_output(H, persis_info, __file__, nworkers)
+        # # Calculating the Jacobian at the best point (though this information was not used by pounders)
+        # from libensemble.sim_funcs.chwirut1 import EvaluateJacobian
+        # J = EvaluateJacobian(H['x'][np.argmin(H['f'])])
+        # assert np.linalg.norm(J) < 2000

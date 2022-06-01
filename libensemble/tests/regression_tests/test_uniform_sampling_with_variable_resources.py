@@ -19,8 +19,12 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.sim_funcs.six_hump_camel import (
+    six_hump_camel_with_variable_resources as sim_f,
+)
+from libensemble.gen_funcs.sampling import (
+    uniform_random_sample_with_variable_resources as gen_f,
+)
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -28,7 +32,9 @@ from libensemble.executors.mpi_executor import MPIExecutor
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 libE_specs["sim_dirs_make"] = True
-libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
+libE_specs["ensemble_dir_path"] = (
+    "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
+)
 
 if libE_specs["comms"] == "tcp":
     sys.exit("This test only runs with MPI or local -- aborting...")
@@ -84,20 +90,27 @@ libE_specs["scheduler_opts"] = {"match_slots": False}
 
 exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-for prob_id in range(2):
-    if prob_id == 0:
-        sim_specs["user"]["app"] = "six_hump_camel"
-    else:
-        sim_specs["user"]["app"] = "helloworld"
-        libE_specs["ensemble_dir_path"] = "ensemble_dummy"
+if __name__ == "__main__":
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    for prob_id in range(2):
+        if prob_id == 0:
+            sim_specs["user"]["app"] = "six_hump_camel"
+        else:
+            sim_specs["user"]["app"] = "helloworld"
+            libE_specs["ensemble_dir_path"] = "ensemble_dummy"
 
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    if is_manager:
-        assert flag == 0
-        save_libE_output(H, persis_info, __file__, nworkers)
+        # Perform the run
+        H, persis_info, flag = libE(
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            persis_info,
+            libE_specs=libE_specs,
+            alloc_specs=alloc_specs,
+        )
+
+        if is_manager:
+            assert flag == 0
+            save_libE_output(H, persis_info, __file__, nworkers)

@@ -47,28 +47,38 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"gen_max": 501}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert len(H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
-    assert "manager.prof" in os.listdir(), "Expected manager profile not found after run"
-    os.remove("manager.prof")
+    if is_manager:
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
 
-    prof_files = ["worker_{}.prof".format(i + 1) for i in range(nworkers)]
+        assert (
+            "manager.prof" in os.listdir()
+        ), "Expected manager profile not found after run"
+        os.remove("manager.prof")
 
-    # Ensure profile writes complete before checking
-    time.sleep(0.5)
+        prof_files = ["worker_{}.prof".format(i + 1) for i in range(nworkers)]
 
-    for file in prof_files:
-        assert file in os.listdir(), "Expected profile {} not found after run".format(file)
-        with open(file, "r") as f:
-            data = f.read().split()
-            num_worker_funcs_profiled = sum(["worker" in i for i in data])
-        assert num_worker_funcs_profiled >= 8, (
-            "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
-        )
+        # Ensure profile writes complete before checking
+        time.sleep(0.5)
 
-        os.remove(file)
+        for file in prof_files:
+            assert (
+                file in os.listdir()
+            ), "Expected profile {} not found after run".format(file)
+            with open(file, "r") as f:
+                data = f.read().split()
+                num_worker_funcs_profiled = sum(["worker" in i for i in data])
+            assert num_worker_funcs_profiled >= 8, (
+                "Insufficient number of "
+                + "worker functions profiled: "
+                + str(num_worker_funcs_profiled)
+            )
+
+            os.remove(file)

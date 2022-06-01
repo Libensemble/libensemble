@@ -60,12 +60,21 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+if __name__ == "__main__":
 
-if is_manager:
-    test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])
-    assert test, "This test should have requested a cancellation and had a kill sent"
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
+
+    if is_manager:
+        test = np.any(H["cancel_requested"]) and np.any(H["kill_sent"])
+        assert (
+            test
+        ), "This test should have requested a cancellation and had a kill sent"
+        save_libE_output(H, persis_info, __file__, nworkers)

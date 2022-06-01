@@ -90,17 +90,27 @@ exit_criteria_arr.append({"gen_max": 100})
 
 run_num = 0
 # Test over all possible parameter combinations.
-for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
-    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode="async")
 
-    if run_num == 0:
-        gen_specs["user"]["tasmanian_checkpoint_file"] = "tasmanian.grid"
-        run_num += 1
 
-    if is_manager:
-        print("[Manager]: user_specs = {0}".format(user_specs))
-        print("[Manager]: exit_criteria = {0}".format(exit_criteria))
-        start_time = time()
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-    if is_manager:
-        print("[Manager]: Time taken = ", time() - start_time, "\n", flush=True)
+if __name__ == "__main__":
+
+    for user_specs, exit_criteria in itertools.product(
+        user_specs_arr, exit_criteria_arr
+    ):
+        sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(
+            user_specs, sim_f, 2, mode="async"
+        )
+
+        if run_num == 0:
+            gen_specs["user"]["tasmanian_checkpoint_file"] = "tasmanian.grid"
+            run_num += 1
+
+        if is_manager:
+            print("[Manager]: user_specs = {0}".format(user_specs))
+            print("[Manager]: exit_criteria = {0}".format(exit_criteria))
+            start_time = time()
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
+        if is_manager:
+            print("[Manager]: Time taken = ", time() - start_time, "\n", flush=True)

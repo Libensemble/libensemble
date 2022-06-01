@@ -19,8 +19,12 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.sim_funcs.six_hump_camel import (
+    six_hump_camel_with_variable_resources as sim_f,
+)
+from libensemble.gen_funcs.sampling import (
+    uniform_random_sample_with_variable_resources as gen_f,
+)
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -47,7 +51,12 @@ sim_specs = {
 gen_specs = {
     "gen_f": gen_f,
     "in": ["sim_id"],
-    "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+    "out": [
+        ("priority", float),
+        ("resource_sets", int),
+        ("x", float, n),
+        ("x_on_cube", float, n),
+    ],
     "user": {
         "initial_batch_size": 5,
         "max_resource_sets": 4,
@@ -82,11 +91,18 @@ libE_specs["resource_info"] = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

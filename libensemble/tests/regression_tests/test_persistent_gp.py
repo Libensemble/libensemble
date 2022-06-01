@@ -26,7 +26,11 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args, save_libE_output
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.gen_funcs.persistent_gp import persistent_gp_gen_f, persistent_gp_mf_gen_f, persistent_gp_mf_disc_gen_f
+from libensemble.gen_funcs.persistent_gp import (
+    persistent_gp_gen_f,
+    persistent_gp_mf_gen_f,
+    persistent_gp_mf_disc_gen_f,
+)
 
 import warnings
 
@@ -50,7 +54,9 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
     calc_status = WORKER_DONE
 
     # Function that depends on the resolution parameter
-    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
+    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (
+        x1 + 5 * np.cos(x1 - 0.2 * z)
+    )
 
     return libE_output, persis_info, calc_status
 
@@ -94,42 +100,60 @@ logger.set_level("INFO")
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Run LibEnsemble, and store results in history array H
-for use_H0 in [False, True]:
-    if use_H0:
-        if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
-            libE_specs["mpi_comm"].Barrier()
-        H0 = np.load("persistent_gp_history_length=12_evals=10_workers=4.npy")
-        H0 = H0[:10]
-        gen_specs["in"] = list(H0.dtype.names)
-        exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
-    else:
-        H0 = None
-        # Exit criteria
-        exit_criteria = {"sim_max": 10}  # Exit after running sim_max simulations
+if __name__ == "__main__":
 
-    for run in range(3):
-        # Create a different random number stream for each worker and the manager
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+    # Run LibEnsemble, and store results in history array H
+    for use_H0 in [False, True]:
+        if use_H0:
+            if (
+                libE_specs["comms"] == "mpi"
+            ):  # Want to make sure manager has saved output
+                libE_specs["mpi_comm"].Barrier()
+            H0 = np.load("persistent_gp_history_length=12_evals=10_workers=4.npy")
+            H0 = H0[:10]
+            gen_specs["in"] = list(H0.dtype.names)
+            exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
+        else:
+            H0 = None
+            # Exit criteria
+            exit_criteria = {"sim_max": 10}  # Exit after running sim_max simulations
 
-        if run == 0:
-            gen_specs["gen_f"] = persistent_gp_gen_f
-            gen_specs["user"]["cost_func"] = lambda z: z[0]
-        if run == 1:
-            gen_specs["gen_f"] = persistent_gp_mf_gen_f
-            gen_specs["user"]["cost_func"] = lambda z: z[0]
+        for run in range(3):
+            # Create a different random number stream for each worker and the manager
+            persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        elif run == 2:
-            gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
-            gen_specs["user"]["cost_func"] = lambda z: z[0][0] ** 3
+            if run == 0:
+                gen_specs["gen_f"] = persistent_gp_gen_f
+                gen_specs["user"]["cost_func"] = lambda z: z[0]
+            if run == 1:
+                gen_specs["gen_f"] = persistent_gp_mf_gen_f
+                gen_specs["user"]["cost_func"] = lambda z: z[0]
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+            elif run == 2:
+                gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
+                gen_specs["user"]["cost_func"] = lambda z: z[0][0] ** 3
 
-        if is_manager:
-            if use_H0 is False:
-                if run == 0:
-                    assert not len(np.unique(H["resource_sets"])) > 1, "Resource sets should be the same"
+            H, persis_info, flag = libE(
+                sim_specs,
+                gen_specs,
+                exit_criteria,
+                persis_info,
+                alloc_specs,
+                libE_specs,
+                H0=H0,
+            )
 
-                    save_libE_output(H, persis_info, __file__, nworkers)  # Loaded in next persistent_gp calls
-                else:
-                    assert len(np.unique(H["resource_sets"])) > 1, "Resource sets should be variable."
+            if is_manager:
+                if use_H0 is False:
+                    if run == 0:
+                        assert (
+                            not len(np.unique(H["resource_sets"])) > 1
+                        ), "Resource sets should be the same"
+
+                        save_libE_output(
+                            H, persis_info, __file__, nworkers
+                        )  # Loaded in next persistent_gp calls
+                    else:
+                        assert (
+                            len(np.unique(H["resource_sets"])) > 1
+                        ), "Resource sets should be variable."

@@ -30,7 +30,9 @@ import libensemble.gen_funcs
 libensemble.gen_funcs.rc.aposmm_optimizers = "dfols"
 
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -52,7 +54,13 @@ sim_specs = {
     },
 }
 
-gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
+gen_out = [
+    ("x", float, n),
+    ("x_on_cube", float, n),
+    ("sim_id", int),
+    ("local_min", bool),
+    ("local_pt", bool),
+]
 
 # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
 gen_specs = {
@@ -88,33 +96,38 @@ exit_criteria = {
 }
 # end_exit_criteria_rst_tag
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-if is_manager:
-    assert persis_info[1].get("run_order"), "Run_order should have been given back"
-    assert flag == 0
-    assert np.min(H["f"][H["sim_ended"]]) <= 3000, "Didn't find a value below 3000"
+if __name__ == "__main__":
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
-    from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
+    if is_manager:
+        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert flag == 0
+        assert np.min(H["f"][H["sim_ended"]]) <= 3000, "Didn't find a value below 3000"
 
-    for i in np.where(H["local_min"])[0]:
-        F = EvaluateFunction(H["x"][i])
-        J = EvaluateJacobian(H["x"][i])
-        # u = gen_specs['user']['ub'] - H['x'][i]
-        # l = H['x'][i] - gen_specs['user']['lb']
-        # if np.any(u <= 1e-7) or np.any(l <= 1e-7):
-        #     grad = -2 * np.dot(J.T, F)
-        #     assert np.all(grad[u <= 1e-7] >= 0)
-        #     assert np.all(grad[l <= 1e-7] <= 0)
+        save_libE_output(H, persis_info, __file__, nworkers)
 
-        #     if not np.all(grad[np.logical_and(u >= 1e-7, l >= 1e-7)] <= 1e-5):
-        #         import ipdb
+        # # Calculating the Jacobian at local_minima (though this information was not used by DFO-LS)
+        from libensemble.sim_funcs.chwirut1 import EvaluateFunction, EvaluateJacobian
 
-        #         ipdb.set_trace()
-        # else:
-        #     d = np.linalg.solve(np.dot(J.T, J), np.dot(J.T, F))
-        #     assert np.linalg.norm(d) <= 1e-5
+        for i in np.where(H["local_min"])[0]:
+            F = EvaluateFunction(H["x"][i])
+            J = EvaluateJacobian(H["x"][i])
+            # u = gen_specs['user']['ub'] - H['x'][i]
+            # l = H['x'][i] - gen_specs['user']['lb']
+            # if np.any(u <= 1e-7) or np.any(l <= 1e-7):
+            #     grad = -2 * np.dot(J.T, F)
+            #     assert np.all(grad[u <= 1e-7] >= 0)
+            #     assert np.all(grad[l <= 1e-7] <= 0)
+
+            #     if not np.all(grad[np.logical_and(u >= 1e-7, l >= 1e-7)] <= 1e-5):
+            #         import ipdb
+
+            #         ipdb.set_trace()
+            # else:
+            #     d = np.linalg.solve(np.dot(J.T, J), np.dot(J.T, F))
+            #     assert np.linalg.norm(d) <= 1e-5

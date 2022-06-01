@@ -62,7 +62,9 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
     calc_status = WORKER_DONE
 
     # Function that depends on the resolution parameter
-    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
+    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (
+        x1 + 5 * np.cos(x1 - 0.2 * z)
+    )
 
     return libE_output, persis_info, calc_status
 
@@ -112,9 +114,13 @@ exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
 # Create a different random number stream for each worker and the manager
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Run LibEnsemble, and store results in history array H
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-# Save results to numpy file
-if is_manager:
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Run LibEnsemble, and store results in history array H
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    # Save results to numpy file
+    if is_manager:
+        save_libE_output(H, persis_info, __file__, nworkers)

@@ -29,7 +29,9 @@ import libensemble.gen_funcs
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
@@ -81,18 +83,22 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 2000}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    tol = 1e-5
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        tol = 1e-5
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+
+        save_libE_output(H, persis_info, __file__, nworkers)

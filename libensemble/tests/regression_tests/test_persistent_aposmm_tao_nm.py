@@ -28,7 +28,9 @@ import libensemble.gen_funcs
 libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -58,7 +60,9 @@ gen_specs = {
     "user": {
         "initial_sample_size": 100,
         "localopt_method": "nm",
-        "lb": np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
+        "lb": np.array(
+            [-3, -2]
+        ),  # This is only for sampling. TAO_NM doesn't honor constraints.
         "ub": np.array([3, 2]),
     },
 }
@@ -69,10 +73,16 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 1000}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
-    assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
+        assert (
+            np.sum(H["local_pt"]) > 100
+        ), "Why didn't at least 100 local points occur?"

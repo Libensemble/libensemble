@@ -41,7 +41,15 @@ def create_H0(persis_info, gen_specs, sim_max):
     n = len(lb)
     b = sim_max
 
-    H0 = np.zeros(b, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool), ("cancel_requested", bool)])
+    H0 = np.zeros(
+        b,
+        dtype=[
+            ("x", float, 2),
+            ("sim_id", int),
+            ("sim_started", bool),
+            ("cancel_requested", bool),
+        ],
+    )
     H0["x"] = persis_info[0]["rand_stream"].uniform(lb, ub, (b, n))
     H0["sim_id"] = range(b)
     H0["sim_started"] = False
@@ -127,33 +135,45 @@ allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 if is_manager:
     print("Testing cancellations with non-persistent gen functions")
 
-for testnum in range(1, 6):
-    alloc_specs = allocs[testnum]
-    if is_manager:
-        print("\nRunning with alloc specs", alloc_specs, flush=True)
+if __name__ == "__main__":
 
-    if alloc_specs["alloc_f"] == give_pregenerated_sim_work:
-        H0 = create_H0(persis_info, gen_specs, sim_max)
-    else:
-        H0 = None
+    for testnum in range(1, 6):
+        alloc_specs = allocs[testnum]
+        if is_manager:
+            print("\nRunning with alloc specs", alloc_specs, flush=True)
 
-    # Reset for those that use them
-    persis_info["next_to_give"] = 0
-    persis_info["total_gen_calls"] = 0  # 1
+        if alloc_specs["alloc_f"] == give_pregenerated_sim_work:
+            H0 = create_H0(persis_info, gen_specs, sim_max)
+        else:
+            H0 = None
 
-    # Perform the run - do not overwrite persis_info
-    H, persis_out, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs, H0=H0
-    )
+        # Reset for those that use them
+        persis_info["next_to_give"] = 0
+        persis_info["total_gen_calls"] = 0  # 1
 
-    if is_manager:
-        assert flag == 0
-        assert np.all(H["cancel_requested"][::10]), "Some values should be cancelled but are not"
-        assert np.all(~H["sim_started"][::10]), "Some values are given that should not have been"
-        tol = 0.1
-        for m in minima:
-            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+        # Perform the run - do not overwrite persis_info
+        H, persis_out, flag = libE(
+            sim_specs,
+            gen_specs,
+            exit_criteria,
+            persis_info,
+            alloc_specs,
+            libE_specs=libE_specs,
+            H0=H0,
+        )
 
-        print("libEnsemble found the 6 minima within a tolerance " + str(tol))
-        del H
-        gc.collect()  # Clean up memory space.
+        if is_manager:
+            assert flag == 0
+            assert np.all(
+                H["cancel_requested"][::10]
+            ), "Some values should be cancelled but are not"
+            assert np.all(
+                ~H["sim_started"][::10]
+            ), "Some values are given that should not have been"
+            tol = 0.1
+            for m in minima:
+                assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+
+            print("libEnsemble found the 6 minima within a tolerance " + str(tol))
+            del H
+            gc.collect()  # Clean up memory space.

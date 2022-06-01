@@ -14,7 +14,12 @@ import numpy as np
 import multiprocessing
 
 # Import libEnsemble items for this test
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
+from libensemble.message_numbers import (
+    WORKER_DONE,
+    WORKER_KILL_ON_ERR,
+    WORKER_KILL_ON_TIMEOUT,
+    TASK_FAILED,
+)
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
@@ -43,13 +48,19 @@ if cores_all_tasks > logical_cores:
     mess_resources = "Oversubscribing - Resource manager disabled"
 elif libE_specs.get("comms", False) == "tcp":
     disable_resource_manager = True
-    mess_resources = "TCP comms does not support resource management. Resource manager disabled"
+    mess_resources = (
+        "TCP comms does not support resource management. Resource manager disabled"
+    )
 else:
     disable_resource_manager = False
     mess_resources = "Resource manager enabled"
 
 if is_manager:
-    print("\nCores req: {} Cores avail: {}\n  {}\n".format(cores_all_tasks, logical_cores, mess_resources))
+    print(
+        "\nCores req: {} Cores avail: {}\n  {}\n".format(
+            cores_all_tasks, logical_cores, mess_resources
+        )
+    )
 
 sim_app = "./my_simtask.x"
 if not os.path.isfile(sim_app):
@@ -58,7 +69,9 @@ sim_app2 = six_hump_camel.__file__
 
 exctr = MPIExecutor()
 
-exctr.register_app(full_path=sim_app, calc_type="sim")  # Default 'sim' app - backward compatible
+exctr.register_app(
+    full_path=sim_app, calc_type="sim"
+)  # Default 'sim' app - backward compatible
 exctr.register_app(full_path=sim_app2, app_name="six_hump_camel")  # Named app
 
 sim_specs = {
@@ -84,21 +97,33 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 # num sim_ended_count conditions in executor_hworld
 exit_criteria = {"sim_max": nworkers * 5}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    print("\nChecking expected task status against Workers ...\n")
-
-    calc_status_list_in = np.asarray(
-        [WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_DONE, WORKER_KILL_ON_TIMEOUT, TASK_FAILED]
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
     )
-    calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-    # For debug
-    print("Expecting: {}".format(calc_status_list))
-    print("Received:  {}\n".format(H["cstat"]))
+    if is_manager:
+        print("\nChecking expected task status against Workers ...\n")
 
-    assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(H["cstat"])
+        calc_status_list_in = np.asarray(
+            [
+                WORKER_DONE,
+                WORKER_KILL_ON_ERR,
+                WORKER_DONE,
+                WORKER_KILL_ON_TIMEOUT,
+                TASK_FAILED,
+            ]
+        )
+        calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-    print("\n\n\nRun completed.")
+        # For debug
+        print("Expecting: {}".format(calc_status_list))
+        print("Received:  {}\n".format(H["cstat"]))
+
+        assert np.array_equal(
+            H["cstat"], calc_status_list
+        ), "Error - unexpected calc status. Received: " + str(H["cstat"])
+
+        print("\n\n\nRun completed.")

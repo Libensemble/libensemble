@@ -23,8 +23,12 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_tasmanian import (
+    sparse_grid_batched as gen_f_batched,
+)
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from time import time
 
@@ -85,7 +89,9 @@ for run in range(3):
         # other stopping criteria could be used with 'setSurplusRefinement' or no refinement
         exit_criteria = {"wallclock_max": 10}
     elif run == 1:
-        exit_criteria = {"gen_max": 100}  # This will test persistent_tasmanian stopping early.
+        exit_criteria = {
+            "gen_max": 100
+        }  # This will test persistent_tasmanian stopping early.
 
     # tasmanian_init has to be a method that returns an initialized TasmanianSparseGrid object
     # tasmanian_checkpoint_file will be overwritten between each step of the iterative refinement
@@ -112,7 +118,11 @@ for run in range(3):
         gen_specs["user"]["sCriteria"] = "classic"
         gen_specs["user"]["iOutput"] = 0
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    if __name__ == "__main__":
+
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
 
     if is_manager:
         grid_files.append(gen_specs["user"]["tasmanian_checkpoint_file"])
@@ -139,9 +149,13 @@ if is_manager:
             assert grid.getNumLoaded() == 49, "Failed to load all points"
 
         if run == 1:
-            assert grid.getNumNeeded() == 0, "Failed to stop after completing the refinement iteration"
+            assert (
+                grid.getNumNeeded() == 0
+            ), "Failed to stop after completing the refinement iteration"
             assert grid.getNumLoaded() == 89, "Failed to load all points"
 
         if run == 2:
-            assert grid.getNumNeeded() == 0, "Failed to stop after completing the refinement iteration"
+            assert (
+                grid.getNumNeeded() == 0
+            ), "Failed to stop after completing the refinement iteration"
             assert grid.getNumLoaded() == 93, "Failed to load all points"

@@ -50,13 +50,17 @@ libE_specs["save_H_and_persis_on_abort"] = False
 # Tell libEnsemble when to stop
 exit_criteria = {"wallclock_max": 10}
 
-# Perform the run
-return_flag = 1
-try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-except LoggedException as e:
-    print("Caught deliberate exception: {}".format(e))
-    return_flag = 0
+if __name__ == "__main__":
 
-if is_manager:
-    assert return_flag == 0
+    # Perform the run
+    return_flag = 1
+    try:
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+        )
+    except LoggedException as e:
+        print("Caught deliberate exception: {}".format(e))
+        return_flag = 0
+
+    if is_manager:
+        assert return_flag == 0

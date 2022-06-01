@@ -52,7 +52,13 @@ sim_specs = {
 gen_specs = {
     "gen_f": gen_f,
     "in": ["pt_id"],
-    "out": [("x", float, n), ("priority", float), ("paused", bool), ("obj_component", int), ("pt_id", int)],
+    "out": [
+        ("x", float, n),
+        ("priority", float),
+        ("paused", bool),
+        ("obj_component", int),
+        ("pt_id", int),
+    ],
     "user": {
         "gen_batch_size": 2,
         "single_component_at_a_time": True,
@@ -80,22 +86,30 @@ persis_info_safe = deepcopy(persis_info)
 
 exit_criteria = {"sim_max": budget, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+if __name__ == "__main__":
 
-# Perform the run but not stopping on NaNs
-alloc_specs["user"].pop("stop_on_NaNs")
-persis_info = deepcopy(persis_info_safe)
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-if is_manager:
-    assert flag == 0
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)
 
-# Perform the run also not stopping on partial fvec evals
-alloc_specs["user"].pop("stop_partial_fvec_eval")
-persis_info = deepcopy(persis_info_safe)
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-if is_manager:
-    assert flag == 0
+    # Perform the run but not stopping on NaNs
+    alloc_specs["user"].pop("stop_on_NaNs")
+    persis_info = deepcopy(persis_info_safe)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+    if is_manager:
+        assert flag == 0
+
+    # Perform the run also not stopping on partial fvec evals
+    alloc_specs["user"].pop("stop_partial_fvec_eval")
+    persis_info = deepcopy(persis_info_safe)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+    if is_manager:
+        assert flag == 0

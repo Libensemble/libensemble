@@ -36,9 +36,16 @@ import scipy.sparse as spp
 import sys
 from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_n_agent import n_agent as gen_f
-from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_persistent_consensus import (
+    start_consensus_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, get_doubly_stochastic, regls_opt, log_opt
+from libensemble.tools.consensus_subroutines import (
+    get_k_reach_chain_matrix,
+    get_doubly_stochastic,
+    regls_opt,
+    log_opt,
+)
 
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval
 from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval
@@ -110,7 +117,11 @@ for prob_id in range(6):
         L = 1
         err_const = 1e1
         X = np.array([np.random.normal(loc=0, scale=1.0, size=n) for _ in range(m)]).T
-        y = np.dot(X.T, np.ones(n)) + np.cos(np.dot(X.T, np.ones(n))) + np.random.normal(loc=0, scale=0.25, size=m)
+        y = (
+            np.dot(X.T, np.ones(n))
+            + np.cos(np.dot(X.T, np.ones(n)))
+            + np.random.normal(loc=0, scale=0.25, size=m)
+        )
         c = 0.1
 
         X_norms = la.norm(X, ord=2, axis=0) ** 2
@@ -121,7 +132,9 @@ for prob_id in range(6):
         fstar = regls_opt(X, y, c, reg="l2")
 
         def df(theta, i):
-            return (2 / m) * (-y[i] + np.dot(X[:, i], theta)) * X[:, i] + (2 * c / m) * theta
+            return (2 / m) * (-y[i] + np.dot(X[:, i], theta)) * X[:, i] + (
+                2 * c / m
+            ) * theta
 
         def f(theta, i):
             z = y[i] - np.dot(X[:, i], theta)
@@ -139,7 +152,12 @@ for prob_id in range(6):
         L = 1
         err_const = 1e1
         y = np.append(2 * np.ones(m // 2), np.zeros(m - m // 2)) - 1
-        X = np.array([np.random.normal(loc=y[i] * np.ones(n), scale=1.0, size=n) for i in range(m)]).T
+        X = np.array(
+            [
+                np.random.normal(loc=y[i] * np.ones(n), scale=1.0, size=n)
+                for i in range(m)
+            ]
+        ).T
         c = 0.1
 
         XXT_sum = np.outer(X[:, 0], X[:, 0])
@@ -192,7 +210,11 @@ for prob_id in range(6):
     if is_manager:
         print("=== Optimizing {} ===".format(prob_name), flush=True)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    if __name__ == "__main__":
+
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
 
     if is_manager:
         print("=== End algorithm ===", flush=True)
@@ -206,7 +228,8 @@ for prob_id in range(6):
 
         # check we have a doubly stochastic matrix
         assert (
-            la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens))) / num_gens**0.5 < 1e-15
+            la.norm(np.ones(num_gens) - S.dot(np.ones(num_gens))) / num_gens**0.5
+            < 1e-15
         ), "@S is not a doubly stochastic matrix"
 
         # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
@@ -230,7 +253,13 @@ for prob_id in range(6):
         A_kron_I = spp.kron(A, spp.eye(n))
         consensus_val = np.dot(x, A_kron_I.dot(x))
 
-        assert F - fstar < err_const * eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
+        assert (
+            F - fstar < err_const * eps
+        ), "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
             F - fstar, err_const * eps, fstar
         )
-        assert consensus_val < eps, "Consensus score of {:.4e}, expected {:.4e}\nx={}".format(consensus_val, eps, x)
+        assert (
+            consensus_val < eps
+        ), "Consensus score of {:.4e}, expected {:.4e}\nx={}".format(
+            consensus_val, eps, x
+        )

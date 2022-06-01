@@ -23,7 +23,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -57,21 +59,29 @@ exit_criteria = {"sim_max": sim_max}
 
 alloc_specs = {"alloc_f": alloc_f, "out": []}
 
-# Perform the runs
-for prob_id in range(2):
-    if prob_id == 0:
-        gen_specs["user"]["replace_final_fields"] = False
-    else:
-        gen_specs["user"]["replace_final_fields"] = True
-        libE_specs["final_fields"] = ["x", "f", "sim_id"]
+if __name__ == "__main__":
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    # Perform the runs
+    for prob_id in range(2):
+        if prob_id == 0:
+            gen_specs["user"]["replace_final_fields"] = False
+        else:
+            gen_specs["user"]["replace_final_fields"] = True
+            libE_specs["final_fields"] = ["x", "f", "sim_id"]
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    if is_manager:
-        assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
-        if prob_id == 1:
-            assert np.all(H["x"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
 
-        save_libE_output(H, persis_info, __file__, nworkers)
+        if is_manager:
+            assert (
+                len(np.unique(H["gen_ended_time"])) == 1
+            ), "Everything should have been generated in one batch"
+            if prob_id == 1:
+                assert np.all(
+                    H["x"][0:sim_max] == -1.23
+                ), "The persistent gen should have set these at shutdown"
+
+            save_libE_output(H, persis_info, __file__, nworkers)

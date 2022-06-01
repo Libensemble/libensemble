@@ -56,28 +56,41 @@ if libE_specs["comms"] == "tcp":
     # each time, and the worker will not know what port to connect to.
     sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-for time in np.append([0], np.logspace(-5, -1, 5)):
-    print("Starting for time: ", time, flush=True)
-    if time == 0:
-        alloc_specs = {"alloc_f": alloc_f2, "out": []}
-    else:
-        alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
+if __name__ == "__main__":
 
-    for rep in range(1):
-        sim_specs["user"]["pause_time"] = time
-
+    for time in np.append([0], np.logspace(-5, -1, 5)):
+        print("Starting for time: ", time, flush=True)
         if time == 0:
-            sim_specs["user"].pop("pause_time")
-            gen_specs["user"]["gen_batch_size"] = num_pts // 2
+            alloc_specs = {"alloc_f": alloc_f2, "out": []}
+        else:
+            alloc_specs = {
+                "alloc_f": alloc_f,
+                "out": [],
+                "user": {"num_active_gens": 1},
+            }
 
-        persis_info["next_to_give"] = 0
-        persis_info["total_gen_calls"] = 1
+        for rep in range(1):
+            sim_specs["user"]["pause_time"] = time
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+            if time == 0:
+                sim_specs["user"].pop("pause_time")
+                gen_specs["user"]["gen_batch_size"] = num_pts // 2
 
-        if is_manager:
-            assert flag == 0
-            assert len(H) == 2 * num_pts
+            persis_info["next_to_give"] = 0
+            persis_info["total_gen_calls"] = 1
 
-        del H
-        gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.
+            H, persis_info, flag = libE(
+                sim_specs,
+                gen_specs,
+                exit_criteria,
+                persis_info,
+                alloc_specs,
+                libE_specs,
+            )
+
+            if is_manager:
+                assert flag == 0
+                assert len(H) == 2 * num_pts
+
+            del H
+            gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.

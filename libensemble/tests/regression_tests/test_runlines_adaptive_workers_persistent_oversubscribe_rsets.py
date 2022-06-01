@@ -20,9 +20,15 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.sim_funcs.six_hump_camel import (
+    six_hump_camel_with_variable_resources as sim_f,
+)
+from libensemble.gen_funcs.persistent_sampling import (
+    uniform_random_sample_with_variable_resources as gen_f,
+)
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -37,7 +43,10 @@ libE_specs["num_resource_sets"] = rsets
 num_gens = len(libE_specs["zero_resource_workers"])
 total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
 
-print("sim_workers: {}.  rsets: {}.  Nodes: {}".format(nsim_workers, rsets, total_nodes), flush=True)
+print(
+    "sim_workers: {}.  rsets: {}.  Nodes: {}".format(nsim_workers, rsets, total_nodes),
+    flush=True,
+)
 
 if total_nodes == 1:
     max_rsets = 4  # Up to one node
@@ -59,7 +68,12 @@ sim_specs = {
 gen_specs = {
     "gen_f": gen_f,
     "persis_in": ["f", "x", "sim_id"],
-    "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+    "out": [
+        ("priority", float),
+        ("resource_sets", int),
+        ("x", float, n),
+        ("x_on_cube", float, n),
+    ],
     "user": {
         "initial_batch_size": nworkers - 1,
         "max_resource_sets": max_rsets,
@@ -76,7 +90,12 @@ alloc_specs = {
 # comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
 
 comms = libE_specs["comms"]
-node_file = "nodelist_adaptive_workers_persistent_ovsub_rsets_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_adaptive_workers_persistent_ovsub_rsets_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+)
 if is_manager:
     create_node_file(num_nodes=total_nodes, name=node_file)
 
@@ -91,11 +110,18 @@ libE_specs["resource_info"] = {
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

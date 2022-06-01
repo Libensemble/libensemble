@@ -24,8 +24,12 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
-from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
-from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
+from libensemble.alloc_funcs.start_persistent_local_opt_gens import (
+    start_persistent_local_opt_gens as alloc_f,
+)
+from libensemble.tests.regression_tests.support import (
+    uniform_or_localopt_gen_out as gen_out,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
@@ -56,22 +60,30 @@ gen_specs = {
     },
 }
 
-alloc_specs = {"alloc_f": alloc_f, "out": gen_out, "user": {"batch_mode": True, "num_active_gens": 1}}
+alloc_specs = {
+    "alloc_f": alloc_f,
+    "out": gen_out,
+    "user": {"batch_mode": True, "num_active_gens": 1},
+}
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 1000, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    tol = 0.1
-    for m in minima:
-        assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        assert flag == 0
 
-    print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
+        tol = 0.1
+        for m in minima:
+            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
+
+        save_libE_output(H, persis_info, __file__, nworkers)

@@ -23,7 +23,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import persistent_six_hump_camel as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_workers as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
@@ -65,13 +67,17 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert len(np.unique(H["gen_ended_time"])) == 8
-    assert not any((H["f"] == 0))
-    # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
-    assert not np.isclose(H["f"][0], 3.23333333)
-    assert np.isclose(H["f"][-1], 3.23333333)
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    if is_manager:
+        assert len(np.unique(H["gen_ended_time"])) == 8
+        assert not any((H["f"] == 0))
+        # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
+        assert not np.isclose(H["f"][0], 3.23333333)
+        assert np.isclose(H["f"][-1], 3.23333333)
+        save_libE_output(H, persis_info, __file__, nworkers)

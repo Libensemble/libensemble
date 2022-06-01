@@ -35,7 +35,9 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
 from libensemble.tests.regression_tests.common import build_borehole  # current location
 from libensemble.executors.executor import Executor
@@ -53,7 +55,9 @@ if __name__ == "__main__":
     nparams = 4  # No. of theta params
     ndims = 3  # No. of x coordinates.
     max_add_thetas = 20  # Max no. of thetas added for evaluation
-    step_add_theta = 10  # No. of thetas to generate per step, before emulator is rebuilt
+    step_add_theta = (
+        10  # No. of thetas to generate per step, before emulator is rebuilt
+    )
     n_explore_theta = 200  # No. of thetas to explore while selecting the next theta
     obsvar = 10 ** (-1)  # Constant for generating noise in obs
 
@@ -125,7 +129,12 @@ if __name__ == "__main__":
 
     # Perform the run
     H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        alloc_specs=alloc_specs,
+        libE_specs=libE_specs,
     )
 
     if is_manager:
@@ -133,4 +142,8 @@ if __name__ == "__main__":
         print("Killed sims", H["sim_id"][H["kill_sent"]])
         sims_done = np.count_nonzero(H["sim_ended"])
         save_libE_output(H, persis_info, __file__, nworkers)
-        assert sims_done == max_evals, "Num of completed simulations should be {}. Is {}".format(max_evals, sims_done)
+        assert (
+            sims_done == max_evals
+        ), "Num of completed simulations should be {}. Is {}".format(
+            max_evals, sims_done
+        )

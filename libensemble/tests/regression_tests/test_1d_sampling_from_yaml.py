@@ -30,10 +30,12 @@ sampling.gen_specs["user"].update(
 
 sampling.persis_info.add_random_streams()
 
-# Perform the run
-sampling.run()
+if __name__ == "__main__":
 
-if sampling.is_manager:
-    assert len(sampling.H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
-    sampling.save_output(__file__)
+    # Perform the run
+    sampling.run()
+
+    if sampling.is_manager:
+        assert len(sampling.H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
+        sampling.save_output(__file__)

@@ -23,7 +23,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -60,13 +62,21 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"gen_max": 100, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)
-    print("Num. points in each gen iteration:", counts)
-    assert counts[0] == nworkers, "The first gen_ended_time should be common among initial_batch_size number of points"
-    assert len(np.unique(counts)) > 1, "All gen_ended_times are the same; they should be different for the async case"
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    if is_manager:
+        [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)
+        print("Num. points in each gen iteration:", counts)
+        assert (
+            counts[0] == nworkers
+        ), "The first gen_ended_time should be common among initial_batch_size number of points"
+        assert (
+            len(np.unique(counts)) > 1
+        ), "All gen_ended_times are the same; they should be different for the async case"
+
+        save_libE_output(H, persis_info, __file__, nworkers)

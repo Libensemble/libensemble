@@ -34,7 +34,13 @@ libE_specs["dedicated_mode"] = True
 libE_specs["enforce_worker_core_bounds"] = True
 
 # To allow visual checking - log file not used in test
-log_file = "ensemble_mpi_runners_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+log_file = (
+    "ensemble_mpi_runners_supernode_uneven_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+    + ".log"
+)
 logger.set_filename(log_file)
 
 nodes_per_worker = 2.5
@@ -42,7 +48,12 @@ nodes_per_worker = 2.5
 # For varying size test - relate node count to nworkers
 nsim_workers = nworkers
 comms = libE_specs["comms"]
-node_file = "nodelist_mpi_runners_supernode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_mpi_runners_supernode_uneven_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+)
 nnodes = int(nsim_workers * nodes_per_worker)
 
 # Mock up system
@@ -120,7 +131,15 @@ for i in range(nsim_workers):
     ntasks = 16 * npw
     loc_nodes = npw
     exp_tasks.append(ntasks)
-    exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(loc_nodes) + srun_p4)
+    exp_srun.append(
+        srun_p1
+        + str(nodename)
+        + srun_p2
+        + str(ntasks)
+        + srun_p3
+        + str(loc_nodes)
+        + srun_p4
+    )
 
 test_list = test_list_base
 exp_list = exp_srun
@@ -129,7 +148,11 @@ sim_specs["user"] = {
     "expect": exp_list,
 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
+
+    # All asserts are in sim func

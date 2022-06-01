@@ -49,15 +49,19 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
-    tol = 0.1
-    for m in minima:
-        assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        assert flag == 0
 
-    print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
-    save_libE_output(H, persis_info, __file__, nworkers)
+        tol = 0.1
+        for m in minima:
+            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+
+        print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
+        save_libE_output(H, persis_info, __file__, nworkers)

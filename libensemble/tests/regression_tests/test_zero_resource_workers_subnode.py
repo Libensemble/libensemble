@@ -17,7 +17,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -40,7 +42,9 @@ libE_specs["dedicated_mode"] = True
 libE_specs["enforce_worker_core_bounds"] = True
 
 # To allow visual checking - log file not used in test
-log_file = "ensemble_zrw_subnode_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+log_file = (
+    "ensemble_zrw_subnode_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+)
 logger.set_filename(log_file)
 
 nodes_per_worker = 0.5
@@ -54,7 +58,12 @@ if not (nsim_workers * nodes_per_worker).is_integer():
     sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
 
 comms = libE_specs["comms"]
-node_file = "nodelist_zero_resource_workers_subnode_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_zero_resource_workers_subnode_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+)
 nnodes = int(nsim_workers * nodes_per_worker)
 
 # Mock up system
@@ -123,7 +132,11 @@ sim_specs["user"] = {
     "persis_gens": n_gens,
 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    # All asserts are in sim func

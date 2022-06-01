@@ -28,7 +28,9 @@ import libensemble.gen_funcs
 libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.alloc_funcs.persistent_aposmm_alloc import (
+    persistent_aposmm_alloc as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
@@ -88,7 +90,9 @@ for run in range(2):
         sim_specs["out"] = [("f", float), ("grad", float, n)]
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
@@ -121,7 +125,11 @@ gen_specs["user"]["localopt_method"] = "scipy_Nelder-Mead"
 sim_specs["out"] = [("f", float)]
 gen_specs["persis_in"].remove("grad")
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"], "Run didn't finish"
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    if is_manager:
+        assert np.sum(H["sim_ended"]) >= exit_criteria["sim_max"], "Run didn't finish"

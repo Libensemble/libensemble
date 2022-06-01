@@ -24,7 +24,9 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f1
 from libensemble.gen_funcs.persistent_sampling import batched_history_matching as gen_f2
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -58,21 +60,25 @@ exit_criteria = {"gen_max": num_batches * batch, "wallclock_max": 300}
 
 libE_specs["kill_canceled_sims"] = False
 
-for run in range(2):
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-    for i in persis_info:
-        persis_info[i]["get_grad"] = True
+if __name__ == "__main__":
 
-    if run == 0:
-        gen_specs["gen_f"] = gen_f1
-    elif run == 1:
-        gen_specs["gen_f"] = gen_f2
-        gen_specs["user"]["num_best_vals"] = 5
+    for run in range(2):
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        for i in persis_info:
+            persis_info[i]["get_grad"] = True
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        if run == 0:
+            gen_specs["gen_f"] = gen_f1
+        elif run == 1:
+            gen_specs["gen_f"] = gen_f2
+            gen_specs["user"]["num_best_vals"] = 5
 
-    if is_manager:
-        assert len(np.unique(H["gen_ended_time"])) == num_batches
+        # Perform the run
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+        )
 
-        save_libE_output(H, persis_info, __file__, nworkers)
+        if is_manager:
+            assert len(np.unique(H["gen_ended_time"])) == num_batches
+
+            save_libE_output(H, persis_info, __file__, nworkers)

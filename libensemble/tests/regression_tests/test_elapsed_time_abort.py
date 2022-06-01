@@ -20,7 +20,12 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams, eprint
+from libensemble.tools import (
+    parse_args,
+    save_libE_output,
+    add_unique_random_streams,
+    eprint,
+)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -53,15 +58,24 @@ alloc_specs = {
 
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {"elapsed_wallclock_time": 1}  # Intentionally using deprecated term. Use wallclock_max instead.
+exit_criteria = {
+    "elapsed_wallclock_time": 1
+}  # Intentionally using deprecated term. Use wallclock_max instead.
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+if __name__ == "__main__":
 
-if is_manager:
-    eprint(flag)
-    eprint(H)
-    assert flag == 2
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
+
+    if is_manager:
+        eprint(flag)
+        eprint(H)
+        assert flag == 2
+        save_libE_output(H, persis_info, __file__, nworkers)

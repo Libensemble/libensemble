@@ -15,7 +15,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -50,7 +52,9 @@ nsim_workers = nworkers - n_gens
 
 comms = libE_specs["comms"]
 nodes_per_worker = 2
-node_file = "nodelist_zero_resource_workers_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_zero_resource_workers_comms_" + str(comms) + "_wrks_" + str(nworkers)
+)
 nnodes = nsim_workers * nodes_per_worker
 
 # Mock up system
@@ -103,7 +107,13 @@ exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
 # Each worker has 2 nodes. Basic test list for portable options
 test_list_base = [
-    {"testid": "base1", "nprocs": 2, "nnodes": 1, "ppn": 2, "e_args": "--xarg 1"},  # Under use
+    {
+        "testid": "base1",
+        "nprocs": 2,
+        "nnodes": 1,
+        "ppn": 2,
+        "e_args": "--xarg 1",
+    },  # Under use
     {"testid": "base2"},  # Give no config and no extra_args
 ]
 
@@ -121,7 +131,11 @@ sim_specs["user"] = {
     "persis_gens": n_gens,
 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    # All asserts are in sim func

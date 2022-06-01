@@ -23,7 +23,9 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.gen_funcs.persistent_sampling import uniform_nonblocking as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -57,11 +59,17 @@ for i in persis_info:
 
 exit_criteria = {"gen_max": 40, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert len(np.unique(H["gen_ended_time"])) == 2
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
 
-    assert persis_info[1]["spin_count"] > 0, "This should have been a nonblocking receive"
+    if is_manager:
+        assert len(np.unique(H["gen_ended_time"])) == 2
+        save_libE_output(H, persis_info, __file__, nworkers)
+
+        assert (
+            persis_info[1]["spin_count"] > 0
+        ), "This should have been a nonblocking receive"

@@ -46,10 +46,14 @@ persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
 exit_criteria = {"gen_max": 501}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert len(H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
+
+    if is_manager:
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
+        save_libE_output(H, persis_info, __file__, nworkers)

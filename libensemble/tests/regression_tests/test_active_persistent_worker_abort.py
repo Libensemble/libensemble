@@ -23,9 +23,13 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
-from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
+from libensemble.alloc_funcs.start_persistent_local_opt_gens import (
+    start_persistent_local_opt_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
+from libensemble.tests.regression_tests.support import (
+    uniform_or_localopt_gen_out as gen_out,
+)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -68,9 +72,13 @@ exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 if nworkers < 2:
     sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

@@ -33,17 +33,29 @@ sim_app = "/path/to/fakeapp.x"
 comms = libE_specs["comms"]
 
 # To allow visual checking - log file not used in test
-log_file = "ensemble_mpi_runners_subnode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+log_file = (
+    "ensemble_mpi_runners_subnode_uneven_comms_"
+    + str(comms)
+    + "_wrks_"
+    + str(nworkers)
+    + ".log"
+)
 logger.set_filename(log_file)
 
 # For varying size test - relate node count to nworkers
 nsim_workers = nworkers
 
 if nsim_workers % 2 == 0:
-    sys.exit("This test must be run with an odd of workers >= 3 and <= 31. There are {} workers.".format(nsim_workers))
+    sys.exit(
+        "This test must be run with an odd of workers >= 3 and <= 31. There are {} workers.".format(
+            nsim_workers
+        )
+    )
 
 comms = libE_specs["comms"]
-node_file = "nodelist_mpi_runners_subnode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)
+node_file = (
+    "nodelist_mpi_runners_subnode_uneven_comms_" + str(comms) + "_wrks_" + str(nworkers)
+)
 nnodes = 2
 
 if is_manager:
@@ -123,7 +135,15 @@ for i in range(nsim_workers):
         nodename = "node-2"
         ntasks = 16 // low_wpn
     exp_tasks.append(ntasks)
-    exp_srun.append(srun_p1 + str(nodename) + srun_p2 + str(ntasks) + srun_p3 + str(ntasks) + srun_p4)
+    exp_srun.append(
+        srun_p1
+        + str(nodename)
+        + srun_p2
+        + str(ntasks)
+        + srun_p3
+        + str(ntasks)
+        + srun_p4
+    )
 
 test_list = test_list_base
 exp_list = exp_srun
@@ -133,7 +153,11 @@ sim_specs["user"] = {
     "offset_for_schedular": True,
 }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
+
+    # All asserts are in sim func

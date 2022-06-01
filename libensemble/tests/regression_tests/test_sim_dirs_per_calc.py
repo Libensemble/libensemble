@@ -61,27 +61,38 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 exit_criteria = {"sim_max": 21}
 
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+if __name__ == "__main__":
 
-if is_manager:
-    assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
-    dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
-    assert dir_sum == exit_criteria["sim_max"], "Number of sim directories ({}) does not match sim_max ({}).".format(
-        dir_sum, exit_criteria["sim_max"]
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
     )
 
-    input_copied = []
+    if is_manager:
+        assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(
+            c_ensemble
+        )
+        dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
+        assert (
+            dir_sum == exit_criteria["sim_max"]
+        ), "Number of sim directories ({}) does not match sim_max ({}).".format(
+            dir_sum, exit_criteria["sim_max"]
+        )
 
-    for base, files, _ in os.walk(c_ensemble):
-        basedir = base.split("/")[-1]
-        if basedir.startswith("sim"):
-            input_copied.append(
-                all(
-                    [
-                        os.path.basename(j) in files
-                        for j in libE_specs["sim_dir_copy_files"] + libE_specs["sim_dir_symlink_files"]
-                    ]
+        input_copied = []
+
+        for base, files, _ in os.walk(c_ensemble):
+            basedir = base.split("/")[-1]
+            if basedir.startswith("sim"):
+                input_copied.append(
+                    all(
+                        [
+                            os.path.basename(j) in files
+                            for j in libE_specs["sim_dir_copy_files"]
+                            + libE_specs["sim_dir_symlink_files"]
+                        ]
+                    )
                 )
-            )
 
-    assert all(input_copied), "Exact input files not copied or symlinked to each calculation directory"
+        assert all(
+            input_copied
+        ), "Exact input files not copied or symlinked to each calculation directory"

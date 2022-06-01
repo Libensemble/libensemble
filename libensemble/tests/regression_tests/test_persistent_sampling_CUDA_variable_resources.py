@@ -19,9 +19,15 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_CUDA_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.sim_funcs.six_hump_camel import (
+    six_hump_camel_CUDA_variable_resources as sim_f,
+)
+from libensemble.gen_funcs.persistent_sampling import (
+    uniform_random_sample_with_variable_resources as gen_f,
+)
+from libensemble.alloc_funcs.start_only_persistent import (
+    only_persistent_gens as alloc_f,
+)
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
@@ -53,7 +59,8 @@ gen_specs = {
     "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
     "user": {
         "initial_batch_size": nworkers - 1,
-        "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+        "max_resource_sets": nworkers
+        - 1,  # Any sim created can req. 1 worker up to all.
         "lb": np.array([-3, -2]),
         "ub": np.array([3, 2]),
     },
@@ -71,11 +78,19 @@ libE_specs["scheduler_opts"] = {"match_slots": True}
 persis_info = add_unique_random_streams({}, nworkers + 1)
 exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+if __name__ == "__main__":
+
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        libE_specs=libE_specs,
+        alloc_specs=alloc_specs,
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)
