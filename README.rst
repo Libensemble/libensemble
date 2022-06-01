@@ -76,6 +76,7 @@ Required dependencies:
 * Python_ 3.7 or above
 * NumPy_
 * psutil_
+* setuptools_
 
 When using  ``mpi4py`` for libEnsemble communications:
 
@@ -339,6 +340,7 @@ See a complete list of `example user scripts`_.
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
+.. _setuptools: https://setuptools.pypa.io/en/latest/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html

@@ -16,7 +16,7 @@ import numpy as np
 
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor

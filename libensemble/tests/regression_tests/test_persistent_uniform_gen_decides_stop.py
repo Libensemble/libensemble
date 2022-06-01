@@ -21,7 +21,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_request_shutdown as gen_f
+from libensemble.gen_funcs.persistent_sampling import persistent_request_shutdown as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
