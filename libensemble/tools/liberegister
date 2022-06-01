@@ -53,8 +53,8 @@ if __name__ == "__main__":
         "--python-path",
         type=Path,
         nargs="?",
-        help="Which Python to use. Default is current Python.",
-        default=sys.executable,
+        help="Which Python to use.",
+        default="python",
     )
 
     parser.add_argument(
@@ -62,8 +62,8 @@ if __name__ == "__main__":
         "--mpirunner",
         type=Path,
         nargs="?",
-        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.",
-        default=shutil.which("mpirun"),
+        help="Which mpirunner to use (if using MPI comms). Default is `mpirun`.",
+        default="mpirun",
     )
 
     parser.add_argument(
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         "--project",
         type=str,
         nargs="?",
-        help="Scheduler project name.",
+        help="Project name for billing hours.",
         default=None,
     )
 
@@ -102,11 +102,13 @@ if __name__ == "__main__":
         "--directory",
         type=Path,
         nargs="?",
-        help="Working directory for job. Default is current directory.",
-        default=os.getcwd(),
+        help="Working directory for job.",
+        default=None,
     )
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
+
+    assert jobargs.nworkers and jobargs.comms, "Must supply the --comms and --nworkers options"
 
     if jobargs.comms == "local":
         executable = jobargs.python_path

@@ -5,21 +5,18 @@ import sys
 import shutil
 import argparse
 from pathlib import Path
-from psij import JobExecutor, Import, JobSpec
+from psij import JobExecutor, Import, JobSpec, Job
 from libensemble.version import __version__
 
 if __name__ == '__main__':
-
-    script = sys.argv[1]
-    assert script.endswith(".json"), "First argument doesn't appear to be a json file."
 
     parser = argparse.ArgumentParser(prog="libesubmit",
         description="Submit a libEnsemble PSI/J job representation for execution. Additional options may overwrite the input file.",
         conflict_handler="resolve"
     )
 
-        choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm",
-                   "aprun", "single", "multiple", "mpirun", "jsrun", "srun"]
+    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm",
+              "aprun", "single", "multiple", "mpirun", "jsrun", "srun"]
 
     parser.add_argument("-l", "--launcher", choices=choices)
 
@@ -46,6 +43,15 @@ if __name__ == '__main__':
     print(f"libEnsemble {__version__}")
     print(f"Imported PSI/J serialization: {outfile_default}. Preparing submission.")
 
+    script = sys.argv[1]
+    assert script.endswith(".json"), "First argument doesn't appear to be a json file."
+
     importer = Import()
     jobspec = importer.load(script)
     assert isinstance(jobspec, JobSpec), "Invalid input file."
+
+    jex = JobExecutor.get_instance(jobargs.launcher)
+    job = Job()
+    job.spec = jobspec
+
+    jex.submit(job)
