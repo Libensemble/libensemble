@@ -7,7 +7,6 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.libE import libE
 
 # Fixed resources (one resource set per worker)
-
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Uncomment for var resources
