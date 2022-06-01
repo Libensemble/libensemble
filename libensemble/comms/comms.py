@@ -25,8 +25,6 @@ access and monitoring (for persistent gens):
 from abc import ABC, abstractmethod
 from time import time
 from threading import Thread
-
-# from multiprocessing import Process, Queue, Value, Lock
 from multiprocessing import Process, Queue
 from traceback import format_exc
 import queue
@@ -106,11 +104,6 @@ class QComm(Comm):
     These can be used with threads or multiprocessing.
     """
 
-    # Integer count  - shared amongst processes
-    # Supports adding/removing workers - only works with 'fork'
-    # lock = Lock()
-    # _ncomms = Value("i", 0)
-
     def __init__(self, inbox, outbox, nworkers=None, copy_msg=False):
         """Set the inbox and outbox queues."""
         self._inbox = inbox
@@ -122,7 +115,6 @@ class QComm(Comm):
     def get_num_workers(self):
         """Return global _ncomms"""
         return self.nworkers
-        # return QComm._ncomms.value
 
     def send(self, *args):
         """Place a message on the outbox queue."""
@@ -223,9 +215,6 @@ class QCommProcess(Comm):
         self._done = False
         comm = QComm(self.inbox, self.outbox, nworkers)
 
-        # with QComm.lock:
-        #     QComm._ncomms.value += 1
-
         self.process = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def _is_result_msg(self, msg):
@@ -284,8 +273,7 @@ class QCommProcess(Comm):
             raise Timeout()
         if self._exception is not None:
             raise RemoteException(self._exception.msg, self._exception.exc)
-        # with QComm.lock:
-        #     QComm._ncomms.value -= 1
+
         return self._result
 
     def terminate(self, timeout=None):
@@ -295,8 +283,6 @@ class QCommProcess(Comm):
         self.process.join(timeout=timeout)
         if self.running:
             raise Timeout()
-        # with QComm.lock:
-        #     QComm._ncomms.value -= 1
 
     @property
     def running(self):
