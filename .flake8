@@ -22,16 +22,10 @@ exclude =
 per-file-ignores =
         # init needs to import the logger.
         libensemble/__init__.py:F401
-        libensemble/libensemble/__init__.py:F401
-
-        # worker uses regex with chars that resemble escape sequences
-        libensemble/worker.py:W605
 
         # Need to turn of matching probes (before other imports) on some
         # systems/versions of MPI:
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
-        libensemble/libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
-        libensemble/tests/regression_tests/outtest_uniform_sampling_with_different_resources.py:E402
 
         # Similar reasoning for configuring mpi4py
         libensemble/tests/unit_tests/test_executor.py:E402
@@ -49,10 +43,6 @@ per-file-ignores =
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/outtest_persistent_aposmm*:E402
         libensemble/tests/deprecated_tests/test_old_aposmm*:E402
-
-        # Ignoring linelength in test_history.py
-        libensemble/tests/unit_tests/test_history.py:E501
-        libensemble/tests/unit_tests/test_allocation_funcs_and_support.py:E501
 
         # Allow undefined name '__version__'
         setup.py:F821

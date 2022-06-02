@@ -22,7 +22,7 @@ def test_qcomm():
 
     inq = queue.Queue()
     outq = queue.Queue()
-    comm = comms.QComm(inq, outq)
+    comm = comms.QComm(inq, outq, 2)
 
     comm.send("a", 1)
     comm.send("b")
@@ -44,6 +44,8 @@ def test_qcomm():
     except comms.Timeout:
         pass
     assert flag, "Check comms receive returns Timeout at appropriate time."
+
+    assert comm.nworkers == 2, "Check number of workers correct"
 
 
 def test_missing_handler():
@@ -101,7 +103,7 @@ def test_gen_comm_handler():
 
     inq = queue.Queue()
     outq = queue.Queue()
-    comm = comms.QComm(inq, outq)
+    comm = comms.QComm(inq, outq, 4)
     gcomm = TestGenComm(comm)
 
     gcomm.send_request(None)
@@ -167,7 +169,7 @@ def test_sim_comm_handler():
 
     inq = queue.Queue()
     outq = queue.Queue()
-    comm = comms.QComm(inq, outq)
+    comm = comms.QComm(inq, outq, 2)
     scomm = TestSimComm(comm)
 
     scomm.send_result(1, None)
@@ -218,7 +220,7 @@ def test_comm_eval():
 
     inq = queue.Queue()
     outq = queue.Queue()
-    comm = comms.QComm(inq, outq)
+    comm = comms.QComm(inq, outq, 2)
     gcomm = comms.CommEval(comm, gen_specs=gen_specs)
 
     inq.put(("worker_avail", 3))
@@ -334,7 +336,7 @@ def run_qcomm_threadproc_test(ThreadProc):
     results = np.zeros(3, dtype=[("f", float)])
     results["f"] = [5, 10, 30]
     # resultsf = results['f']
-    with ThreadProc(worker_thread, gen_specs=gen_specs) as mgr_comm:
+    with ThreadProc(worker_thread, nworkers=2, gen_specs=gen_specs) as mgr_comm:
         assert mgr_comm.running
         assert mgr_comm.recv()[0] == "request"
         mgr_comm.send("queued", 0)
@@ -353,7 +355,7 @@ def run_qcomm_threadproc_test(ThreadProc):
 
     try:
         bad_worker_okay = True
-        with ThreadProc(bad_worker_thread) as comm:
+        with ThreadProc(bad_worker_thread, nworkers=2) as comm:
 
             flag = True
             try:
@@ -392,6 +394,6 @@ def test_comm_logging():
         logger.info("Test message")
         comm.send("Done!")
 
-    with comms.QCommProcess(worker_main) as mgr_comm:
+    with comms.QCommProcess(worker_main, nworkers=2) as mgr_comm:
         msg = mgr_comm.recv()
         assert isinstance(msg[0], logging.LogRecord)
