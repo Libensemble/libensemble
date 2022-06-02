@@ -133,7 +133,7 @@ jobs:
             cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
             make
             make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/libensemble/tests/regression_tests/
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
 
             pip install dragonfly-opt
             pip install torch
