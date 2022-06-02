@@ -183,13 +183,13 @@ def test_pbs_nodelist_empty():
 
 def test_pbs_nodelist_single():
     nodefile = "pbs_single"
-    in_lines = ['edtb-01.mcp.alcf.anl.gov\n', 'edtb-01.mcp.alcf.anl.gov\n', 'edtb-01.mcp.alcf.anl.gov\n']
+    in_lines = ["edtb-01.mcp.alcf.anl.gov\n", "edtb-01.mcp.alcf.anl.gov\n", "edtb-01.mcp.alcf.anl.gov\n"]
     with open(nodefile, "w") as f:
         for line in in_lines:
             f.write(line)
 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
-    exp_out = ['edtb-01.mcp.alcf.anl.gov']
+    exp_out = ["edtb-01.mcp.alcf.anl.gov"]
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)
@@ -197,13 +197,13 @@ def test_pbs_nodelist_single():
 
 def test_pbs_nodelist_seq():
     nodefile = "pbs_seq"
-    in_lines = ['edtb-01.mcp.alcf.anl.gov\n', 'edtb-02.mcp.alcf.anl.gov\n']
+    in_lines = ["edtb-01.mcp.alcf.anl.gov\n", "edtb-02.mcp.alcf.anl.gov\n"]
     with open(nodefile, "w") as f:
         for line in in_lines:
             f.write(line)
 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
-    exp_out = ['edtb-01.mcp.alcf.anl.gov', 'edtb-02.mcp.alcf.anl.gov']
+    exp_out = ["edtb-01.mcp.alcf.anl.gov", "edtb-02.mcp.alcf.anl.gov"]
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)
