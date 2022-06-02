@@ -8,6 +8,7 @@ import numpy as np
 __all__ = [
     "uniform_random_sample",
     "uniform_random_sample_with_variable_resources",
+    "uniform_random_sample_with_var_priorities_and_resources",
     "uniform_random_sample_obj_components",
     "latin_hypercube_sample",
     "uniform_random_sample_cancel",
@@ -37,15 +38,47 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
 
 def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     """
-    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``. Also randomly requests a different number of resource
-    sets to be used in the evaluation of the generated points after the initial batch.
+    Generates ``gen_specs['user']['gen_batch_size']`` points uniformly over the domain
+    defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
 
-    .. seealso::
-        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+    Also randomly requests a different number of resource sets to be used in each evaluation.
+
+    This generator is used to test/demonstrate setting of resource sets.
+
+    #.. seealso::
+        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+    """
+
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
+    max_rsets = gen_specs["user"]["max_resource_sets"]
+
+    n = len(lb)
+    b = gen_specs["user"]["gen_batch_size"]
+
+    H_o = np.zeros(b, dtype=gen_specs["out"])
+
+    H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+    H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1, b)
+
+    # print(f'GEN: H rsets requested: {H_o["resource_sets"]}')
+
+    return H_o, persis_info
+
+
+def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs, _):
+    """
+    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
+    ``gen_specs['user']['lb']``. Also, randomly requests a different priority and number of
+    resource sets to be used in the evaluation of the generated points, after the initial batch.
+
+    This generator is used to test/demonstrate setting of priorities and resource sets.
+
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
+    max_rsets = gen_specs["user"]["max_resource_sets"]
+
     n = len(lb)
 
     if len(H) == 0:
@@ -63,9 +96,9 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
         H_o = np.zeros(1, dtype=gen_specs["out"])
         # H_o['x'] = len(H)*np.ones(n)  # Can use a simple count for testing.
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub)
-        H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1)
+        H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1)
         H_o["priority"] = 10 * H_o["resource_sets"]
-        # print('Created sim for {} workers'.format(H_o['resource_sets']), flush=True)
+        # print('Created sim for {} resource sets'.format(H_o['resource_sets']), flush=True)
 
     return H_o, persis_info
 
