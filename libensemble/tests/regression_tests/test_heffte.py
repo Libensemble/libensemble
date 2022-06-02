@@ -8,6 +8,7 @@ configurations.
 # TESTSUITE_NPROCS: 2 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_OMPI_SKIP: true
 
 import numpy as np
 import itertools
