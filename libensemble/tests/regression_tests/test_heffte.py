@@ -7,6 +7,7 @@ configurations.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
 
 import numpy as np
 import itertools
