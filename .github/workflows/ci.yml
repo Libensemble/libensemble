@@ -130,7 +130,7 @@ jobs:
             mkdir heffte/build
             cd heffte/build
             pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=/home/jlarson/software/heffte/ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
             make
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/libensemble/tests/regression_tests/
