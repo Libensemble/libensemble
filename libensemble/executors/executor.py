@@ -350,7 +350,7 @@ class Executor:
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         task.submit_time = task.timer.tstart
         while task.state in NOT_STARTED_STATES:
-            time.sleep(0.02)
+            time.sleep(0.001)
             task.poll()
         logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time() - start))
         if not task.finished:
@@ -359,7 +359,7 @@ class Executor:
             if fail_time:
                 remaining = fail_time - task.timer.elapsed
                 while task.state not in END_STATES and remaining > 0:
-                    time.sleep(min(0.2, remaining))
+                    time.sleep(min(0.01, remaining))
                     task.poll()
                     remaining = fail_time - task.timer.elapsed
                 logger.debug("After {} seconds: task {} polled as {}".format(task.timer.elapsed, task.name, task.state))
