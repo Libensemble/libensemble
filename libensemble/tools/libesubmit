@@ -2,8 +2,10 @@
 
 import os
 import sys
+import time
 import shutil
 import argparse
+from tqdm.auto import tqdm
 from pathlib import Path
 from psij import JobExecutor, Import, JobSpec, Job
 from libensemble.version import __version__
@@ -20,6 +22,8 @@ if __name__ == '__main__':
 
     parser.add_argument("-l", "--launcher", choices=choices)
 
+    parser.add_argument("-w", "--wait", action="store_true", help="Wait for exit_criteria evaluations to complete before exiting.")
+
     parser.add_argument("-p", "--python-path", type=Path, nargs="?",
                         help="Which Python to use. Default is current Python.", default=sys.executable)
 
@@ -33,25 +37,72 @@ if __name__ == '__main__':
                         help="Scheduler project name.", default=None)
 
     parser.add_argument("-t", "--wallclock", type=int, nargs="?",
-                        help="Total wallclock for job.", default=30)
+                        help="Total wallclock for job. Default is 30 minutes.", default=30)
 
     parser.add_argument("-d", "--directory", type=Path, nargs="?",
                         help="Working directory for job. Default is current directory.", default=os.getcwd())
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
-    print(f"libEnsemble {__version__}")
-    print(f"Imported PSI/J serialization: {outfile_default}. Preparing submission.")
-
     script = sys.argv[1]
-    assert script.endswith(".json"), "First argument doesn't appear to be a json file."
+    assert script.endswith(".json"), "First argument doesn't appear to be a .json file."
+
+    print(f"*** libEnsemble {__version__} ***")
+    print(f"Imported PSI/J serialization: {script}. Preparing submission...")
 
     importer = Import()
     jobspec = importer.load(script)
     assert isinstance(jobspec, JobSpec), "Invalid input file."
+
+    jobspec.attributes.project_name = jobargs.project
+    jobspec.attributes.queue_name = jobargs.queue
+
+    # we enforced passing a python script in liberegister
+    callscript = [i for i in jobspec.arguments if str(i).endswith('.py')][0]
+    print(f"Calling script: {callscript}. Checking in: {jobargs.directory}")
+
+    if callscript not in os.listdir(jobargs.directory):
+        print('... not found!')
+        exit = input("Check elsewhere, starting from your home directory? (Y/N) ")
+        if exit.upper() != 'Y':
+            print("Exiting")
+            sys.exit()
+
+        def libe_walkdir(folder):
+            """Walk through every file in a directory"""
+            for dirpath, dirs, files in os.walk(folder):
+                for filename in files:
+                    yield os.path.abspath(os.path.join(dirpath, filename))
+
+        print("preparing... ctrl+c to abort.")
+        filescount = 0
+        for _ in tqdm(libe_walkdir(os.path.expanduser('~'))):
+            filescount += 1
+
+        print("detecting... ctrl+c to abort.")
+        candidate_script_paths = []
+        try:
+            for filepath in tqdm(libe_walkdir(os.path.expanduser('~')), total=filescount):
+                if callscript in filepath.split('/'):
+                    candidate_script_paths.append(filepath)
+                    tqdm.write(f"{len(candidate_script_paths)}. {filepath}")
+
+            exit = input("Specify a detected script: ")
+            new_callscript = candidate_script_paths[int(exit)-1]
+
+        except KeyboardInterrupt:
+            exit = input("detection interrupted. ctrl+c again to exit, or specify a detected script: ")
+            new_callscript = candidate_script_paths[int(exit)-1]
+
+        jobspec.arguments[jobspec.arugments.index(callscript)] = new_callscript
+
+    else:
+        print('...found! Proceding.')
 
     jex = JobExecutor.get_instance(jobargs.launcher)
     job = Job()
     job.spec = jobspec
 
     jex.submit(job)
+    if jobargs.wait:
+        job.wait()

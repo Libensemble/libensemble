@@ -57,14 +57,10 @@ if __name__ == "__main__":
         default="python",
     )
 
-    parser.add_argument(
-        "-m",
-        "--mpirunner",
-        type=Path,
-        nargs="?",
-        help="Which mpirunner to use (if using MPI comms). Default is `mpirun`.",
-        default="mpirun",
-    )
+    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm",
+              "aprun", "single", "multiple", "mpirun", "jsrun", "srun"]
+
+    parser.add_argument("-l", "--launcher", choices=choices, help="Which MPI or job launcher to use.")
 
     parser.add_argument(
         "-j",
@@ -109,21 +105,19 @@ if __name__ == "__main__":
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
     assert jobargs.nworkers and jobargs.comms, "Must supply the --comms and --nworkers options"
+    executable = jobargs.python_path
 
     if jobargs.comms == "local":
-        executable = jobargs.python_path
         arguments = [script, "--comms", jobargs.comms, "--nworkers", jobargs.nworkers]
     else:  # jobargs.comms == "mpi":
-        executable = Path(jobargs.mpirunner)
-        if not executable.exists():
-            executable = shutil.which(jobargs.mpirunner)
-        arguments = ["-n", jobargs.nworkers + 1, str(jobargs.python_path), script]
+        arguments = [str(jobargs.python_path), script]
 
     jobspec = JobSpec(
         name=jobargs.jobname,
         executable=str(executable),
         arguments=arguments,
         directory=jobargs.directory,
+        environment={"PYTHONNOUSERSITE": 1}
         resources=ResourceSpecV1(node_count=jobargs.nnodes),
         attributes=JobAttributes(
             duration=jobargs.wallclock,
