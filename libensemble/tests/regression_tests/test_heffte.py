@@ -1,14 +1,13 @@
 """
-Test libEnsemble's integration with calling the heFFTe exectuable with various
+Test libEnsemble's integration with calling the heFFTe executable with various
 configurations.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi
 # TESTSUITE_NPROCS: 2 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
-# TESTSUITE_OMPI_SKIP: true
 
 import numpy as np
 import itertools
@@ -18,6 +17,9 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.heffte import call_and_process_heffte as sim_f
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.tools import parse_args, save_libE_output
+from os.path import exists
+
+assert exists('speed3d_c2c'), "The heFFTe executable doesn't exist"
 
 fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
 arg1 = ["-no-reorder", "-reorder"]
@@ -55,7 +57,7 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=all
 
 if is_manager:
     assert len(H) == len(H0)
-    assert np.all(H["sim_ended"])
-    print(H["run_time"])
+    assert np.all(H["sim_ended"]), "Every point should have been marked as ended"
+    assert len(np.unique(H["run_time"])) == len(H), "Every run_time should be unique"
     print("\nlibEnsemble correctly didn't add anything to initial sample")
     save_libE_output(H, persis_info, __file__, nworkers)
