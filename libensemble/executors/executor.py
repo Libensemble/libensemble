@@ -566,6 +566,11 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
+    def _check_app_exists(self, fullpath):
+        """Allows submit function to check app exists and error if not"""
+        if not os.path.isfile(fullpath):
+            raise ExecutorException("Application does not exist {}".format(fullpath))
+
     def submit(
         self, calc_type=None, app_name=None, app_args=None, stdout=None, stderr=None, dry_run=False, wait_on_start=False
     ):
@@ -618,6 +623,9 @@ class Executor:
 
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+
+        if not dry_run:
+            self._check_app_exists(task.app.full_path)
 
         runline = task.app.full_path.split()
         if task.app_args is not None:
