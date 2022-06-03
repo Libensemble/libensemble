@@ -131,6 +131,8 @@ class Worker:
         self.dtypes = dtypes
         self.workerID = workerID
         self.libE_specs = libE_specs
+        self.stats_fmt = libE_specs.get("stats_fmt", {})
+
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Worker._make_runners(sim_specs, gen_specs)
         Worker._set_executor(self.workerID, self.comm)
@@ -307,28 +309,20 @@ class Worker:
             calc_status = CALC_EXCEPTION
             raise
         finally:
-            # This was meant to be handled by calc_stats module.
-            if task_timing and Executor.executor.list_of_tasks:
-                # Initially supporting one per calc. One line output.
-                task = Executor.executor.list_of_tasks[-1]
-                calc_msg = "{} {}: {} {} {} Status: {}".format(
-                    enum_desc,
-                    calc_id,
-                    calc_type_strings[calc_type],
-                    timer,
-                    task.timer,
-                    calc_status_strings.get(calc_status, calc_status),
-                )
-            else:
-                calc_msg = "{} {}: {} {} Status: {}".format(
-                    enum_desc,
-                    calc_id,
-                    calc_type_strings[calc_type],
-                    timer,
-                    calc_status_strings.get(calc_status, calc_status),
-                )
-
+            ctype_str = calc_type_strings[calc_type]
+            status = calc_status_strings.get(calc_status, calc_status)
+            calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
+
+    def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
+        """Construct line for libE_stats.txt file"""
+
+        calc_msg = "{} {}: {} {}  Status: {}".format(enum_desc, calc_id, calc_type, timer, status)
+
+        if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
+            calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
+
+        return calc_msg
 
     def _recv_H_rows(self, Work):
         """Unpacks Work request and receives any history rows"""

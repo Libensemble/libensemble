@@ -379,6 +379,7 @@ class Executor:
         self.list_of_tasks = []
         self.workerID = None
         self.comm = None
+        self.last_task = 0
         Executor.executor = self
 
     def __enter__(self):
@@ -556,6 +557,27 @@ class Executor:
         if task is None:
             logger.warning("Task {} not found in tasklist".format(taskid))
         return task
+
+    def new_tasks_timing(self, datetime=False):
+        """Returns timing of new tasks as a string
+
+        Parameters
+        ----------
+
+        datetime: boolean
+            If True, returns start and end times in addition to elapsed time.
+
+        """
+        timing_msg = ""
+        if self.list_of_tasks:
+            start_task = self.last_task
+            for i, task in enumerate(self.list_of_tasks[start_task:]):
+                if datetime:
+                    timing_msg += " Task {}: {}".format(i, task.timer)
+                else:
+                    timing_msg += " Task {}: {}".format(i, task.timer.summary())
+                self.last_task += 1
+        return timing_msg
 
     def set_workerID(self, workerid):
         """Sets the worker ID for this executor"""
