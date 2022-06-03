@@ -268,11 +268,12 @@ class MPIExecutor(Executor):
             # Launch Task
             self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
         self.list_of_tasks.append(task)
+
         return task
 
     def set_worker_info(self, comm, workerid=None):

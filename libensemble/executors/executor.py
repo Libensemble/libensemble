@@ -448,6 +448,7 @@ class Executor:
             Description of this application
 
         """
+
         if not app_name:
             app_name = os.path.split(full_path)[1]
         self.apps[app_name] = Application(full_path, app_name, calc_type, desc)
@@ -617,6 +618,7 @@ class Executor:
 
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+
         runline = task.app.full_path.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())
@@ -637,7 +639,7 @@ class Executor:
             if wait_on_start:
                 self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 

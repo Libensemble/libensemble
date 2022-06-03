@@ -331,7 +331,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
             if wait_on_start:
                 self._wait_on_start(task)
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
