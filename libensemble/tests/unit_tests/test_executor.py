@@ -25,6 +25,7 @@ sim_app = "simdir/my_simtask.x"
 serial_app = "simdir/my_serialtask.x"
 c_startup = "simdir/c_startup.x"
 py_startup = "simdir/py_startup.py"
+non_existent_app = "simdir/non_exist.x"
 
 
 def setup_module(module):
@@ -749,6 +750,46 @@ def test_dry_run():
     task.kill()
 
 
+def test_non_existent_app():
+    """Tests exception on non-existent app"""
+
+    from libensemble.executors.executor import Executor
+
+    exctr = Executor()
+
+    # Can register a non-existent app in case created as part of workflow.
+    exctr.register_app(full_path=non_existent_app, app_name="nonexist")
+
+    w_exctr = Executor.executor  # simulate on worker
+
+    try:
+        w_exctr.submit(app_name="nonexist")
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
+    else:
+        assert 0
+
+
+def test_non_existent_app_mpi():
+    """Tests exception on non-existent app"""
+
+    from libensemble.executors.mpi_executor import MPIExecutor
+
+    exctr = MPIExecutor()
+
+    # Can register a non-existent app in case created as part of workflow.
+    exctr.register_app(full_path=non_existent_app, app_name="nonexist")
+
+    w_exctr = Executor.executor  # simulate on worker
+
+    try:
+        w_exctr.submit(app_name="nonexist")
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
+    else:
+        assert 0
+
+
 if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
@@ -777,4 +818,6 @@ if __name__ == "__main__":
     test_futures_interface()
     test_futures_interface_cancel()
     test_dry_run()
+    test_non_existent_app()
+    test_non_existent_app_mpi()
     teardown_module(__file__)
