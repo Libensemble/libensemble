@@ -322,6 +322,11 @@ class Worker:
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
+        if self.stats_fmt.get("show_rsets", False):
+            # Maybe just call option resource_sets if already in sub-dictionary
+            resources = Resources.resources.worker_resources
+            calc_msg += " rsets: {}".format(resources.rset_team)
+
         return calc_msg
 
     def _recv_H_rows(self, Work):
