@@ -124,8 +124,9 @@ jobs:
             sudo apt-get update
             sudo apt-get install octave
             sudo apt-get install bc
-            sudo apt install libfftw3-dev
 
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
             git clone https://bitbucket.org/icl/heffte.git
             mkdir heffte/build
             cd heffte/build
@@ -134,6 +135,7 @@ jobs:
             make
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
 
             pip install dragonfly-opt
             pip install torch
