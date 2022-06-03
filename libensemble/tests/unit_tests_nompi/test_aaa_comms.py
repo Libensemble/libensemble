@@ -22,7 +22,7 @@ def test_qcomm_proc_terminate1():
     def worker_main(comm):
         return
 
-    with comms.QCommProcess(worker_main) as mgr_comm:
+    with comms.QCommProcess(worker_main, 2) as mgr_comm:
         time.sleep(0.5)
         mgr_comm.terminate(timeout=30)
         assert not mgr_comm.running
@@ -35,7 +35,7 @@ def test_qcomm_proc_terminate2():
         while True:
             time.sleep(1)
 
-    with comms.QCommProcess(worker_main) as mgr_comm:
+    with comms.QCommProcess(worker_main, 2) as mgr_comm:
         mgr_comm.terminate(timeout=30)
         assert not mgr_comm.running
 
@@ -52,7 +52,7 @@ def test_qcomm_proc_terminate3():
         while not comm.mail_flag():
             pass
 
-    with comms.QCommProcess(worker_main) as mgr_comm:
+    with comms.QCommProcess(worker_main, 2) as mgr_comm:
         time.sleep(0.5)
 
         flag = True
@@ -91,7 +91,7 @@ def test_qcomm_proc_terminate4():
             comm.send("Hello")
             time.sleep(0.01)
 
-    with comms.QCommProcess(worker_main) as mgr_comm:
+    with comms.QCommProcess(worker_main, 2) as mgr_comm:
         time.sleep(0.5)
 
         flag = True

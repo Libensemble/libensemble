@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 task_timing = False
 
 
-def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True):
+def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True, resources=None, executor=None):
     """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
@@ -62,6 +62,12 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     if libE_specs.get("profile"):
         pr = cProfile.Profile()
         pr.enable()
+
+    # If resources / executor passed in, then use those.
+    if resources is not None:
+        Resources.resources = resources
+    if executor is not None:
+        Executor.executor = executor
 
     # Receive dtypes from manager
     _, dtypes = comm.recv()
