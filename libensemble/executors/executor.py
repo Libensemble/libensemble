@@ -33,7 +33,7 @@ from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 STATES = """
 UNKNOWN
