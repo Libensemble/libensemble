@@ -117,7 +117,7 @@ if __name__ == "__main__":
         executable=str(executable),
         arguments=arguments,
         directory=jobargs.directory,
-        environment={"PYTHONNOUSERSITE": 1}
+        environment={"PYTHONNOUSERSITE": 1},
         resources=ResourceSpecV1(node_count=jobargs.nnodes),
         attributes=JobAttributes(
             duration=jobargs.wallclock,

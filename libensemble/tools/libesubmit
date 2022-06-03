@@ -27,9 +27,6 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--python-path", type=Path, nargs="?",
                         help="Which Python to use. Default is current Python.", default=sys.executable)
 
-    parser.add_argument("-m", "--mpirunner", type=Path, nargs="?",
-                        help="Which mpirunner to use (if using MPI comms). Default is `which mpirun`.", default=shutil.which('mpirun'))
-
     parser.add_argument("-q", "--queue", type=str, nargs="?",
                         help="Scheduler queue name.", default=None)
 
