@@ -19,7 +19,7 @@ from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim
 from libensemble.tools import parse_args, save_libE_output
 from os.path import exists
 
-assert exists('speed3d_c2c'), "The heFFTe executable doesn't exist"
+assert exists("speed3d_c2c"), "The heFFTe executable doesn't exist"
 
 fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
 arg1 = ["-no-reorder", "-reorder"]
