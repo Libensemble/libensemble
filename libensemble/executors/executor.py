@@ -83,18 +83,22 @@ class Application:
 
     prefix = "libe_app"
 
-    def __init__(self, full_path, name=None, calc_type="sim", desc=None, pyobj=None):
+    def __init__(self, full_path, name=None, calc_type="sim", desc=None, pyobj=None, precedent=""):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
+        self.precedent = precedent
 
         if self.exe.endswith(".py"):
-            self.full_path = " ".join((sys.executable, full_path))
+            if not precedent:
+                self.precedent = sys.executable
+
         self.name = name or self.exe
         self.pyobj = pyobj
         self.desc = desc or (self.exe + " app")
         self.gname = "_".join([Application.prefix, self.name])
+        self.app_cmd = " ".join(filter(None, [self.precedent, self.full_path]))
 
 
 class Task:
@@ -424,7 +428,7 @@ class Executor:
         # Does not use resources
         pass
 
-    def register_app(self, full_path, app_name=None, calc_type=None, desc=None):
+    def register_app(self, full_path, app_name=None, calc_type=None, desc=None, precedent=""):
         """Registers a user application to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
@@ -452,7 +456,7 @@ class Executor:
 
         if not app_name:
             app_name = os.path.split(full_path)[1]
-        self.apps[app_name] = Application(full_path, app_name, calc_type, desc)
+        self.apps[app_name] = Application(full_path, app_name, calc_type, desc, None, precedent)
 
         # Default sim/gen apps will be deprecated. Just use names.
         if calc_type is not None:
@@ -588,10 +592,10 @@ class Executor:
         self.workerID = workerid
         self.comm = comm
 
-    def _check_app_exists(self, fullpath):
+    def _check_app_exists(self, full_path):
         """Allows submit function to check app exists and error if not"""
-        if not os.path.isfile(fullpath):
-            raise ExecutorException("Application does not exist {}".format(fullpath))
+        if not os.path.isfile(full_path):
+            raise ExecutorException("Application does not exist {}".format(full_path))
 
     def submit(
         self, calc_type=None, app_name=None, app_args=None, stdout=None, stderr=None, dry_run=False, wait_on_start=False
@@ -649,7 +653,7 @@ class Executor:
         if not dry_run:
             self._check_app_exists(task.app.full_path)
 
-        runline = task.app.full_path.split()
+        runline = task.app.app_cmd.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
