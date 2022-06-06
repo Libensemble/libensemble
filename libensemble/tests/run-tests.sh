@@ -593,13 +593,14 @@ if [ "$root_found" = true ]; then
     if [ "$code" -eq "0" ]; then
 
       echo -e "\n..Moving output files to output dir"
-      if [ "$(ls -A output)" ]; then
-        rm output/* #Avoid mixing test run results
-      fi;
 
       for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
       do
         cd $ROOT_DIR/$DIR
+
+        if [ "$(ls -A output)" ]; then
+          rm output/* #Avoid mixing test run results
+        fi;
 
         #sh - shld active_runs be prefixed for each job
         filelist=(*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv *.$REG_TEST_OUTPUT_EXT output/
@@ -607,15 +608,23 @@ if [ "$root_found" = true ]; then
         filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
 
       done
+      cd $ROOT_DIR
 
       if [ "$RUN_COV_TESTS" = true ]; then
 
         # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
 
-        # Must combine all if in sep sub-dirs will copy to dir above
-        coverage combine .cov_reg_out.* #Name of coverage data file must match that in .coveragerc in reg test dir.
-        coverage html
-        echo -e "..Coverage HTML written to dir $REG_TEST_SUBDIR/cov_reg/"
+        for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
+        do
+          cd $ROOT_DIR/$DIR
+
+          # Must combine all if in sep sub-dirs will copy to dir above
+          coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
+          coverage html
+          echo -e "..Coverage HTML written to dir $DIR/cov_reg/"
+
+        done
+        cd $ROOT_DIR
 
         if [ "$RUN_UNIT_TESTS" = true ]; then
 
@@ -625,9 +634,10 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
@@ -636,9 +646,9 @@ if [ "$root_found" = true ]; then
           # Still need to move reg cov results to COV_MERGE_DIR
           cd $ROOT_DIR/$COV_MERGE_DIR
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
-          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
-          coverage combine .cov_reg_out
+          coverage combine .cov_reg_out .cov_reg_out2
           coverage html
           echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
