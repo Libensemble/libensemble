@@ -17,8 +17,7 @@ if __name__ == '__main__':
         conflict_handler="resolve"
     )
 
-    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm",
-              "aprun", "single", "multiple", "mpirun", "jsrun", "srun"]
+    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm"]
 
     parser.add_argument("-l", "--launcher", choices=choices)
 
@@ -91,7 +90,7 @@ if __name__ == '__main__':
             exit = input("detection interrupted. ctrl+c again to exit, or specify a detected script: ")
             new_callscript = candidate_script_paths[int(exit)-1]
 
-        jobspec.arguments[jobspec.arugments.index(callscript)] = new_callscript
+        jobspec.arguments[jobspec.arguments.index(callscript)] = new_callscript
 
     else:
         print('...found! Proceding.')

@@ -108,7 +108,7 @@ if __name__ == "__main__":
     executable = jobargs.python_path
 
     if jobargs.comms == "local":
-        arguments = [script, "--comms", jobargs.comms, "--nworkers", jobargs.nworkers]
+        arguments = [script, "--comms", jobargs.comms, "--nworkers", str(jobargs.nworkers)]
     else:  # jobargs.comms == "mpi":
         arguments = [str(jobargs.python_path), script]
 
