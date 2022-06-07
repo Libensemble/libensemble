@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Basic plot options ----------------------------------------------------------
+# Basic options ---------------------------------------------------------------
 
 infile = "libE_stats.txt"
 
@@ -104,9 +104,11 @@ df_count = pd.DataFrame({"count": counts})  # Transpose to columns like this
 
 final = df_list.join(df_count)
 final.plot(x="datetime", y="count", legend=None)
+plt.xlabel("Time", fontsize=12)
+
 plt.ylabel("Workers running user tasks", fontsize=12)
 plt.ylim(ymin=0)  # To start graph at zero
 
 # plt._show()
-# plt.savefig("runs_util_v_time.png")
-plt.savefig("runs_util_v_time.png", bbox="tight", transparent=True)
+plt.savefig("runs_util_v_time.png")
+# plt.savefig("runs_util_v_time.png", bbox_inches="tight", transparent=True)

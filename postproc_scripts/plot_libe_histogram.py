@@ -1,30 +1,37 @@
 #!/usr/bin/env python
 
-# infile='testfile.txt'
+""" Histogram of user function run-times (completed & killed).
+
+Script to produce a histogram plot giving a count of user function (sim or
+gen) calls by run-time intervals. Color shows completed versus killed versus
+failed/exception.
+
+This plot is produced from the libE_stats.txt file. Status is taken from the
+calc_status returned by user functions.
+
+The plot is written to a file.
+
+"""
+
+import sys
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+# Basic options ---------------------------------------------------------------
+
 infile = "libE_stats.txt"
 time_key = "Time:"
 status_key = "Status:"
 sim_only = True  # Ignore generator times
-num_bins = 40
-
-# States - could add multiple lines - eg Failed.
+max_bins = 40
 ran_ok = ["Completed"]  # list of ok states
-
-# run_killed = ['killed', 'Exception'] # Currently searches for this word in string
-run_killed = ["killed"]  # Currently searches for this word in string
+# run_killed = ['killed', 'Exception'] # Searches for this word in string
+run_killed = ["killed"]  # Searches for this word in string
 run_exception = ["Exception", "Failed"]
 
-import sys
-import numpy as np
-
-import matplotlib
-
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
-
-# import csv
-
+# -----------------------------------------------------------------------------
 
 def search_for_keyword(in_list, kw_list):
     for i, val in enumerate(in_list):
@@ -87,18 +94,18 @@ times = np.asarray(in_times, dtype=float)
 times_ran = np.asarray(in_times_ran, dtype=float)
 times_kill = np.asarray(in_times_kill, dtype=float)
 
+num_bins = min(active_line_count, max_bins)
 binwidth = (times.max() - times.min()) / num_bins
 bins = np.arange(min(times), max(times) + binwidth, binwidth)
 
-# plt.hist(times, bins, histtype='bar', rwidth=0.8)
-p1 = plt.hist(times_ran, bins, label="Completed")
-p2 = plt.hist(times_kill, bins, label="Killed")
+# Not stacked...
+p1 = plt.hist(times_ran, bins, edgecolor="black", linewidth=1.5, label="Completed")
+p2 = plt.hist(times_kill, bins, edgecolor="black", linewidth=1.5, label="Killed")
 
 if exceptions:
     times_exc = np.asarray(in_times_exception, dtype=float)
-    p3 = plt.hist(times_exc, bins, label="Except/Failed", color="C3")  # red
+    p3 = plt.hist(times_exc, bins, edgecolor="black", linewidth=1.5, label="Except/Failed", color="C3")  # red
 
-# plt.title('Theta Opal/libEnsemble Times: 127 Workers - sim_max 508')
 if sim_only:
     calc = "sim"
 else:
@@ -109,10 +116,12 @@ titl = "Histogram of " + calc + " times" + " (" + str(active_line_count) + " use
 plt.title(titl)
 plt.xlabel("Calculation run time (sec)", fontsize=14)
 plt.ylabel("Count", fontsize=14)
-plt.grid(True)
+plt.grid(axis='y')
 plt.legend(loc="best", fontsize=14)
 
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
+
 # plt.show()
-plt.savefig("hist_completed_v_killed.png", bbox="tight", transparent=True)
+plt.savefig("hist_completed_v_killed.png")
+# plt.savefig("hist_completed_v_killed.png", bbox_inches="tight", transparent=True)

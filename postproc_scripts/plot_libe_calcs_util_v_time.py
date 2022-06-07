@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Basic plot options ----------------------------------------------------------
+# Basic options ---------------------------------------------------------------
 
 infile = "libE_stats.txt"
 
@@ -78,10 +78,14 @@ df_list = pd.DataFrame(date_series, columns=["datetime"])
 df_count = pd.DataFrame({"count": counts})  # Transpose to columns like this
 
 final = df_list.join(df_count)
+
 final.plot(x="datetime", y="count", legend=None, linewidth=2, fontsize=12)
+# final.plot(x="datetime", y="count", legend=None)
+
 plt.xlabel("Time", fontsize=14)
 plt.ylabel("Active calculations", fontsize=14)
+plt.ylim(ymin=0)  # To start graph at zero
 
 # plt._show()
-# plt.savefig("calcs_util_v_time.png")
-plt.savefig("calcs_util_v_time.png", bbox="tight", transparent=True)
+plt.savefig("calcs_util_v_time.png")
+# plt.savefig("calcs_util_v_time.png", bbox_inches="tight", transparent=True)
