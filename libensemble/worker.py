@@ -317,7 +317,7 @@ class Worker:
     def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
         """Construct line for libE_stats.txt file"""
 
-        calc_msg = "{} {}: {} {}  Status: {}".format(enum_desc, calc_id, calc_type, timer, status)
+        calc_msg = "{} {}: {} {}".format(enum_desc, calc_id, calc_type, timer)
 
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
@@ -326,6 +326,9 @@ class Worker:
             # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
             calc_msg += " rsets: {}".format(resources.rset_team)
+
+        # Always put status last as could involve different numbers of words. Some scripts may assume this.
+        calc_msg += " Status: {}".format(status)
 
         return calc_msg
 
