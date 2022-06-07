@@ -123,7 +123,7 @@ Specifications for libEnsemble::
         'disable_resource_manager' [boolean]:
             Disable the built-in resource manager. If this is True, automatic resource detection
             and/or assignment of resources to workers is disabled. This also means that
-            any entries in the ``resource_info`` option will be ignored.
+            any entries in the "resource_info" option will be ignored.
             Default: False
         'num_resource_sets' [int]:
             The total number of resource sets. Resources will be divided into this number.
@@ -133,7 +133,7 @@ Specifications for libEnsemble::
             If false, the Executor will permit submission of tasks with a
             higher processor count than the CPUs available to the worker as
             detected by the resource manager. Larger node counts are not allowed.
-            When the libE_specs option `disable_resource_manager` is True,
+            When the libE_specs option "disable_resource_manager" is True,
             this argument is ignored. Default: False
         'dedicated_mode' [boolean]:
             If true, then running in dedicated mode, otherwise in distributed
@@ -146,12 +146,11 @@ Specifications for libEnsemble::
         'resource_info' [dict]:
             Provide resource information that will override automatically detected resources.
             The allowable fields are given below in 'Overriding Auto-detection'
-            Note that if ``disable_resource_manager`` is set then
+            Note that if "disable_resource_manager" is set then
             this option is ignored.
         'scheduler_opts' [dict]:
             A dictionary of options for the resource scheduler.
             See 'Scheduler Options' for more.
-
 
 The following describe the dictionary options within ``libE_specs``.
 
@@ -172,25 +171,25 @@ The allowable ``libE_specs["resource_info"]`` fields are::
     'node_file' [string]:
         Name of file containing a node-list. Default is 'node_list'.
     'nodelist_env_slurm' [string]:
-            The environment variable giving a node list in Slurm format
-            (Default: Uses SLURM_NODELIST).  Note: This is queried only if
-            a node_list file is not provided and the resource manager is
-            enabled (default).
+        The environment variable giving a node list in Slurm format
+        (Default: Uses SLURM_NODELIST).  Note: This is queried only if
+        a node_list file is not provided and the resource manager is
+        enabled (default).
     'nodelist_env_cobalt' [string]:
-            The environment variable giving a node list in Cobalt format
-            (Default: Uses COBALT_PARTNAME) Note: This is queried only
-            if a node_list file is not provided and the resource manager
-            is enabled (default).
+        The environment variable giving a node list in Cobalt format
+        (Default: Uses COBALT_PARTNAME) Note: This is queried only
+        if a node_list file is not provided and the resource manager
+        is enabled (default).
     'nodelist_env_lsf' [string]:
-            The environment variable giving a node list in LSF format
-            (Default: Uses LSB_HOSTS) Note: This is queried only
-            if a node_list file is not provided and the resource manager
-            is enabled (default).
+        The environment variable giving a node list in LSF format
+        (Default: Uses LSB_HOSTS) Note: This is queried only
+        if a node_list file is not provided and the resource manager
+        is enabled (default).
     'nodelist_env_lsf_shortform' [string]:
-            The environment variable giving a node list in LSF short-form
-            format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
-            if a node_list file is not provided and the resource manager is
-            enabled (default).
+        The environment variable giving a node list in LSF short-form
+        format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
+        if a node_list file is not provided and the resource manager is
+        enabled (default).
 
 For example::
 
