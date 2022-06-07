@@ -6,6 +6,9 @@ libE_specs
 Specifications for libEnsemble::
 
     libE_specs: [dict, optional]:
+
+        General options: 
+
         'comms' [string]:
             Manager/Worker communications mode. Default: mpi
             Options are 'mpi', 'local', 'tcp'
@@ -149,6 +152,9 @@ Specifications for libEnsemble::
             A dictionary of options for the resource scheduler.
             See 'Scheduler Options' for more.
 
+
+The following describe the dictionary options within ``libE_specs``.
+
 Scheduler Options
 -----------------
 
@@ -159,28 +165,28 @@ See options for :ref:`built-in scheduler<resources-scheduler>`.
 Overriding Auto-detection
 -------------------------
 
-The allowable fields are::
+The allowable ``libE_specs["resource_info"]`` fields are::
 
     'cores_on_node' [tuple (int, int)]:
         Tuple (physical cores, logical cores) on nodes.
     'node_file' [string]:
         Name of file containing a node-list. Default is 'node_list'.
-    'nodelist_env_slurm' [String]:
+    'nodelist_env_slurm' [string]:
             The environment variable giving a node list in Slurm format
             (Default: Uses SLURM_NODELIST).  Note: This is queried only if
             a node_list file is not provided and the resource manager is
             enabled (default).
-    'nodelist_env_cobalt' [String]:
+    'nodelist_env_cobalt' [string]:
             The environment variable giving a node list in Cobalt format
             (Default: Uses COBALT_PARTNAME) Note: This is queried only
             if a node_list file is not provided and the resource manager
             is enabled (default).
-    'nodelist_env_lsf' [String]:
+    'nodelist_env_lsf' [string]:
             The environment variable giving a node list in LSF format
             (Default: Uses LSB_HOSTS) Note: This is queried only
             if a node_list file is not provided and the resource manager
             is enabled (default).
-    'nodelist_env_lsf_shortform' [String]:
+    'nodelist_env_lsf_shortform' [string]:
             The environment variable giving a node list in LSF short-form
             format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
             if a node_list file is not provided and the resource manager is
