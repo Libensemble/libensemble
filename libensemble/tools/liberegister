@@ -14,19 +14,6 @@ from libensemble.tools.parse_args import parser as callscript_parser
 
 if __name__ == "__main__":
 
-    script = sys.argv[1]
-    basename = script.split(".py")[0]
-
-    if basename == "-h":
-        outfile_default = "libe-job.json"
-        outfile_type = str
-    else:
-        outfile_default = basename + ".json"
-        outfile_type = argparse.FileType("w")
-        assert script.endswith(
-            ".py"
-        ), "First argument doesn't appear to be a Python script."
-
     parser = argparse.ArgumentParser(
         prog="liberegister",
         description="Produce a PSI/J representation for a libEnsemble execution.",
@@ -35,13 +22,15 @@ if __name__ == "__main__":
         conflict_handler="resolve",
     )
 
+    parser.add_argument('calling_script', nargs='?')
+
     parser.add_argument(
         "-o",
         "--outfile",
-        type=outfile_type,
+        type=str,
         nargs="?",
         help="Output PSI/J representation filename.",
-        default=outfile_default,
+        default='libe-job.json',
     )
 
     parser.add_argument(
@@ -106,21 +95,29 @@ if __name__ == "__main__":
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
-    assert (
-        jobargs.nworkers and jobargs.comms
-    ), "Must supply the --comms and --nworkers options"
+    if not jobargs.calling_script:
+        parser.print_help()
+        sys.exit("\nMust supply a calling script, with the --comms and --nworkers options")
+
+    if not jobargs.calling_script.endswith('.py'):
+        parser.print_help()
+        sys.exit("\nFirst argument doesn't appear to be a Python script.")
+
+    basename = jobargs.calling_script.split(".py")[0]
+    outfile_default = basename + ".json"
+
     executable = jobargs.python_path
 
     if jobargs.comms == "local":
         arguments = [
-            script,
+            jobargs.calling_script,
             "--comms",
             jobargs.comms,
             "--nworkers",
             str(jobargs.nworkers),
         ]
     else:  # jobargs.comms == "mpi":
-        arguments = [script]
+        arguments = [jobargs.calling_script]
 
     jobspec = JobSpec(
         name=jobargs.jobname,

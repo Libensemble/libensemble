@@ -98,6 +98,10 @@ setup(
             "sphinx_rtd_theme",
         ],
     },
+
+    scripts=['libensemble/tools/liberegister',
+             'libensemble/tools/libesubmit'],
+
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
