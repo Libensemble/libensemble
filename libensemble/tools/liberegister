@@ -117,7 +117,7 @@ if __name__ == "__main__":
         executable=str(executable),
         arguments=arguments,
         directory=jobargs.directory,
-        environment={"PYTHONNOUSERSITE": 1},
+        environment={"PYTHONNOUSERSITE": "1"},
         resources=ResourceSpecV1(node_count=jobargs.nnodes),
         attributes=JobAttributes(
             duration=jobargs.wallclock,
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     )
 
     Export().export(obj=jobspec, dest=outfile_default)
-    print(f"libEnsemble {__version__}")
+    print(f"*** libEnsemble {__version__} ***")
     print(
         f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libe-submit`."
     )
