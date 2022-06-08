@@ -34,7 +34,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=4
+        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1
     )
 
     parser.add_argument(
