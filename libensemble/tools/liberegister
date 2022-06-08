@@ -57,10 +57,12 @@ if __name__ == "__main__":
         default="python",
     )
 
-    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm",
-              "aprun", "single", "multiple", "mpirun", "jsrun", "srun"]
+    choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm"]
 
-    parser.add_argument("-l", "--launcher", choices=choices, help="Which MPI or job launcher to use.")
+    parser.add_argument(
+        "-s", "--scheduler", choices=choices, help="Which scheduler to use.",
+        default=None
+    )
 
     parser.add_argument(
         "-j",
@@ -104,13 +106,21 @@ if __name__ == "__main__":
 
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
-    assert jobargs.nworkers and jobargs.comms, "Must supply the --comms and --nworkers options"
+    assert (
+        jobargs.nworkers and jobargs.comms
+    ), "Must supply the --comms and --nworkers options"
     executable = jobargs.python_path
 
     if jobargs.comms == "local":
-        arguments = [script, "--comms", jobargs.comms, "--nworkers", str(jobargs.nworkers)]
+        arguments = [
+            script,
+            "--comms",
+            jobargs.comms,
+            "--nworkers",
+            str(jobargs.nworkers),
+        ]
     else:  # jobargs.comms == "mpi":
-        arguments = [str(jobargs.python_path), script]
+        arguments = [script]
 
     jobspec = JobSpec(
         name=jobargs.jobname,
