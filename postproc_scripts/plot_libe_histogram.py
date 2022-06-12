@@ -16,6 +16,7 @@ The plot is written to a file.
 import sys
 import numpy as np
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -26,12 +27,12 @@ time_key = "Time:"
 status_key = "Status:"
 sim_only = True  # Ignore generator times
 max_bins = 40
-ran_ok = ["Completed"]  # list of ok states
-# run_killed = ['killed', 'Exception'] # Searches for this word in string
-run_killed = ["killed"]  # Searches for this word in string
+ran_ok = ["Completed"]  # List of OK states
+run_killed = ["killed"]  # Searches for this word in status string
 run_exception = ["Exception", "Failed"]
 
 # -----------------------------------------------------------------------------
+
 
 def search_for_keyword(in_list, kw_list):
     for i, val in enumerate(in_list):
@@ -57,7 +58,6 @@ in_times = []
 in_times_ran = []
 in_times_kill = []
 in_times_exception = []
-exceptions = False
 
 
 # Read straight from libEnsemble summary file.
@@ -93,18 +93,24 @@ print("Processed {} calcs".format(active_line_count))
 times = np.asarray(in_times, dtype=float)
 times_ran = np.asarray(in_times_ran, dtype=float)
 times_kill = np.asarray(in_times_kill, dtype=float)
+times_exc = np.asarray(in_times_exception, dtype=float)
 
 num_bins = min(active_line_count, max_bins)
 binwidth = (times.max() - times.min()) / num_bins
 bins = np.arange(min(times), max(times) + binwidth, binwidth)
 
-# Not stacked...
-p1 = plt.hist(times_ran, bins, edgecolor="black", linewidth=1.5, label="Completed")
-p2 = plt.hist(times_kill, bins, edgecolor="black", linewidth=1.5, label="Killed")
+# Completed is the top segment
+plt_times = [times_kill, times_ran]
+labels = ["Killed", "Completed"]
+colors = ["#FF7F0e", "#1F77B4"]  # Orange, Blue
 
-if exceptions:
-    times_exc = np.asarray(in_times_exception, dtype=float)
-    p3 = plt.hist(times_exc, bins, edgecolor="black", linewidth=1.5, label="Except/Failed", color="C3")  # red
+# Insert at bottom (Dont want label if no exceptions)
+if in_times_exception:
+    plt_times.insert(0, times_exc)
+    labels.insert(0, "Except/Failed")
+    colors.insert(0, "#d62728")  # Red
+
+plt.hist(plt_times, bins, edgecolor="black", linewidth=1.5, stacked=True, label=labels, color=colors)
 
 if sim_only:
     calc = "sim"
@@ -116,7 +122,7 @@ titl = "Histogram of " + calc + " times" + " (" + str(active_line_count) + " use
 plt.title(titl)
 plt.xlabel("Calculation run time (sec)", fontsize=14)
 plt.ylabel("Count", fontsize=14)
-plt.grid(axis='y')
+plt.grid(axis="y")
 plt.legend(loc="best", fontsize=14)
 
 plt.xticks(fontsize=12)
