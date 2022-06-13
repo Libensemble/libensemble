@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="liberegister",
         description="Produce a PSI/J representation for a libEnsemble execution.",
-        epilog="Output representations can be passed to `libe-submit`",
+        epilog="Output representations can be passed to `libesubmit`",
         parents=[callscript_parser],
         conflict_handler="resolve",
     )
@@ -141,5 +141,5 @@ if __name__ == "__main__":
     Export().export(obj=jobspec, dest=outfile_default)
     print(f"*** libEnsemble {__version__} ***")
     print(
-        f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libe-submit`."
+        f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libesubmit`."
     )
