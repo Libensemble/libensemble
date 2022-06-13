@@ -28,7 +28,7 @@ if __name__ == "__main__":
         "-w",
         "--wait",
         action="store_true",
-        help="Wait for exit_criteria evaluations to complete before exiting.",
+        help="Wait for Job to complete before exiting.",
     )
 
     parser.add_argument(
@@ -176,4 +176,5 @@ if __name__ == "__main__":
     jex.submit(job)
 
     if jobargs.wait:
+        print("Waiting on Job completion...")
         job.wait()
