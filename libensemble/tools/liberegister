@@ -22,7 +22,7 @@ if __name__ == "__main__":
         conflict_handler="resolve",
     )
 
-    parser.add_argument('calling_script', nargs='?')
+    parser.add_argument("calling_script", nargs="?")
 
     parser.add_argument(
         "-o",
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         help="Output PSI/J representation filename.",
-        default='libe-job.json',
+        default="libe-job.json",
     )
 
     parser.add_argument(
@@ -49,8 +49,11 @@ if __name__ == "__main__":
     choices = ["cobalt", "local", "flux", "lsf", "pbspro", "rp", "slurm"]
 
     parser.add_argument(
-        "-s", "--scheduler", choices=choices, help="Which scheduler to use.",
-        default=None
+        "-s",
+        "--scheduler",
+        choices=choices,
+        help="Which scheduler to use.",
+        default=None,
     )
 
     parser.add_argument(
@@ -97,9 +100,11 @@ if __name__ == "__main__":
 
     if not jobargs.calling_script:
         parser.print_help()
-        sys.exit("\nMust supply a calling script, with the --comms and --nworkers options")
+        sys.exit(
+            "\nMust supply a calling script, with the --comms and --nworkers options"
+        )
 
-    if not jobargs.calling_script.endswith('.py'):
+    if not jobargs.calling_script.endswith(".py"):
         parser.print_help()
         sys.exit("\nFirst argument doesn't appear to be a Python script.")
 

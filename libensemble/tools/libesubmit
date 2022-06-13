@@ -158,13 +158,13 @@ if __name__ == "__main__":
     jex = JobExecutor.get_instance(jobargs.scheduler)
     job = Job()
 
-    if job.id.split('-')[0] in script:
+    if job.id.split("-")[0] in script:
         reserialdest = script
     else:
-        reserialdest = job.id.split('-')[0] + '.' + script
+        reserialdest = job.id.split("-")[0] + "." + script
 
-    stdout_path = job.id.split('-')[0] + '.' + script.replace('json', 'out')
-    stderr_path = job.id.split('-')[0] + '.' + script.replace('json', 'err')
+    stdout_path = job.id.split("-")[0] + "." + script.replace("json", "out")
+    stderr_path = job.id.split("-")[0] + "." + script.replace("json", "err")
     jobspec.stdout_path = stdout_path
     jobspec.stderr_path = stderr_path
 
