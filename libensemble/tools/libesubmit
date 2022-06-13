@@ -11,6 +11,7 @@ from psij import JobExecutor, Import, Export, JobSpec, Job
 from psij.resource_spec import ResourceSpecV1
 from psij.job_attributes import JobAttributes
 from libensemble.version import __version__
+from libensemble.resources import node_resources
 
 if __name__ == "__main__":
 
@@ -166,7 +167,8 @@ if __name__ == "__main__":
     ]:  # running with MPI - need corresponding executor
         jobspec.resources = ResourceSpecV1(
             process_count=jobspec.resources["process_count"],
-            processes_per_node=1
+            processes_per_node=1,
+            cpu_cores_per_process=64
         )
         jobspec.launcher = choices[jobargs.scheduler]
     else:
