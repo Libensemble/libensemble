@@ -121,8 +121,10 @@ if __name__ == "__main__":
             "--nworkers",
             str(jobargs.nworkers),
         ]
+        resources = ResourceSpecV1(node_count=jobargs.nnodes)
     else:  # jobargs.comms == "mpi":
         arguments = [jobargs.calling_script]
+        resources = ResourceSpecV1(process_count=jobargs.nworkers+1, processes_per_node=1)
 
     jobspec = JobSpec(
         name=jobargs.jobname,
@@ -130,7 +132,7 @@ if __name__ == "__main__":
         arguments=arguments,
         directory=jobargs.directory,
         environment={"PYTHONNOUSERSITE": "1"},
-        resources=ResourceSpecV1(node_count=jobargs.nnodes),
+        resources=resources,
         attributes=JobAttributes(
             duration=jobargs.wallclock,
             queue_name=jobargs.queue,
