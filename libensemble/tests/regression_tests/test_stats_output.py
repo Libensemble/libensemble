@@ -15,7 +15,6 @@ Note: This test contains multiple iterations to test different libE_stats output
 # TESTSUITE_COMMS: mpi, local
 # TESTSUITE_NPROCS: 2 4
 
-import os
 import sys
 import numpy as np
 
