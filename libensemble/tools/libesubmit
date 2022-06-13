@@ -165,7 +165,8 @@ if __name__ == "__main__":
         "node_count"
     ]:  # running with MPI - need corresponding executor
         jobspec.resources = ResourceSpecV1(
-            process_count=jobspec.resources["process_count"]
+            process_count=jobspec.resources["process_count"],
+            processes_per_node=jobspec.resources["processes_per_node"]
         )
         jobspec.launcher = choices[jobargs.scheduler]
     else:
