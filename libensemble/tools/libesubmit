@@ -20,13 +20,15 @@ if __name__ == "__main__":
         conflict_handler="resolve",
     )
 
-    choices = {"cobalt": "aprun",
-               "local": "mpirun",
-               "flux": "mpirun",
-               "lsf": "jsrun",
-               "pbspro": "mpirun",
-               "rp": "mpirun",
-               "slurm": "srun"}
+    choices = {
+        "cobalt": "aprun",
+        "local": "mpirun",
+        "flux": "mpirun",
+        "lsf": "jsrun",
+        "pbspro": "mpirun",
+        "rp": "mpirun",
+        "slurm": "srun",
+    }
 
     parser.add_argument("-s", "--scheduler", choices=choices.keys(), required=True)
 
@@ -159,12 +161,15 @@ if __name__ == "__main__":
         print("...found! Proceding.")
 
     # Little bit strange I have to re-initialize this class to re-serialize
-    if not jobspec.resources["node_count"]: # running with MPI - need corresponding executor
-        jobspec.resources = ResourceSpecV1(process_count=jobspec.resources["process_count"])
+    if not jobspec.resources[
+        "node_count"
+    ]:  # running with MPI - need corresponding executor
+        jobspec.resources = ResourceSpecV1(
+            process_count=jobspec.resources["process_count"]
+        )
         jobspec.launcher = choices[jobargs.scheduler]
     else:
         jobspec.resources = ResourceSpecV1(node_count=jobspec.resources["node_count"])
-
 
     jex = JobExecutor.get_instance(jobargs.scheduler)
     job = Job()

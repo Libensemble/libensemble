@@ -124,7 +124,9 @@ if __name__ == "__main__":
         resources = ResourceSpecV1(node_count=jobargs.nnodes)
     else:  # jobargs.comms == "mpi":
         arguments = [jobargs.calling_script]
-        resources = ResourceSpecV1(process_count=jobargs.nworkers+1, processes_per_node=1)
+        resources = ResourceSpecV1(
+            process_count=jobargs.nworkers + 1, processes_per_node=1
+        )
 
     jobspec = JobSpec(
         name=jobargs.jobname,
