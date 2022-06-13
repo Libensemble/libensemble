@@ -35,8 +35,6 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from multiprocessing import set_start_method
-
 
 if __name__ == "__main__":
 
