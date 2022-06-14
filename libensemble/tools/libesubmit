@@ -41,6 +41,16 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--dry",
+        action="store_true",
+        help="Parameterize and re-serialize a Job, without submitting.",
+    )
+
+    parser.add_argument(
+        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1
+    )
+
+    parser.add_argument(
         "-p",
         "--python-path",
         type=Path,
@@ -98,6 +108,8 @@ if __name__ == "__main__":
     if jobspec.executable == "python":
         jobspec.executable = str(jobargs.python_path)
     jobspec.attributes.duration = jobargs.wallclock
+    if jobspec.resources.node_count == 1:
+        jobspec.resources.node_count = jobargs.nnodes
 
     # we enforced passing a python script in liberegister
     callscript = [i for i in jobspec.arguments if str(i).endswith(".py")][0]
@@ -191,8 +203,9 @@ if __name__ == "__main__":
 
     job.spec = jobspec
 
-    print("Submitting Job!:", job)
-    jex.submit(job)
+    if not jobargs.dry:
+        print("Submitting Job!:", job)
+        jex.submit(job)
 
     if jobargs.wait:
         print("Waiting on Job completion...")
