@@ -14,7 +14,7 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Manager/Worker communications mode. Default: mpi
             Options are 'mpi', 'local', 'tcp'
         'nworkers' [int]:
-            Number of worker processes to spawn (in local/tcp modes)
+            Number of worker processes to spawn (only in local/tcp modes)
         'mpi_comm' [MPI communicator]:
             libEnsemble communicator. Default: MPI.COMM_WORLD
         'abort_on_exception' [boolean]:
@@ -41,40 +41,42 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
         Directory management options:
         -----------------------------
 
+        'ensemble_dir_path' [string]:
+            Path to main ensemble directory containing calculation directories. Can serve
+            as single working directory for workers, or contain calculation directories.
+            Default: './ensemble'
+        'ensemble_copy_back' [boolean]:
+            Whether to copy back directories within ensemble_dir_path back to launch
+            location. Useful if ensemble_dir placed on node-local storage.
+            Default: False
+        'use_worker_dirs' [boolean]:
+            Whether to organize calculation directories under worker-specific directories.
+            Default: False
+
         'sim_dirs_make' [boolean]:
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is
             specified. If False, all workers operate within the ensemble directory
             described below.
-            Default: True
-        'gen_dirs_make' [boolean]:
-            Whether to make generator-instance specific calculation directories for each
-            gen call. This will create a directory for each generator call, even if no
-            gen_input_dir is specified. If False, all workers operate within the ensemble
-            directory.
-            Default: True
-        'ensemble_dir_path' [string]:
-            Path to main ensemble directory containing calculation directories. Can serve
-            as single working directory for workers, or contain calculation directories.
-            Default: './ensemble'
-        'use_worker_dirs' [boolean]:
-            Whether to organize calculation directories under worker-specific directories.
             Default: False
         'sim_dir_copy_files' [list]:
             Paths to files or directories to copy into each sim directory, or ensemble directory.
         'sim_dir_symlink_files' [list]:
             Paths to files or directories to symlink into each sim directory.
+        'sim_input_dir' [string]:
+            Copy this directory and its contents for each simulation-specific directory.
+            If not using calculation directories, contents are copied to the ensemble directory.
+
+        'gen_dirs_make' [boolean]:
+            Whether to make generator-instance specific calculation directories for each
+            gen call. This will create a directory for each generator call, even if no
+            gen_input_dir is specified. If False, all workers operate within the ensemble
+            directory. Note that if using a persistent generator function
+            Default: False
         'gen_dir_copy_files' [list]:
             Paths to files or directories to copy into each gen directory, or ensemble directory.
         'gen_dir_symlink_files' [list]:
             Paths to files or directories to symlink into each gen directory.
-        'ensemble_copy_back' [boolean]:
-            Whether to copy back directories within ensemble_dir_path back to launch
-            location. Useful if ensemble_dir placed on node-local storage.
-            Default: False
-        'sim_input_dir' [string]:
-            Copy this directory and its contents for each simulation-specific directory.
-            If not using calculation directories, contents are copied to the ensemble directory.
         'gen_input_dir' [string]:
             Copy this directory and its contents for each generator-instance specific directory.
             If not using calc directories, contents are copied to the ensemble directory.
