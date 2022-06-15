@@ -93,7 +93,9 @@ if __name__ == "__main__":
     jobargs, unknown = parser.parse_known_args(sys.argv[1:])
 
     script = sys.argv[1]
-    assert script.endswith(".json"), "First argument doesn't appear to be a .json file."
+    if not jobargs.script.endswith(".json"):
+        parser.print_help()
+        sys.exit("First argument doesn't appear to be a .json file.")
 
     print(f"*** libEnsemble {__version__} ***")
     print(f"Imported PSI/J serialization: {script}. Preparing submission...")
