@@ -3,11 +3,12 @@
 libE_specs
 ==========
 
-Specifications for libEnsemble::
+libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary::
 
     libE_specs: [dict, optional]:
 
-        General options: 
+        General options:
+        ----------------
 
         'comms' [string]:
             Manager/Worker communications mode. Default: mpi
@@ -36,7 +37,9 @@ Specifications for libEnsemble::
             If False, the manager avoid this moderate overhead.
             Default: True
 
+
         Directory management options:
+        -----------------------------
 
         'sim_dirs_make' [boolean]:
             Whether to make simulation-specific calculation directories for each sim call.
@@ -58,25 +61,27 @@ Specifications for libEnsemble::
             Whether to organize calculation directories under worker-specific directories.
             Default: False
         'sim_dir_copy_files' [list]:
-            Paths to files or directories to copy into each sim dir, or ensemble dir.
+            Paths to files or directories to copy into each sim directory, or ensemble directory.
         'sim_dir_symlink_files' [list]:
-            Paths to files or directories to symlink into each sim dir.
+            Paths to files or directories to symlink into each sim directory.
         'gen_dir_copy_files' [list]:
-            Paths to files or directories to copy into each gen dir, or ensemble dir.
+            Paths to files or directories to copy into each gen directory, or ensemble directory.
         'gen_dir_symlink_files' [list]:
-            Paths to files or directories to symlink into each gen dir.
+            Paths to files or directories to symlink into each gen directory.
         'ensemble_copy_back' [boolean]:
             Whether to copy back directories within ensemble_dir_path back to launch
             location. Useful if ensemble_dir placed on node-local storage.
             Default: False
         'sim_input_dir' [string]:
             Copy this directory and its contents for each simulation-specific directory.
-            If not using calculation directories, contents are copied to the ensemble dir.
+            If not using calculation directories, contents are copied to the ensemble directory.
         'gen_input_dir' [string]:
-            Copy this directory and its contents for each generator-instance specific dir.
+            Copy this directory and its contents for each generator-instance specific directory.
             If not using calc directories, contents are copied to the ensemble directory.
 
+
         Profiling/timing options:
+        -------------------------
 
         'profile' [boolean]:
             Profile manager and worker logic using cProfile. Default: False
@@ -88,7 +93,9 @@ Specifications for libEnsemble::
             moderate overhead.
             Default: True
 
+
         TCP only options:
+        -----------------
 
         'workers' [list]:
             TCP Only: A list of worker hostnames.
@@ -105,7 +112,9 @@ Specifications for libEnsemble::
             a local Python path, calling script, and manager/server format-fields for manager_ip,
             manager_port, authkey, and workerID. nworkers is specified normally.
 
+
         Options for history management with persistent workers:
+        -------------------------------------------------------
 
         'use_persis_return_gen' [boolean]:
             Adds persistent generator function H return to managers history array.
@@ -118,7 +127,9 @@ Specifications for libEnsemble::
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
 
+
         Resource management options:
+        ----------------------------
 
         'disable_resource_manager' [boolean]:
             Disable the built-in resource manager. If this is True, automatic resource detection
@@ -130,13 +141,13 @@ Specifications for libEnsemble::
             Default: None. If None, resources will be divided by workers (excluding
             zero_resource_workers).
         'enforce_worker_core_bounds' [boolean]:
-            If false, the Executor will permit submission of tasks with a
+            If False, the Executor will permit submission of tasks with a
             higher processor count than the CPUs available to the worker as
             detected by the resource manager. Larger node counts are not allowed.
             When the libE_specs option "disable_resource_manager" is True,
             this argument is ignored. Default: False
         'dedicated_mode' [boolean]:
-            If true, then running in dedicated mode, otherwise in distributed
+            If True, then running in dedicated mode, otherwise in distributed
             mode. Dedicated mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
             Distributed mode means workers share nodes with applications.
@@ -150,9 +161,7 @@ Specifications for libEnsemble::
             this option is ignored.
         'scheduler_opts' [dict]:
             A dictionary of options for the resource scheduler.
-            See 'Scheduler Options' for more.
-
-The following describe the dictionary options within ``libE_specs``.
+            See 'Scheduler Options' for more options.
 
 Scheduler Options
 -----------------
@@ -161,8 +170,8 @@ See options for :ref:`built-in scheduler<resources-scheduler>`.
 
 .. _resource_info:
 
-Overriding Auto-detection
--------------------------
+Overriding Resource Auto-Detection
+----------------------------------
 
 The allowable ``libE_specs["resource_info"]`` fields are::
 
@@ -197,10 +206,6 @@ For example::
                   'node_file': 'libe_nodes'}
 
     libE_specs['resource_info'] = customizer
-
-.. note::
-    The ``ensemble_dir_path`` option can create working directories on local node or
-    scratch storage. This may produce performance benefits on I/O heavy simulations.
 
 .. seealso::
   Example ``libE_specs`` from the forces_ scaling test, completely populated::
