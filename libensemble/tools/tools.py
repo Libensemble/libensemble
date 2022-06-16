@@ -6,7 +6,6 @@ and user functions.
 import os
 import sys
 import logging
-import platform
 import numpy as np
 import pickle
 
