@@ -42,70 +42,73 @@ from time import time
 
 np.set_printoptions(precision=16)
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if is_manager:
-    start_time = time()
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    if is_manager:
+        start_time = time()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_out = [
-    ("x", float, n),
-    ("x_on_cube", float, n),
-    ("sim_id", int),
-    ("local_min", bool),
-    ("local_pt", bool),
-]
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["f"] + [n[0] for n in gen_out],
-    "out": gen_out,
-    "user": {
-        "initial_sample_size": 100,
-        "sample_points": np.round(minima, 1),
-        "localopt_method": "external_localopt",
-        "max_active_runs": 6,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
-shutil.copy("./scripts_used_by_reg_tests/call_matlab_octave_script.m", "./")
-shutil.copy("./scripts_used_by_reg_tests/wrapper_obj_fun.m", "./")
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "external_localopt",
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
+    shutil.copy("./scripts_used_by_reg_tests/call_matlab_octave_script.m", "./")
+    shutil.copy("./scripts_used_by_reg_tests/wrapper_obj_fun.m", "./")
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"sim_max": 500}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"sim_max": 500}
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    # Note: This regression test considers only the global minima because it's
-    # not possible to pass an initial simplex to fminsearch in Octave/Matlab.
-    # As such, localopt runs in APOSMM that are started near 4 of the 6 local
-    # minima "jump out", even when 'sim_max' is increased. (Matlab's fminsearch
-    # has a smaller initial simplex and appears to be less susceptible to
-    # this.)
-    minima = minima[:2]
-    tol = 1e-3
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        # Note: This regression test considers only the global minima because it's
+        # not possible to pass an initial simplex to fminsearch in Octave/Matlab.
+        # As such, localopt runs in APOSMM that are started near 4 of the 6 local
+        # minima "jump out", even when 'sim_max' is increased. (Matlab's fminsearch
+        # has a smaller initial simplex and appears to be less susceptible to
+        # this.)
+        minima = minima[:2]
+        tol = 1e-3
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+
+        save_libE_output(H, persis_info, __file__, nworkers)

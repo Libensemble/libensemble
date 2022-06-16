@@ -31,48 +31,51 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float), ("grad", float, n)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_out = [
-    ("x", float, n),
-    ("x_on_cube", float, n),
-    ("sim_id", int),
-    ("local_min", bool),
-    ("local_pt", bool),
-]
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("grad", float, n)],
+    }
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["f", "grad"] + [n[0] for n in gen_out],
-    "out": gen_out,
-    "user": {
-        "initial_sample_size": 100,
-        "localopt_method": "nm",
-        "lb": np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
-        "ub": np.array([3, 2]),
-    },
-}
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f", "grad"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "localopt_method": "nm",
+            "lb": np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
+            "ub": np.array([3, 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"sim_max": 1000}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"sim_max": 1000}
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
-    assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
+        assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"

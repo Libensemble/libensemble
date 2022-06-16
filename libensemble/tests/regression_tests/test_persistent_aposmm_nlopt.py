@@ -34,65 +34,68 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if is_manager:
-    start_time = time()
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    if is_manager:
+        start_time = time()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_out = [
-    ("x", float, n),
-    ("x_on_cube", float, n),
-    ("sim_id", int),
-    ("local_min", bool),
-    ("local_pt", bool),
-]
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["f"] + [n[0] for n in gen_out],
-    "out": gen_out,
-    "user": {
-        "initial_sample_size": 100,
-        "sample_points": np.round(minima, 1),
-        "localopt_method": "LN_BOBYQA",
-        "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        "xtol_abs": 1e-6,
-        "ftol_abs": 1e-6,
-        "dist_to_bound_multiple": 0.5,
-        "max_active_runs": 6,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "LN_BOBYQA",
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.5,
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"sim_max": 2000}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"sim_max": 2000}
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    tol = 1e-5
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        tol = 1e-5
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+
+        save_libE_output(H, persis_info, __file__, nworkers)
