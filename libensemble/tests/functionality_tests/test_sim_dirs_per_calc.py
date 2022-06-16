@@ -69,9 +69,9 @@ if __name__ == "__main__":
     if is_manager:
         assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
         dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
-        assert dir_sum == exit_criteria["sim_max"], "Number of sim directories ({}) does not match sim_max ({}).".format(
-            dir_sum, exit_criteria["sim_max"]
-        )
+        assert (
+            dir_sum == exit_criteria["sim_max"]
+        ), "Number of sim directories ({}) does not match sim_max ({}).".format(dir_sum, exit_criteria["sim_max"])
 
         input_copied = []
 

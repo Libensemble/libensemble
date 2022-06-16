@@ -102,6 +102,8 @@ if __name__ == "__main__":
         print("Expecting: {}".format(calc_status_list))
         print("Received:  {}\n".format(H["cstat"]))
 
-        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(H["cstat"])
+        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
+            H["cstat"]
+        )
 
         print("\n\n\nRun completed.")

@@ -119,7 +119,10 @@ if __name__ == "__main__":
         {"testid": "jsr1", "nprocs": 16, "e_args": "--xarg 1 -r 16"},  # nprocs + parse extra_args
         {"testid": "jsr2", "e_args": "-n 8 --xarg 1 -r 4"},  # parse extra_args
         {"testid": "jsr3", "nprocs": 3, "e_args": '-a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"'},  # combine r-sets
-        {"testid": "jsr4", "e_args": '-n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"'},  # r-sets all in extra_args
+        {
+            "testid": "jsr4",
+            "e_args": '-n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu"',
+        },  # r-sets all in extra_args
     ]
 
     eargs_custom = [{"testid": "cust1", "e_args": "--xarg 1 --ppn 16"}]
@@ -205,7 +208,6 @@ if __name__ == "__main__":
         "myrunner --xarg 1 --ppn 16 /path/to/fakeapp.x --testid cust1",
     ]
 
-
     # Loop here for mocking different systems.
     def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
 
@@ -228,7 +230,6 @@ if __name__ == "__main__":
 
         # Perform the run
         H, pinfo, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:
