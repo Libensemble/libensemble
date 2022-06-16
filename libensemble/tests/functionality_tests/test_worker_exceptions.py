@@ -22,41 +22,44 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.manager import LoggedException
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
-n = 2
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    n = 2
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": [],
-    "out": [("x", float, 2)],
-    "user": {
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "initial_sample": 100,
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": [],
+        "out": [("x", float, 2)],
+        "user": {
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "initial_sample": 100,
+        },
+    }
 
-libE_specs["abort_on_exception"] = False
-libE_specs["save_H_and_persis_on_abort"] = False
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Tell libEnsemble when to stop
-exit_criteria = {"wallclock_max": 10}
+    libE_specs["abort_on_exception"] = False
+    libE_specs["save_H_and_persis_on_abort"] = False
 
-# Perform the run
-return_flag = 1
-try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-except LoggedException as e:
-    print("Caught deliberate exception: {}".format(e))
-    return_flag = 0
+    # Tell libEnsemble when to stop
+    exit_criteria = {"wallclock_max": 10}
 
-if is_manager:
-    assert return_flag == 0
+    # Perform the run
+    return_flag = 1
+    try:
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    except LoggedException as e:
+        print("Caught deliberate exception: {}".format(e))
+        return_flag = 0
+
+    if is_manager:
+        assert return_flag == 0

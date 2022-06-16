@@ -18,44 +18,47 @@ from libensemble.manager import LoggedException
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
+
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
 
-# Define sim_func
-def six_hump_camel_err(H, persis_info, sim_specs, _):
-    raise Exception("Deliberate error")
+    # Define sim_func
+    def six_hump_camel_err(H, persis_info, sim_specs, _):
+        raise Exception("Deliberate error")
 
 
-sim_specs = {
-    "sim_f": six_hump_camel_err,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    sim_specs = {
+        "sim_f": six_hump_camel_err,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": ["sim_id"],
-    "out": [("x", float, 2)],
-    "user": {
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "gen_batch_size": 10,
-    },
-}
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, 2)],
+        "user": {
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "gen_batch_size": 10,
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-exit_criteria = {"wallclock_max": 10}
+    exit_criteria = {"wallclock_max": 10}
 
-libE_specs["abort_on_exception"] = False
+    libE_specs["abort_on_exception"] = False
 
-# Perform the run
-return_flag = 1
-try:
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-except LoggedException as e:
-    print("Caught deliberate exception: {}".format(e))
-    return_flag = 0
+    # Perform the run
+    return_flag = 1
+    try:
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    except LoggedException as e:
+        print("Caught deliberate exception: {}".format(e))
+        return_flag = 0
 
-if is_manager:
-    assert return_flag == 0
+    if is_manager:
+        assert return_flag == 0
