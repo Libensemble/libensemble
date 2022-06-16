@@ -301,32 +301,34 @@ def test_comm_eval():
     assert gcomm.sim_started == 4 and gcomm.sim_pending == 0
 
 
+def worker_thread(comm, gen_specs):
+    gcomm = comms.CommEval(comm, gen_specs=gen_specs)
+    p1 = gcomm(x=0.5)
+    p2 = gcomm(x=1.0)
+    x1 = p1.result()
+    assert x1 == 5
+    assert not p2.done()
+    gcomm.wait_all()
+    assert p2.done()
+    assert p2.result(timeout=0) == 10
+    p3 = gcomm(x=3)
+    p4 = gcomm(x=4)
+    assert not p3.done()
+    assert not p4.done()
+    gcomm.wait_any()
+    assert p3.done()
+    return 128
+
+def bad_worker_thread(comm):
+    raise BadWorkerException("Bad worker")
+
+
+class BadWorkerException(Exception):
+    pass
+
+
 def run_qcomm_threadproc_test(ThreadProc):
     "Test CommEval between two threads or processes (allows timeout checks)"
-
-    class BadWorkerException(Exception):
-        pass
-
-    def worker_thread(comm, gen_specs):
-        gcomm = comms.CommEval(comm, gen_specs=gen_specs)
-        p1 = gcomm(x=0.5)
-        p2 = gcomm(x=1.0)
-        x1 = p1.result()
-        assert x1 == 5
-        assert not p2.done()
-        gcomm.wait_all()
-        assert p2.done()
-        assert p2.result(timeout=0) == 10
-        p3 = gcomm(x=3)
-        p4 = gcomm(x=4)
-        assert not p3.done()
-        assert not p4.done()
-        gcomm.wait_any()
-        assert p3.done()
-        return 128
-
-    def bad_worker_thread(comm):
-        raise BadWorkerException("Bad worker")
 
     gen_specs = {"out": [("x", float), ("flag", bool)]}
     results = np.zeros(3, dtype=[("f", float)])
@@ -372,23 +374,21 @@ def run_qcomm_threadproc_test(ThreadProc):
 
     assert bad_worker_okay, "Checking bad worker flag"
 
+def worker_main(comm):
+    ch = commlogs.CommLogHandler(comm)
+    logger = logging.getLogger()
+    logger.addHandler(ch)
+    logger.setLevel(logging.INFO)
+    logger.info("Test message")
+    comm.send("Done!")
 
 def test_qcomm_threadproc():
     "Test CommEval between threads and processes"
     run_qcomm_threadproc_test(comms.QCommThread)
     run_qcomm_threadproc_test(comms.QCommProcess)
 
-
 def test_comm_logging():
     "Test logging from a worker process is handled correctly."
-
-    def worker_main(comm):
-        ch = commlogs.CommLogHandler(comm)
-        logger = logging.getLogger()
-        logger.addHandler(ch)
-        logger.setLevel(logging.INFO)
-        logger.info("Test message")
-        comm.send("Done!")
 
     with comms.QCommProcess(worker_main, nworkers=2) as mgr_comm:
         msg = mgr_comm.recv()
