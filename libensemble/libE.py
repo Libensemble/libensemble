@@ -100,6 +100,46 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
             y:
                 type: float
 
+On macOS and Windows, when using multiprocessing (``local`` comms), you may need to place most
+calling script code (or just ``libE()`` / ``Ensemble().run()`` at the very least) underneath
+a ``if __name__ == "__main__:" block. This is known to help suppress warnings about leaked semaphores
+or better support libraries like PyTorch. Therefore a calling script that is universal across
+all platforms and comms-types may resemble:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from libensemble.tools import add_unique_random_streams
+
+    if __name__ == "__main__:
+
+        nworkers, is_manager, libE_specs, _ = parse_args()
+
+        libE_specs["save_every_k_gens"] = 20
+
+        gen_specs = {"gen_f": gen_random_sample,
+                    "out": [("x", float, (1,))],
+                    "user": {
+                        "lower": np.array([-3]),
+                        "upper": np.array([3]),
+                        "gen_batch_size": 5
+                        }
+                    }
+
+        sim_specs = {"sim_f": sim_find_sine,
+                    "in": ["x"],
+                    "out": [("y", float)]}
+
+        persis_info = add_unique_random_streams({}, nworkers+1)
+
+        exit_criteria = {"sim_max": 80}
+
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                    libE_specs=libE_specs)
 
 See below for the complete traditional ``libE()`` API.
 """
