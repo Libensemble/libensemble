@@ -1,6 +1,4 @@
-import sys
-import numpy as np
-from dateutil.parser import parse as dtparse
+from dateutil.parser import parse
 
 infile = "libE_stats.txt"
 
@@ -13,7 +11,7 @@ def is_date(string, fuzzy=False):
     :param fuzzy: bool, ignore unknown tokens in string if True
     """
     try:
-        dtparse(string, fuzzy=fuzzy)
+        parse(string, fuzzy=fuzzy)
         return True
 
     except ValueError:
