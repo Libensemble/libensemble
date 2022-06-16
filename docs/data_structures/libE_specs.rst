@@ -36,7 +36,6 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             If False, the manager avoid this moderate overhead.
             Default: True
 
-
         Directory management options:
         -----------------------------
         'ensemble_dir_path' [str]:
@@ -79,7 +78,6 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Copy this directory and its contents for each generator-instance specific directory.
             If not using calc directories, contents are copied to the ensemble directory.
 
-
         Profiling/timing options:
         -------------------------
         'profile' [bool]:
@@ -91,7 +89,6 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.
             Default: True
-
 
         TCP only options:
         -----------------
@@ -110,7 +107,6 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             a local Python path, calling script, and manager/server format-fields for manager_ip,
             manager_port, authkey, and workerID. nworkers is specified normally.
 
-
         Options for history management with persistent workers:
         -------------------------------------------------------
         'use_persis_return_gen' [bool]:
@@ -123,7 +119,6 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             List of fields in H that the manager will return to persistent
             workers along with the PERSIS_STOP tag at the end of the libE run.
             Default: None
-
 
         Resource management options:
         ----------------------------
