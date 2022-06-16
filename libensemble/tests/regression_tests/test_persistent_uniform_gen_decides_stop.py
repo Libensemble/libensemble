@@ -76,9 +76,15 @@ if __name__ == "__main__":
     if is_manager:
         [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)
         print("Num. points in each gen iteration:", counts)
-        assert counts[0] == nworkers, "The first gen_ended_time should be common among initial_batch_size number of points"
-        assert counts[1] == nworkers, "The second gen_ended_time should be common among initial_batch_size number of points"
-        assert len(np.unique(counts)) > 1, "All gen_ended_times are the same; they should be different for the async case"
+        assert (
+            counts[0] == nworkers
+        ), "The first gen_ended_time should be common among initial_batch_size number of points"
+        assert (
+            counts[1] == nworkers
+        ), "The second gen_ended_time should be common among initial_batch_size number of points"
+        assert (
+            len(np.unique(counts)) > 1
+        ), "All gen_ended_times are the same; they should be different for the async case"
 
         gen_workers = np.unique(H["gen_worker"])
         print("Generators that issued points", gen_workers)

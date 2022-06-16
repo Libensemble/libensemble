@@ -38,7 +38,9 @@ if __name__ == "__main__":
     samp = 1000
     n = 8
 
-    H0 = np.zeros(samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
+    H0 = np.zeros(
+        samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)]
+    )
 
     np.random.seed(0)
     H0["x"] = gen_borehole_input(samp)
@@ -54,7 +56,9 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": len(H0)}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
+    )
 
     if is_manager:
         assert len(H) == len(H0)

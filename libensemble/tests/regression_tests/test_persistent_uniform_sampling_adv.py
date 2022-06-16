@@ -54,7 +54,6 @@ if __name__ == "__main__":
         },
     }
 
-
     sim_max = 40
     exit_criteria = {"sim_max": sim_max}
 

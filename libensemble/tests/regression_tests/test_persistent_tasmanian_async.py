@@ -58,7 +58,6 @@ if __name__ == "__main__":
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-
     # Create an async simulator function (must return 'x' and 'f').
     def sim_f(H, persis_info, sim_specs, _):
         batch = len(H["x"])
@@ -67,7 +66,6 @@ if __name__ == "__main__":
         for i, x in enumerate(H["x"]):
             H0["f"][i] = six_hump_camel_func(x)
         return H0, persis_info
-
 
     # Set up test parameters.
     user_specs_arr = []

@@ -40,7 +40,6 @@ if __name__ == "__main__":
 
     assert nworkers == 4, "This test requires exactly 4 workers"
 
-
     def run_simulation(H, persis_info, sim_specs, libE_info):
         # Extract input parameters
         values = list(H["x"][0])
@@ -56,7 +55,6 @@ if __name__ == "__main__":
         libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
 
         return libE_output, persis_info, calc_status
-
 
     sim_specs = {
         "sim_f": run_simulation,
@@ -94,7 +92,6 @@ if __name__ == "__main__":
     # libE logger
     logger.set_level("INFO")
 
-
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
     # Run LibEnsemble, and store results in history array H
@@ -126,7 +123,9 @@ if __name__ == "__main__":
                 gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
                 gen_specs["user"]["cost_func"] = lambda z: z[0][0] ** 3
 
-            H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
+            H, persis_info, flag = libE(
+                sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0
+            )
 
             if is_manager:
                 if use_H0 is False:

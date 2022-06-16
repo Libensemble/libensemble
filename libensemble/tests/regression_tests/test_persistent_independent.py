@@ -129,4 +129,6 @@ if __name__ == "__main__":
                 f_i = eval_H[last_eval_idx]["f_i"]
                 F += f_i
 
-            assert F - fstar < eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(F - fstar, eps, fstar)
+            assert F - fstar < eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
+                F - fstar, eps, fstar
+            )
