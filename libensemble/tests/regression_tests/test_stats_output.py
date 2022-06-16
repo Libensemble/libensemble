@@ -18,8 +18,7 @@ Note: This test contains multiple iterations to test different libE_stats output
 import sys
 import numpy as np
 
-import subprocess
-import importlib.resources as pkg_resources
+from check_libE_stats import check_libE_stats
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -111,11 +110,13 @@ if __name__ == "__main__":
 
         if prob_id == 0:
             libE_specs["stats_fmt"] = {"task_timing": True}  # This adds total time for each task.
+            check_task_datetime = False
 
         if prob_id == 1:
             scripts.extend(task_scripts)
-            # This includes task_timing and start/end times for each task + resource sets for each calculation.
+            # task_datetime: Include task_timing and start/end times for each task
             libE_specs["stats_fmt"] = {"task_datetime": True, "show_rsets": True}
+            check_task_datetime = True
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -127,11 +128,6 @@ if __name__ == "__main__":
         if is_manager:
             assert flag == 0
 
-            # Run plot scripts - check output in correct format
-            for script in scripts:
-                with pkg_resources.path("postproc_scripts", script) as res:
-                    print("Running script: ", res)
-                    p = subprocess.check_call(["python", res])
-                    # Fails with subprocess.CalledProcessError if error
+            check_libE_stats(task_datetime=check_task_datetime)
 
             # save_libE_output(H, persis_info, __file__, nworkers)
