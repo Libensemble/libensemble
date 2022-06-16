@@ -9,22 +9,21 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
 
         General options:
         ----------------
-
-        'comms' [string]:
+        'comms' [str]:
             Manager/Worker communications mode. Default: mpi
             Options are 'mpi', 'local', 'tcp'
         'nworkers' [int]:
             Number of worker processes to spawn (only in local/tcp modes)
         'mpi_comm' [MPI communicator]:
             libEnsemble communicator. Default: MPI.COMM_WORLD
-        'abort_on_exception' [boolean]:
+        'abort_on_exception' [bool]:
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
             IF False, an exception will be raised by the manager.
         'save_every_k_sims' [int]:
             Save history array to file after every k simulated points.
         'save_every_k_gens' [int]:
             Save history array to file after every k generated points.
-        'save_H_and_persis_on_abort' [boolean]:
+        'save_H_and_persis_on_abort' [bool]:
             Whether libEnsemble should save the states of H and persis_info on
             aborting after an error.
             Default: True
@@ -32,7 +31,7 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             When libEnsemble concludes and attempts to close down worker processes,
             the number of seconds after which workers are considered timed out. Worker
             processes are then terminated. multiprocessing default: 1
-        'kill_canceled_sims' [boolean]:
+        'kill_canceled_sims' [bool]:
             Will libE try to kill sims that user functions mark 'cancel_requested' as True.
             If False, the manager avoid this moderate overhead.
             Default: True
@@ -40,20 +39,19 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
 
         Directory management options:
         -----------------------------
-
-        'ensemble_dir_path' [string]:
+        'ensemble_dir_path' [str]:
             Path to main ensemble directory containing calculation directories. Can serve
             as single working directory for workers, or contain calculation directories.
             Default: './ensemble'
-        'ensemble_copy_back' [boolean]:
+        'ensemble_copy_back' [bool]:
             Whether to copy back directories within ensemble_dir_path back to launch
             location. Useful if ensemble_dir placed on node-local storage.
             Default: False
-        'use_worker_dirs' [boolean]:
+        'use_worker_dirs' [bool]:
             Whether to organize calculation directories under worker-specific directories.
             Default: False
 
-        'sim_dirs_make' [boolean]:
+        'sim_dirs_make' [bool]:
             Whether to make simulation-specific calculation directories for each sim call.
             This will create a directory for each simulation, even if no sim_input_dir is
             specified. If False, all workers operate within the ensemble directory
@@ -63,11 +61,11 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Paths to files or directories to copy into each sim directory, or ensemble directory.
         'sim_dir_symlink_files' [list]:
             Paths to files or directories to symlink into each sim directory.
-        'sim_input_dir' [string]:
+        'sim_input_dir' [str]:
             Copy this directory and its contents for each simulation-specific directory.
             If not using calculation directories, contents are copied to the ensemble directory.
 
-        'gen_dirs_make' [boolean]:
+        'gen_dirs_make' [bool]:
             Whether to make generator-instance specific calculation directories for each
             gen call. This will create a directory for each generator call, even if no
             gen_input_dir is specified. If False, all workers operate within the ensemble
@@ -77,20 +75,19 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Paths to files or directories to copy into each gen directory, or ensemble directory.
         'gen_dir_symlink_files' [list]:
             Paths to files or directories to symlink into each gen directory.
-        'gen_input_dir' [string]:
+        'gen_input_dir' [str]:
             Copy this directory and its contents for each generator-instance specific directory.
             If not using calc directories, contents are copied to the ensemble directory.
 
 
         Profiling/timing options:
         -------------------------
-
-        'profile' [boolean]:
+        'profile' [bool]:
             Profile manager and worker logic using cProfile. Default: False
-        'disable_log_files' [boolean]:
+        'disable_log_files' [bool]:
             Disable the creation of 'ensemble.log' and 'libE_stats.txt' log files.
             Default: False
-        'safe_mode' [boolean]:
+        'safe_mode' [bool]:
             Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.
             Default: True
@@ -98,14 +95,13 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
 
         TCP only options:
         -----------------
-
         'workers' [list]:
             TCP Only: A list of worker hostnames.
-        'ip' [string]:
+        'ip' [str]:
             TCP Only: IP address for Manager's system
         'port' [int]:
             TCP Only: Port number for Manager's system
-        'authkey' [string]:
+        'authkey' [str]:
             TCP Only: Authkey for Manager's system
         'workerID' [int]:
             TCP Only: Worker ID number assigned to the new process.
@@ -117,11 +113,10 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
 
         Options for history management with persistent workers:
         -------------------------------------------------------
-
-        'use_persis_return_gen' [boolean]:
+        'use_persis_return_gen' [bool]:
             Adds persistent generator function H return to managers history array.
             Default: False
-        'use_persis_return_sim' [boolean]:
+        'use_persis_return_sim' [bool]:
             Adds persistent simulator function H return to managers history array.
             Default: False
         'final_fields' [list]:
@@ -132,8 +127,7 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
 
         Resource management options:
         ----------------------------
-
-        'disable_resource_manager' [boolean]:
+        'disable_resource_manager' [bool]:
             Disable the built-in resource manager. If this is True, automatic resource detection
             and/or assignment of resources to workers is disabled. This also means that
             any entries in the "resource_info" option will be ignored.
@@ -142,13 +136,13 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding
             zero_resource_workers).
-        'enforce_worker_core_bounds' [boolean]:
+        'enforce_worker_core_bounds' [bool]:
             If False, the Executor will permit submission of tasks with a
             higher processor count than the CPUs available to the worker as
             detected by the resource manager. Larger node counts are not allowed.
             When the libE_specs option "disable_resource_manager" is True,
             this argument is ignored. Default: False
-        'dedicated_mode' [boolean]:
+        'dedicated_mode' [bool]:
             If True, then running in dedicated mode, otherwise in distributed
             mode. Dedicated mode means libE processes (manager and workers) are
             grouped together and do not share nodes with applications.
@@ -165,6 +159,8 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             A dictionary of options for the resource scheduler.
             See 'Scheduler Options' for more options.
 
+The following describe the dictionary options within ``libE_specs``.
+
 Scheduler Options
 -----------------
 
@@ -179,24 +175,24 @@ The allowable ``libE_specs["resource_info"]`` fields are::
 
     'cores_on_node' [tuple (int, int)]:
         Tuple (physical cores, logical cores) on nodes.
-    'node_file' [string]:
+    'node_file' [str]:
         Name of file containing a node-list. Default is 'node_list'.
-    'nodelist_env_slurm' [string]:
+    'nodelist_env_slurm' [str]:
         The environment variable giving a node list in Slurm format
         (Default: Uses SLURM_NODELIST).  Note: This is queried only if
         a node_list file is not provided and the resource manager is
         enabled (default).
-    'nodelist_env_cobalt' [string]:
+    'nodelist_env_cobalt' [str]:
         The environment variable giving a node list in Cobalt format
         (Default: Uses COBALT_PARTNAME) Note: This is queried only
         if a node_list file is not provided and the resource manager
         is enabled (default).
-    'nodelist_env_lsf' [string]:
+    'nodelist_env_lsf' [str]:
         The environment variable giving a node list in LSF format
         (Default: Uses LSB_HOSTS) Note: This is queried only
         if a node_list file is not provided and the resource manager
         is enabled (default).
-    'nodelist_env_lsf_shortform' [string]:
+    'nodelist_env_lsf_shortform' [str]:
         The environment variable giving a node list in LSF short-form
         format (Default: Uses LSB_MCPU_HOSTS) Note: This is queried only
         if a node_list file is not provided and the resource manager is
