@@ -1,15 +1,17 @@
+""" Script to check format of libE_stats.txt
+
+Checks matching start and end times existing for calculation and tasks if
+required. Checks that dates/times are in a valid format.
+
+"""
+
 from dateutil.parser import parse
 
 infile = "libE_stats.txt"
 
 
 def is_date(string, fuzzy=False):
-    """
-    Return whether the string can be interpreted as a date.
-
-    :param string: str, string to check for date
-    :param fuzzy: bool, ignore unknown tokens in string if True
-    """
+    """Return whether the string can be interpreted as a date"""
     try:
         parse(string, fuzzy=fuzzy)
         return True
@@ -19,7 +21,7 @@ def is_date(string, fuzzy=False):
 
 
 def check_datetime(t1, t2):
-    """Check if a datetime
+    """Check if entry is a valid datetime
 
     Allows for either date and time, or just time
     If just time, then t2 will be non-datetime.
@@ -32,8 +34,8 @@ def check_datetime(t1, t2):
     assert is_date(dt), "Expected a datetime, found {}".format(dt)
 
 
-# Maybe send libE_specs and extract from that
 def check_start_end_times(start="Start:", end="End:", everyline=True):
+    """Iterate over rows in infile and check delimiters and datetime formats"""
     with open(infile) as f:
         total_cnt = 0
         for line in f:
@@ -59,6 +61,7 @@ def check_start_end_times(start="Start:", end="End:", everyline=True):
 
 
 def check_libE_stats(task_datetime=False):
+    """Determine and run checks"""
     check_start_end_times()
     if task_datetime:
         check_start_end_times(start="Tstart:", end="Tend:", everyline=False)
