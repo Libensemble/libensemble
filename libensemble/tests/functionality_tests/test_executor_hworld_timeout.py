@@ -26,6 +26,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 3 4
 # TESTSUITE_OMPI_SKIP: true
+# TESTSUITE_OS_SKIP: OSX
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 
