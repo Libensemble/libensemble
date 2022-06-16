@@ -100,10 +100,11 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
             y:
                 type: float
 
-On macOS and Windows, when using multiprocessing (``local`` comms), you may need to place most
-calling script code (or just ``libE()`` / ``Ensemble().run()`` at the very least) underneath
-a ``if __name__ == "__main__:" block. This is known to help suppress warnings about leaked semaphores
-or better support libraries like PyTorch. Therefore a calling script that is universal across
+On macOS and Windows, the default multiprocessing start method is ``'spawn'`` and you must place most
+calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) underneath
+a ``if __name__ == "__main__:" block.
+
+Therefore a calling script that is universal across
 all platforms and comms-types may resemble:
 
 .. code-block:: python
@@ -140,6 +141,13 @@ all platforms and comms-types may resemble:
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                     libE_specs=libE_specs)
+
+Alternatively, you may set the multiprocesing start method to ``'fork'`` via the following:
+
+    from multiprocessing import set_start_method
+    set_start_method("fork")
+
+But note that this is incompatible with some libraries.
 
 See below for the complete traditional ``libE()`` API.
 """
