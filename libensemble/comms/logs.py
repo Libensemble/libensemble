@@ -164,9 +164,3 @@ def manager_logging_config():
         fhe.addFilter(efilter)
         fhe.setFormatter(formatter)
         logger.addHandler(fhe)
-
-        def close_logs():
-            fh.close()
-            fhs.close()
-
-        return close_logs

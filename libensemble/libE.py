@@ -456,16 +456,12 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
         resources.set_resource_manager(nworkers)
 
     if not libE_specs.get("disable_log_files", False):
-        close_logs = manager_logging_config()
-    else:
-        close_logs = None
+        manager_logging_config()
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
         kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
-        if close_logs is not None:  # logger remains set between multiple libE calls
-            close_logs()
 
     # Run generic manager
     return manager(
