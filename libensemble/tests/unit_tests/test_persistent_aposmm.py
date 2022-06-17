@@ -2,6 +2,7 @@ import pytest
 
 import numpy as np
 import libensemble.tests.unit_tests.setup as setup
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
 
 libE_info = {"comm": {}}
 
@@ -52,6 +53,10 @@ def test_update_history_optimal():
     opt_ind = al.update_history_optimal(H["x_on_cube"][-1] + 1e-12, 1, H, np.arange(len(H)))
 
     assert opt_ind == 9, "Wrong point declared minimum"
+
+
+def combined_func(x):
+    return six_hump_camel_func(x), six_hump_camel_grad(x)
 
 
 @pytest.mark.extra
@@ -110,9 +115,6 @@ def test_standalone_persistent_aposmm():
         if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
             min_found += 1
     assert min_found >= 6, "Found {} minima".format(min_found)
-
-    def combined_func(x):
-        return six_hump_camel_func(x), six_hump_camel_grad(x)
 
     gen_specs["user"]["standalone"].pop("obj_func")
     gen_specs["user"]["standalone"].pop("grad_func")
