@@ -88,24 +88,45 @@ class ErrorFilter(logging.Filter):
         return record.levelno >= self.level
 
 
+def remove_handlers(logr):
+    """Removes all handlers from a logger
+
+    Required, for example, to remove any manager handlers that
+    get undesirably given to a worker via 'fork' (from a previous
+    libE function call).
+    """
+    for hdl in logr.handlers[:]:
+        print("handle stats is", hdl)
+        logr.removeHandler(hdl)
+        hdl.close()
+
+
+def init_worker_logger(logr, lev):
+    """Initialize a worker logger attributes"""
+    logr.propagate = False
+    logr.setLevel(lev)
+
+
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger."""
 
     logconfig = LogConfig.config
     logger = logging.getLogger(logconfig.name)
+    slogger = logging.getLogger(logconfig.stats_name)
+
     ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
     ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
 
     if logconfig.logger_set:
-        for hdl in logger.handlers[:]:
-            logger.removeHandler(hdl)
-            hdl.close()
+        remove_handlers(logger)
+        remove_handlers(slogger)
     else:
-        logger.propagate = False
-        logger.setLevel(logconfig.log_level)
+        init_worker_logger(logger, logconfig.log_level)
+        init_worker_logger(slogger, logconfig.log_level)
         logconfig.logger_set = True
 
     logger.addHandler(ch)
+    slogger.addHandler(ch)
 
 
 def manager_logging_config():
@@ -113,6 +134,7 @@ def manager_logging_config():
 
     # Regular logging
     logconfig = LogConfig.config
+
     if not logconfig.logger_set:
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
