@@ -1,6 +1,6 @@
 """
 Runs libEnsemble doing uniform sampling with multiple tasks per simulation and
-varying amount of resources, and then tests scripts that read libE_stats.txt.
+varying amount of resources, and then checks structure of the libE_stats.txt file.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_stats_output.py
@@ -42,10 +42,6 @@ if __name__ == "__main__":
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
-
-    scripts = ["plot_libe_histogram.py", "plot_libe_calcs_util_v_time.py"]
-
-    task_scripts = ["plot_libe_runs_util_v_time.py"]
 
     # Get paths for applications to run
     hello_world_app = helloworld.__file__
@@ -113,7 +109,6 @@ if __name__ == "__main__":
             check_task_datetime = False
 
         if prob_id == 1:
-            scripts.extend(task_scripts)
             # task_datetime: Include task_timing and start/end times for each task
             libE_specs["stats_fmt"] = {"task_datetime": True, "show_rsets": True}
             check_task_datetime = True
@@ -127,7 +122,6 @@ if __name__ == "__main__":
 
         if is_manager:
             assert flag == 0
-
             check_libE_stats(task_datetime=check_task_datetime)
 
             # save_libE_output(H, persis_info, __file__, nworkers)
