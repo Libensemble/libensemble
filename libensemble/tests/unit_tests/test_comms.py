@@ -319,6 +319,7 @@ def worker_thread(comm, gen_specs):
     assert p3.done()
     return 128
 
+
 def bad_worker_thread(comm):
     raise BadWorkerException("Bad worker")
 
@@ -374,6 +375,7 @@ def run_qcomm_threadproc_test(ThreadProc):
 
     assert bad_worker_okay, "Checking bad worker flag"
 
+
 def worker_main(comm):
     ch = commlogs.CommLogHandler(comm)
     logger = logging.getLogger()
@@ -382,10 +384,12 @@ def worker_main(comm):
     logger.info("Test message")
     comm.send("Done!")
 
+
 def test_qcomm_threadproc():
     "Test CommEval between threads and processes"
     run_qcomm_threadproc_test(comms.QCommThread)
     run_qcomm_threadproc_test(comms.QCommProcess)
+
 
 def test_comm_logging():
     "Test logging from a worker process is handled correctly."
