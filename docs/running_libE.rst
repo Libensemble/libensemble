@@ -73,8 +73,8 @@ system (e.g. Theta/Summit), allowing the whole node allocation for
 worker-launched application runs. In this scenario, make sure there are
 no imports of ``mpi4py`` in your Python scripts.
 
-Note that on macOS and Windows, the default multiprocessing method is ``"spawn"`` instead
-of fork; to resolve many related issues, we recommend placing calling script code in
+Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead
+of ``"fork"``; to resolve many related issues, we recommend placing calling script code in
 an ``if __name__ == "__main__":`` block.
 
 Limitations of local mode
