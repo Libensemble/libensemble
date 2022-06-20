@@ -215,8 +215,8 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         for app in self.apps.values():
             calc_name = app.gname
             desc = app.desc
-            full_path = app.full_path
-            self.add_app(calc_name, full_path, desc)
+            app_cmd = app.app_cmd
+            self.add_app(calc_name, app_cmd, desc)
 
     @staticmethod
     def del_apps():

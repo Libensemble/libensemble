@@ -279,7 +279,7 @@ class BalsamExecutor(Executor):
         """Sync application with Balsam service"""
         pass
 
-    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
+    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None, precedent=None):
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
@@ -301,6 +301,10 @@ class BalsamExecutor(Executor):
             Description of this application
 
         """
+
+        if precedent is not None:
+            logger.warning("precedent is ignored in Balsam executor - add to command template")
+
         if not app_name:
             app_name = BalsamApp.command_template.split(" ")[0]
         self.apps[app_name] = Application(" ", app_name, calc_type, desc, BalsamApp)
