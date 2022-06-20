@@ -128,6 +128,7 @@ from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
 from libensemble.tools.check_inputs import check_inputs
+from libensemble.tools.alloc_support import AllocSupport
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -228,6 +229,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
         libE_specs["disable_resource_manager"] = True
 
     Resources.init_resources(libE_specs)
+
+    # Reset gen counter.
+    AllocSupport.gen_counter = 0
 
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
 
