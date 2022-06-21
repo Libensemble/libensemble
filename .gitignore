@@ -9,6 +9,9 @@ code/tests/regression_tests/output/
 libensemble.egg-info
 docs/_build
 x.log
+*.bin
+*.mat
+*.npy
 
 .vscode
 build/
