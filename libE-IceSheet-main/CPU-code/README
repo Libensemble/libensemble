@@ -1,0 +1,95 @@
+
+To run ice-sheet simulations on processor(s) with multiple cores enabled, follow the steps below:
+
+Step 1: Install ISSM 
+Case a) On the laptop/PC (with MATLAB/Python interface)  
+
+Download and install -- https://issm.jpl.nasa.gov/download/
+*Python interface not well supported
+
+Setup for running ISSM in parallel -- https://issm.jpl.nasa.gov/documentation/parallel/
+
+Case b) On the HPC system
+
+Login to HPC system and create a directory for the ISSM software. Change to that directory. This will hold the ISSM source code and compiled programs. For example, 
+mkdir $HOME/issm-project
+cd $HOME/issm-project
+
+This command will download the lastest version of ISSM from the repository, onto the current local directory. Users are free to choose whichever location they want.
+svn --username anon --password anon checkout https://issm.ess.uci.edu/svn/issm/issm/trunk 
+
+This directory, including the trunk/ subdirectory, will be referred to as the ISSM_DIR in future steps.
+
+Edit your shell configuration file. 
+If the default shell on your HPC system is bash, then you will need to edit the shell configuration file, ~/.bashrc
+Add the following two lines to the .bashrc file in your home directory.
+	export ISSM_DIR=$HOME/issm-project/trunk
+	source $ISSM_DIR/etc/environment.sh
+
+Save your work and return to the trunk directory.
+source .bashrc
+cd $ISSM_DIR
+
+
+External packages installation
+The ISSM download includes a number of external packages in a subfolder. There are separate installation scripts for each package. 
+
+cd $ISSM_DIR/externalpackages
+
+cd autotools
+./install-linux.sh					Takes ~2 minutes
+source $ISSM_DIR/etc/environment.sh
+
+cd ../cmake
+./install.sh					Takes ~10 minutes
+source $ISSM_DIR/etc/environment.sh
+
+cd ../petsc
+>>>> Edit the install-3.14-linux.sh file <<<<
+Insert the following three lines right after the “./config/configure.py \” command on line 24.
+COPTFLAGS='-mavx2 -g -O' \
+CXXOPTFLAGS='-mavx2 -g -O' \
+FOPTFLAGS='-mavx2 -g -O' \
+
+Save the file.
+./install-3.14-linux.sh				Takes ~15 minutes
+source $ISSM_DIR/etc/environment.sh
+
+cd ../triangle
+./install-linux.sh				Takes < 1 minute
+source $ISSM_DIR/etc/environment.sh	
+
+cd ../chaco
+./install.sh					Takes < 1 minute
+source $ISSM_DIR/etc/environment.sh
+
+cd ../m1qn3
+./install.sh					Takes < 1 minute
+source $ISSM_DIR/etc/environment.sh
+
+cd ../semic
+./install.sh					Takes < 1 minute
+source $ISSM_DIR/etc/environment.sh
+
+
+ISSM Compilation
+cd $ISSM_DIR
+autoreconf -ivf
+
+Copy the configure.sh script to the ISSM_DIR folder.
+./configure.sh
+
+You may need to edit the configure.sh script slightly to run without error. 
+The script originally complained that the --with-parmetis-dir was an invalid option. I removed this option, and the script completed without error.
+
+cd $ISSM_DIR
+make
+make install
+
+The ISSM installation is complete.
+
+
+Step 2: Run example case  in parallel (.queue file is specific to University of North Dakota's cluster, this would need to be modified)
+3.1 Create a directory in trunk/execution/ 
+3.1 Transfer the bin, queue and the toolkits files to this directory
+3.3 Submit the job -- sbatch Jakobshavn.queue

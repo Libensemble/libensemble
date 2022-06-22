@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --job-name=Jakobshavn
+#SBATCH --partition=talon     
+#SBATCH --nodes=1
+#SBATCH --ntasks=18
+##SBATCH --time=07:00:00
+#SBATCH -o Jakobshavn.outlog 
+#SBATCH -e Jakobshavn.errlog 
+
+export ISSM_DIR="/home/anjali.sandip/trunk-jpl"
+source $ISSM_DIR/etc/environment.sh
+cd /home/anjali.sandip/trunk-jpl/execution/Jakobshavn
+
+mpiexec -n 18 /home/anjali.sandip/trunk-jpl/bin/issm.exe StressbalanceSolution /home/anjali.sandip/trunk-jpl/execution/Jakobshavn
