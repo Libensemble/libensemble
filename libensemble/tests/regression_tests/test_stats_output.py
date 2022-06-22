@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
         if prob_id == 1:
             # task_datetime: Include task_timing and start/end times for each task
-            libE_specs["stats_fmt"] = {"task_datetime": True, "show_rsets": True}
+            libE_specs["stats_fmt"] = {"task_datetime": True, "show_resource_sets": True}
             check_task_datetime = True
 
         persis_info = add_unique_random_streams({}, nworkers + 1)

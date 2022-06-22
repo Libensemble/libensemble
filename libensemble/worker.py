@@ -74,6 +74,7 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     workerID = workerID or comm.rank
 
     # Initialize logging on comms
+    print("\n\nim hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
     if log_comm:
         worker_logging_config(comm, workerID)
 
@@ -312,7 +313,9 @@ class Worker:
             ctype_str = calc_type_strings[calc_type]
             status = calc_status_strings.get(calc_status, calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
+
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
+            # logging.getLogger(LogConfig.config.random_name).info(calc_msg)
 
     def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
         """Construct line for libE_stats.txt file"""
@@ -322,13 +325,16 @@ class Worker:
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
-        if self.stats_fmt.get("show_rsets", False):
+        if self.stats_fmt.get("show_resource_sets", False):
             # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
             calc_msg += " rsets: {}".format(resources.rset_team)
 
         # Always put status last as could involve different numbers of words. Some scripts may assume this.
         calc_msg += " Status: {}".format(status)
+
+        # dbugging
+        print("\nWorker line: {}".format(calc_msg), flush=True)
 
         return calc_msg
 
