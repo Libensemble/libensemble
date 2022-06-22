@@ -99,7 +99,7 @@ balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
 
 if [[ $LIBE_PLOTS = "true" ]]; then
   python $PLOT_DIR/plot_libe_calcs_util_v_time.py
-  python $PLOT_DIR/plot_libe_runs_util_v_time.py
+  python $PLOT_DIR/plot_libe_tasks_util_v_time.py
   python $PLOT_DIR/plot_libe_histogram.py
 
 if [[ $BALSAM_PLOTS = "true" ]]; then
