@@ -13,6 +13,7 @@ a given log message (manager or worker ID).
 
 import logging
 import sys
+from libensemble.utils.timer import Timer
 
 
 class LogConfig:
@@ -66,13 +67,24 @@ class CommLogHandler(logging.Handler):
 class WorkerIDFilter(logging.Filter):
     """Logging filter to add worker ID to records."""
 
+    # Give min. width adjustment (uses more space if needs more).
+    margin_align = 5
+
     def __init__(self, worker_id):
         super().__init__()
         self.worker_id = worker_id
 
+        # Prefix used by stats logger
+        if worker_id == 0:
+            self.prefix = "Manager" + " " * (WorkerIDFilter.margin_align)
+        else:
+            worker_str = str(self.worker_id).rjust(WorkerIDFilter.margin_align, " ")
+            self.prefix = "Worker {}".format(worker_str)
+
     def filter(self, record):
         """Add worker ID to a LogRecord"""
         record.worker = getattr(record, "worker", self.worker_id)
+        record.prefix = getattr(record, "prefix", self.prefix)
         return True
 
 
@@ -132,6 +144,9 @@ def worker_logging_config(comm, worker_id=None):
 def manager_logging_config():
     """Add file-based logging at manager."""
 
+    stat_timer = Timer()
+    stat_timer.start()
+
     # Regular logging
     logconfig = LogConfig.config
 
@@ -151,7 +166,7 @@ def manager_logging_config():
         # NB: Could add a specialized handler for immediate flushing
         fhs = logging.FileHandler(logconfig.stat_filename, mode="w")
         fhs.addFilter(wfilter)
-        fhs.setFormatter(logging.Formatter("Worker %(worker)5d: %(message)s"))
+        fhs.setFormatter(logging.Formatter("%(prefix)s: %(message)s"))
         stat_logger = logging.getLogger(logconfig.stats_name)
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)
@@ -164,3 +179,17 @@ def manager_logging_config():
         fhe.addFilter(efilter)
         fhe.setFormatter(formatter)
         logger.addHandler(fhe)
+    else:
+        stat_logger = logging.getLogger(logconfig.stats_name)
+
+    stat_logger.info("Starting ensemble at: {}".format(stat_timer.date_start))
+
+    def exit_logger():
+        stat_timer.stop()
+        stat_logger.info("Exiting ensemble at: {} Time Taken: {}".format(stat_timer.date_end, stat_timer.elapsed))
+
+        # If closing logs - each libE() call will log to a new file.
+        # fh.close()
+        # fhs.close()
+
+    return exit_logger

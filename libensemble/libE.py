@@ -375,7 +375,14 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     wcomms = [MainMPIComm(mpi_comm, w) for w in range(1, mpi_comm.Get_size())]
 
     if not libE_specs.get("disable_log_files", False):
-        manager_logging_config()
+        exit_logger = manager_logging_config()
+    else:
+        exit_logger = None
+
+    def cleanup():
+        """Process cleanup required on exit"""
+        if exit_logger is not None:
+            exit_logger()
 
     # Set up abort handler
     def on_abort():
@@ -384,7 +391,16 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     # Run generic manager
     return manager(
-        wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_abort=on_abort
+        wcomms,
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        alloc_specs,
+        libE_specs,
+        hist,
+        on_abort=on_abort,
+        on_cleanup=cleanup,
     )
 
 
@@ -460,12 +476,16 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
         resources.set_resource_manager(nworkers)
 
     if not libE_specs.get("disable_log_files", False):
-        manager_logging_config()
+        exit_logger = manager_logging_config()
+    else:
+        exit_logger = None
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
         kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
+        if exit_logger is not None:
+            exit_logger()
 
     # Run generic manager
     return manager(
@@ -576,7 +596,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             _, port = tcp_manager.address
 
         if not libE_specs.get("disable_log_files", False):
-            manager_logging_config()
+            exit_logger = manager_logging_config()
+        else:
+            exit_logger = None
 
         logger.info("Launched server at ({}, {})".format(ip, port))
 
@@ -587,6 +609,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             """Handler to clean up launched team."""
             for wp in worker_procs:
                 launcher.cancel(wp, timeout=libE_specs.get("worker_timeout"))
+            if exit_logger is not None:
+                exit_logger()
 
         # Run generic manager
         return manager(
