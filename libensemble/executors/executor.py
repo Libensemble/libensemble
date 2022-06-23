@@ -452,6 +452,9 @@ class Executor:
         desc: String, optional
             Description of this application
 
+        precedent: String, optional
+            Any string that should directly precede the application full path.
+
         """
 
         if not app_name:
