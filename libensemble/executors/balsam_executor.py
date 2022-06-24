@@ -217,8 +217,12 @@ class BalsamTask(Task):
         Parameters
         ----------
 
-        timeout: float
-            Time in seconds after which a ``TimeoutExpired`` exception is raised"""
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed on timeout.
+
+        """
 
         if self.dry_run:
             return

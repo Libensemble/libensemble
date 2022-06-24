@@ -149,9 +149,12 @@ class LegacyBalsamTask(Task):
 
         Parameters
         ----------
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed on timeout.
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        """
 
         if self.dry_run:
             return
