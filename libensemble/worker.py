@@ -74,7 +74,6 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     workerID = workerID or comm.rank
 
     # Initialize logging on comms
-    print("\n\nim hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
     if log_comm:
         worker_logging_config(comm, workerID)
 
@@ -332,9 +331,6 @@ class Worker:
 
         # Always put status last as could involve different numbers of words. Some scripts may assume this.
         calc_msg += " Status: {}".format(status)
-
-        # dbugging
-        print("\nWorker line: {}".format(calc_msg), flush=True)
 
         return calc_msg
 
