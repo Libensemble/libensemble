@@ -43,13 +43,13 @@ def get_MPI_variant():
     try:
         subprocess.check_call(["aprun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "aprun"
-    except OSError:
+    except Exception:
         pass
 
     try:
         subprocess.check_call(["jsrun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "jsrun"
-    except OSError:
+    except Exception:
         pass
 
     try:
@@ -65,8 +65,10 @@ def get_MPI_variant():
     try:
         subprocess.check_call(["srun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "srun"
-    except OSError:
+    except Exception:
         pass
+
+    return None
 
 
 def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):

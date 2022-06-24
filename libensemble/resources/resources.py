@@ -200,7 +200,7 @@ class GlobalResources:
         # Note: Launcher used here just to get cores on node etc - independent of whether using MPIExecutor
         self.launcher = get_MPI_runner()
         remote_detect = False
-        if self.local_host not in self.global_nodelist:
+        if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
         if not cores_on_node:
