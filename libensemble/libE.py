@@ -277,6 +277,7 @@ def manager(
         exit_flag = 1  # Only exits if no abort/raise
         _dump_on_abort(hist, persis_info, save_H=save_H)
         if libE_specs.get("abort_on_exception", True) and on_abort is not None:
+            on_cleanup()
             on_abort()
         raise LoggedException(*e.args, "See error details above and in ensemble.log") from None
     else:
