@@ -125,8 +125,7 @@ total_time() {
   echo "$diff"
 }
 
-#Cleanup - esp regression test run directory
-#Changes dirs
+#Cleanup test run directories
 cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
@@ -141,7 +140,7 @@ cleanup() {
     filelist=(.cov_unit_out*);          [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(simdir/*.x);              [ -e ${filelist[0]} ] && rm simdir/*.x
     filelist=(libe_task_*.out);         [ -e ${filelist[0]} ] && rm libe_task_*.out
-    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(*libE_stats.txt);         [ -e ${filelist[0]} ] && rm *libE_stats.txt
     filelist=(my_machinefile);          [ -e ${filelist[0]} ] && rm my_machinefile
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
@@ -158,7 +157,7 @@ cleanup() {
     filelist=(outfile*.txt);            [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);            [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(libe_task_*.out);         [ -e ${filelist[0]} ] && rm libe_task_*.out
-    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(*libE_stats.txt);         [ -e ${filelist[0]} ] && rm *libE_stats.txt
     filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
@@ -168,6 +167,7 @@ cleanup() {
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
     filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
     filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
+    filelist=(*.png);                   [ -e ${filelist[0]} ] && rm *.png
   done
   cd $THISDIR
 }

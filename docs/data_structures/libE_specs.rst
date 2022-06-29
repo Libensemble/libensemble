@@ -89,6 +89,9 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Prevents user functions from overwriting protected libE fields, but requires
             moderate overhead.
             Default: True
+        'stats_fmt' [dict]:
+            A dictionary of options for formatting the 'libE_stats.txt' output file.
+            See 'Formatting Options for libE_stats File' for more options.
 
         TCP only options:
         -----------------
@@ -209,5 +212,21 @@ For example::
                     'sim_dirs_make: True,
                     'ensemble_dir_path': '/scratch/ensemble'
                     'profile_worker': False}
+
+Formatting Options for libE_stats File
+--------------------------------------
+
+The allowable ``libE_specs["stats_fmt"]`` fields are::
+
+    'task_timing' [bool]:
+        Outputs elapsed time for each task launched by the executor.
+        Default: False
+    'task_datetime' [bool]:
+        Outputs the elapsed time and start and end time for each task launched by the executor.
+        Can be used with the 'plot_libe_tasks_util_v_time.py' to give task utilization plots.
+        Default: False
+    'show_resource_sets' [bool]:
+        Shows the resource set IDs assigned to each worker for each call of the user function.
+        Default: False
 
 .. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

@@ -91,4 +91,8 @@ class TaskTimer(Timer):
 
     def __str__(self):
         """Return a string representation of the timer."""
-        return "TaskTime: {0:.2f} JStart: {1} JEnd: {2}".format(self.total, self.date_start, self.date_end)
+        return "{0:.3f} Tstart: {1} Tend: {2}".format(self.total, self.date_start, self.date_end)
+
+    def summary(self):
+        """Return the total time as a string"""
+        return "{0:.3f}".format(self.total)

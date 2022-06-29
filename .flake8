@@ -31,7 +31,7 @@ per-file-ignores =
         libensemble/tests/unit_tests/test_executor.py:E402
 
         # Matplotlib needs something set before import
-        postproc_scripts/*:E402
+        scripts/*:E402
 
         # Ignoring linelength in APOSMM
         libensemble/gen_funcs/*aposmm.py:E501

@@ -165,7 +165,7 @@ class GlobalResources:
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
 
         if self.dedicated_mode:
-            logger.debug("Running in central mode")
+            logger.debug("Running in dedicated mode")
 
         resource_info = libE_specs.get("resource_info", {})
         cores_on_node = resource_info.get("cores_on_node", None)
@@ -200,7 +200,7 @@ class GlobalResources:
         # Note: Launcher used here just to get cores on node etc - independent of whether using MPIExecutor
         self.launcher = get_MPI_runner()
         remote_detect = False
-        if self.local_host not in self.global_nodelist:
+        if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
         if not cores_on_node:
@@ -237,7 +237,7 @@ class GlobalResources:
                 return False
         return True
 
-    # This is for central mode where libE nodes will not share with app nodes
+    # This is for dedicated mode where libE nodes will not share with app nodes
     @staticmethod
     def remove_nodes(global_nodelist_in, remove_list):
         """Removes any nodes in remove_list from the global nodelist"""
@@ -253,7 +253,7 @@ class GlobalResources:
         is interrogated for a node list. If a dedicated manager node is used,
         then a node_file is recommended.
 
-        In central mode, any node with a libE worker is removed from the list.
+        In dedicated mode, any node with a libE worker is removed from the list.
         """
         top_level_dir = rundir or os.getcwd()
         node_filepath = os.path.join(top_level_dir, node_file)
