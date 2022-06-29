@@ -13,11 +13,27 @@ import signal
 import libensemble.comms.comms as comms
 
 
+def worker_main(comm):
+    return
+
+
+def worker_main_sleeping(comm):
+    while True:
+        time.sleep(1)
+
+
+def worker_main_waiting(comm):
+    signal.signal(signal.SIGTERM, ignore_handler)
+    while not comm.mail_flag():
+        pass
+
+def worker_main_sending(comm):
+    while not comm.mail_flag():
+        comm.send("Hello")
+        time.sleep(0.01)
+
 def test_qcomm_proc_terminate1():
     "Test that an already-done QCommProcess gracefully handles terminate()."
-
-    def worker_main(comm):
-        return
 
     with comms.QCommProcess(worker_main, 2) as mgr_comm:
         time.sleep(0.5)
@@ -28,11 +44,7 @@ def test_qcomm_proc_terminate1():
 def test_qcomm_proc_terminate2():
     "Test that a QCommProcess run amok can be gracefully terminated."
 
-    def worker_main(comm):
-        while True:
-            time.sleep(1)
-
-    with comms.QCommProcess(worker_main, 2) as mgr_comm:
+    with comms.QCommProcess(worker_main_sleeping, 2) as mgr_comm:
         mgr_comm.terminate(timeout=30)
         assert not mgr_comm.running
 
@@ -44,12 +56,7 @@ def ignore_handler(signum, frame):
 def test_qcomm_proc_terminate3():
     "Test that a QCommProcess ignoring SIGTERM manages."
 
-    def worker_main(comm):
-        signal.signal(signal.SIGTERM, ignore_handler)
-        while not comm.mail_flag():
-            pass
-
-    with comms.QCommProcess(worker_main, 2) as mgr_comm:
+    with comms.QCommProcess(worker_main_waiting, 2) as mgr_comm:
         time.sleep(0.5)
 
         flag = True
@@ -83,12 +90,7 @@ def test_qcomm_proc_terminate3():
 def test_qcomm_proc_terminate4():
     "Test that a QCommProcess can handle event timeouts correctly."
 
-    def worker_main(comm):
-        while not comm.mail_flag():
-            comm.send("Hello")
-            time.sleep(0.01)
-
-    with comms.QCommProcess(worker_main, 2) as mgr_comm:
+    with comms.QCommProcess(worker_main_sending, 2) as mgr_comm:
         time.sleep(0.5)
 
         flag = True
