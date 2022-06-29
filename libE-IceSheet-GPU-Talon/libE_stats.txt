@@ -1,0 +1,3 @@
+Worker     1: Gen no     1: gen Time: 0.000 Start: 2022-06-29 10:17:46.039 End: 2022-06-29 10:17:46.039 Status: Not set
+Worker     1: sim_id     0: sim Time: 371.635 Start: 2022-06-29 10:17:46.041 End: 2022-06-29 10:23:57.676 Status: Not set
+Worker     2: sim_id     1: sim Time: 394.407 Start: 2022-06-29 10:17:46.041 End: 2022-06-29 10:24:20.448 Status: Not set
