@@ -137,7 +137,6 @@ def test_standalone_persistent_aposmm_combined_func():
         pytest.skip("APOSMM or its dependencies not importable. Skipping.")
 
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
     from math import gamma, pi, sqrt
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
@@ -177,6 +176,7 @@ def test_standalone_persistent_aposmm_combined_func():
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert np.sum(H["sim_ended"]) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
 
 if __name__ == "__main__":
     test_persis_aposmm_localopt_test()
