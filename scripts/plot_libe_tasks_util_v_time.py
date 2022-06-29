@@ -16,6 +16,7 @@ finish and so does not include any overhead before or after these times.
 
 import pandas as pd
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -23,7 +24,7 @@ import matplotlib.pyplot as plt
 
 infile = "libE_stats.txt"
 
-sampling_freq = '1S'   # 1 second (default)
+sampling_freq = "1S"  # 1 second (default)
 # sampling_freq = '10L'  # 10 microseconds - for very short simulations
 # sampling_freq = '1M'   # 1 minute - for long simulations
 
@@ -89,8 +90,8 @@ for i in range(len(date_series)):
     ts = date_series[i]
     for row in run_stats:
         # For each row, is the sample time in any of the time intervals
-        for ti, task in enumerate(row['starts']):
-            if task <= ts < row['ends'][ti]:
+        for ti, task in enumerate(row["starts"]):
+            if task <= ts < row["ends"][ti]:
                 count += 1
                 break
 

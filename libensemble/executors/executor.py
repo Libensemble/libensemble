@@ -8,7 +8,6 @@ can issue and manage ``tasks`` using the submit, poll, wait, and kill functions.
 ``Task`` attributes are queried to determine status. Functions are
 also provided to access and interrogate files in the ``task``'s working directory. A
 ``manager_poll`` function can be used to poll for STOP signals from the manager.
-
 """
 
 import os
@@ -104,7 +103,6 @@ class Application:
 class Task:
     """
     Manages the creation, configuration and status of a launchable task
-
     """
 
     prefix = "libe_task"
@@ -247,7 +245,6 @@ class Task:
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
-
         """
 
         if self.dry_run:
@@ -273,8 +270,8 @@ class Task:
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
-
         """
+
         self.wait(timeout=timeout)
         return self.state
 
@@ -288,8 +285,8 @@ class Task:
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
-
         """
+
         self.wait(timeout=timeout)
         return self.errcode
 
@@ -350,7 +347,6 @@ class Executor:
     **Object Attributes:**
 
     :ivar list list_of_tasks: A list of tasks created in this executor
-
     """
 
     executor = None
@@ -385,8 +381,8 @@ class Executor:
 
         A new Executor object is created.
         This is typically created in the user calling script.
-
         """
+
         self.manager_signal = "none"
         self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
@@ -466,7 +462,6 @@ class Executor:
 
         precedent: String, optional
             Any string that should directly precede the application full path.
-
         """
 
         if not app_name:
@@ -485,7 +480,6 @@ class Executor:
         Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
-
         """
 
         self.manager_signal = "none"  # Reset
@@ -536,7 +530,6 @@ class Executor:
         -------
         calc_status: int
             presumptive integer attribute describing the final status of a launched task
-
         """
 
         calc_status = UNSET_TAG
@@ -585,8 +578,8 @@ class Executor:
 
         datetime: boolean
             If True, returns start and end times in addition to elapsed time.
-
         """
+
         timing_msg = ""
         if self.list_of_tasks:
             start_task = self.last_task
@@ -608,7 +601,7 @@ class Executor:
         self.comm = comm
 
     def _check_app_exists(self, full_path):
-        """Allows submit function to check app exists and error if not"""
+        """Allows submit function to check if app exists and error if not"""
         if not os.path.isfile(full_path):
             raise ExecutorException("Application does not exist {}".format(full_path))
 
@@ -652,7 +645,6 @@ class Executor:
 
         task: obj: Task
             The launched task object
-
         """
 
         if app_name is not None:
