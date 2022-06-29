@@ -129,7 +129,57 @@ def test_standalone_persistent_aposmm():
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
 
 
+@pytest.mark.extra
+def test_standalone_persistent_aposmm_combined_func():
+    try:
+        import libensemble.gen_funcs.persistent_aposmm as al
+    except ModuleNotFoundError:
+        pytest.skip("APOSMM or its dependencies not importable. Skipping.")
+
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
+    from math import gamma, pi, sqrt
+    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+
+    persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
+
+    n = 2
+    eval_max = 2000
+
+    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
+
+    gen_specs = {
+        "in": ["x", "f", "grad", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            # 'localopt_method': 'LD_MMA', # Needs gradients
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "LN_BOBYQA",
+            "standalone": {
+                "eval_max": eval_max,
+                "obj_and_grad_func": combined_func
+            },
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.5,
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
+
+    H = []
+    persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 3}
+    H, persis_info, exit_code = al.aposmm(H, persis_info, gen_specs, libE_info)
+
+    assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
+    assert np.sum(H["sim_ended"]) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
+    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
 if __name__ == "__main__":
     test_persis_aposmm_localopt_test()
     test_update_history_optimal()
     test_standalone_persistent_aposmm()
+    test_standalone_persistent_aposmm_combined_func()
