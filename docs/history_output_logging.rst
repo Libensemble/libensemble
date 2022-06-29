@@ -166,9 +166,9 @@ See ``test_sim_input_dir_option.py`` for examples of using these settings
 without simulation-specific directories.
 
 .. note::
-  The ``postproc_scripts`` directory, in the libEnsemble project root directory,
+  The ``scripts`` directory, in the libEnsemble project root directory,
   contains scripts to compare outputs and create plots based on the ensemble output.
 
-.. include:: ../postproc_scripts/readme.rst
+.. include:: ../scripts/readme.rst
 
-.. include:: ../postproc_scripts/balsam/readme.rst
+.. include:: ../scripts/balsam/readme.rst

@@ -1,14 +1,14 @@
 """
-Runs libEnsemble doing uniform sampling and then evaluates those points with
-varying amount of resources.
+Runs libEnsemble doing uniform sampling with multiple tasks per simulation and
+varying amount of resources, and then checks structure of the libE_stats.txt file.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_uniform_sampling_with_variable_resources.py
-   python test_uniform_sampling_with_variable_resources.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_stats_output.py
+   python test_stats_output.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 
-Note: This test contains multiple iterations to test different configurations.
+Note: This test contains multiple iterations to test different libE_stats outputs.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -18,23 +18,27 @@ Note: This test contains multiple iterations to test different configurations.
 import sys
 import numpy as np
 
+from check_libE_stats import check_libE_stats
+
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
+
 from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+
+# from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
+
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
-from multiprocessing import set_start_method
 
 if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -89,25 +93,25 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-    if libE_specs["comms"] == "local":
-        iterations = 4
-    else:
-        iterations = 2
+    iterations = 2
 
+    # Note that libE_stats.txt output will be appended across libE calls.
     for prob_id in range(iterations):
+
+        sim_specs["user"]["app"] = "six_hump_camel"
+
+        libE_specs["ensemble_dir_path"] = (
+            "./ensemble_test_stats" + str(nworkers) + "_" + libE_specs.get("comms") + "_" + str(prob_id)
+        )
+
         if prob_id == 0:
-            sim_specs["user"]["app"] = "six_hump_camel"
-        else:
-            sim_specs["user"]["app"] = "helloworld"
-            if prob_id == 1:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_fork"
-                set_start_method("fork", force=True)
-            elif prob_id == 2:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn"
-                set_start_method("spawn", force=True)
-            else:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver"
-                set_start_method("forkserver", force=True)
+            libE_specs["stats_fmt"] = {"task_timing": True}  # This adds total time for each task.
+            check_task_datetime = False
+
+        if prob_id == 1:
+            # task_datetime: Include task_timing and start/end times for each task
+            libE_specs["stats_fmt"] = {"task_datetime": True, "show_resource_sets": True}
+            check_task_datetime = True
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -118,4 +122,6 @@ if __name__ == "__main__":
 
         if is_manager:
             assert flag == 0
-            save_libE_output(H, persis_info, __file__, nworkers)
+            check_libE_stats(task_datetime=check_task_datetime)
+
+            # save_libE_output(H, persis_info, __file__, nworkers)

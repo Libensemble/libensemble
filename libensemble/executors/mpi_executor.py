@@ -236,6 +236,9 @@ class MPIExecutor(Executor):
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
 
+        if not dry_run:
+            self._check_app_exists(task.app.full_path)
+
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
 
@@ -255,7 +258,7 @@ class MPIExecutor(Executor):
         sglaunch = self.mpi_runner.subgroup_launch
         runline = launcher.form_command(mpi_command, mpi_specs)
 
-        runline.extend(task.app.full_path.split())
+        runline.extend(task.app.app_cmd.split())
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
@@ -268,11 +271,12 @@ class MPIExecutor(Executor):
             # Launch Task
             self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
         self.list_of_tasks.append(task)
+
         return task
 
     def set_worker_info(self, comm, workerid=None):

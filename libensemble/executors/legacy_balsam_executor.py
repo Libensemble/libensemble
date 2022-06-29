@@ -149,9 +149,12 @@ class LegacyBalsamTask(Task):
 
         Parameters
         ----------
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed on timeout.
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        """
 
         if self.dry_run:
             return
@@ -215,8 +218,8 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         for app in self.apps.values():
             calc_name = app.gname
             desc = app.desc
-            full_path = app.full_path
-            self.add_app(calc_name, full_path, desc)
+            app_cmd = app.app_cmd
+            self.add_app(calc_name, app_cmd, desc)
 
     @staticmethod
     def del_apps():
@@ -331,7 +334,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
             if wait_on_start:
                 self._wait_on_start(task)
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
