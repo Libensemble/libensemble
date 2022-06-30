@@ -12,6 +12,9 @@ x.log
 *.bin
 *.mat
 *.npy
+*.out
+*.err
+*.stat
 
 .vscode
 build/
