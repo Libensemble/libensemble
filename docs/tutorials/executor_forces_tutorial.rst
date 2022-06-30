@@ -63,7 +63,7 @@ containing:
     exctr = MPIExecutor()
 
     # Register simulation executable with executor
-    sim_app = os.path.join(os.getcwd(), "forces.x")
+    sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
     exctr.register_app(full_path=sim_app, app_name="forces")
 
 On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
@@ -92,7 +92,7 @@ expect, and also to parameterize function instances without hard-coding:
     # State the gen_f, inputs, outputs, additional parameters
     gen_specs = {
         "gen_f": uniform_random_sample,  # Generator function
-        "in": ["sim_id"],  # Generator input
+        "in": [],  # Generator input
         "out": [("x", float, (1,))],  # Name, type, and size of data from gen_f
         "user": {
             "lb": np.array([1000]),  # User parameters for the gen_f
@@ -228,7 +228,7 @@ for starters:
         task = exctr.submit(app_name="forces", app_args=args)
 
         # Block until the task finishes
-        task.wait(timeout=60)
+        task.wait()
 
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
