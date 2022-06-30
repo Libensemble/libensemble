@@ -11,7 +11,7 @@ omit =
 
 branch = true
 
-data_file = .cov_reg_out
+data_file = .cov_reg_out2
 
 parallel = true
 

@@ -217,8 +217,12 @@ class BalsamTask(Task):
         Parameters
         ----------
 
-        timeout: float
-            Time in seconds after which a ``TimeoutExpired`` exception is raised"""
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed on timeout.
+
+        """
 
         if self.dry_run:
             return
@@ -279,7 +283,7 @@ class BalsamExecutor(Executor):
         """Sync application with Balsam service"""
         pass
 
-    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None):
+    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None, precedent=None):
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
@@ -301,6 +305,10 @@ class BalsamExecutor(Executor):
             Description of this application
 
         """
+
+        if precedent is not None:
+            logger.warning("precedent is ignored in Balsam executor - add to command template")
+
         if not app_name:
             app_name = BalsamApp.command_template.split(" ")[0]
         self.apps[app_name] = Application(" ", app_name, calc_type, desc, BalsamApp)
@@ -550,7 +558,7 @@ class BalsamExecutor(Executor):
             if wait_on_start:
                 self._wait_on_start(task)
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 

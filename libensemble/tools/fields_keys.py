@@ -103,6 +103,7 @@ allowed_libE_spec_keys = [
     "save_every_k_sims",  #
     "save_H_and_persis_on_abort",  #
     "scheduler_opts",  #
+    "stats_fmt",  #
     "use_persis_return_gen",  #
     "use_persis_return_sim",  #
     "workerID",  #
