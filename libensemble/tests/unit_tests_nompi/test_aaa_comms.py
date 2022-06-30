@@ -27,10 +27,12 @@ def worker_main_waiting(comm):
     while not comm.mail_flag():
         pass
 
+
 def worker_main_sending(comm):
     while not comm.mail_flag():
         comm.send("Hello")
         time.sleep(0.01)
+
 
 def test_qcomm_proc_terminate1():
     "Test that an already-done QCommProcess gracefully handles terminate()."
