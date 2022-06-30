@@ -99,8 +99,8 @@ setup(
         ],
     },
 
-    scripts=['libensemble/tools/liberegister',
-             'libensemble/tools/libesubmit'],
+    scripts=['scripts/liberegister',
+             'scripts/libesubmit'],
 
     classifiers=[
         "Development Status :: 4 - Beta",
