@@ -39,7 +39,7 @@ sim_specs = {
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": gen_f,  # Generator function
-    "in": ["sim_id"],  # Generator input
+    "in": [],  # Generator input
     "out": [
         ("x", float, (1,)),  # Name, type and size of data from gen_f
         # ("resource_sets", int)  # Uncomment for var resources
