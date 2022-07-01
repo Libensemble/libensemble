@@ -65,6 +65,7 @@ setup(
         "libensemble.utils",
         "libensemble.tools",
         "libensemble.executors",
+        "libensemble.executors.balsam_executors",
         "libensemble.resources",
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
