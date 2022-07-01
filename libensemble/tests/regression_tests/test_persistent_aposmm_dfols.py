@@ -33,6 +33,11 @@ from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
+
+def combine_component(x):
+    return np.sum(np.power(x, 2))
+
+
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
 
@@ -51,7 +56,7 @@ if __name__ == "__main__":
         "in": ["x"],
         "out": [("f", float), ("fvec", float, m)],
         "user": {
-            "combine_component_func": lambda x: np.sum(np.power(x, 2)),
+            "combine_component_func": combine_component,
         },
     }
 

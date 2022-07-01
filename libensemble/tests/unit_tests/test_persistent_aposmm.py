@@ -155,10 +155,7 @@ def test_standalone_persistent_aposmm_combined_func():
             # 'localopt_method': 'LD_MMA', # Needs gradients
             "sample_points": np.round(minima, 1),
             "localopt_method": "LN_BOBYQA",
-            "standalone": {
-                "eval_max": eval_max,
-                "obj_and_grad_func": combined_func
-            },
+            "standalone": {"eval_max": eval_max, "obj_and_grad_func": combined_func},
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
             "xtol_abs": 1e-6,
             "ftol_abs": 1e-6,
