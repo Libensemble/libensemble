@@ -86,7 +86,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
             app_args=args,
             stdout="out.txt",
             stderr="err.txt",
-            wait_on_start=True,
             machinefile=machinefile,
         )
     else:
@@ -95,7 +94,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
             app_args=args,
             stdout="out.txt",
             stderr="err.txt",
-            wait_on_start=True,
             hyperthreads=True,
             machinefile=machinefile,
         )  # Auto-partition
@@ -105,7 +103,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     filepath = os.path.join(task.workdir, statfile)
     line = None
 
-    poll_interval = 1  # secs
+    poll_interval = 0.1  # secs
     while not task.finished:
         # Read last line of statfile
         line = read_last_line(filepath)
