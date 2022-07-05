@@ -18,6 +18,7 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 
 import sys
+import multiprocessing
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -29,6 +30,9 @@ from libensemble.tools import parse_args, add_unique_random_streams, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
+
+    # Temporary solution while we investigate/resolve slowdowns with "spawn" start method.
+    multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
