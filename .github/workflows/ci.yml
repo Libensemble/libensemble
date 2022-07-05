@@ -111,7 +111,7 @@ jobs:
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
-            pi install petsc
+            pip install petsc
             pip install petsc4py
             pip install DFO-LS
 
