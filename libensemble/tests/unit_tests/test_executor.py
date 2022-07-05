@@ -70,7 +70,7 @@ def build_simfuncs():
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:
@@ -100,7 +100,7 @@ def setup_executor_startups():
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:
