@@ -356,7 +356,7 @@ These may require additional browsing of the documentation to complete.
   1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch with four processes.
   2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
   3. Add a fourth argument to the args line to make 20% of simulations go bad.
-  4. Construct a ``while not task.finished:`` loop that periodically sleeps for one second, calls :meth:`task.poll()<executor.Task.poll>`,
+  4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<executor.Task.poll>`,
      then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
 
@@ -373,16 +373,20 @@ These may require additional browsing of the documentation to complete.
         ...
         args = particles + " " + str(10) + " " + particles + " " + str(0.2)
         ...
-        task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True,
-                            num_procs=4, stdout="stdout.txt", stderr="stderr.txt")
+        statfile = "forces.stat"
+        task = exctr.submit(app_name="forces", app_args=args,
+                            num_procs=4,
+                            stdout="stdout.txt",
+                            stderr="stderr.txt")
 
         while not task.finished:
-          time.sleep(1)
+          time.sleep(0.1)
           task.poll()
 
-          with open(statfile, 'r') as f:
-            if "kill\n" in f.readlines():
-              task.kill()
+          if task.file_exists_in_workdir(statfile):
+            with open(statfile, 'r') as f:
+                if "kill\n" in f.readlines():
+                    task.kill()
 
           if task.runtime > 60:
             task.kill()
