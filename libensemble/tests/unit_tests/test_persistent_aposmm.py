@@ -61,6 +61,9 @@ def test_standalone_persistent_aposmm():
     from math import gamma, pi, sqrt
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
+    import libensemble.gen_funcs
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
     n = 2
@@ -112,6 +115,9 @@ def test_standalone_persistent_aposmm_combined_func():
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
     from math import gamma, pi, sqrt
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+
+    import libensemble.gen_funcs
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
