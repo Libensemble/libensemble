@@ -113,6 +113,11 @@ jobs:
             conda install mumps-mpi
             conda install petsc
             conda install petsc4py
+
+            find ./ -name "configure.log"
+            cat configure.log
+
+
             pip install DFO-LS
 
             pip install mpmath
