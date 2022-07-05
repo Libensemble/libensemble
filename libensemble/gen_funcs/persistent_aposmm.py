@@ -16,10 +16,8 @@ from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, Co
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble import logger
 
 import multiprocessing
-
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
