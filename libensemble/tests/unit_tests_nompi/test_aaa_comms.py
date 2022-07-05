@@ -79,7 +79,7 @@ def test_qcomm_proc_terminate3():
 
         flag = True
         try:
-            mgr_comm.terminate(timeout=1)
+            mgr_comm.terminate(timeout=0.5)
             flag = False
         except comms.Timeout:
             pass
