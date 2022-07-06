@@ -32,7 +32,7 @@ USE_BALSAM = False  # Take as arg
 
 # Create and add exes to registry
 if USE_BALSAM:
-    from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+    from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
 
     exctr = LegacyBalsamMPIExecutor()
 else:
