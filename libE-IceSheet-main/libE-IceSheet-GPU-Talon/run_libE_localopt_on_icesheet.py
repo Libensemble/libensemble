@@ -19,7 +19,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 exctr = MPIExecutor()
 
 # Register simulation executable with executor
-#sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+# sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 sim_app = os.path.join(os.getcwd(), "/home/jchegwidden/GPU-code/JKS8e4/a.out")
 
 # if not os.path.isfile(sim_app):
@@ -27,16 +27,16 @@ sim_app = os.path.join(os.getcwd(), "/home/jchegwidden/GPU-code/JKS8e4/a.out")
 # #    sys.exit("forces.x not found - please build first in ../forces_app dir")
 
 exctr.register_app(full_path=sim_app, app_name="icesheet")
-#exctr.register_app(full_path=sim_app, app_name="forces")
+# exctr.register_app(full_path=sim_app, app_name="forces")
 
 # State the sim_f, inputs, outputs
 sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
-    "out": [("iterations", int)],   # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "out": [("iterations", int)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
 }
 
-n=3
+n = 3
 gen_out += [("x", float, n), ("x_on_cube", float, n)]
 
 # State the gen_f, inputs, outputs, additional parameters
@@ -47,7 +47,7 @@ gen_specs = {
     "user": {
         "lb": np.array([0.1, 0.01, 0.01]),  # User parameters for the gen_f
         "ub": np.array([1, 1, 0.1]),
-        "gen_batch_size": nworkers, # Generate one random point x for each of the workers.
+        "gen_batch_size": nworkers,  # Generate one random point x for each of the workers.
         "localopt_method": "LN_BOBYQA",
         "xtol_rel": 1e-4,
     },
@@ -59,7 +59,7 @@ alloc_specs = {"alloc_f": alloc_f, "out": gen_out, "user": {"batch_mode": True, 
 libE_specs["sim_dirs_make"] = True
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": 2*nworkers} # exit_criteria = {"sim_max": 8}
+exit_criteria = {"sim_max": 2 * nworkers}  # exit_criteria = {"sim_max": 8}
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -69,4 +69,3 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, al
 
 if is_manager:
     save_libE_output(H, persis_info, __file__, nworkers)
-
