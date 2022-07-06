@@ -5,7 +5,13 @@ import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
 from libensemble.libE import libE
-from libensemble.gen_funcs.sampling import uniform_random_sample
+
+# Fixed resources (one resource set per worker)
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+
+# Uncomment for var resources
+# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors import MPIExecutor
 
@@ -32,18 +38,24 @@ sim_specs = {
 
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
-    "gen_f": uniform_random_sample,  # Generator function
-    "in": ["sim_id"],  # Generator input
-    "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
+    "gen_f": gen_f,  # Generator function
+    "in": [],  # Generator input
+    "out": [
+        ("x", float, (1,)),  # Name, type and size of data from gen_f
+        # ("resource_sets", int)  # Uncomment for var resources
+    ],
     "user": {
         "lb": np.array([1000]),  # User parameters for the gen_f
         "ub": np.array([3000]),
         "gen_batch_size": 8,
+        # "max_resource_sets": nworkers  # Uncomment for var resources
     },
 }
 
 # Create and work inside separate per-simulation directories
 libE_specs["sim_dirs_make"] = True
+
+# libE_specs["stats_fmt"] = {"show_resource_sets": True}  # Uncomment to see resource sets in libE_stats.txt
 
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}

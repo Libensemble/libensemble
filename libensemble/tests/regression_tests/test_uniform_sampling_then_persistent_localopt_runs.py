@@ -20,6 +20,10 @@ persistent generator.
 import sys
 import numpy as np
 
+import libensemble.gen_funcs
+
+libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
@@ -29,49 +33,52 @@ from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_o
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float), ("grad", float, n)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_out += [("x", float, n), ("x_on_cube", float, n)]
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["x", "f", "grad", "sim_id"],
-    "out": gen_out,
-    "user": {
-        "xtol_rel": 1e-4,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "gen_batch_size": 2,
-        "localopt_method": "LD_MMA",
-        "xtol_rel": 1e-4,
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("grad", float, n)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f, "out": gen_out, "user": {"batch_mode": True, "num_active_gens": 1}}
+    gen_out += [("x", float, n), ("x_on_cube", float, n)]
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["x", "f", "grad", "sim_id"],
+        "out": gen_out,
+        "user": {
+            "xtol_rel": 1e-4,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "gen_batch_size": 2,
+            "localopt_method": "LD_MMA",
+            "xtol_rel": 1e-4,
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f, "out": gen_out, "user": {"batch_mode": True, "num_active_gens": 1}}
 
-exit_criteria = {"sim_max": 1000, "wallclock_max": 300}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"sim_max": 1000, "wallclock_max": 300}
 
-if is_manager:
-    assert flag == 0
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    tol = 0.1
-    for m in minima:
-        assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+    if is_manager:
+        assert flag == 0
 
-    print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
+        tol = 0.1
+        for m in minima:
+            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+        print("\nlibEnsemble found the 6 minima to a tolerance " + str(tol))
+
+        save_libE_output(H, persis_info, __file__, nworkers)

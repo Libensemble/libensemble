@@ -7,10 +7,12 @@ Execute via one of the following commands (e.g. 3 workers):
    python test_uniform_sampling_with_variable_resources.py --nworkers 3 --comms local
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
+
+Note: This test contains multiple iterations to test different configurations.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi, local
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
 import sys
@@ -25,79 +27,95 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+from multiprocessing import set_start_method
 
-libE_specs["sim_dirs_make"] = True
-libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
+if __name__ == "__main__":
 
-if libE_specs["comms"] == "tcp":
-    sys.exit("This test only runs with MPI or local -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-# Get paths for applications to run
-hello_world_app = helloworld.__file__
-six_hump_camel_app = six_hump_camel.__file__
+    libE_specs["sim_dirs_make"] = True
+    libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
-# Sim can run either helloworld or six_hump_camel
-exctr = MPIExecutor()
-exctr.register_app(full_path=hello_world_app, app_name="helloworld")
-exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+    if libE_specs["comms"] == "tcp":
+        sys.exit("This test only runs with MPI or local -- aborting...")
 
+    # Get paths for applications to run
+    hello_world_app = helloworld.__file__
+    six_hump_camel_app = six_hump_camel.__file__
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-    "user": {"app": "helloworld"},  # helloworld or six_hump_camel
-}
+    # Sim can run either helloworld or six_hump_camel
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=hello_world_app, app_name="helloworld")
+    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": ["sim_id"],
-    "out": [
-        ("priority", float),
-        ("resource_sets", int),  # Set in gen func, resourced by alloc func.
-        ("x", float, n),
-        ("x_on_cube", float, n),
-    ],
-    "user": {
-        "initial_batch_size": 5,
-        "max_resource_sets": nworkers,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+        "user": {"app": "helloworld"},  # helloworld or six_hump_camel
+    }
 
-alloc_specs = {
-    "alloc_f": give_sim_work_first,
-    "out": [],
-    "user": {
-        "batch_mode": False,
-        "give_all_with_same_priority": True,
-        "num_active_gens": 1,
-        "async_return": True,
-    },
-}
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [
+            ("priority", float),
+            ("resource_sets", int),  # Set in gen func, resourced by alloc func.
+            ("x", float, n),
+            ("x_on_cube", float, n),
+        ],
+        "user": {
+            "gen_batch_size": 5,
+            "max_resource_sets": nworkers,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-# This can improve scheduling when tasks may run across multiple nodes
-libE_specs["scheduler_opts"] = {"match_slots": False}
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+        "out": [],
+        "user": {
+            "batch_mode": False,
+            "give_all_with_same_priority": True,
+            "num_active_gens": 1,
+            "async_return": True,
+        },
+    }
 
-exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    # This can improve scheduling when tasks may run across multiple nodes
+    libE_specs["scheduler_opts"] = {"match_slots": False}
 
-for prob_id in range(2):
-    if prob_id == 0:
-        sim_specs["user"]["app"] = "six_hump_camel"
+    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+
+    if libE_specs["comms"] == "local":
+        iterations = 4
     else:
-        sim_specs["user"]["app"] = "helloworld"
-        libE_specs["ensemble_dir_path"] = "ensemble_dummy"
+        iterations = 2
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    for prob_id in range(iterations):
+        if prob_id == 0:
+            sim_specs["user"]["app"] = "six_hump_camel"
+        else:
+            sim_specs["user"]["app"] = "helloworld"
+            if prob_id == 1:
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_fork"
+                set_start_method("fork", force=True)
+            elif prob_id == 2:
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn"
+                set_start_method("spawn", force=True)
+            else:
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver"
+                set_start_method("forkserver", force=True)
 
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    if is_manager:
-        assert flag == 0
-        save_libE_output(H, persis_info, __file__, nworkers)
+        # Perform the run
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
+
+        if is_manager:
+            assert flag == 0
+            save_libE_output(H, persis_info, __file__, nworkers)

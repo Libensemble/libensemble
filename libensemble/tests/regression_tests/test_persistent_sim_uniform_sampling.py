@@ -22,56 +22,59 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import persistent_six_hump_camel as sim_f
-from libensemble.gen_funcs.persistent_uniform_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
 # logger.set_level('DEBUG')
 
-nworkers, is_manager, libE_specs, _ = parse_args()
-libE_specs["num_resource_sets"] = nworkers - 1  # Only matters if sims use resources.
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-# Only used to test returning/overwriting a point at the end of the persistent sim.
-libE_specs["use_persis_return_sim"] = True
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["num_resource_sets"] = nworkers - 1  # Only matters if sims use resources.
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # Only used to test returning/overwriting a point at the end of the persistent sim.
+    libE_specs["use_persis_return_sim"] = True
 
-n = 2
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "user": {"replace_final_fields": True},
-    "out": [("f", float), ("grad", float, n)],
-}
+    n = 2
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": [],
-    "persis_in": ["sim_id", "f", "grad"],
-    "out": [("x", float, (n,))],
-    "user": {
-        "initial_batch_size": 5,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "user": {"replace_final_fields": True},
+        "out": [("f", float), ("grad", float, n)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": [],
+        "persis_in": ["sim_id", "f", "grad"],
+        "out": [("x", float, (n,))],
+        "user": {
+            "initial_batch_size": 5,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-if is_manager:
-    assert len(np.unique(H["gen_ended_time"])) == 8
-    assert not any((H["f"] == 0))
-    # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
-    assert not np.isclose(H["f"][0], 3.23333333)
-    assert np.isclose(H["f"][-1], 3.23333333)
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        assert len(np.unique(H["gen_ended_time"])) == 8
+        assert not any((H["f"] == 0))
+        # Should overwrite the last value (in fact last (nworker-1) values) with f(1,1) = 3.23333333
+        assert not np.isclose(H["f"][0], 3.23333333)
+        assert np.isclose(H["f"][-1], 3.23333333)
+        save_libE_output(H, persis_info, __file__, nworkers)

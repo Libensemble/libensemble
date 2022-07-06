@@ -25,6 +25,7 @@ sim_app = "simdir/my_simtask.x"
 serial_app = "simdir/my_serialtask.x"
 c_startup = "simdir/c_startup.x"
 py_startup = "simdir/py_startup.py"
+non_existent_app = "simdir/non_exist.x"
 
 
 def setup_module(module):
@@ -69,7 +70,7 @@ def build_simfuncs():
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:
@@ -99,7 +100,7 @@ def setup_executor_startups():
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:
@@ -649,6 +650,7 @@ def test_register_apps():
     exctr = Executor.executor
     exctr.register_app(full_path="/path/to/fake_app1.x", app_name="fake_app1")
     exctr.register_app(full_path="/path/to/fake_app2.py", app_name="fake_app2")
+    exctr.register_app(full_path="/path/to/fake_app3.pl", app_name="fake_app3", precedent="perl")
 
     # Check selected attributes
     app = exctr.get_app("my_simtask.x")
@@ -660,19 +662,29 @@ def test_register_apps():
     assert app.gname == "libe_app_fake_app1"
     assert app.exe == "fake_app1.x"
     assert app.calc_dir == "/path/to"
+    assert app.app_cmd == "/path/to/fake_app1.x"
+    assert not app.precedent
 
     app = exctr.get_app("fake_app2")
     assert app.name == "fake_app2"
     assert app.gname == "libe_app_fake_app2"
+    assert app.full_path == "/path/to/fake_app2.py"
 
-    py_exe, app_exe = app.full_path.split()
+    py_exe, app_exe = app.app_cmd.split()
     assert os.path.split(py_exe)[1].startswith("python")
     assert app_exe == "/path/to/fake_app2.py"
 
+    app = exctr.get_app("fake_app3")
+    assert app.name == "fake_app3"
+    assert app.gname == "libe_app_fake_app3"
+    assert app.full_path == "/path/to/fake_app3.pl"
+    assert app.precedent == "perl"
+    assert app.app_cmd == "perl /path/to/fake_app3.pl"
+
     try:
-        app = exctr.get_app("fake_app3")
+        app = exctr.get_app("fake_app4")
     except ExecutorException as e:
-        assert e.args[0] == "Application fake_app3 not found in registry"
+        assert e.args[0] == "Application fake_app4 not found in registry"
         # Ordering of dictionary may vary
         # assert e.args[1] == "Registered applications: ['my_simtask.x', 'fake_app1', 'fake_app2']"
 
@@ -749,6 +761,46 @@ def test_dry_run():
     task.kill()
 
 
+def test_non_existent_app():
+    """Tests exception on non-existent app"""
+
+    from libensemble.executors.executor import Executor
+
+    exctr = Executor()
+
+    # Can register a non-existent app in case created as part of workflow.
+    exctr.register_app(full_path=non_existent_app, app_name="nonexist")
+
+    w_exctr = Executor.executor  # simulate on worker
+
+    try:
+        w_exctr.submit(app_name="nonexist")
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
+    else:
+        assert 0
+
+
+def test_non_existent_app_mpi():
+    """Tests exception on non-existent app"""
+
+    from libensemble.executors.mpi_executor import MPIExecutor
+
+    exctr = MPIExecutor()
+
+    # Can register a non-existent app in case created as part of workflow.
+    exctr.register_app(full_path=non_existent_app, app_name="nonexist")
+
+    w_exctr = Executor.executor  # simulate on worker
+
+    try:
+        w_exctr.submit(app_name="nonexist")
+    except ExecutorException as e:
+        assert e.args[0] == "Application does not exist simdir/non_exist.x"
+    else:
+        assert 0
+
+
 if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
@@ -777,4 +829,6 @@ if __name__ == "__main__":
     test_futures_interface()
     test_futures_interface_cancel()
     test_dry_run()
+    test_non_existent_app()
+    test_non_existent_app_mpi()
     teardown_module(__file__)

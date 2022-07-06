@@ -13,6 +13,7 @@ a given log message (manager or worker ID).
 
 import logging
 import sys
+from libensemble.utils.timer import Timer
 
 
 class LogConfig:
@@ -66,13 +67,24 @@ class CommLogHandler(logging.Handler):
 class WorkerIDFilter(logging.Filter):
     """Logging filter to add worker ID to records."""
 
+    # Give min. width adjustment (uses more space if needs more).
+    margin_align = 5
+
     def __init__(self, worker_id):
         super().__init__()
         self.worker_id = worker_id
 
+        # Prefix used by stats logger
+        if worker_id == 0:
+            self.prefix = "Manager" + " " * (WorkerIDFilter.margin_align)
+        else:
+            worker_str = str(self.worker_id).rjust(WorkerIDFilter.margin_align, " ")
+            self.prefix = "Worker {}".format(worker_str)
+
     def filter(self, record):
         """Add worker ID to a LogRecord"""
         record.worker = getattr(record, "worker", self.worker_id)
+        record.prefix = getattr(record, "prefix", self.prefix)
         return True
 
 
@@ -88,31 +100,55 @@ class ErrorFilter(logging.Filter):
         return record.levelno >= self.level
 
 
+def remove_handlers(logr):
+    """Removes all handlers from a logger
+
+    Required, for example, to remove any manager handlers that
+    get undesirably given to a worker via 'fork' (from a previous
+    libE function call).
+    """
+    for hdl in logr.handlers[:]:
+        logr.removeHandler(hdl)
+        hdl.close()
+
+
+def init_worker_logger(logr, lev):
+    """Initialize a worker logger attributes"""
+    logr.propagate = False
+    logr.setLevel(lev)
+
+
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger."""
 
     logconfig = LogConfig.config
     logger = logging.getLogger(logconfig.name)
+    slogger = logging.getLogger(logconfig.stats_name)
+
     ch = CommLogHandler(comm, pack=lambda rec: (0, rec))
     ch.addFilter(WorkerIDFilter(worker_id or comm.rank))
 
     if logconfig.logger_set:
-        for hdl in logger.handlers[:]:
-            logger.removeHandler(hdl)
-            hdl.close()
+        remove_handlers(logger)
+        remove_handlers(slogger)
     else:
-        logger.propagate = False
-        logger.setLevel(logconfig.log_level)
+        init_worker_logger(logger, logconfig.log_level)
+        init_worker_logger(slogger, logconfig.log_level)
         logconfig.logger_set = True
 
     logger.addHandler(ch)
+    slogger.addHandler(ch)
 
 
 def manager_logging_config():
     """Add file-based logging at manager."""
 
+    stat_timer = Timer()
+    stat_timer.start()
+
     # Regular logging
     logconfig = LogConfig.config
+
     if not logconfig.logger_set:
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
@@ -129,7 +165,7 @@ def manager_logging_config():
         # NB: Could add a specialized handler for immediate flushing
         fhs = logging.FileHandler(logconfig.stat_filename, mode="w")
         fhs.addFilter(wfilter)
-        fhs.setFormatter(logging.Formatter("Worker %(worker)5d: %(message)s"))
+        fhs.setFormatter(logging.Formatter("%(prefix)s: %(message)s"))
         stat_logger = logging.getLogger(logconfig.stats_name)
         stat_logger.propagate = False
         stat_logger.setLevel(logging.DEBUG)
@@ -142,9 +178,17 @@ def manager_logging_config():
         fhe.addFilter(efilter)
         fhe.setFormatter(formatter)
         logger.addHandler(fhe)
+    else:
+        stat_logger = logging.getLogger(logconfig.stats_name)
 
-        def close_logs():
-            fh.close()
-            fhs.close()
+    stat_logger.info("Starting ensemble at: {}".format(stat_timer.date_start))
 
-        return close_logs
+    def exit_logger():
+        stat_timer.stop()
+        stat_logger.info("Exiting ensemble at: {} Time Taken: {}".format(stat_timer.date_end, stat_timer.elapsed))
+
+        # If closing logs - each libE() call will log to a new file.
+        # fh.close()
+        # fhs.close()
+
+    return exit_logger

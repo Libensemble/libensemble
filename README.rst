@@ -76,6 +76,7 @@ Required dependencies:
 * Python_ 3.7 or above
 * NumPy_
 * psutil_
+* setuptools_
 
 When using  ``mpi4py`` for libEnsemble communications:
 
@@ -242,7 +243,7 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.9.1},
+    number  = {Revision 0.9.2},
     year    = {2022},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
@@ -339,6 +340,7 @@ See a complete list of `example user scripts`_.
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
+.. _setuptools: https://setuptools.pypa.io/en/latest/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html

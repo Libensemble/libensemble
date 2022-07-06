@@ -6,6 +6,7 @@ omit =
     */unit_tests/*
     */unit_tests_nompi/*
     */regression_tests/*
+    */functionality_tests/*
     */branin_*/*
 
 branch = true
@@ -22,6 +23,7 @@ omit =
     */unit_tests/*
     */unit_tests_nompi/*
     */regression_tests/*
+    */functionality_tests/*
 
 exclude_lines =
     if __name__ == .__main__.:

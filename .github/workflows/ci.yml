@@ -111,8 +111,8 @@ jobs:
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
-            conda install petsc
-            conda install petsc4py
+            # pip install petsc
+            # pip install petsc4py
             pip install DFO-LS
 
             pip install mpmath
@@ -124,6 +124,18 @@ jobs:
             sudo apt-get update
             sudo apt-get install octave
             sudo apt-get install bc
+
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://bitbucket.org/icl/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
 
             pip install dragonfly-opt
             pip install torch
@@ -198,7 +210,7 @@ jobs:
               BALSAM_DB_PATH: $HOME/test-balsam
           run: |
            source balsamactivate test-balsam
-           ./libensemble/tests/run-tests.sh -re -y 'test_balsam*' -z -l
+           ./libensemble/tests/run-tests.sh -re -y 'test_balsam_hworld*' -z -l
 
         - name: Merge coverage, run Coveralls
           env:

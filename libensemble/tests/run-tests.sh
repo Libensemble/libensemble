@@ -30,6 +30,7 @@ export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
 export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
 export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
+export FUNC_TEST_SUBDIR=$TESTING_DIR/functionality_tests
 
 #Coverage merge and report dir - will need the relevant .coveragerc file present
 #export COV_MERGE_DIR='' #root dir
@@ -124,8 +125,7 @@ total_time() {
   echo "$diff"
 }
 
-#Cleanup - esp regression test run directory
-#Changes dirs
+#Cleanup test run directories
 cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
@@ -140,13 +140,14 @@ cleanup() {
     filelist=(.cov_unit_out*);          [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(simdir/*.x);              [ -e ${filelist[0]} ] && rm simdir/*.x
     filelist=(libe_task_*.out);         [ -e ${filelist[0]} ] && rm libe_task_*.out
-    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(*libE_stats.txt);         [ -e ${filelist[0]} ] && rm *libE_stats.txt
     filelist=(my_machinefile);          [ -e ${filelist[0]} ] && rm my_machinefile
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(H_test.npy);              [ -e ${filelist[0]} ] && rm H_test.npy
   done
-  cd $ROOT_DIR/$REG_TEST_SUBDIR
+  for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR; do
+  cd $ROOT_DIR/$DIR
     filelist=(*.$REG_TEST_OUTPUT_EXT);  [ -e ${filelist[0]} ] && rm *.$REG_TEST_OUTPUT_EXT
     filelist=(*.npy);                   [ -e ${filelist[0]} ] && rm *.npy
     filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
@@ -156,7 +157,7 @@ cleanup() {
     filelist=(outfile*.txt);            [ -e ${filelist[0]} ] && rm outfile*.txt
     filelist=(machinefile*);            [ -e ${filelist[0]} ] && rm machinefile*
     filelist=(libe_task_*.out);         [ -e ${filelist[0]} ] && rm libe_task_*.out
-    filelist=(*libE_stats.txt*);        [ -e ${filelist[0]} ] && rm *libE_stats.txt*
+    filelist=(*libE_stats.txt);         [ -e ${filelist[0]} ] && rm *libE_stats.txt
     filelist=(my_simtask.x);            [ -e ${filelist[0]} ] && rm my_simtask.x
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
@@ -166,6 +167,8 @@ cleanup() {
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
     filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
     filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
+    filelist=(*.png);                   [ -e ${filelist[0]} ] && rm *.png
+  done
   cd $THISDIR
 }
 
@@ -401,9 +404,9 @@ if [ "$root_found" = true ]; then
     fi
 
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
+      $PYTHON_RUN -m pytest --capture=no --timeout=120 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
+      $PYTHON_RUN -m pytest --timeout=120 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
     fi;
 
     code=$?
@@ -427,12 +430,15 @@ if [ "$root_found" = true ]; then
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
 
-    cd $ROOT_DIR/$REG_TEST_SUBDIR
+    for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR; do
+      cd $ROOT_DIR/$DIR
 
-    #Check output dir exists.
-    if [ ! -d output ]; then
-      mkdir output/
-    fi;
+      #Check output dir exists.
+      if [ ! -d output ]; then
+        mkdir output/
+      fi;
+
+    done
 
     TIMEOUT=""
     if [ -x "$(command -v timeout)" ] ; then
@@ -441,7 +447,7 @@ if [ "$root_found" = true ]; then
     fi
     #Build any sim/gen source code dependencies here .....
 
-    cd $ROOT_DIR/$REG_TEST_SUBDIR
+    # cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Run regression tests using MPI
     #Before first test set error code to zero
@@ -465,118 +471,121 @@ if [ "$root_found" = true ]; then
     reg_fail=0
     test_num=0
 
-    for TEST_SCRIPT in $REG_TEST_LIST
+    for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
     do
-      COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
-      IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+      cd $ROOT_DIR/$DIR
 
-      if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
-        continue
-      fi
-
-      for LAUNCHER in $COMMS_LIST
+      for TEST_SCRIPT in $REG_TEST_LIST
       do
-        #Need proc count here for now - still stop on failure etc.
-        NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
-        OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
-        OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
-        if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
-        for NPROCS in ${NPROCS_LIST}
+        COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
+        IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+
+        if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
+          continue
+        fi
+
+        for LAUNCHER in $COMMS_LIST
         do
-          NWORKERS=$((NPROCS-1))
+          #Need proc count here for now - still stop on failure etc.
+          NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
+          OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
+          OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
+          if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+          for NPROCS in ${NPROCS_LIST}
+          do
+            NWORKERS=$((NPROCS-1))
 
-          RUN_TEST=false
-          if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-          if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
-          if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
+            RUN_TEST=false
+            if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+            if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
-          if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
-            echo "Skipping test number for OSX: " $test_num
-            continue
-          fi
-
-          if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
-            echo "Skipping test number for Open MPI: " $test_num
-            continue
-          fi
-
-          if [ $REG_STOP_ON_FAILURE = "true" ]; then
-            #Before Each Test check code is 0 (passed so far) - or skip to test summary
-            if [ "$code" -ne "0" ]; then
-              RUN_TEST=false
-              break
+            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+              echo "Skipping test number for OSX: " $test_num
+              continue
             fi
-          fi
 
-          if [ "$RUN_TEST" = "true" ]; then
-             test_num=$((test_num+1))
-             test_start=$(current_time)
+            if [[ "$OMPI_SKIP" = "true" ]] && [[ "$MPIEXEC_FLAGS" = "--oversubscribe" ]] && [[ "$RUN_MPI" = true ]]; then
+              echo "Skipping test number for Open MPI: " $test_num
+              continue
+            fi
 
-             echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
+            if [ $REG_STOP_ON_FAILURE = "true" ]; then
+              #Before Each Test check code is 0 (passed so far) - or skip to test summary
+              if [ "$code" -ne "0" ]; then
+                RUN_TEST=false
+                break
+              fi
+            fi
 
-             if [ "$REG_USE_PYTEST" = true ]; then
-               if [ "$LAUNCHER" = mpi ]; then
-                 mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-                 test_code=$?
-               else
-                 $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-               fi
-             else
-               if [ "$LAUNCHER" = mpi ]; then
-                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+            if [ "$RUN_TEST" = "true" ]; then
+               test_num=$((test_num+1))
+               test_start=$(current_time)
+
+               echo -e "\n ${titl_color}---Test $test_num: $TEST_SCRIPT starting with $LAUNCHER on $NPROCS processes ${textreset}"
+
+               if [ "$REG_USE_PYTEST" = true ]; then
+                 if [ "$LAUNCHER" = mpi ]; then
+                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN -m pytest $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
                    test_code=$?
                  else
-                   mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
-                   test_code=$?
+                   $TIMEOUT $PYTHON_RUN -m pytest $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
                  fi
                else
-                 if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
-                   test_code=$?
+                 if [ "$LAUNCHER" = mpi ]; then
+                   if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                     mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT
+                     test_code=$?
+                   else
+                     mpiexec -np $NPROCS $MPIEXEC_FLAGS $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT >> $TEST_SCRIPT.$NPROCS'procs'.$REG_TEST_OUTPUT_EXT 2>test.err
+                     test_code=$?
+                   fi
                  else
-                   $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
-                   test_code=$?
+                   if [ "$RTEST_SHOW_OUT_ERR" = "true" ]; then
+                     $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS
+                     test_code=$?
+                   else
+                     $TIMEOUT $PYTHON_RUN $COV_LINE_PARALLEL $TEST_SCRIPT --comms $LAUNCHER --nworkers $NWORKERS >> $TEST_SCRIPT.$NPROCS'procs'-$LAUNCHER.$REG_TEST_OUTPUT_EXT 2>test.err
+                     test_code=$?
+                   fi
                  fi
                fi
-             fi
-             reg_count_runs=$((reg_count_runs+1))
-             test_end=$(current_time)
-             test_time=$(total_time $test_start $test_end)
+               reg_count_runs=$((reg_count_runs+1))
+               test_end=$(current_time)
+               test_time=$(total_time $test_start $test_end)
 
-             if [ "$test_code" -eq "0" ]; then
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
-               reg_pass=$((reg_pass+1))
-               #continue testing
-             else
-               echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
-               code=$test_code #sh - currently stop on failure
-               if [ $REG_STOP_ON_FAILURE != "true" ]; then
-                 #Dump error to log file
-                 echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
-                 [ -e test.err ] && cat test.err >>log.err
+               if [ "$test_code" -eq "0" ]; then
+                 echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${pass_color} ...passed after ${test_time} seconds ${textreset}"
+                 reg_pass=$((reg_pass+1))
+                 #continue testing
+               else
+                 echo -e " ---Test $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes ${fail_color}  ...failed after ${test_time} seconds ${textreset}"
+                 code=$test_code #sh - currently stop on failure
+                 if [ $REG_STOP_ON_FAILURE != "true" ]; then
+                   #Dump error to log file
+                   echo -e "\nTest $test_num: $TEST_SCRIPT using $LAUNCHER on $NPROCS processes:\n" >>log.err
+                   [ -e test.err ] && cat test.err >>log.err
+                 fi;
+                 reg_fail=$((reg_fail+1))
                fi;
-               reg_fail=$((reg_fail+1))
-             fi;
 
-             #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
-             #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
+               #If use sub-dirs - move this test's coverage files to regression dir where they can be merged with other tests
+               #[ "$RUN_COV_TESTS" = "true" ] && mv .cov_reg_out.* ../
 
-          fi; #if [ "$RUN_TEST" = "true" ];
+            fi; #if [ "$RUN_TEST" = "true" ];
 
-        done #nprocs
-      done #launcher
+          done #nprocs
+        done #launcher
 
-      [ $REG_STOP_ON_FAILURE = "true" ] && [ "$code" -ne "0" ] && cat test.err && break
-      reg_count_tests=$((reg_count_tests+1))
+        [ $REG_STOP_ON_FAILURE = "true" ] && [ "$code" -ne "0" ] && cat test.err && break
+        reg_count_tests=$((reg_count_tests+1))
 
-    done #tests
+      done #tests
+    done #functionality/regression directories
     reg_end=$(current_time)
     reg_time=$(total_time $reg_start $reg_end)
 
     # ********* End Loop over regression tests *********
-
-    cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Create Coverage Reports ----------------------------------------------
 
@@ -584,23 +593,38 @@ if [ "$root_found" = true ]; then
     if [ "$code" -eq "0" ]; then
 
       echo -e "\n..Moving output files to output dir"
-      if [ "$(ls -A output)" ]; then
-        rm output/* #Avoid mixing test run results
-      fi;
 
-      #sh - shld active_runs be prefixed for each job
-      filelist=(*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv *.$REG_TEST_OUTPUT_EXT output/
-      filelist=(*.npy);                    [ -e ${filelist[0]} ] && mv *.npy output/
-      filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
+      for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
+      do
+        cd $ROOT_DIR/$DIR
+
+        if [ "$(ls -A output)" ]; then
+          rm output/* #Avoid mixing test run results
+        fi;
+
+        #sh - shld active_runs be prefixed for each job
+        filelist=(*.$REG_TEST_OUTPUT_EXT);   [ -e ${filelist[0]} ] && mv *.$REG_TEST_OUTPUT_EXT output/
+        filelist=(*.npy);                    [ -e ${filelist[0]} ] && mv *.npy output/
+        filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
+
+      done
+      cd $ROOT_DIR
 
       if [ "$RUN_COV_TESTS" = true ]; then
 
         # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
 
-        # Must combine all if in sep sub-dirs will copy to dir above
-        coverage combine .cov_reg_out.* #Name of coverage data file must match that in .coveragerc in reg test dir.
-        coverage html
-        echo -e "..Coverage HTML written to dir $REG_TEST_SUBDIR/cov_reg/"
+        for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
+        do
+          cd $ROOT_DIR/$DIR
+
+          # Must combine all if in sep sub-dirs will copy to dir above
+          coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
+          coverage html
+          echo -e "..Coverage HTML written to dir $DIR/cov_reg/"
+
+        done
+        cd $ROOT_DIR
 
         if [ "$RUN_UNIT_TESTS" = true ]; then
 
@@ -610,9 +634,10 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
@@ -621,8 +646,9 @@ if [ "$root_found" = true ]; then
           # Still need to move reg cov results to COV_MERGE_DIR
           cd $ROOT_DIR/$COV_MERGE_DIR
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
+          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
-          coverage combine .cov_reg_out
+          coverage combine .cov_reg_out .cov_reg_out2
           coverage html
           echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
         fi;

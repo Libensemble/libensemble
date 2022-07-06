@@ -8,7 +8,6 @@ can issue and manage ``tasks`` using the submit, poll, wait, and kill functions.
 ``Task`` attributes are queried to determine status. Functions are
 also provided to access and interrogate files in the ``task``'s working directory. A
 ``manager_poll`` function can be used to poll for STOP signals from the manager.
-
 """
 
 import os
@@ -33,7 +32,7 @@ from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
 STATES = """
 UNKNOWN
@@ -83,24 +82,27 @@ class Application:
 
     prefix = "libe_app"
 
-    def __init__(self, full_path, name=None, calc_type="sim", desc=None, pyobj=None):
+    def __init__(self, full_path, name=None, calc_type="sim", desc=None, pyobj=None, precedent=""):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
         self.calc_dir, self.exe = os.path.split(full_path)
+        self.precedent = precedent
 
         if self.exe.endswith(".py"):
-            self.full_path = " ".join((sys.executable, full_path))
+            if not precedent:
+                self.precedent = sys.executable
+
         self.name = name or self.exe
         self.pyobj = pyobj
         self.desc = desc or (self.exe + " app")
         self.gname = "_".join([Application.prefix, self.name])
+        self.app_cmd = " ".join(filter(None, [self.precedent, self.full_path]))
 
 
 class Task:
     """
     Manages the creation, configuration and status of a launchable task
-
     """
 
     prefix = "libe_task"
@@ -239,8 +241,12 @@ class Task:
         Parameters
         ----------
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
+        """
 
         if self.dry_run:
             return
@@ -261,8 +267,13 @@ class Task:
         Parameters
         ----------
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
+        """
+
         self.wait(timeout=timeout)
         return self.state
 
@@ -272,8 +283,13 @@ class Task:
         Parameters
         ----------
 
-        timeout:
-            Time in seconds after which a TimeoutExpired exception is raised"""
+        timeout: int or float,  optional
+            Time in seconds after which a TimeoutExpired exception is raised.
+            If not set, then simply waits until completion.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
+        """
+
         self.wait(timeout=timeout)
         return self.errcode
 
@@ -334,7 +350,6 @@ class Executor:
     **Object Attributes:**
 
     :ivar list list_of_tasks: A list of tasks created in this executor
-
     """
 
     executor = None
@@ -350,7 +365,7 @@ class Executor:
         task.timer.start()  # To ensure a start time before poll - will be overwritten unless finished by poll.
         task.submit_time = task.timer.tstart
         while task.state in NOT_STARTED_STATES:
-            time.sleep(0.02)
+            time.sleep(0.001)
             task.poll()
         logger.debug("Task {} polled as {} after {} seconds".format(task.name, task.state, time.time() - start))
         if not task.finished:
@@ -359,7 +374,7 @@ class Executor:
             if fail_time:
                 remaining = fail_time - task.timer.elapsed
                 while task.state not in END_STATES and remaining > 0:
-                    time.sleep(min(0.2, remaining))
+                    time.sleep(min(0.01, remaining))
                     task.poll()
                     remaining = fail_time - task.timer.elapsed
                 logger.debug("After {} seconds: task {} polled as {}".format(task.timer.elapsed, task.name, task.state))
@@ -369,8 +384,8 @@ class Executor:
 
         A new Executor object is created.
         This is typically created in the user calling script.
-
         """
+
         self.manager_signal = "none"
         self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
@@ -379,6 +394,7 @@ class Executor:
         self.list_of_tasks = []
         self.workerID = None
         self.comm = None
+        self.last_task = 0
         Executor.executor = self
 
     def __enter__(self):
@@ -423,7 +439,7 @@ class Executor:
         # Does not use resources
         pass
 
-    def register_app(self, full_path, app_name=None, calc_type=None, desc=None):
+    def register_app(self, full_path, app_name=None, calc_type=None, desc=None, precedent=""):
         """Registers a user application to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
@@ -447,10 +463,13 @@ class Executor:
         desc: String, optional
             Description of this application
 
+        precedent: String, optional
+            Any string that should directly precede the application full path.
         """
+
         if not app_name:
             app_name = os.path.split(full_path)[1]
-        self.apps[app_name] = Application(full_path, app_name, calc_type, desc)
+        self.apps[app_name] = Application(full_path, app_name, calc_type, desc, None, precedent)
 
         # Default sim/gen apps will be deprecated. Just use names.
         if calc_type is not None:
@@ -464,7 +483,6 @@ class Executor:
         Polls for a manager signal
 
         The executor manager_signal attribute will be updated.
-
         """
 
         self.manager_signal = "none"  # Reset
@@ -515,7 +533,6 @@ class Executor:
         -------
         calc_status: int
             presumptive integer attribute describing the final status of a launched task
-
         """
 
         calc_status = UNSET_TAG
@@ -556,6 +573,27 @@ class Executor:
             logger.warning("Task {} not found in tasklist".format(taskid))
         return task
 
+    def new_tasks_timing(self, datetime=False):
+        """Returns timing of new tasks as a string
+
+        Parameters
+        ----------
+
+        datetime: boolean
+            If True, returns start and end times in addition to elapsed time.
+        """
+
+        timing_msg = ""
+        if self.list_of_tasks:
+            start_task = self.last_task
+            for i, task in enumerate(self.list_of_tasks[start_task:]):
+                if datetime:
+                    timing_msg += " Task {}: {}".format(i, task.timer)
+                else:
+                    timing_msg += " Task {}: {}".format(i, task.timer.summary())
+                self.last_task += 1
+        return timing_msg
+
     def set_workerID(self, workerid):
         """Sets the worker ID for this executor"""
         self.workerID = workerid
@@ -564,6 +602,11 @@ class Executor:
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
+
+    def _check_app_exists(self, full_path):
+        """Allows submit function to check if app exists and error if not"""
+        if not os.path.isfile(full_path):
+            raise ExecutorException("Application does not exist {}".format(full_path))
 
     def submit(
         self, calc_type=None, app_name=None, app_args=None, stdout=None, stderr=None, dry_run=False, wait_on_start=False
@@ -605,7 +648,6 @@ class Executor:
 
         task: obj: Task
             The launched task object
-
         """
 
         if app_name is not None:
@@ -617,7 +659,11 @@ class Executor:
 
         default_workdir = os.getcwd()
         task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
-        runline = task.app.full_path.split()
+
+        if not dry_run:
+            self._check_app_exists(task.app.full_path)
+
+        runline = task.app.app_cmd.split()
         if task.app_args is not None:
             runline.extend(task.app_args.split())
 
@@ -637,7 +683,7 @@ class Executor:
             if wait_on_start:
                 self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
 
-            if not task.timer.timing:
+            if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 

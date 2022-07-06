@@ -18,9 +18,9 @@ sampling
       :language: python
       :linenos:
 
-persistent_uniform_sampling
+persistent_sampling
 ---------------------------
-.. automodule:: persistent_uniform_sampling
+.. automodule:: persistent_sampling
   :members:
   :undoc-members:
 
@@ -28,8 +28,8 @@ persistent_uniform_sampling
 
    .. container:: header
 
-      :underline:`persistent_uniform_sampling.py`
+      :underline:`persistent_sampling.py`
 
-   .. literalinclude:: ../../libensemble/gen_funcs/persistent_uniform_sampling.py
+   .. literalinclude:: ../../libensemble/gen_funcs/persistent_sampling.py
       :language: python
       :linenos:

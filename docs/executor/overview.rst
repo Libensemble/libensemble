@@ -46,7 +46,7 @@ In calling script::
     USE_BALSAM = False
 
     if USE_BALSAM:
-        from libensemble.executors.balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
         exctr = LegacyBalsamMPIExecutor()
     else:
         from libensemble.executors.mpi_executor import MPIExecutor

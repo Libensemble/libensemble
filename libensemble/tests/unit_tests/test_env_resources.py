@@ -162,6 +162,53 @@ def test_lsf_nodelist_seq():
     assert nodelist == exp_out, "Nodelist returned does not match expected"
 
 
+def test_pbs_nodelist_nofile():
+    nodefile = "./pbs_nofile"
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
+    exp_out = []
+    nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned should be empty if nodefile inaccessible"
+
+
+def test_pbs_nodelist_empty():
+    nodefile = "pbs_empty"
+    open(nodefile, "w").close()
+
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
+    exp_out = []
+    nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned should be empty if nodefile empty"
+    os.remove(nodefile)
+
+
+def test_pbs_nodelist_single():
+    nodefile = "pbs_single"
+    in_lines = ["edtb-01.mcp.alcf.anl.gov\n", "edtb-01.mcp.alcf.anl.gov\n", "edtb-01.mcp.alcf.anl.gov\n"]
+    with open(nodefile, "w") as f:
+        for line in in_lines:
+            f.write(line)
+
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
+    exp_out = ["edtb-01.mcp.alcf.anl.gov"]
+    nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+    os.remove(nodefile)
+
+
+def test_pbs_nodelist_seq():
+    nodefile = "pbs_seq"
+    in_lines = ["edtb-01.mcp.alcf.anl.gov\n", "edtb-02.mcp.alcf.anl.gov\n"]
+    with open(nodefile, "w") as f:
+        for line in in_lines:
+            f.write(line)
+
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
+    exp_out = ["edtb-01.mcp.alcf.anl.gov", "edtb-02.mcp.alcf.anl.gov"]
+    nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
+    assert nodelist == exp_out, "Nodelist returned does not match expected"
+    os.remove(nodefile)
+
+
 # These dont apply to the lsf lists as they are listed in full
 # def test_lsf_nodelist_groups():
 # def test_lsf_nodelist_reverse_grp():
@@ -253,6 +300,11 @@ if __name__ == "__main__":
     test_lsf_nodelist_empty()
     test_lsf_nodelist_single()
     test_lsf_nodelist_seq()
+
+    test_pbs_nodelist_nofile()
+    test_pbs_nodelist_empty()
+    test_pbs_nodelist_single()
+    test_pbs_nodelist_seq()
 
     test_lsf_nodelist_shortform_empty()
     test_lsf_nodelist_shortform_single()

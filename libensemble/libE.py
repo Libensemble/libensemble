@@ -28,24 +28,24 @@ may resemble:
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs['save_every_k_gens'] = 20
+    libE_specs["save_every_k_gens"] = 20
 
-    gen_specs = {'gen_f': gen_random_sample,
-                 'out': [('x', float, (1,))],
-                 'user': {
-                    'lower': np.array([-3]),
-                    'upper': np.array([3]),
-                    'gen_batch_size': 5
+    gen_specs = {"gen_f": gen_random_sample,
+                 "out": [("x", float, (1,))],
+                 "user": {
+                    "lower": np.array([-3]),
+                    "upper": np.array([3]),
+                    "gen_batch_size": 5
                     }
                  }
 
-    sim_specs = {'sim_f': sim_find_sine,
-                 'in': ['x'],
-                 'out': [('y', float)]}
+    sim_specs = {"sim_f": sim_find_sine,
+                 "in": ["x"],
+                 "out": [("y", float)]}
 
     persis_info = add_unique_random_streams({}, nworkers+1)
 
-    exit_criteria = {'sim_max': 80}
+    exit_criteria = {"sim_max": 80}
 
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                 libE_specs=libE_specs)
@@ -66,10 +66,10 @@ to be installed. The equivalent of above resembles:
     from libensemble import Ensemble
 
     my_experiment = Ensemble()
-    my_experiment.from_yaml('my_parameters.yaml')
+    my_experiment.from_yaml("my_parameters.yaml")
 
-    my_experiment.gen_specs['user']['lower'] = np.array([-3])
-    my_experiment.gen_specs['user']['upper'] = np.array([3])
+    my_experiment.gen_specs["user"]["lower"] = np.array([-3])
+    my_experiment.gen_specs["user"]["upper"] = np.array([3])
 
     H, persis_info, flag = my_experiment.run()
 
@@ -100,6 +100,54 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
             y:
                 type: float
 
+On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``'spawn'``
+and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
+an ``if __name__ == "__main__:" block.
+
+Therefore a calling script that is universal across
+all platforms and comms-types may resemble:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from libensemble.tools import add_unique_random_streams
+
+    if __name__ == "__main__:
+
+        nworkers, is_manager, libE_specs, _ = parse_args()
+
+        libE_specs["save_every_k_gens"] = 20
+
+        gen_specs = {"gen_f": gen_random_sample,
+                    "out": [("x", float, (1,))],
+                    "user": {
+                        "lower": np.array([-3]),
+                        "upper": np.array([3]),
+                        "gen_batch_size": 5
+                        }
+                    }
+
+        sim_specs = {"sim_f": sim_find_sine,
+                    "in": ["x"],
+                    "out": [("y", float)]}
+
+        persis_info = add_unique_random_streams({}, nworkers+1)
+
+        exit_criteria = {"sim_max": 80}
+
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                    libE_specs=libE_specs)
+
+Alternatively, you may set the multiprocesing start method to ``'fork'`` via the following:
+
+    from multiprocessing import set_start_method
+    set_start_method("fork")
+
+But note that this is incompatible with some libraries.
 
 See below for the complete traditional ``libE()`` API.
 """
@@ -126,8 +174,9 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.tools.check_inputs import check_inputs
+from libensemble.tools.alloc_support import AllocSupport
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -229,6 +278,9 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
 
     Resources.init_resources(libE_specs)
 
+    # Reset gen counter.
+    AllocSupport.gen_counter = 0
+
     return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
 
 
@@ -273,6 +325,7 @@ def manager(
         exit_flag = 1  # Only exits if no abort/raise
         _dump_on_abort(hist, persis_info, save_H=save_H)
         if libE_specs.get("abort_on_exception", True) and on_abort is not None:
+            on_cleanup()
             on_abort()
         raise LoggedException(*e.args, "See error details above and in ensemble.log") from None
     else:
@@ -371,7 +424,14 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     wcomms = [MainMPIComm(mpi_comm, w) for w in range(1, mpi_comm.Get_size())]
 
     if not libE_specs.get("disable_log_files", False):
-        manager_logging_config()
+        exit_logger = manager_logging_config()
+    else:
+        exit_logger = None
+
+    def cleanup():
+        """Process cleanup required on exit"""
+        if exit_logger is not None:
+            exit_logger()
 
     # Set up abort handler
     def on_abort():
@@ -380,7 +440,16 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     # Run generic manager
     return manager(
-        wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_abort=on_abort
+        wcomms,
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        alloc_specs,
+        libE_specs,
+        hist,
+        on_abort=on_abort,
+        on_cleanup=cleanup,
     )
 
 
@@ -399,7 +468,15 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     """Launch a process worker team."""
-    wcomms = [QCommProcess(worker_main, sim_specs, gen_specs, libE_specs, w, log_comm) for w in range(1, nworkers + 1)]
+
+    resources = Resources.resources
+    executor = Executor.executor
+
+    wcomms = [
+        QCommProcess(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        for w in range(1, nworkers + 1)
+    ]
+
     for wcomm in wcomms:
         wcomm.run()
     return wcomms
@@ -433,13 +510,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # On Python 3.8 on macOS, the default start method for new processes was
-    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
-    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
-    #  warnings about leaked semaphore objects are displayed instead.
-    # This function enforces 'fork' on macOS (Python 3.8)
-    osx_set_mp_method()
-
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 
@@ -448,16 +518,16 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
         resources.set_resource_manager(nworkers)
 
     if not libE_specs.get("disable_log_files", False):
-        close_logs = manager_logging_config()
+        exit_logger = manager_logging_config()
     else:
-        close_logs = None
+        exit_logger = None
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
         kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
-        if close_logs is not None:  # logger remains set between multiple libE calls
-            close_logs()
+        if exit_logger is not None:
+            exit_logger()
 
     # Run generic manager
     return manager(
@@ -559,8 +629,6 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     port = libE_specs.get("port", 0)
     authkey = libE_specs.get("authkey", libE_tcp_authkey())
 
-    osx_set_mp_method()
-
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
 
         # Get port if needed because of auto-assignment
@@ -568,7 +636,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             _, port = tcp_manager.address
 
         if not libE_specs.get("disable_log_files", False):
-            manager_logging_config()
+            exit_logger = manager_logging_config()
+        else:
+            exit_logger = None
 
         logger.info("Launched server at ({}, {})".format(ip, port))
 
@@ -579,6 +649,8 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             """Handler to clean up launched team."""
             for wp in worker_procs:
                 launcher.cancel(wp, timeout=libE_specs.get("worker_timeout"))
+            if exit_logger is not None:
+                exit_logger()
 
         # Run generic manager
         return manager(

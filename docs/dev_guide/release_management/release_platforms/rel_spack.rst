@@ -106,9 +106,9 @@ This will install a few python spack packages and run style checks on just
 your changes. Make adjustments if needed, until this passes.
 
 If okay - add, commit, and push to origin (forked repo). E.g.,~ If your version
-number is 0.9.0 you would do::
+number is 0.9.1 you would do::
 
-     git commit -am "libEnsemble: add v0.9.0"
+     git commit -am "libEnsemble: add v0.9.1"
      git push origin develop --force
 
 Once the branch is pushed to the forked repo, go to GitHub and do a pull request from this

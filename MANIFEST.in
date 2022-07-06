@@ -7,7 +7,7 @@ include install/*
 include .flake8
 
 recursive-include libensemble *
-recursive-include postproc_scripts *
+recursive-include scripts *
 recursive-include examples *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
