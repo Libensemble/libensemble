@@ -111,8 +111,8 @@ jobs:
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
-            conda install petsc
-            conda install petsc4py
+            # pip install petsc
+            # pip install petsc4py
             pip install DFO-LS
 
             pip install mpmath
@@ -210,7 +210,7 @@ jobs:
               BALSAM_DB_PATH: $HOME/test-balsam
           run: |
            source balsamactivate test-balsam
-           ./libensemble/tests/run-tests.sh -re -y 'test_balsam*' -z -l
+           ./libensemble/tests/run-tests.sh -re -y 'test_balsam_hworld*' -z -l
 
         - name: Merge coverage, run Coveralls
           env:

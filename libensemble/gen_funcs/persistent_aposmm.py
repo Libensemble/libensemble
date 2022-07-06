@@ -17,6 +17,8 @@ from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, Co
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
+import multiprocessing
+
 
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
@@ -141,6 +143,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
 
     try:
+
+        if multiprocessing.get_start_method() != "fork":
+            print("[APOSMM]: Detected multiprocessing start method is currently known to cause slowdowns. This will be fixed in a future release.")
+            print("[APOSMM]: Set the multiprocessing start method to 'fork' in your calling script to resolve in the meantime.")
+
         user_specs = gen_specs['user']
         ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)

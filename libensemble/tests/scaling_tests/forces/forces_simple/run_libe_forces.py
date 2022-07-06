@@ -33,7 +33,7 @@ sim_specs = {
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": uniform_random_sample,  # Generator function
-    "in": ["sim_id"],  # Generator input
+    "in": [],  # Generator input
     "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
     "user": {
         "lb": np.array([1000]),  # User parameters for the gen_f

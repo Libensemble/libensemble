@@ -39,7 +39,7 @@ sim_specs = {
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": gen_f,  # Generator function
-    "in": ["sim_id"],  # Generator input
+    "in": [],  # Generator input
     "out": [
         ("x", float, (1,)),  # Name, type and size of data from gen_f
         # ("resource_sets", int)  # Uncomment for var resources
@@ -54,6 +54,8 @@ gen_specs = {
 
 # Create and work inside separate per-simulation directories
 libE_specs["sim_dirs_make"] = True
+
+# libE_specs["stats_fmt"] = {"show_resource_sets": True}  # Uncomment to see resource sets in libE_stats.txt
 
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}

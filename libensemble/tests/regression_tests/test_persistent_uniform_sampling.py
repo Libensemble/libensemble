@@ -27,52 +27,55 @@ from libensemble.gen_funcs.persistent_sampling import batched_history_matching a
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-n = 2
-batch = 20
-num_batches = 10
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float), ("grad", float, n)],
-}
+    n = 2
+    batch = 20
+    num_batches = 10
 
-gen_specs = {
-    "persis_in": ["x", "f", "grad", "sim_id"],
-    "out": [("x", float, (n,))],
-    "user": {
-        "initial_batch_size": batch,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("grad", float, n)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_specs = {
+        "persis_in": ["x", "f", "grad", "sim_id"],
+        "out": [("x", float, (n,))],
+        "user": {
+            "initial_batch_size": batch,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-exit_criteria = {"gen_max": num_batches * batch, "wallclock_max": 300}
+    alloc_specs = {"alloc_f": alloc_f}
 
-libE_specs["kill_canceled_sims"] = False
+    exit_criteria = {"gen_max": num_batches * batch, "wallclock_max": 300}
 
-for run in range(2):
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-    for i in persis_info:
-        persis_info[i]["get_grad"] = True
+    libE_specs["kill_canceled_sims"] = False
 
-    if run == 0:
-        gen_specs["gen_f"] = gen_f1
-    elif run == 1:
-        gen_specs["gen_f"] = gen_f2
-        gen_specs["user"]["num_best_vals"] = 5
+    for run in range(2):
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        for i in persis_info:
+            persis_info[i]["get_grad"] = True
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        if run == 0:
+            gen_specs["gen_f"] = gen_f1
+        elif run == 1:
+            gen_specs["gen_f"] = gen_f2
+            gen_specs["user"]["num_best_vals"] = 5
 
-    if is_manager:
-        assert len(np.unique(H["gen_ended_time"])) == num_batches
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        save_libE_output(H, persis_info, __file__, nworkers)
+        if is_manager:
+            assert len(np.unique(H["gen_ended_time"])) == num_batches
+
+            save_libE_output(H, persis_info, __file__, nworkers)

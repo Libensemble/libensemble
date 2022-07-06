@@ -16,6 +16,7 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 
 import sys
+import multiprocessing
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -46,48 +47,54 @@ def assertion(passed):
         print("\n\nException received as expected")
 
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # Temporary solution while we investigate/resolve slowdowns with "spawn" start method.
+    multiprocessing.set_start_method("fork", force=True)
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["f"] + [n[0] for n in gen_out],
-    "out": gen_out,
-    "user": {
-        "initial_sample_size": 100,
-        "localopt_method": "LN_BOBYQA",
-        "lb": np.array([0, -np.pi / 2]),
-        "ub": np.array([2 * np.pi, 3 * np.pi / 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
 
-exit_criteria = {"sim_max": 1000}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "localopt_method": "LN_BOBYQA",
+            "lb": np.array([0, -np.pi / 2]),
+            "ub": np.array([2 * np.pi, 3 * np.pi / 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-libE_specs["abort_on_exception"] = False
-try:
-    # Perform the run, which will fail because we want to test exception handling
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-except Exception as e:
-    if is_manager:
-        if e.args[1].endswith("NLopt roundoff-limited"):
-            assertion(True)
-        else:
+    exit_criteria = {"sim_max": 1000}
+
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+
+    libE_specs["abort_on_exception"] = False
+    try:
+        # Perform the run, which will fail because we want to test exception handling
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    except Exception as e:
+        if is_manager:
+            if e.args[1].endswith("NLopt roundoff-limited"):
+                assertion(True)
+            else:
+                assertion(False)
+    else:
+        if is_manager:
             assertion(False)
-else:
-    if is_manager:
-        assertion(False)

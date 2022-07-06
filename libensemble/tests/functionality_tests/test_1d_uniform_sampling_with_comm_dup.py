@@ -23,55 +23,58 @@ from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if libE_specs["comms"] != "mpi":
-    sys.exit("This test only runs with MPI -- aborting...")
-    # After this check will remove libE_specs['comms']
-else:
-    from mpi4py import MPI
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs = None  # Let MPI use defaults
+    if libE_specs["comms"] != "mpi":
+        sys.exit("This test only runs with MPI -- aborting...")
+        # After this check will remove libE_specs['comms']
+    else:
+        from mpi4py import MPI
 
-# Check independence of default communicator from MPI.COMM_WORLD
-world = MPI.COMM_WORLD
-if not is_manager:
-    world.isend(world.Get_rank(), dest=0, tag=0)
+    libE_specs = None  # Let MPI use defaults
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    # Check independence of default communicator from MPI.COMM_WORLD
+    world = MPI.COMM_WORLD
+    if not is_manager:
+        world.isend(world.Get_rank(), dest=0, tag=0)
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": ["sim_id"],
-    "out": [("x", float, (1,))],
-    "user": {
-        "lb": np.array([-3]),
-        "ub": np.array([3]),
-        "gen_batch_size": 500,
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, (1,))],
+        "user": {
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+            "gen_batch_size": 500,
+        },
+    }
 
-exit_criteria = {"gen_max": 501}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    exit_criteria = {"gen_max": 501}
 
-if is_manager:
-    # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
-    # Potential to cause a hang
-    worker_ids = []
-    exp_worker_ids = list(range(1, nworkers + 1))
-    mpi_status = MPI.Status()
-    for worker in range(1, nworkers + 1):
-        worker_rank = world.recv(source=worker, status=mpi_status)
-        worker_ids.append(worker_rank)
-    assert worker_ids == exp_worker_ids, "MPI World values are not as expected"
-    assert len(H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+
+    if is_manager:
+        # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+        # Potential to cause a hang
+        worker_ids = []
+        exp_worker_ids = list(range(1, nworkers + 1))
+        mpi_status = MPI.Status()
+        for worker in range(1, nworkers + 1):
+            worker_rank = world.recv(source=worker, status=mpi_status)
+            worker_ids.append(worker_rank)
+        assert worker_ids == exp_worker_ids, "MPI World values are not as expected"
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
+        save_libE_output(H, persis_info, __file__, nworkers)

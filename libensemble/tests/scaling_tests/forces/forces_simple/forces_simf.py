@@ -20,10 +20,10 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor
 
     # Submit our forces app for execution. Block until the task starts.
-    task = exctr.submit(app_name="forces", app_args=args, wait_on_start=True)
+    task = exctr.submit(app_name="forces", app_args=args)
 
     # Block until the task finishes
-    task.wait(timeout=60)
+    task.wait()
 
     # Stat file to check for bad runs
     statfile = "forces.stat"
@@ -40,7 +40,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
-    output["energy"][0] = final_energy
+    output["energy"] = final_energy
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status

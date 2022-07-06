@@ -31,67 +31,70 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-libE_specs["zero_resource_workers"] = [1]
-num_gens = len(libE_specs["zero_resource_workers"])
-total_nodes = (nworkers - num_gens) // 4  # 4 resourced workers per node.
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-if total_nodes == 1:
-    max_rsets = 4  # Up to one node
-else:
-    max_rsets = 6  # Will expand to 2 full nodes
+    libE_specs["zero_resource_workers"] = [1]
+    num_gens = len(libE_specs["zero_resource_workers"])
+    total_nodes = (nworkers - num_gens) // 4  # 4 resourced workers per node.
 
-sim_app = helloworld.__file__
-exctr = MPIExecutor()
-exctr.register_app(full_path=sim_app, app_name="helloworld")
+    if total_nodes == 1:
+        max_rsets = 4  # Up to one node
+    else:
+        max_rsets = 6  # Will expand to 2 full nodes
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-    "user": {"dry_run": True},
-}
+    sim_app = helloworld.__file__
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=sim_app, app_name="helloworld")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["x", "f", "sim_id"],
-    "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
-    "user": {
-        "initial_batch_size": nworkers - 1,
-        "max_resource_sets": max_rsets,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+        "user": {"dry_run": True},
+    }
 
-alloc_specs = {
-    "alloc_f": alloc_f,
-    "user": {"give_all_with_same_priority": False},
-}
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["x", "f", "sim_id"],
+        "out": [("priority", float), ("resource_sets", int), ("x", float, n), ("x_on_cube", float, n)],
+        "user": {
+            "initial_batch_size": nworkers - 1,
+            "max_resource_sets": max_rsets,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-comms = libE_specs["comms"]
-node_file = "nodelist_adaptive_workers_persistent_comms_" + str(comms) + "_wrks_" + str(nworkers)
-if is_manager:
-    create_node_file(num_nodes=total_nodes, name=node_file)
+    alloc_specs = {
+        "alloc_f": alloc_f,
+        "user": {"give_all_with_same_priority": False},
+    }
 
-if comms == "mpi":
-    libE_specs["mpi_comm"].Barrier()
+    comms = libE_specs["comms"]
+    node_file = "nodelist_adaptive_workers_persistent_comms_" + str(comms) + "_wrks_" + str(nworkers)
+    if is_manager:
+        create_node_file(num_nodes=total_nodes, name=node_file)
 
-libE_specs["resource_info"] = {
-    "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
-    "node_file": node_file,
-}  # Name of file containing a node-list
+    if comms == "mpi":
+        libE_specs["mpi_comm"].Barrier()
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    libE_specs["resource_info"] = {
+        "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
+        "node_file": node_file,
+    }  # Name of file containing a node-list
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+    )
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

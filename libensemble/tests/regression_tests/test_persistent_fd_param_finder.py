@@ -28,50 +28,53 @@ from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as 
 from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
-f0 = noisy_function(x0)
-n = len(x0)
-p = len(f0)
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x", "f_ind"],
-    "out": [("f_val", float)],
-}
+    x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
+    f0 = noisy_function(x0)
+    n = len(x0)
+    p = len(f0)
 
-# The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["x", "f_val", "n_ind", "f_ind", "x_ind", "sim_id"],
-    "out": [("x", float, (n,)), ("n_ind", int), ("f_ind", int), ("x_ind", int)],
-    "user": {
-        "x0": x0,
-        "f0": f0,
-        "nf": 10,
-        "p": p,
-        "n": n,
-        "noise_h_mat": np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
-        "maxnoiseits": 3,
-    },
-}
-shutil.copy("./scripts_used_by_reg_tests/ECnoise.m", "./")
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x", "f_ind"],
+        "out": [("f_val", float)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    # The initial noise_h_mat is chosen to ECNoise both grows and shrinks the fd param
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["x", "f_val", "n_ind", "f_ind", "x_ind", "sim_id"],
+        "out": [("x", float, (n,)), ("n_ind", int), ("f_ind", int), ("x_ind", int)],
+        "user": {
+            "x0": x0,
+            "f0": f0,
+            "nf": 10,
+            "p": p,
+            "n": n,
+            "noise_h_mat": np.multiply(np.logspace(-16, -1, p), np.ones((n, p))),
+            "maxnoiseits": 3,
+        },
+    }
+    shutil.copy("./scripts_used_by_reg_tests/ECnoise.m", "./")
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
-exit_criteria = {"gen_max": 1000}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    exit_criteria = {"gen_max": 1000}
 
-if is_manager:
-    assert len(H) < exit_criteria["gen_max"], "Problem didn't stop early, which should have been the case."
-    assert np.all(persis_info[1]["Fnoise"] > 0), "gen_f didn't find noise for all F_i components."
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    if is_manager:
+        assert len(H) < exit_criteria["gen_max"], "Problem didn't stop early, which should have been the case."
+        assert np.all(persis_info[1]["Fnoise"] > 0), "gen_f didn't find noise for all F_i components."
+
+        save_libE_output(H, persis_info, __file__, nworkers)
