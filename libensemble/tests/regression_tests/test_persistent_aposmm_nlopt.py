@@ -17,6 +17,7 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 
 import sys
+import multiprocessing
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -34,65 +35,71 @@ from libensemble.tools import parse_args, save_libE_output, add_unique_random_st
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from time import time
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if is_manager:
-    start_time = time()
+    # Temporary solution while we investigate/resolve slowdowns with "spawn" start method.
+    multiprocessing.set_start_method("fork", force=True)
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    if is_manager:
+        start_time = time()
 
-gen_out = [
-    ("x", float, n),
-    ("x_on_cube", float, n),
-    ("sim_id", int),
-    ("local_min", bool),
-    ("local_pt", bool),
-]
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["f"] + [n[0] for n in gen_out],
-    "out": gen_out,
-    "user": {
-        "initial_sample_size": 100,
-        "sample_points": np.round(minima, 1),
-        "localopt_method": "LN_BOBYQA",
-        "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-        "xtol_abs": 1e-6,
-        "ftol_abs": 1e-6,
-        "dist_to_bound_multiple": 0.5,
-        "max_active_runs": 6,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f}
+    gen_out = [
+        ("x", float, n),
+        ("x_on_cube", float, n),
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["f"] + [n[0] for n in gen_out],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "LN_BOBYQA",
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.5,
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-exit_criteria = {"sim_max": 2000}
+    alloc_specs = {"alloc_f": alloc_f}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-if is_manager:
-    print("[Manager]:", H[np.where(H["local_min"])]["x"])
-    print("[Manager]: Time taken =", time() - start_time, flush=True)
+    exit_criteria = {"sim_max": 2000}
 
-    tol = 1e-5
-    for m in minima:
-        # The minima are known on this test problem.
-        # We use their values to test APOSMM has identified all minima
-        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-        assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    save_libE_output(H, persis_info, __file__, nworkers)
+    if is_manager:
+        print("[Manager]:", H[np.where(H["local_min"])]["x"])
+        print("[Manager]: Time taken =", time() - start_time, flush=True)
+
+        tol = 1e-5
+        for m in minima:
+            # The minima are known on this test problem.
+            # We use their values to test APOSMM has identified all minima
+            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
+
+        save_libE_output(H, persis_info, __file__, nworkers)

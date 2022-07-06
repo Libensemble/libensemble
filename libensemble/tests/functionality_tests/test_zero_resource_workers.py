@@ -28,100 +28,103 @@ logger.set_level("INFO")
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 
-nworkers, is_manager, libE_specs, _ = parse_args()
-rounds = 1
-sim_app = "/path/to/fakeapp.x"
-comms = libE_specs["comms"]
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-libE_specs["zero_resource_workers"] = [1]
-libE_specs["dedicated_mode"] = True
-libE_specs["enforce_worker_core_bounds"] = True
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    rounds = 1
+    sim_app = "/path/to/fakeapp.x"
+    comms = libE_specs["comms"]
 
-# To allow visual checking - log file not used in test
-log_file = "ensemble_zrw_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
-logger.set_filename(log_file)
+    libE_specs["zero_resource_workers"] = [1]
+    libE_specs["dedicated_mode"] = True
+    libE_specs["enforce_worker_core_bounds"] = True
 
-nodes_per_worker = 2
+    # To allow visual checking - log file not used in test
+    log_file = "ensemble_zrw_comms_" + str(comms) + "_wrks_" + str(nworkers) + ".log"
+    logger.set_filename(log_file)
 
-# For varying size test - relate node count to nworkers
-in_place = libE_specs["zero_resource_workers"]
-n_gens = len(in_place)
-nsim_workers = nworkers - n_gens
+    nodes_per_worker = 2
 
-comms = libE_specs["comms"]
-nodes_per_worker = 2
-node_file = "nodelist_zero_resource_workers_comms_" + str(comms) + "_wrks_" + str(nworkers)
-nnodes = nsim_workers * nodes_per_worker
+    # For varying size test - relate node count to nworkers
+    in_place = libE_specs["zero_resource_workers"]
+    n_gens = len(in_place)
+    nsim_workers = nworkers - n_gens
 
-# Mock up system
-custom_resources = {
-    "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
-    "node_file": node_file,
-}  # Name of file containing a node-list
-libE_specs["resource_info"] = custom_resources
+    comms = libE_specs["comms"]
+    nodes_per_worker = 2
+    node_file = "nodelist_zero_resource_workers_comms_" + str(comms) + "_wrks_" + str(nworkers)
+    nnodes = nsim_workers * nodes_per_worker
 
-if is_manager:
-    create_node_file(num_nodes=nnodes, name=node_file)
+    # Mock up system
+    custom_resources = {
+        "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
+        "node_file": node_file,
+    }  # Name of file containing a node-list
+    libE_specs["resource_info"] = custom_resources
 
-if comms == "mpi":
-    libE_specs["mpi_comm"].Barrier()
+    if is_manager:
+        create_node_file(num_nodes=nnodes, name=node_file)
 
-# Mock up system
-mpi_customizer = {
-    "mpi_runner": "mpich",  # Select runner: mpich, openmpi, aprun, srun, jsrun
-    "runner_name": "mpirun",
-}  # Runner name: Replaces run command if not None
+    if comms == "mpi":
+        libE_specs["mpi_comm"].Barrier()
 
-# Create executor and register sim to it.
-exctr = MPIExecutor(custom_info=mpi_customizer)
-exctr.register_app(full_path=sim_app, calc_type="sim")
+    # Mock up system
+    mpi_customizer = {
+        "mpi_runner": "mpich",  # Select runner: mpich, openmpi, aprun, srun, jsrun
+        "runner_name": "mpirun",
+    }  # Runner name: Replaces run command if not None
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # Create executor and register sim to it.
+    exctr = MPIExecutor(custom_info=mpi_customizer)
+    exctr.register_app(full_path=sim_app, calc_type="sim")
 
-n = 2
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": [],
-    "out": [("x", float, (n,))],
-    "user": {
-        "initial_batch_size": 20,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    n = 2
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-alloc_specs = {"alloc_f": alloc_f, "out": []}
-persis_info = add_unique_random_streams({}, nworkers + 1)
-exit_criteria = {"sim_max": (nsim_workers) * rounds}
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": [],
+        "out": [("x", float, (n,))],
+        "user": {
+            "initial_batch_size": 20,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-# Each worker has 2 nodes. Basic test list for portable options
-test_list_base = [
-    {"testid": "base1", "nprocs": 2, "nnodes": 1, "ppn": 2, "e_args": "--xarg 1"},  # Under use
-    {"testid": "base2"},  # Give no config and no extra_args
-]
+    alloc_specs = {"alloc_f": alloc_f, "out": []}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
-exp_mpich = [
-    "mpirun -hosts node-1 -np 2 --ppn 2 --xarg 1 /path/to/fakeapp.x --testid base1",
-    "mpirun -hosts node-1,node-2 -np 32 --ppn 16 /path/to/fakeapp.x --testid base2",
-]
+    # Each worker has 2 nodes. Basic test list for portable options
+    test_list_base = [
+        {"testid": "base1", "nprocs": 2, "nnodes": 1, "ppn": 2, "e_args": "--xarg 1"},  # Under use
+        {"testid": "base2"},  # Give no config and no extra_args
+    ]
 
-test_list = test_list_base
-exp_list = exp_mpich
-sim_specs["user"] = {
-    "tests": test_list,
-    "expect": exp_list,
-    "nodes_per_worker": nodes_per_worker,
-    "persis_gens": n_gens,
-}
+    exp_mpich = [
+        "mpirun -hosts node-1 -np 2 --ppn 2 --xarg 1 /path/to/fakeapp.x --testid base1",
+        "mpirun -hosts node-1,node-2 -np 32 --ppn 16 /path/to/fakeapp.x --testid base2",
+    ]
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    test_list = test_list_base
+    exp_list = exp_mpich
+    sim_specs["user"] = {
+        "tests": test_list,
+        "expect": exp_list,
+        "nodes_per_worker": nodes_per_worker,
+        "persis_gens": n_gens,
+    }
 
-# All asserts are in sim func
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    # All asserts are in sim func

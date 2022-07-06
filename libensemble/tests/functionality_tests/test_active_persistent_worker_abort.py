@@ -19,6 +19,10 @@ persistent generator.
 import sys
 import numpy as np
 
+import libensemble.gen_funcs
+
+libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
 # Import libEnsemble requirements
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
@@ -27,50 +31,53 @@ from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persis
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-gen_out += [("x", float, 2), ("x_on_cube", float, 2)]
-gen_specs = {
-    "gen_f": gen_f,
-    "persis_in": ["x", "f"],
-    "out": gen_out,
-    "user": {
-        "localopt_method": "LN_BOBYQA",
-        "xtol_rel": 1e-4,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "gen_batch_size": 2,
-        "dist_to_bound_multiple": 0.5,
-        "localopt_maxeval": 4,
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-alloc_specs = {
-    "alloc_f": alloc_f,
-    "out": gen_out,
-    "user": {
-        "batch_mode": True,
-        "num_active_gens": 1,
-    },
-}
+    gen_out += [("x", float, 2), ("x_on_cube", float, 2)]
+    gen_specs = {
+        "gen_f": gen_f,
+        "persis_in": ["x", "f"],
+        "out": gen_out,
+        "user": {
+            "localopt_method": "LN_BOBYQA",
+            "xtol_rel": 1e-4,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "gen_batch_size": 2,
+            "dist_to_bound_multiple": 0.5,
+            "localopt_maxeval": 4,
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {
+        "alloc_f": alloc_f,
+        "out": gen_out,
+        "user": {
+            "batch_mode": True,
+            "num_active_gens": 1,
+        },
+    }
 
-# Set sim_max small so persistent worker is quickly terminated
-exit_criteria = {"sim_max": 10, "wallclock_max": 300}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # Set sim_max small so persistent worker is quickly terminated
+    exit_criteria = {"sim_max": 10, "wallclock_max": 300}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-if is_manager:
-    assert flag == 0
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        assert flag == 0
+        save_libE_output(H, persis_info, __file__, nworkers)

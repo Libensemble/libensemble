@@ -22,46 +22,49 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams, eprint
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-    "user": {"pause_time": 2},
-}
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": ["sim_id"],
-    "out": [("x", float, (2,))],
-    "user": {
-        "gen_batch_size": 5,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+        "user": {"pause_time": 2},
+    }
 
-alloc_specs = {
-    "alloc_f": give_sim_work_first,
-    "out": [],
-    "user": {
-        "batch_mode": False,
-        "num_active_gens": 2,
-    },
-}
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, (2,))],
+        "user": {
+            "gen_batch_size": 5,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {
+        "alloc_f": give_sim_work_first,
+        "out": [],
+        "user": {
+            "batch_mode": False,
+            "num_active_gens": 2,
+        },
+    }
 
-exit_criteria = {"elapsed_wallclock_time": 1}  # Intentionally using deprecated term. Use wallclock_max instead.
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(
-    sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-)
+    exit_criteria = {"elapsed_wallclock_time": 1}  # Intentionally using deprecated term. Use wallclock_max instead.
 
-if is_manager:
-    eprint(flag)
-    eprint(H)
-    assert flag == 2
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+    )
+
+    if is_manager:
+        eprint(flag)
+        eprint(H)
+        assert flag == 2
+        save_libE_output(H, persis_info, __file__, nworkers)

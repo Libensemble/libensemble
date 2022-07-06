@@ -108,7 +108,6 @@ def remove_handlers(logr):
     libE function call).
     """
     for hdl in logr.handlers[:]:
-        print("handle stats is", hdl)
         logr.removeHandler(hdl)
         hdl.close()
 
