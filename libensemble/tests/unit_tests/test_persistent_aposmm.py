@@ -1,4 +1,7 @@
 import pytest
+import multiprocessing
+
+multiprocessing.set_start_method("fork", force=True)
 
 import libensemble.gen_funcs
 
