@@ -6,7 +6,6 @@ and user functions.
 import os
 import sys
 import logging
-import platform
 import numpy as np
 import pickle
 
@@ -189,16 +188,3 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
 def eprint(*args, **kwargs):
     """Prints a user message to standard error"""
     print(*args, file=sys.stderr, **kwargs)
-
-
-# ===================== OSX set multiprocessing start =======================
-# On Python 3.8 on macOS, the default start method for new processes was
-#  switched to 'spawn' by default due to 'fork' potentially causing crashes.
-# These crashes haven't yet been observed with libE, but with 'spawn' runs,
-#  warnings about leaked semaphore objects are displayed instead.
-# The next several statements enforce 'fork' on macOS (Python 3.8)
-def osx_set_mp_method():
-    if platform.system() == "Darwin":
-        from multiprocessing import set_start_method
-
-        set_start_method("fork", force=True)

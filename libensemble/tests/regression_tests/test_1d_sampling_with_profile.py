@@ -23,52 +23,55 @@ from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-libE_specs["profile"] = True
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    libE_specs["profile"] = True
 
-gen_specs = {
-    "gen_f": gen_f,
-    "out": [("x", float, (1,))],
-    "user": {
-        "gen_batch_size": 500,
-        "lb": np.array([-3]),
-        "ub": np.array([3]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "out": [("x", float, (1,))],
+        "user": {
+            "gen_batch_size": 500,
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        },
+    }
 
-exit_criteria = {"gen_max": 501}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    exit_criteria = {"gen_max": 501}
 
-if is_manager:
-    assert len(H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-    assert "manager.prof" in os.listdir(), "Expected manager profile not found after run"
-    os.remove("manager.prof")
+    if is_manager:
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
 
-    prof_files = ["worker_{}.prof".format(i + 1) for i in range(nworkers)]
+        assert "manager.prof" in os.listdir(), "Expected manager profile not found after run"
+        os.remove("manager.prof")
 
-    # Ensure profile writes complete before checking
-    time.sleep(0.5)
+        prof_files = ["worker_{}.prof".format(i + 1) for i in range(nworkers)]
 
-    for file in prof_files:
-        assert file in os.listdir(), "Expected profile {} not found after run".format(file)
-        with open(file, "r") as f:
-            data = f.read().split()
-            num_worker_funcs_profiled = sum(["worker" in i for i in data])
-        assert num_worker_funcs_profiled >= 8, (
-            "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
-        )
+        # Ensure profile writes complete before checking
+        time.sleep(0.5)
 
-        os.remove(file)
+        for file in prof_files:
+            assert file in os.listdir(), "Expected profile {} not found after run".format(file)
+            with open(file, "r") as f:
+                data = f.read().split()
+                num_worker_funcs_profiled = sum(["worker" in i for i in data])
+            assert num_worker_funcs_profiled >= 8, (
+                "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
+            )
+
+            os.remove(file)

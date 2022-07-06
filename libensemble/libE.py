@@ -100,6 +100,54 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
             y:
                 type: float
 
+On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``'spawn'``
+and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
+an ``if __name__ == "__main__:" block.
+
+Therefore a calling script that is universal across
+all platforms and comms-types may resemble:
+
+.. code-block:: python
+    :linenos:
+
+    import numpy as np
+    from libensemble.libE import libE
+    from generator import gen_random_sample
+    from simulator import sim_find_sine
+    from libensemble.tools import add_unique_random_streams
+
+    if __name__ == "__main__:
+
+        nworkers, is_manager, libE_specs, _ = parse_args()
+
+        libE_specs["save_every_k_gens"] = 20
+
+        gen_specs = {"gen_f": gen_random_sample,
+                    "out": [("x", float, (1,))],
+                    "user": {
+                        "lower": np.array([-3]),
+                        "upper": np.array([3]),
+                        "gen_batch_size": 5
+                        }
+                    }
+
+        sim_specs = {"sim_f": sim_find_sine,
+                    "in": ["x"],
+                    "out": [("y", float)]}
+
+        persis_info = add_unique_random_streams({}, nworkers+1)
+
+        exit_criteria = {"sim_max": 80}
+
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
+                                    libE_specs=libE_specs)
+
+Alternatively, you may set the multiprocesing start method to ``'fork'`` via the following:
+
+    from multiprocessing import set_start_method
+    set_start_method("fork")
+
+But note that this is incompatible with some libraries.
 
 See below for the complete traditional ``libE()`` API.
 """
@@ -126,7 +174,7 @@ from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING, osx_set_mp_method
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.tools.check_inputs import check_inputs
 from libensemble.tools.alloc_support import AllocSupport
 
@@ -462,13 +510,6 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    # On Python 3.8 on macOS, the default start method for new processes was
-    #  switched to 'spawn' by default due to 'fork' potentially causing crashes.
-    # These crashes haven't yet been observed with libE, but with 'spawn' runs,
-    #  warnings about leaked semaphore objects are displayed instead.
-    # This function enforces 'fork' on macOS (Python 3.8)
-    osx_set_mp_method()
-
     # Launch worker team and set up logger
     wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
 
@@ -587,8 +628,6 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     ip = libE_specs.get("ip", None) or get_ip()
     port = libE_specs.get("port", 0)
     authkey = libE_specs.get("authkey", libE_tcp_authkey())
-
-    osx_set_mp_method()
 
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
 

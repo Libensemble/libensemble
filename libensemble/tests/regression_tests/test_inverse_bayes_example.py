@@ -27,48 +27,58 @@ from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_af
 from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-# Parse args for test code
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    # Parse args for test code
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("like", float)],
-}
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": [],
-    "out": [("x", float, 2), ("batch", int), ("subbatch", int), ("prior", float), ("prop", float), ("weight", float)],
-    "user": {
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-        "subbatch_size": 3,
-        "num_subbatches": 2,
-        "num_batches": 10,
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("like", float)],
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": [],
+        "out": [
+            ("x", float, 2),
+            ("batch", int),
+            ("subbatch", int),
+            ("prior", float),
+            ("prop", float),
+            ("weight", float),
+        ],
+        "user": {
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+            "subbatch_size": 3,
+            "num_subbatches": 2,
+            "num_batches": 10,
+        },
+    }
 
-# Tell libEnsemble when to stop
-val = gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"] * gen_specs["user"]["num_batches"]
-exit_criteria = {
-    "sim_max": val,
-    "wallclock_max": 300,
-}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-alloc_specs = {"out": [], "alloc_f": alloc_f}
+    # Tell libEnsemble when to stop
+    val = gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"] * gen_specs["user"]["num_batches"]
+    exit_criteria = {
+        "sim_max": val,
+        "wallclock_max": 300,
+    }
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    alloc_specs = {"out": [], "alloc_f": alloc_f}
 
-if is_manager:
-    assert flag == 0
-    # Change the last weights to correct values (H is a list on other cores and only array on manager)
-    ind = 2 * gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"]
-    H[-ind:] = H["prior"][-ind:] + H["like"][-ind:] - H["prop"][-ind:]
-    assert len(H) == 60, "Failed"
+    # Perform the run
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+    if is_manager:
+        assert flag == 0
+        # Change the last weights to correct values (H is a list on other cores and only array on manager)
+        ind = 2 * gen_specs["user"]["subbatch_size"] * gen_specs["user"]["num_subbatches"]
+        H[-ind:] = H["prior"][-ind:] + H["like"][-ind:] - H["prop"][-ind:]
+        assert len(H) == 60, "Failed"

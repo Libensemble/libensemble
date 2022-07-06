@@ -59,101 +59,104 @@ def create_H0(persis_info, gen_specs, sim_max):
     return H0
 
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sim_specs = {
-    "sim_f": six_hump_camel,  # Function whose output is being minimized
-    "in": ["x"],  # Keys to be given to sim_f
-    "out": [("f", float)],  # Name of the outputs from sim_f
-}
-# end_sim_specs_rst_tag
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-# Note that it is unusual to specify cancel_requested as gen_specs['out']. It is here
-# so that cancellations are combined with regular generator outputs for testing purposes.
-# For a typical use case see test_persistent_surmise_calib.py.
-gen_specs = {
-    "gen_f": uniform_random_sample_cancel,  # Function generating sim_f input
-    "out": [("x", float, (2,)), ("cancel_requested", bool)],
-    "user": {
-        "gen_batch_size": 50,  # Used by this specific gen_f
-        "lb": np.array([-3, -2]),  # Used by this specific gen_f
-        "ub": np.array([3, 2]),  # Used by this specific gen_f
-    },
-}
-# end_gen_specs_rst_tag
+    sim_specs = {
+        "sim_f": six_hump_camel,  # Function whose output is being minimized
+        "in": ["x"],  # Keys to be given to sim_f
+        "out": [("f", float)],  # Name of the outputs from sim_f
+    }
+    # end_sim_specs_rst_tag
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
-sim_max = 500
-exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
+    # Note that it is unusual to specify cancel_requested as gen_specs['out']. It is here
+    # so that cancellations are combined with regular generator outputs for testing purposes.
+    # For a typical use case see test_persistent_surmise_calib.py.
+    gen_specs = {
+        "gen_f": uniform_random_sample_cancel,  # Function generating sim_f input
+        "out": [("x", float, (2,)), ("cancel_requested", bool)],
+        "user": {
+            "gen_batch_size": 50,  # Used by this specific gen_f
+            "lb": np.array([-3, -2]),  # Used by this specific gen_f
+            "ub": np.array([3, 2]),  # Used by this specific gen_f
+        },
+    }
+    # end_gen_specs_rst_tag
 
-aspec1 = {
-    "alloc_f": gswf,
-    "out": [],
-    "user": {
-        "batch_mode": True,
-        "num_active_gens": 1,
-    },
-}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    sim_max = 500
+    exit_criteria = {"sim_max": sim_max, "wallclock_max": 300}
 
-aspec2 = {
-    "alloc_f": gswf,
-    "out": [],
-    "user": {
-        "batch_mode": True,
-        "num_active_gens": 2,
-    },
-}
+    aspec1 = {
+        "alloc_f": gswf,
+        "out": [],
+        "user": {
+            "batch_mode": True,
+            "num_active_gens": 1,
+        },
+    }
 
-aspec3 = {
-    "alloc_f": fast_gswf,
-    "out": [],
-    "user": {},
-}
+    aspec2 = {
+        "alloc_f": gswf,
+        "out": [],
+        "user": {
+            "batch_mode": True,
+            "num_active_gens": 2,
+        },
+    }
 
-aspec4 = {
-    "alloc_f": ensure_one_active_gen,
-    "out": [],
-    "user": {},
-}
+    aspec3 = {
+        "alloc_f": fast_gswf,
+        "out": [],
+        "user": {},
+    }
 
-aspec5 = {
-    "alloc_f": give_pregenerated_sim_work,
-    "out": [],
-    "user": {},
-}
+    aspec4 = {
+        "alloc_f": ensure_one_active_gen,
+        "out": [],
+        "user": {},
+    }
 
-allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
+    aspec5 = {
+        "alloc_f": give_pregenerated_sim_work,
+        "out": [],
+        "user": {},
+    }
 
-if is_manager:
-    print("Testing cancellations with non-persistent gen functions")
-
-for testnum in range(1, 6):
-    alloc_specs = allocs[testnum]
-    if is_manager:
-        print("\nRunning with alloc specs", alloc_specs, flush=True)
-
-    if alloc_specs["alloc_f"] == give_pregenerated_sim_work:
-        H0 = create_H0(persis_info, gen_specs, sim_max)
-    else:
-        H0 = None
-
-    # Reset for those that use them
-    persis_info["next_to_give"] = 0
-    persis_info["total_gen_calls"] = 0  # 1
-
-    # Perform the run - do not overwrite persis_info
-    H, persis_out, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs, H0=H0
-    )
+    allocs = {1: aspec1, 2: aspec2, 3: aspec3, 4: aspec4, 5: aspec5}
 
     if is_manager:
-        assert flag == 0
-        assert np.all(H["cancel_requested"][::10]), "Some values should be cancelled but are not"
-        assert np.all(~H["sim_started"][::10]), "Some values are given that should not have been"
-        tol = 0.1
-        for m in minima:
-            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+        print("Testing cancellations with non-persistent gen functions")
 
-        print("libEnsemble found the 6 minima within a tolerance " + str(tol))
-        del H
-        gc.collect()  # Clean up memory space.
+    for testnum in range(1, 6):
+        alloc_specs = allocs[testnum]
+        if is_manager:
+            print("\nRunning with alloc specs", alloc_specs, flush=True)
+
+        if alloc_specs["alloc_f"] == give_pregenerated_sim_work:
+            H0 = create_H0(persis_info, gen_specs, sim_max)
+        else:
+            H0 = None
+
+        # Reset for those that use them
+        persis_info["next_to_give"] = 0
+        persis_info["total_gen_calls"] = 0  # 1
+
+        # Perform the run - do not overwrite persis_info
+        H, persis_out, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs, H0=H0
+        )
+
+        if is_manager:
+            assert flag == 0
+            assert np.all(H["cancel_requested"][::10]), "Some values should be cancelled but are not"
+            assert np.all(~H["sim_started"][::10]), "Some values are given that should not have been"
+            tol = 0.1
+            for m in minima:
+                assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+
+            print("libEnsemble found the 6 minima within a tolerance " + str(tol))
+            del H
+            gc.collect()  # Clean up memory space.

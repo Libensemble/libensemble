@@ -22,40 +22,47 @@ from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.tools import parse_args, save_libE_output
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float)],
-}
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-gen_specs = {}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-samp = 1000
-n = 8
+    gen_specs = {}
 
-H0 = np.zeros(samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
+    samp = 1000
+    n = 8
 
-np.random.seed(0)
-H0["x"] = gen_borehole_input(samp)
+    H0 = np.zeros(
+        samp, dtype=[("x", float, n), ("f", float), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)]
+    )
 
-for i in range(500):
-    H0["f"][i] = borehole_func(H0["x"][i])
+    np.random.seed(0)
+    H0["x"] = gen_borehole_input(samp)
 
-H0["sim_started"][:500] = True
-H0["sim_ended"][:500] = True
+    for i in range(500):
+        H0["f"][i] = borehole_func(H0["x"][i])
 
-alloc_specs = {"alloc_f": alloc_f, "out": [("x", float, n)]}
+    H0["sim_started"][:500] = True
+    H0["sim_ended"][:500] = True
 
-exit_criteria = {"sim_max": len(H0)}
+    alloc_specs = {"alloc_f": alloc_f, "out": [("x", float, n)]}
 
-# Perform the run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0)
+    exit_criteria = {"sim_max": len(H0)}
 
-if is_manager:
-    assert len(H) == len(H0)
-    assert np.array_equal(H0["x"], H["x"])
-    assert np.all(H["sim_ended"])
-    print("\nlibEnsemble correctly didn't add anything to initial sample")
-    save_libE_output(H, persis_info, __file__, nworkers)
+    # Perform the run
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
+    )
+
+    if is_manager:
+        assert len(H) == len(H0)
+        assert np.array_equal(H0["x"], H["x"])
+        assert np.all(H["sim_ended"])
+        print("\nlibEnsemble correctly didn't add anything to initial sample")
+        save_libE_output(H, persis_info, __file__, nworkers)

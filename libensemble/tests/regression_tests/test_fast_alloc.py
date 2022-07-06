@@ -24,60 +24,63 @@ from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
 from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
 from libensemble.tools import parse_args, add_unique_random_streams
 
-nworkers, is_manager, libE_specs, _ = parse_args()
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-num_pts = 30 * (nworkers)
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x"],
-    "out": [("f", float), ("large", float, 1000000)],
-    "user": {},
-}
+    num_pts = 30 * (nworkers)
 
-gen_specs = {
-    "gen_f": gen_f,
-    "in": ["sim_id"],
-    "out": [("x", float, (2,))],
-    "user": {
-        "gen_batch_size": num_pts,
-        "lb": np.array([-3, -2]),
-        "ub": np.array([3, 2]),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float), ("large", float, 1000000)],
+        "user": {},
+    }
 
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, (2,))],
+        "user": {
+            "gen_batch_size": num_pts,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
 
-exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
-if libE_specs["comms"] == "tcp":
-    # Can't use the same interface for manager and worker if we want
-    # repeated calls to libE -- the manager sets up a different server
-    # each time, and the worker will not know what port to connect to.
-    sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
+    exit_criteria = {"sim_max": 2 * num_pts, "wallclock_max": 300}
 
-for time in np.append([0], np.logspace(-5, -1, 5)):
-    print("Starting for time: ", time, flush=True)
-    if time == 0:
-        alloc_specs = {"alloc_f": alloc_f2, "out": []}
-    else:
-        alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
+    if libE_specs["comms"] == "tcp":
+        # Can't use the same interface for manager and worker if we want
+        # repeated calls to libE -- the manager sets up a different server
+        # each time, and the worker will not know what port to connect to.
+        sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-    for rep in range(1):
-        sim_specs["user"]["pause_time"] = time
-
+    for time in np.append([0], np.logspace(-5, -1, 5)):
+        print("Starting for time: ", time, flush=True)
         if time == 0:
-            sim_specs["user"].pop("pause_time")
-            gen_specs["user"]["gen_batch_size"] = num_pts // 2
+            alloc_specs = {"alloc_f": alloc_f2, "out": []}
+        else:
+            alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
 
-        persis_info["next_to_give"] = 0
-        persis_info["total_gen_calls"] = 1
+        for rep in range(1):
+            sim_specs["user"]["pause_time"] = time
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+            if time == 0:
+                sim_specs["user"].pop("pause_time")
+                gen_specs["user"]["gen_batch_size"] = num_pts // 2
 
-        if is_manager:
-            assert flag == 0
-            assert len(H) == 2 * num_pts
+            persis_info["next_to_give"] = 0
+            persis_info["total_gen_calls"] = 1
 
-        del H
-        gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.
+            H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+            if is_manager:
+                assert flag == 0
+                assert len(H) == 2 * num_pts
+
+            del H
+            gc.collect()  # If doing multiple libE calls, users might need to clean up their memory space.

@@ -28,102 +28,107 @@ from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_p
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix
 
-nworkers, is_manager, libE_specs, _ = parse_args()
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
-if nworkers < 5:
-    sys.exit(
-        "This tests requires at least 5 workers (6 MPI processes). You can \
-             decrease the number of workers by modifying the number of gens and \
-             communication graph @A in the calling script."
-    )
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-m = 16
-n = 32
-num_gens = 4
-eps = 1e-2
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    if nworkers < 5:
+        sys.exit(
+            "This tests requires at least 5 workers (6 MPI processes). You can \
+                decrease the number of workers by modifying the number of gens and \
+                communication graph @A in the calling script."
+        )
 
-# Even though we do not use consensus matrix, we still need to pass into alloc
-A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
+    m = 16
+    n = 32
+    num_gens = 4
+    eps = 1e-2
 
-sim_specs = {
-    "sim_f": sim_f,
-    "in": ["x", "obj_component", "get_grad"],
-    "out": [
-        ("f_i", float),
-        ("gradf_i", float, (n,)),
-    ],
-}
+    # Even though we do not use consensus matrix, we still need to pass into alloc
+    A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
 
-# lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
-gen_specs = {
-    "gen_f": gen_f,
-    "out": [
-        ("x", float, (n,)),
-        ("f_i", float),
-        ("eval_pt", bool),  # eval point
-        ("consensus_pt", bool),  # does not require a sim
-        ("obj_component", int),  # which {f_i} to eval
-        ("get_grad", bool),
-        ("resource_sets", int),  # Just trying to cover in the alloc_f, not actually used
-    ],
-    "user": {
-        "lb": np.array([-1.2, 1] * (n // 2)),
-        "ub": np.array([-1.2, 1] * (n // 2)),
-    },
-}
+    sim_specs = {
+        "sim_f": sim_f,
+        "in": ["x", "obj_component", "get_grad"],
+        "out": [
+            ("f_i", float),
+            ("gradf_i", float, (n,)),
+        ],
+    }
 
-alloc_specs = {
-    "alloc_f": alloc_f,
-    "user": {
-        "m": m,
-        "num_gens": num_gens,
-    },
-}
+    # lb tries to avoid x[1]=-x[2], which results in division by zero in chwirut.
+    gen_specs = {
+        "gen_f": gen_f,
+        "out": [
+            ("x", float, (n,)),
+            ("f_i", float),
+            ("eval_pt", bool),  # eval point
+            ("consensus_pt", bool),  # does not require a sim
+            ("obj_component", int),  # which {f_i} to eval
+            ("get_grad", bool),
+            ("resource_sets", int),  # Just trying to cover in the alloc_f, not actually used
+        ],
+        "user": {
+            "lb": np.array([-1.2, 1] * (n // 2)),
+            "ub": np.array([-1.2, 1] * (n // 2)),
+        },
+    }
 
-persis_info = {}
-persis_info = add_unique_random_streams(persis_info, nworkers + 1)
-persis_info["gen_params"] = {"eps": eps}
-persis_info["sim_params"] = {"const": 1}
-persis_info["A"] = A
+    alloc_specs = {
+        "alloc_f": alloc_f,
+        "user": {
+            "m": m,
+            "num_gens": num_gens,
+        },
+    }
 
-assert n == 2 * m, "@n must be double of @m"
+    persis_info = {}
+    persis_info = add_unique_random_streams(persis_info, nworkers + 1)
+    persis_info["gen_params"] = {"eps": eps}
+    persis_info["sim_params"] = {"const": 1}
+    persis_info["A"] = A
 
-# Perform the run
-libE_specs["safe_mode"] = False
+    assert n == 2 * m, "@n must be double of @m"
 
-# i==0 is full run, i==1 is early termination
-for i in range(2):
-    if i == 0:
-        exit_criteria = {"wallclock_max": 600, "sim_max": 1000000}
+    # Perform the run
+    libE_specs["safe_mode"] = False
+
+    # i==0 is full run, i==1 is early termination
+    for i in range(2):
+        if i == 0:
+            exit_criteria = {"wallclock_max": 600, "sim_max": 1000000}
+            if is_manager:
+                print("=== Testing full independent optimize ===", flush=True)
+        else:
+            exit_criteria = {"wallclock_max": 600, "sim_max": 10}
+            if is_manager:
+                print("=== Testing independent optimize w/ stoppage ===", flush=True)
+
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
         if is_manager:
-            print("=== Testing full independent optimize ===", flush=True)
-    else:
-        exit_criteria = {"wallclock_max": 600, "sim_max": 10}
-        if is_manager:
-            print("=== Testing independent optimize w/ stoppage ===", flush=True)
+            print("=== End algorithm ===", flush=True)
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+            # check we completed
+            assert flag == 0
 
-    if is_manager:
-        print("=== End algorithm ===", flush=True)
+        if is_manager and i == 0:
+            # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
+            eval_H = H[H["eval_pt"]]
 
-        # check we completed
-        assert flag == 0
+            gen_ids = np.unique(eval_H["gen_worker"])
+            assert len(gen_ids) == num_gens, "Gen did not submit any function eval requests"
 
-    if is_manager and i == 0:
-        # compile sum of {f_i} and {x}, and check their values are bounded by O(eps)
-        eval_H = H[H["eval_pt"]]
+            F = 0
+            fstar = 0
 
-        gen_ids = np.unique(eval_H["gen_worker"])
-        assert len(gen_ids) == num_gens, "Gen did not submit any function eval requests"
+            for i, gen_id in enumerate(gen_ids):
+                last_eval_idx = np.where(eval_H["gen_worker"] == gen_id)[0][-1]
+                f_i = eval_H[last_eval_idx]["f_i"]
+                F += f_i
 
-        F = 0
-        fstar = 0
-
-        for i, gen_id in enumerate(gen_ids):
-            last_eval_idx = np.where(eval_H["gen_worker"] == gen_id)[0][-1]
-            f_i = eval_H[last_eval_idx]["f_i"]
-            F += f_i
-
-        assert F - fstar < eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(F - fstar, eps, fstar)
+            assert F - fstar < eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
+                F - fstar, eps, fstar
+            )

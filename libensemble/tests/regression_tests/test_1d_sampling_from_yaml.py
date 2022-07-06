@@ -18,22 +18,25 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import numpy as np
 from libensemble import Ensemble
 
-sampling = Ensemble()
-sampling.from_yaml("1d_sampling.yaml")
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
-sampling.gen_specs["user"].update(
-    {
-        "lb": np.array([-3]),
-        "ub": np.array([3]),
-    }
-)
+    sampling = Ensemble()
+    sampling.from_yaml("1d_sampling.yaml")
 
-sampling.persis_info.add_random_streams()
+    sampling.gen_specs["user"].update(
+        {
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        }
+    )
 
-# Perform the run
-sampling.run()
+    sampling.persis_info.add_random_streams()
 
-if sampling.is_manager:
-    assert len(sampling.H) >= 501
-    print("\nlibEnsemble with random sampling has generated enough points")
-    sampling.save_output(__file__)
+    # Perform the run
+    sampling.run()
+
+    if sampling.is_manager:
+        assert len(sampling.H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
+        sampling.save_output(__file__)

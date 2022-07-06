@@ -50,57 +50,58 @@ def tasmanian_init_localp():
     return grid
 
 
-# Get node info.
-nworkers, is_manager, libE_specs, _ = parse_args()
-if nworkers < 2:
-    sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+# Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+if __name__ == "__main__":
 
+    # Get node info.
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    if nworkers < 2:
+        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-# Create an async simulator function (must return 'x' and 'f').
-def sim_f(H, persis_info, sim_specs, _):
-    batch = len(H["x"])
-    H0 = np.zeros(batch, dtype=sim_specs["out"])
-    H0["x"] = H["x"]
-    for i, x in enumerate(H["x"]):
-        H0["f"][i] = six_hump_camel_func(x)
-    return H0, persis_info
+    # Create an async simulator function (must return 'x' and 'f').
+    def sim_f(H, persis_info, sim_specs, _):
+        batch = len(H["x"])
+        H0 = np.zeros(batch, dtype=sim_specs["out"])
+        H0["x"] = H["x"]
+        for i, x in enumerate(H["x"]):
+            H0["f"][i] = six_hump_camel_func(x)
+        return H0, persis_info
 
+    # Set up test parameters.
+    user_specs_arr = []
+    user_specs_arr.append(
+        {
+            "refinement": "getCandidateConstructionPoints",
+            "tasmanian_init": lambda: tasmanian_init_global(),
+            "sType": "iptotal",
+            "liAnisotropicWeightsOrOutput": -1,
+        }
+    )
+    user_specs_arr.append(
+        {
+            "refinement": "getCandidateConstructionPointsSurplus",
+            "tasmanian_init": lambda: tasmanian_init_localp(),
+            "fTolerance": 1.0e-2,
+            "sRefinementType": "classic",
+        }
+    )
+    exit_criteria_arr = []
+    exit_criteria_arr.append({"wallclock_max": 3})
+    exit_criteria_arr.append({"gen_max": 100})
 
-# Set up test parameters.
-user_specs_arr = []
-user_specs_arr.append(
-    {
-        "refinement": "getCandidateConstructionPoints",
-        "tasmanian_init": lambda: tasmanian_init_global(),
-        "sType": "iptotal",
-        "liAnisotropicWeightsOrOutput": -1,
-    }
-)
-user_specs_arr.append(
-    {
-        "refinement": "getCandidateConstructionPointsSurplus",
-        "tasmanian_init": lambda: tasmanian_init_localp(),
-        "fTolerance": 1.0e-2,
-        "sRefinementType": "classic",
-    }
-)
-exit_criteria_arr = []
-exit_criteria_arr.append({"wallclock_max": 3})
-exit_criteria_arr.append({"gen_max": 100})
+    run_num = 0
+    # Test over all possible parameter combinations.
+    for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
+        sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode="async")
 
-run_num = 0
-# Test over all possible parameter combinations.
-for user_specs, exit_criteria in itertools.product(user_specs_arr, exit_criteria_arr):
-    sim_specs, gen_specs, alloc_specs, persis_info = get_sparse_grid_specs(user_specs, sim_f, 2, mode="async")
+        if run_num == 0:
+            gen_specs["user"]["tasmanian_checkpoint_file"] = "tasmanian.grid"
+            run_num += 1
 
-    if run_num == 0:
-        gen_specs["user"]["tasmanian_checkpoint_file"] = "tasmanian.grid"
-        run_num += 1
-
-    if is_manager:
-        print("[Manager]: user_specs = {0}".format(user_specs))
-        print("[Manager]: exit_criteria = {0}".format(exit_criteria))
-        start_time = time()
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-    if is_manager:
-        print("[Manager]: Time taken = ", time() - start_time, "\n", flush=True)
+        if is_manager:
+            print("[Manager]: user_specs = {0}".format(user_specs))
+            print("[Manager]: exit_criteria = {0}".format(exit_criteria))
+            start_time = time()
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        if is_manager:
+            print("[Manager]: Time taken = ", time() - start_time, "\n", flush=True)

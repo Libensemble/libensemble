@@ -404,9 +404,9 @@ if [ "$root_found" = true ]; then
     fi
 
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
-      $PYTHON_RUN -m pytest --capture=no --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
+      $PYTHON_RUN -m pytest --capture=no --timeout=120 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
-      $PYTHON_RUN -m pytest --timeout=100 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
+      $PYTHON_RUN -m pytest --timeout=120 $COV_LINE_SERIAL $EXTRA_UNIT_ARG
     fi;
 
     code=$?
