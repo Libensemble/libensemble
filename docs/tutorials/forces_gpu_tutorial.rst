@@ -69,7 +69,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         )
 
         # Block until the task finishes
-        task.wait(timeout=60)
+        task.wait()
 
         # Stat file to check for bad runs
         statfile = "forces.stat"
