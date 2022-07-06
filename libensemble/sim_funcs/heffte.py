@@ -1,5 +1,5 @@
 """
-Example sim_f for simple heFFTe use case. 
+Example sim_f for simple heFFTe use case.
 """
 import numpy as np
 import subprocess
