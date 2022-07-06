@@ -20,6 +20,10 @@ persistent generator.
 import sys
 import numpy as np
 
+import libensemble.gen_funcs
+
+libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
+
 # Import libEnsemble main, sim_specs, gen_specs, alloc_specs, and persis_info
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
