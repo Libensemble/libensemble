@@ -8,7 +8,6 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
-
 Release 0.9.2
 -------------
 
@@ -20,7 +19,7 @@ New capabilities:
 * Added configuration options for `libE_stats.txt` file. #743
 * Support for `spawn` and `forkserver` multiprocessing start methods. #797
 
- * Note that macOS, no longer switches to using `fork`. macOS (since Python 3.8) and Windows
+ * Note that macOS no longer switches to using `fork`. macOS (since Python 3.8) and Windows
  default to using `spawn`. When using `spawn`, we recommend placing calling script code in
  an ``if __name__ == "__main__":`` block. The multiprocessing interface can be used to switch methods (https://docs.python.org/3/library/multiprocessing.html#multiprocessing.set_start_method).
 
@@ -37,7 +36,7 @@ Regression tests separated into problem examples and functionality tests. #839
 
 :Known issues:
 
-* The included APOSMM generator function has been noted to operate slower than expected with the 'spawn' multiprocessing start method. For this reason we recommend using `fork` with APOSMM, when using `local` comms (`fork` is the default method on Linux systems).
+* The APOSMM generator function has been noted to operate slower than expected with the `spawn` multiprocessing start method. For this reason we recommend using `fork` with APOSMM, when using `local` comms (`fork` is the default method on Linux systems).
 * See known issues section in the documentation.
 
 Release 0.9.1
