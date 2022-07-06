@@ -1,19 +1,22 @@
 """
-Calls the branin function. Default behavior uses the python function, but
-uncommenting lines will write x.in to file, call branin.py, and then read f.out.
+Example sim_f for simple heFFTe use case. 
 """
 import numpy as np
 import subprocess
 
 
 def call_and_process_heffte(H, persis_info, sim_specs, _):
-    """Evaluates a heffte string and parses the output"""
+    """
+    Evaluates (via subprocess) a string that includes a call to a heFFTe
+    executable as well as other arguments. Afterwards, the stdout is parsed to
+    collect the run time (as reported by heFTTe)
+    """
 
     H_o = np.zeros(1, dtype=sim_specs["out"])
 
     p = subprocess.run(H["exec_and_args"][0].split(" "), cwd="./", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    assert p.returncode == 0, "heFTTe call has failed"
+    assert p.returncode == 0, "heFFTe call has failed"
 
     time = float(p.stdout.decode().split("Time per run: ")[1].split(" ")[0])
 
