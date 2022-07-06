@@ -65,7 +65,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
         # Start persistent generator for local opt run unless it would use all workers
         if starting_inds and gen_count + 1 < len(W):
             # Start at the best possible starting point
-            ind = starting_inds[np.argmin(H["iterations"][starting_inds])]
+            ind = starting_inds[np.argmin(H["f"][starting_inds])]
             try:
                 Work[wid] = support.gen_work(wid, gen_specs["persis_in"], ind, persis_info[wid], persistent=True)
             except InsufficientFreeResources:

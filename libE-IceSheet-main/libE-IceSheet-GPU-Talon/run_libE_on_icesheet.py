@@ -30,7 +30,7 @@ exctr.register_app(full_path=sim_app, app_name="icesheet")
 sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
-    "out": [("iterations", int)],   # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "out": [("f", int)],   # Name, type of output from sim_f, fix velocity_field to error (last error value)
 }
 
 # State the gen_f, inputs, outputs, additional parameters

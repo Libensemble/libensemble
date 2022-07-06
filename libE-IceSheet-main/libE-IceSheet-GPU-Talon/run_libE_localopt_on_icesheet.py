@@ -33,7 +33,7 @@ exctr.register_app(full_path=sim_app, app_name="icesheet")
 sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
-    "out": [("iterations", int)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "out": [("f", int)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
 }
 
 n = 3
@@ -42,7 +42,7 @@ gen_out += [("x", float, n), ("x_on_cube", float, n)]
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": gen_f,
-    "persis_in": ["x", "iterations", "sim_id"],
+    "persis_in": ["x", "f", "sim_id"],
     "out": gen_out,
     "user": {
         "lb": np.array([0.1, 0.01, 0.01]),  # User parameters for the gen_f

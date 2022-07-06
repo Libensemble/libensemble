@@ -57,7 +57,7 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
-    output["iterations"][0] =iterations
+    output["f"][0] =iterations
    # iterations = np.random.randint(1,100)
    # print(iterations)
    # output["iterations"][0] =iterations 
