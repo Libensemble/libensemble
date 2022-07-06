@@ -55,6 +55,8 @@ gen_specs = {
 # Create and work inside separate per-simulation directories
 libE_specs["sim_dirs_make"] = True
 
+# libE_specs["stats_fmt"] = {"show_resource_sets": True}  # Uncomment to see resource sets in libE_stats.txt
+
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}
 
