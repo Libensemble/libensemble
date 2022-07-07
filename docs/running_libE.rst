@@ -106,6 +106,18 @@ The ``libE_specs`` options for TCP are::
     'authkey' [String]:
         Authkey.
 
+Reverse-ssh interface
+^^^^^^^^^^^^^^^^^^^^^
+
+Via specifying ``--comms ssh`` on the command line, libEnsemble workers can
+be launched to remote ssh-accessible systems without needing to specify ``'port'`` or ``'authkey'``.
+
+The working directory and Python to run on the remote system need to be specified. Running a calling script may resemble::
+
+    python myscript.py --comms ssh --workers machine1 machine2 --worker_pwd /home/workers --worker_python /home/.conda/.../python
+
+Note that currently, the interface assumes that all remote machines share a filesystem. We'll be adjusting this in the future.
+
 Limitations of TCP mode
 ^^^^^^^^^^^^^^^^^^^^^^^
 

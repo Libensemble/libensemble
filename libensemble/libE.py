@@ -102,7 +102,7 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
 
 On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``'spawn'``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
-an ``if __name__ == "__main__:" block.
+an ``if __name__ == "__main__:"`` block.
 
 Therefore a calling script that is universal across
 all platforms and comms-types may resemble:
