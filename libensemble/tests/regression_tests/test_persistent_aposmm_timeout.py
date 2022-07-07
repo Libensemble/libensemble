@@ -22,6 +22,7 @@ import multiprocessing
 import numpy as np
 
 import libensemble.gen_funcs
+
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
 # Import libEnsemble items for this test

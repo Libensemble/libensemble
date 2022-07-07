@@ -244,7 +244,8 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed on timeout.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
         """
 
         if self.dry_run:
@@ -269,7 +270,8 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed on timeout.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
         """
 
         self.wait(timeout=timeout)
@@ -284,7 +286,8 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed on timeout.
+            Note that the task is not automatically killed if libEnsemble
+            timeouts from reaching exit_criteria["wallclock_max"].
         """
 
         self.wait(timeout=timeout)
