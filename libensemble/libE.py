@@ -142,7 +142,7 @@ all platforms and comms-types may resemble:
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                     libE_specs=libE_specs)
 
-Alternatively, you may set the multiprocesing start method to ``'fork'`` via the following:
+Alternatively, you may set the multiprocessing start method to ``'fork'`` via the following:
 
     from multiprocessing import set_start_method
     set_start_method("fork")
