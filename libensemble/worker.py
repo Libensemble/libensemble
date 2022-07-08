@@ -18,6 +18,7 @@ from libensemble.message_numbers import calc_type_strings, calc_status_strings
 from libensemble.output_directory import EnsembleDirectory
 
 from libensemble.utils.timer import Timer
+from libensemble.utils.runners import make_runners
 from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
 from libensemble.comms.logs import worker_logging_config
@@ -134,71 +135,10 @@ class Worker:
         self.stats_fmt = libE_specs.get("stats_fmt", {})
 
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self._run_calc = Worker._make_runners(sim_specs, gen_specs)
+        self._run_calc = make_runners(sim_specs, gen_specs)
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
-
-    @staticmethod
-    def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
-        libE_info["comm"] = None  # 'comm' object not pickle-able
-        Worker._set_executor(0, None)  # ditto for executor
-
-        future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info, endpoint_id=specs["funcx_endpoint"])
-        remote_exc = future.exception()  # blocks until exception or None
-        if remote_exc is None:
-            return future.result()
-        else:
-            raise remote_exc
-
-    @staticmethod
-    def _get_funcx_exctr(sim_specs, gen_specs):
-        funcx_sim = len(sim_specs.get("funcx_endpoint", "")) > 0
-        funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
-
-        if any([funcx_sim, funcx_gen]):
-            try:
-                from funcx import FuncXClient
-                from funcx.sdk.executor import FuncXExecutor
-
-                return FuncXExecutor(FuncXClient()), funcx_sim, funcx_gen
-            except ModuleNotFoundError:
-                logger.warning("funcX use detected but funcX not importable. Is it installed?")
-                return None, False, False
-            except Exception:
-                return None, False, False
-        else:
-            return None, False, False
-
-    @staticmethod
-    def _make_runners(sim_specs, gen_specs):
-        """Creates functions to run a sim or gen. These functions are either
-        called directly by the worker or submitted to a funcX endpoint."""
-
-        funcx_exctr, funcx_sim, funcx_gen = Worker._get_funcx_exctr(sim_specs, gen_specs)
-        sim_f = sim_specs["sim_f"]
-
-        def run_sim(calc_in, persis_info, libE_info):
-            """Calls or submits the sim func."""
-            if funcx_sim and funcx_exctr:
-                return Worker._funcx_result(funcx_exctr, sim_f, calc_in, persis_info, sim_specs, libE_info)
-            else:
-                return sim_f(calc_in, persis_info, sim_specs, libE_info)
-
-        if gen_specs:
-            gen_f = gen_specs["gen_f"]
-
-            def run_gen(calc_in, persis_info, libE_info):
-                """Calls or submits the gen func."""
-                if funcx_gen and funcx_exctr:
-                    return Worker._funcx_result(funcx_exctr, gen_f, calc_in, persis_info, gen_specs, libE_info)
-                else:
-                    return gen_f(calc_in, persis_info, gen_specs, libE_info)
-
-        else:
-            run_gen = []
-
-        return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
     @staticmethod
     def _set_rset_team(rset_team):
