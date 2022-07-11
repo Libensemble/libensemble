@@ -3,6 +3,7 @@ import re
 import shutil
 
 from libensemble.utils.loc_stack import LocationStack
+from libensemble.utils.misc import extract_H_ranges
 from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 
@@ -163,7 +164,7 @@ class EnsembleDirectory:
             self.loc_stack = LocationStack()
 
         if calc_type == EVAL_SIM_TAG:
-            H_rows = self.extract_H_ranges(Work)
+            H_rows = extract_H_ranges(Work)
         else:
             H_rows = str(calc_iter[calc_type])
 
