@@ -1,13 +1,13 @@
 import logging
 import logging.handlers
 
-from libensemble.worker import Worker
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 
 logger = logging.getLogger(__name__)
 
 
 def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
+    from libensemble.worker import Worker
     libE_info["comm"] = None  # 'comm' object not pickle-able
     Worker._set_executor(0, None)  # ditto for executor
 

@@ -17,6 +17,7 @@ from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
 from libensemble.output_directory import EnsembleDirectory
 
+from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.timer import Timer
 from libensemble.utils.runners import make_runners
 from libensemble.executors.executor import Executor
@@ -197,7 +198,7 @@ class Worker:
         # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = "sim_id"
-            calc_id = EnsembleDirectory.extract_H_ranges(Work)
+            calc_id = extract_H_ranges(Work)
         else:
             enum_desc = "Gen no"
             # Use global gen count if available
