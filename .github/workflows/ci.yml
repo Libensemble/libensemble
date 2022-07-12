@@ -43,7 +43,7 @@ jobs:
                       mpi-version: 'mpich'
                       do-balsam: true
                     - os: windows-latest
-                      python-version: "3.10"
+                      python-version: '3.10'
                       comms-type: l
                       mpi-version: 'mpich'
                       do-balsam: false
@@ -198,9 +198,9 @@ jobs:
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run simple tests, Ubuntu, Python 3.11
-         if: matrix.os == 'windows-latest'
-         run: |
-          ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+          if: matrix.os == 'windows-latest'
+          run: |
+            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
