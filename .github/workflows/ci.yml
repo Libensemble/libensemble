@@ -45,7 +45,7 @@ jobs:
                     - os: windows-latest
                       python-version: '3.10'
                       comms-type: l
-                      mpi-version: 'mpich'
+                      mpi-version: 'msmpi'
                       do-balsam: false
         env:
             HYDRA_LAUNCHER: 'fork'
@@ -102,7 +102,7 @@ jobs:
             conda install mpi4py
 
         - name: Install MPI, mpi4py from pip
-          if: matrix.python-version == '3.10' && matrix.os != 'windows-latest'
+          if: matrix.python-version == '3.10'
           run: |
             conda install ${{ matrix.mpi-version }}
             pip install mpi4py
