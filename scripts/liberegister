@@ -5,12 +5,19 @@ import sys
 import shutil
 import argparse
 from pathlib import Path
-from psij import Job, JobSpec
-from psij.resource_spec import ResourceSpecV1
-from psij.job_attributes import JobAttributes
-from psij.serialize import Export
 from libensemble.version import __version__
 from libensemble.tools.parse_args import parser as callscript_parser
+
+try:
+    from psij import Job, JobSpec
+    from psij.resource_spec import ResourceSpecV1
+    from psij.job_attributes import JobAttributes
+    from psij.serialize import Export
+except ModuleNotFoundError:
+    print(f"*** libEnsemble {__version__} ***")
+    print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")
+    print("     git clone https://github.com/ExaWorks/psi-j-python.git")
+    print("     cd psi-j-python; pip install -e .\n")
 
 if __name__ == "__main__":
 

@@ -5,13 +5,28 @@ import sys
 import time
 import shutil
 import argparse
-from tqdm.auto import tqdm
 from pathlib import Path
-from psij import JobExecutor, Import, Export, JobSpec, Job
-from psij.resource_spec import ResourceSpecV1
-from psij.job_attributes import JobAttributes
+
 from libensemble.version import __version__
 from libensemble.resources import node_resources
+
+try:
+    from tqdm.auto import tqdm
+except ModuleNotFoundError:
+    print(f"*** libEnsemble {__version__} ***")
+    print("\ntqdm is not installed, but this only matters if libesubmit can't find your calling script.\n")
+    print("\ntqdm can be installed via:\n")
+    print("     pip install tqdm")
+
+try:
+    from psij import JobExecutor, Import, Export, JobSpec, Job
+    from psij.resource_spec import ResourceSpecV1
+    from psij.job_attributes import JobAttributes
+except ModuleNotFoundError:
+    print(f"*** libEnsemble {__version__} ***")
+    print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")
+    print("     git clone https://github.com/ExaWorks/psi-j-python.git")
+    print("     cd psi-j-python; pip install -e .\n")
 
 if __name__ == "__main__":
 
