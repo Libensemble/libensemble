@@ -15,6 +15,8 @@ from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_o
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+libE_specs["zero_resource_workers"] = [1]
+
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
 
