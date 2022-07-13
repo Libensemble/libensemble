@@ -12,6 +12,7 @@ import traceback
 import numpy as np
 
 from libensemble.utils.timer import Timer
+from libensemble.utils.misc import extract_H_ranges
 
 from libensemble.message_numbers import (
     EVAL_SIM_TAG,
@@ -341,7 +342,7 @@ class Manager:
         work_name = calc_type_strings[Work["tag"]]
         logger.debug(
             "Manager sending {} work to worker {}. Rows {}".format(
-                work_name, w, EnsembleDirectory.extract_H_ranges(Work) or None
+                work_name, w, extract_H_ranges(Work) or None
             )
         )
         if len(work_rows):

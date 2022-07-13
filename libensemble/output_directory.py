@@ -1,10 +1,9 @@
 import os
 import re
 import shutil
-from itertools import groupby
-from operator import itemgetter
 
 from libensemble.utils.loc_stack import LocationStack
+from libensemble.utils.misc import extract_H_ranges
 from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 
@@ -83,23 +82,6 @@ class EnsembleDirectory:
             return self.sim_use
         else:
             return self.gen_use
-
-    @staticmethod
-    def extract_H_ranges(Work):
-        """Convert received H_rows into ranges for labeling"""
-        work_H_rows = Work["libE_info"]["H_rows"]
-        if len(work_H_rows) == 1:
-            return str(work_H_rows[0])
-        else:
-            # From https://stackoverflow.com/a/30336492
-            ranges = []
-            for diff, group in groupby(enumerate(work_H_rows.tolist()), lambda x: x[0] - x[1]):
-                group = list(map(itemgetter(1), group))
-                if len(group) > 1:
-                    ranges.append(str(group[0]) + "-" + str(group[-1]))
-                else:
-                    ranges.append(str(group[0]))
-            return "_".join(ranges)
 
     def _make_calc_dir(self, workerID, H_rows, calc_str, locs):
         """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
@@ -182,7 +164,7 @@ class EnsembleDirectory:
             self.loc_stack = LocationStack()
 
         if calc_type == EVAL_SIM_TAG:
-            H_rows = self.extract_H_ranges(Work)
+            H_rows = extract_H_ranges(Work)
         else:
             H_rows = str(calc_iter[calc_type])
 
