@@ -182,10 +182,8 @@ jobs:
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
             python install/find_mpi.py
-            mpiexec --version
             pip install -e .
             flake8 libensemble
-            ulimit -Sn 10000
 
         - name: Activate API unit test if using mpich
           if: matrix.mpi-version == 'mpich'
