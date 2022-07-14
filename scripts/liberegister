@@ -127,15 +127,8 @@ if __name__ == "__main__":
             jobargs.comms,
         ]
 
-        nworkers = jobargs.nworkers
-        nsim_workers = jobargs.nsim_workers
-
-        ngen_workers = nworkers - nsim_workers
-        assert ngen_workers > 0, "nsim_workers cannot be greater than number of workers"
-
-        if nsim_workers is not None:
-            nworkers = nworkers or nsim_workers + 1
-            arguments.append["--nsim_workers", str(jobargs.nsim_workers)]
+        if jobargs.nworkers:
+            arguments.extend(["--nworkers", str(jobargs.nworkers)])
 
         resources = ResourceSpecV1(node_count=jobargs.nnodes)
     else:  # jobargs.comms == "mpi":
@@ -144,11 +137,11 @@ if __name__ == "__main__":
             process_count=jobargs.nworkers + 1, processes_per_node=1
         )
 
-        if jobargs.nsim_workers:
-            arguments.append('--nsim_workers', str(jobargs.nsim_workers))
+    if jobargs.nsim_workers:
+        arguments.extend(['--nsim_workers', str(jobargs.nsim_workers)])
 
     if jobargs.nresource_sets:
-        arguments.append('--nresource_sets', str(jobargs.nresource_sets))
+        arguments.extend(['--nresource_sets', str(jobargs.nresource_sets)])
 
     jobspec = JobSpec(
         name=jobargs.jobname,
