@@ -3,7 +3,7 @@ import logging
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources  # noqa: F401
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -180,7 +180,7 @@ class AllocSupport:
 
         logger.debug(
             "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(
-                wid, EnsembleDirectory.extract_H_ranges(work) or None
+                wid, extract_H_ranges(work) or None
             )
         )
         return work
@@ -224,7 +224,7 @@ class AllocSupport:
 
         logger.debug(
             "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(
-                wid, EnsembleDirectory.extract_H_ranges(work) or None
+                wid, extract_H_ranges(work) or None
             )
         )
         return work
