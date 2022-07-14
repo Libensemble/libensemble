@@ -1,7 +1,9 @@
 import pytest
+import platform
 import multiprocessing
 
-multiprocessing.set_start_method("fork", force=True)
+if platform.system() in ['Linux', 'Darwin']:
+    multiprocessing.set_start_method("fork", force=True)
 
 import libensemble.gen_funcs
 
