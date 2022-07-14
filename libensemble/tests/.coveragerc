@@ -24,6 +24,7 @@ omit =
     */legacy_balsam_executor.py
     */forkable_pdb.py
     */parse_args.py
+    */runners.py
     */gen_funcs/old_aposmm.py
     */alloc_funcs/fast_alloc_to_aposmm.py
 exclude_lines =
