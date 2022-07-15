@@ -18,7 +18,10 @@ parser.add_argument(
 )
 parser.add_argument("--nworkers", type=int, nargs="?", help="Number of local forked processes")
 parser.add_argument(
-    "--nsim_workers", type=int, nargs="?", help="Number of workers for sims. 1+ zero-resource worker for a persistent generator will be added"
+    "--nsim_workers",
+    type=int,
+    nargs="?",
+    help="Number of workers for sims. 1+ zero-resource worker for a persistent generator will be added",
 )
 parser.add_argument("--nresource_sets", type=int, nargs="?", help="Number of resource sets")
 parser.add_argument("--workers", type=str, nargs="+", help="List of worker nodes")
