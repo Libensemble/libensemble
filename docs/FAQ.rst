@@ -229,12 +229,20 @@ macOS and Windows Errors
 
 You need to place your main calling script code underneath an ``if __name__ == "__main__":`` block.
 
-Explanation: Python chooses one of three methods to start new processes when using multiprocessing (``--comms local`` with libEnsemble).
-These are ``'fork'``, ``'spawn'``, and ``'forkserver'``. ``'fork'`` is the default on Unix, and in our experience is quicker and more reliable,
-but ``'spawn'`` is the default on Windows and macOS (See the `Python multiprocessing docs`_).
+Explanation: Python chooses one of three methods to start new processes when using multiprocessing
+(``--comms local`` with libEnsemble). These are ``'fork'``, ``'spawn'``, and ``'forkserver'``. ``'fork'`` 
+is the default on Unix, and in our experience is quicker and more reliable, but ``'spawn'`` is the default 
+on Windows and macOS (See the `Python multiprocessing docs`_).
 
-Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatically switch the multiprocessing method to ``'fork'``. We
-decided to stop doing this to stop overriding defaults and avoid compatibility issues with some libraries.
+Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatically switch the multiprocessing 
+method to ``'fork'``. We decided to stop doing this to avoid overriding defaults and compatibility issues with
+some libraries.
+
+If you'd prefer to use ``'fork'`` or not reformat your code, you can set the multiprocessing start method via 
+the following, placed near the top of your calling script::
+
+  import multiprocessing
+  multiprocessing.set_start_method('fork', force=True)
 
 .. _`Python multiprocessing docs`: https://docs.python.org/3/library/multiprocessing.html
 
