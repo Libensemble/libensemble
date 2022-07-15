@@ -8,11 +8,6 @@
  :width: 33 %
  :align: right
 
-.. image:: images/white.png
-  :align: center
-  :width: 33 %
-  :height: 1.2 in
-
 =========================================================================
 **libEnsemble**: A Python Library for Dynamic Ensemble-Based Computations
 =========================================================================
@@ -51,11 +46,6 @@ input and a ``sim_f`` function that performs and monitors simulations. The user
 parameterizes these functions and initiates libEnsemble in a *calling script*.
 Examples and templates of such scripts and functions are included in the library.
 
-.. image:: images/using_new.png
- :alt: Using libEnsemble
- :scale: 30 %
- :align: center
-
 For example, the ``gen_f`` may contain an optimization routine to generate new
 simulation parameters on-the-fly based on results from previous ``sim_f``
 simulations.
@@ -82,11 +72,6 @@ many-node simulations. The *manager* allocates workers to asynchronously execute
 ``gen_f`` generation functions and ``sim_f`` simulation functions based on
 produced output, directed by a provided ``alloc_f`` allocation function.
 
-.. image:: images/logo_manager_worker.png
- :alt: Managers and Workers
- :align: center
- :scale: 40 %
-
 Flexible Run Mechanisms
 -----------------------
 
@@ -97,14 +82,14 @@ run and launch tasks (user applications) on available nodes.
 
 * **Distributed**: Workers are distributed across allocated nodes and launch tasks in-place. Workers share nodes with their applications.
 
-.. image:: images/distributed_new.png
+.. image:: images/distributed_new_detailed.png
  :alt: Distributed
  :align: center
  :scale: 30 %
 
 * **Centralized**: Workers run on one or more dedicated nodes and launch tasks to the remaining allocated nodes.
 
-.. image:: images/centralized_new.png
+.. image:: images/centralized_new_detailed.png
  :alt: Centralized
  :align: center
  :scale: 30 %
@@ -132,7 +117,7 @@ Executor can interface with the **Balsam** library, which functions as a proxy
 job launcher that maintains and submits jobs from a database on front end launch
 nodes.
 
-.. image:: images/central_balsam.png
+.. image:: images/centralized_new_detailed_balsam.png
  :alt: Central Balsam
  :align: center
  :scale: 40 %

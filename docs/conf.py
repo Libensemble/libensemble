@@ -79,6 +79,7 @@ sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
 sys.path.append(os.path.abspath("../libensemble/tools"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
+sys.path.append(os.path.abspath("../libensemble/executors/balsam_executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
 # print(sys.path)
 
