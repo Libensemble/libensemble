@@ -19,9 +19,9 @@ New capabilities:
 * Added configuration options for `libE_stats.txt` file. #743
 * Support for `spawn` and `forkserver` multiprocessing start methods. #797
 
- * Note that macOS no longer switches to using `fork`. macOS (since Python 3.8) and Windows
- default to using `spawn`. When using `spawn`, we recommend placing calling script code in
- an ``if __name__ == "__main__":`` block. The multiprocessing interface can be used to switch methods (https://docs.python.org/3/library/multiprocessing.html#multiprocessing.set_start_method).
+ * Note that macOS no longer switches to using `fork`. macOS (since Python 3.8) and Windows default to
+   using `spawn`. When using `spawn`, we recommend placing calling script code in an ``if __name__ == "__main__":`` block.
+   The multiprocessing interface can be used to switch methods (https://docs.python.org/3/library/multiprocessing.html#multiprocessing.set_start_method).
 
 Updates to example functions:
 
