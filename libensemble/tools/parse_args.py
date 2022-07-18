@@ -18,7 +18,10 @@ parser.add_argument(
 )
 parser.add_argument("--nworkers", type=int, nargs="?", help="Number of local forked processes")
 parser.add_argument(
-    "--nsim_workers", type=int, nargs="?", help="Number of workers for sims. 1+ zero-resource gen worker will be added"
+    "--nsim_workers",
+    type=int,
+    nargs="?",
+    help="Number of workers for sims. 1+ zero-resource worker for a persistent generator will be added",
 )
 parser.add_argument("--nresource_sets", type=int, nargs="?", help="Number of resource sets")
 parser.add_argument("--workers", type=str, nargs="+", help="List of worker nodes")
@@ -178,9 +181,9 @@ def parse_args():
 
         --comms,          Communications medium for manager and workers. Default is 'mpi'.
         --nworkers,       (For 'local' or 'tcp' comms) Set number of workers.
-        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for common cases.
+        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for cases with persistent generators.
                           If used with no other criteria, will generate one additional
-                          zero-resource worker for use as a generator. If the number of workers
+                          zero-resource worker for running a generator. If --nworkers
                           has also been specified, will generate enough zero-resource workers to
                           match the other criteria.
         --nresource_sets, Explicitly set the number of resource sets. This sets
@@ -192,7 +195,7 @@ def parse_args():
         Run with 'local' comms and 4 workers
         $ python calling_script --comms local --nworkers 4
 
-        Run with 'local' comms and 5 workers - one gen (no resources), and 4 sims.
+        Run with 'local' comms and 5 workers - one gen worker (no resources), and 4 sim workers.
         $ python calling_script --comms local --nsim_workers 4
 
         Run with 'local' comms with 4 workers and 8 resource sets. The extra resource sets will
