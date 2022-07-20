@@ -137,7 +137,9 @@ jobs:
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
 
-            pip install dragonfly-opt
+            # pip install dragonfly-opt
+            pip install git+https://github.com/dragonfly/dragonfly.git
+
             pip install torch
             pip install gpytorch
             pip install ax-platform
