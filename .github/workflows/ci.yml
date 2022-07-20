@@ -111,8 +111,8 @@ jobs:
             conda install superlu_dist
             conda install hypre
             conda install mumps-mpi
-            # pip install petsc
-            # pip install petsc4py
+            conda install petsc
+            conda install petsc4py
             pip install DFO-LS
 
             pip install mpmath
@@ -137,7 +137,9 @@ jobs:
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
 
-            pip install dragonfly-opt
+            # pip install dragonfly-opt
+            pip install git+https://github.com/dragonfly/dragonfly.git
+
             pip install torch
             pip install gpytorch
             pip install ax-platform
