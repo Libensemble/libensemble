@@ -134,6 +134,147 @@ Further command line options
 
 See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for further command line options.
 
+.. _liberegister:
+
+liberegister / libesubmit
+-------------------------
+
+libEnsemble now features a pair of command-line utilities for preparing and launching libEnsemble workflows onto almost
+any machine and any scheduler, using a `PSI/J`_ Python implementation. This is an alternative approach
+to maintaining system or scheduler-specific batch submission scripts.
+
+- `liberegister`
+
+Creates an initial, platform-independent PSI/J serialization of a libEnsemble submission. Run this utility on
+a calling script in a familiar manner::
+
+    liberegister my_calling_script.py --comms local --nworkers 4
+
+This produces an initial `my_calling_script.json` serialization conforming to PSI/J's specification:
+
+.. container:: toggle
+
+    .. container:: header
+
+       `my_calling_script.json`
+
+    .. code-block:: JSON
+
+        {
+            "version": 0.1,
+            "type": "JobSpec",
+            "data": {
+                "name": "libe-job",
+                "executable": "python",
+                "arguments": [
+                    "my_calling_script.py",
+                    "--comms",
+                    "local",
+                    "--nworkers",
+                    "4"
+                ],
+                "directory": null,
+                "inherit_environment": true,
+                "environment": {
+                    "PYTHONNOUSERSITE": "1"
+                },
+                "stdin_path": null,
+                "stdout_path": null,
+                "stderr_path": null,
+                "resources": {
+                    "node_count": 1,
+                    "process_count": null,
+                    "process_per_node": null,
+                    "cpu_cores_per_process": null,
+                    "gpu_cores_per_process": null,
+                    "exclusive_node_use": true
+                },
+                "attributes": {
+                    "duration": "30",
+                    "queue_name": null,
+                    "project_name": null,
+                    "reservation_id": null,
+                    "custom_attributes": {}
+                },
+                "launcher": null
+            }
+        }
+
+- `libesubmit`
+
+Further parameterizes a serialization, and submits a corresponding Job to the specified scheduler.
+Running ``qsub``, ``sbatch``, etc. on some batch submission script is not needed. For instance::
+
+    libesubmit my_calling_script.json -q debug -A project -s slurm --nnodes 8
+
+Results in::
+
+    *** libEnsemble 0.9.2+dev ***
+    Imported PSI/J serialization: my_calling_script.json. Preparing submission...
+    Calling script: my_calling_script.py
+    ...found! Proceding.
+    Submitting Job!: Job[id=ce4ead75-a3a4-42a3-94ff-c44b3b2c7e61, native_id=None, executor=None, status=JobStatus[NEW, time=1658167808.5125017]]
+
+    $ squeue --long --users=user
+    Mon Jul 18 13:10:15 2022
+             JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
+           2508936    debug  ce4ead75     user  PENDING       0:00     30:00      8 (Priority)
+
+This also produces a Job-specific representation, e.g:
+
+.. container:: toggle
+
+    .. container:: header
+
+       `8ba9de56.my_calling_script.json`
+
+    .. code-block:: JSON
+
+        {
+            "version": 0.1,
+            "type": "JobSpec",
+            "data": {
+                "name": "libe-job",
+                "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.8",
+                "arguments": [
+                    "my_calling_script.py",
+                    "--comms",
+                    "local",
+                    "--nworkers",
+                    "4"
+                ],
+                "directory": "/home/user/libensemble/scratch",
+                "inherit_environment": true,
+                "environment": {
+                    "PYTHONNOUSERSITE": "1"
+                },
+                "stdin_path": null,
+                "stdout_path": "8ba9de56.my_calling_script.out",
+                "stderr_path": "8ba9de56.my_calling_script.err",
+                "resources": {
+                    "node_count": 8,
+                    "process_count": null,
+                    "process_per_node": null,
+                    "cpu_cores_per_process": null,
+                    "gpu_cores_per_process": null,
+                    "exclusive_node_use": true
+                },
+                "attributes": {
+                    "duration": "30",
+                    "queue_name": "debug",
+                    "project_name": "project",
+                    "reservation_id": null,
+                    "custom_attributes": {}
+                },
+                "launcher": null
+            }
+        }
+
+If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
+specified calling script, it'll help search for matching candidate scripts.
+
+.. _PSI/J: https://exaworks.org/psij
+
 Persistent Workers
 ------------------
 .. _persis_worker:
