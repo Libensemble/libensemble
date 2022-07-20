@@ -8,12 +8,14 @@ import numpy as np
 from pydantic import BaseModel, validator, BaseSettings, PyObject
 from libensemble.tools.fields_keys import allowed_libE_spec_keys, libE_fields
 
+
 class SimSpecs(BaseModel):
     function: Callable
     inputs: List
     outputs: Tuple[str, Any, Union[int, Tuple]]
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
+
 
 class GenSpecs(BaseModel):
     function: Callable
@@ -22,26 +24,31 @@ class GenSpecs(BaseModel):
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
 
+
 class AllocSpecs(BaseModel):
     function: Callable
     user: Optional[Dict]
 
+
 class ResourceInfo(BaseModel):
-    cores_on_node: Optional[Tuple(int, int)]
+    cores_on_node: Optional[Tuple[int, int]]
     node_file: Optional[str]
     nodelist_env_slurm: Optional[str]
     nodelist_env_cobalt: Optional[str]
     nodelist_env_lsf: Optional[str]
     nodelist_env_lsf_shortform: Optional[str]
 
+
 class SchedulerOpts(BaseModel):
     split2fit: Optional[bool] = True
     match_slots: Optional[bool] = True
+
 
 class StatsFmt(BaseModel):
     task_timing: Optional[bool] = False
     task_datetime: Optional[bool] = False
     show_resource_sets: Optional[bool] = False
+
 
 class LibeSpecs(BaseSettings):
     abort_on_exception: Optional[bool] = True
@@ -84,6 +91,7 @@ class LibeSpecs(BaseSettings):
     gen_dir_symlink_files: Optional[List[str]]
     gen_input_dir: Optional[str]
 
+
 class Ensemble(BaseModel):
     H0: np.ndarray
     libE_specs: LibeSpecs
@@ -93,4 +101,3 @@ class Ensemble(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-
