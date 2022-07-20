@@ -4,8 +4,11 @@ This module contains an example 1d function
 __all__ = ["one_d_example"]
 
 import numpy as np
+from libensemble.sim_funcs import sim_inputs, sim_outputs
 
 
+@sim_inputs(["x"])
+@sim_outputs([("f", float)])
 def one_d_example(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.
