@@ -161,6 +161,8 @@ import socket
 import traceback
 import numpy as np
 import pickle  # Only used when saving output on error
+from typing import Dict
+from pydantic import validate_arguments
 
 from libensemble.version import __version__
 from libensemble.utils import launcher
@@ -177,13 +179,20 @@ from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.tools.check_inputs import check_inputs
 from libensemble.tools.alloc_support import AllocSupport
+from libensemble.types import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
-
-def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None, libE_specs=None, H0=None):
+@validate_arguments
+def libE(sim_specs: SimSpecs,
+         gen_specs: GenSpecs,
+         exit_criteria: ExitCriteria,
+         persis_info: Dict = {},
+         alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
+         libE_specs: LibeSpecs = {},
+         H0: np.ndarray = np.empty(0)) -> (np.ndarray, Dict, int):
     """
     Parameters
     ----------
@@ -248,19 +257,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
-
-    # Set default persis_info, alloc_specs, libE_specs, and H0
-    if persis_info is None:
-        persis_info = {}
-
-    if alloc_specs is None:
-        alloc_specs = alloc_defaults.alloc_specs
-
-    if libE_specs is None:
-        libE_specs = {}
-
-    if H0 is None:
-        H0 = np.empty(0)
 
     # Set default comms
     if "comms" not in libE_specs:

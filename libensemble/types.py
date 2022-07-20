@@ -10,24 +10,31 @@ from libensemble.tools.fields_keys import allowed_libE_spec_keys, libE_fields
 
 
 class SimSpecs(BaseModel):
-    function: Callable
-    inputs: List
-    outputs: Tuple[str, Any, Union[int, Tuple]]
+    sim_f: Callable
+    inputs: List[str]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
 
 
 class GenSpecs(BaseModel):
-    function: Callable
-    inputs: Optional[List]
-    outputs: Tuple[str, Any, Union[int, Tuple]]
+    gen_f: Callable
+    inputs: Optional[List[str]]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
 
 
 class AllocSpecs(BaseModel):
-    function: Callable
+    alloc_f: Callable
     user: Optional[Dict]
+
+
+class ExitCriteria(BaseModel):
+    sim_max: Optional[int]
+    gen_max: Optional[int]
+    wallclock_time: Optional[float]
+    stop_val: Optional[Tuple[str, float]]
 
 
 class ResourceInfo(BaseModel):
@@ -56,7 +63,7 @@ class LibeSpecs(BaseSettings):
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
     disable_resource_manager: Optional[bool] = False
     dedicated_mode: Optional[bool] = False
-    comms: str = "mpi"
+    comms: Union["mpi", "local", "tcp"] = "mpi"
     resource_info: Optional[ResourceInfo]
     disable_log_files: Optional[bool] = False
     final_fields: Optional[List[str]]
@@ -93,11 +100,12 @@ class LibeSpecs(BaseSettings):
 
 
 class Ensemble(BaseModel):
-    H0: np.ndarray
+    H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
-    persis_info: Dict
+    persis_info: Optional[Dict]
     sim_specs: SimSpecs
     gen_specs: GenSpecs
+    exit_criteria: ExitCriteria
 
     class Config:
         arbitrary_types_allowed = True
