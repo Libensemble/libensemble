@@ -511,6 +511,13 @@ class Executor:
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
+    def manager_kill_received(self):
+        """Return True if received kill signal from the manager"""
+        man_signal = self.manager_poll()
+        if man_signal in MAN_KILL_SIGNALS:
+            return True
+        return False
+
     def polling_loop(self, task, timeout=None, delay=0.1, poll_manager=False):
         """Optional, blocking, generic task status polling loop. Operates until the task
         finishes, times out, or is optionally killed via a manager signal. On completion, returns a
