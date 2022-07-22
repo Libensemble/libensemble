@@ -240,7 +240,7 @@ prepared for irregular sending /receiving of data.
 ..         # Poll task for finish and poll manager for kill signals
 ..         while(not task.finished):
 ..             exctr.manager_poll()
-..             if exctr.manager_signal == 'kill':
+..             if exctr.manager_signal == MAN_SIGNAL_KILL:
 ..                 task.kill()
 ..                 calc_status = MAN_SIGNAL_KILL
 ..                 break
@@ -256,7 +256,7 @@ prepared for irregular sending /receiving of data.
 .. While the launched task isn't finished, the simulator function periodically polls
 .. both the task's statuses and for signals from the manager via
 .. the :ref:`executor.manager_poll()<manager_poll_label>` function.
-.. Immediately after ``exctr.manager_signal`` is confirmed as ``'kill'``, the current
+.. Immediately after ``exctr.manager_signal`` is confirmed as ``MAN_SIGNAL_KILL``, the current
 .. task is killed and the function returns with the
 .. ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
 .. This status will be logged in ``libE_stats.txt``.

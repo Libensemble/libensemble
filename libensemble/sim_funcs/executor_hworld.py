@@ -25,7 +25,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
         time.sleep(delay)
 
         exctr.manager_poll()
-        if exctr.manager_signal == "finish":
+        if exctr.manager_signal == MAN_SIGNAL_FINISH:
             exctr.kill(task)
             calc_status = MAN_SIGNAL_FINISH  # Worker will pick this up and close down
             print("Task {} killed by manager on worker {}".format(task.id, exctr.workerID))

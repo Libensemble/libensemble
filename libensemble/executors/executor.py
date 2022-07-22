@@ -54,6 +54,11 @@ USER_KILLED
 FAILED
 """.split()
 
+MAN_KILL_SIGNALS = """
+MAN_SIGNAL_FINISH
+MAN_SIGNAL_KILL
+""".split()
+
 
 class ExecutorException(Exception):
     "Raised for any exception in the Executor"
@@ -386,7 +391,7 @@ class Executor:
         This is typically created in the user calling script.
         """
 
-        self.manager_signal = "none"
+        self.manager_signal = None
         self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
 
@@ -485,7 +490,7 @@ class Executor:
         The executor manager_signal attribute will be updated.
         """
 
-        self.manager_signal = "none"  # Reset
+        self.manager_signal = None  # Reset
 
         # Check for messages; disregard anything but a stop signal
         if not self.comm.mail_flag():
@@ -495,13 +500,14 @@ class Executor:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info("Worker received kill signal {} from manager".format(man_signal))
-        if man_signal == MAN_SIGNAL_FINISH:
-            self.manager_signal = "finish"
-        elif man_signal == MAN_SIGNAL_KILL:
-            self.manager_signal = "kill"
+        self.manager_signal = man_signal
+
+        if man_signal in MAN_KILL_SIGNALS:
+            # Only kill signals exist currently
+            logger.info("Worker received kill signal {} from manager".format(man_signal))
         else:
             logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
+
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
@@ -542,7 +548,7 @@ class Executor:
 
             if poll_manager:
                 man_signal = self.manager_poll()
-                if self.manager_signal != "none":
+                if self.manager_signal in MAN_KILL_SIGNALS:
                     task.kill()
                     calc_status = man_signal
                     break
