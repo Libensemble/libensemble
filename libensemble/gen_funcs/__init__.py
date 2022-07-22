@@ -17,3 +17,21 @@ def rc(**kargs):
 
 rc.aposmm_optimizers = None
 __import__("sys").modules[__name__ + ".rc"] = rc
+
+def gen_inputs(r):
+    def wrapper(f):
+        f.inputs = r
+        return f
+    return wrapper
+
+def gen_persis_inputs(r):
+    def wrapper(f):
+        f.persis_inputs = r
+        return f
+    return wrapper
+
+def gen_outputs(r):
+    def wrapper(f):
+        f.outputs = r
+        return f
+    return wrapper

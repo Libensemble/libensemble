@@ -49,25 +49,15 @@ if __name__ == "__main__":
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-    n = 2
     sim_specs = {
         "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
     }
 
-    gen_out = [
-        ("x", float, n),
-        ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
-    ]
+    n = 2
+    gen_f.outputs += [("x", float, n), ("x_on_cube", float, n)]
 
     gen_specs = {
         "gen_f": gen_f,
-        "persis_in": ["f"] + [n[0] for n in gen_out],
-        "out": gen_out,
         "user": {
             "initial_sample_size": 100,
             "sample_points": np.round(minima, 1),

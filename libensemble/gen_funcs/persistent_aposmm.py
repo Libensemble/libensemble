@@ -16,10 +16,12 @@ from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, Co
 
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+from libensemble.gen_funcs import gen_persis_inputs, gen_outputs
 
 import multiprocessing
 
-
+@gen_persis_inputs(["f", "x", "x_on_cube", "sim_id", "local_min", "local_pt"])
+@gen_outputs([("sim_id", int), ("local_min", bool), ("local_pt", bool)]) # Update in calling script to include "x" and "x_on_cube" dims
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points

@@ -32,8 +32,6 @@ if __name__ == "__main__":
     # if history/worker logic rewritten, inputs/outputs parsed from function instead of sim_specs
     sim_specs = {
         "sim_f": sim_f,
-        "in": sim_f.inputs,
-        "out": sim_f.outputs,
     }
 
     gen_specs = {

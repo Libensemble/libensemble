@@ -22,8 +22,10 @@ from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
+from libensemble.sim_funcs import sim_inputs, sim_outputs
 
-
+@sim_inputs(["x"])
+@sim_outputs([("f", float)])
 def six_hump_camel(H, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a collection of points given in ``H['x']``.
