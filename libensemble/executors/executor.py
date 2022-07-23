@@ -18,8 +18,6 @@ import time
 
 from libensemble.message_numbers import (
     UNSET_TAG,
-    MAN_SIGNAL_FINISH,
-    MAN_SIGNAL_KILL,
     WORKER_DONE,
     TASK_FAILED,
     WORKER_KILL_ON_TIMEOUT,
