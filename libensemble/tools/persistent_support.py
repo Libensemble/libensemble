@@ -1,5 +1,6 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, EVAL_SIM_TAG, calc_type_strings
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class PersistentSupport:
         ], "The calc_type: {} specifies neither a simulator nor generator.".format(self.calc_type)
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output, calc_status=UNSET_TAG):
+    def send(self, output, calc_status=UNSET_TAG, stay_active=False):
         """
         Send message from worker to manager.
 
@@ -40,6 +41,8 @@ class PersistentSupport:
             libE_info.pop("comm")
         else:
             libE_info = self.libE_info
+
+        libE_info["stay_active"] = stay_active
 
         D = {
             "calc_out": output,
@@ -90,7 +93,7 @@ class PersistentSupport:
         logger.debug("Persistent {} received work rows from manager".format(self.calc_str))
         return tag, Work, calc_in
 
-    def send_recv(self, output, calc_status=UNSET_TAG):
+    def send_recv(self, output, calc_status=UNSET_TAG, stay_active=False):
         """
         Send message from worker to manager and receive response.
 
@@ -100,5 +103,12 @@ class PersistentSupport:
         :returns: message tag, Work dictionary, calc_in array
 
         """
-        self.send(output, calc_status)
+        self.send(output, calc_status, stay_active)
         return self.recv()
+
+    def cancel_points(self, sim_ids):
+        H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
+        H_o["sim_id"] = sim_ids
+        H_o["cancel_requested"] = True
+        print(H_o)
+        self.send(H_o, stay_active=True)
