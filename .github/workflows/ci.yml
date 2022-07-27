@@ -201,7 +201,8 @@ jobs:
         - name: Run simple tests, Ubuntu, Python 3.11
           if: matrix.os == 'windows-latest'
           run: |
-            cl
+            gcc
+            call
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
