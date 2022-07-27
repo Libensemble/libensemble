@@ -12,6 +12,7 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTE
 from libensemble.tools.persistent_support import PersistentSupport
 
 import nlopt
+import dfols
 
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
@@ -25,7 +26,8 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
     if libE_info.get("persistent"):
-        x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
+        # x_opt, persis_info_updates, tag_out = try_and_run_nlopt(H, gen_specs, libE_info)
+        x_opt, persis_info_updates, tag_out = try_and_run_dfols(H, gen_specs, libE_info)
         H_o = []
         return H_o, persis_info_updates, tag_out
     else:
@@ -42,6 +44,59 @@ def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
         persis_info_updates = persis_info  # Send this back so it is overwritten.
         return H_o, persis_info_updates
 
+def try_and_run_dfols(H, gen_specs, libE_info):
+    """
+    Set up objective and runs nlopt performing communication with the manager in
+    order receive function values for points of interest.
+    """
+
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    def dfols_obj_fun(x):
+
+        # Check if we can do an early return
+        if np.array_equiv(x, H["x"]):
+            return H["fvec"][0]
+
+        # Send back x to the manager, then receive info or stop tag
+        H_o = add_to_Out(
+            np.zeros(1, dtype=gen_specs["out"]),
+            x,
+            0,
+            gen_specs["user"]["ub"],
+            gen_specs["user"]["lb"],
+            local=True,
+            active=True,
+        )
+        tag, Work, calc_in = ps.send_recv(H_o)
+        if tag in [STOP_TAG, PERSIS_STOP]:
+            return np.zeros(100)
+
+        # Return function value (and maybe gradient)
+        return calc_in["fvec"][0]
+
+    # ---------------------------------------------------------------------
+
+    x0 = H["x"].flatten()
+    lb = gen_specs["user"]["lb"]
+    ub = gen_specs["user"]["ub"]
+    n = len(ub)
+
+    soln = dfols.solve(dfols_obj_fun, x0, bounds=(lb, ub), rhobeg=0.01)
+
+
+    x_opt = soln.x
+
+    if soln.flag == soln.EXIT_SUCCESS:
+        opt_flag = 1
+    else:
+        print("[APOSMM] The DFO-LS run started from " + str(x0) + " stopped with an exit "
+              "flag of " + str(soln.flag) + ". No point from this run will be "
+              "ruled as a minimum! APOSMM may start a new run from some point "
+              "in this run.")
+        opt_flag = 0
+
+    return x_opt, {}, FINISHED_PERSISTENT_GEN_TAG
 
 def try_and_run_nlopt(H, gen_specs, libE_info):
     """
