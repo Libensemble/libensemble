@@ -78,6 +78,7 @@ jobs:
           if: matrix.os == 'windows-latest'
           run: |
             echo "PATH=$PATH:C:\msys64\mingw64\bin" >> $GITHUB_ENV
+            echo "PATH=$PATH:C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64" >> $GITHUB_ENV
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
@@ -204,11 +205,11 @@ jobs:
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Run simple tests, Ubuntu, Python 3.11
+        - name: Run simple tests, Windows
           if: matrix.os == 'windows-latest'
           run: |
-            gcc
-            call
+            cl /I"C:\Program Files (x86)\Microsoft SDKs\MPI\Include" /I"C:\Program Files (x86)\Microsoft SDKs\MPI\Include\x64" /I. /I"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include" /I"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include" /c libensemble/tests/unit_tests/simdir/my_simtask.c
+            link /machine:x64 /out:my_simtask.exe /dynamicbase "msmpi.lib" /libpath:"C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x64" /LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\amd64" /LIBPATH:"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib\x64" my_simtask.obj
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
