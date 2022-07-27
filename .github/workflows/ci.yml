@@ -78,7 +78,6 @@ jobs:
           if: matrix.os == 'windows-latest'
           run: |
             echo "PATH=$PATH:C:\msys64\mingw64\bin" >> $GITHUB_ENV
-            clang
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
