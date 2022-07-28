@@ -224,6 +224,8 @@ See the :ref:`Logger Configuration<logger_config>` docs for more information.
 macOS and Windows Errors
 ------------------------
 
+.. _faqwindows:
+
 **How can I run libEnsemble with MPI on Windows?**
 
 In our experience this may be quite difficult, if not impossible, since most MPI distributions have
