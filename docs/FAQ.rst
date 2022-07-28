@@ -224,6 +224,20 @@ See the :ref:`Logger Configuration<logger_config>` docs for more information.
 macOS and Windows Errors
 ------------------------
 
+**How can I run libEnsemble with MPI on Windows?**
+
+In our experience this may be quite difficult, if not impossible, since most MPI distributions have
+either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (msmpi). Plus
+Windows tends to experience platform-specific issues that are difficult to reproduce and troubleshoot
+for us.
+
+If you want to try anyways, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
+and other such systems. The `Installing PETSc On Microsoft Windows`_ docs contains lots of valuable information.
+
+Otherwise, most local-comms libEnsemble examples appear to run just fine.
+
+.. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
+
 **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
 " if __name__ == '__main__': freeze_support() ...**
 
