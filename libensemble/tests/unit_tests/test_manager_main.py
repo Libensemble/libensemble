@@ -1,4 +1,5 @@
 import time
+import pytest
 import platform
 import numpy as np
 import numpy.lib.recfunctions
