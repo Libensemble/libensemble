@@ -19,7 +19,7 @@ def test_form_command():
 
     assert args == aref, "Command templating test failed."
 
-
+@pytest.mark.extra
 def xtest_submit():
     "Test simple launch."
 

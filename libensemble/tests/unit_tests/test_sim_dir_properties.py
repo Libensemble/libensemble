@@ -88,7 +88,7 @@ def test_worker_dirs_but_no_sim_dirs():
     for dir in [inputdir, ensemble_dir]:
         shutil.rmtree(dir)
 
-
+@pytest.mark.extra
 def test_loc_stack_FileExists_exceptions():
     inputdir = "./calc"
     copyfile = "./calc/copy"

@@ -45,7 +45,7 @@ jobs:
                     - os: windows-latest
                       python-version: '3.10'
                       comms-type: l
-                      mpi-version: 'msmpi'
+                      mpi-version: 'none'
                       do-balsam: false
         env:
             HYDRA_LAUNCHER: 'fork'
@@ -108,12 +108,12 @@ jobs:
             mpi: ${{ matrix.mpi-version }}
 
         - name: Install mpi4py from conda
-          if: matrix.python-version != '3.10'
+          if: matrix.python-version != '3.10' && matrix.os != 'windows-latest'
           run: |
             conda install mpi4py
 
         - name: Install mpi4py from pip
-          if: matrix.python-version == '3.10'
+          if: matrix.python-version == '3.10' && matrix.os != 'windows-latest'
           run: |
             pip install mpi4py
 
@@ -132,6 +132,13 @@ jobs:
 
             pip install mpmath
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
+
+        - name: Install some generator dependencies on Windows
+          if: matrix.os == 'windows-latest'
+          run: |
+            python -m pip install --upgrade pip
+            conda install nlopt
+            conda install scipy
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
@@ -191,7 +198,6 @@ jobs:
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
-            python install/find_mpi.py
             pip install -e .
             flake8 libensemble
 
@@ -208,9 +214,7 @@ jobs:
         - name: Run simple tests, Windows
           if: matrix.os == 'windows-latest'
           run: |
-            cl /I"C:\Program Files (x86)\Microsoft SDKs\MPI\Include" /I"C:\Program Files (x86)\Microsoft SDKs\MPI\Include\x64" /I. /I"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include" /I"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include" /c libensemble/tests/unit_tests/simdir/my_simtask.c
-            link /machine:x64 /out:my_simtask.exe /dynamicbase "msmpi.lib" /libpath:"C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x64" /LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\lib\amd64" /LIBPATH:"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib\x64" my_simtask.obj
-            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'

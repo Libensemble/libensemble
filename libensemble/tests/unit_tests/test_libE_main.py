@@ -252,7 +252,7 @@ def test_checking_inputs_single():
     libE_specs["sim_dir_copy_files"] = ["./__init__.py"]
     check_inputs(libE_specs=libE_specs)
 
-
+@pytest.mark.extra
 def test_logging_disabling():
     remove_file_if_exists("ensemble.log")
     remove_file_if_exists("libE_stats.txt")
