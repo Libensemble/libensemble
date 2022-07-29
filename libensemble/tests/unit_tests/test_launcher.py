@@ -5,6 +5,7 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
+import pytest
 import libensemble.utils.launcher as launcher
 
 
@@ -18,6 +19,7 @@ def test_form_command():
     aref = ["mpirun", "-n", "10", "-nper", "5", "more", "arguments", '"ho hum"']
 
     assert args == aref, "Command templating test failed."
+
 
 @pytest.mark.extra
 def xtest_submit():
