@@ -228,7 +228,7 @@ macOS and Windows Errors
 
 **How can I run libEnsemble with MPI on Windows?**
 
-In our experience this may be quite difficult, if not impossible, since most MPI distributions have
+In our experience this may be challenging, if not impossible, since most MPI distributions have
 either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (msmpi). Plus
 Windows tends to experience platform-specific issues that are difficult to reproduce and troubleshoot
 for us.
