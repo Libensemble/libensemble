@@ -104,6 +104,7 @@ jobs:
 
         - name: Setup MPI (${{ matrix.mpi-version }})
           uses: mpi4py/setup-mpi@v1
+          if: matrix.os != 'windows-latest'
           with:
             mpi: ${{ matrix.mpi-version }}
 
