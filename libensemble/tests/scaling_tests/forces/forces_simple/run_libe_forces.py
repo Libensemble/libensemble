@@ -9,47 +9,49 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors import MPIExecutor
 
-# Parse number of workers, comms type, etc. from arguments
-nworkers, is_manager, libE_specs, _ = parse_args()
+if __name__ == "__main__":
 
-# Initialize MPI Executor instance
-exctr = MPIExecutor()
+    # Parse number of workers, comms type, etc. from arguments
+    nworkers, is_manager, libE_specs, _ = parse_args()
 
-# Register simulation executable with executor
-sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+    # Initialize MPI Executor instance
+    exctr = MPIExecutor()
 
-if not os.path.isfile(sim_app):
-    sys.exit("forces.x not found - please build first in ../forces_app dir")
+    # Register simulation executable with executor
+    sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
-exctr.register_app(full_path=sim_app, app_name="forces")
+    if not os.path.isfile(sim_app):
+        sys.exit("forces.x not found - please build first in ../forces_app dir")
 
-# State the sim_f, inputs, outputs
-sim_specs = {
-    "sim_f": run_forces,  # sim_f, imported above
-    "in": ["x"],  # Name of input for sim_f
-    "out": [("energy", float)],  # Name, type of output from sim_f
-}
+    exctr.register_app(full_path=sim_app, app_name="forces")
 
-# State the gen_f, inputs, outputs, additional parameters
-gen_specs = {
-    "gen_f": uniform_random_sample,  # Generator function
-    "in": [],  # Generator input
-    "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
-    "user": {
-        "lb": np.array([1000]),  # User parameters for the gen_f
-        "ub": np.array([3000]),
-        "gen_batch_size": 8,
-    },
-}
+    # State the sim_f, inputs, outputs
+    sim_specs = {
+        "sim_f": run_forces,  # sim_f, imported above
+        "in": ["x"],  # Name of input for sim_f
+        "out": [("energy", float)],  # Name, type of output from sim_f
+    }
 
-# Create and work inside separate per-simulation directories
-libE_specs["sim_dirs_make"] = True
+    # State the gen_f, inputs, outputs, additional parameters
+    gen_specs = {
+        "gen_f": uniform_random_sample,  # Generator function
+        "in": [],  # Generator input
+        "out": [("x", float, (1,))],  # Name, type and size of data from gen_f
+        "user": {
+            "lb": np.array([1000]),  # User parameters for the gen_f
+            "ub": np.array([3000]),
+            "gen_batch_size": 8,
+        },
+    }
 
-# Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": 8}
+    # Create and work inside separate per-simulation directories
+    libE_specs["sim_dirs_make"] = True
 
-# Seed random streams for each worker, particularly for gen_f
-persis_info = add_unique_random_streams({}, nworkers + 1)
+    # Instruct libEnsemble to exit after this many simulations
+    exit_criteria = {"sim_max": 8}
 
-# Launch libEnsemble
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+    # Seed random streams for each worker, particularly for gen_f
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+
+    # Launch libEnsemble
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)

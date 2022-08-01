@@ -71,7 +71,7 @@ and cores, and can dynamically assign resources to workers.
 Dependencies
 ~~~~~~~~~~~~
 
-Required dependencies:
+**Required dependencies**:
 
 * Python_ 3.7 or above
 * NumPy_
@@ -83,7 +83,7 @@ When using  ``mpi4py`` for libEnsemble communications:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependencies:
+**Optional dependencies**:
 
 * Balsam_
 
@@ -102,6 +102,12 @@ As of v0.9.0, libEnsemble features a cross-system capability powered by funcX_,
 a function-as-a-service platform to which workers can submit remote generator or
 simulator function instances. This feature can help distribute an ensemble
 across systems and heterogeneous resources.
+
+* `psi-j-python`_
+
+As of v0.9.2+dev, libEnsemble features a set of command-line utilities for submitting
+libEnsemble jobs to almost any system or scheduler via a `PSI/J`_ Python interface. tqdm_
+is also required.
 
 The example simulation and generation functions and tests require the following:
 
@@ -330,6 +336,8 @@ See a complete list of `example user scripts`_.
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
+.. _PSI/J: https://exaworks.org/psij
+.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
@@ -348,6 +356,7 @@ See a complete list of `example user scripts`_.
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
+.. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

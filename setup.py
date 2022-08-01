@@ -99,6 +99,10 @@ setup(
             "sphinx_rtd_theme",
         ],
     },
+
+    scripts=['scripts/liberegister',
+             'scripts/libesubmit'],
+
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
