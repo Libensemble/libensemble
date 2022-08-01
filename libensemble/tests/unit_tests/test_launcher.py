@@ -69,6 +69,7 @@ def test_launch32():
     launcher.wait = saved_wait
 
 
+@pytest.mark.extra
 def test_launch33():
     "If we are in Python > 3.2, also check the new-style wait func"
     if launcher.wait == launcher.wait_py33:
