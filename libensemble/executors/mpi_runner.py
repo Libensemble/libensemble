@@ -211,7 +211,7 @@ class MSMPI_MPIRunner(MPIRunner):
         self.mpi_command = [
             self.run_command,
             "-env {env}",
-            "-hosts {hostlist}",
+            "-hosts {num_procs} {hostlist}",  # msmpi wants nprocs before hostnames
             "-n {num_procs}",
             "-cores {procs_per_node}",
             "{extra_args}",
