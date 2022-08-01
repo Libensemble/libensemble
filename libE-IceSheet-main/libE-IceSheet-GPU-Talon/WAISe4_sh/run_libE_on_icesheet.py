@@ -24,14 +24,8 @@ libE_specs["num_resource_sets"] = nworkers - 1
 exctr = MPIExecutor()
 
 # Register simulation executable with executor
-# sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 # sim_app = os.path.join(os.getcwd(), "/global/homes/s/shuds/perlmutter_files/icesheet/libE-IceSheet-GPU-Talon/ssa_fem_pt.x")  #perlmutter
 sim_app = os.path.join(os.getcwd(), "/lcrc/project/libE_gpu/IceSheet_models/WAISe4/test/a.out")  #swing
-
-# if not os.path.isfile(sim_app):
-#     sys.exit("a.out not found - please build first in /home/kuanghsu.wang/libE-IceSheet-main/GPU-code/JKS8e4/ dir")
-# #    sys.exit("forces.x not found - please build first in ../forces_app dir")
-
 exctr.register_app(full_path=sim_app, app_name="icesheet")
 
 # State the sim_f, inputs, outputs

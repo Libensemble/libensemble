@@ -11,8 +11,9 @@ from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 def read_stat_file(statfile, max_size):
     """Read the stat file"""
 
-    dVxdt = np.zeros(max_size)
-    dVydt = np.zeros(max_size)
+    if max_size:
+        dVxdt = np.zeros(max_size)
+        dVydt = np.zeros(max_size)
 
     i=0
     with open(statfile) as data:
@@ -25,7 +26,10 @@ def read_stat_file(statfile, max_size):
                 dVydt[i] = float(line.split(';')[1].split('=')[1].split()[0])
                 i+=1
 
-    fvec = np.concatenate([dVxdt,dVydt])
+    if max_size:
+        fvec = np.concatenate([dVxdt,dVydt])
+    else:
+        fvec = 0
 
     return fvec, iterations, error
 
@@ -64,15 +68,23 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
 
     # Stat file to check for bad runs
     statfile = "icesheet.stat"  #change to filename we name it in C
-    max_size = sim_specs["user"]["max_size"]
+
+    # If max_size not set, then assume random sample
+    max_size = sim_specs["user"].get("max_size",0)
+
     fvec, iterations, error = read_stat_file(statfile, max_size)
 
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
     output["iterations"][0] = iterations
-    output["fvec"] = fvec
-    output["f"][0] = np.sum(output["fvec"][0]**2)
+
+    if max_size:
+        output["fvec"] = fvec
+        output["f"][0] = np.sum(output["fvec"][0]**2)
+    else:
+        output["error"][0] = error
+
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status
