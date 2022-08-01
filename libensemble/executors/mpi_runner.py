@@ -199,6 +199,7 @@ class APRUN_MPIRunner(MPIRunner):
             "{extra_args}",
         ]
 
+
 class MSMPI_MPIRunner(MPIRunner):
     def __init__(self, run_command="mpiexec"):
         self.run_command = run_command
@@ -215,6 +216,7 @@ class MSMPI_MPIRunner(MPIRunner):
             "-cores {procs_per_node}",
             "{extra_args}",
         ]
+
 
 class SRUN_MPIRunner(MPIRunner):
     def __init__(self, run_command="srun"):
