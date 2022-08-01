@@ -21,7 +21,6 @@ def test_form_command():
     assert args == aref, "Command templating test failed."
 
 
-@pytest.mark.extra
 def xtest_submit():
     "Test simple launch."
 
@@ -60,7 +59,7 @@ def xtest_submit():
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0)
 
-
+@pytest.mark.extra
 def test_launch32():
     "If we are in Python > 3.2, still check that 3.2 wait func works"
     saved_wait = launcher.wait
