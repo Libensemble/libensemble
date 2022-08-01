@@ -490,6 +490,7 @@ if [ "$root_found" = true ]; then
           NPROCS_LIST=$(sed -n '/# TESTSUITE_NPROCS/s/# TESTSUITE_NPROCS: //p' $TEST_SCRIPT)
           OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
           OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
+          echo $OS_SKIP_LIST
           if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
           for NPROCS in ${NPROCS_LIST}
           do
@@ -500,8 +501,17 @@ if [ "$root_found" = true ]; then
             if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
-            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then
               echo "Skipping test number for OSX: " $test_num
+              continue
+            fi
+
+            if [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
+              echo "Skipping test number for Windows: " $test_num
+            fi
+
+            if [[ "$OSTYPE" = *"windows"* ]] && [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
+              echo "Skipping test number for Windows: " $test_num
               continue
             fi
 

@@ -26,9 +26,10 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_NPROCS: 2 3 4
 # TESTSUITE_OMPI_SKIP: true
+# TESTSUITE_EXTRA: true
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
