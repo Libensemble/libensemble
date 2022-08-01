@@ -57,7 +57,7 @@ gen_specs = {
     "persis_in": ["x", "f", "sim_id", "fvec"],
     "out": gen_out,
     "user": {
-        "lb": np.array([0.65, 0.6, 0.075]),  # User parameters for the gen_f  #Anjalis
+        "lb": np.array([0.65, 0.6, 0.070]),  # User parameters for the gen_f  #Anjalis
         "ub": np.array([0.81, 0.85, 0.09]),
         #"lb": np.array([0.1, 0.01, 0.01]),  # User parameters for the gen_f  # jeffs
         #"ub": np.array([1, 1, 0.1]),
