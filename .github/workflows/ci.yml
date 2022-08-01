@@ -214,7 +214,7 @@ jobs:
         - name: Run simple tests, Windows
           if: matrix.os == 'windows-latest'
           run: |
-           mpiexec -h
+           mpiexec /help
            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
