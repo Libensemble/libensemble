@@ -21,6 +21,8 @@ def read_stat_file(statfile, max_size):
             if line.startswith("iter"):
                 iterations = line.split(',')[0].split('=')[1]
                 error = line.split(',')[1].split('=')[1]
+                if max_size == 0:
+                    break
             if "dVxdt" in line:
                 dVxdt[i] = float(line.split(';')[0].split('=')[1].split()[0])
                 dVydt[i] = float(line.split(';')[1].split('=')[1].split()[0])
