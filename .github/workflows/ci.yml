@@ -146,6 +146,7 @@ jobs:
             python -m pip install --upgrade pip
             conda install nlopt
             conda install scipy
+            pip install mpmath
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
