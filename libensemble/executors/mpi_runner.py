@@ -205,13 +205,13 @@ class MSMPI_MPIRunner(MPIRunner):
         self.run_command = run_command
         self.subgroup_launch = False
         self.mfile_support = False
-        self.arg_nprocs = ("-n")
+        self.arg_nprocs = ("-n", "-np")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-cores",)
         self.mpi_command = [
             self.run_command,
             "-env {env}",
-            "-hosts {num_procs} {hostlist}",  # msmpi wants nprocs before hostnames
+            "-n {num_procs}",
             "-cores {procs_per_node}",
             "{extra_args}",
         ]
