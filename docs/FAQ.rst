@@ -226,19 +226,24 @@ macOS and Windows Errors
 
 .. _faqwindows:
 
-**How can I run libEnsemble with MPI on Windows?**
+**Windows - How can I run libEnsemble with MPI comms?**
 
-In our experience this may be challenging, if not impossible, since most MPI distributions have
-either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (msmpi). Plus
+In our experience this may be challenging, since most MPI distributions have
+either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (`msmpi``). Plus
 Windows tends to experience platform-specific issues that are difficult to reproduce and troubleshoot
 for us.
 
 If you want to try anyways, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
-and other such systems. The `Installing PETSc On Microsoft Windows`_ docs contains lots of valuable information.
+and other such systems. The `Installing PETSc On Microsoft Windows`_ docs contain lots of valuable information.
 
-Otherwise, most local-comms libEnsemble examples appear to run just fine.
+Otherwise, install `msmpi` and `mpi4py` from conda and experiment, or use local comms.
 
 .. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
+
+**Windows - 'A required privilege is not held by the client'**
+
+Assuming you were trying to use the `sim_dir_symlink_files` or `gen_dir_symlink_files` options, this indicates that to
+allow libEnsemble to create symlinks, you need to run your current `cmd` shell as administrator.
 
 **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
 " if __name__ == '__main__': freeze_support() ...**
@@ -262,13 +267,13 @@ the following, placed near the top of your calling script::
 
 .. _`Python multiprocessing docs`: https://docs.python.org/3/library/multiprocessing.html
 
-**"Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
+**"macOS - Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
 
 Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
 Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this
 error.
 
-**How do I stop the Firewall Security popups when running with the Executor?**
+**macOS - How do I stop the Firewall Security popups when running with the Executor?**
 
 There are several ways to address this nuisance, but all involve trial and error.
 An easy (but insecure) solution is temporarily disabling the firewall through
