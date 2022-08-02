@@ -16,7 +16,6 @@ persistent generator.
 # TESTSUITE_NPROCS: 3
 
 import sys
-import multiprocessing
 import numpy as np
 
 # Import libEnsemble items for this test
