@@ -104,17 +104,24 @@ jobs:
 
         - name: Setup MPI (${{ matrix.mpi-version }})
           uses: mpi4py/setup-mpi@v1
+          if: matrix.os == 'windows-latest'
           with:
             mpi: ${{ matrix.mpi-version }}
 
-        - name: Install mpi4py from conda
-          if: matrix.python-version != '3.10'
+        - name: Install mpi4py on Windows
+          if: matrix.os == 'windows-latest'
+          run: pip install mpi4py
+
+        - name: Install mpi4py and MPI from conda
+          if: matrix.python-version != '3.10' && matrix.os != 'windows-latest'
           run: |
+            conda install ${{ matrix.mpi-version }}
             conda install mpi4py
 
-        - name: Install mpi4py from pip
-          if: matrix.python-version == '3.10'
+        - name: Install mpi4py from pip, MPI from conda
+          if: matrix.python-version == '3.10' && matrix.os != 'windows-latest'
           run: |
+            conda install ${{ matrix.mpi-version }}
             pip install mpi4py
 
         - name: Install generator dependencies
