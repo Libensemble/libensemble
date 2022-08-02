@@ -13,9 +13,11 @@ from libensemble.executors import MPIExecutor
 nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Initialize MPI Executor instance
+# exctr = MPIExecutor(custom_info={"mpi_runner": "srun"})  # perlmutter
 exctr = MPIExecutor()
 
 # Register simulation executable with executor
+# sim_app = os.path.join(os.getcwd(), "/global/homes/s/shuds/perlmutter_files/icesheet/libE-IceSheet-GPU-Talon/ssa_fem_pt.x")  # perlmutter
 sim_app = os.path.join(os.getcwd(), "/lcrc/project/libE_gpu/IceSheet_models/WAISe4/test/a.out")  #swing
 exctr.register_app(full_path=sim_app, app_name="icesheet")
 
@@ -24,6 +26,7 @@ sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
     "out": [("iterations", int), ("error", float)],   # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "user": {},  # Field expected by sim_f
 }
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
