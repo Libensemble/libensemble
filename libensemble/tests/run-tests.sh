@@ -505,7 +505,7 @@ if [ "$root_found" = true ]; then
               continue
             fi
 
-            if [[ "$OSTYPE" = *"windows"* ]] && [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
+            if [[ "$OSTYPE" = *"msys"* ]] && [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
               echo "Skipping test number for Windows: " $test_num
               continue
             fi
