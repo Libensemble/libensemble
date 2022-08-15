@@ -228,15 +228,14 @@ macOS and Windows Errors
 
 **Windows - How can I run libEnsemble with MPI comms?**
 
-In our experience this may be challenging, since most MPI distributions have
-either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (`msmpi``). Plus
-Windows tends to experience platform-specific issues that are difficult to reproduce and troubleshoot
-for us.
+In our experience this may be challenging, because most MPI distributions have
+either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (`msmpi``).
+Windows also tends to produce more platform-specific issues that are difficult to reproduce and troubleshoot.
 
-If you want to try anyways, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
-and other such systems. The `Installing PETSc On Microsoft Windows`_ docs contain lots of valuable information.
+If users wish to try, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
+and other such systems. The `Installing PETSc On Microsoft Windows`_ documentation contains valuable information.
 
-Otherwise, install `msmpi` and `mpi4py` from conda and experiment, or use local comms.
+Otherwise, install `msmpi` and `mpi4py` from conda and experiment, or use ``local`` comms.
 
 .. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
 
@@ -251,15 +250,15 @@ allow libEnsemble to create symlinks, you need to run your current `cmd` shell a
 You need to place your main calling script code underneath an ``if __name__ == "__main__":`` block.
 
 Explanation: Python chooses one of three methods to start new processes when using multiprocessing
-(``--comms local`` with libEnsemble). These are ``'fork'``, ``'spawn'``, and ``'forkserver'``. ``'fork'`` 
-is the default on Unix, and in our experience is quicker and more reliable, but ``'spawn'`` is the default 
+(``--comms local`` with libEnsemble). These are ``'fork'``, ``'spawn'``, and ``'forkserver'``. ``'fork'``
+is the default on Unix, and in our experience is quicker and more reliable, but ``'spawn'`` is the default
 on Windows and macOS (See the `Python multiprocessing docs`_).
 
-Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatically switch the multiprocessing 
+Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatically switch the multiprocessing
 method to ``'fork'``. We decided to stop doing this to avoid overriding defaults and compatibility issues with
 some libraries.
 
-If you'd prefer to use ``'fork'`` or not reformat your code, you can set the multiprocessing start method via 
+If you'd prefer to use ``'fork'`` or not reformat your code, you can set the multiprocessing start method via
 the following, placed near the top of your calling script::
 
   import multiprocessing
