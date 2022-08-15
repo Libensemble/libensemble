@@ -91,7 +91,7 @@ def test_funcx_runner_fail():
     gen_specs["funcx_endpoint"] = "4321"
     runners = Runners(sim_specs, gen_specs)
 
-    #  Creating Mock funcXExecutor and funcX future object - no exception
+    #  Creating Mock funcXExecutor and funcX future object - yes exception
     funcx_mock = mock.Mock()
     funcx_future = mock.Mock()
     funcx_mock.submit.return_value = funcx_future
