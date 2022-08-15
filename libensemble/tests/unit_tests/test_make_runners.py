@@ -6,13 +6,45 @@ import mock
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
-from libensemble.utils import runners
+from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+from libensemble.utils.runners import Runners
+
+
+def get_ufunc_args():
+    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+
+    L = exit_criteria["sim_max"]
+    H = np.zeros(L, dtype=list(set(libE_fields + sim_specs["out"] + gen_specs["out"])))
+
+    H["sim_id"][-L:] = -1
+    H["sim_started_time"][-L:] = np.inf
+
+    sim_ids = np.zeros(1, dtype=int)
+    Work = {"tag": EVAL_SIM_TAG, "persis_info": {}, "libE_info": {"H_rows": sim_ids}, "H_fields": sim_specs["in"]}
+    calc_in = H[Work["H_fields"]][Work["libE_info"]["H_rows"]]
+    return calc_in, sim_specs, gen_specs
 
 
 def test_normal_runners():
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
+    calc_in, sim_specs, gen_specs = get_ufunc_args()
+
+    runners = Runners(sim_specs, gen_specs)
+    assert not runners.has_funcx_sim and not runners.has_funcx_gen, \
+        "funcX use should not be detected without setting endpoint fields"
+
+    ro = runners.make_runners()
+    assert all([i in ro for i in [EVAL_SIM_TAG, EVAL_GEN_TAG]]), \
+        "Both user function tags should be included in runners dictionary"
 
 
+def test_normal_no_gen():
+    calc_in, sim_specs, gen_specs = get_ufunc_args()
+
+    runners = Runners(sim_specs, {})
+    ro = runners.make_runners()
+
+    assert not ro[2], \
+        "generator function shouldn't be provided if not using gen_specs"
 
 
 def test_manager_exception():
@@ -46,35 +78,8 @@ def test_manager_exception():
             assert not os.path.isfile(pfile_abort), "Pickle file dumped"
 
 
-# Note - this could be combined now with above tests as fake_MPI prevents need for use of mock module
-# Only way that is better is that this will simply hit first code exception - (when fake_MPI tries to isend)
-# While first test triggers on call to manager
-def test_exception_raising_manager_with_abort():
-    """Running until fake_MPI tries to send msg to test (mocked) comm.Abort is called
-
-    Manager should raise MPISendException when fakeMPI tries to send message, which
-    will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
-    with pytest.raises(MPIAbortException):
-        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-        libE_specs = {"mpi_comm": fake_mpi, "disable_resource_manager": True}
-        libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
-        pytest.fail("Expected MPIAbortException exception")
-
-
-def test_exception_raising_manager_no_abort():
-    """Running until fake_MPI tries to send msg to test (mocked) comm.Abort is called
-
-    Manager should raise MPISendException when fakeMPI tries to send message, which
-    will be caught by libE and raise MPIAbortException from fakeMPI.Abort"""
-    libE_specs = {"abort_on_exception": False, "mpi_comm": fake_mpi, "disable_resource_manager": True}
-    with pytest.raises(LoggedException):
-        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-        libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
-        pytest.fail("Expected MPISendException exception")
-
 
 
 if __name__ == "__main__":
-    test_manager_exception()
-    test_exception_raising_manager_with_abort()
-    test_exception_raising_manager_no_abort()
+    test_normal_runners()
+    test_no_gen()
