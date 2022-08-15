@@ -6,7 +6,7 @@ import libensemble.gen_funcs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
-if platform.system() in ['Linux', 'Darwin']:
+if platform.system() in ["Linux", "Darwin"]:
     multiprocessing.set_start_method("fork", force=True)
     from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
 

@@ -206,6 +206,7 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 
 # Tests ========================================================================================
 
+
 @pytest.mark.extra
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""

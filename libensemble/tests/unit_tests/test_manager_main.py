@@ -9,6 +9,7 @@ import libensemble.tests.unit_tests.setup as setup
 
 if platform.system() != "Windows":
     from mpi4py import MPI
+
     libE_specs = {"mpi_comm": MPI.COMM_WORLD}
 
 
