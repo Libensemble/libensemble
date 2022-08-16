@@ -28,6 +28,7 @@ def get_ufunc_args():
     return calc_in, sim_specs, gen_specs
 
 
+@pytest.mark.extra
 def test_normal_runners():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
@@ -42,6 +43,7 @@ def test_normal_runners():
     ), "Both user function tags should be included in runners dictionary"
 
 
+@pytest.mark.extra
 def test_normal_no_gen():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
@@ -51,6 +53,7 @@ def test_normal_no_gen():
     assert not ro[2], "generator function shouldn't be provided if not using gen_specs"
 
 
+@pytest.mark.extra
 def test_funcx_runner_init():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
@@ -61,6 +64,7 @@ def test_funcx_runner_init():
     ), "FuncXExecutor should have been instantiated when funcx_endpoint found in specs"
 
 
+@pytest.mark.extra
 def test_funcx_runner_pass():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
@@ -83,6 +87,7 @@ def test_funcx_runner_pass():
     assert all([out, persis_info]), "funcX runner correctly returned results"
 
 
+@pytest.mark.extra
 def test_funcx_runner_fail():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
