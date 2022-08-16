@@ -12,7 +12,7 @@ authenticated through Globus_.
 
 In order to initiate a Balsam executor, the calling script should contain ::
 
-    from libensemble.executors import BalsamExecutor
+    from libensemble.executors.balsam_executors import BalsamExecutor
     exctr = BalsamExecutor()
 
 Key differences to consider between this executor and libEnsemble's others is
@@ -21,7 +21,7 @@ submissions will not run until Balsam reserves compute resources at a site.
 
 This process may resemble::
 
-    from libensemble.executors import BalsamExecutor
+    from libensemble.executors.balsam_executors import BalsamExecutor
     from balsam.api import ApplicationDefinition
 
     class HelloApp(ApplicationDefinition):
@@ -284,7 +284,7 @@ class BalsamExecutor(Executor):
         """Sync application with Balsam service"""
         pass
 
-    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None, precedent=None):
+    def register_app(self, BalsamApp, app_name=None, calc_type=None, desc=None, precedent=None):
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
