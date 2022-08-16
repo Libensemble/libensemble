@@ -138,7 +138,6 @@ jobs:
             # end heffte build and dependencies
 
             # pip install dragonfly-opt
-            pip uninstall setuptools; pip install setuptools==64.0.1
             pip install git+https://github.com/dragonfly/dragonfly.git
 
             pip install torch
