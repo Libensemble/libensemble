@@ -29,6 +29,7 @@ from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_ge
 
 import warnings
 
+
 def run_simulation(H, persis_info, sim_specs, libE_info):
     # Extract input parameters
     values = list(H["x"][0])
@@ -48,6 +49,7 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
     libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
 
     return libE_output, persis_info, calc_status
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
