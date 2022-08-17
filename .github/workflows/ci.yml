@@ -138,9 +138,7 @@ jobs:
             # end heffte build and dependencies
 
             # pip install dragonfly-opt
-            git clone https://github.com/dragonfly/dragonfly.git
-            echo "setuptools<65" >> dragonfly/requirements.txt
-            cd dragonfly; pip install -e . --no-build-isolation; cd -
+            pip install git+https://github.com/dragonfly/dragonfly.git
 
             pip install torch
             pip install gpytorch
