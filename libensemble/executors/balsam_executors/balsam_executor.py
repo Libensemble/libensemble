@@ -523,10 +523,6 @@ class BalsamExecutor(Executor):
 
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(
-                num_procs or num_nodes or procs_per_node,
-                "No procs/nodes provided - aborting",
-            )
 
         task = BalsamTask(app, app_args, workdir, None, None, self.workerID)
 

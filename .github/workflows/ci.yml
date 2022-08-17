@@ -150,6 +150,7 @@ jobs:
             pip install psutil
             pip install pyyaml
             pip install funcx
+            pip install balsam
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
