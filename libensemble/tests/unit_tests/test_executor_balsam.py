@@ -99,6 +99,7 @@ def test_submit_app_dry():
         "new task from dry_run wasn't marked as such, or set as done"
 
 def test_submit_app_wait():
+    """Test of exctr.submit blocking until app is running"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
@@ -109,7 +110,7 @@ def test_submit_app_wait():
         "new task is not marked as running after wait_on_start"
 
 def test_submit_revoke_alloc():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    """Test creating and revoking BatchJob objects through the executor"""
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.BatchJob") as batchjob:
         alloc = exctr.submit_allocation(site_id="libe-unit-test", num_nodes=1, wall_time_min=30)
@@ -120,17 +121,25 @@ def test_submit_revoke_alloc():
         alloc.scheduler_id = 1
         exctr.revoke_allocation(alloc)
 
-def test_task_timing():
-    pass
-
-def test_task_poll():
-    pass
-
 def test_task_wait():
-    pass
+    """Test of killing (cancelling) a balsam app"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    exctr = Executor.executor
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+        task = exctr.submit(calc_type="sim")
+
+    task.wait()
 
 def test_task_kill():
-    pass
+    """Test of killing (cancelling) a balsam app"""
+    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    exctr = Executor.executor
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+        task = exctr.submit(calc_type="sim")
+
+    task.kill()
+    assert task.finished and task.state == "USER_KILLED", \
+        "task not set as killed after kill method"
 
 if __name__ == "__main__":
     setup_module(__file__)
@@ -140,7 +149,5 @@ if __name__ == "__main__":
     test_submit_app_dry()
     test_submit_app_wait()
     test_submit_revoke_alloc()
-    test_task_timing()
-    test_task_poll()
     test_task_wait()
     test_task_kill()
