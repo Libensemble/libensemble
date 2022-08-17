@@ -170,8 +170,6 @@ jobs:
             # pip install dragonfly-opt
             pip install git+https://github.com/dragonfly/dragonfly.git
 
-            pip install torch
-            pip install gpytorch
             pip install ax-platform
 
         - name: Install other testing dependencies
