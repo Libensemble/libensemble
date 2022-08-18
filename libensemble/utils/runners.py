@@ -6,64 +6,85 @@ from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 logger = logging.getLogger(__name__)
 
 
-def _funcx_result(funcx_exctr, user_f, calc_in, persis_info, specs, libE_info):
-    from libensemble.worker import Worker
+class Runners:
+    """Determines and returns methods for workers to run user functions.
 
-    libE_info["comm"] = None  # 'comm' object not pickle-able
-    Worker._set_executor(0, None)  # ditto for executor
+    Currently supported: direct-call and funcX
+    """
 
-    future = funcx_exctr.submit(user_f, calc_in, persis_info, specs, libE_info, endpoint_id=specs["funcx_endpoint"])
-    remote_exc = future.exception()  # blocks until exception or None
-    if remote_exc is None:
-        return future.result()
-    else:
-        raise remote_exc
+    def __init__(self, sim_specs, gen_specs):
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
+        self.sim_f = sim_specs["sim_f"]
+        self.gen_f = gen_specs.get("gen_f")
+        self.has_funcx_sim = len(sim_specs.get("funcx_endpoint", "")) > 0
+        self.has_funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
+        self.funcx_exctr = None
 
+        if any([self.has_funcx_sim, self.has_funcx_gen]):
+            try:
+                from funcx import FuncXClient
+                from funcx.sdk.executor import FuncXExecutor
 
-def _get_funcx_exctr(sim_specs, gen_specs):
-    funcx_sim = len(sim_specs.get("funcx_endpoint", "")) > 0
-    funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
+                self.funcx_exctr = FuncXExecutor(FuncXClient())
 
-    if any([funcx_sim, funcx_gen]):
-        try:
-            from funcx import FuncXClient
-            from funcx.sdk.executor import FuncXExecutor
+            except ModuleNotFoundError:
+                logger.warning(
+                    "funcX use detected but funcX not importable. Is it installed?"
+                )
 
-            return FuncXExecutor(FuncXClient()), funcx_sim, funcx_gen
-        except ModuleNotFoundError:
-            logger.warning("funcX use detected but funcX not importable. Is it installed?")
-            return None, False, False
-        except Exception:
-            return None, False, False
-    else:
-        return None, False, False
+    def make_runners(self):
+        """Creates functions to run a sim or gen. These functions are either
+        called directly by the worker or submitted to a funcX endpoint."""
 
-
-def make_runners(sim_specs, gen_specs):
-    """Creates functions to run a sim or gen. These functions are either
-    called directly by the worker or submitted to a funcX endpoint."""
-
-    funcx_exctr, funcx_sim, funcx_gen = _get_funcx_exctr(sim_specs, gen_specs)
-    sim_f = sim_specs["sim_f"]
-
-    def run_sim(calc_in, persis_info, libE_info):
-        """Calls or submits the sim func."""
-        if funcx_sim and funcx_exctr:
-            return _funcx_result(funcx_exctr, sim_f, calc_in, persis_info, sim_specs, libE_info)
-        else:
-            return sim_f(calc_in, persis_info, sim_specs, libE_info)
-
-    if gen_specs:
-        gen_f = gen_specs["gen_f"]
-
-        def run_gen(calc_in, persis_info, libE_info):
-            """Calls or submits the gen func."""
-            if funcx_gen and funcx_exctr:
-                return _funcx_result(funcx_exctr, gen_f, calc_in, persis_info, gen_specs, libE_info)
+        def run_sim(calc_in, persis_info, libE_info):
+            """Determines how to run sim."""
+            if self.has_funcx_sim and self.funcx_exctr:
+                result = self._funcx_result
             else:
-                return gen_f(calc_in, persis_info, gen_specs, libE_info)
+                result = self._normal_result
 
-    else:
-        run_gen = []
+            return result(calc_in, persis_info, self.sim_specs, libE_info, self.sim_f)
 
-    return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
+        if self.gen_specs:
+
+            def run_gen(calc_in, persis_info, libE_info):
+                """Determines how to run gen."""
+                if self.has_funcx_gen and self.funcx_exctr:
+                    result = self._funcx_result
+                else:
+                    result = self._normal_result
+
+                return result(
+                    calc_in, persis_info, self.gen_specs, libE_info, self.gen_f
+                )
+
+        else:
+            run_gen = []
+
+        return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
+
+    def _normal_result(self, calc_in, persis_info, specs, libE_info, user_f):
+        """User function called in-place"""
+        return user_f(calc_in, persis_info, specs, libE_info)
+
+    def _funcx_result(self, calc_in, persis_info, specs, libE_info, user_f):
+        """User function submitted to funcX"""
+        from libensemble.worker import Worker
+
+        libE_info["comm"] = None  # 'comm' object not pickle-able
+        Worker._set_executor(0, None)  # ditto for executor
+
+        future = self.funcx_exctr.submit(
+            user_f,
+            calc_in,
+            persis_info,
+            specs,
+            libE_info,
+            endpoint_id=specs["funcx_endpoint"],
+        )
+        remote_exc = future.exception()  # blocks until exception or None
+        if remote_exc is None:
+            return future.result()
+        else:
+            raise remote_exc

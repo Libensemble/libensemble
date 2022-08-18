@@ -169,7 +169,7 @@ jobs:
             cd heffte/build
             pwd
             cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make
+            make -j 4
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
@@ -184,6 +184,7 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install psutil
             pip install pyyaml
+            pip install funcx
 
         - name: Install Tasmanian on Ubuntu
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
