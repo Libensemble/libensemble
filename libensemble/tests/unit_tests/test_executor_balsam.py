@@ -7,7 +7,6 @@ import sys
 import time
 import mock
 import pytest
-from dataclasses import dataclass
 
 from libensemble.resources.mpi_resources import MPIResourcesException
 from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
@@ -17,7 +16,6 @@ NCORES = 1
 py_startup = "simdir/py_startup.py"
 
 # fake Balsam app
-@dataclass
 class TestLibeApp:
     site = "libe-unit-test"
     command_template = "python simdir/py_startup.py"
@@ -125,10 +123,19 @@ def test_task_wait():
     """Test of killing (cancelling) a balsam app"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
         task = exctr.submit(calc_type="sim")
+        job.return_value.state = "JOB_FINISHED"
 
-    task.wait()
+    task.wait(timeout=3)
+    assert task.state == "FINISHED", \
+        "task was not finished after wait method"
+
+    assert not task.running(), \
+        "task shouldn't be running after wait method returns"
+
+    assert task.done(), \
+        "task should be 'done' after wait method"
 
 def test_task_kill():
     """Test of killing (cancelling) a balsam app"""
