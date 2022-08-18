@@ -226,23 +226,32 @@ macOS and Windows Errors
 
 .. _faqwindows:
 
+**Can I run libEnsemble on Windows**
+
+Although we run many libEnsemble workflows successfully on Windows using both MPI and local comms, we do not 
+rigorously support Windows, and recommend unix-like systems as a preference. Windows tends to produce more 
+platform-specific issues that are difficult to reproduce and troubleshoot.
+
+Feel free to check our `Github Actions`_ page to see what tests we run regularly on Windows.
+
+.. _`Github Actions`: https://github.com/Libensemble/libensemble/actions
+
 **Windows - How can I run libEnsemble with MPI comms?**
 
-In our experience this may be challenging, because most MPI distributions have
-either dropped Windows support (MPICH and Open MPI) or are no longer being maintained (`msmpi``).
-Windows also tends to produce more platform-specific issues that are difficult to reproduce and troubleshoot.
+We have run workflows with MPI comms. However, as most MPI distributions have either dropped Windows support
+ (MPICH and Open MPI) or are no longer being maintained (``msmpi``), we cannot guarantee success.
 
 If users wish to try, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
 and other such systems. The `Installing PETSc On Microsoft Windows`_ documentation contains valuable information.
 
-Otherwise, install `msmpi` and `mpi4py` from conda and experiment, or use ``local`` comms.
+Otherwise, install ``msmpi`` and ``mpi4py`` from conda and experiment, or use ``local`` comms.
 
 .. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
 
 **Windows - 'A required privilege is not held by the client'**
 
-Assuming you were trying to use the `sim_dir_symlink_files` or `gen_dir_symlink_files` options, this indicates that to
-allow libEnsemble to create symlinks, you need to run your current `cmd` shell as administrator.
+Assuming you were trying to use the ``sim_dir_symlink_files`` or ``gen_dir_symlink_files`` options, this indicates that to
+allow libEnsemble to create symlinks, you need to run your current ``cmd`` shell as administrator.
 
 **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
 " if __name__ == '__main__': freeze_support() ...**
