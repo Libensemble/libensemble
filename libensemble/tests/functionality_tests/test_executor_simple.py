@@ -9,18 +9,15 @@ Execute via one of the following commands (e.g. 3 workers):
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
-import os
 import numpy as np
-import multiprocessing
 
 # Import libEnsemble items for this test
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL_ON_ERR, WORKER_KILL_ON_TIMEOUT, TASK_FAILED
+from libensemble.message_numbers import WORKER_DONE
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
 import libensemble.sim_funcs.six_hump_camel as six_hump_camel
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tests.regression_tests.common import build_simfunc
 from libensemble.executors.mpi_executor import MPIExecutor
 
 
@@ -40,7 +37,9 @@ if __name__ == "__main__":
     sim_app2 = six_hump_camel.__file__
 
     exctr = MPIExecutor()
-    exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
+    exctr.register_app(
+        full_path=sim_app2, app_name="six_hump_camel", calc_type="sim"
+    )  # Named app
 
     sim_specs = {
         "sim_f": sim_f,
@@ -66,22 +65,22 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": nworkers * 5}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")
 
-        calc_status_list_in = np.asarray(
-            [WORKER_DONE] * 5
-        )
+        calc_status_list_in = np.asarray([WORKER_DONE] * 5)
         calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
         # For debug
         print("Expecting: {}".format(calc_status_list))
         print("Received:  {}\n".format(H["cstat"]))
 
-        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
-            H["cstat"]
-        )
+        assert np.array_equal(
+            H["cstat"], calc_status_list
+        ), "Error - unexpected calc status. Received: " + str(H["cstat"])
 
         print("\n\n\nRun completed.")
