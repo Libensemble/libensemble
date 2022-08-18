@@ -171,6 +171,8 @@ jobs:
             # pip install dragonfly-opt
             pip install git+https://github.com/dragonfly/dragonfly.git
 
+            pip install ax-platform
+
         - name: Install other testing dependencies
           run: |
             pip install -r install/testing_requirements.txt
