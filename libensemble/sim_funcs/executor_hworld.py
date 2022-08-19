@@ -79,6 +79,9 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     args_for_sim = "sleep 1"
     calc_status = UNSET_TAG
 
+    batch = len(H["x"])
+    H_o = np.zeros(batch, dtype=sim_specs["out"])
+
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
 
         if ELAPSED_TIMEOUT:
@@ -168,8 +171,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         calc_status = UNSET_TAG
 
         # This is temp - return something - so doing six_hump_camel_func again...
-        batch = len(H["x"])
-        H_o = np.zeros(batch, dtype=sim_specs["out"])
         for i, x in enumerate(H["x"]):
             H_o["f"][i] = six_hump_camel_func(x)
             if launch_shc:
