@@ -22,7 +22,7 @@ class TestLibeApp:
 
 # fake EventLog object
 @dataclass
-class TestLogEvent:
+class LogEventTest:
     timestamp: datetime.datetime = None
 
 
@@ -122,7 +122,7 @@ def test_submit_app_wait():
         ) as log:
             job.return_value.state = "RUNNING"
             log.objects.filter.return_value = [
-                TestLogEvent(
+                LogEventTest(
                     timestamp=datetime.datetime(2022, 4, 21, 20, 29, 33, 455144)
                 )
             ]
