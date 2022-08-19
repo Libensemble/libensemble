@@ -77,6 +77,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     wait = False
     args_for_sim = "sleep 1"
+    calc_status = UNSET_TAG
 
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
 
