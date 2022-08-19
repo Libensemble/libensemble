@@ -110,7 +110,7 @@ Reverse-ssh interface
 ^^^^^^^^^^^^^^^^^^^^^
 
 Via specifying ``--comms ssh`` on the command line, libEnsemble workers can
-be launched to remote ssh-accessible systems without needing to specify ``'port'`` or ``'authkey'``. This allows users 
+be launched to remote ssh-accessible systems without needing to specify ``'port'`` or ``'authkey'``. This allows users
 to colocate workers, simulation or generator functions, and any applications they submit on the same machine. Such user
 functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
 
