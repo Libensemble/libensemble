@@ -5,6 +5,8 @@ import os
 import sys
 import mock
 import pytest
+import datetime
+from dataclasses import dataclass
 
 from libensemble.executors.executor import Executor, Application
 
@@ -16,6 +18,12 @@ class TestLibeApp:
 
     def sync():
         pass
+
+
+# fake EventLog object
+@dataclass
+class TestLogEvent:
+    timestamp: datetime.datetime = None
 
 
 def setup_module(module):
@@ -109,8 +117,16 @@ def test_submit_app_wait():
     with mock.patch(
         "libensemble.executors.balsam_executors.balsam_executor.Job"
     ) as job:
-        job.return_value.state = "RUNNING"
-        task = exctr.submit(calc_type="sim", wait_on_start=True)
+        with mock.patch(
+            "libensemble.executors.balsam_executors.balsam_executor.EventLog"
+        ) as log:
+            job.return_value.state = "RUNNING"
+            log.objects.filter.return_value = [
+                TestLogEvent(
+                    timestamp=datetime.datetime(2022, 4, 21, 20, 29, 33, 455144)
+                )
+            ]
+            task = exctr.submit(calc_type="sim", wait_on_start=True)
 
     assert task.running(), "new task is not marked as running after wait_on_start"
 
@@ -143,7 +159,8 @@ def test_task_wait():
         task = exctr.submit(calc_type="sim")
         job.return_value.state = "JOB_FINISHED"
 
-    task.wait(timeout=3)
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
+        task.wait(timeout=3)
     assert task.state == "FINISHED", "task was not finished after wait method"
 
     assert not task.running(), "task shouldn't be running after wait method returns"
@@ -159,7 +176,8 @@ def test_task_kill():
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")
 
-    task.kill()
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
+        task.kill()
     assert (
         task.finished and task.state == "USER_KILLED"
     ), "task not set as killed after kill method"
