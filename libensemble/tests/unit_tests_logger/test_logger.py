@@ -72,7 +72,10 @@ def test_set_filename():
     with open(alt_name, "r") as f:
         line = f.readline()
         assert "Cannot set filename after loggers initialized" in line
-    os.remove(alt_name)
+    try:
+        os.remove(alt_name)
+    except PermissionError:  # windows only
+        pass
 
     logs = LogConfig.config
     logs.logger_set = True

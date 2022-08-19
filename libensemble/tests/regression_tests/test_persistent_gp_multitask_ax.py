@@ -17,7 +17,6 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
-# TESTSUITE_OS_SKIP: OSX
 
 import numpy as np
 from libensemble.libE import libE
@@ -29,6 +28,28 @@ from libensemble.message_numbers import WORKER_DONE
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
 import warnings
+
+
+def run_simulation(H, persis_info, sim_specs, libE_info):
+    # Extract input parameters
+    values = list(H["x"][0])
+    x0 = values[0]
+    x1 = values[1]
+    # Extract fidelity parameter
+    task = H["task"][0]
+    if task == "expensive_model":
+        z = 8
+    elif task == "cheap_model":
+        z = 1
+
+    libE_output = np.zeros(1, dtype=sim_specs["out"])
+    calc_status = WORKER_DONE
+
+    # Function that depends on the resolution parameter
+    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
+
+    return libE_output, persis_info, calc_status
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -47,26 +68,6 @@ if __name__ == "__main__":
         "n_opt_hifi": 2,
         "n_opt_lofi": 4,
     }
-
-    def run_simulation(H, persis_info, sim_specs, libE_info):
-        # Extract input parameters
-        values = list(H["x"][0])
-        x0 = values[0]
-        x1 = values[1]
-        # Extract fidelity parameter
-        task = H["task"][0]
-        if task == "expensive_model":
-            z = 8
-        elif task == "cheap_model":
-            z = 1
-
-        libE_output = np.zeros(1, dtype=sim_specs["out"])
-        calc_status = WORKER_DONE
-
-        # Function that depends on the resolution parameter
-        libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
-
-        return libE_output, persis_info, calc_status
 
     sim_specs = {
         "sim_f": run_simulation,

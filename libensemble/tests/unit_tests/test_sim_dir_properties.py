@@ -1,4 +1,5 @@
 import os
+import pytest
 import shutil
 import numpy as np
 from libensemble.output_directory import EnsembleDirectory
@@ -87,6 +88,7 @@ def test_worker_dirs_but_no_sim_dirs():
         shutil.rmtree(dir)
 
 
+@pytest.mark.extra
 def test_loc_stack_FileExists_exceptions():
     inputdir = "./calc"
     copyfile = "./calc/copy"
