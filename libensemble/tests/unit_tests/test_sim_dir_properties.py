@@ -37,9 +37,7 @@ def test_range_mixes():
         "H_fields": ["x", "num_nodes", "procs_per_node"],
         "libE_info": {"H_rows": np.array([2, 3, 4, 6, 8, 9, 11, 14]), "workerID": 1},
     }
-    assert (
-        extract_H_ranges(work) == "2-4_6_8-9_11_14"
-    ), "Failed to correctly parse H row single elements and ranges."
+    assert extract_H_ranges(work) == "2-4_6_8-9_11_14", "Failed to correctly parse H row single elements and ranges."
 
 
 def test_copy_back():

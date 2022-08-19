@@ -58,13 +58,16 @@ With a basic familiarity of Python and NumPy_, users can easily incorporate
 any other mathematics, machine-learning, or resource-management libraries into libEnsemble
 workflows.
 
-libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
+libEnsemble employs a manager/worker scheme that communicates via MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
 generator and simulator functions, from small subnode tasks to huge many-node computations.
 
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible; it also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
+
+libEnsemble performs best on Unix-like systems like Linux and macOS. See the
+:ref:`FAQ<faqwindows>` for more information.
 
 .. before_dependencies_rst_tag
 
