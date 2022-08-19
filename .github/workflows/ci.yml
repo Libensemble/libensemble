@@ -132,7 +132,7 @@ jobs:
             cd heffte/build
             pwd
             cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make
+            make -j 4
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
@@ -140,8 +140,6 @@ jobs:
             # pip install dragonfly-opt
             pip install git+https://github.com/dragonfly/dragonfly.git
 
-            pip install torch
-            pip install gpytorch
             pip install ax-platform
 
         - name: Install other testing dependencies
