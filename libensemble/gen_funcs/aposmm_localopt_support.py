@@ -9,33 +9,33 @@ import psutil
 import numpy as np
 from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
-# import libensemble.gen_funcs
+import libensemble.gen_funcs
 
-# optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
-# optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
+optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
+optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
-# if optimizers is None:
-#     from petsc4py import PETSc
-#     import nlopt
-#     import dfols
-#     from scipy import optimize as sp_opt
-# else:
-#     if not isinstance(optimizers, list):
-#         optimizers = [optimizers]
-#     unrec = set(optimizers) - set(optimizer_list)
-#     if unrec:
-#         print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+if optimizers is None:
+    from petsc4py import PETSc
+    import nlopt
+    import dfols
+    from scipy import optimize as sp_opt
+else:
+    if not isinstance(optimizers, list):
+        optimizers = [optimizers]
+    unrec = set(optimizers) - set(optimizer_list)
+    if unrec:
+        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
 
-#     if 'petsc' in optimizers:
-#         from petsc4py import PETSc
-#     if 'nlopt' in optimizers:
-#         import nlopt
-#     if 'dfols' in optimizers:
-#         import dfols
-#     if 'scipy' in optimizers:
-#         from scipy import optimize as sp_opt
-#     if 'external' in optimizers:
-#         pass
+    if 'petsc' in optimizers:
+        from petsc4py import PETSc
+    if 'nlopt' in optimizers:
+        import nlopt
+    if 'dfols' in optimizers:
+        import dfols
+    if 'scipy' in optimizers:
+        from scipy import optimize as sp_opt
+    if 'external' in optimizers:
+        pass
 
 
 class APOSMMException(Exception):

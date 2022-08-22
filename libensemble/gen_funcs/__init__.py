@@ -1,19 +1,13 @@
-def rc(**kargs):
-    """Runtime configuration options.
-
-    Parameters
-    ----------
-    aposmm_optimizers : string or list of strings
-        Select the aposmm optimizer/s (to prevent all options being imported).
+import platform
+from dataclasses import dataclass
+from typing import Union, List, Optional
 
 
-    """
-    for key in kargs:
-        if not hasattr(rc, key):
-            raise TypeError("unexpected argument '{0}'".format(key))
-    for key, value in kargs.items():
-        setattr(rc, key, value)
+@dataclass
+class rc:
+    """Runtime configuration options."""
 
-
-rc.aposmm_optimizers = None
-__import__("sys").modules[__name__ + ".rc"] = rc
+    aposmm_optimizers: Optional[
+        Union[str, List[str]]
+    ] = None  # optional string or list of strings
+    is_unix: bool = platform.system() in ["Linux", "Darwin"]
