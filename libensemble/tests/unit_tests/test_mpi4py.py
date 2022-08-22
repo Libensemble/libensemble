@@ -1,3 +1,7 @@
+import pytest
+
+
+@pytest.mark.extra
 def test_mpi4py():
     from mpi4py import MPI
 

@@ -14,10 +14,8 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 3
-# TESTSUITE_EXTRA: true
 
 import sys
-import multiprocessing
 import numpy as np
 
 # Import libEnsemble items for this test
@@ -37,8 +35,6 @@ from time import time
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
-    multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 

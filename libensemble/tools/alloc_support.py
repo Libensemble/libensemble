@@ -179,9 +179,7 @@ class AllocSupport:
         }
 
         logger.debug(
-            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(
-                wid, extract_H_ranges(work) or None
-            )
+            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(wid, extract_H_ranges(work) or None)
         )
         return work
 
@@ -223,9 +221,7 @@ class AllocSupport:
         }
 
         logger.debug(
-            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(
-                wid, extract_H_ranges(work) or None
-            )
+            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(wid, extract_H_ranges(work) or None)
         )
         return work
 

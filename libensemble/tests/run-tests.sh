@@ -500,8 +500,13 @@ if [ "$root_found" = true ]; then
             if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
-            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then
               echo "Skipping test number for OSX: " $test_num
+              continue
+            fi
+
+            if [[ "$OSTYPE" = *"msys"* ]] && [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
+              echo "Skipping test number for Windows: " $test_num
               continue
             fi
 
