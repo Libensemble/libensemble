@@ -8,9 +8,7 @@ from typing import Union, List, Optional
 class RC:
     """Runtime configuration options."""
 
-    _aposmm_optimizers: Optional[
-        Union[str, List[str]]
-    ] = None  # optional string or list of strings
+    _aposmm_optimizers: Optional[Union[str, List[str]]] = None  # optional string or list of strings
     _is_unix: bool = platform.system() in ["Linux", "Darwin"]
 
     @property
