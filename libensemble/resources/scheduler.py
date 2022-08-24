@@ -29,6 +29,7 @@ class ResourceScheduler:
     of the allocation function). Note that work item resources are formally
     assigned to workers only when a work item is sent to the worker.
     """
+
     def __init__(self, user_resources=None, sched_opts={}):
         """Initiate a ResourceScheduler object
 

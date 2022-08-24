@@ -22,6 +22,7 @@ class Persis_Info:
     instance of this (with random streams) is created on initiation of Ensemble,
     since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
     """
+
     def __init__(self, nworkers):
         self.nworkers = nworkers
         self.persis_info = {}
@@ -51,6 +52,7 @@ class Ensemble:
     parameterizing libEnsemble by interacting with a class instance, and
     potentially populating it via a yaml file.
     """
+
     def __init__(self):
         """Initializes an Ensemble instance. ``parse_args() called on instantiation"""
         self.nworkers, self.is_manager, self.libE_specs, _ = parse_args()

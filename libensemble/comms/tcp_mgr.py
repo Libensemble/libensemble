@@ -15,6 +15,7 @@ class ServerQCommManager:
     The QComm manager server provides shared (networked) access to message
     queues for communication between the libensemble manager and workers.
     """
+
     def __init__(self, port, authkey):
         """Initialize the server on localhost at an indicated TCP port and key."""
         queues = {"shared": Queue()}
@@ -82,6 +83,7 @@ class ClientQCommManager:
     The client runs at the worker and mediates access to the shared queues
     provided by the server.
     """
+
     def __init__(self, ip, port, authkey, workerID):
         """Attach by TCP to (ip, port) with a uniquely given workerID"""
         self.workerID = workerID

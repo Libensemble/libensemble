@@ -11,6 +11,7 @@ class Runners:
 
     Currently supported: direct-call and funcX
     """
+
     def __init__(self, sim_specs, gen_specs):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
@@ -28,9 +29,7 @@ class Runners:
                 self.funcx_exctr = FuncXExecutor(FuncXClient())
 
             except ModuleNotFoundError:
-                logger.warning(
-                    "funcX use detected but funcX not importable. Is it installed?"
-                )
+                logger.warning("funcX use detected but funcX not importable. Is it installed?")
 
     def make_runners(self):
         """Creates functions to run a sim or gen. These functions are either
@@ -54,9 +53,7 @@ class Runners:
                 else:
                     result = self._normal_result
 
-                return result(
-                    calc_in, persis_info, self.gen_specs, libE_info, self.gen_f
-                )
+                return result(calc_in, persis_info, self.gen_specs, libE_info, self.gen_f)
 
         else:
             run_gen = []

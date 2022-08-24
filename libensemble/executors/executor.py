@@ -104,6 +104,7 @@ class Task:
     """
     Manages the creation, configuration and status of a launchable task
     """
+
     prefix = "libe_task"
     newid = itertools.count()
 
@@ -347,6 +348,7 @@ class Executor:
 
     :ivar list list_of_tasks: A list of tasks created in this executor
     """
+
     executor = None
 
     def _wait_on_start(self, task, fail_time=None):

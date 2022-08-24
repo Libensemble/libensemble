@@ -105,6 +105,7 @@ class QComm(Comm):
     queues: an inbox for incoming messages and an outbox for outgoing messages.
     These can be used with threads or multiprocessing.
     """
+
     # Integer count  - shared amongst processes
     # Supports adding/removing workers - only works with 'fork'
     # lock = Lock()
@@ -328,6 +329,7 @@ class CommHandler(ABC):
     with the tag 'foo' gets dispatched to a handler 'on_foo'; if 'on_foo'
     is not defined, we pass to the 'on_unhandled_message' routine.
     """
+
     def __init__(self, comm):
         """Set the comm to be wrapped."""
         self.comm = comm
@@ -521,6 +523,7 @@ class Future:
     The Future objects are not meant to be instantiated on their own;
     they are only produced by a call on a CommEval object.
     """
+
     def __init__(self, ceval, sim_id):
         self._ceval = ceval
         self._id = sim_id

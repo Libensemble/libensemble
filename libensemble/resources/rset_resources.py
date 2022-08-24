@@ -20,6 +20,7 @@ class RSetResources:
     :ivar list local_rsets_list: A list over rsets, where each element is the number of rsets that share the node.
     :ivar int rsets_per_node: The number of rsets per node (if an rset > 1 node, this will be 1)
     """
+
     def __init__(self, num_workers, resources):
         """Initializes a new RSetResources instance
 

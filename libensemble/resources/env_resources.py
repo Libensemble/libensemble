@@ -28,6 +28,7 @@ class EnvResources:
     :ivar dict nodelists: Environment variable names to query for nodelists by scheduler
     :ivar dict ndlist_funcs: Functions to extract nodelists from environment by scheduler
     """
+
     default_nodelist_env_slurm = "SLURM_NODELIST"
     default_nodelist_env_cobalt = "COBALT_PARTNAME"
     default_nodelist_env_pbs = "PBS_NODEFILE"

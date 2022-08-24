@@ -24,6 +24,7 @@ class AllocSupport:
     Note that since the ``alloc_f`` is called periodically by the Manager, this
     class instance (if used) will be recreated/destroyed on each loop.
     """
+
     gen_counter = 0
 
     def __init__(
@@ -83,6 +84,7 @@ class AllocSupport:
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
+
         def fltr(wrk, field, option):
             """Filter by condition if supplied"""
             if option is None:

@@ -99,6 +99,7 @@ class BalsamTask(Task):
     like ``poll()`` can be used directly.
 
     """
+
     def __init__(
         self,
         app=None,
@@ -265,6 +266,7 @@ class BalsamExecutor(Executor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
+
     def __init__(self):
         """Instantiate a new ``BalsamExecutor`` instance."""
 

@@ -117,6 +117,7 @@ def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1e-1
     """
     For runs following the first one, get the history array H0 based on the ordering in `refined_pts`
     """
+
     def approx_eq(x, y):
         return np.argmax(np.fabs(x - y)) <= tol
 

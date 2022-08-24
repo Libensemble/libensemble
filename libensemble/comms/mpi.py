@@ -23,6 +23,7 @@ class MPIComm(Comm):
     request objects; if the MPIComm is ever garbage-collected while requests
     are still pending, we cancel those requests.
     """
+
     def __init__(self, mpi_comm, remote_rank=0):
         """Initialize with a given MPI communicator and rank for the other end"""
         self.mpi_comm = mpi_comm

@@ -43,6 +43,7 @@ class LegacyBalsamTask(Task):
     The same attributes and query routines are implemented.
 
     """
+
     def __init__(self, app=None, app_args=None, workdir=None, stdout=None, stderr=None, workerid=None):
         """Instantiate a new LegacyBalsamTask instance.
 
@@ -193,6 +194,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
+
     def __init__(self, custom_info={}):
         """Instantiate a new LegacyBalsamMPIExecutor instance.
 

@@ -38,6 +38,7 @@ class History:
     in H and therefore include those prepended to H in addition to the current run.
 
     """
+
     # Not currently using libE_specs, persis_info - need to add parameters
     # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
