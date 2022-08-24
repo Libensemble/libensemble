@@ -24,7 +24,6 @@ class AllocSupport:
     Note that since the ``alloc_f`` is called periodically by the Manager, this
     class instance (if used) will be recreated/destroyed on each loop.
     """
-
     gen_counter = 0
 
     def __init__(
@@ -84,7 +83,6 @@ class AllocSupport:
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
-
         def fltr(wrk, field, option):
             """Filter by condition if supplied"""
             if option is None:
@@ -203,7 +201,6 @@ class AllocSupport:
         any resource checking has already been done. For example, passing ``rset_team=[]``, would
         ensure that no resources are assigned.
         """
-
         libE_info["rset_team"] = self._update_rset_team(libE_info, wid)
 
         if not self.W[wid - 1]["persis_state"]:

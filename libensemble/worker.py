@@ -60,7 +60,6 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
     log_comm: boolean
         Whether to send logging over comm
     """
-
     if libE_specs.get("profile"):
         pr = cProfile.Profile()
         pr.enable()
@@ -126,7 +125,6 @@ class Worker:
     :ivar dict calc_iter:
         Dictionary containing counts for each type of calc (e.g. sim or gen)
     """
-
     def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
         """Initializes new worker object"""
         self.comm = comm

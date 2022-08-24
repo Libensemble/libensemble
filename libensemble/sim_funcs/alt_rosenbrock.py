@@ -7,7 +7,6 @@ def EvaluateFunction(x, component=np.nan):
     """
     Evaluates the chained Rosenbrock function
     """
-
     assert not np.isnan(component), "Must give a component"
 
     i = component
@@ -22,7 +21,6 @@ def EvaluateJacobian(x, component=np.nan):
     """
     Evaluates the chained Rosenbrock Jacobian
     """
-
     df = np.zeros(len(x), dtype=float)
 
     assert not np.isnan(component), "Must give a component"

@@ -11,7 +11,6 @@ class Runners:
 
     Currently supported: direct-call and funcX
     """
-
     def __init__(self, sim_specs, gen_specs):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs

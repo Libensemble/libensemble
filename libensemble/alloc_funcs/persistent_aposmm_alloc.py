@@ -16,7 +16,6 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     .. seealso::
         `test_persistent_aposmm_with_grad.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py>`_ # noqa
     """
-
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 

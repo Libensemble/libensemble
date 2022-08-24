@@ -29,7 +29,6 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
     """
     Evaluates linear regression with l2 regularization
     """
-
     i = component
     m = len(y)
 

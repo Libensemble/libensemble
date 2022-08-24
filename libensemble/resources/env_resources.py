@@ -28,7 +28,6 @@ class EnvResources:
     :ivar dict nodelists: Environment variable names to query for nodelists by scheduler
     :ivar dict ndlist_funcs: Functions to extract nodelists from environment by scheduler
     """
-
     default_nodelist_env_slurm = "SLURM_NODELIST"
     default_nodelist_env_cobalt = "COBALT_PARTNAME"
     default_nodelist_env_pbs = "PBS_NODEFILE"
@@ -72,7 +71,6 @@ class EnvResources:
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS).
             Note: This is queried only if a node_list file is not provided.
         """
-
         self.scheduler = None
         self.nodelists = {}
         self.nodelists["Slurm"] = nodelist_env_slurm or EnvResources.default_nodelist_env_slurm

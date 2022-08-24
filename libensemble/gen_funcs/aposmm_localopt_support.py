@@ -71,7 +71,6 @@ class LocalOptInterfacer(object):
     - DFOLS ['dfols']
     - External local optimizer ['external_localopt'] (which use files to pass/receive x/f values)
     """
-
     def __init__(self, user_specs, x0, f0, grad0=None):
         """
         :param x0: A numpy array of the initial guess solution. This guess
@@ -84,7 +83,6 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-
         self.parent_can_read = Event()
         self.comm_queue = Queue()
         self.child_can_read = Event()
@@ -134,7 +132,6 @@ class LocalOptInterfacer(object):
         :param grad: A numpy array of the function's gradient.
         :param fvec: A numpy array of the function's component values.
         """
-
         self.parent_can_read.clear()
 
         if 'grad' in data.dtype.names:
@@ -248,7 +245,6 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
@@ -290,7 +286,6 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     Runs an external local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     import subprocess
     import os
     from uuid import uuid4
@@ -339,7 +334,6 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
     ub = np.ones(len(x0))
@@ -377,7 +371,6 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     assert isinstance(x0, np.ndarray)
 
     tao_comm = PETSc.COMM_SELF

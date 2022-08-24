@@ -15,7 +15,6 @@ example = """examples:
 
  would show lines where given is True and returned is False.
  """
-
 np.set_printoptions(linewidth=1)
 
 parser = argparse.ArgumentParser(description=desc, epilog=example, formatter_class=argparse.RawDescriptionHelpFormatter)

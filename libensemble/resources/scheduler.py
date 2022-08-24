@@ -29,7 +29,6 @@ class ResourceScheduler:
     of the allocation function). Note that work item resources are formally
     assigned to workers only when a work item is sent to the worker.
     """
-
     def __init__(self, user_resources=None, sched_opts={}):
         """Initiate a ResourceScheduler object
 
@@ -57,7 +56,6 @@ class ResourceScheduler:
                 to specific slots counts, which should match over multiple nodes.
                 Default: True
         """
-
         self.resources = user_resources or Resources.resources.resource_manager
         self.rsets_free = self.resources.rsets_free
         self.avail_rsets_by_group = None
@@ -81,7 +79,6 @@ class ResourceScheduler:
         Returns a list of resource set IDs or raises an exception (either
         InsufficientResourcesError or InsufficientFreeResources).
         """
-
         if rsets_req == 0:
             return []
 

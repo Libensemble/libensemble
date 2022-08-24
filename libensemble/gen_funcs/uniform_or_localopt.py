@@ -48,7 +48,6 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     Set up objective and runs nlopt performing communication with the manager in
     order receive function values for points of interest.
     """
-
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def nlopt_obj_fun(x, grad):

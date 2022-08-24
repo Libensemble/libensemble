@@ -52,7 +52,6 @@ def borehole_func(x):
         flow rate through the Borehole (m^3/year)
 
     """
-
     assert np.all(x >= bounds[:, 0]) and np.all(x <= bounds[:, 1]), "Point not within bounds"
 
     axis = 1
@@ -77,7 +76,6 @@ def gen_borehole_input(n):
     output:
       matrix of (n, 8), input to borehole_func(x) function
     """
-
     Tu = np.random.uniform(63070, 115600, n)
     Tl = np.random.uniform(63.1, 116, n)
     Hu = np.random.uniform(990, 1110, n)

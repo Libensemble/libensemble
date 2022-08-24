@@ -16,7 +16,6 @@ def EvaluateFunction(x, component):
     component : int
         - index
     """
-
     assert len(x) % 2 == 0, "Length of input vector must be even"
 
     n = len(x) // 2
@@ -47,7 +46,6 @@ def EvaluateJacobian(x, component, const):
     const : float
         - term to scale gradient by
     """
-
     assert len(x) % 2 == 0, print("must be even lengthed input vector")
 
     n = len(x) // 2

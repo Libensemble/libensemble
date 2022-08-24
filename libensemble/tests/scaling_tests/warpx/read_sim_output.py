@@ -23,7 +23,6 @@ def _beam_properties(filepath):
     ----------
     filepath : path to plotfile to read
     """
-
     # Read beam quantities from plotfile
     ds = yt.load(filepath)
     ad = ds.all_data()

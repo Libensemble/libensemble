@@ -44,7 +44,6 @@ class Resources:
     :ivar ResourceManager resource_manager: An object that manages resource set assignment to workers.
     :ivar WorkerResources worker_resources: An object that contains worker specific resources.
     """
-
     resources = None
 
     DEFAULT_NODEFILE = "node_list"
@@ -97,7 +96,6 @@ class GlobalResources:
     :ivar boolean dedicated_mode: Whether to remove libE nodes from global nodelist.
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
-
     def __init__(self, libE_specs, top_level_dir=None):
 
         """Initializes a new Resources instance

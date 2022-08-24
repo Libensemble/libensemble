@@ -111,7 +111,6 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
         A message to print/log when saving the file.
 
     """
-
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
@@ -161,7 +160,6 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
         via other pseudorandom mechanisms.
 
     """
-
     for i in range(nstreams):
 
         if isinstance(seed, int) or seed is None:

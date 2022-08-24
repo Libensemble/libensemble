@@ -505,7 +505,6 @@ class Manager:
         nonblocking receive is posted (though the manager will not receive this
         data) and a kill signal is sent.
         """
-
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:

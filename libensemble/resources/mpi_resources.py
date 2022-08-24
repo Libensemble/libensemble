@@ -39,7 +39,6 @@ def get_MPI_variant():
         MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun'
 
     """
-
     try:
         subprocess.check_call(["aprun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "aprun"
@@ -83,7 +82,6 @@ def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
     """
-
     # Convert to int if string is provided
     num_procs = int(num_procs) if num_procs else None
     num_nodes = int(num_nodes) if num_nodes else None
@@ -216,7 +214,6 @@ def create_machinefile(
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """
-
     machinefile = machinefile or "machinefile"
     if os.path.isfile(machinefile):
         try:

@@ -176,7 +176,6 @@ class WorkerResources(RSetResources):
     ``slots`` dictionary can be used to get information for each node.
 
     """
-
     def __init__(self, num_workers, resources, workerID):
 
         """Initializes a new WorkerResources instance
@@ -219,7 +218,6 @@ class WorkerResources(RSetResources):
         :param multiplier: Optional int. Assume this many items per slot.
         :param delimiter: Optional int. Delimiter for output string.
         """
-
         if self.slots_on_node is None:
             logger.warning("Slots on node is None when requested as a string")
             return None
@@ -252,7 +250,6 @@ class WorkerResources(RSetResources):
             resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
         """
-
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
 
     # libEnsemble functions ---------------------------------------------------

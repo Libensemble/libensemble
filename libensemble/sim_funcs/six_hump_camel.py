@@ -34,7 +34,6 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     .. seealso::
         `test_old_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
     """
-
     batch = len(H["x"])
     H_o = np.zeros(batch, dtype=sim_specs["out"])
 
@@ -57,7 +56,6 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     .. seealso::
         `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
     """
-
     H_o = np.zeros(1, dtype=sim_specs["out"])
 
     H_o["f"] = six_hump_camel_func(x[0][0])
@@ -77,7 +75,6 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
     .. seealso::
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
-
     batch = len(H["x"])
     H_o = np.zeros(batch, dtype=sim_specs["out"])
     app = sim_specs["user"].get("app", "helloworld")
@@ -184,7 +181,6 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Similar to ``six_hump_camel``, but runs in persistent mode.
     """
-
     ps = PersistentSupport(libE_info, EVAL_SIM_TAG)
 
     # Either start with a work item to process - or just start and wait for data
@@ -235,7 +231,6 @@ def six_hump_camel_grad(x):
     """
     Definition of the six-hump camel gradient
     """
-
     x1 = x[0]
     x2 = x[1]
     grad = np.zeros(2)

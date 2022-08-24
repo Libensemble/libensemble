@@ -57,7 +57,6 @@ class PersistentSupport:
         :returns: message tag, Work dictionary, calc_in array
 
         """
-
         if not blocking:
             if not self.comm.mail_flag():
                 return None, None, None

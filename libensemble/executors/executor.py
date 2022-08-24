@@ -104,7 +104,6 @@ class Task:
     """
     Manages the creation, configuration and status of a launchable task
     """
-
     prefix = "libe_task"
     newid = itertools.count()
 
@@ -247,7 +246,6 @@ class Task:
             Note that the task is not automatically killed if libEnsemble
             timeouts from reaching exit_criteria["wallclock_max"].
         """
-
         if self.dry_run:
             return
 
@@ -273,7 +271,6 @@ class Task:
             Note that the task is not automatically killed if libEnsemble
             timeouts from reaching exit_criteria["wallclock_max"].
         """
-
         self.wait(timeout=timeout)
         return self.state
 
@@ -289,7 +286,6 @@ class Task:
             Note that the task is not automatically killed if libEnsemble
             timeouts from reaching exit_criteria["wallclock_max"].
         """
-
         self.wait(timeout=timeout)
         return self.errcode
 
@@ -351,7 +347,6 @@ class Executor:
 
     :ivar list list_of_tasks: A list of tasks created in this executor
     """
-
     executor = None
 
     def _wait_on_start(self, task, fail_time=None):
@@ -385,7 +380,6 @@ class Executor:
         A new Executor object is created.
         This is typically created in the user calling script.
         """
-
         self.manager_signal = "none"
         self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
@@ -466,7 +460,6 @@ class Executor:
         precedent: String, optional
             Any string that should directly precede the application full path.
         """
-
         if not app_name:
             app_name = os.path.split(full_path)[1]
         self.apps[app_name] = Application(full_path, app_name, calc_type, desc, None, precedent)
@@ -484,7 +477,6 @@ class Executor:
 
         The executor manager_signal attribute will be updated.
         """
-
         self.manager_signal = "none"  # Reset
 
         # Check for messages; disregard anything but a stop signal
@@ -534,7 +526,6 @@ class Executor:
         calc_status: int
             presumptive integer attribute describing the final status of a launched task
         """
-
         calc_status = UNSET_TAG
 
         while not task.finished:
@@ -582,7 +573,6 @@ class Executor:
         datetime: boolean
             If True, returns start and end times in addition to elapsed time.
         """
-
         timing_msg = ""
         if self.list_of_tasks:
             start_task = self.last_task
@@ -649,7 +639,6 @@ class Executor:
         task: obj: Task
             The launched task object
         """
-
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:

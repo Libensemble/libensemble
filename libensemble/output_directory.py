@@ -36,7 +36,6 @@ class EnsembleDirectory:
     loc_stack: object
         A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
-
     def __init__(self, libE_specs=None, loc_stack=None):
 
         self.specs = libE_specs

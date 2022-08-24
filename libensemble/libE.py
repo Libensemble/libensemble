@@ -248,7 +248,6 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
-
     # Set default persis_info, alloc_specs, libE_specs, and H0
     if persis_info is None:
         persis_info = {}

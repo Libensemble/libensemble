@@ -28,7 +28,6 @@ class Timer:
     timing: bool:
         Indicates whether the timer is currently active.
     """
-
     def __init__(self):
         """Initialize a new timer."""
         self.tcum = 0.0

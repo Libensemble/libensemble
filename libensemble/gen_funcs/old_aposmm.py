@@ -192,7 +192,6 @@ def aposmm_logic(H, persis_info, gen_specs, _):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-
     n, n_s, c_flag, H_o, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
 
     # np.savez('H'+str(len(H)), H=H, gen_specs=gen_specs, persis_info=persis_info)
@@ -315,7 +314,6 @@ def add_to_Out(H_o, pts, H, gen_specs, c_flag, persis_info, local_flag=0,
     """
     Adds points to H_o, the numpy structured array to be sent back to the manager
     """
-
     assert not local_flag or len(pts) == 1, "Can't > 1 local points"
 
     original_len_O = len(H_o)
@@ -388,7 +386,6 @@ def update_history_dist(H, n, gen_specs, c_flag):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-
     updated_inds = set()
 
     new_inds = np.where(~H['known_to_aposmm'])[0]
@@ -463,7 +460,6 @@ def update_history_optimal(x_opt, H, run_inds):
     """
     Updated the history after any point has been declared a local minimum
     """
-
     # opt_ind = np.where(np.logical_and(np.equal(x_opt, H['x_on_cube']).all(1), ~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
     run_inds = np.unique(run_inds)
 
@@ -495,7 +491,6 @@ def advance_local_run(H, user_specs, c_flag, run, persis_info):
     this by feeding all past evaluations from a run to the method and then
     storing the first new point generated
     """
-
     while 1:
         sorted_run_inds = persis_info['run_order'][run]
         advance_local_run.x_new = np.ones((1, len(user_specs['ub'])))*np.inf
@@ -569,7 +564,6 @@ def set_up_and_run_scipy_minimize(Run_H, user_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
-
     def scipy_obj_fun(x, Run_H):
         out = look_in_history(x, Run_H)
 
@@ -607,7 +601,6 @@ def set_up_and_run_nlopt(Run_H, user_specs):
     Declares the appropriate syntax for our special objective function to read
     through Run_H, sets the parameters and starting points for the run.
     """
-
     assert 'xtol_rel' or 'xtol_abs' or 'ftol_rel' or 'ftol_abs' in user_specs, "NLopt can cycle if xtol_rel, xtol_abs, ftol_rel, or ftol_abs are not set"
 
     def nlopt_obj_fun(x, grad, Run_H):
@@ -780,7 +773,6 @@ def decide_where_to_start_localopt(H, r_k, mu=0, nu=0, gamma_quantile=1):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-
     if nu > 0:
         test_2_through_5 = np.logical_and.reduce((
             H['sim_ended'] == 1,  # have a returned function value
@@ -853,7 +845,6 @@ def look_in_history(x, Run_H, vector_return=False):
     returning f or fvec, or saves x to advance_local_run.x_new if every point in Run_H has been
     checked.
     """
-
     if vector_return:
         to_return = 'fvec'
     else:
@@ -904,7 +895,6 @@ def initialize_APOSMM(H, gen_specs):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-
     user_specs = gen_specs['user']
     n = len(user_specs['ub'])
 

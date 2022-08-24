@@ -38,7 +38,6 @@ class History:
     in H and therefore include those prepended to H in addition to the current run.
 
     """
-
     # Not currently using libE_specs, persis_info - need to add parameters
     # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
@@ -97,7 +96,6 @@ class History:
         """
         Updates the history after points have been evaluated
         """
-
         new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
         returned_H = D["calc_out"]
 
@@ -177,7 +175,6 @@ class History:
         D: numpy array
             Output from gen_func
         """
-
         if len(D) == 0:
             return
 

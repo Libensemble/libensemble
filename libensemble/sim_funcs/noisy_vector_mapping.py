@@ -14,7 +14,6 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
     .. seealso::
         `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
-
     batch = len(H["x"])
     H0 = np.zeros(batch, dtype=sim_specs["out"])
 

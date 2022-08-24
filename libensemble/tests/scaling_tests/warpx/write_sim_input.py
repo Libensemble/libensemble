@@ -26,7 +26,6 @@ def write_sim_input(input_file, x_values):
     input_file : WarpX input file.
     x_values : Specific value of input x for this run.
     """
-
     # Parameters exposed to optimization
     ramp_down_1 = x_values[0][0]
     ramp_down_2 = x_values[0][1]

@@ -61,7 +61,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     If the user wants a function evaluation, then set `get_grad` to False instead.
     """
-
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 

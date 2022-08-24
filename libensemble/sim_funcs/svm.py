@@ -29,7 +29,6 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
     """
     Evaluates svm with l1 regularization
     """
-
     i = component
     m = len(b)
 

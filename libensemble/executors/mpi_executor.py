@@ -73,7 +73,6 @@ class MPIExecutor(Executor):
             exctr = MPIExecutor(custom_info=customizer)
 
         """
-
         Executor.__init__(self)
 
         # MPI launch settings
@@ -225,7 +224,6 @@ class MPIExecutor(Executor):
         possible. If resource detection is on and these are omitted,
         then the available resources will be divided among workers.
         """
-
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:

@@ -141,7 +141,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
-
     try:
 
         if multiprocessing.get_start_method() != "fork":
@@ -327,7 +326,6 @@ def update_history_dist(H, n):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-
     new_inds = np.where(~H['known_to_aposmm'])[0]
 
     p = np.logical_and.reduce((H['sim_ended'], ~np.isnan(H['f'])))
@@ -406,7 +404,6 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     """
     Updated the history after any point has been declared a local minimum
     """
-
     # opt_ind = np.where(np.logical_and(np.equal(x_opt, H['x_on_cube']).all(1), ~np.isinf(H['f'])))[0] # This fails on some problems. x_opt is 1e-16 away from the point that was given and opt_ind is empty
     run_inds = np.unique(run_inds)
 
@@ -493,7 +490,6 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-
     r_k = calc_rk(n, n_s, rk_const, ld)
 
     if nu > 0:

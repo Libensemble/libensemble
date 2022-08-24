@@ -122,7 +122,6 @@ def get_l2_argmin(x, u_prev, gradf, gradg, beta, p_t):
     return u_next
     """
 
-
 """ We don't use this
 def get_entropy_argmin(x, u, gradf, gradg, beta, p_t):
     n = len(x)

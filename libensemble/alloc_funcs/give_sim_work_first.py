@@ -28,7 +28,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     .. seealso::
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
     """
-
     user = alloc_specs.get("user", {})
 
     if "cancel_sims_time" in user:

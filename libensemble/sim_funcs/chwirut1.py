@@ -270,7 +270,6 @@ def chwirut_eval(H, persis_info, sim_specs, _):
         `test_old_aposmm_one_residual_at_a_time.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_one_residual_at_a_time.py>`_
         for an example where one component of fvec is computed per call
     """
-
     batch = len(H["x"])
     O = np.zeros(batch, dtype=sim_specs["out"])
 

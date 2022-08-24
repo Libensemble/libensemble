@@ -99,7 +99,6 @@ class BalsamTask(Task):
     like ``poll()`` can be used directly.
 
     """
-
     def __init__(
         self,
         app=None,
@@ -224,7 +223,6 @@ class BalsamTask(Task):
             timeouts from reaching exit_criteria["wallclock_max"].
 
         """
-
         if self.dry_run:
             return
 
@@ -267,7 +265,6 @@ class BalsamExecutor(Executor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
-
     def __init__(self):
         """Instantiate a new ``BalsamExecutor`` instance."""
 
@@ -306,7 +303,6 @@ class BalsamExecutor(Executor):
             Description of this application
 
         """
-
         if precedent is not None:
             logger.warning("precedent is ignored in Balsam executor - add to command template")
 
@@ -376,7 +372,6 @@ class BalsamExecutor(Executor):
 
         The corresponding ``BatchJob`` object.
         """
-
         allocation = BatchJob.objects.create(
             site_id=site_id,
             num_nodes=num_nodes,
@@ -508,7 +503,6 @@ class BalsamExecutor(Executor):
         can be requested for a Balsam ``Job`` running on an entirely different machine.
 
         """
-
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:

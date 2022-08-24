@@ -10,7 +10,6 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
     """
     Wraps an objective function
     """
-
     batch = len(H["x"])
     H0 = np.zeros(batch, dtype=sim_specs["out"])
 

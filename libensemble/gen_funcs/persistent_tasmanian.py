@@ -117,7 +117,6 @@ def get_H0(gen_specs, refined_pts, refined_ord, queued_pts, queued_ids, tol=1e-1
     """
     For runs following the first one, get the history array H0 based on the ordering in `refined_pts`
     """
-
     def approx_eq(x, y):
         return np.argmax(np.fabs(x - y)) <= tol
 
@@ -317,7 +316,6 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode="batc
                              workers and also one of the inputs of libE().
 
     """
-
     assert "tasmanian_init" in user_specs
     assert mode in ["batched", "async"]
 

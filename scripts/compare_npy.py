@@ -27,7 +27,6 @@ example = """examples:
  ./compare_npy.py out1.npy out2.npy
  ./compare_npy.py out1.npy out2.npy --rtol 1e-03 --atol 1e-06
  """
-
 exclude_fields = ["gen_worker", "sim_worker", "gen_ended_time", "sim_started_time"]  # list of fields to ignore
 locate_mismatch = True
 

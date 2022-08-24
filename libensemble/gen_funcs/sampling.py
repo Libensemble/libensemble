@@ -48,7 +48,6 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     #.. seealso::
         #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
-
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     max_rsets = gen_specs["user"]["max_resource_sets"]
@@ -162,7 +161,6 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
     .. seealso::
         `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_1d_sampling.py>`_ # noqa
     """
-
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
 

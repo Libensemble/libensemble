@@ -325,7 +325,6 @@ def gm_opt(b, m):
     - m : int
         number of vectors
     """
-
     n = len(b) // m
     assert len(b) == m * n
 

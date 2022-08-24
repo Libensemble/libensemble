@@ -59,5 +59,4 @@ def independent_optimize(H, persis_info, gen_specs, libE_info):
            print('hi', flush=True)
            return None, persis_info, FINISHED_PERSISTENT_GEN_TAG
         """
-
         return None, persis_info, FINISHED_PERSISTENT_GEN_TAG

@@ -43,7 +43,6 @@ class LegacyBalsamTask(Task):
     The same attributes and query routines are implemented.
 
     """
-
     def __init__(self, app=None, app_args=None, workdir=None, stdout=None, stderr=None, workerid=None):
         """Instantiate a new LegacyBalsamTask instance.
 
@@ -155,7 +154,6 @@ class LegacyBalsamTask(Task):
             Note that the task is not automatically killed if libEnsemble
             timeouts from reaching exit_criteria["wallclock_max"].
         """
-
         if self.dry_run:
             return
 
@@ -195,14 +193,12 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
     .. note::  Task kills are not configurable in the Balsam executor.
 
     """
-
     def __init__(self, custom_info={}):
         """Instantiate a new LegacyBalsamMPIExecutor instance.
 
         A new LegacyBalsamMPIExecutor object is created with an application
         registry and configuration attributes
         """
-
         if custom_info:
             logger.warning("The Balsam executor does not support custom_info - ignoring")
 
@@ -282,7 +278,6 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
 
         The created task object is returned.
         """
-
         if app_name is not None:
             app = self.get_app(app_name)
         elif calc_type is not None:

@@ -20,7 +20,6 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
     other physical quantities measured in the run for convenience. Status check
     is done periodically on the simulation, provided by LibEnsemble.
     """
-
     # Setting up variables needed for input and output
     # keys              = variable names
     # x                 = variable values
