@@ -1,10 +1,8 @@
 import csv
 import platform
-from dataclasses import dataclass
 from typing import Union, List, Optional
 
 
-@dataclass
 class RC:
     """Runtime configuration options."""
 
