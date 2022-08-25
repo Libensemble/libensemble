@@ -15,7 +15,7 @@ class RC:
         Union[str, List[str]]
     ] = None  # optional string or list of strings
     _is_unix: bool = platform.system() in ["Linux", "Darwin"]
-    _csv_path = __file__.rsplit("/", 1)[0] + "/.aposmm_opt.csv"
+    _csv_path = os.path.join(__file__.rsplit("/", 1)[0], ".aposmm_opt.csv")
 
     @property
     def aposmm_optimizers(self):
@@ -25,13 +25,14 @@ class RC:
             return self._aposmm_optimizers
         else:
             while not os.path.isfile(self._csv_path):
-                time.sleep(0.2)
+                time.sleep(0.1)
                 if time.time() - start > timeout:
                     logger.warning(
                         "Unable to determine set optimization methods by timeout. Using nlopt as default."
                     )
                     return "nlopt"
 
+            time.sleep(0.01)  # avoiding race where file may exist but values not written into it yet
             with open(self._csv_path) as f:
                 optreader = csv.reader(f)
                 for opt in optreader:
@@ -41,7 +42,7 @@ class RC:
     def aposmm_optimizers(self, values):
         self._aposmm_optimizers = values
 
-        if not self._is_unix and not os.path.isfile(self._csv_path):
+        if not self._is_unix:
             with open(self._csv_path, "w") as f:
                 optwriter = csv.writer(f)
                 if isinstance(values, list):
