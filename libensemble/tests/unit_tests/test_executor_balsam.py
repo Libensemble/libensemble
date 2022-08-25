@@ -70,9 +70,7 @@ def test_register_app():
     exctr = Executor.executor
 
     exctr.serial_setup()  # does nothing, compatibility with legacy-balsam-exctr
-    exctr.add_app(
-        "hello", "world"
-    )  # does nothing, compatibility with legacy-balsam-exctr
+    exctr.add_app("hello", "world")  # does nothing, compatibility with legacy-balsam-exctr
     exctr.set_resources("hello")  # does nothing, compatibility with other executors
 
     exctr.register_app(TestLibeApp, calc_type="sim", precedent="fake/dir")
@@ -97,9 +95,7 @@ def test_submit_app_defaults():
 
     assert task in exctr.list_of_tasks, "new task not added to executor's list of tasks"
 
-    assert task == exctr.get_task(
-        task.id
-    ), "task retrieved via task ID doesn't match new task"
+    assert task == exctr.get_task(task.id), "task retrieved via task ID doesn't match new task"
 
     with pytest.raises(ExecutorException):
         task = exctr.submit()
@@ -114,9 +110,7 @@ def test_submit_app_workdir():
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim", workdir="output", machinefile="nope")
 
-    assert task.workdir == os.path.join(
-        exctr.workflow_name, "output"
-    ), "workdir not properly defined for new task"
+    assert task.workdir == os.path.join(exctr.workflow_name, "output"), "workdir not properly defined for new task"
 
 
 @pytest.mark.extra
@@ -127,9 +121,7 @@ def test_submit_app_dry():
     task = exctr.submit(calc_type="sim", dry_run=True)
     task.poll()
 
-    assert all(
-        [task.dry_run, task.done()]
-    ), "new task from dry_run wasn't marked as such, or set as done"
+    assert all([task.dry_run, task.done()]), "new task from dry_run wasn't marked as such, or set as done"
 
 
 @pytest.mark.extra
@@ -137,28 +129,18 @@ def test_submit_app_wait():
     """Test of exctr.submit blocking until app is running"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
-    with mock.patch(
-        "libensemble.executors.balsam_executors.balsam_executor.Job"
-    ) as job:
-        with mock.patch(
-            "libensemble.executors.balsam_executors.balsam_executor.EventLog"
-        ) as log:
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
+        with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog") as log:
             job.return_value.state = "RUNNING"
             log.objects.filter.return_value = [
-                LogEventTest(
-                    timestamp=datetime.datetime(2022, 4, 21, 20, 29, 33, 455144)
-                )
+                LogEventTest(timestamp=datetime.datetime(2022, 4, 21, 20, 29, 33, 455144))
             ]
             task = exctr.submit(calc_type="sim", wait_on_start=True)
-            assert (
-                task.running()
-            ), "new task is not marked as running after wait_on_start"
+            assert task.running(), "new task is not marked as running after wait_on_start"
 
             log.objects.filter.return_value = [LogEventTest(timestamp=None)]
             task = exctr.submit(calc_type="sim", wait_on_start=True)
-            assert (
-                task.runtime == 0
-            ), "runtime should be 0 without Balsam timestamp evaluated"
+            assert task.runtime == 0, "runtime should be 0 without Balsam timestamp evaluated"
 
 
 @pytest.mark.extra
@@ -167,13 +149,9 @@ def test_submit_revoke_alloc():
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.BatchJob"):
-        alloc = exctr.submit_allocation(
-            site_id="libe-unit-test", num_nodes=1, wall_time_min=30
-        )
+        alloc = exctr.submit_allocation(site_id="libe-unit-test", num_nodes=1, wall_time_min=30)
 
-        assert (
-            alloc in exctr.allocations
-        ), "batchjob object not appended to executor's list of allocations"
+        assert alloc in exctr.allocations, "batchjob object not appended to executor's list of allocations"
 
         alloc.scheduler_id = None
         assert not exctr.revoke_allocation(
@@ -191,25 +169,17 @@ def test_task_poll():
     """Test of killing (cancelling) a balsam app"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
-    with mock.patch(
-        "libensemble.executors.balsam_executors.balsam_executor.Job"
-    ) as job:
-        with mock.patch(
-            "libensemble.executors.balsam_executors.balsam_executor.EventLog"
-        ):
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
+        with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
             task = exctr.submit(calc_type="sim")
 
             job.return_value.state = "PREPROCESSED"
             task.poll()
-            assert (
-                task.state == "WAITING"
-            ), "task should've been considered waiting based on balsam state"
+            assert task.state == "WAITING", "task should've been considered waiting based on balsam state"
 
             job.return_value.state = "FAILED"
             task.poll()
-            assert (
-                task.state == "FAILED"
-            ), "task should've been considered failed based on balsam state"
+            assert task.state == "FAILED", "task should've been considered failed based on balsam state"
 
             task = exctr.submit(calc_type="sim")
 
@@ -227,9 +197,7 @@ def test_task_wait():
     """Test of killing (cancelling) a balsam app"""
     print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
     exctr = Executor.executor
-    with mock.patch(
-        "libensemble.executors.balsam_executors.balsam_executor.Job"
-    ) as job:
+    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
         with mock.patch(
             "libensemble.executors.balsam_executors.balsam_executor.EventLog"
         ):  # need to patch since wait polls
@@ -242,13 +210,9 @@ def test_task_wait():
 
             job.return_value.state = "JOB_FINISHED"
             task.wait(timeout=3)
-            task.wait(
-                timeout=3
-            )  # should return immediately since self._check_poll() should return False
+            task.wait(timeout=3)  # should return immediately since self._check_poll() should return False
             assert task.state == "FINISHED", "task was not finished after wait method"
-            assert (
-                not task.running()
-            ), "task shouldn't be running after wait method returns"
+            assert not task.running(), "task shouldn't be running after wait method returns"
             assert task.done(), "task should be 'done' after wait method"
 
             task = exctr.submit(calc_type="sim", dry_run=True)
@@ -257,9 +221,7 @@ def test_task_wait():
             task = exctr.submit(calc_type="sim")
             job.return_value.state = "FAILED"
             task.wait(timeout=3)
-            assert (
-                task.state == "FAILED"
-            ), "Matching Balsam state should've been assigned to task"
+            assert task.state == "FAILED", "Matching Balsam state should've been assigned to task"
 
 
 @pytest.mark.extra
@@ -272,9 +234,7 @@ def test_task_kill():
 
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
         task.kill()
-    assert (
-        task.finished and task.state == "USER_KILLED"
-    ), "task not set as killed after kill method"
+    assert task.finished and task.state == "USER_KILLED", "task not set as killed after kill method"
 
 
 if __name__ == "__main__":

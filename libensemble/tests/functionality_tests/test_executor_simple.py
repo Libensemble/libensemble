@@ -37,9 +37,7 @@ if __name__ == "__main__":
     sim_app2 = six_hump_camel.__file__
 
     exctr = MPIExecutor()
-    exctr.register_app(
-        full_path=sim_app2, app_name="six_hump_camel", calc_type="sim"
-    )  # Named app
+    exctr.register_app(full_path=sim_app2, app_name="six_hump_camel", calc_type="sim")  # Named app
 
     sim_specs = {
         "sim_f": sim_f,
@@ -65,9 +63,7 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": nworkers * 5}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         print("\nChecking expected task status against Workers ...\n")
@@ -79,8 +75,8 @@ if __name__ == "__main__":
         print("Expecting: {}".format(calc_status_list))
         print("Received:  {}\n".format(H["cstat"]))
 
-        assert np.array_equal(
-            H["cstat"], calc_status_list
-        ), "Error - unexpected calc status. Received: " + str(H["cstat"])
+        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
+            H["cstat"]
+        )
 
         print("\n\n\nRun completed.")
