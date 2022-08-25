@@ -18,6 +18,7 @@ class MPIRunner:
             "aprun": APRUN_MPIRunner,
             "srun": SRUN_MPIRunner,
             "jsrun": JSRUN_MPIRunner,
+            "msmpi": MSMPI_MPIRunner,
             "custom": MPIRunner,
         }
         mpi_runner = mpi_runners[mpi_runner_type]
@@ -195,6 +196,23 @@ class APRUN_MPIRunner(MPIRunner):
             "-L {hostlist}",
             "-n {num_procs}",
             "-N {procs_per_node}",
+            "{extra_args}",
+        ]
+
+
+class MSMPI_MPIRunner(MPIRunner):
+    def __init__(self, run_command="mpiexec"):
+        self.run_command = run_command
+        self.subgroup_launch = False
+        self.mfile_support = False
+        self.arg_nprocs = ("-n", "-np")
+        self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
+        self.arg_ppn = ("-cores",)
+        self.mpi_command = [
+            self.run_command,
+            "-env {env}",
+            "-n {num_procs}",
+            "-cores {procs_per_node}",
             "{extra_args}",
         ]
 

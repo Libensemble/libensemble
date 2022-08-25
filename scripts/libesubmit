@@ -188,7 +188,7 @@ if __name__ == "__main__":
         jobspec.arguments[jobspec.arguments.index(callscript)] = new_callscript
 
     else:
-        print("...found! Proceding.")
+        print("...found! Proceeding.")
 
     # Little bit strange I have to re-initialize this class to re-serialize
     if not jobspec.resources[

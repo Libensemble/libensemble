@@ -1,4 +1,5 @@
 import os
+import pytest
 import shutil
 import numpy as np
 from libensemble.output_directory import EnsembleDirectory
@@ -37,9 +38,7 @@ def test_range_mixes():
         "H_fields": ["x", "num_nodes", "procs_per_node"],
         "libE_info": {"H_rows": np.array([2, 3, 4, 6, 8, 9, 11, 14]), "workerID": 1},
     }
-    assert (
-        extract_H_ranges(work) == "2-4_6_8-9_11_14"
-    ), "Failed to correctly parse H row single elements and ranges."
+    assert extract_H_ranges(work) == "2-4_6_8-9_11_14", "Failed to correctly parse H row single elements and ranges."
 
 
 def test_copy_back():
@@ -89,6 +88,7 @@ def test_worker_dirs_but_no_sim_dirs():
         shutil.rmtree(dir)
 
 
+@pytest.mark.extra
 def test_loc_stack_FileExists_exceptions():
     inputdir = "./calc"
     copyfile = "./calc/copy"
