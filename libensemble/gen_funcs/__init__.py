@@ -7,10 +7,13 @@ from typing import Union, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class RC:
     """Runtime configuration options."""
 
-    _aposmm_optimizers: Optional[Union[str, List[str]]] = None  # optional string or list of strings
+    _aposmm_optimizers: Optional[
+        Union[str, List[str]]
+    ] = None  # optional string or list of strings
     _is_unix: bool = platform.system() in ["Linux", "Darwin"]
     _csv_path = __file__.rsplit("/", 1)[0] + "/.aposmm_opt.csv"
 
@@ -24,7 +27,9 @@ class RC:
             while not os.path.isfile(self._csv_path):
                 time.sleep(0.2)
                 if time.time() - start > timeout:
-                    logger.warning("Unable to determine set optimization methods by timeout. Using nlopt as default.")
+                    logger.warning(
+                        "Unable to determine set optimization methods by timeout. Using nlopt as default."
+                    )
                     return "nlopt"
 
             with open(self._csv_path) as f:
@@ -43,5 +48,6 @@ class RC:
                     optwriter.writerow(values)
                 else:
                     optwriter.writerow([values])
+
 
 rc = RC()
