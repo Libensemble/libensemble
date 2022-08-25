@@ -17,6 +17,7 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
 
 import numpy as np
 from libensemble.libE import libE
