@@ -13,7 +13,7 @@ class RC:
 
     _aposmm_optimizers: Optional[Union[str, List[str]]] = None  # optional string or list of strings
     _is_unix: bool = platform.system() in ["Linux", "Darwin"]
-    _csv_path = os.path.join(__file__.rsplit("/", 1)[0], ".aposmm_opt.csv")
+    _csv_path = __file__.replace("__init__.py", ".aposmm_opt.csv")
 
     @property
     def aposmm_optimizers(self):
