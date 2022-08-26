@@ -107,6 +107,12 @@ class PersistentSupport:
         return self.recv()
 
     def request_cancel_sim_ids(self, sim_ids):
+        """Request cancellation of sim_ids
+
+        :param sim_ids: A list of sim_ids to cancel
+
+        A message is sent to the manager to mark requested sim_ids as cancel_requested
+        """
         H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
         H_o["sim_id"] = sim_ids
         H_o["cancel_requested"] = True
