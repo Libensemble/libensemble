@@ -417,8 +417,8 @@ class Manager:
         calc_status = D_recv["calc_status"]
         Manager._check_received_calc(D_recv)
 
-        stay_active = D_recv["libE_info"].get("stay_active", False)
-        if w not in self.persis_pending and not self.W[w - 1]["active_recv"] and not stay_active:
+        keep_state = D_recv["libE_info"].get("keep_state", False)
+        if w not in self.persis_pending and not self.W[w - 1]["active_recv"] and not keep_state:
             self.W[w - 1]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:

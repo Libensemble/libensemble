@@ -25,7 +25,7 @@ class PersistentSupport:
         ], "The calc_type: {} specifies neither a simulator nor generator.".format(self.calc_type)
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output, calc_status=UNSET_TAG, stay_active=False):
+    def send(self, output, calc_status=UNSET_TAG, keep_state=False):
         """
         Send message from worker to manager.
 
@@ -42,7 +42,7 @@ class PersistentSupport:
         else:
             libE_info = self.libE_info
 
-        libE_info["stay_active"] = stay_active
+        libE_info["keep_state"] = keep_state
 
         D = {
             "calc_out": output,
@@ -93,7 +93,7 @@ class PersistentSupport:
         logger.debug("Persistent {} received work rows from manager".format(self.calc_str))
         return tag, Work, calc_in
 
-    def send_recv(self, output, calc_status=UNSET_TAG, stay_active=False):
+    def send_recv(self, output, calc_status=UNSET_TAG, keep_state=False):
         """
         Send message from worker to manager and receive response.
 
@@ -103,7 +103,7 @@ class PersistentSupport:
         :returns: message tag, Work dictionary, calc_in array
 
         """
-        self.send(output, calc_status, stay_active)
+        self.send(output, calc_status, keep_state)
         return self.recv()
 
     def request_cancel_sim_ids(self, sim_ids):
@@ -111,4 +111,4 @@ class PersistentSupport:
         H_o["sim_id"] = sim_ids
         H_o["cancel_requested"] = True
         print(H_o)
-        self.send(H_o, stay_active=True)
+        self.send(H_o, keep_state=True)
