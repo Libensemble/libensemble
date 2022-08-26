@@ -28,7 +28,9 @@ class RC:
                     logger.warning("Unable to determine set optimization methods by timeout. Using nlopt as default.")
                     return "nlopt"
 
-            time.sleep(0.01)  # avoiding race where file may exist but values not written into it yet
+            while not os.stat(self._csv_path).st_size:
+                time.sleep(0.001)  # avoiding race where file may exist but values not written into it yet
+
             with open(self._csv_path) as f:
                 optreader = csv.reader(f)
                 for opt in optreader:
