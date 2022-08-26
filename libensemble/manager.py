@@ -8,6 +8,7 @@ import os
 import glob
 import logging
 import socket
+import platform
 import traceback
 import numpy as np
 
@@ -252,6 +253,8 @@ class Manager:
         """Saves history every kth step"""
         count = k * (count // k)
         filename = fname.format(self.date_start, count)
+        if platform.system() == "Windows":
+            filename = filename.replace(":", "-")  # ":" is invalid in windows filenames
         if not os.path.isfile(filename) and count > 0:
             for old_file in glob.glob(fname.format(self.date_start, "*")):
                 os.remove(old_file)
@@ -341,9 +344,7 @@ class Manager:
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
         logger.debug(
-            "Manager sending {} work to worker {}. Rows {}".format(
-                work_name, w, extract_H_ranges(Work) or None
-            )
+            "Manager sending {} work to worker {}. Rows {}".format(work_name, w, extract_H_ranges(Work) or None)
         )
         if len(work_rows):
             if "repack_fields" in globals():
