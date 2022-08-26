@@ -25,12 +25,8 @@ Overview of the Calibration Problem
 
 The generator function featured in this tutorial can be found in
 ``gen_funcs/persistent_surmise_calib.py`` and uses the `surmise`_ library for its
-calibration surrogate model interface.
-
-.. note::
-    Note that this repository is a fork of
-    the main surmise repository, but it retains support for the "PCGPwM" emulation
-    method used in the generator. surmise is under active development.
+calibration surrogate model interface. The surmise library uses the  "PCGPwM"
+emulation method in this example.
 
 Say there is a computer model :math:`f(\theta, x)` to be calibrated.  To calibrate
 is to find some parameter :math:`\theta_0` such that :math:`f(\theta_0, x)` closely
@@ -105,27 +101,25 @@ cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
         ...
         c_obviate = info['obviatesugg']  # suggested
         if len(c_obviate) > 0:
-            cancel_columns(obs_offset, c_obviate, n_x, pending, comm)
+            cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
 
 ``obs_offset`` is an offset that excludes the observations when mapping points in surmise
 data structures to ``sim_id``'s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
-to check that points marked for cancellation have not already returned. ``comm`` is a
-communicator object from :doc:`libE_info<../data_structures/work_dict>` used to send
-and receive messages from the Manager.
+to check that points marked for cancellation have not already returned. ``ps`` is the
+instantiation of the *PersistentSupport* class that is set up for persistent generators, and
+provides and interface for communication with the manager.
 
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
 its ``sim_id`` is appended to a list to be sent to the Manager for cancellation.
-A new, separate local :doc:`History array<../history_output_logging>` is defined with the
-selected ``'sim_id'`` s and the ``'cancel_requested'`` field set to ``True``. This array is
-then sent to the Manager using the ``send_mgr_worker_msg`` persistent generator
-helper function. Each of these helper functions is described :ref:`here<p_gen_routines>`.
-The entire ``cancel_columns()`` routine is listed below:
+Cancellation is requested using the helper function ``request_cancel_sim_ids`` provided
+by the *PersistentSupport* class.  Each of these helper functions is described
+:ref:`here<p_gen_routines>`. The entire ``cancel_columns()`` routine is listed below:
 
 .. code-block:: python
 
-    def cancel_columns(obs_offset, c, n_x, pending, comm):
+    def cancel_columns(obs_offset, c, n_x, pending, ps):
         """Cancel columns"""
         sim_ids_to_cancel = []
         columns = np.unique(c)
@@ -137,11 +131,7 @@ The entire ``cancel_columns()`` routine is listed below:
                     sim_ids_to_cancel.append(sim_id_cancel)
                     pending[i, c] = 0
 
-        # Send only these fields to existing H rows and libEnsemble will slot in the change.
-        H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
-        H_o['sim_id'] = sim_ids_to_cancel
-        H_o['cancel_requested'] = True
-        send_mgr_worker_msg(comm, H_o)
+        ps.request_cancel_sim_ids(sim_ids_to_cancel)
 
 In future calls to the allocation function by the manager, points that would have
 been distributed for simulation work but are now marked with "cancel_requested" will not
@@ -174,11 +164,10 @@ This is calculated from other parameters in the calling script.
 
 By default, workers (including persistent workers), are only
 allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
-However, since this generator must asynchronously update its model and
-cancel pending evaluations, the worker running this generator remains
-in an *active receive* state, until it becomes non-persistent. This means
-both the manager and persistent worker (generator in this case) must be
-prepared for irregular sending /receiving of data.
+However, since this generator must asynchronously update its model, the worker
+running this generator remains in an *active receive* state, until it becomes
+non-persistent. This means both the manager and persistent worker (generator in
+this case) must be prepared for irregular sending /receiving of data.
 
 .. Manager - Cancellation, History Updates, and Allocation
 .. -------------------------------------------------------
