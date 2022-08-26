@@ -97,7 +97,7 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
                 sim_ids_to_cancel.append(sim_id_cancel)
                 pending[i, c] = 0
 
-    ps.cancel_points(sim_ids_to_cancel)
+    ps.request_cancel_sim_ids(sim_ids_to_cancel)
 
 
 def assign_priority(n_x, n_thetas):

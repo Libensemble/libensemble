@@ -234,6 +234,6 @@ def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
             # Cancel as many points as got back
             cancel_ids = list(range(cancel_from, cancel_from + b))
             cancel_from += b
-            ps.cancel_points(cancel_ids)
+            ps.request_cancel_sim_ids(cancel_ids)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
