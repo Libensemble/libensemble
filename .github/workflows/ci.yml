@@ -145,7 +145,7 @@ jobs:
 
             pip install mpmath
             pip install ax-platform
-            pip install surmise.git
+            pip install surmise
 
         - name: Install some generator dependencies on Windows
           if: matrix.os == 'windows-latest'
