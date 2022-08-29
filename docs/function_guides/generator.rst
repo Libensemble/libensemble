@@ -133,7 +133,9 @@ By default, a persistent worker (generator in this case) models the manager/work
 communications of a regular worker (i.e., the generator is expected to alternately
 receive and send data in a *ping pong* fashion). To have an irregular communication
 pattern, a worker can be initiated in *active receive* mode by the allocation
-function (see :ref:`start_only_persistent<start_only_persistent_label>`).
+function (see :ref:`start_only_persistent<start_only_persistent_label>`). In this mode,
+the persistent worker will always be considered ready to receive more data
+(e.g.,~ evaluation results). It can also send to the manager at any time.
 
 The user is responsible for ensuring there are no communication deadlocks
 in this mode. Note that in manager/worker message exchanges, only the worker-side
@@ -162,12 +164,13 @@ of the capability to cancel pending simulations.
 Modification of existing points
 -------------------------------
 
-To change existing fields of the history array, the generator can initiate an output array
-with just the ``sim_id`` and fields to be modified (in place of ``gen_specs["out"]``,
-and then send to the manager as with regular communications. Any such message received by
-the manager will modify the given fields for the given *sim_ids*. If the
-changes are separate from the generation of new points and should not mark the generator as
-ready to receive new points, then send with the ``keep_state`` argument to *True*.
+To change existing fields of the history array, the generator can initialize an output
+array where the *dtype* contains the ``sim_id`` and the fields to be modified (in
+place of ``gen_specs["out"]``), and then send to the manager as with regular
+communications. Any such message received by the manager will modify the given fields
+for the given *sim_ids*. If the changes are separate from the generation of new points
+and should not mark the generator as ready to receive new points, then send with the
+``keep_state`` argument set to *True*.
 
 For example, the cancellation function ``request_cancel_sim_ids`` could be replicated by
 the following (where ``sim_ids_to_cancel`` is a list of integers):
