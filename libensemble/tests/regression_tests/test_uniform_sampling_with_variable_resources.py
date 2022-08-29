@@ -14,6 +14,7 @@ Note: This test contains multiple iterations to test different configurations.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
+# TESTSUITE_EXTRA: true
 
 import sys
 import numpy as np

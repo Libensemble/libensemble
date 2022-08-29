@@ -1,14 +1,19 @@
 import time
+import pytest
+import platform
 import numpy as np
 import numpy.lib.recfunctions
-from mpi4py import MPI
 
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 
-libE_specs = {"mpi_comm": MPI.COMM_WORLD}
+if platform.system() != "Windows":
+    from mpi4py import MPI
+
+    libE_specs = {"mpi_comm": MPI.COMM_WORLD}
 
 
+@pytest.mark.extra
 def test_term_test_1():
     # termination_test should be True when we want to stop
 
@@ -19,6 +24,7 @@ def test_term_test_1():
     assert not mgr.term_test()
 
 
+@pytest.mark.extra
 def test_term_test_2():
     # Test 2 - these could also be sep - with a setup or fixture....
     # Shouldn't terminate
@@ -39,6 +45,7 @@ def test_term_test_2():
     assert mgr.term_test()
 
 
+@pytest.mark.extra
 def test_term_test_3():
     # Test 3.
     # Terminate because enough time has passed
