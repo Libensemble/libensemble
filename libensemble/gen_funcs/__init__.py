@@ -7,19 +7,18 @@ from typing import Union, List, Optional
 
 logger = logging.getLogger(__name__)
 
-
 class RC:
     """Runtime configuration options."""
 
     _aposmm_optimizers: Optional[Union[str, List[str]]] = None  # optional string or list of strings
-    _is_unix: bool = platform.system() in ["Linux", "Darwin"]
+    _is_windows: bool = platform.system() in ["Linux", "Darwin"]
     _csv_path = __file__.replace("__init__.py", ".aposmm_opt.csv")
 
     @property
     def aposmm_optimizers(self):
         timeout = 5
         start = time.time()
-        if self._is_unix:
+        if not self._is_windows:
             return self._aposmm_optimizers
         else:
             while not os.path.isfile(self._csv_path):
@@ -40,13 +39,12 @@ class RC:
     def aposmm_optimizers(self, values):
         self._aposmm_optimizers = values
 
-        if not self._is_unix:
+        if self._is_windows:
             with open(self._csv_path, "w") as f:
                 optwriter = csv.writer(f)
                 if isinstance(values, list):
                     optwriter.writerow(values)
                 else:
                     optwriter.writerow([values])
-
 
 rc = RC()
