@@ -7,7 +7,9 @@ from typing import Dict, Callable, List, Any, Tuple, Union, Optional
 import numpy as np
 from pydantic import BaseModel, validator, BaseSettings, PyObject
 from libensemble.tools.fields_keys import allowed_libE_spec_keys, libE_fields
-
+from libensemble.message_numbers import (
+    EVAL_SIM_TAG,
+    EVAL_GEN_TAG)
 
 class SimSpecs(BaseModel):
     sim_f: Callable
@@ -57,6 +59,16 @@ class StatsFmt(BaseModel):
     show_resource_sets: Optional[bool] = False
 
 
+class _Work(BaseModel):
+    persis_info: Dict
+    H_fields: List[str]
+    tag: Union[EVAL_SIM_TAG, EVAL_GEN_TAG]
+    libE_info: Dict
+    H_rows: Optional[List[int]]
+    blocking: Optional[List[int]]
+    persistent: Optional[bool]
+
+
 class LibeSpecs(BaseSettings):
     abort_on_exception: Optional[bool] = True
     enforce_worker_core_bounds: Optional[bool] = False
@@ -104,7 +116,7 @@ class Ensemble(BaseModel):
     libE_specs: LibeSpecs
     persis_info: Optional[Dict]
     sim_specs: SimSpecs
-    gen_specs: GenSpecs
+    gen_specs: Optional[GenSpecs]
     exit_criteria: ExitCriteria
 
     class Config:
