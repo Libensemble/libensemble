@@ -1,19 +1,12 @@
 import os
 import random
-import typing
 import ipaddress
-from pathlib import Path
 from typing import Dict, Callable, List, Any, Tuple, Union, Optional
 
 import numpy as np
-from pydantic import BaseModel, validator, BaseSettings, PyObject, Field
-from libensemble.tools.fields_keys import (
-    libE_fields,
-    allowed_gen_spec_keys,
-    allowed_sim_spec_keys,
-    allowed_alloc_spec_keys,
-    allowed_libE_spec_keys,
-)
+from pydantic import BaseModel, validator, root_validator, PyObject, Field
+from libensemble.tools.fields_keys import libE_fields
+
 
 class SimSpecs(BaseModel):
     sim_f: Callable
@@ -48,7 +41,6 @@ class ExitCriteria(BaseModel):
     def check_any(cls, v):
         if not any(v.values()):
             raise ValueError("Must have some exit criterion")
-
 
 
 class ResourceInfo(BaseModel):
@@ -111,7 +103,7 @@ class LibeSpecs(BaseModel):
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
     disable_resource_manager: Optional[bool] = False
     dedicated_mode: Optional[bool] = False
-    comms: Union["mpi", "local", "tcp"] = "mpi"
+    comms: str = "mpi"
     resource_info: Optional[ResourceInfo]
     disable_log_files: Optional[bool] = False
     final_fields: Optional[List[str]]
@@ -149,24 +141,25 @@ class LibeSpecs(BaseModel):
     @root_validator
     def check_not_manager_only(cls, values):
         if values.get("comms") == "mpi":
-            assert values.get("mpi_comm").Get_size() > 1, \
-                "Manager only - must be at least one worker (2 MPI tasks)"
+            assert values.get("mpi_comm").Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
     @root_validator
     def check_any_workers(cls, values):
         if values.get("comms") in ["local", "tcp"]:
             assert values.get("nworkers") >= 1, "Must specify at least one worker"
 
+    @validator("comms")
+    def check_valid_comms_type(cls, value):
+        assert value in ["mpi", "local", "tcp"], "Invalid comms type"
+
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value):
-        assert os.path.exists(value), \
-            "libE_specs['{}'] does not refer to an existing path.".format(value)
+        assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
     def check_inputs_exist(cls, value):
         for f in value:
-            assert os.path.exists(f), \
-                "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+            assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
 
 
 class Ensemble(BaseModel):
@@ -187,13 +180,15 @@ class Ensemble(BaseModel):
             stop_name = values.get("exit_criteria")["stop_val"][0]
             sim_out_names = [e[0] for e in values.get("sim_specs")["out"]]
             gen_out_names = [e[0] for e in values.get("gen_specs")["out"]]
-            assert stop_name in sim_out_names + gen_out_names, "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
+            assert (
+                stop_name in sim_out_names + gen_out_names
+            ), "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
 
     @root_validator
     def check_output_fields(cls, values):
         out_names = [e[0] for e in libE_fields]
         if values.get("H0") and values.get("H0").dtype.names is not None:
-            out_names += list(H0.dtype.names)
+            out_names += list(values.get("H0").dtype.names)
         out_names += [e[0] for e in values.get("sim_specs").get("out", [])]
         if values.get("gen_specs"):
             out_names += [e[0] for e in values.get("gen_specs").get("out", [])]
