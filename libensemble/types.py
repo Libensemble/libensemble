@@ -1,3 +1,4 @@
+import os
 import random
 import typing
 import ipaddress
@@ -5,15 +6,19 @@ from pathlib import Path
 from typing import Dict, Callable, List, Any, Tuple, Union, Optional
 
 import numpy as np
-from pydantic import BaseModel, validator, BaseSettings, PyObject
-from libensemble.tools.fields_keys import allowed_libE_spec_keys, libE_fields
-from libensemble.message_numbers import (
-    EVAL_SIM_TAG,
-    EVAL_GEN_TAG)
+from pydantic import BaseModel, validator, BaseSettings, PyObject, Field
+from libensemble.tools.fields_keys import (
+    libE_fields,
+    allowed_gen_spec_keys,
+    allowed_sim_spec_keys,
+    allowed_alloc_spec_keys,
+    allowed_libE_spec_keys,
+)
 
 class SimSpecs(BaseModel):
     sim_f: Callable
-    inputs: List[str]
+    inputs: List[str] = Field(alias="in")
+    persis_in: Optional[List[str]]
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
@@ -21,7 +26,8 @@ class SimSpecs(BaseModel):
 
 class GenSpecs(BaseModel):
     gen_f: Callable
-    inputs: Optional[List[str]]
+    inputs: Optional[List[str]] = Field(alias="in")
+    persis_in: Optional[List[str]]
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
@@ -35,8 +41,14 @@ class AllocSpecs(BaseModel):
 class ExitCriteria(BaseModel):
     sim_max: Optional[int]
     gen_max: Optional[int]
-    wallclock_time: Optional[float]
+    wallclock_max: Optional[float]
     stop_val: Optional[Tuple[str, float]]
+
+    @root_validator
+    def check_any(cls, v):
+        if not any(v.values()):
+            raise ValueError("Must have some exit criterion")
+
 
 
 class ResourceInfo(BaseModel):
@@ -59,17 +71,41 @@ class StatsFmt(BaseModel):
     show_resource_sets: Optional[bool] = False
 
 
+class _LibEInfo(BaseModel):
+    rset_team: Optional[List[int]] = None
+    gen_count: Optional[int]
+    H_rows: np.ndarray
+    persistent: Optional[bool]
+    active_recv: Optional[bool]
+    workerID: Optional[int]
+    comm: Optional[PyObject]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+class _AllocInfo(BaseModel):
+    exit_criteria: ExitCriteria
+    elapsed_time: float
+    manager_kill_canceled_sims: bool
+    sim_started_count: int
+    sim_ended_count: int
+    gen_informed_count: int
+    sim_max_given: bool
+    use_resource_sets: bool
+
+
 class _Work(BaseModel):
     persis_info: Dict
     H_fields: List[str]
-    tag: Union[EVAL_SIM_TAG, EVAL_GEN_TAG]
+    tag: int
     libE_info: Dict
     H_rows: Optional[List[int]]
     blocking: Optional[List[int]]
     persistent: Optional[bool]
 
 
-class LibeSpecs(BaseSettings):
+class LibeSpecs(BaseModel):
     abort_on_exception: Optional[bool] = True
     enforce_worker_core_bounds: Optional[bool] = False
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
@@ -99,7 +135,7 @@ class LibeSpecs(BaseSettings):
     zero_resource_workers: Optional[List[int]]
     worker_cmd: Optional[List[str]]
     ensemble_copy_back: Optional[bool] = False
-    ensemble_dir_path: Optional[str] = "./ensemble"
+    ensemble_dir_path: Optional[str]
     use_worker_dirs: Optional[bool] = False
     sim_dirs_make: Optional[bool] = False
     sim_dir_copy_files: Optional[List[str]]
@@ -110,14 +146,78 @@ class LibeSpecs(BaseSettings):
     gen_dir_symlink_files: Optional[List[str]]
     gen_input_dir: Optional[str]
 
+    @root_validator
+    def check_not_manager_only(cls, values):
+        if values.get("comms") == "mpi":
+            assert values.get("mpi_comm").Get_size() > 1, \
+                "Manager only - must be at least one worker (2 MPI tasks)"
+
+    @root_validator
+    def check_any_workers(cls, values):
+        if values.get("comms") in ["local", "tcp"]:
+            assert values.get("nworkers") >= 1, "Must specify at least one worker"
+
+    @validator("sim_input_dir", "gen_input_dir")
+    def check_input_dir_exists(cls, value):
+        assert os.path.exists(value), \
+            "libE_specs['{}'] does not refer to an existing path.".format(value)
+
+    @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
+    def check_inputs_exist(cls, value):
+        for f in value:
+            assert os.path.exists(f), \
+                "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+
 
 class Ensemble(BaseModel):
-    H0: Optional[np.ndarray]
+    H0: Optional[np.ndarray] = None
     libE_specs: LibeSpecs
     persis_info: Optional[Dict]
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]
+    alloc_specs: Optional[AllocSpecs]
     exit_criteria: ExitCriteria
 
     class Config:
         arbitrary_types_allowed = True
+
+    @root_validator
+    def check_exit_criteria(cls, values):
+        if "stop_val" in values.get("exit_criteria"):
+            stop_name = values.get("exit_criteria")["stop_val"][0]
+            sim_out_names = [e[0] for e in values.get("sim_specs")["out"]]
+            gen_out_names = [e[0] for e in values.get("gen_specs")["out"]]
+            assert stop_name in sim_out_names + gen_out_names, "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
+
+    @root_validator
+    def check_output_fields(cls, values):
+        out_names = [e[0] for e in libE_fields]
+        if values.get("H0") and values.get("H0").dtype.names is not None:
+            out_names += list(H0.dtype.names)
+        out_names += [e[0] for e in values.get("sim_specs").get("out", [])]
+        if values.get("gen_specs"):
+            out_names += [e[0] for e in values.get("gen_specs").get("out", [])]
+
+        for name in values.get("libE_specs").get("final_fields", []):
+            assert name in out_names, (
+                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
+
+        for name in values.get("sim_specs").get("in", []):
+            assert name in out_names, (
+                name + " in sim_specs['in'] is not in sim_specs['out'], "
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
+
+        if values.get("gen_specs"):
+            for name in values.get("gen_specs").get("in", []):
+                assert name in out_names, (
+                    name + " in gen_specs['in'] is not in sim_specs['out'], "
+                    "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+                )
+
+    @root_validator
+    def check_H0(cls, values):
+        if values.get("H0") and len(values.get("H0")):
+            pass  # TODO: finish
