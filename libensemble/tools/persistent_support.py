@@ -59,6 +59,7 @@ class PersistentSupport:
     def recv(self, blocking=True):
         """
         Receive message to worker from manager.
+
         :param blocking: Optional, If True (default), will block until a message is received.
 
         :returns: message tag, Work dictionary, calc_in array
@@ -97,20 +98,17 @@ class PersistentSupport:
         logger.debug("Persistent {} received work rows from manager".format(self.calc_str))
         return tag, Work, calc_in
 
-    def send_recv(self, output, calc_status=UNSET_TAG, keep_state=False):
+    def send_recv(self, output, calc_status=UNSET_TAG):
         """
         Send message from worker to manager and receive response.
 
         :param output: Output array to be sent to manager
         :param calc_status: Optional, Provides a task status
-        :param keep_state: Optional, If True the manager will not modify the workers state
-            (usually the manager changes the worker's state to inactive, indiciating ready
-            to receive more work, unless using active receive mode).
 
         :returns: message tag, Work dictionary, calc_in array
 
         """
-        self.send(output, calc_status, keep_state)
+        self.send(output, calc_status)
         return self.recv()
 
     def request_cancel_sim_ids(self, sim_ids):
