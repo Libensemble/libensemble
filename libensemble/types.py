@@ -4,8 +4,10 @@ import ipaddress
 from typing import Dict, Callable, List, Any, Tuple, Union, Optional
 
 import numpy as np
-from pydantic import BaseModel, validator, root_validator, PyObject, Field
+from pydantic import BaseModel, validator, root_validator, PyObject, Field, BaseConfig
 from libensemble.tools.fields_keys import libE_fields
+
+BaseConfig.arbitrary_types_allowed = True
 
 
 class SimSpecs(BaseModel):
@@ -41,6 +43,7 @@ class ExitCriteria(BaseModel):
     def check_any(cls, v):
         if not any(v.values()):
             raise ValueError("Must have some exit criterion")
+        return v
 
 
 class ResourceInfo(BaseModel):
@@ -64,7 +67,7 @@ class StatsFmt(BaseModel):
 
 
 class _LibEInfo(BaseModel):
-    H_rows: np.ndarray
+    H_rows: Optional[np.ndarray]
     rset_team: Optional[List[int]] = None
     persistent: Optional[bool]
     gen_count: Optional[int]
@@ -94,6 +97,17 @@ class _Work(BaseModel):
     libE_info: _LibEInfo
 
 
+class _MPICommValidationModel:
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    def validate(cls, comm):
+        assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+        return comm
+
+
 class LibeSpecs(BaseModel):
     abort_on_exception: Optional[bool] = True
     enforce_worker_core_bounds: Optional[bool] = False
@@ -106,9 +120,9 @@ class LibeSpecs(BaseModel):
     final_fields: Optional[List[str]]
     ip: Optional[ipaddress.IPv4Address]
     kill_canceled_sims: Optional[bool] = True
-    mpi_comm: Optional[PyObject] = None
+    mpi_comm: Optional[_MPICommValidationModel] = None
     num_resource_sets: Optional[int]
-    nworkers: int
+    nworkers: Optional[int]
     port: Optional[int]
     profile: Optional[bool] = False
     safe_mode: Optional[bool] = True
@@ -135,32 +149,34 @@ class LibeSpecs(BaseModel):
     gen_dir_symlink_files: Optional[List[str]]
     gen_input_dir: Optional[str]
 
-    @root_validator
-    def check_not_manager_only(cls, values):
-        if values.get("comms") == "mpi":
-            assert values.get("mpi_comm").Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
-
-    @root_validator
-    def check_any_workers(cls, values):
-        if values.get("comms") in ["local", "tcp"]:
-            assert values.get("nworkers") >= 1, "Must specify at least one worker"
+    class Config:
+        arbitrary_types_allowed = True
 
     @validator("comms")
     def check_valid_comms_type(cls, value):
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
+        return value
 
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value):
         assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
+        return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
     def check_inputs_exist(cls, value):
         for f in value:
             assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+        return value
+
+    @root_validator
+    def check_any_workers(cls, values):
+        if values.get("comms") in ["local", "tcp"]:
+            assert values.get("nworkers") >= 1, "Must specify at least one worker"
+        return values
 
 
 class Ensemble(BaseModel):
-    H0: Optional[np.ndarray] = None
+    H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
     persis_info: Optional[Dict]
     sim_specs: SimSpecs
@@ -180,6 +196,7 @@ class Ensemble(BaseModel):
             assert (
                 stop_name in sim_out_names + gen_out_names
             ), "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
+        return values
 
     @root_validator
     def check_output_fields(cls, values):
@@ -208,6 +225,7 @@ class Ensemble(BaseModel):
                     name + " in gen_specs['in'] is not in sim_specs['out'], "
                     "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
                 )
+        return values
 
     @root_validator
     def check_H0(cls, values):

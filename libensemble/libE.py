@@ -186,7 +186,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-@validate_arguments
+@validate_arguments(config=dict(arbitrary_types_allowed=True))
 def libE(sim_specs: SimSpecs,
          gen_specs: GenSpecs,
          exit_criteria: ExitCriteria,
