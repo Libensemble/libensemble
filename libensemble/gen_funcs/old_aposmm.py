@@ -884,7 +884,6 @@ def look_in_history(x, Run_H, vector_return=False):
 
 def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """ Calculate the critical distance r_k """
-
     if lhs_divisions == 0:
         r_k = rk_const*(log(n_s)/n_s)**(1/n)
     else:

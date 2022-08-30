@@ -65,7 +65,6 @@ class ResourceManager(RSetResources):
 
     def assign_rsets(self, rset_team, worker_id):
         """Mark the resource sets given by rset_team as assigned to worker_id"""
-
         if rset_team:
             rteam = self.rsets["assigned"][rset_team]
             for i, wid in enumerate(rteam):
@@ -307,7 +306,6 @@ class WorkerResources(RSetResources):
     @staticmethod
     def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):
         """Returns the list of nodes available to the given worker and the slot dictionary"""
-
         if workerID is None:
             raise WorkerResourcesException("Worker has no workerID - aborting")
 
