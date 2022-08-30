@@ -24,7 +24,10 @@ To run MPI applications and use detected resources, use an alternative Executor
 class, as shown above.
 
 .. autoclass:: Executor
-  :members: __init__, register_app, submit
+  :members:
+  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
+
+  .. automethod:: __init__
 
 .. _task_tag:
 

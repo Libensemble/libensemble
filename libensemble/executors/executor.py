@@ -350,6 +350,7 @@ class Executor:
     **Object Attributes:**
 
     :ivar list list_of_tasks: A list of tasks created in this executor
+    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
     executor = None
