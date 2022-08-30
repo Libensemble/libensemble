@@ -108,7 +108,7 @@ data structures to ``sim_id``'s, ``c_obviate`` is a selection
 of columns to cancel, ``n_x`` is the number of ``x`` values, and ``pending`` is used
 to check that points marked for cancellation have not already returned. ``ps`` is the
 instantiation of the *PersistentSupport* class that is set up for persistent generators, and
-provides and interface for communication with the manager.
+provides an interface for communication with the manager.
 
 Within ``cancel_columns()``, each column in ``c_obviate`` is iterated over, and if a
 point is ``pending`` and thus has not yet been evaluated by a simulation,
@@ -167,7 +167,7 @@ allocated work when they're in an :doc:`idle or non-active state<../data_structu
 However, since this generator must asynchronously update its model, the worker
 running this generator remains in an *active receive* state, until it becomes
 non-persistent. This means both the manager and persistent worker (generator in
-this case) must be prepared for irregular sending /receiving of data.
+this case) must be prepared for irregular sending/receiving of data.
 
 .. Manager - Cancellation, History Updates, and Allocation
 .. -------------------------------------------------------
