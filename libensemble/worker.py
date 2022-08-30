@@ -19,7 +19,7 @@ from libensemble.output_directory import EnsembleDirectory
 
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.timer import Timer
-from libensemble.utils.runners import make_runners
+from libensemble.utils.runners import Runners
 from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
 from libensemble.comms.logs import worker_logging_config
@@ -136,7 +136,7 @@ class Worker:
         self.stats_fmt = libE_specs.get("stats_fmt", {})
 
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self._run_calc = make_runners(sim_specs, gen_specs)
+        self._run_calc = Runners(sim_specs, gen_specs).make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)

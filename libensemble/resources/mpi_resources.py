@@ -36,7 +36,7 @@ def get_MPI_variant():
     Returns
     -------
     mpi_variant: string:
-        MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi' or 'srun'
+        MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun'
 
     """
 
@@ -49,6 +49,14 @@ def get_MPI_variant():
     try:
         subprocess.check_call(["jsrun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "jsrun"
+    except Exception:
+        pass
+
+    try:
+        try_msmpi = subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stdout, _ = try_msmpi.communicate()
+        if "Microsoft" in stdout.decode():
+            return "msmpi"
     except Exception:
         pass
 
