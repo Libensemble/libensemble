@@ -795,7 +795,6 @@ def test_dry_run():
 @pytest.mark.extra
 def test_non_existent_app():
     """Tests exception on non-existent app"""
-
     from libensemble.executors.executor import Executor
 
     exctr = Executor()
@@ -816,7 +815,6 @@ def test_non_existent_app():
 @pytest.mark.extra
 def test_non_existent_app_mpi():
     """Tests exception on non-existent app"""
-
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor()

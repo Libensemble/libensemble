@@ -48,7 +48,6 @@ def _get_remote_cpu_resources(launcher):
 
 def _get_cpu_resources_from_env(env_resources=None):
     """Returns logical and physical cores per node by querying environment or None"""
-
     if not env_resources:
         return None
 

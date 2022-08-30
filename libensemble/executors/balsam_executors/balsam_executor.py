@@ -119,7 +119,6 @@ class BalsamTask(Task):
 
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered ``RUNNING`` state"""
-
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
             return 0
@@ -132,7 +131,6 @@ class BalsamTask(Task):
 
     def calc_task_timing(self):
         """Calculate timing information for this task"""
-
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
 
@@ -245,7 +243,6 @@ class BalsamTask(Task):
 
     def kill(self):
         """Cancels the supplied task. Killing is unsupported at this time."""
-
         self.process.delete()
 
         logger.info("Killing task {}".format(self.name))
@@ -264,7 +261,6 @@ class BalsamExecutor(Executor):
 
     def __init__(self):
         """Instantiate a new ``BalsamExecutor`` instance."""
-
         super().__init__()
 
         self.workflow_name = "libe_workflow"

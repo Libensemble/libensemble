@@ -324,13 +324,11 @@ class Manager:
 
     def _freeup_resources(self, w):
         """Free up resources assigned to the worker"""
-
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker"""
-
         logger.debug("Manager sending work unit to worker {}".format(w))
 
         if self.resources:
@@ -359,7 +357,6 @@ class Manager:
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
-
         self.W[w - 1]["active"] = Work["tag"]
         if "libE_info" in Work:
             if "persistent" in Work["libE_info"]:
@@ -549,7 +546,6 @@ class Manager:
 
     def _get_alloc_libE_info(self):
         """Selected statistics useful for alloc_f"""
-
         return {
             "any_idle_workers": any(self.W["active"] == 0),
             "exit_criteria": self.exit_criteria,

@@ -9,7 +9,6 @@ from libensemble.sim_funcs.branin.branin import branin
 
 def call_branin(H, persis_info, sim_specs, _):
     """Evaluates the Branin function"""
-
     batch = len(H["x"])
 
     H_o = np.zeros(batch, dtype=sim_specs["out"])

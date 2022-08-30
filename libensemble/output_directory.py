@@ -77,7 +77,6 @@ class EnsembleDirectory:
 
     def use_calc_dirs(self, type):
         """Determines calc_dirs enabling for each calc type"""
-
         if type == EVAL_SIM_TAG:
             return self.sim_use
         else:
@@ -85,7 +84,6 @@ class EnsembleDirectory:
 
     def _make_calc_dir(self, workerID, H_rows, calc_str, locs):
         """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
-
         if calc_str == "sim":
             input_dir = self.sim_input_dir
             do_calc_dirs = self.sim_dirs_make
@@ -159,7 +157,6 @@ class EnsembleDirectory:
 
     def prep_calc_dir(self, Work, calc_iter, workerID, calc_type):
         """Determines choice for calc_dir structure, then performs calculation."""
-
         if not self.loc_stack:
             self.loc_stack = LocationStack()
 
