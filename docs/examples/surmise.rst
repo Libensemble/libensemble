@@ -3,9 +3,9 @@ persistent_surmise
 
 Required: Surmise_
 
-Surmise can be pip installed::
+Note that currently the github fork https://github.com/mosesyhc/surmise should be used::
 
-    pip install surmise
+    python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` uses this generator as an example of the capability to cancel pending simulations.
 
