@@ -7,19 +7,26 @@ from typing import Union, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class RC:
     """Runtime configuration options."""
 
-    _aposmm_optimizers: Optional[Union[str, List[str]]] = None  # optional string or list of strings
-    _is_windows: bool = platform.system() in ["Linux", "Darwin"]
-    _csv_path = __file__.replace("__init__.py", ".aposmm_opt.csv")
+    _opt_modules: Optional[Union[str, List[str]]] = None  # optional string or list of strings
+    _is_windows: bool = platform.system() not in ["Linux", "Darwin"]
+    _csv_path = __file__.replace("__init__.py", ".opt_modules.csv")
+
+    def __init__(self):
+        if RC._is_windows and os.path.isfile(RC._csv_path):
+            with open(self._csv_path) as f:
+                optreader = csv.reader(f)
+                RC._opt_modules = [opt for opt in optreader][0]  # should only be one row
 
     @property
     def aposmm_optimizers(self):
         timeout = 5
         start = time.time()
         if not self._is_windows:
-            return self._aposmm_optimizers
+            return self._opt_modules
         else:
             while not os.path.isfile(self._csv_path):
                 time.sleep(0.1)
@@ -32,19 +39,21 @@ class RC:
 
             with open(self._csv_path) as f:
                 optreader = csv.reader(f)
-                for opt in optreader:
-                    return opt  # should only be one row
+                return [opt for opt in optreader][0]
 
     @aposmm_optimizers.setter
     def aposmm_optimizers(self, values):
-        self._aposmm_optimizers = values
 
-        if self._is_windows:
+        current_opt = self.aposmm_optimizers
+        if not isinstance(values, list):
+            values = [values]
+
+        if self._is_windows and values != current_opt:  # avoid rewriting constantly
             with open(self._csv_path, "w") as f:
                 optwriter = csv.writer(f)
-                if isinstance(values, list):
-                    optwriter.writerow(values)
-                else:
-                    optwriter.writerow([values])
+                optwriter.writerow(values)
+
+        self._opt_modules = values
+
 
 rc = RC()
