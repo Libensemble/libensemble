@@ -168,9 +168,10 @@ To change existing fields of the history array, the generator can initialize an 
 array where the *dtype* contains the ``sim_id`` and the fields to be modified (in
 place of ``gen_specs["out"]``), and then send to the manager as with regular
 communications. Any such message received by the manager will modify the given fields
-for the given *sim_ids*. If the changes are separate from the generation of new points
-and should not mark the generator as ready to receive new points, then send with the
-``keep_state`` argument set to *True*.
+for the given *sim_ids*. If the changes do not correspond with newly generated points,
+then the generator needs to communicate to the manager that it is not ready
+to receive completed evaluations. Send to the manager with the ``keep_state`` argument
+set to *True*.
 
 For example, the cancellation function ``request_cancel_sim_ids`` could be replicated by
 the following (where ``sim_ids_to_cancel`` is a list of integers):
