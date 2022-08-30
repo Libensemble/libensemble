@@ -64,10 +64,10 @@ class StatsFmt(BaseModel):
 
 
 class _LibEInfo(BaseModel):
-    rset_team: Optional[List[int]] = None
-    gen_count: Optional[int]
     H_rows: np.ndarray
+    rset_team: Optional[List[int]] = None
     persistent: Optional[bool]
+    gen_count: Optional[int]
     active_recv: Optional[bool]
     workerID: Optional[int]
     comm: Optional[PyObject]
@@ -88,13 +88,10 @@ class _AllocInfo(BaseModel):
 
 
 class _Work(BaseModel):
-    persis_info: Dict
     H_fields: List[str]
+    persis_info: Dict
     tag: int
-    libE_info: Dict
-    H_rows: Optional[List[int]]
-    blocking: Optional[List[int]]
-    persistent: Optional[bool]
+    libE_info: _LibEInfo
 
 
 class LibeSpecs(BaseModel):
