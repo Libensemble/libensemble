@@ -3,7 +3,7 @@
 work dictionary
 ===============
 
-The work dictionary constains metadata that is used by the manager to send a packet
+The work dictionary contains metadata that is used by the manager to send a packet
 of work to a worker. The dictionary uses integer keys ``i`` and values that determine
 the data given to worker ``i``. ``Work[i]`` has the following form::
 

@@ -33,7 +33,7 @@ class PersistentSupport:
         :param calc_status: Optional, Provides a task status
         :param keep_state: Optional, If True the manager will not modify its
             record of the workers state (usually the manager changes the
-            worker's state to inactive, indiciating the worker ready to receive
+            worker's state to inactive, indicating the worker is ready to receive
             more work, unless using active receive mode).
 
         :returns: None
