@@ -31,8 +31,8 @@ Introduction to libEnsemble
 
 libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
 
-libEnsemble can help users take advantage of massively parallel resources to solve design,
-decision, and inference problems and expand the class of problems that can benefit from
+libEnsemble helps users take advantage of massively parallel resources to solve design,
+decision, and inference problems and expands the class of problems that can benefit from
 increased parallelism.
 
 libEnsemble aims for:
