@@ -52,13 +52,17 @@ any other libraries to serve their needs.
 Persistent Generators
 ---------------------
 
-While normal generators return after completing their calculation, persistent
-generators receive Work units, perform computations, and communicate results
-directly to the manager in a loop, not returning until explicitly instructed by
-the manager. The calling worker becomes a dedicated :ref:`persistent worker<persis_worker>`.
+While non-persistent generators return after completing their calculation, persistent
+generators receive work units, perform computations, and communicate results
+directly to the manager in a loop. A persistent generator returns either when
+explicitly instructed by the manager, or by exiting its main loop based on some
+condition. The allocation function can determine what to do once a persistent
+generator finishes, such as ending the ensemble.
+
+The calling worker becomes a dedicated :ref:`persistent worker<persis_worker>`.
 A ``gen_f`` is initiated as persistent by the ``alloc_f``.
 
-Most users prefer persistent generators since they do not need to be
+Many users prefer persistent generators since they do not need to be
 re-initialized every time their past work is completed and evaluated by a
 simulation, and can evaluate returned simulation results over the course of
 an entire libEnsemble routine as a single function instance. The :doc:`APOSMM<../examples/aposmm>`
@@ -129,31 +133,23 @@ By default, a persistent worker (generator in this case) models the manager/work
 communications of a regular worker (i.e., the generator is expected to alternately
 receive and send data in a *ping pong* fashion). To have an irregular communication
 pattern, a worker can be initiated in *active receive* mode by the allocation
-function (see :ref:`start_only_persistent<start_only_persistent_label>`).
+function (see :ref:`start_only_persistent<start_only_persistent_label>`). In this mode,
+the persistent worker will always be considered ready to receive more data
+(e.g.,~ evaluation results). It can also send to the manager at any time.
 
 The user is responsible for ensuring there are no communication deadlocks
 in this mode. Note that in manager/worker message exchanges, only the worker-side
-receive is blocking.
+receive is blocking by default (a non-blocking option is available).
 
 Cancelling Simulations
 ----------------------
 
 Previously submitted simulations can be cancelled by sending a message to the manager.
-To do this as a separate communication, a persistent generator should be
-in *active receive* mode to prevent a deadlock.
 
-To send out cancellations of previously submitted simulations, the generator
-can initiate a history array with just the ``sim_id`` and ``cancel_requested`` fields.
-Then fill in the ``sim_id``'s to cancel and set the ``cancel_requested`` field to ``True``.
-In the following example, ``sim_ids_to_cancel`` is a list of integers.
+To do this a PersistentSupport helper function is provided.
 
-.. code-block:: python
-
-    # Send only these fields to existing H rows and libEnsemble will slot in the change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
-    H_o['sim_id'] = sim_ids_to_cancel
-    H_o['cancel_requested'] = True
-    my_support.send(H_o)
+.. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
+.. autofunction:: request_cancel_sim_ids
 
 If a generated point is cancelled by the generator before it has been given to a
 worker for evaluation, then it will never be given. If it has already returned from the
@@ -164,6 +160,29 @@ by a user function, otherwise it will be ignored.
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
 of the capability to cancel pending simulations.
+
+Modification of existing points
+-------------------------------
+
+To change existing fields of the history array, the generator can initialize an output
+array where the *dtype* contains the ``sim_id`` and the fields to be modified (in
+place of ``gen_specs["out"]``), and then send to the manager as with regular
+communications. Any such message received by the manager will modify the given fields
+for the given *sim_ids*. If the changes do not correspond with newly generated points,
+then the generator needs to communicate to the manager that it is not ready
+to receive completed evaluations. Send to the manager with the ``keep_state`` argument
+set to *True*.
+
+For example, the cancellation function ``request_cancel_sim_ids`` could be replicated by
+the following (where ``sim_ids_to_cancel`` is a list of integers):
+
+.. code-block:: python
+
+    # Send only these fields to existing H rows and libEnsemble will slot in the change.
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
+    H_o['sim_id'] = sim_ids_to_cancel
+    H_o['cancel_requested'] = True
+    ps.send(H_o, keep_state=True)
 
 Generator initiated shutdown
 ----------------------------
@@ -176,5 +195,5 @@ the ensemble as soon a persistent generator returns. The usual return values sho
 Examples
 --------
 
-Examples of normal and persistent generator functions
+Examples of non-persistent and persistent generator functions
 can be found :doc:`here<../examples/gen_funcs>`.

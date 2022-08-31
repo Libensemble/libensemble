@@ -65,7 +65,6 @@ class LegacyBalsamTask(Task):
 
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered RUNNING state"""
-
         # If wait_on_start then can could calculate runtime same a base executor
         # but otherwise that will return time from task submission. Get from Balsam.
 
@@ -79,7 +78,6 @@ class LegacyBalsamTask(Task):
 
     def calc_task_timing(self):
         """Calculate timing information for this task"""
-
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
 
@@ -176,7 +174,6 @@ class LegacyBalsamTask(Task):
 
     def kill(self, wait_time=None):
         """Kills or cancels the supplied task"""
-
         dag.kill(self.process)
 
         # Could have Wait here and check with Balsam its killed -

@@ -120,7 +120,6 @@ def init_worker_logger(logr, lev):
 
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger."""
-
     logconfig = LogConfig.config
     logger = logging.getLogger(logconfig.name)
     slogger = logging.getLogger(logconfig.stats_name)
@@ -142,7 +141,6 @@ def worker_logging_config(comm, worker_id=None):
 
 def manager_logging_config():
     """Add file-based logging at manager."""
-
     stat_timer = Timer()
     stat_timer.start()
 

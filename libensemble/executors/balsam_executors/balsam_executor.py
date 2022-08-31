@@ -119,10 +119,7 @@ class BalsamTask(Task):
 
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered ``RUNNING`` state"""
-
-        event_query = EventLog.objects.filter(
-            job_id=self.process.id, to_state="RUNNING"
-        )
+        event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
             return 0
         balsam_launch_datetime = event_query[0].timestamp
@@ -134,7 +131,6 @@ class BalsamTask(Task):
 
     def calc_task_timing(self):
         """Calculate timing information for this task"""
-
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
 
@@ -245,7 +241,6 @@ class BalsamTask(Task):
 
     def kill(self):
         """Cancels the supplied task. Killing is unsupported at this time."""
-
         self.process.delete()
 
         logger.info("Killing task {}".format(self.name))
@@ -264,7 +259,6 @@ class BalsamExecutor(Executor):
 
     def __init__(self):
         """Instantiate a new ``BalsamExecutor`` instance."""
-
         super().__init__()
 
         self.workflow_name = "libe_workflow"
@@ -278,9 +272,7 @@ class BalsamExecutor(Executor):
         """Sync application with Balsam service"""
         pass
 
-    def register_app(
-        self, BalsamApp, app_name=None, calc_type=None, desc=None, precedent=None
-    ):
+    def register_app(self, BalsamApp, app_name=None, calc_type=None, desc=None, precedent=None):
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
@@ -304,9 +296,7 @@ class BalsamExecutor(Executor):
         """
 
         if precedent is not None:
-            logger.warning(
-                "precedent is ignored in Balsam executor - add to command template"
-            )
+            logger.warning("precedent is ignored in Balsam executor - add to command template")
 
         if not app_name:
             app_name = BalsamApp.command_template.split(" ")[0]
@@ -566,13 +556,10 @@ class BalsamExecutor(Executor):
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
-                task.submit_time = (
-                    task.timer.tstart
-                )  # Time not date - may not need if using timer.
+                task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
             logger.info(
-                "Submitted Balsam App to site {}: "
-                "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
+                "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
             )
 
         self.list_of_tasks.append(task)

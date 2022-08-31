@@ -29,9 +29,7 @@ class Runners:
                 self.funcx_exctr = FuncXExecutor(FuncXClient())
 
             except ModuleNotFoundError:
-                logger.warning(
-                    "funcX use detected but funcX not importable. Is it installed?"
-                )
+                logger.warning("funcX use detected but funcX not importable. Is it installed?")
 
     def make_runners(self):
         """Creates functions to run a sim or gen. These functions are either
@@ -55,9 +53,7 @@ class Runners:
                 else:
                     result = self._normal_result
 
-                return result(
-                    calc_in, persis_info, self.gen_specs, libE_info, self.gen_f
-                )
+                return result(calc_in, persis_info, self.gen_specs, libE_info, self.gen_f)
 
         else:
             run_gen = []

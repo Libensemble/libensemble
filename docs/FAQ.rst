@@ -228,8 +228,8 @@ macOS and Windows Errors
 
 **Can I run libEnsemble on Windows**
 
-Although we run many libEnsemble workflows successfully on Windows using both MPI and local comms, we do not 
-rigorously support Windows, and recommend unix-like systems as a preference. Windows tends to produce more 
+Although we run many libEnsemble workflows successfully on Windows using both MPI and local comms, we do not
+rigorously support Windows, and recommend unix-like systems as a preference. Windows tends to produce more
 platform-specific issues that are difficult to reproduce and troubleshoot.
 
 Feel free to check our `Github Actions`_ page to see what tests we run regularly on Windows.
