@@ -26,9 +26,14 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.tools import save_libE_output, add_unique_random_streams
 from libensemble.tools import parse_args
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
 import warnings
+
+# Ax uses a deprecated warn command.
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
 
 def run_simulation(H, persis_info, sim_specs, libE_info):
@@ -54,10 +59,6 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
-    # Ax uses a deprecated warn command.
-    warnings.filterwarnings("ignore", category=UserWarning)
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
