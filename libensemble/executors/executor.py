@@ -18,8 +18,7 @@ import time
 
 from libensemble.message_numbers import (
     UNSET_TAG,
-    MAN_SIGNAL_FINISH,
-    MAN_SIGNAL_KILL,
+    MAN_KILL_SIGNALS,
     WORKER_DONE,
     TASK_FAILED,
     WORKER_KILL_ON_TIMEOUT,
@@ -53,8 +52,6 @@ FINISHED
 USER_KILLED
 FAILED
 """.split()
-
-MAN_KILL_SIGNALS = [MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL]
 
 
 class ExecutorException(Exception):
