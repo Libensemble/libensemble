@@ -80,7 +80,8 @@ if __name__ == "__main__":
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x", "thetas"],
-        "out": [("f", float)],
+        "out": [("f", float),
+                ('sim_killed', bool)],  # 'sim_killed' is just used to display at the end.
         "user": {
             "num_obs": n_x,
             "init_sample_size": init_sample_size,
@@ -130,7 +131,8 @@ if __name__ == "__main__":
 
     if is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
-        print("Killed sims", H["sim_id"][H["kill_sent"]])
+        print("Kills sent by manager to running simulations", H["sim_id"][H["kill_sent"]])
+        print("Killed sims", H["sim_id"][H["sim_killed"]])
         sims_done = np.count_nonzero(H["sim_ended"])
         save_libE_output(H, persis_info, __file__, nworkers)
         assert sims_done == max_evals, "Num of completed simulations should be {}. Is {}".format(max_evals, sims_done)
