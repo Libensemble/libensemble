@@ -116,7 +116,7 @@ jobs:
             pip install DFO-LS
 
             pip install mpmath
-            pip install surmise
+            pip install --upgrade git+https://github.com/surmising/surmise.git@develop
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
