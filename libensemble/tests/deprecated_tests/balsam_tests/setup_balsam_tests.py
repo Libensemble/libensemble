@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """ Script to set up apps and jobs for balsam tests """
-
 # Note: To see use of command line interface see bash_scripts/setup_balsam_tests.sh script.
 #       Currently that script does not create deps between jobs so may run simultaneously
 #       This script tests setup within python (could in theory be integrated with job!)

@@ -34,7 +34,6 @@ from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim
 
 def create_H0(persis_info, gen_specs, sim_max):
     """Create an H0 for give_pregenerated_sim_work"""
-
     # Manually creating H0
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]

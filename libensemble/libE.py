@@ -294,7 +294,6 @@ def manager(
     on_cleanup=None,
 ):
     """Generic manager routine run."""
-
     logger.info("Logger initializing: [workerID] precedes each line. [0] = Manager")
     logger.info("libE version v{}".format(__version__))
 
@@ -361,7 +360,6 @@ def comms_abort(mpi_comm):
 
 def libE_mpi_defaults(libE_specs):
     """Fill in default values for MPI-based communicators."""
-
     from mpi4py import MPI
 
     if "mpi_comm" not in libE_specs:
@@ -372,7 +370,6 @@ def libE_mpi_defaults(libE_specs):
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
-
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
 
     if libE_specs["mpi_comm"] == mpi_comm_null:
@@ -412,7 +409,6 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Manager routine runs on rank 0."""
-
     from libensemble.comms.mpi import MainMPIComm
 
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -452,7 +448,6 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
 def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     """Worker routines run on ranks > 0."""
-
     from libensemble.comms.mpi import MainMPIComm
 
     comm = MainMPIComm(libE_comm)
@@ -465,7 +460,6 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     """Launch a process worker team."""
-
     resources = Resources.resources
     executor = Executor.executor
 
@@ -490,7 +484,6 @@ def kill_proc_team(wcomms, timeout):
 
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for thread/process launch of libE."""
-
     nworkers = libE_specs["nworkers"]
 
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
@@ -556,7 +549,6 @@ def libE_tcp_default_ID():
 
 def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE."""
-
     check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     is_worker = True if "workerID" in libE_specs else False
@@ -609,7 +601,6 @@ def libE_tcp_start_team(manager, nworkers, workers, ip, port, authkey, launchf):
 
 def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE at manager."""
-
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Set up a worker launcher
@@ -657,7 +648,6 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
 
 def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     """Main routine for TCP worker launched by libE."""
-
     ip = libE_specs["ip"]
     port = libE_specs["port"]
     authkey = libE_specs["authkey"]

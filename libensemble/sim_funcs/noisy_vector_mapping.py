@@ -26,7 +26,6 @@ def func_wrapper(H, persis_info, sim_specs, libE_info):
 
 def noisy_function(x):
     """ """
-
     x1 = x[0]
     x2 = x[1]
     term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
