@@ -83,12 +83,12 @@ jobs:
             pg_ctl --version
 
         # Roundabout solution on macos for proper linking with mpicc
-        #- name: Install macOS compilers and older SDK
-          #if: matrix.os == 'macos-latest'
-          #run: |
+        - name: Install macOS compilers and older SDK
+          if: matrix.os == 'macos-latest'
+          run: |
             #wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
             #mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk
-            #conda install clang_osx-64=9.0.1
+            conda install clang_osx-64
 
         - name: Install MPI, mpi4py from conda
           if: matrix.python-version != '3.10'
