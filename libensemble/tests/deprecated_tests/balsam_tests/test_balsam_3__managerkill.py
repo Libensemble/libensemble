@@ -15,7 +15,7 @@ def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
             return True
         elif job.state == "USER_KILLED":
             return False
-        raise RuntimeError("Task %s failed to reach state %s in %.1f seconds" % (job.cute_id, state, timeout_sec))
+        raise RuntimeError(f"Task {job.cute_id} failed to reach state {state} in {timeout_sec:.1f} seconds")
 
 
 myrank = MPI.COMM_WORLD.Get_rank()
@@ -34,7 +34,7 @@ if myrank == 0:
             os.mkdir(sim_path)
         except Exception as e:
             print(e)
-            raise ("Cannot make simulation directory %s" % sim_path)
+            raise (f"Cannot make simulation directory {sim_path}")
 MPI.COMM_WORLD.Barrier()  # Ensure output dir created
 
 print("Host job rank is %d Output dir is %s" % (myrank, sim_input_dir))

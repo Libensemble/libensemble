@@ -234,4 +234,4 @@ if __name__ == "__main__":
             assert F - fstar < err_const * eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
                 F - fstar, err_const * eps, fstar
             )
-            assert consensus_val < eps, "Consensus score of {:.4e}, expected {:.4e}".format(consensus_val, eps)
+            assert consensus_val < eps, f"Consensus score of {consensus_val:.4e}, expected {eps:.4e}"

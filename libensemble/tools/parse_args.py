@@ -127,7 +127,7 @@ def _ssh_parse_args(args):
         str(nworkers),
     ]
     cmd = " ".join(cmd)
-    cmd = "( cd {} ; {} )".format(worker_pwd, cmd)
+    cmd = f"( cd {worker_pwd} ; {cmd} )"
     ssh.append(cmd)
     libE_specs = {"workers": args.workers, "worker_cmd": ssh, "ip": "localhost", "comms": "tcp"}
     return nworkers, True, libE_specs, args.tester_args
@@ -230,5 +230,5 @@ def parse_args():
         os.chdir(args.pwd)
     nworkers, is_manager, libE_specs, tester_args = front_ends[args.comms or "mpi"](args)
     if is_manager and unknown:
-        logger.warning("parse_args ignoring unrecognized arguments: {}".format(" ".join(unknown)))
+        logger.warning(f"parse_args ignoring unrecognized arguments: {' '.join(unknown)}")
     return nworkers, is_manager, libE_specs, tester_args

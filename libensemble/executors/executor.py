@@ -667,7 +667,7 @@ class Executor:
             runline.extend(task.app_args.split())
 
         if dry_run:
-            logger.info(f"Test (No submit) Runline: {" ".join(runline)}")
+            logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
         else:
             # Launch Task
             logger.info(f"Launching task {task.name}: {' '.join(runline)}")

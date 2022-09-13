@@ -45,7 +45,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
     prev_gradf_is = np.zeros((len(A_i_data), n), dtype=float)
 
     if local_gen_id == 1:
-        print("[{}%]: ".format(0), flush=True, end="")
+        print(f"[{0}%]: ", flush=True, end="")
     print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
     percent = 0.1
 
@@ -81,7 +81,7 @@ def n_agent(H, persis_info, gen_specs, libE_info):
 
         if (k + 1) / N >= percent:
             if local_gen_id == 1:
-                print("[{}%]: ".format(int(percent * 100)), flush=True, end="")
+                print(f"[{int(percent * 100)}%]: ", flush=True, end="")
             percent += 0.1
             print_final_score(x_k, f_i_idxs, gen_specs, libE_info)
 

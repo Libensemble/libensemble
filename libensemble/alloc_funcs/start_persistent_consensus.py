@@ -224,12 +224,12 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[wid].update({"at_consensus": False})
 
         if print_obj and print_progress:
-            msg = "F(x)={:.8f}\n".format(fsum)
-            print("{}con={:.4e}".format(msg, np.dot(x, Ax)), flush=True)
+            msg = f"F(x)={fsum:.8f}\n"
+            print(f"{msg}con={np.dot(x, Ax):.4e}", flush=True)
         elif print_obj:
-            print("F(x)={:.8f}".format(fsum), flush=True)
+            print(f"F(x)={fsum:.8f}", flush=True)
         elif print_progress:
-            print("con={:.4e}".format(np.dot(x, Ax)), flush=True)
+            print(f"con={np.dot(x, Ax):.4e}", flush=True)
 
     # partition sum of convex functions evenly (only do at beginning)
     if is_first_iter and len(support.avail_worker_ids(persistent=False)):

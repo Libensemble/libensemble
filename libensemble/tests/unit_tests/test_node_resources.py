@@ -12,12 +12,12 @@ def teardown_standalone_run():
 
 
 def setup_function(function):
-    print("setup_function    function:%s" % function.__name__)
+    print(f"setup_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
 
 
 def teardown_function(function):
-    print("teardown_function    function:%s" % function.__name__)
+    print(f"teardown_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
 
 

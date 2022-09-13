@@ -33,9 +33,9 @@ non_existent_app = "simdir/non_exist.x"
 
 def setup_module(module):
     try:
-        print("setup_module module:%s" % module.__name__)
+        print(f"setup_module module:{module.__name__}")
     except AttributeError:
-        print("setup_module (direct run) module:%s" % module)
+        print(f"setup_module (direct run) module:{module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -43,7 +43,7 @@ def setup_module(module):
 
 
 def setup_function(function):
-    print("setup_function function:%s" % function.__name__)
+    print(f"setup_function function:{function.__name__}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -51,9 +51,9 @@ def setup_function(function):
 
 def teardown_module(module):
     try:
-        print("teardown_module module:%s" % module.__name__)
+        print(f"teardown_module module:{module.__name__}")
     except AttributeError:
-        print("teardown_module (direct run) module:%s" % module)
+        print(f"teardown_module (direct run) module:{module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -210,7 +210,7 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 @pytest.mark.extra
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -225,7 +225,7 @@ def test_launch_and_poll():
 @pytest.mark.extra
 def test_launch_and_wait():
     """Test of launching and waiting on task"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -242,7 +242,7 @@ def test_launch_and_wait():
 @pytest.mark.extra
 def test_launch_and_wait_timeout():
     """Test of launching and waiting on task timeout (and kill)"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -262,7 +262,7 @@ def test_launch_and_wait_timeout():
 @pytest.mark.extra
 def test_launch_wait_on_start():
     """Test of launching task with wait_on_start"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -279,7 +279,7 @@ def test_launch_wait_on_start():
 @pytest.mark.extra
 def test_kill_on_file():
     """Test of killing task based on something in output file"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -292,7 +292,7 @@ def test_kill_on_file():
 
 @pytest.mark.extra
 def test_kill_on_timeout():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -305,7 +305,7 @@ def test_kill_on_timeout():
 
 @pytest.mark.extra
 def test_kill_on_timeout_polling_loop_method():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -318,7 +318,7 @@ def test_kill_on_timeout_polling_loop_method():
 
 @pytest.mark.extra
 def test_launch_and_poll_multitasks():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     task_list = []
@@ -342,7 +342,7 @@ def test_launch_and_poll_multitasks():
 @pytest.mark.extra
 def test_get_task():
     """Return task from given task id"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
 
@@ -355,7 +355,7 @@ def test_get_task():
     args_for_sim = "sleep 0"
     task0 = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     taskid = task0.id
-    print("taskid is: {}".format(taskid))
+    print(f"taskid is: {taskid}")
     A = exctr.get_task(taskid)
     assert A is task0, "Task get_task returned unexpected task" + str(A)
     task0 = polling_loop(exctr, task0)
@@ -369,7 +369,7 @@ def test_get_task():
 @pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
     """Test of supplying various input configurations."""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     # Note: Could test task_partition routine directly - without launching tasks...
 
@@ -459,7 +459,7 @@ def test_doublekill():
 
     Kill should have no effect (except warning message) and should remain in state killed
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -483,7 +483,7 @@ def test_finish_and_kill():
 
     Kill should have no effect (except warning message) and should remain in state FINISHED
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -507,7 +507,7 @@ def test_finish_and_kill():
 @pytest.mark.timeout(20)
 def test_launch_and_kill():
     """Test launching and immediately killing tasks with no poll"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -526,7 +526,7 @@ def test_launch_and_kill():
 
 @pytest.mark.extra
 def test_launch_as_gen():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -557,7 +557,7 @@ def test_launch_as_gen():
 
 @pytest.mark.extra
 def test_launch_no_app():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_noapp()
     exctr = Executor.executor
     cores = NCORES
@@ -580,7 +580,7 @@ def test_launch_no_app():
 def test_kill_task_with_no_submit():
     from libensemble.executors.executor import Task
 
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
 
@@ -611,7 +611,7 @@ def test_kill_task_with_no_submit():
 def test_poll_task_with_no_submit():
     from libensemble.executors.executor import Task
 
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
 
@@ -630,7 +630,7 @@ def test_poll_task_with_no_submit():
 
 @pytest.mark.extra
 def test_task_failure():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
@@ -643,7 +643,7 @@ def test_task_failure():
 
 @pytest.mark.extra
 def test_retries_launch_fail():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
     exctr = Executor.executor
     exctr.retry_delay_incr = 0.05
@@ -657,7 +657,7 @@ def test_retries_launch_fail():
 
 @pytest.mark.extra
 def test_retries_run_fail():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     exctr.retry_delay_incr = 0.05
@@ -671,7 +671,7 @@ def test_retries_run_fail():
 
 @pytest.mark.extra
 def test_register_apps():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()  # This registers an app my_simtask.x (default sim)
     exctr = Executor.executor
     exctr.register_app(full_path="/path/to/fake_app1.x", app_name="fake_app1")
@@ -754,7 +754,7 @@ def test_serial_startup_times():
 
 @pytest.mark.extra
 def test_futures_interface():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     cores = NCORES
     args_for_sim = "sleep 3"
@@ -768,7 +768,7 @@ def test_futures_interface():
 
 @pytest.mark.extra
 def test_futures_interface_cancel():
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     cores = NCORES
     args_for_sim = "sleep 3"
@@ -782,7 +782,7 @@ def test_futures_interface_cancel():
 @pytest.mark.extra
 def test_dry_run():
     """Test of dry_run in poll"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
     cores = NCORES

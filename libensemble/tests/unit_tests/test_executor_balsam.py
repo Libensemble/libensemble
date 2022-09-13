@@ -33,9 +33,9 @@ class LogEventTest:
 
 def setup_module(module):
     try:
-        print("setup_module module:%s" % module.__name__)
+        print(f"setup_module module:{module.__name__}")
     except AttributeError:
-        print("setup_module (direct run) module:%s" % module)
+        print(f"setup_module (direct run) module:{module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -43,9 +43,9 @@ def setup_module(module):
 
 def teardown_module(module):
     try:
-        print("teardown_module module:%s" % module.__name__)
+        print(f"teardown_module module:{module.__name__}")
     except AttributeError:
-        print("teardown_module (direct run) module:%s" % module)
+        print(f"teardown_module (direct run) module:{module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -65,7 +65,7 @@ def setup_executor():
 @pytest.mark.extra
 def test_register_app():
     """Test of registering an App"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
     exctr = Executor.executor
 
@@ -87,7 +87,7 @@ def test_register_app():
 @pytest.mark.extra
 def test_submit_app_defaults():
     """Test of submitting an App"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")
@@ -105,7 +105,7 @@ def test_submit_app_defaults():
 @pytest.mark.extra
 def test_submit_app_workdir():
     """Test of submitting an App with a workdir"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim", workdir="output", machinefile="nope")
@@ -116,7 +116,7 @@ def test_submit_app_workdir():
 @pytest.mark.extra
 def test_submit_app_dry():
     """Test of dry-run submitting an App"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     task = exctr.submit(calc_type="sim", dry_run=True)
     task.poll()
@@ -127,7 +127,7 @@ def test_submit_app_dry():
 @pytest.mark.extra
 def test_submit_app_wait():
     """Test of exctr.submit blocking until app is running"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
         with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog") as log:
@@ -146,7 +146,7 @@ def test_submit_app_wait():
 @pytest.mark.extra
 def test_submit_revoke_alloc():
     """Test creating and revoking BatchJob objects through the executor"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.BatchJob"):
         alloc = exctr.submit_allocation(site_id="libe-unit-test", num_nodes=1, wall_time_min=30)
@@ -167,7 +167,7 @@ def test_submit_revoke_alloc():
 @pytest.mark.extra
 def test_task_poll():
     """Test of killing (cancelling) a balsam app"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
         with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
@@ -195,7 +195,7 @@ def test_task_poll():
 @pytest.mark.extra
 def test_task_wait():
     """Test of killing (cancelling) a balsam app"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
         with mock.patch(
@@ -227,7 +227,7 @@ def test_task_wait():
 @pytest.mark.extra
 def test_task_kill():
     """Test of killing (cancelling) a balsam app"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")

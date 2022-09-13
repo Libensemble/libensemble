@@ -25,7 +25,7 @@ sim_specs = {
 start_time = time.time()
 
 if rank == 0:
-    print("Running comms test on {} processors with {} workers".format(MPI.COMM_WORLD.Get_size(), num_workers))
+    print(f"Running comms test on {MPI.COMM_WORLD.Get_size()} processors with {num_workers} workers")
     # print("Hello from manager")
     status = MPI.Status()
     alldone = False
@@ -45,7 +45,7 @@ if rank == 0:
         if mess_count >= total_num_mess:
             alldone = True
 
-    print("Manager received and checked {} messages".format(mess_count))
+    print(f"Manager received and checked {mess_count} messages")
     print("Manager finished in time", time.time() - start_time)
 
 else:

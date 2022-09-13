@@ -48,7 +48,7 @@ def independent_optimize(H, persis_info, gen_specs, libE_info):
         print_final_score(res.x, f_i_idxs, gen_specs, libE_info)
 
         start_pt, end_pt = f_i_idxs[0], f_i_idxs[-1]
-        print("[Worker {}]: x={}".format(persis_info["worker_num"], res.x[2 * start_pt : 2 * end_pt]), flush=True)
+        print(f"[Worker {persis_info['worker_num']}]: x={res.x[2 * start_pt:2 * end_pt]}", flush=True)
         """
         try:
            res = sciopt.minimize(_f, x0, jac=_df, method="BFGS", tol=eps,

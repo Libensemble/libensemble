@@ -106,10 +106,10 @@ class LegacyBalsamTask(Task):
             elif balsam_state in STATES:  # In my states
                 self.state = balsam_state
             else:
-                logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
+                logger.warning(f"Task finished, but in unrecognized Balsam state {balsam_state}")
                 self.state = "UNKNOWN"
 
-            logger.info("Task {} ended with state {}".format(self.name, self.state))
+            logger.info(f"Task {self.name} ended with state {self.state}")
 
     def poll(self):
         """Polls and updates the status attributes of the supplied task"""
@@ -180,7 +180,7 @@ class LegacyBalsamTask(Task):
         # Could have Wait here and check with Balsam its killed -
         # but not implemented yet.
 
-        logger.info("Killing task {}".format(self.name))
+        logger.info(f"Killing task {self.name}")
         self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
@@ -228,7 +228,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
             deletion_objs = AppDef.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_app in deletion_objs.iterator():
-                    logger.debug("Deleting app {}".format(del_app.name))
+                    logger.debug(f"Deleting app {del_app.name}")
                 deletion_objs.delete()
 
     @staticmethod
@@ -238,7 +238,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
             deletion_objs = models.BalsamJob.objects.filter(name__contains=app_type)
             if deletion_objs:
                 for del_task in deletion_objs.iterator():
-                    logger.debug("Deleting task {}".format(del_task.name))
+                    logger.debug(f"Deleting task {del_task.name}")
                 deletion_objs.delete()
 
     @staticmethod
@@ -252,7 +252,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
         # app.default_preprocess = '' # optional
         # app.default_postprocess = '' # optional
         app.save()
-        logger.debug("Added App {}".format(app.name))
+        logger.debug(f"Added App {app.name}")
 
     def set_resources(self, resources):
         self.resources = resources
@@ -323,7 +323,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
 
         if dry_run:
             task.dry_run = True
-            logger.info("Test (No submit) Runline: {}".format(" ".join(add_task_args)))
+            logger.info(f"Test (No submit) Runline: {' '.join(add_task_args)}")
             task._set_complete(dry_run=True)
         else:
             task.process = dag.add_job(**add_task_args)
@@ -336,7 +336,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
             logger.info(
-                "Added task to Balsam database {}: " "nodes {} ppn {}".format(task.name, num_nodes, procs_per_node)
+                f"Added task to Balsam database {task.name}: nodes {num_nodes} ppn {procs_per_node}"
             )
 
             # task.workdir = task.process.working_directory  # Might not be set yet!

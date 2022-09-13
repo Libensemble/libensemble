@@ -179,7 +179,7 @@ class AllocSupport:
         }
 
         logger.debug(
-            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(wid, extract_H_ranges(work) or None)
+            f"Alloc func packing SIM work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}"
         )
         return work
 
@@ -221,7 +221,7 @@ class AllocSupport:
         }
 
         logger.debug(
-            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(wid, extract_H_ranges(work) or None)
+            f"Alloc func packing GEN work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}"
         )
         return work
 
@@ -316,14 +316,14 @@ class AllocSupport:
         try:
             H_rows = np.fromiter(H_rows, int)
         except Exception:
-            raise AllocException("H_rows could not be converted to a numpy array. Type {}".format(type(H_rows)))
+            raise AllocException(f"H_rows could not be converted to a numpy array. Type {type(H_rows)}")
         return H_rows
 
     @staticmethod
     def _check_H_fields(H_fields):
         """Ensure no duplicates in H_fields"""
         if len(H_fields) != len(set(H_fields)):
-            logger.debug("Removing duplicate field(s) when packing work request. {}".format(H_fields))
+            logger.debug(f"Removing duplicate field(s) when packing work request. {H_fields}")
             H_fields = list(set(H_fields))
             # H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
         return H_fields

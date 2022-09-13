@@ -69,20 +69,20 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
         for task in task_list:
             if not task.finished:
                 time.sleep(delay)
-                print("Polling task {0} at time {1}".format(task.id, time.time() - start))
+                print(f"Polling task {task.id} at time {time.time() - start}")
                 task.poll()
 
                 if task.finished:
                     continue
                 elif task.state == "WAITING":
-                    print("Task {0} waiting to execute".format(task.id))
+                    print(f"Task {task.id} waiting to execute")
                 elif task.state == "RUNNING":
-                    print("Task {0} still running ....".format(task.id))
+                    print(f"Task {task.id} still running ....")
 
                 # Check output file for error
                 if task.stdout_exists():
                     if "Error" in task.read_stdout():
-                        print("Found (deliberate) Error in output file - " "cancelling task {}".format(task.id))
+                        print(f"Found (deliberate) Error in output file - cancelling task {task.id}")
                         exctr.kill(task)
                         time.sleep(delay)  # Give time for kill
                         continue
@@ -99,21 +99,21 @@ def polling_loop(exctr, task_list, timeout_sec=40.0, delay=1.0):
     for task in task_list:
         if task.finished:
             if task.state == "FINISHED":
-                print("Task {0} finished successfully. Status: {1}".format(task.id, task.state))
+                print(f"Task {task.id} finished successfully. Status: {task.state}")
             elif task.state == "FAILED":
-                print("Task {0} failed. Status: {1}".format(task.id, task.state))
+                print(f"Task {task.id} failed. Status: {task.state}")
             elif task.state == "USER_KILLED":
-                print("Task {0} has been killed. Status: {1}".format(task.id, task.state))
+                print(f"Task {task.id} has been killed. Status: {task.state}")
             else:
-                print("Task {0} status: {1}".format(task.id, task.state))
+                print(f"Task {task.id} status: {task.state}")
         else:
-            print("Task {0} timed out. Status: {1}".format(task.id, task.state))
+            print(f"Task {task.id} timed out. Status: {task.state}")
             exctr.kill(task)
             if task.finished:
-                print("Task {0} Now killed. Status: {1}".format(task.id, task.state))
+                print(f"Task {task.id} Now killed. Status: {task.state}")
                 # double check
                 task.poll()
-                print("Task {0} state is {1}".format(task.id, task.state))
+                print(f"Task {task.id} state is {task.state}")
 
 
 # Tests

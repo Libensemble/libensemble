@@ -19,7 +19,7 @@ def teardown_standalone_run():
 
 
 def setup_function(function):
-    print("setup_function    function:%s" % function.__name__)
+    print(f"setup_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
     # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
     #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
@@ -30,7 +30,7 @@ def setup_function(function):
 
 
 def teardown_function(function):
-    print("teardown_function    function:%s" % function.__name__)
+    print(f"teardown_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
     # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
     #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
@@ -259,7 +259,7 @@ def test_remove_libE_nodes():
 
 def _assert_worker_attr(wres, attr, exp):
     ret = getattr(wres, attr)
-    assert ret == exp, "{} returned does not match expected.  \nRet: {}\nExp: {}".format(attr, ret, exp)
+    assert ret == exp, f"{attr} returned does not match expected.  \nRet: {ret}\nExp: {exp}"
 
 
 # These are all 1 worker per rset.

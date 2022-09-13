@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 def _check_consistent_field(name, field0, field1):
     """Checks that new field (field1) is compatible with an old field (field0)."""
-    assert field0.ndim == field1.ndim, "H0 and H have different ndim for field {}".format(name)
+    assert field0.ndim == field1.ndim, f"H0 and H have different ndim for field {name}"
     assert np.all(
         np.array(field1.shape) >= np.array(field0.shape)
-    ), "H too small to receive all components of H0 in field {}".format(name)
+    ), f"H too small to receive all components of H0 in field {name}"
 
 
 def check_libE_specs(libE_specs, serial_check=False):
@@ -40,25 +40,25 @@ def check_libE_specs(libE_specs, serial_check=False):
         )
 
         if k in ["ensemble_copy_back", "use_worker_dirs", "sim_dirs_make", "gen_dirs_make"]:
-            assert isinstance(libE_specs[k], bool), "Value for libE_specs['{}'] must be boolean".format(k)
+            assert isinstance(libE_specs[k], bool), f"Value for libE_specs['{k}'] must be boolean"
 
         if k in ["sim_input_dir", "gen_input_dir"]:
             assert isinstance(
                 libE_specs[k], str
-            ), "Value for libE_specs['{}'] must be a single path-like string".format(k)
-            assert os.path.exists(libE_specs[k]), "libE_specs['{}'] does not refer to an existing path.".format(k)
+            ), f"Value for libE_specs['{k}'] must be a single path-like string"
+            assert os.path.exists(libE_specs[k]), f"libE_specs['{k}'] does not refer to an existing path."
 
         if k == "ensemble_dir_path":
             assert isinstance(
                 libE_specs[k], str
-            ), "Value for libE_specs['{}'] must be a single path-like string".format(k)
+            ), f"Value for libE_specs['{k}'] must be a single path-like string"
 
         if k in ["sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files"]:
             assert isinstance(
                 libE_specs[k], list
-            ), "Value for libE_specs['{}'] must be a list of path-like strings".format(k)
+            ), f"Value for libE_specs['{k}'] must be a list of path-like strings"
             for j in libE_specs[k]:
-                assert os.path.exists(j), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(j, k)
+                assert os.path.exists(j), f"'{j}' in libE_specs['{k}'] does not refer to an existing path."
 
 
 def check_alloc_specs(alloc_specs):
