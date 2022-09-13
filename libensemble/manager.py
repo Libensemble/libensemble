@@ -339,9 +339,7 @@ class Manager:
 
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
-        logger.debug(
-            f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}"
-        )
+        logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
         if len(work_rows):
             if "repack_fields" in globals():
                 new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]

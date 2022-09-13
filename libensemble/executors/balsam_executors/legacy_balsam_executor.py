@@ -335,9 +335,7 @@ class LegacyBalsamMPIExecutor(MPIExecutor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info(
-                f"Added task to Balsam database {task.name}: nodes {num_nodes} ppn {procs_per_node}"
-            )
+            logger.info(f"Added task to Balsam database {task.name}: nodes {num_nodes} ppn {procs_per_node}")
 
             # task.workdir = task.process.working_directory  # Might not be set yet!
         self.list_of_tasks.append(task)

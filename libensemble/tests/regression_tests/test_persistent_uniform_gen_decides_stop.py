@@ -89,6 +89,8 @@ if __name__ == "__main__":
 
         gen_workers = np.unique(H["gen_worker"])
         print("Generators that issued points", gen_workers)
-        assert len(gen_workers) == ngens, f"The number of gens used {len(gen_workers)} does not match num_active_gens {ngens}"
+        assert (
+            len(gen_workers) == ngens
+        ), f"The number of gens used {len(gen_workers)} does not match num_active_gens {ngens}"
 
         save_libE_output(H, persis_info, __file__, nworkers)

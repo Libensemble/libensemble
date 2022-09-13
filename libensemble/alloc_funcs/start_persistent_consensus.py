@@ -133,9 +133,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             )[0]
 
             if len(consensus_sim_ids) > 0:
-                assert (
-                    len(consensus_sim_ids) == 1
-                ), "Gen should only send one " + f"point for consensus step, received {len(consensus_sim_ids)}"
+                assert len(consensus_sim_ids) == 1, (
+                    "Gen should only send one " + f"point for consensus step, received {len(consensus_sim_ids)}"
+                )
 
                 # re-center (since the last_H_len has relative index 0)
                 sim_id = consensus_sim_ids[0] + last_H_len

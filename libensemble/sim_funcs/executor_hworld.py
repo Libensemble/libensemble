@@ -40,8 +40,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
         if task.stdout_exists():
             if "Error" in task.read_stdout():
                 print(
-                    "Found (deliberate) Error in output file - cancelling "
-                    f"task {task.id} on worker {exctr.workerID}"
+                    "Found (deliberate) Error in output file - cancelling " f"task {task.id} on worker {exctr.workerID}"
                 )
                 exctr.kill(task)
                 calc_status = WORKER_KILL_ON_ERR

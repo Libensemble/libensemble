@@ -178,9 +178,7 @@ class AllocSupport:
             "libE_info": libE_info,
         }
 
-        logger.debug(
-            f"Alloc func packing SIM work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}"
-        )
+        logger.debug(f"Alloc func packing SIM work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}")
         return work
 
     def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
@@ -220,9 +218,7 @@ class AllocSupport:
             "libE_info": libE_info,
         }
 
-        logger.debug(
-            f"Alloc func packing GEN work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}"
-        )
+        logger.debug(f"Alloc func packing GEN work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}")
         return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):

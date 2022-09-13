@@ -282,7 +282,8 @@ class ResourceScheduler:
                     rsets_req = num_groups_req * rsets_per_group
                     self.log_msg = (
                         "Increasing resource requirement to obtain an even partition of resource sets\n"
-                        f"to nodes. rsets_req orig: {orig_rsets_req} New: {rsets_req}  num_groups_req {num_groups_req} rsets_per_group {rsets_per_group}"
+                        f"to nodes. rsets_req orig: {orig_rsets_req} New: {rsets_req} "
+                        f"  num_groups_req {num_groups_req} rsets_per_group {rsets_per_group}"
                     )
                 else:
                     rsets_per_group = max_grpsize

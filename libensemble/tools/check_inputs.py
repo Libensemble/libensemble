@@ -43,20 +43,14 @@ def check_libE_specs(libE_specs, serial_check=False):
             assert isinstance(libE_specs[k], bool), f"Value for libE_specs['{k}'] must be boolean"
 
         if k in ["sim_input_dir", "gen_input_dir"]:
-            assert isinstance(
-                libE_specs[k], str
-            ), f"Value for libE_specs['{k}'] must be a single path-like string"
+            assert isinstance(libE_specs[k], str), f"Value for libE_specs['{k}'] must be a single path-like string"
             assert os.path.exists(libE_specs[k]), f"libE_specs['{k}'] does not refer to an existing path."
 
         if k == "ensemble_dir_path":
-            assert isinstance(
-                libE_specs[k], str
-            ), f"Value for libE_specs['{k}'] must be a single path-like string"
+            assert isinstance(libE_specs[k], str), f"Value for libE_specs['{k}'] must be a single path-like string"
 
         if k in ["sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files"]:
-            assert isinstance(
-                libE_specs[k], list
-            ), f"Value for libE_specs['{k}'] must be a list of path-like strings"
+            assert isinstance(libE_specs[k], list), f"Value for libE_specs['{k}'] must be a list of path-like strings"
             for j in libE_specs[k]:
                 assert os.path.exists(j), f"'{j}' in libE_specs['{k}'] does not refer to an existing path."
 

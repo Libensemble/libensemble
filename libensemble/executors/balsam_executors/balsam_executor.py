@@ -382,8 +382,7 @@ class BalsamExecutor(Executor):
         self.allocations.append(allocation)
 
         logger.info(
-            f"Submitted Batch allocation to site {site_id}: "
-            f"nodes {num_nodes} queue {queue} project {project}"
+            f"Submitted Batch allocation to site {site_id}: " f"nodes {num_nodes} queue {queue} project {project}"
         )
 
         return allocation
@@ -560,9 +559,7 @@ class BalsamExecutor(Executor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info(
-                f"Submitted Balsam App to site {App.site}: " "nodes {num_nodes} ppn {procs_per_node}"
-            )
+            logger.info(f"Submitted Balsam App to site {App.site}: " "nodes {num_nodes} ppn {procs_per_node}")
 
         self.list_of_tasks.append(task)
         return task

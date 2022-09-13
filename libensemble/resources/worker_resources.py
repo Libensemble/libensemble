@@ -73,8 +73,7 @@ class ResourceManager(RSetResources):
                     self.rsets_free -= 1
                 elif wid != worker_id:
                     ResourceManagerException(
-                        f"Error: Attempting to assign rsets {rset_team}"
-                        f" already assigned to workers: {rteam}"
+                        f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
                     )
 
     def free_rsets(self, worker=None):

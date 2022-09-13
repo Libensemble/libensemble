@@ -90,8 +90,7 @@ class PersistentSupport:
         # Check for unexpected STOP (e.g. error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug(
-                f"Persistent {self.calc_str} received signal {tag} "
-                + "from manager while expecting work rows"
+                f"Persistent {self.calc_str} received signal {tag} " + "from manager while expecting work rows"
             )
             self.comm.push_to_buffer(data_tag, calc_in)
             return data_tag, calc_in, None  # calc_in is signal identifier

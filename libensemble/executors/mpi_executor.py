@@ -114,9 +114,7 @@ class MPIExecutor(Executor):
                         start_new_session=subgroup_launch,
                     )
             except Exception as e:
-                logger.warning(
-                    f"task {task.name} submit command failed on try {retry_count} with error {e}"
-                )
+                logger.warning(f"task {task.name} submit command failed on try {retry_count} with error {e}")
                 retry = True
                 retry_count += 1
             else:

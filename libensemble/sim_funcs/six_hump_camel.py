@@ -149,7 +149,8 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     cores_per_node = resources.slot_count  # One CPU per GPU
 
     print(
-        f"Worker {libE_info['workerID']}: CUDA_VISIBLE_DEVICES={os.environ['CUDA_VISIBLE_DEVICES']}  \tnodes {num_nodes} ppn {cores_per_node}  slots {slots}"
+        f"Worker {libE_info['workerID']}: CUDA_VISIBLE_DEVICES={os.environ['CUDA_VISIBLE_DEVICES']}"
+        f"\tnodes {num_nodes} ppn {cores_per_node}  slots {slots}"
     )
 
     # Create application input file

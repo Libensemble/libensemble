@@ -193,13 +193,9 @@ class Task:
 
     def _check_poll(self):
         """Check whether polling this task makes sense."""
-        jassert(
-            self.process is not None, f"Polled task {self.name} has no process ID - check tasks been launched"
-        )
+        jassert(self.process is not None, f"Polled task {self.name} has no process ID - check tasks been launched")
         if self.finished:
-            logger.debug(
-                f"Polled task {self.name} has already finished. Not re-polling. Status is {self.state}"
-            )
+            logger.debug(f"Polled task {self.name} has already finished. Not re-polling. Status is {self.state}")
             return False
         return True
 
@@ -313,9 +309,7 @@ class Task:
             return
 
         if self.finished:
-            logger.warning(
-                f"Trying to kill task that is no longer running. Task {self.name}: Status is {self.state}"
-            )
+            logger.warning(f"Trying to kill task that is no longer running. Task {self.name}: Status is {self.state}")
             return
 
         if self.process is None:
@@ -378,6 +372,7 @@ class Executor:
                     task.poll()
                     remaining = fail_time - task.timer.elapsed
                 logger.debug(f"After {task.timer.elapsed} seconds: task {task.name} polled as {task.state}")
+
     def __init__(self):
         """Instantiate a new Executor instance.
 
@@ -559,9 +554,7 @@ class Executor:
             elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
-                logger.warning(
-                    f"Warning: Task {self.name} in unknown state {self.state}. Error code {self.errcode}"
-                )
+                logger.warning(f"Warning: Task {self.name} in unknown state {self.state}. Error code {self.errcode}")
 
         return calc_status
 
