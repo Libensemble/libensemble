@@ -168,10 +168,19 @@ class LibeSpecs(BaseModel):
         return value
 
     @root_validator
-    def check_any_workers(cls, values):
-        if values.get("comms") in ["local", "tcp"]:
+    def check_any_workers_and_disable_rm_if_tcp(cls, values):
+        comms_type = values.get("comms")
+        if comms_type in ["local", "tcp"]:
             assert values.get("nworkers") >= 1, "Must specify at least one worker"
+        if comms_type == "tcp":
+            values["disable_resource_manager"] = True  # Resource management not supported with TCP
         return values
+
+    @root_validator
+    def check_set_comm_world(cls, values):
+        if not values.get("mpi_comm"):
+            from mpi4py import MPI
+            values["mpi_comm"] = MPI.COMM_WORLD
 
 
 class Ensemble(BaseModel):
