@@ -191,6 +191,7 @@ class Ensemble(BaseModel):
     gen_specs: Optional[GenSpecs]
     alloc_specs: Optional[AllocSpecs]
     exit_criteria: ExitCriteria
+    nworkers: Optional[int]
 
     class Config:
         arbitrary_types_allowed = True
@@ -234,6 +235,12 @@ class Ensemble(BaseModel):
                     "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
                 )
         return values
+
+    @root_validator
+    def set_ensemble_nworkers(cls, values):
+        if values.get("libE_specs"):
+            values["nworkers"] = values["libE_specs"]["nworkers"]
+            return values
 
     @root_validator
     def check_H0(cls, values):

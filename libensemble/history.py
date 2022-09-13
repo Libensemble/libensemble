@@ -41,16 +41,18 @@ class History:
 
     # Not currently using libE_specs, persis_info - need to add parameters
     # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
-    def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+    def __init__(self, ensemble):
         """
         Forms the numpy structured array that records everything from the
         libEnsemble run
 
         """
-        L = exit_criteria.get("sim_max", 100)
+
+        H0 = ensemble.H0
+        L = ensemble.exit_criteria.get("sim_max", 100)
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        specs = [sim_specs, alloc_specs, gen_specs]
+        specs = [ensemble.sim_specs, ensemble.alloc_specs, ensemble.gen_specs]
         dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
         H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
 
@@ -60,8 +62,6 @@ class History:
 
             for field in fields:
                 H[field][: len(H0)] = H0[field]
-                # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
-                #     H[field][ind] = val
 
             if "sim_started" not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
