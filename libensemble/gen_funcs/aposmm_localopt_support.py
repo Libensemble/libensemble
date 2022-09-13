@@ -24,7 +24,7 @@ else:
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
-        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+        print(f'APOSMM Warning: unrecognized optimizers {unrec}')
 
     if 'petsc' in optimizers:
         from petsc4py import PETSc

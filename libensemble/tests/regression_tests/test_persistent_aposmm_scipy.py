@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
                 if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
                     min_found += 1
-            assert min_found >= 4, "Found {} minima".format(min_found)
+            assert min_found >= 4, f"Found {min_found} minima"
 
             save_libE_output(H, persis_info, __file__, nworkers)
 

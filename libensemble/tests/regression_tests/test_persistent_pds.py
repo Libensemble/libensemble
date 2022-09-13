@@ -196,7 +196,7 @@ if __name__ == "__main__":
         )
 
         if is_manager:
-            print("=== Optimizing {} ===".format(prob_name), flush=True)
+            print(f"=== Optimizing {prob_name} ===", flush=True)
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 

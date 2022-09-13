@@ -102,8 +102,8 @@ class MPIExecutor(Executor):
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
-                retry_string = " (Retry {})".format(retry_count) if retry_count > 0 else ""
-                logger.info("Launching task {}{}: {}".format(task.name, retry_string, " ".join(runline)))
+                retry_string = f" (Retry {retry_count})" if retry_count > 0 else ""
+                logger.info(f"Launching task {task.name}{retry_string}: {' '.join(runline)}")
                 task.run_attempts += 1
                 with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
@@ -115,7 +115,7 @@ class MPIExecutor(Executor):
                     )
             except Exception as e:
                 logger.warning(
-                    "task {} submit command failed on try {} with error {}".format(task.name, retry_count, e)
+                    f"task {task.name} submit command failed on try {retry_count} with error {e}"
                 )
                 retry = True
                 retry_count += 1
@@ -125,14 +125,14 @@ class MPIExecutor(Executor):
 
                 if task.state == "FAILED":
                     logger.warning(
-                        "task {} failed within fail_time on "
-                        "try {} with err code {}".format(task.name, retry_count, task.errcode)
+                        f"task {task.name} failed within fail_time on "
+                        f"try {retry_count} with err code {task.errcode}"
                     )
                     retry = True
                     retry_count += 1
 
             if retry and retry_count < self.max_launch_attempts:
-                logger.debug("Retry number {} for task {}".format(retry_count, task.name))
+                logger.debug(f"Retry number {retry_count} for task {task.name}")
                 time.sleep(retry_count * self.retry_delay_incr)
                 task.reset()  # Some cases may require user cleanup
             else:
@@ -265,7 +265,7 @@ class MPIExecutor(Executor):
         task.runline = " ".join(runline)  # Allow to be queried
         if dry_run:
             task.dry_run = True
-            logger.info("Test (No submit) Runline: {}".format(" ".join(runline)))
+            logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
             task._set_complete(dry_run=True)
         else:
             # Launch Task

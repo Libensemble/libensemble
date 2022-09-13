@@ -427,10 +427,10 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
     if opt_flag:
         if np.any(failsafe):
-            print("[APOSMM] This run has {} point(s) with smaller 'f' value within {} of "
+            print(f"[APOSMM] This run has {sum(failsafe)} point(s) with smaller 'f' value within {tol_x2} of "
                   "the point ruled to be the run minimum. \nMarking all as being "
                   "a 'local_min' to prevent APOSMM from starting another run "
-                  "immediately from these points.".format(sum(failsafe), tol_x2))
+                  "immediately from these points.")
             print("[APOSMM] Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
             print("[APOSMM] Check that the local optimizer is working correctly", flush=True)
             H['local_min'][run_inds[failsafe]] = 1
@@ -666,7 +666,7 @@ def initialize_children(user_specs):
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
     else:
-        raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
+        raise NotImplementedError(f"Unknown local optimization method " "'{user_specs['localopt_method']}'.")
 
     return local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass
 

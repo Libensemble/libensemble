@@ -51,7 +51,7 @@ def borehole(H, persis_info, sim_specs, libE_info):
         if (f / borehole_true(H["x"])) > 1.25:
             f = np.inf
             calc_status = TASK_FAILED
-            print("Failure of sim_id {}".format(sim_id), flush=True)
+            print(f"Failure of sim_id {sim_id}", flush=True)
 
     H_o["f"] = f
     return H_o, persis_info, calc_status

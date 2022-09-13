@@ -101,7 +101,7 @@ class RSetResources:
 
         if not RSetResources.even_assignment(num_nodes, num_rsets):
             logger.warning(
-                "Resource sets ({}) are not distributed evenly to available nodes ({})".format(num_rsets, num_nodes)
+                f"Resource sets ({num_rsets}) are not distributed evenly to available nodes ({num_nodes})"
             )
 
         # If multiple workers per node - create global node_list with N duplicates (for N workers per node)
@@ -113,7 +113,7 @@ class RSetResources:
 
         # Divide global list between workers
         split_list = list(RSetResources.best_split(global_nodelist, num_rsets))
-        logger.debug("split_list is {}".format(split_list))
+        logger.debug(f"split_list is {split_list}")
         return split_list, local_rsets_list
 
     @staticmethod

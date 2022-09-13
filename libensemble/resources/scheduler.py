@@ -87,7 +87,7 @@ class ResourceScheduler:
 
         if rsets_req > self.resources.total_num_rsets:
             raise InsufficientResourcesError(
-                "More resource sets requested {} than exist {}".format(rsets_req, self.resources.total_num_rsets)
+                f"More resource sets requested {rsets_req} than exist {self.resources.total_num_rsets}"
             )
 
         if rsets_req > self.rsets_free:
@@ -156,9 +156,7 @@ class ResourceScheduler:
             logger.debug(self.log_msg)
 
         logger.debug(
-            "rset_team found: Req: {} rsets. Found: {} Avail sets {}".format(
-                rsets_req, rset_team, self.avail_rsets_by_group
-            )
+            f"rset_team found: Req: {rsets_req} rsets. Found: {rset_team} Avail sets {self.avail_rsets_by_group}"
         )
 
         return rset_team
@@ -284,9 +282,7 @@ class ResourceScheduler:
                     rsets_req = num_groups_req * rsets_per_group
                     self.log_msg = (
                         "Increasing resource requirement to obtain an even partition of resource sets\n"
-                        "to nodes. rsets_req orig: {} New: {}  num_groups_req {} rsets_per_group {}".format(
-                            orig_rsets_req, rsets_req, num_groups_req, rsets_per_group
-                        )
+                        f"to nodes. rsets_req orig: {orig_rsets_req} New: {rsets_req}  num_groups_req {num_groups_req} rsets_per_group {rsets_per_group}"
                     )
                 else:
                     rsets_per_group = max_grpsize

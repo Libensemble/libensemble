@@ -106,7 +106,7 @@ def modify_Balsam_pyCoverage():
     old_line = "            path = ' '.join((exe, script_path, args))\n"
     new_line = (
         "            path = ' '.join((exe, '-m coverage run "
-        + "--parallel-mode --rcfile={}', script_path, args))\n".format(rcfile)
+        + f"--parallel-mode --rcfile={rcfile}', script_path, args))\n"
     )
 
     commandfile = "cli_commands.py"

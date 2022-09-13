@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     if nsim_workers % 2 == 0:
         sys.exit(
-            "This test must be run with an odd of workers >= 3 and <= 31. There are {} workers.".format(nsim_workers)
+            f"This test must be run with an odd of workers >= 3 and <= 31. There are {nsim_workers} workers."
         )
 
     comms = libE_specs["comms"]

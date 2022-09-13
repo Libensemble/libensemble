@@ -133,4 +133,4 @@ if __name__ == "__main__":
         print("Killed sims", H["sim_id"][H["kill_sent"]])
         sims_done = np.count_nonzero(H["sim_ended"])
         save_libE_output(H, persis_info, __file__, nworkers)
-        assert sims_done == max_evals, "Num of completed simulations should be {}. Is {}".format(max_evals, sims_done)
+        assert sims_done == max_evals, f"Num of completed simulations should be {max_evals}. Is {sims_done}"

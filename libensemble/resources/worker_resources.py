@@ -73,8 +73,8 @@ class ResourceManager(RSetResources):
                     self.rsets_free -= 1
                 elif wid != worker_id:
                     ResourceManagerException(
-                        "Error: Attempting to assign rsets {}"
-                        " already assigned to workers: {}".format(rset_team, rteam)
+                        f"Error: Attempting to assign rsets {rset_team}"
+                        f" already assigned to workers: {rteam}"
                     )
 
     def free_rsets(self, worker=None):
@@ -314,7 +314,7 @@ class WorkerResources(RSetResources):
             team_list += split_list[index]
 
         local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
-        logger.debug("Worker's local_nodelist is {}".format(local_nodelist))
+        logger.debug(f"Worker's local_nodelist is {local_nodelist}")
 
         slots = {}
         for node in local_nodelist:

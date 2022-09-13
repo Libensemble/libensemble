@@ -28,20 +28,20 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
         if exctr.manager_signal == "finish":
             exctr.kill(task)
             calc_status = MAN_SIGNAL_FINISH  # Worker will pick this up and close down
-            print("Task {} killed by manager on worker {}".format(task.id, exctr.workerID))
+            print(f"Task {task.id} killed by manager on worker {exctr.workerID}")
             break
 
         task.poll()
         if task.finished:
             break
         elif task.state == "RUNNING":
-            print("Task {} still running on worker {} ....".format(task.id, exctr.workerID))
+            print(f"Task {task.id} still running on worker {exctr.workerID} ....")
 
         if task.stdout_exists():
             if "Error" in task.read_stdout():
                 print(
                     "Found (deliberate) Error in output file - cancelling "
-                    "task {} on worker {}".format(task.id, exctr.workerID)
+                    f"task {task.id} on worker {exctr.workerID}"
                 )
                 exctr.kill(task)
                 calc_status = WORKER_KILL_ON_ERR
@@ -49,7 +49,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
 
     # After exiting loop
     if task.finished:
-        print("Task {} done on worker {}".format(task.id, exctr.workerID))
+        print(f"Task {task.id} done on worker {exctr.workerID}")
         # Fill in calc_status if not already
         if calc_status == UNSET_TAG:
             if task.state == "FINISHED":  # Means finished successfully
@@ -59,10 +59,10 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
 
     else:
         # assert task.state == 'RUNNING', "task.state expected to be RUNNING. Returned: " + str(task.state)
-        print("Task {} timed out - killing on worker {}".format(task.id, exctr.workerID))
+        print(f"Task {task.id} timed out - killing on worker {exctr.workerID}")
         exctr.kill(task)
         if task.finished:
-            print("Task {} done on worker {}".format(task.id, exctr.workerID))
+            print(f"Task {task.id} done on worker {exctr.workerID}")
         calc_status = WORKER_KILL_ON_TIMEOUT
 
     return task, calc_status

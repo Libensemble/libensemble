@@ -93,7 +93,7 @@ class Ensemble:
         Returns pretty-printed representation of Ensemble object. Depicts libEnsemble
         version, plus representations of major specification dicts.
         """
-        info = "\nlibEnsemble {}\n".format(__version__) + 79 * "*" + "\n"
+        info = f"\nlibEnsemble {__version__}\n" + 79 * "*" + "\n"
         info += "\nCalling Script: " + self._filename.split("/")[-1] + "\n"
 
         dicts = {
@@ -106,7 +106,7 @@ class Ensemble:
         }
 
         for i in dicts:
-            info += "{}:\n {} \n\n".format(i, pprint.pformat(dicts[i]))
+            info += f"{i}:\n {pprint.pformat(dicts[i])} \n\n"
 
         info += 79 * "*"
         return info

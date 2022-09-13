@@ -162,7 +162,7 @@ class BalsamTask(Task):
             else:
                 self.state = balsam_state
 
-        logger.info("Task {} ended with state {}".format(self.name, self.state))
+        logger.info(f"Task {self.name} ended with state {self.state}")
 
     def poll(self):
         """Polls and updates the status attributes of the supplied task. Requests
@@ -245,7 +245,7 @@ class BalsamTask(Task):
         """Cancels the supplied task. Killing is unsupported at this time."""
         self.process.delete()
 
-        logger.info("Killing task {}".format(self.name))
+        logger.info(f"Killing task {self.name}")
         self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
@@ -382,8 +382,8 @@ class BalsamExecutor(Executor):
         self.allocations.append(allocation)
 
         logger.info(
-            "Submitted Batch allocation to site {}: "
-            "nodes {} queue {} project {}".format(site_id, num_nodes, queue, project)
+            f"Submitted Batch allocation to site {site_id}: "
+            f"nodes {num_nodes} queue {queue} project {project}"
         )
 
         return allocation
@@ -529,7 +529,7 @@ class BalsamExecutor(Executor):
 
         if dry_run:
             task.dry_run = True
-            logger.info("Test (No submit) Balsam app {}".format(app_name))
+            logger.info(f"Test (No submit) Balsam app {app_name}")
             task._set_complete(dry_run=True)
         else:
             App = app.pyobj
@@ -561,7 +561,7 @@ class BalsamExecutor(Executor):
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
             logger.info(
-                "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
+                f"Submitted Balsam App to site {App.site}: " "nodes {num_nodes} ppn {procs_per_node}"
             )
 
         self.list_of_tasks.append(task)
