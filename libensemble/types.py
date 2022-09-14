@@ -184,7 +184,7 @@ class LibeSpecs(BaseModel):
     #     return values
 
 
-class Ensemble(BaseModel):
+class EnsembleSpec(BaseModel):
     H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
     sim_specs: SimSpecs

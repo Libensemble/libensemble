@@ -178,7 +178,7 @@ from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.tools.alloc_support import AllocSupport
-from libensemble.types import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs, Ensemble
+from libensemble.types import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs, EnsembleSpec
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -192,8 +192,7 @@ def libE(sim_specs: SimSpecs,
          persis_info: Dict = {},
          alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
          libE_specs: LibeSpecs = {},
-         H0: np.ndarray = np.empty(0),
-         ensemble: Ensemble = None) -> (np.ndarray, Dict, int):
+         H0: np.ndarray = np.empty(0)) -> (np.ndarray, Dict, int):
     """
     Parameters
     ----------
@@ -259,9 +258,16 @@ def libE(sim_specs: SimSpecs,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    if not ensemble:
-        ensemble = Ensemble(H0=H0, libE_specs=libE_specs, persis_info=persis_info, sim_spec=sim_specs,
-                            gen_specs=gen_specs, alloc_specs=alloc_specs, exit_criteria=exit_criteria)
+    # check *everything*
+    ensemble = EnsembleSpec(H0=H0, libE_specs=libE_specs, persis_info=persis_info, sim_specs=sim_specs,
+                        gen_specs=gen_specs, alloc_specs=alloc_specs, exit_criteria=exit_criteria)
+
+    # get corresponding dictionaries back (casted in libE() def)
+    sim_specs = ensemble.sim_specs.dict(by_alias=True, exclude_unset=True)
+    gen_specs = ensemble.gen_specs.dict(by_alias=True, exclude_unset=True)
+    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
+    alloc_specs = ensemble.alloc_specs.dict(by_alias=True, exclude_unset=True)
+    libE_specs = ensemble.libE_specs.dict(by_alias=True, exclude_unset=True)
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
@@ -270,12 +276,17 @@ def libE(sim_specs: SimSpecs,
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    return libE_funcs[libE_specs.comms](ensemble)
+    return libE_funcs[libE_specs["comms"]](sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
 
 
 def manager(
     wcomms,
-    ensemble: Ensemble,
+    sim_specs,
+    gen_specs,
+    exit_criteria,
+    persis_info,
+    alloc_specs,
+    libE_specs,
     hist: np.ndarray,
     on_abort: Callable=None,
     on_cleanup: Callable=None,
@@ -284,13 +295,13 @@ def manager(
     logger.info("Logger initializing: [workerID] precedes each line. [0] = Manager")
     logger.info(f"libE version v{__version__}")
 
-    if ensemble.gen_specs.out and ("sim_id", int) in ensemble.gen_specs.out:
+    if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
         logger.manager_warning(_USER_SIM_ID_WARNING)
 
     try:
         try:
             persis_info, exit_flag, elapsed_time = manager_main(
-                hist, ensemble, wcomms
+                hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info, wcomms
             )
             logger.info(f"Manager total time: {elapsed_time}")
         except LoggedException:  # Exception already logged in manager
@@ -303,8 +314,8 @@ def manager(
             raise LoggedException(e.args) from None
     except Exception as e:
         exit_flag = 1  # Only exits if no abort/raise
-        _dump_on_abort(hist, ensemble.persis_info, save_H=ensemble.libE_specs.save_H_and_persis_on_abort)
-        if ensemble.libE_specs.abort_on_exception and on_abort is not None:
+        _dump_on_abort(hist, persis_info, save_H=libE_specs["save_H_and_persis_on_abort"])
+        if libE_specs.get("abort_on_exception", True) and on_abort is not None:
             on_cleanup()
             on_abort()
         raise LoggedException(*e.args, "See error details above and in ensemble.log") from None
@@ -341,15 +352,15 @@ def comms_abort(mpi_comm):
     """Abort all MPI ranks"""
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
-@validate_arguments
-def libE_mpi(ensemble):
+
+def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
     from mpi4py import MPI
 
-    if ensemble.libE_specs.mpi_comm == MPI.COMM_NULL:
-        return [], ensemble.persis_info, 3  # Process not in mpi_comm
+    if libE_specs["mpi_comm"] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in mpi_comm
 
-    with DupComm(ensemble.libE_specs.mpi_comm) as mpi_comm:
+    with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0
 
         resources = Resources.resources
@@ -370,18 +381,18 @@ def libE_mpi(ensemble):
             if resources is not None:
                 resources.set_resource_manager(nworkers)
             return libE_mpi_manager(
-                mpi_comm, ensemble
+                mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
             )
 
         # Worker returns a subset of MPI output
-        return libE_mpi_worker(mpi_comm, ensemble)
+        return libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs)
 
 
-def libE_mpi_manager(mpi_comm, ensemble):
+def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Manager routine runs on rank 0."""
     from libensemble.comms.mpi import MainMPIComm
 
-    if not ensemble.libE_specs.disable_log_files:
+    if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config()
     else:
         exit_logger = None
@@ -399,19 +410,24 @@ def libE_mpi_manager(mpi_comm, ensemble):
     # Run generic manager
     return manager(
         [MainMPIComm(mpi_comm, w) for w in range(1, mpi_comm.Get_size())],
-        ensemble,
-        History(ensemble),
+        sim_specs,
+        gen_specs,
+        exit_criteria,
+        persis_info,
+        alloc_specs,
+        libE_specs,
+        History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0),
         on_abort=on_abort,
         on_cleanup=cleanup,
     )
 
 
-def libE_mpi_worker(libE_comm, ensemble):
+def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     """Worker routines run on ranks > 0."""
     from libensemble.comms.mpi import MainMPIComm
 
     comm = MainMPIComm(libE_comm)
-    worker_main(comm, ensemble, log_comm=True)
+    worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
     logger.debug(f"Worker {libE_comm.Get_rank()} exiting")
     return [], {}, []
 
@@ -419,14 +435,14 @@ def libE_mpi_worker(libE_comm, ensemble):
 # ==================== Local version ===============================
 
 
-def start_proc_team(ensemble, log_comm=True):
+def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     """Launch a process worker team."""
     resources = Resources.resources
     executor = Executor.executor
 
     wcomms = [
-        QCommProcess(worker_main, ensemble, w, log_comm, resources, executor)
-        for w in range(1, ensemble.nworkers + 1)
+        QCommProcess(worker_main, nworkers, sim_specs, gen_specs, w, log_comm, resources, executor)
+        for w in range(1, nworkers + 1)
     ]
 
     for wcomm in wcomms:
@@ -442,8 +458,8 @@ def kill_proc_team(wcomms, timeout):
         except Timeout:
             wcomm.terminate()
 
-@validate_arguments
-def libE_local(ensemble):
+
+def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for thread/process launch of libE."""
 
     resources = Resources.resources
@@ -456,16 +472,16 @@ def libE_local(ensemble):
         exctr.set_resources(resources)
         exctr.serial_setup()
 
-    hist = History(ensemble)
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team and set up logger
-    wcomms = start_proc_team(ensemble)
+    wcomms = start_proc_team(libE_specs["nworkers"], sim_specs, gen_specs, libE_specs)
 
     # Set manager resources after the forkpoint.
     if resources is not None:
-        resources.set_resource_manager(ensemble.nworkers)
+        resources.set_resource_manager(libE_specs["nworkers"])
 
-    if not libE_specs.disable_log_files:
+    if not libE_specs.get("disable_log_files", False):
         exit_logger = manager_logging_config()
     else:
         exit_logger = None
@@ -473,12 +489,14 @@ def libE_local(ensemble):
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
-        kill_proc_team(wcomms, timeout=ensemble.libE_specs.worker_timeout)
+        kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
         if exit_logger is not None:
             exit_logger()
 
     # Run generic manager
-    return manager(wcomms, ensemble, hist, on_cleanup=cleanup)
+    return manager(
+         wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
+    )
 
 
 # ==================== TCP version =================================
@@ -503,11 +521,10 @@ def libE_tcp_default_ID():
     return f"{get_ip()}_pid{os.getpid()}"
 
 
-@validate_arguments
-def libE_tcp(ensemble):
+def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE."""
 
-    is_worker = True if ensemble.libE_specs.workerID else False
+    is_worker = True if "workerID" in libE_specs else False
 
     exctr = Executor.executor
     if exctr is not None:
@@ -517,8 +534,8 @@ def libE_tcp(ensemble):
             exctr.serial_setup()
 
     if is_worker:
-        libE_tcp_worker(sim_specs, gen_specs, libE_specs)
-        return [], ensemble.persis_info, []
+        libE_tcp_worker(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+        return [], persis_info, []
 
     return libE_tcp_mgr(ensemble)
 
@@ -526,9 +543,9 @@ def libE_tcp(ensemble):
 def libE_tcp_worker_launcher(libE_specs):
     """Get a launch function from libE_specs."""
     if "worker_launcher" in libE_specs:
-        worker_launcher = libE_specs.worker_launcher
+        worker_launcher = libE_specs["worker_launcher"]
     else:
-        worker_cmd = libE_specs.worker_cmd
+        worker_cmd = libE_specs["worker_cmd"]
 
         def worker_launcher(specs):
             """Basic worker launch function."""
@@ -555,23 +572,23 @@ def libE_tcp_start_team(manager, nworkers, workers, ip, port, authkey, launchf):
     return worker_procs, wcomms
 
 
-def libE_tcp_mgr(ensemble):
+def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE at manager."""
-    hist = History(ensemble)
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Set up a worker launcher
     launchf = libE_tcp_worker_launcher(libE_specs)
 
     # Get worker launch parameters and fill in defaults for TCP/IP conn
-    if "nworkers" in ensemble.libE_specs:
+    if "nworkers" in libE_specs:
         workers = None
-        nworkers = ensemble.nworkers
-    elif "workers" in ensemble.libE_specs:
+        nworkers = libE_specs["nworkers"]
+    elif "workers" in libE_specs:
         workers = libE_specs["workers"]
         nworkers = len(workers)
-    ip = libE_specs.ip or get_ip()
-    port = libE_specs.port or 0
-    authkey = libE_specs.authkey or libE_tcp_authkey()
+    ip = libE_specs.get("ip", None) or get_ip()
+    port = libE_specs.get("port", 0)
+    authkey = libE_specs.get("authkey", libE_tcp_authkey())
 
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
 
@@ -579,7 +596,7 @@ def libE_tcp_mgr(ensemble):
         if port == 0:
             _, port = tcp_manager.address
 
-        if not libE_specs.disable_log_files:
+        if not libE_specs.get("disable_log_files", False):
             exit_logger = manager_logging_config()
         else:
             exit_logger = None
@@ -597,16 +614,22 @@ def libE_tcp_mgr(ensemble):
                 exit_logger()
 
         # Run generic manager
-        return manager(wcomms, ensemble, hist, on_cleanup=cleanup)
+        return manager(
+            wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
+        )
 
 
-def libE_tcp_worker(ensemble):
+def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     """Main routine for TCP worker launched by libE."""
-    libE_specs = ensemble.libE_specs
+    ip = libE_specs["ip"]
+    port = libE_specs["port"]
+    authkey = libE_specs["authkey"]
+    workerID = libE_specs["workerID"]
+ 
+    with ClientQCommManager(ip, port, authkey, workerID) as comm:
+        worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
+        logger.debug("Worker {} exiting".format(workerID))
 
-    with ClientQCommManager(libE_specs.ip, libE_specs.port, libE_specs.authkey, libE_specs.workerID) as comm:
-        worker_main(comm, ensemble, workerID=libE_specs.workerID, log_comm=True)
-        logger.debug(f"Worker {workerID} exiting")
 
 
 # ==================== Additional Internal Functions ===========================

@@ -35,7 +35,6 @@ from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING
 from libensemble.tools.fields_keys import protected_libE_fields
-from libensemble.types import Ensemble, _Work
 import cProfile
 import pstats
 import copy
@@ -70,7 +69,7 @@ def report_worker_exc(wrk_exc=None):
         logger.error(exc)
 
 
-def manager_main(hist, ensemble: Ensemble, wcomms=[]):
+def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
 
     Parameters
@@ -100,30 +99,33 @@ def manager_main(hist, ensemble: Ensemble, wcomms=[]):
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if ensemble.libE_specs.get("profile"):
+    if libE_specs.get("profile"):
         pr = cProfile.Profile()
         pr.enable()
+
+    if "in" not in gen_specs:
+        gen_specs["in"] = []
 
     # Send dtypes to workers
     if "repack_fields" in globals():
         dtypes = {
-            EVAL_SIM_TAG: repack_fields(hist.H[ensemble.sim_specs.inputs]).dtype,
-            EVAL_GEN_TAG: repack_fields(hist.H[ensemble.gen_specs.inputs]).dtype,
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
         }
     else:
         dtypes = {
-            EVAL_SIM_TAG: hist.H[ensemble.sim_specs.inputs].dtype,
-            EVAL_GEN_TAG: hist.H[ensemble.gen_specs.inputs].dtype,
+            EVAL_SIM_TAG: hist.H[sim_specs["in"]].dtype,
+            EVAL_GEN_TAG: hist.H[gen_specs["in"]].dtype,
         }
 
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
 
     # Set up and run manager
-    mgr = Manager(hist, ensemble, wcomms)
+    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
 
-    if ensemble.libE_specs.get("profile"):
+    if libE_specs.get("profile"):
         pr.disable()
         profile_stats_fname = "manager.prof"
 
@@ -164,7 +166,7 @@ class Manager:
         ("zero_resource_worker", bool),
     ]
 
-    def __init__(self, hist, ensemble, wcomms=[]):
+    def __init__(self, hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms=[]):
         """Initializes the manager"""
         timer = Timer()
         timer.start()
@@ -172,11 +174,11 @@ class Manager:
         self.safe_mode = libE_specs.get("safe_mode", True)
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims", True)
         self.hist = hist
-        self.libE_specs = ensemble.libE_specs
-        self.alloc_specs = ensemble.alloc_specs
-        self.sim_specs = ensemble.sim_specs
-        self.gen_specs = ensemble.gen_specs
-        self.exit_criteria = ensemble.exit_criteria
+        self.libE_specs = libE_specs
+        self.alloc_specs = alloc_specs
+        self.sim_specs = sim_specs
+        self.gen_specs = gen_specs
+        self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
         self.WorkerExc = False
@@ -190,7 +192,7 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=ensemble.libE_specs)
+        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         if self.resources is not None:
             for wrk in self.W:
@@ -505,21 +507,17 @@ class Manager:
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
-
-                worker = self.W[w - 1]
-                worker_comm = self.wcomms[w - 1]
-
                 logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
                 if "final_fields" in self.libE_specs:
                     rows_to_send = self.hist.trim_H()["sim_ended"]
                     fields_to_send = self.libE_specs["final_fields"]
                     H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
-                    worker_comm.send(PERSIS_STOP, H_to_send)
+                    self.wcomms[w - 1].send(PERSIS_STOP, H_to_send)
                 else:
-                    worker_comm.send(PERSIS_STOP, MAN_SIGNAL_KILL)
-                if not worker["active"]:
+                    self.wcomms[w - 1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if not self.W[w - 1]["active"]:
                     # Re-activate if necessary
-                    worker["active"] = worker["persis_state"]
+                    self.W[w - 1]["active"] = self.W[w - 1]["persis_state"]
                 self.persis_pending.append(w)
 
         exit_flag = 0
