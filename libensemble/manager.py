@@ -104,19 +104,16 @@ def manager_main(hist, ensemble: Ensemble, wcomms=[]):
         pr = cProfile.Profile()
         pr.enable()
 
-    if "in" not in ensemble.gen_specs:
-        ensemble.gen_specs["in"] = []
-
     # Send dtypes to workers
     if "repack_fields" in globals():
         dtypes = {
-            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+            EVAL_SIM_TAG: repack_fields(hist.H[ensemble.sim_specs.inputs]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[ensemble.gen_specs.inputs]).dtype,
         }
     else:
         dtypes = {
-            EVAL_SIM_TAG: hist.H[sim_specs["in"]].dtype,
-            EVAL_GEN_TAG: hist.H[gen_specs["in"]].dtype,
+            EVAL_SIM_TAG: hist.H[ensemble.sim_specs.inputs].dtype,
+            EVAL_GEN_TAG: hist.H[ensemble.gen_specs.inputs].dtype,
         }
 
     for wcomm in wcomms:

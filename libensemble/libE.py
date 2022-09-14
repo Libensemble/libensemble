@@ -193,7 +193,7 @@ def libE(sim_specs: SimSpecs,
          alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
          libE_specs: LibeSpecs = {},
          H0: np.ndarray = np.empty(0),
-         Ensemble: Ensemble = {}) -> (np.ndarray, Dict, int):
+         ensemble: Ensemble = None) -> (np.ndarray, Dict, int):
     """
     Parameters
     ----------
@@ -259,8 +259,9 @@ def libE(sim_specs: SimSpecs,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    ensemble = Ensemble(H0=H0, libE_specs=libE_specs, persis_info=persis_info, sim_spec=sim_specs,
-                        gen_specs=gen_specs, alloc_specs=alloc_specs, exit_criteria=exit_criteria)
+    if not ensemble:
+        ensemble = Ensemble(H0=H0, libE_specs=libE_specs, persis_info=persis_info, sim_spec=sim_specs,
+                            gen_specs=gen_specs, alloc_specs=alloc_specs, exit_criteria=exit_criteria)
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 

@@ -27,6 +27,11 @@ class GenSpecs(BaseModel):
     funcx_endpoint: Optional[str]
     user: Optional[Dict]
 
+    @root_validator
+    def set_default_inputs(cls, values):
+        if not values.get("inputs"):
+            values["inputs"] = []
+        return values
 
 class AllocSpecs(BaseModel):
     alloc_f: Callable
@@ -181,6 +186,7 @@ class LibeSpecs(BaseModel):
         if not values.get("mpi_comm"):
             from mpi4py import MPI
             values["mpi_comm"] = MPI.COMM_WORLD
+        return values
 
 
 class Ensemble(BaseModel):
@@ -245,4 +251,28 @@ class Ensemble(BaseModel):
     @root_validator
     def check_H0(cls, values):
         if values.get("H0") and len(values.get("H0")):
-            pass  # TODO: finish
+            H0 = values.get("H0")
+            specs = [values.get("sim_specs"), values.get("alloc_specs"), values.get("gen_specs")]
+            dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
+            Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
+
+            fields = H0.dtype.names
+
+            assert set(fields).issubset(set(Dummy_H.dtype.names)), "H0 contains fields {} not in the History.".format(
+                set(fields).difference(set(Dummy_H.dtype.names))
+            )
+
+            assert "sim_ended" not in fields or np.all(
+                H0["sim_started"] == H0["sim_ended"]
+            ), "H0 contains unreturned or invalid points"
+
+            def _check_consistent_field(name, field0, field1):
+                """Checks that new field (field1) is compatible with an old field (field0)."""
+                assert field0.ndim == field1.ndim, "H0 and H have different ndim for field {}".format(name)
+                assert np.all(
+                    np.array(field1.shape) >= np.array(field0.shape)
+                ), "H too small to receive all components of H0 in field {}".format(name)
+
+            for field in fields:
+                 _check_consistent_field(field, H0[field], Dummy_H[field])
+        return values
