@@ -245,7 +245,7 @@ class EnsembleSpec(BaseModel):
 
     @root_validator
     def check_H0(cls, values):
-        if len(values.get("H0")) > 0:
+        if values.get("H0").size > 0:
             H0 = values.get("H0")
             specs = [values.get("sim_specs"), values.get("alloc_specs"), values.get("gen_specs")]
             dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
