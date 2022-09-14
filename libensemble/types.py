@@ -12,26 +12,21 @@ BaseConfig.arbitrary_types_allowed = True
 
 class SimSpecs(BaseModel):
     sim_f: Callable
-    inputs: List[str] = Field(alias="in")
+    inputs: List[str] = Field([], alias="in")
     persis_in: Optional[List[str]]
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
-    funcx_endpoint: Optional[str]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    funcx_endpoint: Optional[str] = ""
     user: Optional[Dict]
 
 
 class GenSpecs(BaseModel):
     gen_f: Callable
-    inputs: Optional[List[str]] = Field(alias="in")
+    inputs: Optional[List[str]] = Field([], alias="in")
     persis_in: Optional[List[str]]
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]
-    funcx_endpoint: Optional[str]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    funcx_endpoint: Optional[str] = ""
     user: Optional[Dict]
 
-    @root_validator
-    def set_default_inputs(cls, values):
-        if not values.get("inputs"):
-            values["inputs"] = []
-        return values
 
 class AllocSpecs(BaseModel):
     alloc_f: Callable
@@ -39,7 +34,7 @@ class AllocSpecs(BaseModel):
 
 
 class ExitCriteria(BaseModel):
-    sim_max: Optional[int]
+    sim_max: Optional[int] = 100
     gen_max: Optional[int]
     wallclock_max: Optional[float]
     stop_val: Optional[Tuple[str, float]]
@@ -121,7 +116,7 @@ class LibeSpecs(BaseModel):
     comms: str = "mpi"
     resource_info: Optional[ResourceInfo]
     disable_log_files: Optional[bool] = False
-    final_fields: Optional[List[str]]
+    final_fields: Optional[List[str]] = []
     ip: Optional[ipaddress.IPv4Address]
     kill_canceled_sims: Optional[bool] = True
     mpi_comm: Optional[_MPICommValidationModel] = None
@@ -133,8 +128,8 @@ class LibeSpecs(BaseModel):
     save_every_k_gens: Optional[int]
     save_every_k_sims: Optional[int]
     save_H_and_persis_on_abort: Optional[bool] = True
-    scheduler_opts: Optional[SchedulerOpts]
-    stats_fmt: Optional[StatsFmt]
+    scheduler_opts: Optional[SchedulerOpts] = {}
+    stats_fmt: Optional[StatsFmt] = {}
     use_persis_return_gen: Optional[bool] = False
     use_persis_return_sim: Optional[bool] = False
     workerID: Optional[int]
@@ -142,7 +137,7 @@ class LibeSpecs(BaseModel):
     zero_resource_workers: Optional[List[int]]
     worker_cmd: Optional[List[str]]
     ensemble_copy_back: Optional[bool] = False
-    ensemble_dir_path: Optional[str]
+    ensemble_dir_path: Optional[str] = "./ensemble"
     use_worker_dirs: Optional[bool] = False
     sim_dirs_make: Optional[bool] = False
     sim_dir_copy_files: Optional[List[str]]
@@ -181,22 +176,22 @@ class LibeSpecs(BaseModel):
             values["disable_resource_manager"] = True  # Resource management not supported with TCP
         return values
 
-    @root_validator
-    def check_set_comm_world(cls, values):
-        if not values.get("mpi_comm"):
-            from mpi4py import MPI
-            values["mpi_comm"] = MPI.COMM_WORLD
-        return values
+    # @root_validator
+    # def check_set_comm_world(cls, values):
+    #     if not values.get("mpi_comm"):
+    #         from mpi4py import MPI
+    #         values["mpi_comm"] = MPI.COMM_WORLD
+    #     return values
 
 
 class Ensemble(BaseModel):
     H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
-    persis_info: Optional[Dict]
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]
-    alloc_specs: Optional[AllocSpecs]
     exit_criteria: ExitCriteria
+    persis_info: Optional[Dict]
+    alloc_specs: Optional[AllocSpecs]
     nworkers: Optional[int]
 
     class Config:
@@ -205,9 +200,9 @@ class Ensemble(BaseModel):
     @root_validator
     def check_exit_criteria(cls, values):
         if "stop_val" in values.get("exit_criteria"):
-            stop_name = values.get("exit_criteria")["stop_val"][0]
-            sim_out_names = [e[0] for e in values.get("sim_specs")["out"]]
-            gen_out_names = [e[0] for e in values.get("gen_specs")["out"]]
+            stop_name = values.get("exit_criteria").stop_val[0]
+            sim_out_names = [e[0] for e in values.get("sim_specs").out]
+            gen_out_names = [e[0] for e in values.get("gen_specs").out]
             assert (
                 stop_name in sim_out_names + gen_out_names
             ), "Can't stop on {} if it's not in a sim/gen output".format(stop_name)
@@ -218,24 +213,24 @@ class Ensemble(BaseModel):
         out_names = [e[0] for e in libE_fields]
         if values.get("H0") and values.get("H0").dtype.names is not None:
             out_names += list(values.get("H0").dtype.names)
-        out_names += [e[0] for e in values.get("sim_specs").get("out", [])]
+        out_names += [e[0] for e in values.get("sim_specs").out]
         if values.get("gen_specs"):
-            out_names += [e[0] for e in values.get("gen_specs").get("out", [])]
+            out_names += [e[0] for e in values.get("gen_specs").out]
 
-        for name in values.get("libE_specs").get("final_fields", []):
+        for name in values.get("libE_specs").final_fields:
             assert name in out_names, (
                 name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
             )
 
-        for name in values.get("sim_specs").get("in", []):
+        for name in values.get("sim_specs").inputs:
             assert name in out_names, (
                 name + " in sim_specs['in'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
             )
 
         if values.get("gen_specs"):
-            for name in values.get("gen_specs").get("in", []):
+            for name in values.get("gen_specs").inputs:
                 assert name in out_names, (
                     name + " in gen_specs['in'] is not in sim_specs['out'], "
                     "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
@@ -245,15 +240,15 @@ class Ensemble(BaseModel):
     @root_validator
     def set_ensemble_nworkers(cls, values):
         if values.get("libE_specs"):
-            values["nworkers"] = values["libE_specs"]["nworkers"]
+            values["nworkers"] = values["libE_specs"].nworkers
             return values
 
     @root_validator
     def check_H0(cls, values):
-        if values.get("H0") and len(values.get("H0")):
+        if len(values.get("H0")) > 0:
             H0 = values.get("H0")
             specs = [values.get("sim_specs"), values.get("alloc_specs"), values.get("gen_specs")]
-            dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
+            dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
             Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
 
             fields = H0.dtype.names
