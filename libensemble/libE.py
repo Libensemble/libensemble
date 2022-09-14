@@ -186,13 +186,15 @@ logger = logging.getLogger(__name__)
 
 
 @validate_arguments(config=dict(arbitrary_types_allowed=True))
-def libE(sim_specs: SimSpecs,
-         gen_specs: GenSpecs,
-         exit_criteria: ExitCriteria,
-         persis_info: Dict = {},
-         alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
-         libE_specs: LibeSpecs = {},
-         H0: np.ndarray = np.empty(0)) -> (np.ndarray, Dict, int):
+def libE(
+    sim_specs: SimSpecs,
+    gen_specs: GenSpecs,
+    exit_criteria: ExitCriteria,
+    persis_info: Dict = {},
+    alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
+    libE_specs: LibeSpecs = {},
+    H0 = None,
+) -> (np.ndarray, Dict, int):
     """
     Parameters
     ----------
@@ -258,9 +260,19 @@ def libE(sim_specs: SimSpecs,
             3 = Current process is not in libEnsemble MPI communicator
     """
 
+    if not H0:
+        H0 = np.empty([0])
+
     # check *everything*
-    ensemble = EnsembleSpec(H0=H0, libE_specs=libE_specs, persis_info=persis_info, sim_specs=sim_specs,
-                        gen_specs=gen_specs, alloc_specs=alloc_specs, exit_criteria=exit_criteria)
+    ensemble = EnsembleSpec(
+        H0=H0,
+        libE_specs=libE_specs,
+        persis_info=persis_info,
+        sim_specs=sim_specs,
+        gen_specs=gen_specs,
+        alloc_specs=alloc_specs,
+        exit_criteria=exit_criteria,
+    )
 
     # get corresponding dictionaries back (casted in libE() def)
     sim_specs = ensemble.sim_specs.dict(by_alias=True, exclude_unset=True)
@@ -276,7 +288,9 @@ def libE(sim_specs: SimSpecs,
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    return libE_funcs[libE_specs["comms"]](sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+    return libE_funcs[libE_specs["comms"]](
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
+    )
 
 
 def manager(
@@ -288,8 +302,8 @@ def manager(
     alloc_specs,
     libE_specs,
     hist: np.ndarray,
-    on_abort: Callable=None,
-    on_cleanup: Callable=None,
+    on_abort: Callable = None,
+    on_cleanup: Callable = None,
 ):
     """Generic manager routine run."""
     logger.info("Logger initializing: [workerID] precedes each line. [0] = Manager")
@@ -495,7 +509,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     # Run generic manager
     return manager(
-         wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
+        wcomms, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, hist, on_cleanup=cleanup
     )
 
 
@@ -625,11 +639,10 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     port = libE_specs["port"]
     authkey = libE_specs["authkey"]
     workerID = libE_specs["workerID"]
- 
+
     with ClientQCommManager(ip, port, authkey, workerID) as comm:
         worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
         logger.debug("Worker {} exiting".format(workerID))
-
 
 
 # ==================== Additional Internal Functions ===========================

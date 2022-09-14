@@ -269,5 +269,5 @@ class EnsembleSpec(BaseModel):
                 ), "H too small to receive all components of H0 in field {}".format(name)
 
             for field in fields:
-                 _check_consistent_field(field, H0[field], Dummy_H[field])
+                _check_consistent_field(field, H0[field], Dummy_H[field])
         return values
