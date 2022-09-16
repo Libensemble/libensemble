@@ -86,23 +86,26 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"wallclock_max": 30}
+    exit_criteria = {"wallclock_max": 10}
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    iterations = 2
+    for i in range(iterations):
 
-    if is_manager:
-        print("\nChecking expected task status against Workers ...\n")
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-        calc_status_list_in = np.asarray([0])
-        calc_status_list = np.repeat(calc_status_list_in, nworkers)
+        if is_manager:
+            print("\nChecking expected task status against Workers ...\n")
 
-        # For debug
-        print("Expecting: {}".format(calc_status_list))
-        print("Received:  {}\n".format(H["cstat"]))
+            calc_status_list_in = np.asarray([0])
+            calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
-            H["cstat"]
-        )
+            # For debug
+            print("Expecting: {}".format(calc_status_list))
+            print("Received:  {}\n".format(H["cstat"]))
 
-        print("\n\n\nRun completed.")
+            assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
+                H["cstat"]
+            )
+
+            print("\n\n\nRun completed.")
