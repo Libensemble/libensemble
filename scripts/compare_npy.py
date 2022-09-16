@@ -17,9 +17,10 @@ Nans compare as equal. Variable fields (such as those containing a time)
 are ignored. In some cases you may have to ignore further user-defined fields
 
 """
-import sys
-import numpy as np
 import argparse
+import sys
+
+import numpy as np
 
 desc = "Script to compare libEnsemble history arrays in files"
 example = """examples:

@@ -2,9 +2,9 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+import matplotlib.dates as mdates
 from balsam.core import models
 from matplotlib import pyplot as plt
-import matplotlib.dates as mdates
 
 fig, ax = plt.subplots()
 

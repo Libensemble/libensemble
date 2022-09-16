@@ -14,13 +14,14 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
-import numpy as np
 import os
 
+import numpy as np
+
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.tests.regression_tests.support import write_sim_func as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 

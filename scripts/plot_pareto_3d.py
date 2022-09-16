@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import numpy as np
 import sys
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
 # The following is not explicitly called but is needed for 3d plotting to work
 # with older versions of python/matplotlib. It is not needed for python3.8 with
 # matplotlib version 3.2.1.

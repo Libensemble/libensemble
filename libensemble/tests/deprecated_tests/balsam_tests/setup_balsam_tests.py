@@ -6,8 +6,8 @@
 #       This script tests setup within python (could in theory be integrated with job!)
 
 import os
-import sys
 import subprocess
+import sys
 
 import balsam.launcher.dag as dag
 from balsam.service import models

@@ -20,17 +20,19 @@ shown below.
 
 """
 
-import os
-import logging
-import time
 import datetime
-
-from libensemble.resources import mpi_resources
-from libensemble.executors.executor import Application, Task, ExecutorException, TimeoutExpired, jassert, STATES
-from libensemble.executors.mpi_executor import MPIExecutor
+import logging
+import os
+import time
 
 import balsam.launcher.dag as dag
 from balsam.core import models
+
+from libensemble.executors.executor import (STATES, Application,
+                                            ExecutorException, Task,
+                                            TimeoutExpired, jassert)
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.resources import mpi_resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

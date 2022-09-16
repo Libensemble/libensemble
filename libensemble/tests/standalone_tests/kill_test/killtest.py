@@ -1,8 +1,8 @@
 import os
+import signal
 import subprocess
 import sys
 import time
-import signal
 
 
 # Does not kill, even on laptop

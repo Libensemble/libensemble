@@ -1,6 +1,7 @@
-import numpy as np
-import time
 import logging
+import time
+
+import numpy as np
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 

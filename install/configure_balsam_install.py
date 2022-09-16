@@ -5,9 +5,9 @@
 #   directory. This way, run-tests won't run a non-relevant test if Balsam or the
 #   necessary Python version aren't installed.
 
-import sys
 import os
 import subprocess
+import sys
 
 
 def install_balsam():

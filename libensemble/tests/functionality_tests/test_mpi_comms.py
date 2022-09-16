@@ -8,6 +8,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 from mpi4py import MPI
+
 from libensemble.comms.mpi import MPIComm, Timeout
 from libensemble.tools import parse_args
 

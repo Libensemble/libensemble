@@ -1,6 +1,6 @@
-import time
-import sys
 import signal
+import sys
+import time
 
 
 def ignore_handler(signum, frame):

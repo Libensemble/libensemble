@@ -31,13 +31,16 @@ in the libEnsemble documentation.
 
 import numpy as np
 
+from libensemble.alloc_funcs.start_only_persistent import \
+    only_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_surmise_calib import \
+    surmise_calib as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 # from libensemble import logger
 # logger.set_level('DEBUG')  # To get debug logging in ensemble.log

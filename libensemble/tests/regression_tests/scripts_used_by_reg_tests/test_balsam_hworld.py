@@ -1,8 +1,10 @@
-import subprocess
 import os
+import subprocess
 import time
+
 import libensemble
-from libensemble.tests.regression_tests.common import modify_Balsam_worker, modify_Balsam_JobEnv
+from libensemble.tests.regression_tests.common import (modify_Balsam_JobEnv,
+                                                       modify_Balsam_worker)
 
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 3

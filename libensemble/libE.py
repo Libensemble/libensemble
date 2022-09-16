@@ -154,29 +154,31 @@ See below for the complete traditional ``libE()`` API.
 
 __all__ = ["libE"]
 
-import os
 import logging
+import os
+import pickle  # Only used when saving output on error
 import random
 import socket
 import traceback
-import numpy as np
-import pickle  # Only used when saving output on error
 
-from libensemble.version import __version__
-from libensemble.utils import launcher
-from libensemble.utils.timer import Timer
-from libensemble.history import History
-from libensemble.manager import manager_main, report_worker_exc, WorkerException, LoggedException
-from libensemble.worker import worker_main
+import numpy as np
+
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
-from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
+from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.history import History
+from libensemble.manager import (LoggedException, WorkerException,
+                                 manager_main, report_worker_exc)
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
-from libensemble.tools.check_inputs import check_inputs
 from libensemble.tools.alloc_support import AllocSupport
+from libensemble.tools.check_inputs import check_inputs
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.utils import launcher
+from libensemble.utils.timer import Timer
+from libensemble.version import __version__
+from libensemble.worker import worker_main
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

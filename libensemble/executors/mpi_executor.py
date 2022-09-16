@@ -8,14 +8,14 @@ In order to create an MPI executor, the calling script should contain ::
 See the executor API below for optional arguments.
 """
 
-import os
 import logging
+import os
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.resources.mpi_resources import get_MPI_variant
-from libensemble.executors.executor import Executor, Task, ExecutorException
+from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
+from libensemble.resources.mpi_resources import get_MPI_variant
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

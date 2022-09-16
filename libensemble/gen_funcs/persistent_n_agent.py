@@ -5,8 +5,12 @@
         https://ieeexplore.ieee.org/abstract/document/9199106/
 """
 import numpy as np
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_neighbor_vals
+
+from libensemble.message_numbers import (FINISHED_PERSISTENT_GEN_TAG,
+                                         PERSIS_STOP, STOP_TAG)
+from libensemble.tools.consensus_subroutines import (get_grad,
+                                                     get_neighbor_vals,
+                                                     print_final_score)
 
 
 def n_agent(H, persis_info, gen_specs, libE_info):

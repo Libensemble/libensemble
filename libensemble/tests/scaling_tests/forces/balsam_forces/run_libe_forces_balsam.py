@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 import os
 import socket
+
 import numpy as np
-
-from libensemble.libE import libE
-from libensemble.gen_funcs.sampling import uniform_random_sample
-from forces_simf import run_forces_balsam
-from libensemble.executors.balsam_executors import BalsamExecutor
-from libensemble.tools import parse_args, add_unique_random_streams
-
 from balsam.api import ApplicationDefinition
+from forces_simf import run_forces_balsam
+
+from libensemble.executors.balsam_executors import BalsamExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
 
 BALSAM_SITE = "three"
 

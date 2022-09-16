@@ -1,13 +1,12 @@
-import os
-import numpy as np
 import logging
-from libensemble.tools.fields_keys import (
-    libE_fields,
-    allowed_gen_spec_keys,
-    allowed_sim_spec_keys,
-    allowed_alloc_spec_keys,
-    allowed_libE_spec_keys,
-)
+import os
+
+import numpy as np
+
+from libensemble.tools.fields_keys import (allowed_alloc_spec_keys,
+                                           allowed_gen_spec_keys,
+                                           allowed_libE_spec_keys,
+                                           allowed_sim_spec_keys, libE_fields)
 
 logger = logging.getLogger(__name__)
 

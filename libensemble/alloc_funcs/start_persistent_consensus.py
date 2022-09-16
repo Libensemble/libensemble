@@ -5,8 +5,10 @@
 
 import numpy as np
 import scipy.sparse as spp
+
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+from libensemble.tools.alloc_support import (AllocSupport,
+                                             InsufficientFreeResources)
 
 
 def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):

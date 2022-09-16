@@ -14,12 +14,14 @@ import importlib
 if importlib.util.find_spec("balsam"):
 
     try:
-        from libensemble.executors.balsam_executors.balsam_executor import BalsamExecutor
+        from libensemble.executors.balsam_executors.balsam_executor import \
+            BalsamExecutor
     except (ModuleNotFoundError, ImportError):
         pass
 
     try:
-        from libensemble.executors.balsam_executors.legacy_balsam_executor import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors.legacy_balsam_executor import \
+            LegacyBalsamMPIExecutor
     except (ModuleNotFoundError, ImportError):
         pass
 

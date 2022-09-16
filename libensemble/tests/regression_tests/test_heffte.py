@@ -9,15 +9,17 @@ configurations.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
-import numpy as np
 import itertools
+from os.path import exists
 
+import numpy as np
+
+from libensemble.alloc_funcs.give_pregenerated_work import \
+    give_pregenerated_sim_work as alloc_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.heffte import call_and_process_heffte as sim_f
-from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.tools import parse_args, save_libE_output
-from os.path import exists
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

@@ -2,8 +2,8 @@
 Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
-import os
 import logging
+import os
 import subprocess
 
 

@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
 import pprint
-from libensemble.version import __version__
+
+import numpy as np
+import pytest
+
 import libensemble.tests.unit_tests.setup as setup
+from libensemble.version import __version__
 
 
 @pytest.mark.extra

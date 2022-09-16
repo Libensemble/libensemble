@@ -1,8 +1,9 @@
+import numpy as np
+from numpy import inf
+
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.tools.fields_keys import libE_fields
-import numpy as np
-from numpy import inf
 
 if tuple(np.__version__.split(".")) >= ("1", "15"):
     from numpy.lib.recfunctions import repack_fields

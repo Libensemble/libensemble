@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 
-from libensemble.executors.executor import Task, Executor, ExecutorException
+from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_executor import MPIExecutor
 
 

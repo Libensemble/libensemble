@@ -1,6 +1,7 @@
-from libensemble.message_numbers import WORKER_DONE
-from libensemble.executors.executor import Executor
 import numpy as np
+
+from libensemble.executors.executor import Executor
+from libensemble.message_numbers import WORKER_DONE
 
 
 def circ_offset(wid, length):

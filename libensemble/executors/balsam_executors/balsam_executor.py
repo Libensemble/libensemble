@@ -68,21 +68,16 @@ via Globus.
 .. _Globus: https://www.globus.org/
 """
 
-import os
-import logging
-import time
 import datetime
+import logging
+import os
+import time
 
-from libensemble.executors.executor import (
-    Application,
-    Task,
-    ExecutorException,
-    TimeoutExpired,
-    jassert,
-)
+from balsam.api import BatchJob, EventLog, Job
+
 from libensemble.executors import Executor
-
-from balsam.api import Job, BatchJob, EventLog
+from libensemble.executors.executor import (Application, ExecutorException,
+                                            Task, TimeoutExpired, jassert)
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

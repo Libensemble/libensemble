@@ -11,7 +11,7 @@ __credits__ = "Argonne National Laboratory"
 
 from libensemble import logger
 
-from .libE import libE, comms_abort
+from .libE import comms_abort, libE
 
 try:
     from .api import Ensemble

@@ -3,13 +3,15 @@ This module detects and returns system resources
 
 """
 
+import logging
 import os
 import socket
-import logging
+
 from libensemble.resources import node_resources
-from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.worker_resources import WorkerResources, ResourceManager
+from libensemble.resources.mpi_resources import get_MPI_runner
+from libensemble.resources.worker_resources import (ResourceManager,
+                                                    WorkerResources)
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

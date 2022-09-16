@@ -1,8 +1,9 @@
+import numpy as np
+
 import libensemble.tests.unit_tests.setup as setup
+from libensemble.message_numbers import EVAL_SIM_TAG
 from libensemble.tools.fields_keys import libE_fields
 from libensemble.worker import Worker
-from libensemble.message_numbers import EVAL_SIM_TAG
-import numpy as np
 
 
 def simfunc():

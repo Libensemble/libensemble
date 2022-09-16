@@ -1,13 +1,16 @@
-import yaml
-import pprint
-import logging
-import inspect
 import importlib
-from libensemble.libE import libE
-from libensemble.alloc_funcs import defaults as alloc_defaults
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.version import __version__
+import inspect
+import logging
+import pprint
+
+import yaml
+
 from libensemble import logger
+from libensemble.alloc_funcs import defaults as alloc_defaults
+from libensemble.libE import libE
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
+from libensemble.version import __version__
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
 ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"

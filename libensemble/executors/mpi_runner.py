@@ -1,7 +1,8 @@
-from libensemble.resources import mpi_resources
-from libensemble.executors.executor import jassert
 import argparse
 import logging
+
+from libensemble.executors.executor import jassert
+from libensemble.resources import mpi_resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

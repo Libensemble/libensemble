@@ -1,10 +1,11 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams
+import numpy as np
+from mpi4py import MPI
 from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
-from mpi4py import MPI
+
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams
 
 libE_specs = {"comms": "mpi"}  # 'nworkers' removed, 'comms' now 'mpi'
 

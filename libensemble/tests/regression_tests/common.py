@@ -2,8 +2,8 @@
 Common plumbing for regression tests
 """
 
-import os
 import json
+import os
 import os.path
 
 

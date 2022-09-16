@@ -3,11 +3,12 @@ The libEnsemble utilities module assists in writing consistent calling scripts
 and user functions.
 """
 
-import os
-import sys
 import logging
-import numpy as np
+import os
 import pickle
+import sys
+
+import numpy as np
 
 # Create logger
 logger = logging.getLogger(__name__)

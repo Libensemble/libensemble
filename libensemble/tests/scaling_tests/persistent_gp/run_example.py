@@ -7,13 +7,15 @@ python run_example.py --comms local --nworkers 4
 """
 
 import numpy as np
-from libensemble.libE import libE
+
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.tools import save_libE_output, add_unique_random_streams
-from libensemble.tools import parse_args
+from libensemble.gen_funcs.persistent_ax_multitask import \
+    persistent_gp_mt_ax_gen_f
+from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 

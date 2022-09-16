@@ -11,6 +11,7 @@
 # Test does not require running full libensemble
 
 import os
+
 from libensemble.executors.executor import Executor
 
 

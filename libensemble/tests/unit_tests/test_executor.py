@@ -2,12 +2,13 @@
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
 import os
+import platform
 import re
+import socket
 import sys
 import time
+
 import pytest
-import socket
-import platform
 
 if platform.system() != "Windows":
     import mpi4py
@@ -15,10 +16,9 @@ if platform.system() != "Windows":
     mpi4py.rc.initialize = False
     from mpi4py import MPI
 
+from libensemble.executors.executor import (NOT_STARTED_STATES, Executor,
+                                            ExecutorException, TimeoutExpired)
 from libensemble.resources.mpi_resources import MPIResourcesException
-from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
-from libensemble.executors.executor import NOT_STARTED_STATES
-
 
 USE_BALSAM = False
 NCORES = 1
@@ -73,7 +73,8 @@ def build_simfuncs():
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import \
+            LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:
@@ -103,7 +104,8 @@ def setup_executor_startups():
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
+        from libensemble.executors.balsam_executors import \
+            LegacyBalsamMPIExecutor
 
         exctr = LegacyBalsamMPIExecutor()
     else:

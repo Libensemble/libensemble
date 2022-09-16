@@ -6,12 +6,13 @@ single persistent persistent nlopt local optimization run.
 
 __all__ = ["uniform_or_localopt"]
 
+import nlopt
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import (EVAL_GEN_TAG,
+                                         FINISHED_PERSISTENT_GEN_TAG,
+                                         PERSIS_STOP, STOP_TAG)
 from libensemble.tools.persistent_support import PersistentSupport
-
-import nlopt
 
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):

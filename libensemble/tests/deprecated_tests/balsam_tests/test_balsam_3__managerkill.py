@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os  # for adding to path
 import time
-from mpi4py import MPI
 
 import balsam.launcher.dag as dag
+from mpi4py import MPI
 
 
 def poll_until_state(job, state, timeout_sec=120.0, delay=2.0):
