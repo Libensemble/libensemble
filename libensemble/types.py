@@ -4,10 +4,9 @@ import random
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from pydantic import (BaseConfig, BaseModel, Field, PyObject, root_validator,
+from pydantic import (BaseConfig, BaseModel, Field, root_validator,
                       validator)
 
-from libensemble.tools.fields_keys import libE_fields
 from libensemble.utils.type_checkers import (
     _check_any_workers_and_disable_rm_if_tcp, _check_exit_criteria, _check_H0,
     _check_output_fields, _MPICommValidationModel)

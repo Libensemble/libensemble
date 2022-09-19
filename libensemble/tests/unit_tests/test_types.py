@@ -1,14 +1,8 @@
-import os
 import numpy as np
-import pytest
-import mock
-from pydantic import create_model_from_typeddict
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.tests.regression_tests.common import mpi_comm_excl
-from libensemble.types import *
+from libensemble.types import SimSpecs, GenSpecs, ExitCriteria, LibeSpecs, EnsembleSpecs
 
 
 class Fake_MPI:
@@ -29,28 +23,6 @@ class Fake_MPI:
     def Free(self):
         return
 
-    def isend(self, msg, dest, tag):
-        raise MPISendException()
-
-    def Abort(self, flag):
-        assert flag == 1, "Aborting without exit code of 1"
-        raise MPIAbortException()
-
-
-class Fake_MPI_1P(Fake_MPI):
-    def Get_size(self):
-        return 1
-
-
-fake_mpi = Fake_MPI()
-fake_mpi_1p = Fake_MPI_1P()
-
-alloc_specs = {"alloc_f": give_sim_work_first, "out": []}
-
-
-def rmfield(a, *fieldnames_to_remove):
-    return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
-
 
 def test_sim_gen_alloc_exit_specs():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
@@ -66,7 +38,7 @@ def test_sim_gen_alloc_exit_specs():
 
 def test_libe_specs():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    libE_specs = {"mpi_comm": fake_mpi, "comms": "mpi"}
+    libE_specs = {"mpi_comm": Fake_MPI(), "comms": "mpi"}
     ls = LibeSpecs.parse_obj(libE_specs)
 
     libE_specs["sim_input_dir"] = "./simdir"

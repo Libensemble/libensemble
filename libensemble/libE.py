@@ -193,7 +193,7 @@ def libE(
     persis_info: Dict = {},
     alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
     libE_specs: LibeSpecs = {},
-    H0 = None,
+    H0=None,
 ) -> (np.ndarray, Dict, int):
     """
     Parameters
@@ -551,7 +551,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         libE_tcp_worker(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
         return [], persis_info, []
 
-    return libE_tcp_mgr(ensemble)
+    return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
 
 
 def libE_tcp_worker_launcher(libE_specs):
