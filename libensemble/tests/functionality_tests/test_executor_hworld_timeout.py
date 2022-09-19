@@ -88,7 +88,12 @@ if __name__ == "__main__":
 
     exit_criteria = {"wallclock_max": 10}
 
-    iterations = 2
+    # TCP does not support multiple libE calls
+    if libE_specs["comms"] == "tcp":
+        iterations = 1
+    else:
+        iterations = 2
+
     for i in range(iterations):
 
         # Perform the run
