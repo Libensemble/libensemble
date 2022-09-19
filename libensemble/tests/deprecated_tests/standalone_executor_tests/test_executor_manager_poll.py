@@ -12,6 +12,7 @@
 
 import os
 from libensemble.executors.executor import Executor
+from libensemble.message_numbers import MAN_SIGNAL_KILL
 
 
 def build_simfunc():
@@ -68,14 +69,14 @@ def polling_loop(exctr, task, timeout_sec=20.0, delay=2.0):
 
         exctr.manager_poll(task)
 
-        if task.manager_signal == "kill":
+        if task.manager_signal == MAN_SIGNAL_KILL:
             print("Manager has sent kill signal - killing task")
             exctr.kill(task)
 
         # In future might support other manager signals eg:
-        elif task.manager_signal == "pause":
-            # checkpoint_task()
-            pass
+        # elif task.manager_signal == "pause":
+        #     checkpoint_task()
+        #     pass
 
         time.sleep(delay)
         print("Polling at time", time.time() - start)

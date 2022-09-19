@@ -18,8 +18,7 @@ import time
 
 from libensemble.message_numbers import (
     UNSET_TAG,
-    MAN_SIGNAL_FINISH,
-    MAN_SIGNAL_KILL,
+    MAN_KILL_SIGNALS,
     WORKER_DONE,
     TASK_FAILED,
     WORKER_KILL_ON_TIMEOUT,
@@ -244,8 +243,7 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed if libEnsemble
-            timeouts from reaching exit_criteria["wallclock_max"].
+            Note that the task is not automatically killed on timeout.
         """
 
         if self.dry_run:
@@ -270,8 +268,7 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed if libEnsemble
-            timeouts from reaching exit_criteria["wallclock_max"].
+            Note that the task is not automatically killed on timeout.
         """
 
         self.wait(timeout=timeout)
@@ -286,8 +283,7 @@ class Task:
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed if libEnsemble
-            timeouts from reaching exit_criteria["wallclock_max"].
+            Note that the task is not automatically killed on timeout.
         """
 
         self.wait(timeout=timeout)
@@ -350,6 +346,7 @@ class Executor:
     **Object Attributes:**
 
     :ivar list list_of_tasks: A list of tasks created in this executor
+    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
     executor = None
@@ -386,7 +383,7 @@ class Executor:
         This is typically created in the user calling script.
         """
 
-        self.manager_signal = "none"
+        self.manager_signal = None
         self.default_apps = {"sim": None, "gen": None}
         self.apps = {}
 
@@ -485,7 +482,7 @@ class Executor:
         The executor manager_signal attribute will be updated.
         """
 
-        self.manager_signal = "none"  # Reset
+        self.manager_signal = None  # Reset
 
         # Check for messages; disregard anything but a stop signal
         if not self.comm.mail_flag():
@@ -495,15 +492,23 @@ class Executor:
             return
 
         # Process the signal and push back on comm (for now)
-        logger.info("Worker received kill signal {} from manager".format(man_signal))
-        if man_signal == MAN_SIGNAL_FINISH:
-            self.manager_signal = "finish"
-        elif man_signal == MAN_SIGNAL_KILL:
-            self.manager_signal = "kill"
+        self.manager_signal = man_signal
+
+        if man_signal in MAN_KILL_SIGNALS:
+            # Only kill signals exist currently
+            logger.info("Worker received kill signal {} from manager".format(man_signal))
         else:
             logger.warning("Received unrecognized manager signal {} - ignoring".format(man_signal))
+
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
+
+    def manager_kill_received(self):
+        """Return True if received kill signal from the manager"""
+        man_signal = self.manager_poll()
+        if man_signal in MAN_KILL_SIGNALS:
+            return True
+        return False
 
     def polling_loop(self, task, timeout=None, delay=0.1, poll_manager=False):
         """Optional, blocking, generic task status polling loop. Operates until the task
@@ -542,7 +547,7 @@ class Executor:
 
             if poll_manager:
                 man_signal = self.manager_poll()
-                if self.manager_signal != "none":
+                if self.manager_signal in MAN_KILL_SIGNALS:
                     task.kill()
                     calc_status = man_signal
                     break
