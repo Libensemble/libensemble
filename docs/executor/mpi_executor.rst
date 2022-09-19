@@ -7,6 +7,7 @@ MPI Executor - MPI apps
 .. autoclass:: MPIExecutor
   :show-inheritance:
   :inherited-members:
+  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
 
   .. automethod:: __init__
 
