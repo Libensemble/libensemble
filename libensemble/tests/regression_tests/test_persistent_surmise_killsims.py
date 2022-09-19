@@ -80,8 +80,10 @@ if __name__ == "__main__":
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x", "thetas"],
-        "out": [("f", float),
-                ('sim_killed', bool)],  # 'sim_killed' is just used to display at the end.
+        "out": [
+            ("f", float),
+            ("sim_killed", bool),  # "sim_killed" is used only for display at the end of this test
+        ],
         "user": {
             "num_obs": n_x,
             "init_sample_size": init_sample_size,
