@@ -178,7 +178,7 @@ from libensemble.executors.executor import Executor
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.tools.alloc_support import AllocSupport
-from libensemble.types import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs, EnsembleSpec
+from libensemble.types import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs, EnsembleSpecs
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -264,7 +264,7 @@ def libE(
         H0 = np.empty([0])
 
     # check *everything*
-    ensemble = EnsembleSpec(
+    ensemble = EnsembleSpecs(
         H0=H0,
         libE_specs=libE_specs,
         persis_info=persis_info,
