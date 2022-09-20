@@ -309,7 +309,8 @@ def manager(
     logger.info(f"libE version v{__version__}")
 
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
-        logger.manager_warning(_USER_SIM_ID_WARNING)
+        if "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
+            logger.manager_warning(_USER_SIM_ID_WARNING)
 
     try:
         try:

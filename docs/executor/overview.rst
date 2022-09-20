@@ -76,7 +76,7 @@ In user simulation function::
 
         # Has manager sent a finish signal
         exctr.manager_poll()
-        if exctr.manager_signal == 'finish':
+        if exctr.manager_signal in [MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH]:
             task.kill()
             my_cleanup()
 
