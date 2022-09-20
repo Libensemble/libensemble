@@ -238,7 +238,7 @@ Resources
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
-- We welcome others to Contribute_ to libEnsemble.
+- Contributions_ to libEnsemble are welcome.
 - An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_.
 - Examples of production user functions and complete workflows can be viewed, downloaded, and contributed to in the libEnsemble `Community Examples repository`_.
 
@@ -315,7 +315,7 @@ See a complete list of `example user scripts`_.
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
-.. _Contribute: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
+.. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
