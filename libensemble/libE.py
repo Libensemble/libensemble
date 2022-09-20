@@ -156,7 +156,6 @@ __all__ = ["libE"]
 
 import os
 import logging
-import random
 import socket
 import traceback
 import numpy as np
