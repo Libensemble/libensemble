@@ -10,7 +10,6 @@ def test_cdist_issue():
         pytest.skip("scipy or its dependencies not importable. Skipping.")
 
     """There is an issue (at least in scipy 1.1.0) with cdist segfaulting."""
-
     H = np.zeros(
         20,
         dtype=[
@@ -40,7 +39,6 @@ def test_cdist_issue():
 @pytest.mark.extra
 def test_save():
     """Seeing if I can save parts of the H array."""
-
     from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
 
     n = 2

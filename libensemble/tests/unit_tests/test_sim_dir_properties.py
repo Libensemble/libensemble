@@ -9,21 +9,18 @@ from libensemble.utils.misc import extract_H_ranges
 
 def test_range_single_element():
     """Single H_row labeling"""
-
     work = {"H_fields": ["x", "num_nodes", "procs_per_node"], "libE_info": {"H_rows": np.array([5]), "workerID": 1}}
     assert extract_H_ranges(work) == "5", "Failed to correctly parse single H row"
 
 
 def test_range_two_separate_elements():
     """Multiple H_rows, non-sequential"""
-
     work = {"H_fields": ["x", "num_nodes", "procs_per_node"], "libE_info": {"H_rows": np.array([2, 8]), "workerID": 1}}
     assert extract_H_ranges(work) == "2_8", "Failed to correctly parse nonsequential H rows"
 
 
 def test_range_two_ranges():
     """Multiple sequences of H_rows"""
-
     work = {
         "H_fields": ["x", "num_nodes", "procs_per_node"],
         "libE_info": {"H_rows": np.array([0, 1, 2, 3, 7, 8]), "workerID": 1},
@@ -33,7 +30,6 @@ def test_range_two_ranges():
 
 def test_range_mixes():
     """Mix of single rows and sequences of H_rows"""
-
     work = {
         "H_fields": ["x", "num_nodes", "procs_per_node"],
         "libE_info": {"H_rows": np.array([2, 3, 4, 6, 8, 9, 11, 14]), "workerID": 1},

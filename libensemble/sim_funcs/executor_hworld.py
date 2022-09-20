@@ -24,8 +24,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     while task.runtime < timeout_sec:
         time.sleep(delay)
 
-        exctr.manager_poll()
-        if exctr.manager_signal == "finish":
+        if exctr.manager_kill_received():
             exctr.kill(task)
             calc_status = MAN_SIGNAL_FINISH  # Worker will pick this up and close down
             print("Task {} killed by manager on worker {}".format(task.id, exctr.workerID))
@@ -84,16 +83,17 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
 
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
 
+        global sim_ended_count
+        sim_ended_count += 1
+        print("sim_ended_count", sim_ended_count, flush=True)
+
         if ELAPSED_TIMEOUT:
             args_for_sim = "sleep 60"  # Manager kill - if signal received else completes
             timeout = 65.0
 
         else:
-            global sim_ended_count
-            sim_ended_count += 1
             timeout = 6.0
             launch_shc = False
-            print(sim_ended_count)
 
             if sim_ended_count == 1:
                 args_for_sim = "sleep 1"  # Should finish
@@ -132,17 +132,12 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
                 calc_status = TASK_FAILED
 
         else:
-            if not ELAPSED_TIMEOUT:
-                if sim_ended_count >= 2 and not USE_BALSAM:
-                    calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
-                    if sim_ended_count == 2 and task.stdout_exists() and "Error" in task.read_stdout():
-                        calc_status = WORKER_KILL_ON_ERR
-
-                else:
-                    task, calc_status = custom_polling_loop(exctr, task, timeout)
-
-            else:
+            if sim_ended_count >= 2 and not USE_BALSAM:
                 calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
+                if sim_ended_count == 2 and task.stdout_exists() and "Error" in task.read_stdout():
+                    calc_status = WORKER_KILL_ON_ERR
+            else:
+                task, calc_status = custom_polling_loop(exctr, task, timeout)
 
         if USE_BALSAM:
             task.read_file_in_workdir("ensemble.log")

@@ -259,7 +259,6 @@ class Worker:
 
     def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
         """Construct line for libE_stats.txt file"""
-
         calc_msg = "{} {}: {} {}".format(enum_desc, calc_id, calc_type, timer)
 
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
@@ -277,7 +276,6 @@ class Worker:
 
     def _recv_H_rows(self, Work):
         """Unpacks Work request and receives any history rows"""
-
         libE_info = Work["libE_info"]
         calc_type = Work["tag"]
         if len(libE_info["H_rows"]) > 0:
@@ -292,7 +290,6 @@ class Worker:
 
     def _handle(self, Work):
         """Handles a work request from the manager"""
-
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
 
@@ -326,7 +323,6 @@ class Worker:
 
     def run(self):
         """Runs the main worker loop."""
-
         try:
             logger.info("Worker {} initiated on node {}".format(self.workerID, socket.gethostname()))
 

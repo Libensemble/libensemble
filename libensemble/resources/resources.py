@@ -52,7 +52,6 @@ class Resources:
     @classmethod
     def init_resources(cls, libE_specs):
         """Initiate resource management"""
-
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:

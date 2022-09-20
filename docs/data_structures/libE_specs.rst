@@ -33,7 +33,7 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             processes are then terminated. multiprocessing default: 1
         'kill_canceled_sims' [bool]:
             Will libE try to kill sims that user functions mark 'cancel_requested' as True.
-            If False, the manager avoid this moderate overhead.
+            If False, the manager avoids this moderate overhead.
             Default: True
 
         Directory management options:
