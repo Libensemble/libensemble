@@ -91,5 +91,7 @@ class _MPICommValidationModel:
         yield cls.validate
 
     def validate(cls, comm):
+        from mpi4py import MPI
+        assert comm != MPI.COMM_NULL, "Provided MPI communicator is invalid, is MPI.COMM_NULL"
         assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
         return comm

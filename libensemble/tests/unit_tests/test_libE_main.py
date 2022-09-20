@@ -144,14 +144,14 @@ def test_exception_raising_check_inputs():
         pytest.fail("Expected ValidationError exception")
 
 
-def test_proc_not_in_communicator():
-    """Checking proc not in communicator returns exit status of 3"""
-    libE_specs = {}
-    libE_specs["mpi_comm"], mpi_comm_null = mpi_comm_excl()
-    H, _, flag = libE(
-        {"in": ["x"], "out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs
-    )
-    assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
+# def test_proc_not_in_communicator():
+#     """Checking proc not in communicator returns exit status of 3"""
+#     libE_specs = {}
+#     libE_specs["mpi_comm"], mpi_comm_null = mpi_comm_excl()
+#     H, _, flag = libE(
+#         {"in": ["x"], "out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs
+#     )
+#     assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
 # def test_exception_raising_worker():
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     test_exception_raising_manager_with_abort()
     test_exception_raising_manager_no_abort()
     test_exception_raising_check_inputs()
-    test_proc_not_in_communicator()
+    # test_proc_not_in_communicator()
     test_checking_inputs_noworkers()
     test_checking_inputs_H0()
     test_checking_inputs_exit_crit()

@@ -369,10 +369,6 @@ def comms_abort(mpi_comm):
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
-    from mpi4py import MPI
-
-    if libE_specs["mpi_comm"] == MPI.COMM_NULL:
-        return [], persis_info, 3  # Process not in mpi_comm
 
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0
