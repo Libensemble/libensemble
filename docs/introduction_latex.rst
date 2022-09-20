@@ -30,6 +30,7 @@ We now present further information on running and testing libEnsemble.
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _Contribute: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
