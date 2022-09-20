@@ -279,7 +279,7 @@ def libE(
     gen_specs = ensemble.gen_specs.dict(by_alias=True, exclude_unset=True)
     exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True, exclude_unset=True)
-    libE_specs = ensemble.libE_specs.dict(by_alias=True, exclude_unset=True)
+    libE_specs = ensemble.libE_specs.dict(by_alias=True)
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
@@ -329,7 +329,7 @@ def manager(
     except Exception as e:
         exit_flag = 1  # Only exits if no abort/raise
         _dump_on_abort(hist, persis_info, save_H=libE_specs["save_H_and_persis_on_abort"])
-        if libE_specs.get("abort_on_exception", True) and on_abort is not None:
+        if libE_specs["abort_on_exception"] and on_abort is not None:
             on_cleanup()
             on_abort()
         raise LoggedException(*e.args, "See error details above and in ensemble.log") from None
@@ -495,7 +495,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     if resources is not None:
         resources.set_resource_manager(libE_specs["nworkers"])
 
-    if not libE_specs.get("disable_log_files", False):
+    if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config()
     else:
         exit_logger = None
@@ -503,7 +503,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
-        kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
+        kill_proc_team(wcomms, timeout=libE_specs["worker_timeout"])
         if exit_logger is not None:
             exit_logger()
 
@@ -522,12 +522,6 @@ def get_ip():
         return socket.gethostbyname(socket.gethostname())
     except socket.gaierror:
         return "localhost"
-
-
-def libE_tcp_authkey():
-    """Generate an authkey if not assigned by manager."""
-    nonce = random.randrange(99999)
-    return f"libE_auth_{nonce}"
 
 
 def libE_tcp_default_ID():
@@ -600,9 +594,9 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     elif "workers" in libE_specs:
         workers = libE_specs["workers"]
         nworkers = len(workers)
-    ip = libE_specs.get("ip", None) or get_ip()
-    port = libE_specs.get("port", 0)
-    authkey = libE_specs.get("authkey", libE_tcp_authkey())
+    ip = libE_specs["ip"] or get_ip()
+    port = libE_specs["port"]
+    authkey = libE_specs["authkey"]
 
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
 
@@ -610,7 +604,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
         if port == 0:
             _, port = tcp_manager.address
 
-        if not libE_specs.get("disable_log_files", False):
+        if not libE_specs["disable_log_files"]:
             exit_logger = manager_logging_config()
         else:
             exit_logger = None
@@ -623,7 +617,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
         def cleanup():
             """Handler to clean up launched team."""
             for wp in worker_procs:
-                launcher.cancel(wp, timeout=libE_specs.get("worker_timeout"))
+                launcher.cancel(wp, timeout=libE_specs["worker_timeout"])
             if exit_logger is not None:
                 exit_logger()
 

@@ -72,12 +72,12 @@ class LibeSpecs(BaseModel):
     resource_info: Optional[Dict]
     disable_log_files: Optional[bool] = False
     final_fields: Optional[List[str]] = []
-    ip: Optional[ipaddress.IPv4Address]
+    ip: Optional[ipaddress.IPv4Address] = None
     kill_canceled_sims: Optional[bool] = True
     mpi_comm: Optional[_MPICommValidationModel] = None  # see utils/type_checkers.py
     num_resource_sets: Optional[int]
     nworkers: Optional[int]
-    port: Optional[int]
+    port: Optional[int] = 0
     profile: Optional[bool] = False
     safe_mode: Optional[bool] = True
     save_every_k_gens: Optional[int]

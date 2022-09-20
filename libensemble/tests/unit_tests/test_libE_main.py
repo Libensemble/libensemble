@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 import mock
 
-from libensemble.libE import check_inputs, libE
+from libensemble.libE import libE
+from libensemble.tools import check_inputs
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -138,9 +139,9 @@ def test_exception_raising_manager_no_abort():
 def test_exception_raising_check_inputs():
     """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
     libE_specs = {"mpi_comm": fake_mpi, "disable_resource_manager": True}
-    with pytest.raises(KeyError):
+    with pytest.raises(Exception):
         H, _, _ = libE({"out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs)
-        pytest.fail("Expected KeyError exception")
+        pytest.fail("Expected ValidationError exception")
 
 
 def test_proc_not_in_communicator():
