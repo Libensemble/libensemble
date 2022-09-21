@@ -61,7 +61,6 @@ allowed_alloc_spec_keys = [
 
 libE_spec_calc_dir_misc = [
     "ensemble_copy_back",
-    "ensemble_dir_path",
     "use_worker_dirs",
 ]
 
@@ -88,6 +87,7 @@ allowed_libE_spec_keys = [
     "disable_resource_manager",  #
     "dedicated_mode",  #
     "comms",  #
+    "ensemble_dir_path",   #
     "resource_info",  #
     "disable_log_files",  #
     "final_fields",  #

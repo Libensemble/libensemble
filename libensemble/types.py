@@ -69,7 +69,7 @@ class LibeSpecs(BaseModel):
     disable_resource_manager: Optional[bool] = False
     dedicated_mode: Optional[bool] = False
     comms: str = "mpi"
-    resource_info: Optional[Dict]
+    resource_info: Optional[Dict] = {}
     disable_log_files: Optional[bool] = False
     final_fields: Optional[List[str]] = []
     ip: Optional[ipaddress.IPv4Address] = None
@@ -80,8 +80,8 @@ class LibeSpecs(BaseModel):
     port: Optional[int] = 0
     profile: Optional[bool] = False
     safe_mode: Optional[bool] = True
-    save_every_k_gens: Optional[int]
-    save_every_k_sims: Optional[int]
+    save_every_k_gens: Optional[int] = 0
+    save_every_k_sims: Optional[int] = 0
     save_H_and_persis_on_abort: Optional[bool] = True
     scheduler_opts: Optional[Dict] = {}
     stats_fmt: Optional[Dict] = {}
@@ -89,20 +89,20 @@ class LibeSpecs(BaseModel):
     use_persis_return_sim: Optional[bool] = False
     workerID: Optional[int]
     worker_timeout: Optional[int] = 1
-    zero_resource_workers: Optional[List[int]]
+    zero_resource_workers: Optional[List[int]] = []
     worker_cmd: Optional[List[str]]
     workers: Optional[List[str]]
     ensemble_copy_back: Optional[bool] = False
     ensemble_dir_path: Optional[str] = "./ensemble"
     use_worker_dirs: Optional[bool] = False
     sim_dirs_make: Optional[bool] = False
-    sim_dir_copy_files: Optional[List[str]]
-    sim_dir_symlink_files: Optional[List[str]]
-    sim_input_dir: Optional[str]
+    sim_dir_copy_files: Optional[List[str]] = []
+    sim_dir_symlink_files: Optional[List[str]] = []
+    sim_input_dir: Optional[str] = ""
     gen_dirs_make: Optional[bool] = False
-    gen_dir_copy_files: Optional[List[str]]
-    gen_dir_symlink_files: Optional[List[str]]
-    gen_input_dir: Optional[str]
+    gen_dir_copy_files: Optional[List[str]] = []
+    gen_dir_symlink_files: Optional[List[str]] = []
+    gen_input_dir: Optional[str] = ""
 
     class Config:
         arbitrary_types_allowed = True
@@ -129,7 +129,7 @@ class LibeSpecs(BaseModel):
 
 
 class EnsembleSpecs(BaseModel):
-    H0: Optional[np.ndarray]
+    H0: Optional[np.ndarray] = np.empty([0])
     libE_specs: LibeSpecs
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]

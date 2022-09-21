@@ -402,9 +402,9 @@ class Manager:
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
-        if "save_every_k_sims" in self.libE_specs:
+        if self.libE_specs.get("save_every_k_sims"):
             self._save_every_k_sims()
-        if "save_every_k_gens" in self.libE_specs:
+        if self.libE_specs.get("save_every_k_gens"):
             self._save_every_k_gens()
         return persis_info
 
