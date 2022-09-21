@@ -40,6 +40,13 @@ and any worker may assign work to any node. This works well for most users.
         :scale: 40
         :align: center
 
+**Optional**: An alternative way to express the above would be to use the command line::
+
+    python run_ensemble_persistent_gen.py --comms local --nsim_workers 3
+
+This would automatically set the ``num_resource_sets`` option and add a single worker for the
+persistent generator - a common use-case.
+
 In general, the number of resource sets should be set to enable the maximum concurrency desired by
 the ensemble, taking in to account generators and simulators. The users can set generator resources
 by setting ``persis_info['gen_resources']`` to an integer value, representing the number of resource
@@ -61,7 +68,8 @@ If the generator must must always be on worker one, then instead of using ``num_
     libE_specs['zero_resource_workers'] = [1]
 
 
-in the calling script and worker one will not be allocated resources. In general, set the parameter\ ``zero_resource_workers`` to a list of worker IDs that should not have resources assigned.
+in the calling script and worker one will not be allocated resources. In general, set the parameter
+``zero_resource_workers`` to a list of worker IDs that should not have resources assigned.
 
 This approach can be useful if running in :doc:`distributed mode<../platforms/platforms_index>`.
 

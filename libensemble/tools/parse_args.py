@@ -182,15 +182,16 @@ def parse_args():
 
         --comms,          Communications medium for manager and workers. Default is 'mpi'.
         --nworkers,       (For 'local' or 'tcp' comms) Set number of workers.
-        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for cases with persistent generators.
-                          If used with no other criteria, will generate one additional
-                          worker for running a generator and set the number of resource sets to
-                          the given value. If --nworkers has also been specified, will generate
-                          enough additional workers to match the other criteria. If --nresource_sets
-                          is also specified, will not override resource sets.
         --nresource_sets, Explicitly set the number of resource sets. This sets
                           libE_specs['num_resource_sets']. By default, resources will be
                           divided by workers (excluding zero_resource_workers).
+        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for cases with
+                          persistent generators - sets the number of simulation workers.
+                          If used with no other criteria, one additional worker for running a
+                          generator will be added, and the number of resource sets will be assigned
+                          the given value. If '--nworkers' has also been specified, will generate
+                          enough additional workers to match the other criteria. If '--nresource_sets'
+                          is also specified, will not override resource sets.
 
         Example command lines:
 
