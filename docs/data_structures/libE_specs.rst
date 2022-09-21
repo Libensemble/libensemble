@@ -147,7 +147,9 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Distributed mode means workers share nodes with applications.
             Default: False
         'zero_resource_workers' [list of ints]:
-            List of workers that require no resources.
+            List of workers that require no resources. For when a fixed mapping of workers
+            to resources is required. Otherwise, use "num_resource_sets".
+            For use with supported allocation functions.
         'resource_info' [dict]:
             Provide resource information that will override automatically detected resources.
             The allowable fields are given below in 'Overriding Auto-detection'

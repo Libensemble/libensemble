@@ -132,16 +132,12 @@ eight workers. For example::
 
     python run_libe_forces.py --comms local --nworkers 8
 
-If you are running one persistent generator which does not require
-resources, then assign nine workers, and set the following in your
-calling script::
-
-    libE_specs['zero_resource_workers'] = [1]
-
-Or - if you do not care which worker runs the generator, you could fix the
-*resource_sets*::
+Note that if you are running one persistent generator which does not require
+resources, then assign nine workers, and fix the number of *resource_sets*::
 
     libE_specs['num_resource_sets'] = 8
+
+See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
 Changing number of GPUs per worker
 ----------------------------------
@@ -163,7 +159,7 @@ as a ``gen_specs['out']`` in your calling script. Simply assign the
 generated.
 
 In this case the above code would still work, assigning one CPU processor and
-one GPU to each rank. If you want to have one rank with multiple GPUs, then
+one GPU to each MPI rank. If you want to have one rank with multiple GPUs, then
 change source lines 29/30 accordingly.
 
 Further guidance on varying resource to workers can be found under the
