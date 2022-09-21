@@ -23,7 +23,13 @@ logger = logging.getLogger(__name__)
 
 
 class MPIExecutor(Executor):
-    """The MPI executor can create, poll and kill runnable MPI tasks"""
+    """The MPI executor can create, poll and kill runnable MPI tasks
+
+    **Object Attributes:**
+
+    :ivar list list_of_tasks: A list of tasks created in this executor
+    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
+    """
 
     def __init__(self, custom_info={}):
         """Instantiate a new MPIExecutor instance.
