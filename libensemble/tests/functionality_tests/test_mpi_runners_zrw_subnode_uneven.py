@@ -7,6 +7,13 @@ Execute via one of the following commands (e.g. 6 workers - one is zero resource
    mpiexec -np 7 python test_mpi_runners_zrw_subnode_uneven.py
    python test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms local
    python test_mpi_runners_zrw_subnode_uneven.py --nworkers 6 --comms tcp
+
+The resource sets are split unevenly between the two nodes (e.g. 3 and 2).
+
+Two tests are run. In the first, num_resource_sets is used, and thus the dynamic scheduler.
+This will fill node two slots first as there are fewer resource sets on node two, and the
+scheduler will preference a smaller space for assigning the task. On the second test,
+zero_resource_workers are used, and the static scheduler will fill node one first.
 """
 
 import sys
@@ -36,7 +43,6 @@ if __name__ == "__main__":
     sim_app = "/path/to/fakeapp.x"
     comms = libE_specs["comms"]
 
-    libE_specs["zero_resource_workers"] = [1]
     libE_specs["dedicated_mode"] = True
     libE_specs["enforce_worker_core_bounds"] = True
 
@@ -45,8 +51,7 @@ if __name__ == "__main__":
     logger.set_filename(log_file)
 
     # For varying size test - relate node count to nworkers
-    in_place = libE_specs["zero_resource_workers"]
-    n_gens = len(in_place)
+    n_gens = 1
     nsim_workers = nworkers - n_gens
 
     if nsim_workers % 2 == 0:
@@ -96,7 +101,6 @@ if __name__ == "__main__":
     }
 
     alloc_specs = {"alloc_f": alloc_f, "out": []}
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     test_list_base = [
@@ -141,7 +145,22 @@ if __name__ == "__main__":
         "persis_gens": n_gens,
     }
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    iterations = 2
+    for prob_id in range(iterations):
 
-    # All asserts are in sim func
+        if prob_id == 0:
+            # Uses dynamic scheduler - will find node 2 slots first (as fewer)
+            libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
+            sim_specs["user"]["offset_for_scheduler"] = True  # Changes expected values
+            persis_info = add_unique_random_streams({}, nworkers + 1)
+
+        else:
+            # Uses static scheduler - will find node 1 slots first
+            del libE_specs["num_resource_sets"]
+            libE_specs["zero_resource_workers"] = [1]  # Gen must be worker 1
+            sim_specs["user"]["offset_for_scheduler"] = False
+            persis_info = add_unique_random_streams({}, nworkers + 1)
+
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        # All asserts are in sim func
