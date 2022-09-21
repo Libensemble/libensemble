@@ -10,7 +10,6 @@ import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
-from libensemble.tests.regression_tests.common import mpi_comm_excl
 from libensemble.comms.logs import LogConfig
 
 
