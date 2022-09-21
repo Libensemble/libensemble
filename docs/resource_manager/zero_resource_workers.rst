@@ -24,43 +24,48 @@ To avoid the the wasted node above, add an extra worker::
 
     python run_ensemble_persistent_gen.py --comms local --nworkers 4
 
-and in the calling script (*run_ensemble_persistent_gen.py*), explicitly set the number of
-resource sets to the number of workers that will be running simulations.
+and in the calling script (*run_ensemble_persistent_gen.py*), explicitly set the
+number of resource sets to the number of workers that will be running simulations.
 
 .. code-block:: python
 
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs['num_resource_sets'] = nworkers - 1
 
-When the ``num_resource_sets`` option is used, libEnsemble will use the dynamic resource scheduler,
-and any worker may assign work to any node. This works well for most users.
+When the ``num_resource_sets`` option is used, libEnsemble will use the dynamic
+resource scheduler, and any worker may assign work to any node. This works well
+for most users.
 
     .. image:: ../images/persis_add_worker.png
         :alt: persis_add_worker
         :scale: 40
         :align: center
 
-**Optional**: An alternative way to express the above would be to use the command line::
+**Optional**: An alternative way to express the above would be to use the command
+line::
 
     python run_ensemble_persistent_gen.py --comms local --nsim_workers 3
 
-This would automatically set the ``num_resource_sets`` option and add a single worker for the
-persistent generator - a common use-case.
+This would automatically set the ``num_resource_sets`` option and add a single
+worker for the persistent generator - a common use-case.
 
-In general, the number of resource sets should be set to enable the maximum concurrency desired by
-the ensemble, taking in to account generators and simulators. The users can set generator resources
-by setting ``persis_info['gen_resources']`` to an integer value, representing the number of resource
-sets to give to the generator. The default is zero.
+In general, the number of resource sets should be set to enable the maximum
+concurrency desired by the ensemble, taking in to account generators and simulators.
+The users can set generator resources by setting ``persis_info['gen_resources']``
+to an integer value, representing the number of resource sets to give to the
+generator. The default is zero.
 
-The available nodes are always divided by the number of resource sets, and there may be multiple nodes
-or a partition of a node in each resource set. If the split is uneven, resource sets are not split between
-nodes. E.g.~ If there are two nodes and five resource sets, one node will have three resource sets, and
-the other will have two.
+The available nodes are always divided by the number of resource sets, and there
+may be multiple nodes or a partition of a node in each resource set. If the split
+is uneven, resource sets are not split between nodes. E.g.~ If there are two nodes
+and five resource sets, one node will have three resource sets, and the other will
+have two.
 
 Placing zero-resource functions on a fixed worker
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the generator must must always be on worker one, then instead of using ``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
+If the generator must must always be on worker one, then instead of using
+``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
 
 
 .. code-block:: python
@@ -68,11 +73,13 @@ If the generator must must always be on worker one, then instead of using ``num_
     libE_specs['zero_resource_workers'] = [1]
 
 
-in the calling script and worker one will not be allocated resources. In general, set the parameter
-``zero_resource_workers`` to a list of worker IDs that should not have resources assigned.
+in the calling script and worker one will not be allocated resources. In general,
+set the parameter ``zero_resource_workers`` to a list of worker IDs that should not
+have resources assigned.
 
-This approach can be useful if running in :doc:`distributed mode<../platforms/platforms_index>`.
+This approach can be useful if running in
+:doc:`distributed mode<../platforms/platforms_index>`.
 
-The use of the ``zero_resource_workers`` *libE_specs* option must be supported by the allocation
-function, see :ref:`start_only_persistent<start_only_persistent_label>`)
+The use of the ``zero_resource_workers`` *libE_specs* option must be supported by
+the allocation function, see :ref:`start_only_persistent<start_only_persistent_label>`)
 
