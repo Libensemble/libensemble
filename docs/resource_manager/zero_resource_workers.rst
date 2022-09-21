@@ -82,4 +82,3 @@ This approach can be useful if running in
 
 The use of the ``zero_resource_workers`` *libE_specs* option must be supported by
 the allocation function, see :ref:`start_only_persistent<start_only_persistent_label>`)
-
