@@ -22,9 +22,12 @@ GPU build lines in build_forces.sh_ or similar for your platform.
 The libEnsemble scripts in this example are available under forces_gpu_ in
 the libEnsemble repository.
 
-Note that at time of writing the calling script ``run_libe_forces.py`` is identical
-to that in ``forces_simple``. The ``forces_simf`` file has slight modifications to
-assign GPUs.
+Note that at time of writing the calling script **run_libe_forces.py** is functionally
+the same as that in *forces_simple*, but contains some commented out lines that can
+be used for a variable resources example. The *forces_simf.py* file has slight modifications
+to assign GPUs.
+
+Videos demonstrate running this example on Perlmutter_ and Spock_.
 
 Simulation function
 -------------------
@@ -106,6 +109,11 @@ and the line::
 will set the environment variable ``CUDA_VISIBLE_DEVICES`` to match the assigned
 slots (partitions on the node).
 
+.. note::
+    **slots** refers to the ``resource sets`` enumerated on a node (starting with
+    zero). If a resource set has more than one node, then each node is considered to
+    have slot zero. [:ref:`diagram<rsets-diagram>`]
+
 Note that if you are on a system that automatically assigns free GPUs on the node,
 then setting ``CUDA_VISIBLE_DEVICES`` is not necessary unless you want to ensure
 workers are strictly bound to GPUs. For example, on many **SLURM** systems, you
@@ -132,16 +140,13 @@ eight workers. For example::
 
     python run_libe_forces.py --comms local --nworkers 8
 
-If you are running one persistent generator which does not require
-resources, then assign nine workers, and set the following in your
-calling script::
-
-    libE_specs['zero_resource_workers'] = [1]
-
-Or - if you do not care which worker runs the generator, you could fix the
-*resource_sets*::
+Note that if you are running one persistent generator which does not require
+resources, then assign nine workers, and fix the number of *resource_sets* in
+you calling script::
 
     libE_specs['num_resource_sets'] = 8
+
+See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
 Changing number of GPUs per worker
 ----------------------------------
@@ -157,14 +162,20 @@ Varying resources
 -----------------
 
 The same code can be used when varying worker resources. In this case, you may
-choose to set one worker per GPU (as we did originally). Then add ``resource_sets``
-as a ``gen_specs['out']`` in your calling script. Simply assign the
-``resource_sets`` field of :doc:`H<../data_structures/history_array>` for each point
-generated.
+add an integer field called ``resource_sets`` as a ``gen_specs['out']`` in your
+calling script.
 
-In this case the above code would still work, assigning one CPU processor and
-one GPU to each rank. If you want to have one rank with multiple GPUs, then
-change source lines 29/30 accordingly.
+In the generator function, assign the ``resource_sets`` field of
+:doc:`H<../data_structures/history_array>` for each point generated. For example
+if a larger simulation requires two MPI tasks (and two GPUs), set ``resource_sets``
+field to *2* for that sim_id in the generator function.
+
+The calling script run_libe_forces.py_ contains alternative commented out lines for
+a variable resource example. Search for "Uncomment for var resources"
+
+In this case, the simulator function will still work, assigning one CPU processor
+and one GPU to each MPI rank. If you want to have one rank with multiple GPUs,
+then change source lines 29/30 accordingly.
 
 Further guidance on varying resource to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>`.
@@ -229,3 +240,6 @@ resource conflicts on each node.
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
+.. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
+.. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
+.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py

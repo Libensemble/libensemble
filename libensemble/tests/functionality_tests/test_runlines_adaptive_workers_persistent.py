@@ -36,8 +36,9 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["zero_resource_workers"] = [1]
-    num_gens = len(libE_specs["zero_resource_workers"])
+    num_gens = 1
+    libE_specs["num_resource_sets"] = nworkers - num_gens  # Any worker can be the gen
+
     total_nodes = (nworkers - num_gens) // 4  # 4 resourced workers per node.
 
     if total_nodes == 1:
