@@ -164,9 +164,6 @@ class GlobalResources:
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
 
-        # if self.dedicated_mode:
-            # logger.debug("Running in dedicated mode")
-
         resource_info = libE_specs.get("resource_info", {})
         cores_on_node = resource_info.get("cores_on_node", None)
         node_file = resource_info.get("node_file", None)
