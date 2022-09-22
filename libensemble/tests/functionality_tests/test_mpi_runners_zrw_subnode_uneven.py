@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "persis_gens": n_gens,
     }
 
-    iterations = 1
+    iterations = 2
     for prob_id in range(iterations):
 
         if prob_id == 0:
@@ -154,13 +154,13 @@ if __name__ == "__main__":
             sim_specs["user"]["offset_for_scheduler"] = True  # Changes expected values
             persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        # else:
-            # # Uses static scheduler - will find node 1 slots first
-            # del libE_specs["num_resource_sets"]
-            # libE_specs["zero_resource_workers"] = [1]  # Gen must be worker 1
-            # sim_specs["user"]["offset_for_scheduler"] = False
-            # persis_info = add_unique_random_streams({}, nworkers + 1)
+        else:
+            # Uses static scheduler - will find node 1 slots first
+            del libE_specs["num_resource_sets"]
+            libE_specs["zero_resource_workers"] = [1]  # Gen must be worker 1
+            sim_specs["user"]["offset_for_scheduler"] = False
+            persis_info = add_unique_random_streams({}, nworkers + 1)
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-        # All asserts are in sim func
+        # Run-line asserts are in sim func

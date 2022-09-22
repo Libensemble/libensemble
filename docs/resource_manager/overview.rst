@@ -40,6 +40,8 @@ For example, say a given system has four GPUs per node, and the user has run
 libEnsemble on two nodes, with eight workers. The default division of resources
 would be:
 
+.. _rsets-diagram:
+
 .. image:: ../images/variable_resources1.png
 
 Variable Size simulations

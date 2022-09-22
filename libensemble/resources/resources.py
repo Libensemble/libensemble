@@ -13,7 +13,7 @@ from libensemble.resources.worker_resources import WorkerResources, ResourceMana
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
-# logger.setLevel(logging.DEBUG)
+# #logger.setLevel(logging.DEBUG)
 
 
 class ResourcesException(Exception):
@@ -56,8 +56,9 @@ class Resources:
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            if Resources.resources is None:
-                Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
+            # if Resources.resources is None:
+            # del Resources.resources
+            Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
     def __init__(self, libE_specs, top_level_dir=None):
         """Initiate a new resources object"""
@@ -163,9 +164,6 @@ class GlobalResources:
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
 
-        if self.dedicated_mode:
-            logger.debug("Running in dedicated mode")
-
         resource_info = libE_specs.get("resource_info", {})
         cores_on_node = resource_info.get("cores_on_node", None)
         node_file = resource_info.get("node_file", None)
@@ -227,6 +225,7 @@ class GlobalResources:
                 self.global_nodelist = GlobalResources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
+                    pass
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):
@@ -258,18 +257,18 @@ class GlobalResources:
         node_filepath = os.path.join(top_level_dir, node_file)
         global_nodelist = []
         if os.path.isfile(node_filepath):
-            logger.debug("node_file found - getting nodelist from node_file")
+            # logger.debug("node_file found - getting nodelist from node_file")
             with open(node_filepath, "r") as f:
                 for line in f:
                     global_nodelist.append(line.rstrip())
         else:
-            logger.debug("No node_file found - searching for nodelist in environment")
+            # logger.debug("No node_file found - searching for nodelist in environment")
             if env_resources:
                 global_nodelist = env_resources.get_nodelist()
 
             if not global_nodelist:
                 # Assume a standalone machine
-                logger.info("Can not find nodelist from environment. Assuming standalone")
+                # logger.info("Can not find nodelist from environment. Assuming standalone")
                 # global_nodelist.append(env_resources.shortnames([socket.gethostname()])[0])
                 global_nodelist.append(socket.gethostname())
 
