@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "persis_gens": n_gens,
     }
 
-    iterations = 1
+    iterations = 2
     for prob_id in range(iterations):
 
         if prob_id == 0:
@@ -163,4 +163,4 @@ if __name__ == "__main__":
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-        # All asserts are in sim func
+        # Run-line asserts are in sim func
