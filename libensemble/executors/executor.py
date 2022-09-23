@@ -490,7 +490,7 @@ class Executor:
 
         if man_signal in MAN_KILL_SIGNALS:
             # Only kill signals exist currently
-            logger.info(f"Worker received kill signal {man_signal} from manager"
+            logger.info(f"Worker received kill signal {man_signal} from manager")
         else:
             logger.warning(f"Received unrecognized manager signal {man_signal} - ignoring")
         self.comm.push_to_buffer(mtag, man_signal)

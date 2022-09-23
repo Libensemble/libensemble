@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
             # For debug
             print(f"Expecting: {calc_status_list}")
-            print(f"Received:  {H["cstat"]}\n")
+            print(f"Received:  {H['cstat']}\n")
 
             assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
                 H["cstat"]
