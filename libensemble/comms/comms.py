@@ -344,7 +344,7 @@ class CommHandler(ABC):
         msg_type = msg[0]
         args = msg[1:]
         try:
-            method = "on_{}".format(msg_type)
+            method = f"on_{msg_type}"
             handler = getattr(self, method)
         except AttributeError:
             return self.on_unhandled_message(msg)
@@ -352,7 +352,7 @@ class CommHandler(ABC):
 
     def on_unhandled_message(self, msg):
         """Handle any messages for which there are no named handlers."""
-        raise ValueError("No handler available for message {0}{1}".format(msg[0], msg[1:]))
+        raise ValueError(f"No handler available for message {msg[0]}{msg[1:]}")
 
 
 class GenCommHandler(CommHandler):

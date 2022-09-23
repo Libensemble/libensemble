@@ -64,8 +64,8 @@ def report_worker_exc(wrk_exc=None):
     """Write worker exception to log"""
     if wrk_exc is not None:
         from_line, msg, exc = wrk_exc.args
-        logger.error("---- {} ----".format(from_line))
-        logger.error("Message: {}".format(msg))
+        logger.error(f"---- {from_line} ----")
+        logger.error(f"Message: {msg}")
         logger.error(exc)
 
 
@@ -236,7 +236,7 @@ class Manager:
             if key in self.exit_criteria:
                 if testf(self.exit_criteria[key]):
                     if logged:
-                        logger.info("Term test tripped: {}".format(key))
+                        logger.info(f"Term test tripped: {key}")
                     return retval
         return 0
 
@@ -284,7 +284,7 @@ class Manager:
         if self.W[w - 1]["active_recv"]:
             assert "active_recv" in Work["libE_info"], (
                 "Messages to a worker in active_recv mode should have active_recv"
-                "set to True in libE_info. Work['libE_info'] is {}".format(Work["libE_info"])
+                f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
             )
         else:
             assert self.W[w - 1]["active"] == 0, (
@@ -295,15 +295,13 @@ class Manager:
             work_fields = set(Work["H_fields"])
 
             assert len(work_fields), (
-                "Allocation function requested rows={} be sent to worker={}, "
-                "but requested no fields to be sent.".format(work_rows, w)
+                f"Allocation function requested rows={work_rows} be sent to worker={w}, "
+                "but requested no fields to be sent."
             )
             hist_fields = self.hist.H.dtype.names
             diff_fields = list(work_fields.difference(hist_fields))
 
-            assert not diff_fields, "Allocation function requested invalid fields {} be sent to worker={}.".format(
-                diff_fields, w
-            )
+            assert not diff_fields, f"Allocation function requested invalid fields {diff_fields} be sent to worker={w}."
 
     def _set_resources(self, Work, w):
         """Check rsets given in Work match rsets assigned in resources.
@@ -329,7 +327,7 @@ class Manager:
 
     def _send_work_order(self, Work, w):
         """Sends an allocation function order to a worker"""
-        logger.debug("Manager sending work unit to worker {}".format(w))
+        logger.debug(f"Manager sending work unit to worker {w}")
 
         if self.resources:
             self._set_resources(Work, w)
@@ -341,9 +339,7 @@ class Manager:
 
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
-        logger.debug(
-            "Manager sending {} work to worker {}. Rows {}".format(work_name, w, extract_H_ranges(Work) or None)
-        )
+        logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
         if len(work_rows):
             if "repack_fields" in globals():
                 new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
@@ -382,11 +378,11 @@ class Manager:
         assert calc_type in [
             EVAL_SIM_TAG,
             EVAL_GEN_TAG,
-        ], "Aborting, Unknown calculation type received. Received type: {}".format(calc_type)
+        ], f"Aborting, Unknown calculation type received. Received type: {calc_type}"
 
         assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
             calc_status, str
-        ), "Aborting: Unknown calculation status received. Received status: {}".format(calc_status)
+        ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
 
     def _receive_from_workers(self, persis_info):
         """Receives calculation output from workers. Loops over all
@@ -458,20 +454,20 @@ class Manager:
             msg = self.wcomms[w - 1].recv()
             tag, D_recv = msg
         except CommFinishedException:
-            logger.debug("Finalizing message from Worker {}".format(w))
+            logger.debug(f"Finalizing message from Worker {w}")
             return
         if isinstance(D_recv, WorkerErrMsg):
             self.W[w - 1]["active"] = 0
-            logger.debug("Manager received exception from worker {}".format(w))
+            logger.debug(f"Manager received exception from worker {w}")
             if not self.WorkerExc:
                 self.WorkerExc = True
                 self._kill_workers()
-                raise WorkerException("Received error message from worker {}".format(w), D_recv.msg, D_recv.exc)
+                raise WorkerException(f"Received error message from worker {w}", D_recv.msg, D_recv.exc)
         elif isinstance(D_recv, logging.LogRecord):
-            logger.debug("Manager received a log message from worker {}".format(w))
+            logger.debug(f"Manager received a log message from worker {w}")
             logging.getLogger(D_recv.name).handle(D_recv)
         else:
-            logger.debug("Manager received data message from worker {}".format(w))
+            logger.debug(f"Manager received data message from worker {w}")
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
     def _kill_cancelled_sims(self):
@@ -486,7 +482,7 @@ class Manager:
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
-                logger.debug("Manager sending kill signals to H indices {}".format(np.where(kill_sim)))
+                logger.debug(f"Manager sending kill signals to H indices {np.where(kill_sim)}")
                 kill_ids = self.hist.H["sim_id"][kill_sim]
                 kill_on_workers = self.hist.H["sim_worker"][kill_sim]
                 for w in kill_on_workers:
@@ -507,7 +503,7 @@ class Manager:
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
-                logger.debug("Manager sending PERSIS_STOP to worker {}".format(w))
+                logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if "final_fields" in self.libE_specs:
                     rows_to_send = self.hist.trim_H()["sim_ended"]
                     fields_to_send = self.libE_specs["final_fields"]
@@ -597,8 +593,8 @@ class Manager:
 
     def run(self, persis_info):
         """Runs the manager"""
-        logger.info("Manager initiated on node {}".format(socket.gethostname()))
-        logger.info("Manager exit_criteria: {}".format(self.exit_criteria))
+        logger.info(f"Manager initiated on node {socket.gethostname()}")
+        logger.info(f"Manager exit_criteria: {self.exit_criteria}")
 
         # Continue receiving and giving until termination test is satisfied
         try:

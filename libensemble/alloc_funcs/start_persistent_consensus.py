@@ -133,9 +133,9 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             )[0]
 
             if len(consensus_sim_ids) > 0:
-                assert (
-                    len(consensus_sim_ids) == 1
-                ), "Gen should only send one " + "point for consensus step, received {}".format(len(consensus_sim_ids))
+                assert len(consensus_sim_ids) == 1, (
+                    "Gen should only send one " + f"point for consensus step, received {len(consensus_sim_ids)}"
+                )
 
                 # re-center (since the last_H_len has relative index 0)
                 sim_id = consensus_sim_ids[0] + last_H_len
@@ -168,9 +168,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         assert num_gens_at_consensus == len(
             avail_persis_worker_ids
-        ), "All gens must be available, only {}/{} are though...".format(
-            len(avail_persis_worker_ids), len(num_gens_at_consensus)
-        )
+        ), f"All gens must be available, only {len(avail_persis_worker_ids)}/{len(num_gens_at_consensus)} are though..."
 
         # get index in history array @H where each gen's consensus point lies
         consensus_ids_in_H = np.array([persis_info[i]["curr_H_ids"][0] for i in avail_persis_worker_ids], dtype=int)
@@ -226,12 +224,12 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[wid].update({"at_consensus": False})
 
         if print_obj and print_progress:
-            msg = "F(x)={:.8f}\n".format(fsum)
-            print("{}con={:.4e}".format(msg, np.dot(x, Ax)), flush=True)
+            msg = f"F(x)={fsum:.8f}\n"
+            print(f"{msg}con={np.dot(x, Ax):.4e}", flush=True)
         elif print_obj:
-            print("F(x)={:.8f}".format(fsum), flush=True)
+            print(f"F(x)={fsum:.8f}", flush=True)
         elif print_progress:
-            print("con={:.4e}".format(np.dot(x, Ax)), flush=True)
+            print(f"con={np.dot(x, Ax):.4e}", flush=True)
 
     # partition sum of convex functions evenly (only do at beginning)
     if is_first_iter and len(support.avail_worker_ids(persistent=False)):
@@ -308,9 +306,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             assert (
                 l_H_ids == persis_info["next_to_give"]
-            ), "@next_to_give={} does not match gen's requested work H id of {}".format(
-                persis_info["next_to_give"], l_H_ids
-            )
+            ), f"@next_to_give={persis_info['next_to_give']} does not match gen's requested work H id of {l_H_ids}"
 
             persis_info[wid].update({"params": persis_info.get("sim_params", {})})
 

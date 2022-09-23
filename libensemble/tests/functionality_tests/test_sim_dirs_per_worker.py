@@ -68,7 +68,7 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
-        assert os.path.isdir(w_ensemble), "Ensemble directory {} not created.".format(w_ensemble)
+        assert os.path.isdir(w_ensemble), f"Ensemble directory {w_ensemble} not created."
         worker_dir_sum = sum(["worker" in i for i in os.listdir(w_ensemble)])
         assert worker_dir_sum == nworkers, "Number of worker dirs ({}) does not match nworkers ({}).".format(
             worker_dir_sum, nworkers
@@ -92,5 +92,5 @@ if __name__ == "__main__":
 
         assert (
             sim_dir_sum == exit_criteria["sim_max"]
-        ), "Number of sim directories ({}) does not match sim_max ({}).".format(sim_dir_sum, exit_criteria["sim_max"])
+        ), f"Number of sim directories ({sim_dir_sum}) does not match sim_max ({exit_criteria['sim_max']})."
         assert all(input_copied), "Exact input files not copied or symlinked to each calculation directory"

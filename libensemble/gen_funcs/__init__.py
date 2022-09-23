@@ -10,7 +10,7 @@ def rc(**kargs):
     """
     for key in kargs:
         if not hasattr(rc, key):
-            raise TypeError("unexpected argument '{0}'".format(key))
+            raise TypeError(f"unexpected argument '{key}'")
     for key, value in kargs.items():
         setattr(rc, key, value)
 

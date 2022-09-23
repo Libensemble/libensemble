@@ -238,7 +238,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             # Determine evaluations to cancel
             c_obviate = info["obviatesugg"]
             if len(c_obviate) > 0:
-                print("columns sent for cancel is:  {}".format(c_obviate), flush=True)
+                print(f"columns sent for cancel is:  {c_obviate}", flush=True)
                 cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
             pending[:, c_obviate] = False
 

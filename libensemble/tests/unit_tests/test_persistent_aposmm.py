@@ -113,7 +113,7 @@ def test_standalone_persistent_aposmm():
         print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
         if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
             min_found += 1
-    assert min_found >= 6, "Found {} minima".format(min_found)
+    assert min_found >= 6, f"Found {min_found} minima"
 
 
 @pytest.mark.extra

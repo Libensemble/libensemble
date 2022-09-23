@@ -31,7 +31,7 @@ num_procs_per_node = int(sys.argv[3])
 num_procs = num_nodes * num_procs_per_node
 
 print("Running Kill test with program", user_code)
-print("Kill type: {}   num_nodes: {}   procs_per_node: {}".format(kill_type, num_nodes, num_procs_per_node))
+print(f"Kill type: {kill_type}   num_nodes: {num_nodes}   procs_per_node: {num_procs_per_node}")
 
 
 # Create common components of submit line (currently all of it)
@@ -72,7 +72,7 @@ for run_num in range(2):
     stdout = "out_" + str(run_num) + ".txt"
     # runline = ['mpirun', '-np', str(num_procs), user_code]
     print("---------------------------------------------------------------")
-    print("\nRun num: {}   Runline: {}\n".format(run_num, " ".join(runline)))
+    print(f"\nRun num: {run_num}   Runline: {' '.join(runline)}\n")
 
     if kill_type == 1:
         process = subprocess.Popen(runline, cwd="./", stdout=open(stdout, "w"), shell=False)  # with kill 1
@@ -126,7 +126,7 @@ for run_num in range(2):
     # Test if task is still producing output
     with open(stdout, "rb") as fh:
         line_on_kill = fh.readlines()[-1].decode().rstrip()
-    print("Last line after task kill:  {}".format(line_on_kill))
+    print(f"Last line after task kill:  {line_on_kill}")
 
     if "has finished" in line_on_kill:
         raise Exception("Task may have already finished - test invalid")
@@ -135,14 +135,14 @@ for run_num in range(2):
         time.sleep(recheck_period)
         with open(stdout, "rb") as fh:
             lastline = fh.readlines()[-1].decode().rstrip()
-        print("Last line after {} seconds: {}".format(recheck_period * recheck, lastline))
+        print(f"Last line after {recheck_period * recheck} seconds: {lastline}")
 
         if lastline != line_on_kill:
-            print("Task {} still producing output".format(run_num))
+            print(f"Task {run_num} still producing output")
             # print("Last line check 1:", line_on_kill)
             # print("Last line check 2:", lastline)
             assert 0
 
 total_end_time = time.time()
 total_time = total_end_time - total_start_time
-print("\nTask kill test completed in {} seconds\n".format(total_time))
+print(f"\nTask kill test completed in {total_time} seconds\n")

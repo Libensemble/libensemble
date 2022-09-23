@@ -58,7 +58,7 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     # This is to give a random variance of work-load
     sim_particles = perturb(sim_particles, seed, particle_variance)
-    print("seed: {}   particles: {}".format(seed, sim_particles))
+    print(f"seed: {seed}   particles: {sim_particles}")
 
     args = str(int(sim_particles)) + " " + str(sim_timesteps) + " " + str(seed) + " " + str(kill_rate)
 
@@ -107,19 +107,19 @@ def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     if task.finished:
         if task.state == "FINISHED":
-            print("Task {} completed".format(task.name))
+            print(f"Task {task.name} completed")
             calc_status = WORKER_DONE
             if read_last_line(filepath) == "kill":
                 # Generally mark as complete if want results (completed after poll - before readline)
                 print("Warning: Task completed although marked as a bad run (kill flag set in forces.stat)")
         elif task.state == "FAILED":
-            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            print(f"Warning: Task {task.name} failed: Error code {task.errcode}")
             calc_status = TASK_FAILED
         elif task.state == "USER_KILLED":
-            print("Warning: Task {} has been killed".format(task.name))
+            print(f"Warning: Task {task.name} has been killed")
             calc_status = WORKER_KILL
         else:
-            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+            print(f"Warning: Task {task.name} in unknown state {task.state}. Error code {task.errcode}")
 
     time.sleep(0.2)
     try:

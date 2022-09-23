@@ -99,8 +99,8 @@ if __name__ == "__main__":
             run_num += 1
 
         if is_manager:
-            print("[Manager]: user_specs = {0}".format(user_specs))
-            print("[Manager]: exit_criteria = {0}".format(exit_criteria))
+            print(f"[Manager]: user_specs = {user_specs}")
+            print(f"[Manager]: exit_criteria = {exit_criteria}")
             start_time = time()
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
         if is_manager:

@@ -159,7 +159,7 @@ class Worker:
             exctr.set_worker_info(comm, workerID)  # When merge update
             return True
         else:
-            logger.debug("No executor set on worker {}".format(workerID))
+            logger.debug(f"No executor set on worker {workerID}")
             return False
 
     @staticmethod
@@ -170,7 +170,7 @@ class Worker:
             resources.set_worker_resources(comm.get_num_workers(), workerID)
             return True
         else:
-            logger.debug("No resources set on worker {}".format(workerID))
+            logger.debug(f"No resources set on worker {workerID}")
             return False
 
     def _handle_calc(self, Work, calc_in):
@@ -212,7 +212,7 @@ class Worker:
         timer = Timer()
 
         try:
-            logger.debug("Starting {}: {}".format(enum_desc, calc_id))
+            logger.debug(f"Starting {enum_desc}: {calc_id}")
             calc = self._run_calc[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
@@ -227,7 +227,7 @@ class Worker:
                 else:
                     out = calc(calc_in, Work["persis_info"], Work["libE_info"])
 
-                logger.debug("Returned from user function for {} {}".format(enum_desc, calc_id))
+                logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
             assert isinstance(out, tuple), "Calculation output must be a tuple."
             assert len(out) >= 2, "Calculation output must be at least two elements."
@@ -246,7 +246,7 @@ class Worker:
 
             return out[0], out[1], calc_status
         except Exception as e:
-            logger.debug("Re-raising exception from calc {}".format(e))
+            logger.debug(f"Re-raising exception from calc {e}")
             calc_status = CALC_EXCEPTION
             raise
         finally:
@@ -259,7 +259,7 @@ class Worker:
 
     def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
         """Construct line for libE_stats.txt file"""
-        calc_msg = "{} {}: {} {}".format(enum_desc, calc_id, calc_type, timer)
+        calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
@@ -267,10 +267,10 @@ class Worker:
         if self.stats_fmt.get("show_resource_sets", False):
             # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
-            calc_msg += " rsets: {}".format(resources.rset_team)
+            calc_msg += f" rsets: {resources.rset_team}"
 
         # Always put status last as could involve different numbers of words. Some scripts may assume this.
-        calc_msg += " Status: {}".format(status)
+        calc_msg += f" Status: {status}"
 
         return calc_msg
 
@@ -283,7 +283,7 @@ class Worker:
         else:
             calc_in = np.zeros(0, dtype=self.dtypes[calc_type])
 
-        logger.debug("Received calc_in ({}) of len {}".format(calc_type_strings[calc_type], np.size(calc_in)))
+        logger.debug(f"Received calc_in ({calc_type_strings[calc_type]}) of len {np.size(calc_in)}")
         assert calc_type in [EVAL_SIM_TAG, EVAL_GEN_TAG], "calc_type must either be EVAL_SIM_TAG or EVAL_GEN_TAG"
 
         return libE_info, calc_type, calc_in
@@ -312,7 +312,7 @@ class Worker:
             return None
 
         # Otherwise, send a calc result back to manager
-        logger.debug("Sending to Manager with status {}".format(calc_status))
+        logger.debug(f"Sending to Manager with status {calc_status}")
         return {
             "calc_out": calc_out,
             "persis_info": persis_info,
@@ -324,10 +324,10 @@ class Worker:
     def run(self):
         """Runs the main worker loop."""
         try:
-            logger.info("Worker {} initiated on node {}".format(self.workerID, socket.gethostname()))
+            logger.info(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
 
             for worker_iter in count(start=1):
-                logger.debug("Iteration {}".format(worker_iter))
+                logger.debug(f"Iteration {worker_iter}")
 
                 mtag, Work = self.comm.recv()
 

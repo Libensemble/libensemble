@@ -76,12 +76,12 @@ def run_warpx(H, persis_info, sim_specs, libE_info):
         if task.state == "FINISHED":
             calc_status = WORKER_DONE
         elif task.state == "FAILED":
-            print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
+            print(f"Warning: Task {task.name} failed: Error code {task.errcode}")
             calc_status = TASK_FAILED
         elif task.state == "USER_KILLED":
-            print("Warning: Task {} has been killed".format(task.name))
+            print(f"Warning: Task {task.name} has been killed")
         else:
-            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+            print(f"Warning: Task {task.name} in unknown state {task.state}. Error code {task.errcode}")
 
     # Safety
     time.sleep(0.2)

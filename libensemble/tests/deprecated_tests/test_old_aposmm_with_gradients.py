@@ -123,7 +123,7 @@ for run in range(3):
 
     if is_manager:
         if flag != 0:
-            print("Exit was not on convergence (code {})".format(flag), flush=True)
+            print(f"Exit was not on convergence (code {flag})", flush=True)
             libE_abort()
 
         tol = 1e-5

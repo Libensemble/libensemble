@@ -47,11 +47,11 @@ class ServerQCommManager:
 
     def get_inbox(self, workerID):
         """Get a worker inbox queue."""
-        return self.get_queue("inbox{}".format(workerID))
+        return self.get_queue(f"inbox{workerID}")
 
     def get_outbox(self, workerID):
         """Get a worker outbox queue."""
-        return self.get_queue("outbox{}".format(workerID))
+        return self.get_queue(f"outbox{workerID}")
 
     def get_shared(self):
         """Get a shared queue for worker subscription."""
@@ -103,11 +103,11 @@ class ClientQCommManager:
 
     def get_inbox(self):
         """Get this worker's inbox."""
-        return self.get_queue("inbox{}".format(self.workerID))
+        return self.get_queue(f"inbox{self.workerID}")
 
     def get_outbox(self):
         """Get this worker's outbox."""
-        return self.get_queue("outbox{}".format(self.workerID))
+        return self.get_queue(f"outbox{self.workerID}")
 
     def get_shared(self):
         """Get the shared queue for worker sign-up."""

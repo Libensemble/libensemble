@@ -32,12 +32,12 @@ def add_app(name, exepath, desc):
 def run_cmd(cmd, echo=False):
     """Run a bash command"""
     if echo:
-        print("\nRunning %s ...\n" % cmd)
+        print(f"\nRunning {cmd} ...\n")
     try:
         subprocess.run(cmd.split(), check=True)
     except Exception as e:
         print(e)
-        raise ("Error: Command %s failed to run" % cmd)
+        raise (f"Error: Command {cmd} failed to run")
 
 
 # Use relative paths to balsam_tests dir
