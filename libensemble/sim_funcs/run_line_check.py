@@ -60,7 +60,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
         new_exp_list = exp_nodelist_for_worker(exp_list[i], libE_info["workerID"], npw, p_gens)
 
         if outline != new_exp_list:
-            print("outline is: {}\nexp     is: {}".format(outline, new_exp_list), flush=True)
+            print(f"outline is: {outline}\nexp     is: {new_exp_list}", flush=True)
 
         assert outline == new_exp_list
 
@@ -108,7 +108,7 @@ def runline_check_by_worker(H, persis_info, sim_specs, libE_info):
     new_exp_list = exp_list[wid_mod - 1 - p_gens]
 
     if outline != new_exp_list:
-        print("Worker {}:\n outline is: {}\n exp     is: {}".format(wid, outline, new_exp_list), flush=True)
+        print(f"Worker {wid}:\n outline is: {outline}\n exp     is: {new_exp_list}", flush=True)
 
     assert outline == new_exp_list
 

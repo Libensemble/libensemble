@@ -22,7 +22,7 @@ class PersistentSupport:
         assert self.calc_type in [
             EVAL_GEN_TAG,
             EVAL_SIM_TAG,
-        ], "The calc_type: {} specifies neither a simulator nor generator.".format(self.calc_type)
+        ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
 
     def send(self, output, calc_status=UNSET_TAG, keep_state=False):
@@ -54,7 +54,7 @@ class PersistentSupport:
             "calc_status": calc_status,
             "calc_type": self.calc_type,
         }
-        logger.debug("Persistent {} function sending data message to manager".format(self.calc_str))
+        logger.debug(f"Persistent {self.calc_str} function sending data message to manager")
         self.comm.send(self.calc_type, D)
 
     def recv(self, blocking=True):
@@ -73,11 +73,11 @@ class PersistentSupport:
 
         tag, Work = self.comm.recv()  # Receive meta-data or signal
         if tag in [STOP_TAG, PERSIS_STOP]:
-            logger.debug("Persistent {} received signal {} from manager".format(self.calc_str, tag))
+            logger.debug(f"Persistent {self.calc_str} received signal {tag} from manager")
             self.comm.push_to_buffer(tag, Work)
             return tag, Work, None
         else:
-            logger.debug("Persistent {} received work request from manager".format(self.calc_str))
+            logger.debug(f"Persistent {self.calc_str} received work request from manager")
 
         # Update libE_info
         # self.libE_info = Work['libE_info']
@@ -90,13 +90,12 @@ class PersistentSupport:
         # Check for unexpected STOP (e.g. error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug(
-                "Persistent {} received signal {} ".format(self.calc_str, tag)
-                + "from manager while expecting work rows"
+                f"Persistent {self.calc_str} received signal {tag} " + "from manager while expecting work rows"
             )
             self.comm.push_to_buffer(data_tag, calc_in)
             return data_tag, calc_in, None  # calc_in is signal identifier
 
-        logger.debug("Persistent {} received work rows from manager".format(self.calc_str))
+        logger.debug(f"Persistent {self.calc_str} received work rows from manager")
         return tag, Work, calc_in
 
     def send_recv(self, output, calc_status=UNSET_TAG):

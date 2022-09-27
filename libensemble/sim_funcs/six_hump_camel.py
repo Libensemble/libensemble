@@ -142,18 +142,15 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     resources = Resources.resources.worker_resources
     slots = resources.slots
 
-    assert resources.matching_slots, "Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {}".format(
-        slots
-    )
+    assert resources.matching_slots, f"Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {slots}"
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
     num_nodes = resources.local_node_count
     cores_per_node = resources.slot_count  # One CPU per GPU
 
     print(
-        "Worker {}: CUDA_VISIBLE_DEVICES={}  \tnodes {} ppn {}  slots {}".format(
-            libE_info["workerID"], os.environ["CUDA_VISIBLE_DEVICES"], num_nodes, cores_per_node, slots
-        )
+        f"Worker {libE_info['workerID']}: CUDA_VISIBLE_DEVICES={os.environ['CUDA_VISIBLE_DEVICES']}"
+        f"\tnodes {num_nodes} ppn {cores_per_node}  slots {slots}"
     )
 
     # Create application input file

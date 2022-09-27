@@ -21,7 +21,7 @@ parser.add_argument(
     "--nsim_workers",
     type=int,
     nargs="?",
-    help="Number of workers for sims. 1+ zero-resource worker for a persistent generator will be added",
+    help="Number of workers for sims. 1+ unresourced workers for a persistent generator will be added",
 )
 parser.add_argument("--nresource_sets", type=int, nargs="?", help="Number of resource sets")
 parser.add_argument("--workers", type=str, nargs="+", help="List of worker nodes")
@@ -59,7 +59,8 @@ def _mpi_parse_args(args):
     # Convenience option which sets other libE_specs options.
     nsim_workers = args.nsim_workers
     if nsim_workers is not None:
-        libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
+        # libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
+        libE_specs["num_resource_sets"] = libE_specs.get("num_resource_sets", nsim_workers)
 
     return nworkers, is_manager, libE_specs, args.tester_args
 
@@ -76,7 +77,8 @@ def _local_parse_args(args):
     nsim_workers = args.nsim_workers
     if nsim_workers is not None:
         nworkers = nworkers or nsim_workers + 1
-        libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
+        # libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
+        libE_specs["num_resource_sets"] = libE_specs.get("num_resource_sets", nsim_workers)
 
     nworkers = nworkers or 4
     libE_specs["nworkers"] = nworkers
@@ -127,7 +129,7 @@ def _ssh_parse_args(args):
         str(nworkers),
     ]
     cmd = " ".join(cmd)
-    cmd = "( cd {} ; {} )".format(worker_pwd, cmd)
+    cmd = f"( cd {worker_pwd} ; {cmd} )"
     ssh.append(cmd)
     libE_specs = {"workers": args.workers, "worker_cmd": ssh, "ip": "localhost", "comms": "tcp"}
     return nworkers, True, libE_specs, args.tester_args
@@ -180,14 +182,16 @@ def parse_args():
 
         --comms,          Communications medium for manager and workers. Default is 'mpi'.
         --nworkers,       (For 'local' or 'tcp' comms) Set number of workers.
-        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for cases with persistent generators.
-                          If used with no other criteria, will generate one additional
-                          zero-resource worker for running a generator. If --nworkers
-                          has also been specified, will generate enough zero-resource workers to
-                          match the other criteria.
         --nresource_sets, Explicitly set the number of resource sets. This sets
                           libE_specs['num_resource_sets']. By default, resources will be
                           divided by workers (excluding zero_resource_workers).
+        --nsim_workers,   (For 'local' or 'mpi' comms) A convenience option for cases with
+                          persistent generators - sets the number of simulation workers.
+                          If used with no other criteria, one additional worker for running a
+                          generator will be added, and the number of resource sets will be assigned
+                          the given value. If '--nworkers' has also been specified, will generate
+                          enough additional workers to match the other criteria. If '--nresource_sets'
+                          is also specified, will not override resource sets.
 
         Example command lines:
 
@@ -230,5 +234,5 @@ def parse_args():
         os.chdir(args.pwd)
     nworkers, is_manager, libE_specs, tester_args = front_ends[args.comms or "mpi"](args)
     if is_manager and unknown:
-        logger.warning("parse_args ignoring unrecognized arguments: {}".format(" ".join(unknown)))
+        logger.warning(f"parse_args ignoring unrecognized arguments: {' '.join(unknown)}")
     return nworkers, is_manager, libE_specs, tester_args

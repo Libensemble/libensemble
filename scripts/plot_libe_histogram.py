@@ -81,14 +81,14 @@ with open(infile) as f:
                     exceptions = True
                     append_to_list(in_times_exception, in_times, found_time)  # Assumes Time comes first
                 else:
-                    print("Error: Unknown status - rest of line: {}".format(lst[i + 1 : len(lst)]))
+                    print(f"Error: Unknown status - rest of line: {lst[i + 1:len(lst)]}")
                     sys.exit()
                 found_status = True
             if found_time and found_status:
                 active_line_count += 1
                 break
 
-print("Processed {} calcs".format(active_line_count))
+print(f"Processed {active_line_count} calcs")
 
 times = np.asarray(in_times, dtype=float)
 times_ran = np.asarray(in_times_ran, dtype=float)

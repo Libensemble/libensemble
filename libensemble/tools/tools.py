@@ -120,7 +120,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
     p_filename = short_name + "_persis_info_" + prob_str
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
-    logger.info("{}\nSaving results to file: {}".format(status_mess, h_filename))
+    logger.info(f"{status_mess}\nSaving results to file: {h_filename}")
     np.save(h_filename, H)
 
     with open(p_filename + ".pickle", "wb") as f:

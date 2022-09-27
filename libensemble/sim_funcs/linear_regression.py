@@ -55,7 +55,7 @@ def linear_regression_eval(H, persis_info, sim_specs, _):
     c = persis_info["params"]["c"]
     reg = persis_info["params"].get("reg", None)
 
-    assert (reg is None) or (reg == "l1") or (reg == "l2"), "Incompatible regularization {}".format(reg)
+    assert (reg is None) or (reg == "l1") or (reg == "l2"), f"Incompatible regularization {reg}"
 
     batch = len(H["x"])
     H_o = np.zeros(batch, dtype=sim_specs["out"])

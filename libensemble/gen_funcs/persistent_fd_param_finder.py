@@ -101,7 +101,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
                 "octave",
                 "--no-window-system",
                 "--eval",
-                "F=[" + " ".join(["{:18.18f}".format(x) for x in Fhist0[i, j, : nf + 1]]) + "];"
+                "F=[" + " ".join([f"{x:18.18f}" for x in Fhist0[i, j, : nf + 1]]) + "];"
                 "nf=" + str(nf) + "';"
                 "[fnoise, ~, inform] = ECnoise(nf+1, F);"
                 "dlmwrite('fnoise.out', fnoise, 'delimiter', ' ', 'precision', 16);"

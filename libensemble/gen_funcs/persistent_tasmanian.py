@@ -159,7 +159,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
     ]
     assert (
         "refinement" in U and U["refinement"] in allowed_refinements
-    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    ), f"Must provide a gen_specs['user']['refinement'] in: {allowed_refinements}"
 
     while grid.getNumNeeded() > 0:
         aPoints = grid.getNeededPoints()
@@ -210,7 +210,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     allowed_refinements = ["getCandidateConstructionPoints", "getCandidateConstructionPointsSurplus"]
     assert (
         "refinement" in U and U["refinement"] in allowed_refinements
-    ), "Must provide a gen_specs['user']['refinement'] in: {}".format(allowed_refinements)
+    ), f"Must provide a gen_specs['user']['refinement'] in: {allowed_refinements}"
     tol = U["_match_tolerance"] if "_match_tolerance" in U else 1.0e-12
 
     # Choose the refinement function based on U['refinement'].

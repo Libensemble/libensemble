@@ -148,7 +148,7 @@ if __name__ == "__main__":
         )
 
         if is_manager:
-            print("=== Optimizing {} ===".format(prob_name), flush=True)
+            print(f"=== Optimizing {prob_name} ===", flush=True)
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
@@ -191,4 +191,4 @@ if __name__ == "__main__":
             assert F - fstar < err_const * eps, "Error of {:.4e}, expected {:.4e} (assuming f*={:.4e})".format(
                 F - fstar, err_const * eps, fstar
             )
-            assert consensus_val < eps, "Consensus score of {:.4e}, expected {:.4e}\nx={}".format(consensus_val, eps, x)
+            assert consensus_val < eps, f"Consensus score of {consensus_val:.4e}, expected {eps:.4e}\nx={x}"

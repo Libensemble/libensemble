@@ -93,7 +93,7 @@ class MPIRunner:
 
         hostlist = None
         if machinefile and not self.mfile_support:
-            logger.warning("User machinefile ignored - not supported by {}".format(self.run_command))
+            logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
 
         if machinefile is None and resources is not None:
@@ -172,8 +172,8 @@ class OPENMPI_MPIRunner(MPIRunner):
 
         machinefile = "machinefile_autogen"
         if workerID is not None:
-            machinefile += "_for_worker_{}".format(workerID)
-        machinefile += "_task_{}".format(task.id)
+            machinefile += f"_for_worker_{workerID}"
+        machinefile += f"_task_{task.id}"
         mfile_created, num_procs, num_nodes, procs_per_node = mpi_resources.create_machinefile(
             resources, machinefile, num_procs, num_nodes, procs_per_node, hyperthreads
         )
@@ -261,7 +261,7 @@ class JSRUN_MPIRunner(MPIRunner):
 
         hostlist = None
         if machinefile and not self.mfile_support:
-            logger.warning("User machinefile ignored - not supported by {}".format(self.run_command))
+            logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
         if machinefile is None and resources is not None:
             num_procs, num_nodes, procs_per_node = mpi_resources.get_resources(

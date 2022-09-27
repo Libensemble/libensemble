@@ -67,11 +67,11 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
-        assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
+        assert os.path.isdir(c_ensemble), f"Ensemble directory {c_ensemble} not created."
         dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
         assert (
             dir_sum == exit_criteria["sim_max"]
-        ), "Number of sim directories ({}) does not match sim_max ({}).".format(dir_sum, exit_criteria["sim_max"])
+        ), f"Number of sim directories ({dir_sum}) does not match sim_max ({exit_criteria['sim_max']})."
 
         input_copied = []
 

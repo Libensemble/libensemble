@@ -30,7 +30,12 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["zero_resource_workers"] = [1]
+    # The persistent gen does not need resources
+
+    libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
+
+    # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
+
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
 

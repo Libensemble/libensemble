@@ -50,7 +50,7 @@ if __name__ == "__main__":
     nsim_workers = nworkers
 
     if not (nsim_workers * nodes_per_worker).is_integer():
-        sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
+        sys.exit(f"Sim workers ({nsim_workers}) must divide evenly into nodes")
 
     comms = libE_specs["comms"]
     node_file = "nodelist_mpi_runners_subnode_comms_" + str(comms) + "_wrks_" + str(nworkers)

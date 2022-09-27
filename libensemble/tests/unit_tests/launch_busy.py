@@ -8,7 +8,7 @@ def ignore_handler(signum, frame):
 
 
 def main(ignore_term=False, wait_time=-1):
-    print("Call with {}, {}".format(ignore_term, wait_time))
+    print(f"Call with {ignore_term}, {wait_time}")
     if ignore_term:
         signal.signal(signal.SIGTERM, ignore_handler)
     if wait_time > 0:
