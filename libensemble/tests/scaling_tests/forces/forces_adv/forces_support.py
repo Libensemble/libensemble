@@ -19,7 +19,7 @@ def test_libe_stats(status):
 
 def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
     if not os.path.isdir(dir):
-        print("Specified ensemble directory {} not found.".format(dir))
+        print(f"Specified ensemble directory {dir} not found.")
         return
 
     if not libE_specs.get("sim_dirs_make"):
@@ -44,7 +44,7 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
 
         assert (
             num_sim_dirs == sim_max
-        ), "Number of simulation specific-directories ({}) doesn't match sim_max ({})".format(num_sim_dirs, sim_max)
+        ), f"Number of simulation specific-directories ({num_sim_dirs}) doesn't match sim_max ({sim_max})"
 
         assert all(
             files_found
@@ -58,7 +58,7 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
 
         assert (
             len(sim_dirs) == sim_max
-        ), "Number of simulation specific-directories ({}) doesn't match sim_max ({})".format(len(sim_dirs), sim_max)
+        ), f"Number of simulation specific-directories ({len(sim_dirs)}) doesn't match sim_max ({sim_max})"
 
         files_found = []
         for sim_dir in sim_dirs:
@@ -68,4 +68,4 @@ def test_ensemble_dir(libE_specs, dir, nworkers, sim_max):
             files_found
         ), "Set of expected files ['err.txt', 'forces.stat', 'out.txt'] not found in each sim_dir."
 
-    print("Output directory {} passed tests.".format(dir))
+    print(f"Output directory {dir} passed tests.")

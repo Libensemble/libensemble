@@ -55,7 +55,7 @@ if __name__ == "__main__":
     nsim_workers = nworkers - n_gens
 
     if not (nsim_workers * nodes_per_worker).is_integer():
-        sys.exit("Sim workers ({}) must divide evenly into nodes".format(nsim_workers))
+        sys.exit(f"Sim workers ({nsim_workers}) must divide evenly into nodes")
 
     comms = libE_specs["comms"]
     node_file = "nodelist_zero_resource_workers_subnode_comms_" + str(comms) + "_wrks_" + str(nworkers)

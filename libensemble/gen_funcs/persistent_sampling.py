@@ -81,7 +81,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
         H_o["priority"] = 10 * H_o["resource_sets"]
-        print("Created {} sims, with worker_teams req. of size(s) {}".format(b, H_o["resource_sets"]), flush=True)
+        print(f"Created {b} sims, with worker_teams req. of size(s) {H_o['resource_sets']}", flush=True)
         tag, Work, calc_in = ps.send_recv(H_o)
 
         if calc_in is not None:

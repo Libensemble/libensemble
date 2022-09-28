@@ -318,7 +318,8 @@ def manager(
                 hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info, wcomms
             )
             logger.info(f"Manager total time: {elapsed_time}")
-        except LoggedException:  # Exception already logged in manager
+        except LoggedException:
+            # Exception already logged in manager
             raise
         except WorkerException as e:
             report_worker_exc(e)
@@ -632,7 +633,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 
     with ClientQCommManager(ip, port, authkey, workerID) as comm:
         worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
-        logger.debug("Worker {} exiting".format(workerID))
+        logger.debug(f"Worker {workerID} exiting")
 
 
 # ==================== Additional Internal Functions ===========================

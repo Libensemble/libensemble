@@ -68,7 +68,7 @@ def _get_cpu_resources_from_env(env_resources=None):
     if found_count:
         # Check all nodes have equal cores -  Not doing for other methods currently.
         if len(set(counter)) != 1:
-            logger.warning("Detected compute nodes have different core counts: {}".format(set(counter)))
+            logger.warning(f"Detected compute nodes have different core counts: {set(counter)}")
 
         physical_cores_avail_per_node = counter[0]
         logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely

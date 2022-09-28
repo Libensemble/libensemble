@@ -40,7 +40,7 @@ for i in range(1, nworkers + 1):
     worker_xy = np.extract(H["sim_worker"] == i, H)
     x = [entry.tolist()[0] for entry in worker_xy["x"]]
     y = [entry for entry in worker_xy["y"]]
-    plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+    plt.scatter(x, y, label=f"Worker {i}", c=colors[i - 1])
 
 plt.title("Sine calculations for a uniformly sampled random distribution")
 plt.xlabel("x")

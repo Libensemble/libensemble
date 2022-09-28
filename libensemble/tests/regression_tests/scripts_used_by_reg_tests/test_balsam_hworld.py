@@ -15,7 +15,7 @@ from libensemble.tests.regression_tests.common import modify_Balsam_worker, modi
 
 def run_Balsam_job():
     runstr = "balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1"
-    print("Executing Balsam job with command: {}".format(runstr))
+    print(f"Executing Balsam job with command: {runstr}")
     subprocess.Popen(runstr.split())
 
 
@@ -36,10 +36,10 @@ def wait_for_job_dir(basedb):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, "Balsam Database directory not created within {} seconds.".format(limit)
+    assert sleeptime < limit, f"Balsam Database directory not created within {limit} seconds."
 
     # Stop sleeping once job directory detected within database directory
-    print("Waiting for Job Directory {}".format(sleeptime))
+    print(f"Waiting for Job Directory {sleeptime}")
     while sleeptime < limit:
         if len(os.listdir(basedb)) > 0:
             break
@@ -47,7 +47,7 @@ def wait_for_job_dir(basedb):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, "Balsam Job directory not created within {} seconds.".format(limit)
+    assert sleeptime < limit, f"Balsam Job directory not created within {limit} seconds."
 
     # Assumes database dir was empty, now contains single job dir
     jobdir = os.path.join(basedb, os.listdir(basedb)[0])
@@ -59,7 +59,7 @@ def wait_for_job_output(jobdir):
     limit = 60
 
     output = os.path.join(jobdir, "job_script_test_balsam_hworld.out")
-    print("Checking for Balsam output file: {}".format(output))
+    print(f"Checking for Balsam output file: {output}")
 
     while sleeptime < limit:
         if os.path.isfile(output):
@@ -69,7 +69,7 @@ def wait_for_job_output(jobdir):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, "Balsam output file not created within {} seconds.".format(limit)
+    assert sleeptime < limit, f"Balsam output file not created within {limit} seconds."
 
     return output
 
@@ -94,7 +94,7 @@ def print_job_output(outscript):
         time.sleep(1)
         sleeptime += 1
 
-    assert sleeptime < limit, "Expected Balsam Job output-file contents not detected after {} seconds.".format(limit)
+    assert sleeptime < limit, f"Expected Balsam Job output-file contents not detected after {limit} seconds."
 
 
 def move_job_coverage(jobdir):

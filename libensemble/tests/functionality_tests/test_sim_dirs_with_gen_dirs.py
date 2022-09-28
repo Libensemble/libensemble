@@ -92,14 +92,14 @@ if __name__ == "__main__":
                     )
                 )
 
-        assert all(input_copied), "All input files not copied or symlinked to each {} calc dir".format(type)
+        assert all(input_copied), f"All input files not copied or symlinked to each {type} calc dir"
 
     if is_manager:
-        assert os.path.isdir(c_ensemble), "Ensemble directory {} not created.".format(c_ensemble)
+        assert os.path.isdir(c_ensemble), f"Ensemble directory {c_ensemble} not created."
         sim_dir_sum = sum(["sim" in i for i in os.listdir(c_ensemble)])
         assert (
             sim_dir_sum == exit_criteria["sim_max"]
-        ), "Number of sim directories ({}) does not match sim_max ({}).".format(sim_dir_sum, exit_criteria["sim_max"])
+        ), f"Number of sim directories ({sim_dir_sum}) does not match sim_max ({exit_criteria['sim_max']})."
 
         assert any(["gen" in i for i in os.listdir(c_ensemble)]), "No gen directories created."
 

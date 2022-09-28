@@ -15,7 +15,7 @@ def test_location_stack():
     "Test correctness of location stack (all in a temp dir)."
 
     tmp_dirname = tempfile.mkdtemp()
-    assert os.path.isdir(tmp_dirname), "Failed to create temporary directory {}.".format(tmp_dirname)
+    assert os.path.isdir(tmp_dirname), f"Failed to create temporary directory {tmp_dirname}."
 
     try:
         # Record where we started
@@ -32,10 +32,10 @@ def test_location_stack():
 
         # Register a valid location
         tname = s.register_loc(0, "testdir", prefix=tmp_dirname, copy_files=[test_fname])
-        assert os.path.isdir(tname), "New directory {} was not created.".format(tname)
+        assert os.path.isdir(tname), f"New directory {tname} was not created."
         assert os.path.isfile(
             os.path.join(tname, "test.txt")
-        ), "New directory {} failed to copy test.txt from {}.".format(tname, clone_dirname)
+        ), f"New directory {tname} failed to copy test.txt from {clone_dirname}."
 
         # Register an empty location
         d = s.register_loc(1, None)
@@ -61,11 +61,11 @@ def test_location_stack():
         )
         assert os.path.samefile(
             os.getcwd(), tname
-        ), "Directory stack push_loc failed to end up at desired dir." "Wanted {}, at {}".format(tname, os.getcwd())
+        ), f"Directory stack push_loc failed to end up at desired dir.Wanted {tname}, at {os.getcwd()}"
 
         # Pop the registered location
         s.pop()
-        assert s.stack == [None], "Directory stack is incorrect after pop." "Wanted [None], got {}.".format(s.stack)
+        assert s.stack == [None], f"Directory stack is incorrect after pop.Wanted [None], got {s.stack}."
         assert os.path.samefile(
             os.getcwd(), start_dir
         ), "Directory stack push_loc failed to stay put with input None." "Wanted {}, at {}".format(
@@ -79,10 +79,10 @@ def test_location_stack():
             )
             assert os.path.samefile(
                 os.getcwd(), tname
-            ), "Directory stack push_loc failed to end up at desired dir." "Wanted {}, at {}".format(tname, os.getcwd())
+            ), f"Directory stack push_loc failed to end up at desired dir.Wanted {tname}, at {os.getcwd()}"
 
         # Check directory after context
-        assert s.stack == [None], "Directory stack is incorrect after ctx." "Wanted [None], got {}.".format(s.stack)
+        assert s.stack == [None], f"Directory stack is incorrect after ctx.Wanted [None], got {s.stack}."
         assert os.path.samefile(os.getcwd(), start_dir), "Directory looks wrong after ctx." "Wanted {}, at {}".format(
             start_dir, os.getcwd()
         )
@@ -93,7 +93,7 @@ def test_location_stack():
 
         # Pop the unregistered location
         s.pop()
-        assert not s.stack, "Directory stack should be empty, actually {}.".format(s.stack)
+        assert not s.stack, f"Directory stack should be empty, actually {s.stack}."
         assert os.path.samefile(
             os.getcwd(), start_dir
         ), "Directory stack push_loc failed to stay put with input None." "Wanted {}, at {}".format(
@@ -102,7 +102,7 @@ def test_location_stack():
 
         # Clean up
         s.clean_locs()
-        assert not os.path.isdir(tname), "Directory {} should have been removed on cleanup.".format(tname)
+        assert not os.path.isdir(tname), f"Directory {tname} should have been removed on cleanup."
 
     finally:
         shutil.rmtree(tmp_dirname)

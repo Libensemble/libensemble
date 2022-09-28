@@ -95,7 +95,7 @@ if __name__ == "__main__":
         #   the final grid will also be stored in the file
         gen_specs["user"] = {
             "tasmanian_init": tasmanian_init_global if run < 2 else tasmanian_init_localp,
-            "tasmanian_checkpoint_file": "tasmanian{0}.grid".format(run),
+            "tasmanian_checkpoint_file": f"tasmanian{run}.grid",
         }
 
         # setup the refinement criteria

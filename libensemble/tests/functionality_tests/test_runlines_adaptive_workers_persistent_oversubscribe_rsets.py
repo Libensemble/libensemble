@@ -40,7 +40,7 @@ if __name__ == "__main__":
     num_gens = len(libE_specs["zero_resource_workers"])
     total_nodes = (nworkers - num_gens) // 2  # 2 resourced workers per node.
 
-    print("sim_workers: {}.  rsets: {}.  Nodes: {}".format(nsim_workers, rsets, total_nodes), flush=True)
+    print(f"sim_workers: {nsim_workers}.  rsets: {rsets}.  Nodes: {total_nodes}", flush=True)
 
     if total_nodes == 1:
         max_rsets = 4  # Up to one node

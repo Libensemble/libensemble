@@ -22,7 +22,7 @@ forces.from_yaml("forces.yaml")
 forces.logger.set_level("INFO")
 
 if forces.is_manager:
-    print("\nRunning with {} workers\n".format(forces.nworkers))
+    print(f"\nRunning with {forces.nworkers} workers\n")
 
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name="forces")

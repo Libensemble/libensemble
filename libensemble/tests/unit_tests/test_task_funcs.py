@@ -7,21 +7,21 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 
 def setup_module(module):
-    print("setup_module      module:%s" % module.__name__)
+    print(f"setup_module      module:{module.__name__}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
 
 
 def setup_function(function):
-    print("setup_function    function:%s" % function.__name__)
+    print(f"setup_function    function:{function.__name__}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
 
 
 def teardown_module(module):
-    print("teardown_module   module:%s" % module.__name__)
+    print(f"teardown_module   module:{module.__name__}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None

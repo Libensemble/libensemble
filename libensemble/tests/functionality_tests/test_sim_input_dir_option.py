@@ -64,7 +64,7 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
-        assert os.path.isdir(o_ensemble), "Ensemble directory {} not created.".format(o_ensemble)
+        assert os.path.isdir(o_ensemble), f"Ensemble directory {o_ensemble} not created."
         assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), "Input file not copied over."
         with open(os.path.join(o_ensemble, "test_sim_out.txt"), "r") as f:
             lines = f.readlines()

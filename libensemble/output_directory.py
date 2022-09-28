@@ -139,7 +139,7 @@ class EnsembleDirectory:
 
         # Otherwise, ensemble_dir set as parent dir for sim dirs
         else:
-            calc_dir = "{}{}_worker{}".format(calc_str, H_rows, workerID)
+            calc_dir = f"{calc_str}{H_rows}_worker{workerID}"
             if not os.path.isdir(self.prefix):
                 os.makedirs(self.prefix, exist_ok=True)
             calc_prefix = self.prefix

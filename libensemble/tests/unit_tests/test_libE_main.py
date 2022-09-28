@@ -62,7 +62,7 @@ pfile_abort = "libE_persis_info_at_abort_0.pickle"
 
 # Run by pytest before each function
 def setup_function(function):
-    print("setup_function function:%s" % function.__name__)
+    print(f"setup_function function:{function.__name__}")
     if Resources.resources is not None:
         del Resources.resources
         Resources.resources = None

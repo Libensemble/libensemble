@@ -54,7 +54,7 @@ class MyResources:
 def _fail_to_resource(sched, rsets):
     with pytest.raises(InsufficientFreeResources):
         rset_team = sched.assign_resources(rsets_req=rsets)
-        pytest.fail("Expected InsufficientFreeResources. Found {}".format(rset_team))
+        pytest.fail(f"Expected InsufficientFreeResources. Found {rset_team}")
 
 
 def _print_assigned(resources):
@@ -65,18 +65,18 @@ def _print_assigned(resources):
     for g in range(max_groups + 1):
         filt = rsets["group"] == g
         print(rsets["assigned"][filt])
-    print("free rsets {}\n".format(resources.free_rsets))
+    print(f"free rsets {resources.free_rsets}\n")
 
 
 def test_request_zero_rsets():
     """Tests requesting zero resource sets"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
 
     # No options
     sched = ResourceScheduler(user_resources=resources)
     rset_team = sched.assign_resources(rsets_req=0)
-    assert rset_team == [], "rset_team is {}. Expected zero".format(rset_team)
+    assert rset_team == [], f"rset_team is {rset_team}. Expected zero"
     del sched
     rset_team = None
 
@@ -86,7 +86,7 @@ def test_request_zero_rsets():
             sched_options = {"match_slots": match_slots, "split2fit": split2fit}
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             rset_team = sched.assign_resources(rsets_req=0)
-            assert rset_team == [], "rset_team is {}. Expected zero".format(rset_team)
+            assert rset_team == [], f"rset_team is {rset_team}. Expected zero"
             del sched
             rset_team = None
     del resources
@@ -94,7 +94,7 @@ def test_request_zero_rsets():
 
 def test_too_many_rsets():
     """Tests request of more resource sets than exist"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
 
     # No options
@@ -121,7 +121,7 @@ def test_too_many_rsets():
 
 def test_cannot_split_quick_return():
     """Tests the quick return when splitting finds no free even gaps"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(6, 3)
     resources.fixed_assignment(([1, 0, 0, 0, 3, 3]))
     sched = ResourceScheduler(user_resources=resources)
@@ -134,7 +134,7 @@ def test_schedule_find_gaps_1node():
     This test also checks the list is correctly assigned to workers
     and the freeing of assigned resources.
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 1)
 
     # Options should make no difference
@@ -144,7 +144,7 @@ def test_schedule_find_gaps_1node():
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
 
             rset_team = sched.assign_resources(rsets_req=2)
-            assert rset_team == [0, 1], "rset_team is {}".format(rset_team)
+            assert rset_team == [0, 1], f"rset_team is {rset_team}"
 
             rset_team = sched.assign_resources(rsets_req=3)
             assert rset_team == [2, 3, 4]
@@ -174,7 +174,7 @@ def test_schedule_find_gaps_1node():
 
 def test_schedule_find_gaps_2nodes():
     """Tests finding gaps on two nodes with equal resource sets"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
     inputs = [2, 3, 1, 2]
     exp_out = [[0, 1], [4, 5, 6], [7], [2, 3]]
@@ -185,7 +185,7 @@ def test_schedule_find_gaps_2nodes():
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             for i in range(4):
                 rset_team = sched.assign_resources(rsets_req=inputs[i])
-                assert rset_team == exp_out[i], "Expected {}, Received rset_team {}".format(exp_out[i], rset_team)
+                assert rset_team == exp_out[i], f"Expected {exp_out[i]}, Received rset_team {rset_team}"
             _fail_to_resource(sched, 1)
             del sched
             rset_team = None
@@ -194,7 +194,7 @@ def test_schedule_find_gaps_2nodes():
 
 def test_split_across_no_matching_slots():
     """Must split across - but no split2fit and no matching slots"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(6, 3)  # 3 nodes of 2 slots
 
     for split2fit in [False, True]:
@@ -205,7 +205,7 @@ def test_split_across_no_matching_slots():
 
         sched.match_slots = False
         rset_team = sched.assign_resources(rsets_req=3)
-        assert rset_team == [0, 3, 4], "rset_team is {}.".format(rset_team)
+        assert rset_team == [0, 3, 4], f"rset_team is {rset_team}."
         del sched
         rset_team = None
     del resources
@@ -216,7 +216,7 @@ def test_across_nodes_even_split():
 
     Also tests cached variables in scheduler.
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     # Options should make no difference
     for match_slots in [False, True]:
@@ -227,8 +227,8 @@ def test_across_nodes_even_split():
 
             rset_team = sched.assign_resources(rsets_req=6)
             # Expecting even split
-            assert rset_team == [0, 1, 2, 4, 5, 6], "Even split test did not get expected result {}".format(rset_team)
-            assert sched.rsets_free == 2, "rsets_free should be 2. Found {}".format(sched.rsets_free)
+            assert rset_team == [0, 1, 2, 4, 5, 6], f"Even split test did not get expected result {rset_team}"
+            assert sched.rsets_free == 2, f"rsets_free should be 2. Found {sched.rsets_free}"
             assert sched.avail_rsets_by_group == {0: [3], 1: [7]}
 
             # Now find the remaining 2 slots
@@ -236,7 +236,7 @@ def test_across_nodes_even_split():
                 _fail_to_resource(sched, 2)
             else:
                 rset_team = sched.assign_resources(rsets_req=2)
-                assert rset_team == [3, 7], "rsets found {}".format(rset_team)
+                assert rset_team == [3, 7], f"rsets found {rset_team}"
                 assert sched.rsets_free == 0
                 assert sched.avail_rsets_by_group == {0: [], 1: []}
             del sched
@@ -255,7 +255,7 @@ def test_across_nodes_even_split():
                 _fail_to_resource(sched, 6)
             else:
                 rset_team = sched.assign_resources(rsets_req=6)
-                assert rset_team == [3, 4, 8, 9, 13, 14], "rsets found {}".format(rset_team)
+                assert rset_team == [3, 4, 8, 9, 13, 14], f"rsets found {rset_team}"
 
             del sched
             rset_team = None
@@ -264,7 +264,7 @@ def test_across_nodes_even_split():
 
 def test_across_nodes_roundup_option_2nodes():
     """Tests assignment over two nodes"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
 
     # Options should make no difference
@@ -274,8 +274,8 @@ def test_across_nodes_roundup_option_2nodes():
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             rset_team = sched.assign_resources(rsets_req=5)
             # Expecting even split
-            assert rset_team == [0, 1, 2, 4, 5, 6], "Even split test did not get expected result {}".format(rset_team)
-            assert sched.rsets_free == 2, "Free slots found {}".format(sched.rsets_free)
+            assert rset_team == [0, 1, 2, 4, 5, 6], f"Even split test did not get expected result {rset_team}"
+            assert sched.rsets_free == 2, f"Free slots found {sched.rsets_free}"
             del sched
             rset_team = None
     del resources
@@ -283,7 +283,7 @@ def test_across_nodes_roundup_option_2nodes():
 
 def test_across_nodes_roundup_option_3nodes():
     """Tests assignment over two nodes"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(9, 3)
 
     # Options should make no difference
@@ -296,7 +296,7 @@ def test_across_nodes_roundup_option_3nodes():
             assert rset_team == [0, 1, 2, 3, 4, 5, 6, 7, 8], "Even split test did not get expected result {}".format(
                 rset_team
             )
-            assert sched.rsets_free == 0, "Free slots found {}".format(sched.rsets_free)
+            assert sched.rsets_free == 0, f"Free slots found {sched.rsets_free}"
             del sched
             rset_team = None
     del resources
@@ -304,7 +304,7 @@ def test_across_nodes_roundup_option_3nodes():
 
 def test_try1node_findon_2nodes_matching_slots():
     """Tests finding gaps on two nodes with matching slots"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
 
     fixed_assignments = [
@@ -333,7 +333,7 @@ def test_try1node_findon_2nodes_matching_slots():
 
 def test_try1node_findon_2nodes_different_slots():
     """Tests finding gaps on two nodes with non-matching slots"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
 
     fixed_assignments = [
@@ -358,7 +358,7 @@ def test_try1node_findon_2nodes_different_slots():
         # Now with match slots False and split2fit True - should find.
         sched.split2fit = True
         rset_team = sched.assign_resources(rsets_req=4)
-        assert rset_team == exp_out[i], "Expected {}, Received rset_team {}".format(exp_out[i], rset_team)
+        assert rset_team == exp_out[i], f"Expected {exp_out[i]}, Received rset_team {rset_team}"
 
         del sched
         rset_team = None
@@ -367,7 +367,7 @@ def test_try1node_findon_2nodes_different_slots():
 
 def test_try1node_findon_3nodes():
     """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(12, 3)
     resources.fixed_assignment(([1, 1, 0, 0, 0, 2, 2, 0, 3, 0, 3, 3]))
     sched = ResourceScheduler(user_resources=resources)
@@ -380,7 +380,7 @@ def test_try1node_findon_3nodes():
     del sched
     sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
     rset_team = sched.assign_resources(rsets_req=3)
-    assert rset_team == [2, 4, 9], "rsets found {}".format(rset_team)
+    assert rset_team == [2, 4, 9], f"rsets found {rset_team}"
 
     # Without split2fit, will not split over nodes.
     sched_options = {"match_slots": False, "split2fit": False}
@@ -393,7 +393,7 @@ def test_try1node_findon_3nodes():
     del sched
     sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
     rset_team = sched.assign_resources(rsets_req=3)
-    assert rset_team == [0, 1, 2], "rsets found {}".format(rset_team)
+    assert rset_team == [0, 1, 2], f"rsets found {rset_team}"
     del resources
 
 
@@ -421,21 +421,21 @@ def test_try2nodes_findon_3nodes():
     assigned:    0  1  0  0  0  0   0  0  0  0  0  0    0  0  0  0  0  0
 
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(18, 3)
     resources.fixed_assignment(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
     # Can't find 2 groups of 6 so find 3 groups of 4 - with matching slots.
     rset_team = sched.assign_resources(rsets_req=12)
-    assert rset_team == [0, 2, 3, 4, 6, 8, 9, 10, 12, 14, 15, 16], "rsets found {}".format(rset_team)
+    assert rset_team == [0, 2, 3, 4, 6, 8, 9, 10, 12, 14, 15, 16], f"rsets found {rset_team}"
 
     # Without matching slots, will find first available slots on each node.
     sched_options = {"match_slots": False}
     del sched
     sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
     rset_team = sched.assign_resources(rsets_req=12)
-    assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], "rsets found {}".format(rset_team)
+    assert rset_team == [0, 2, 3, 4, 6, 7, 8, 9, 12, 13, 14, 15], f"rsets found {rset_team}"
 
     # Simulate a new call to allocation function with split2fit False - unable to split to 3 nodes.
     sched_options = {"match_slots": False, "split2fit": False}
@@ -453,18 +453,18 @@ def test_try2nodes_findon_3nodes():
             del sched
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             rset_team = sched.assign_resources(rsets_req=12)
-            assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], "rsets found {}".format(rset_team)
+            assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], f"rsets found {rset_team}"
 
             del sched
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             rset_team = sched.assign_resources(rsets_req=12)
-            assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], "rsets found {}".format(rset_team)
+            assert rset_team == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], f"rsets found {rset_team}"
     del resources
 
 
 def test_split2fit_even_required_fails():
     """Test tries one node then two, and both fail"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
     resources.fixed_assignment(([1, 1, 1, 0, 2, 2, 0, 0]))
 
@@ -477,14 +477,14 @@ def test_split2fit_even_required_fails():
 
 def test_split2fit_even_required_various():
     """Tests trying to fit to an non-even partition, and setting of local rsets_free"""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
     resources.fixed_assignment(([1, 1, 1, 0, 0, 0, 0, 0]))
     sched = ResourceScheduler(user_resources=resources)
     assert sched.rsets_free == 5
 
     rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [4, 5], "rsets found {}".format(rset_team)
+    assert rset_team == [4, 5], f"rsets found {rset_team}"
     assert sched.rsets_free == 3
 
     # In same alloc - now try getting 4 rsets, then 3
@@ -494,26 +494,26 @@ def test_split2fit_even_required_various():
     assert sched.rsets_free == 3
 
     rset_team = sched.assign_resources(rsets_req=2)
-    assert rset_team == [6, 7], "rsets found {}".format(rset_team)
+    assert rset_team == [6, 7], f"rsets found {rset_team}"
     assert sched.rsets_free == 1
 
 
 def test_try1node_findon_2_or_4nodes():
     """Tests splitting to fit. Needs 4 nodes if matching slots, else 2."""
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(16, 4)
     resources.fixed_assignment(([1, 1, 0, 1, 2, 2, 0, 0, 1, 0, 0, 1, 0, 4, 0, 4]))
 
     sched = ResourceScheduler(user_resources=resources)
     rset_team = sched.assign_resources(rsets_req=4)
-    assert rset_team == [2, 6, 10, 14], "rsets found {}".format(rset_team)
+    assert rset_team == [2, 6, 10, 14], f"rsets found {rset_team}"
     del sched
     rset_team = None  # I think should always do between tests (esp if expected output is the same).
 
     sched_options = {"match_slots": False}  # will prob be default.
     sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)  # noqa E702
     rset_team = sched.assign_resources(rsets_req=4)
-    assert rset_team == [6, 7, 9, 10], "rsets found {}".format(rset_team)
+    assert rset_team == [6, 7, 9, 10], f"rsets found {rset_team}"
     del resources
 
 
@@ -557,7 +557,7 @@ def test_large_match_slots():
     To do this need enough slots at each step so tries to find, but in the
     wrong places, until final iteration. Performance is of interest.
     """
-    print("\nTest: {}\n".format(sys._getframe().f_code.co_name))
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     # Construct rset assignment
     resources = MyResources(256, 16)
@@ -577,7 +577,7 @@ def test_large_match_slots():
         assert rset_team == exp_out[match_slots], "Expected {}, Received rset_team {}".format(
             exp_out[match_slots], rset_team
         )
-        print("Time for large problem (match_slots {}): {}".format(match_slots, time2))
+        print(f"Time for large problem (match_slots {match_slots}): {time2}")
         del sched
         rset_team = None
     del resources

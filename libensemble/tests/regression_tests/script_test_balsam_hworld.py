@@ -75,8 +75,8 @@ if __name__ == "__main__":
         )
         calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-        print("Expecting: {}".format(calc_status_list))
-        print("Received:  {}\n".format(H["cstat"]))
+        print(f"Expecting: {calc_status_list}")
+        print(f"Received:  {H['cstat']}\n")
 
         assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
             H["cstat"]

@@ -114,7 +114,7 @@ four resource sets (the example generator does not need dedicated resources):
 
 .. code-block:: python
 
-    libE_specs['zero_resource_workers'] = [1]
+    libE_specs['num_resource_sets'] = 4
 
 The MPIExecutor is also initiated in the calling script, ensuring that ``srun`` is picked up::
 
