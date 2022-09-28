@@ -129,7 +129,7 @@ class LibeSpecs(BaseModel):
 
 
 class EnsembleSpecs(BaseModel):
-    H0: Optional[np.ndarray] = np.empty([0])
+    H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]
