@@ -248,7 +248,6 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
@@ -339,7 +338,6 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
     ub = np.ones(len(x0))
@@ -377,7 +375,6 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     assert isinstance(x0, np.ndarray)
 
     tao_comm = PETSc.COMM_SELF
