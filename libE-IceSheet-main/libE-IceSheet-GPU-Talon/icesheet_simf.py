@@ -21,44 +21,45 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
 
     print(args)
 
-    # Retrieve our MPI Executor instance and resources
-    exctr = Executor.executor
-    resources = Resources.resources.worker_resources
+    # # Retrieve our MPI Executor instance and resources
+    # exctr = Executor.executor
+    # resources = Resources.resources.worker_resources
 
-    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    # resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
-    # # Submit our forces app for execution. Block until the task starts.
-    task = exctr.submit(
-         app_name="icesheet",
-         app_args=args,
-         num_nodes=resources.local_node_count,
-         procs_per_node=resources.slot_count,
-         wait_on_start=True,
-    )
+    # # # Submit our forces app for execution. Block until the task starts.
+    # task = exctr.submit(
+    #      app_name="icesheet",
+    #      app_args=args,
+    #      num_nodes=resources.local_node_count,
+    #      procs_per_node=resources.slot_count,
+    #      wait_on_start=True,
+    # )
 
-    # # Block until the task finishes
-    task.wait(timeout=60)
+    # # # Block until the task finishes
+    # task.wait(timeout=60)
 
-    # Stat file to check for bad runs
-    #statfile = "forces.stat"
-    statfile = "icesheet.stat"#change to filename we name it in C
+    # # Stat file to check for bad runs
+    # #statfile = "forces.stat"
+    # statfile = "icesheet.stat"#change to filename we name it in C
 
-    # # Try loading final energy reading, set the sim's status
-    try:
-         data = np.loadtxt(statfile)
-         iterations = data[-1]
-         error = data[-1]
-         calc_status = WORKER_DONE
-    except Exception:
-         iterations = -1
-       #  error = np.nan
-         calc_status = TASK_FAILED
+    # # # Try loading final energy reading, set the sim's status
+    # try:
+    #      data = np.loadtxt(statfile)
+    #      iterations = data[-1]
+    #      error = data[-1]
+    #      calc_status = WORKER_DONE
+    # except Exception:
+    #      iterations = -1
+    #    #  error = np.nan
+    #      calc_status = TASK_FAILED
 
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
-    output["iterations"][0] = iterations
-    output["fvec"][0] = np.random.uniform(0,1,100)
+    # output["iterations"][0] = 0
+    output["fvec"][0][:3] = H["x"]
+    # output["fvec"][0] = np.random.uniform(0,1,100)
    # iterations = np.random.randint(1,100)
    # print(iterations)
    # output["iterations"][0] =iterations 
