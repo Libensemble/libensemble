@@ -15,6 +15,7 @@ x.log
 *.out
 *.err
 *.stat
+*.csv
 
 .vscode
 build/
