@@ -539,7 +539,7 @@ def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
             exctr.serial_setup()
 
     if is_worker:
-        libE_tcp_worker(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+        libE_tcp_worker(sim_specs, gen_specs, libE_specs)
         return [], persis_info, []
 
     return libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
