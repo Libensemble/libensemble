@@ -529,7 +529,7 @@ def libE_tcp_default_ID():
 def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE."""
 
-    is_worker = True if "workerID" in libE_specs else False
+    is_worker = libE_specs.get("workerID") is not None
 
     exctr = Executor.executor
     if exctr is not None:
@@ -585,10 +585,10 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     launchf = libE_tcp_worker_launcher(libE_specs)
 
     # Get worker launch parameters and fill in defaults for TCP/IP conn
-    if "nworkers" in libE_specs:
+    if libE_specs.get("nworkers"):
         workers = None
         nworkers = libE_specs["nworkers"]
-    elif "workers" in libE_specs:
+    elif libE_specs.get("workers"):
         workers = libE_specs["workers"]
         nworkers = len(workers)
     ip = libE_specs["ip"] or get_ip()
