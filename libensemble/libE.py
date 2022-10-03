@@ -631,7 +631,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     authkey = libE_specs["authkey"]
     workerID = libE_specs["workerID"]
 
-    with ClientQCommManager(ip, port, authkey, workerID) as comm:
+    with ClientQCommManager(ip, port, authkey.encode("utf-8"), workerID) as comm:
         worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
         logger.debug(f"Worker {workerID} exiting")
 
