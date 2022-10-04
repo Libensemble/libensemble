@@ -259,7 +259,7 @@ def libE(
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    if not H0:
+    if H0 is None:
         H0 = np.empty([0])
 
     # check *everything*

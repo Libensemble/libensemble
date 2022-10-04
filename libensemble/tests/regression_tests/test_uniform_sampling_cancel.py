@@ -90,7 +90,6 @@ if __name__ == "__main__":
 
     aspec1 = {
         "alloc_f": gswf,
-        "out": [],
         "user": {
             "batch_mode": True,
             "num_active_gens": 1,
@@ -99,7 +98,6 @@ if __name__ == "__main__":
 
     aspec2 = {
         "alloc_f": gswf,
-        "out": [],
         "user": {
             "batch_mode": True,
             "num_active_gens": 2,
@@ -108,19 +106,16 @@ if __name__ == "__main__":
 
     aspec3 = {
         "alloc_f": fast_gswf,
-        "out": [],
         "user": {},
     }
 
     aspec4 = {
         "alloc_f": ensure_one_active_gen,
-        "out": [],
         "user": {},
     }
 
     aspec5 = {
         "alloc_f": give_pregenerated_sim_work,
-        "out": [],
         "user": {},
     }
 

@@ -48,7 +48,7 @@ def _check_output_fields(cls, values):
 def _check_H0(cls, values):
     if values.get("H0").size > 0:
         H0 = values.get("H0")
-        specs = [values.get("sim_specs"), values.get("alloc_specs"), values.get("gen_specs")]
+        specs = [values.get("sim_specs"), values.get("gen_specs")]
         dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
         Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
 
