@@ -29,22 +29,19 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
+libEnsemble is a Python_ toolkit for coordinating adaptively generated experiments or simulations.
 
-libEnsemble helps users take advantage of massively parallel resources to solve design,
-decision, and inference problems and expands the class of problems that can benefit from
-increased parallelism.
+libEnsemble can manage massively parallel resources to solve design, decision, and inference problems 
+and help developers and researchers benefit from having more of those resources.
 
 libEnsemble aims for:
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
-• **Dynamic Ensembles**: Generate new tasks on-the-fly based on previous computations.
+• **Adaptive Ensembles**: Generate multiple new tasks on-the-fly based on previous computations.
 • **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
-• **Monitoring/killing of applications**: Ensemble members can poll or kill running apps.
-• **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
-• **Portability and flexibility**: Run identical libEnsemble scripts on different machines.
-• **Exploitation of persistent data/control flow**: libEnsemble can pass data between ensemble members.
-• **Low start-up cost**: Default single-machine deployments don't require additional services.
+• **Application Monitoring**: Ensemble members can poll or kill running apps.
+• **Coordinating data-flow between tasks**: libEnsemble can pass data between ensemble members.
+• **Low start-up cost**: Default deployments don't require additional services. `pip install libensemble` and go!
 
 libEnsemble's users select or supply **generator** and **simulator** Python
 functions; these respectively produce candidate parameters and perform/monitor
