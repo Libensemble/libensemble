@@ -210,7 +210,7 @@ class AxRunner(Runner):
             n_param = len(params)
             param_array = np.zeros(n_param)
             for j in range(n_param):
-                param_array[j] = params[f"{j}"]
+                param_array[j] = params[f"x{j}"]
             H_o["x"][i] = param_array
             H_o["resource_sets"][i] = 1
             H_o["task"][i] = task
