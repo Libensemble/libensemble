@@ -31,8 +31,8 @@ Introduction to libEnsemble
 
 libEnsemble is a Python_ toolkit for coordinating adaptively generated experiments or simulations.
 
-libEnsemble can manage massively parallel resources to solve design, decision, and inference problems 
-and help developers and researchers benefit from having more of those resources.
+libEnsemble can manage massively parallel resources to solve design, decision, and inference problems
+and help developers benefit from having more of those resources.
 
 libEnsemble aims for:
 
@@ -43,33 +43,89 @@ libEnsemble aims for:
 • **Coordinating data-flow between tasks**: libEnsemble can pass data between ensemble members.
 • **Low start-up cost**: Default deployments don't require additional services. `pip install libensemble` and go!
 
-libEnsemble's users select or supply **generator** and **simulator** Python
-functions; these respectively produce candidate parameters and perform/monitor
-computations that use those parameters. Generator functions can train
-models, perform optimizations, and test candidate solutions in a batch or streaming
-fashion based on simulation results.
-Simulator functions can themselves use parallel resources and involve libraries
-or executables that are not written in Python.
+Basic Usage
+===========
 
-With a basic familiarity of Python and NumPy_, users can easily incorporate
-any other mathematics, machine-learning, or resource-management libraries into libEnsemble
-workflows.
+Select or supply Simulator and Generator functions
+--------------------------------------------------
 
-libEnsemble employs a manager/worker scheme that communicates via MPI, multiprocessing,
-or TCP. Workers control and monitor any level of work using the aforementioned
-generator and simulator functions, from small subnode tasks to huge many-node computations.
+**Generator** and **Simulator** Python functions espectively produce candidate parameters and perform/monitor
+computations that use those parameters. Coupling them together with libEnsemble is easy:
+
+```
+import numpy as np
+from my_simulators import beamline_simulation
+from my_evaluators import adaptive_calibrator
+
+from libensemble import libE
+from libensemble.tools import parse_args
+
+if __name__ == "__main__":
+
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["save_every_k_gens"] = 300
+
+    sim_specs = {
+        "sim_f": beamline_simulation,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
+
+    gen_specs = {
+        "gen_f": adaptive_calibrator,
+        "out": [("x", float, (1,))],
+        "user": {
+            "gen_batch_size": 500,
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        },
+    }
+
+    exit_criteria = {"gen_max": 501}
+
+    Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
+
+Launch and monitor apps on parallel resources
+---------------------------------------------
 
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible; it also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
 
-libEnsemble performs best on Unix-like systems like Linux and macOS. See the
-:ref:`FAQ<faqwindows>` for more information.
+```
+def run_simulation(Input, persis_info, sim_specs, libE_info):
+    calc_status = 0
+
+    particles = str(int(Input["x"][0][0]))
+    args = particles + " " + str(10) + " " + particles
+
+    exctr = Executor.executor
+    task = exctr.submit(app_name="forces", app_args=args)
+
+    task.wait()
+
+    try:
+        data = np.loadtxt("forces.stat")
+        final_energy = data[-1]
+        calc_status = WORKER_DONE
+    except Exception:
+        final_energy = np.nan
+        calc_status = TASK_FAILED
+
+    outspecs = sim_specs["out"]
+    output = np.zeros(1, dtype=outspecs)
+    output["energy"] = final_energy
+
+    return output, persis_info, calc_status
+```
 
 .. before_dependencies_rst_tag
 
 Dependencies
 ~~~~~~~~~~~~
+
+libEnsemble performs best on Unix-like systems like Linux and macOS. See the
+:ref:`FAQ<faqwindows>` for more information.
 
 **Required dependencies**:
 
