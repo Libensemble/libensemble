@@ -21,16 +21,18 @@ along with XXX. If not, see <http://www.gnu.org/licenses/>. */
 // Run as: ./a.out
 // -------------------------------------------------------------------------
 
-
-
+#include <iomanip>
+#include <stdlib.h>
 #include <cstdio>
 #include <iostream>
 #include <string.h>
 #include <cmath>
+#include <fstream>
 using namespace std;
 
 /*define GPU specific variables*/
-#define GPU_ID    6
+
+#define GPU_ID    0 
 
 #define BLOCK_Xe  256   //optimal block size for JKS2e4 and PIG3e4
 #define BLOCK_Xv  256 
@@ -43,9 +45,9 @@ using namespace std;
 #include "helpers.h"
 
 /*CUDA Code*/
-__global__ void PT1(double* vx, double* vy, double* alpha, double* beta, int* index,  double* kvx, double* kvy, double* etan,  double* Helem, double* areas, bool* isice, double* Eta_nbe, double* rheology_B, double n_glen, double eta_0, double rele,int nbe){ 
+__global__ void PT1(double* vx, double* vy, double* alpha, double* beta, int* index,  double* kvx, double* kvy, double* etan,  double* Helem, double* areas, bool* isice, double* Eta_nbe, double* rheology_B, double n_glen, double eta_0, double rele,int nbe){
     // int ix = blockIdx.x * blockDim.x + threadIdx.x;
-    for(int ix = blockIdx.x * blockDim.x + threadIdx.x; ix<nbe; ix += blockDim.x * gridDim.x){ 
+    for(int ix = blockIdx.x * blockDim.x + threadIdx.x; ix<nbe; ix += blockDim.x * gridDim.x){
         double dvxdx = vx[index[ix*3+0]-1]*alpha[ix*3+0] + vx[index[ix*3+1]-1]*alpha[ix*3+1] + vx[index[ix*3+2]-1]*alpha[ix*3+2];
         double dvxdy = vx[index[ix*3+0]-1]* beta[ix*3+0] + vx[index[ix*3+1]-1]* beta[ix*3+1] + vx[index[ix*3+2]-1]* beta[ix*3+2];
         double dvydx = vy[index[ix*3+0]-1]*alpha[ix*3+0] + vy[index[ix*3+1]-1]*alpha[ix*3+1] + vy[index[ix*3+2]-1]*alpha[ix*3+2];
@@ -133,7 +135,7 @@ __global__ void PT2_y(double* kvy, double* groundedratio, double* areas, int* in
 }
 
 //Moving to the next kernel: cannot update kvx and perform indirect access, lines 474 and 475, in the same kernel//
-__global__ void PT3(double* kvx, double* kvy, double* Eta_nbe, double* areas, double* eta_nbv, int* index, int* connectivity, int* columns, double* weights, double* ML, double* KVx, double* KVy, double* Fvx, double* Fvy, double* dVxdt, double* dVydt, double* resolx, double* resoly, double* H, double* vx, double* vy, double* spcvx, double* spcvy, double rho, double damp, double relaxation, double eta_b, int nbv){ 
+__global__ void PT3(double* kvx, double* kvy, double* Eta_nbe, double* areas, double* eta_nbv, int* index, int* connectivity, int* columns, double* weights, double* ML, double* KVx, double* KVy, double* Fvx, double* Fvy, double* dVxdt, double* dVydt, double* resolx, double* resoly, double* H, double* vx, double* vy, double* spcvx, double* spcvy, double rho, double damp, double relaxation, double eta_b, int nbv){
 
     double ResVx;
     double ResVy;
@@ -157,12 +159,12 @@ __global__ void PT3(double* kvx, double* kvy, double* Eta_nbe, double* areas, do
                 eta_nbv[ix] = eta_nbv[ix] + Eta_nbe[connectivity[(ix * 8 + j)]-1];
             }
         }
-    
+
         eta_nbv[ix] =eta_nbv[ix]/weights[ix];
 
         /*1. Get time derivative based on residual (dV/dt)*/
         ResVx =  1./(rho*max(60.0,H[ix])*ML[ix])*(-KVx[ix] + Fvx[ix]);
-        ResVy =  1./(rho*max(60.0,H[ix])*ML[ix])*(-KVy[ix] + Fvy[ix]);
+ResVy =  1./(rho*max(60.0,H[ix])*ML[ix])*(-KVy[ix] + Fvy[ix]);
 
         dVxdt[ix] = dVxdt[ix]*damp + ResVx;
         dVydt[ix] = dVydt[ix]*damp + ResVy;
@@ -188,13 +190,16 @@ __global__ void PT3(double* kvx, double* kvy, double* Eta_nbe, double* areas, do
 }
 
 /*Main*/
-int main(){
+//int main(){
+int main(int argc, char *argv[]){
+if (argc < 4) { cerr<<"Wired!!!!!"<<endl; return -1; }
 
-       /*Open input binary file*/
-    const char* inputfile  = "./JKS8e4.bin";
-    const char* outputfile = "./output.outbin";
+    /*Open input binary file*/
+    //const char* inputfile  = "/home/kuanghsu.wang/wais/test/WAIS7e4.bin";
+    const char* inputfile  = "/home/kuanghsu.wang/PIG2e6_rand1/test/PIG2e6.bin";
+    const char* outputfile = "/home/kuanghsu.wang/PIG2e6_rand1/test/output.outbin";
     FILE* fid = fopen(inputfile,"rb");
-    if(fid==NULL) std::cerr<<"could not open file " << inputfile << " for binary reading or writing";
+    if(fid==NULL) cerr<<"could not open file " << inputfile << " for binary reading or writing";
 
 
     /*Get All we need from binary file*/
@@ -236,19 +241,23 @@ int main(){
     FetchData(fid,&friction,&M,&N,"md.friction.coefficient");
 
     /*Close input file*/
-    if(fclose(fid)!=0) std::cerr<<"could not close file " << inputfile;
+    if(fclose(fid)!=0) cerr<<"could not close file " << inputfile;
 
     /*Constants*/
     double n_glen     = 3.;
-    double damp       = dmp; //0.96 for JKS2e4, 0.981 for PIG3e4
-    double rele       = 3e-2;   //1e-1 for JKS2e4, 0.07 for PIG3e4
+    double damp       = atof(argv[1]);             // 0.96 for JKS2e4, 0.981 for PIG3e4
+    double rele       = atof(argv[2]);             // 1e-1 for JKS2e4, 0.07 for PIG3e4
     double eta_b      = 0.5;
     double eta_0      = 1.e+14/2.;
-    int    niter      = 5e6;
-    int    nout_iter  = 100; //change it to 100 for JKS2e4
+    int    niter      = 25000;
+    int    nout_iter  = 1;                        //change it to 100 for JKS2e4
     double epsi       = 3.171e-7;
-    double relaxation = rela; //0.7 for JKS2e4, 0.967 for PIG3e4
-        
+    double relaxation = atof(argv[3]);           // 0.7 for JKS2e4, 0.967 for PIG3e4 
+
+  //  printf("damp = %f  , relaxation = %f \n", damp , relaxation);
+  //  printf("damp = %f\n rele = %f\n relaxation = %f\n\n", damp , rele, relaxation);
+
+
     // Ceiling division to get the close to optimal GRID size
     unsigned int GRID_Xe = 1 + ((nbe - 1) / BLOCK_Xe);
     unsigned int GRID_Xv = 1 + ((nbv - 1) / BLOCK_Xv);
@@ -256,8 +265,8 @@ int main(){
    // GRID_Xe = GRID_Xe - GRID_Xe%80;
     //GRID_Xv = GRID_Xv - GRID_Xv%80;
 
-    std::cout<<"GRID_Xe="<<GRID_Xe<<std::endl;
-    std::cout<<"GRID_Xv="<<GRID_Xv<<std::endl;
+    cout<<"GRID_Xe="<<GRID_Xe<<endl;
+    cout<<"GRID_Xv="<<GRID_Xv<<endl;
 
     // Set up GPU
     int gpu_id=-1;
@@ -320,7 +329,7 @@ int main(){
         if (EII2>0.) eta_it = rheology_B[i]/(2*pow(EII2,(n_glen-1.)/(2*n_glen)));
 
         etan[i] = min(eta_it,eta_0*1e5);
-        if (isnan(etan[i])){ std::cerr<<"Found NaN in etan[i]"; return 1;}
+        if (isnan(etan[i])){ cerr<<"Found NaN in etan[i]"; return 1;}
     }
 
     /*Linear integration points order 3*/
@@ -332,8 +341,8 @@ int main(){
     double* Fvx           = new double[nbv];
     double* Fvy           = new double[nbv];
     double* groundedratio = new double[nbe];
-    bool*   isice         = new bool[nbe];     
-    double level[3];      
+    bool*   isice         = new bool[nbe];
+    double level[3];
 
     for(int i=0;i<nbv;i++){
         ML[i]  = 0.;
@@ -363,7 +372,7 @@ int main(){
             for(int i=0;i<3;i++){
                 vx[index[n*3+i]-1] = 0.;
                 vy[index[n*3+i]-1] = 0.;
-            }
+}
             continue;
         }
         /*RHS, 'F ' in equation 22 (Driving Stress)*/
@@ -405,8 +414,8 @@ int main(){
             else if (ice_levelset[seg3[0]]>=0 && ice_levelset[seg3[1]]>=0){
                 pairids[0] = seg3[0]; pairids[1] = seg3[1];
             }
-            else{
-                std::cerr<<"case not supported";
+              else{
+                cerr<<"case not supported";
             }
             /*Get normal*/
             double len = sqrt(pow(x[pairids[1]]-x[pairids[0]],2) + pow(y[pairids[1]]-y[pairids[0]],2) );
@@ -423,7 +432,7 @@ int main(){
                 Fvx[pairids[1]] = Fvx[pairids[1]] +wgt3[gg]/2*1/2*(-rho_w*g*pow(bg,2)+rho*g*pow(Hg,2))*nx*len*phi2;
                 Fvy[pairids[0]] = Fvy[pairids[0]] +wgt3[gg]/2*1/2*(-rho_w*g*pow(bg,2)+rho*g*pow(Hg,2))*ny*len*phi1;
                 Fvy[pairids[1]] = Fvy[pairids[1]] +wgt3[gg]/2*1/2*(-rho_w*g*pow(bg,2)+rho*g*pow(Hg,2))*ny*len*phi2;
-            } 
+            }
         }
         /*One more thing in this element loop: prepare groundedarea needed later for the calculation of basal friction*/
         level[0] = ocean_levelset[index[n*3+0]-1];
@@ -453,8 +462,8 @@ int main(){
                 s2=level[1]/(level[1]-level[2]);
             }
             else{
-                std::cerr<<"should not be here...";
-            }
+                cerr<<"should not be here...";
+}
 
             if (level[0]*level[1]*level[2]>0.){
                 /*two nodes floating, inner triangle is grounded*/
@@ -502,8 +511,7 @@ int main(){
     int* columns = new int[nbv*MAXCONNECT];
 
     for(int i=0;i<nbv;i++){
-
-        /*Go over all of the elements connected to node I*/
+/*Go over all of the elements connected to node I*/
         int count = 0;
         int p=head[i];
 
@@ -519,7 +527,7 @@ int main(){
 
             //sanity check
             if (index[p-1] !=i+1){
-                std::cout << "Error occurred"  << std::endl;;
+                cout << "Error occurred"  << endl;;
             }
 
             //enter element in connectivity matrix
@@ -542,15 +550,15 @@ int main(){
 
     double *d_vx;
     cudaMalloc(&d_vx, nbv*sizeof(double));
-    cudaMemcpy(d_vx, vx, nbv*sizeof(double), cudaMemcpyHostToDevice);  
+    cudaMemcpy(d_vx, vx, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_vy;
     cudaMalloc(&d_vy, nbv*sizeof(double));
-    cudaMemcpy(d_vy, vy, nbv*sizeof(double), cudaMemcpyHostToDevice);  
+    cudaMemcpy(d_vy, vy, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_alpha;
     cudaMalloc(&d_alpha, nbe*3*sizeof(double));
-    cudaMemcpy(d_alpha, alpha, nbe*3*sizeof(double), cudaMemcpyHostToDevice);
+cudaMemcpy(d_alpha, alpha, nbe*3*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_beta;
     cudaMalloc(&d_beta, nbe*3*sizeof(double));
@@ -558,47 +566,47 @@ int main(){
 
     double *d_etan;
     cudaMalloc(&d_etan, nbe*sizeof(double));
-    cudaMemcpy(d_etan, etan, nbe*sizeof(double), cudaMemcpyHostToDevice);  
+    cudaMemcpy(d_etan, etan, nbe*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_rheology_B;
     cudaMalloc(&d_rheology_B, nbe*sizeof(double));
-    cudaMemcpy(d_rheology_B, rheology_B, nbe*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_rheology_B, rheology_B, nbe*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_Helem;
     cudaMalloc(&d_Helem, nbe*sizeof(double));
-    cudaMemcpy(d_Helem, Helem, nbe*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_Helem, Helem, nbe*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_areas;
     cudaMalloc(&d_areas, nbe*sizeof(double));
-    cudaMemcpy(d_areas, areas, nbe*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_areas, areas, nbe*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_weights;
     cudaMalloc(&d_weights, nbv*sizeof(double));
-    cudaMemcpy(d_weights, weights, nbv*sizeof(double), cudaMemcpyHostToDevice);  
+    cudaMemcpy(d_weights, weights, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_ML;
     cudaMalloc(&d_ML, nbv*sizeof(double));
-    cudaMemcpy(d_ML, ML, nbv*sizeof(double), cudaMemcpyHostToDevice);  
+    cudaMemcpy(d_ML, ML, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_Fvx;
     cudaMalloc(&d_Fvx, nbv*sizeof(double));
-    cudaMemcpy(d_Fvx, Fvx, nbv*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_Fvx, Fvx, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_Fvy;
     cudaMalloc(&d_Fvy, nbv*sizeof(double));
-    cudaMemcpy(d_Fvy, Fvy, nbv*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_Fvy, Fvy, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_dVxdt;
     cudaMalloc(&d_dVxdt, nbv*sizeof(double));
-    cudaMemcpy(d_dVxdt, dVxdt, nbv*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_dVxdt, dVxdt, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_dVydt;
     cudaMalloc(&d_dVydt, nbv*sizeof(double));
-    cudaMemcpy(d_dVydt, dVydt, nbv*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_dVydt, dVydt, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_resolx;
     cudaMalloc(&d_resolx, nbv*sizeof(double));
-    cudaMemcpy(d_resolx, resolx, nbv*sizeof(double), cudaMemcpyHostToDevice);
+cudaMemcpy(d_resolx, resolx, nbv*sizeof(double), cudaMemcpyHostToDevice);
 
     double *d_resoly;
     cudaMalloc(&d_resoly, nbv*sizeof(double));
@@ -642,7 +650,7 @@ int main(){
 
     double* d_device_maxvaly = NULL;
     cudaMalloc(&d_device_maxvaly, GRID_Xv*sizeof(double));
-    cudaMemcpy(d_device_maxvaly, device_maxvaly, GRID_Xv*sizeof(double), cudaMemcpyHostToDevice); 
+    cudaMemcpy(d_device_maxvaly, device_maxvaly, GRID_Xv*sizeof(double), cudaMemcpyHostToDevice);
 
     /*------------ allocate relevant vectors on host (GPU)---------------*/
     //double *dvxdx = NULL;
@@ -674,24 +682,32 @@ int main(){
 
     double *kvy = NULL;
     cudaMalloc(&kvy, nbe*3*sizeof(double));
-    
+
     //Creating CUDA streams
     cudaStream_t stream1, stream2;
     cudaStreamCreate(&stream1);
     cudaStreamCreate(&stream2);
-    
+
     // Perf
     double time_s = 0.0;
     double mem = (double)1e-9*(double)nbv*sizeof(double);
     int nIO = 8;
 
     /*Main loop*/
-    std::cout<<"Starting PT loop, nbe="<<nbe<<", nbv="<<nbv<<std::endl; 
+    cout<<"Starting PT loop, nbe="<<nbe<<", nbv="<<nbv<<endl;
     int iter;
-    double iterror;
+    double iterror= -1.0;
+    ofstream outfile;
+    ofstream errorfile;
+    ofstream iterfile;
+    outfile.open("icesheet.stat");
+    errorfile.open("error.csv");
+    iterfile.open("iters.csv");
+    outfile<<setprecision(3)<<"damping="<<damp<<setprecision(3)<<", velocity relaxation="<<rele<<setprecision(3)<<", viscosity relaxation="<<relaxation<<endl;
+  //  outfile<<"damping="<<damp<<", velocity relaxation="<<rele<<", viscosity relaxation="<<relaxation<<endl;    
+  //  cout<<"damping="<<damp<<", viscosity relaxation="<<rele<<", velocity relaxation="<<relaxation<<endl;    
     for(iter=1;iter<=niter;iter++){
-        
-        if (iter==11) tic();
+    	if (iter==11) tic();
 
         PT1<<<gride, blocke>>>(d_vx, d_vy, d_alpha, d_beta, d_index, kvx,  kvy, d_etan, d_Helem, d_areas, d_isice, Eta_nbe, d_rheology_B, n_glen, eta_0, rele, nbe);
         cudaDeviceSynchronize();
@@ -704,33 +720,56 @@ int main(){
 
         PT3<<<gridv, blockv>>>(kvx, kvy, Eta_nbe, d_areas, eta_nbv, d_index, d_connectivity, d_columns, d_weights, d_ML, KVx, KVy, d_Fvx, d_Fvy, d_dVxdt, d_dVydt, d_resolx, d_resoly, d_H, d_vx, d_vy, d_spcvx, d_spcvy, rho, damp, relaxation, eta_b, nbv);
         cudaDeviceSynchronize();
-
-         if ((iter % nout_iter) == 0){
-            /Get final error estimate/
-            __device_max_x(dVxdt); 
-            __device_max_y(dVydt); 
+	//cout<<"It is running fine."<<endl;
+	//cerr<<"It is running bad."<<endl;
+        if ((iter % nout_iter) == 0){
+           //Get final error estimate/
+            __device_max_x(dVxdt);
+            __device_max_y(dVydt);
             iterror = max(device_MAXx, device_MAXy);
-            if(!(iterror>0 || iterror==0 || iterror<0)){printf("\n !! ERROR: err_MAX=Nan \n\n");break;} 
-            std::cout<<"iter="<<iter<<", err="<<iterror<<std::endl;
+	    if(iterror ==0) {iterror = NAN;}
+            //if(!(iterror>0 || iterror==0 || iterror<0)){printf("\n !! ERROR: err_MAX=NaN \n\n");break;} 
+            if((isnan(iterror))){printf("\n !! ERROR: err_MAX=Nan \n\n");break;}
+            // Original line: if(!(iterror>0 || iterror==0 || iterror<0)){printf("\n !! ERROR: err_MAX=Nan \n\n");break;}
+                cout<<"iter="<<iter<<", err="<<iterror<<endl;
+                outfile<<"iter="<<iter<<", err="<<iterror<<endl;
+                errorfile<<iterror<<endl;
+                iterfile<<iter<<endl;
             if ((iterror < epsi) && (iter > 100)) break;
-        }  
+        }
     }
+      outfile<<"iter="<<iter<<", err="<<iterror<<endl;
+//    cout<<"iter="<<iter<<", err="<<iterror<<endl;
 
     time_s = toc(); double gbs = mem/time_s;
 
-    std::cout<<"Perf: "<<time_s<<" sec. (@ "<<gbs*(iter-10)*nIO<<" GB/s)"<<std::endl;
+    cout<<"Perf: "<<time_s<<" sec. (@ "<<gbs*(iter-10)*nIO<<" GB/s)"<<endl;
 
     /*Copy results from Device to host*/
     cudaMemcpy(vx, d_vx, nbv*sizeof(double), cudaMemcpyDeviceToHost );
     cudaMemcpy(vy, d_vy, nbv*sizeof(double), cudaMemcpyDeviceToHost );
 
+    cudaMemcpy(dVxdt, d_dVxdt, nbv*sizeof(double), cudaMemcpyDeviceToHost );
+    cudaMemcpy(dVydt, d_dVydt, nbv*sizeof(double), cudaMemcpyDeviceToHost );
+    for(int i=1;i<=nbv;i++){
+        outfile<<" dVxdt =  "<<dVxdt[i]<<" m/s2; "<<" dVydt = "<<dVydt[i]<<" m/s2; "<<std::endl;  
+    } 
+    outfile.close();
+    errorfile.close();
+    iterfile.close();
+
+    //for(int i=1;i<=nbv;i++){
+   // outfile<<" Vx =  "<<vx[i]<<" m/s; "<<" Vy = "<<vy[i]<<" m/s; "<<std::endl;  
+  //  } 
+  //  outfile.close();
+
     /*Write output*/
     fid = fopen(outputfile,"wb");
-    if (fid==NULL) std::cerr<<"could not open file " << outputfile << " for binary reading or writing";
+    if (fid==NULL) cerr<<"could not open file " << outputfile << " for binary reading or writing";
     WriteData(fid, "PTsolution", "SolutionType");
     WriteData(fid, vx, nbv, 1, "Vx");
     WriteData(fid, vy, nbv, 1, "Vy");
-    if (fclose(fid)!=0) std::cerr<<"could not close file " << outputfile;
+    if (fclose(fid)!=0) cerr<<"could not close file " << outputfile;
 
     /*Cleanup and return*/
     delete [] index;
@@ -784,7 +823,7 @@ int main(){
     cudaFree(d_resoly);
     cudaFree(d_H);
     cudaFree(d_spcvx);
-    cudaFree(d_spcvy);   
+    cudaFree(d_spcvy);
     cudaFree(d_alpha2);
     cudaFree(d_groundedratio);
     cudaFree(d_isice);
