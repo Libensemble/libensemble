@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pytest
 import mock
 
@@ -7,7 +6,6 @@ from libensemble.libE import libE
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.tools.fields_keys import libE_fields
 from libensemble.resources.resources import Resources
 from libensemble.comms.logs import LogConfig
 
@@ -161,7 +159,6 @@ def test_exception_raising_check_inputs():
 
 def rmfield(a, *fieldnames_to_remove):
     return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
-
 
 
 @pytest.mark.extra
