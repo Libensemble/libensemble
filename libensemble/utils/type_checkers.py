@@ -1,5 +1,5 @@
 """
-Save some space in types.py by moving some validation functions to here.
+Save some space in specs.py by moving some validation functions to here.
 Reference the models in that file.
 """
 
