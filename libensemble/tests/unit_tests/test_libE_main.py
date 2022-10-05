@@ -4,7 +4,6 @@ import pytest
 import mock
 
 from libensemble.libE import libE
-from libensemble.tools import check_inputs
 from libensemble.manager import LoggedException
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
@@ -164,94 +163,6 @@ def rmfield(a, *fieldnames_to_remove):
     return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
 
 
-def check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
-    with pytest.raises(AssertionError) as excinfo:
-        check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-        pytest.fail("Expected AssertionError exception")
-    return str(excinfo.value)
-
-
-def test_checking_inputs_noworkers():
-    # Don't take more points than there is space in history.
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    H0 = np.empty(0)
-    # Should fail because only got a manager
-    libE_specs = {"mpi_comm": fake_mpi_1p, "comms": "mpi"}
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "must be at least one worker" in errstr, "Incorrect assertion error: " + errstr
-
-
-def test_checking_inputs_H0():
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    libE_specs = {"mpi_comm": fake_mpi, "comms": "mpi"}
-
-    # Should fail because H0 has points with 'sim_ended'==False
-    H0 = np.zeros(5, dtype=libE_fields)
-    H0["sim_id"] = [0, 1, 2, -1, -1]
-    H0["sim_worker"][0:3] = range(1, 4)
-    H0[["sim_started", "sim_ended"]][0:3] = True
-
-    # This should work
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # A value has not been marked as sim_ended
-    H0["sim_ended"][2] = False
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "H0 contains unreturned or invalid points" in errstr, "Incorrect assertion error: " + errstr
-
-    # Points that have not been marked as 'sim_started' have been marked 'sim_ended'
-    H0["sim_ended"] = True
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "H0 contains unreturned or invalid points" in errstr, "Incorrect assertion error: " + errstr
-
-    # Return to correct state
-    H0["sim_ended"][3 : len(H0)] = False
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # Removing 'sim_ended' and then testing again. Should be successful as 'sim_ended' does not exist
-    H0 = rmfield(H0, "sim_ended")
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # Should fail because H0 has fields not in H
-    H0 = np.zeros(3, dtype=sim_specs["out"] + gen_specs["out"] + alloc_specs["out"] + [("bad_name2", bool)])
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "not in the History" in errstr, "Incorrect assertion error: " + errstr
-
-
-def test_checking_inputs_exit_crit():
-    sim_specs, gen_specs, _ = setup.make_criteria_and_specs_0()
-    libE_specs = {"mpi_comm": fake_mpi, "comms": "mpi"}
-    H0 = np.empty(0)
-
-    exit_criteria = {}
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "Must have some exit criterion" in errstr, "Incorrect assertion error: " + errstr
-
-    exit_criteria = {"swim_max": 10}
-    errstr = check_assertion(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-    assert "Valid termination options" in errstr, "Incorrect assertion error: " + errstr
-
-
-def test_checking_inputs_single():
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    libE_specs = {"mpi_comm": fake_mpi, "comms": "mpi"}
-
-    check_inputs(libE_specs=libE_specs)
-    check_inputs(alloc_specs=alloc_specs)
-    try:
-        check_inputs(sim_specs=sim_specs)
-    except AssertionError:
-        assert 1, "Fails because sim_specs['in']=['x_on_cube'] and that's not an 'out' of anything"
-    else:
-        assert 0, "Should have failed"
-    check_inputs(gen_specs=gen_specs)
-    check_inputs(exit_criteria=exit_criteria, sim_specs=sim_specs, gen_specs=gen_specs)
-
-    libE_specs["use_worker_dirs"] = True
-    libE_specs["sim_input_dir"] = "./__init__.py"
-    libE_specs["sim_dir_copy_files"] = ["./__init__.py"]
-    check_inputs(libE_specs=libE_specs)
-
 
 @pytest.mark.extra
 def test_logging_disabling():
@@ -279,8 +190,4 @@ if __name__ == "__main__":
     test_exception_raising_manager_no_abort()
     test_exception_raising_check_inputs()
     # test_proc_not_in_communicator()
-    test_checking_inputs_noworkers()
-    test_checking_inputs_H0()
-    test_checking_inputs_exit_crit()
-    test_checking_inputs_single()
     test_logging_disabling()
