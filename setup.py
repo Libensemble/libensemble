@@ -82,17 +82,17 @@ setup(
     ],
     extras_require={
         "extras": [
-            "pyyaml",
-            "scipy",
-            "nlopt",
+            "ax-platform",
+            "DFO-LS",
+            "dragonfly-opt",
+            "funcx"
             "mpi4py",
+            "mpmath",
+            "nlopt",
             "petsc",
             "petsc4py",
-            "DFO-LS",
-            "mpmath",
-            "dragonfly-opt",
-            "ax-platform",
-            "funcx"
+            "pyyaml",
+            "scipy",
         ],
         "docs": [
             "sphinx",
