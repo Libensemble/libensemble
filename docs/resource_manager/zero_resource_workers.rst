@@ -19,7 +19,6 @@ following.
         :scale: 40
         :align: center
 
-
 To avoid the the wasted node above, add an extra worker::
 
     python run_ensemble_persistent_gen.py --comms local --nworkers 4
@@ -67,11 +66,9 @@ Placing zero-resource functions on a fixed worker
 If the generator must must always be on worker one, then instead of using
 ``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
 
-
 .. code-block:: python
 
     libE_specs['zero_resource_workers'] = [1]
-
 
 in the calling script and worker one will not be allocated resources. In general,
 set the parameter ``zero_resource_workers`` to a list of worker IDs that should not
