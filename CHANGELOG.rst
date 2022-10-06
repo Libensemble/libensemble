@@ -15,6 +15,7 @@ Release 0.9.3
 
 New capabilities:
 
+* New pair of utilities, `liberegister` and `libesubmit`, for easily preparing and launching libEnsemble workflows onto most machines and schedulers. #807
 * Persistent functions can send intermediate values without the Manager assuming the worker is ready to receive. #880
 
 Other enhancements:
