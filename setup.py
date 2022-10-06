@@ -92,6 +92,7 @@ setup(
             "mpmath",
             "dragonfly-opt",
             "ax-platform",
+            "funcx"
         ],
         "docs": [
             "sphinx",

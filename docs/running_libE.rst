@@ -209,7 +209,7 @@ Running ``qsub``, ``sbatch``, etc. on some batch submission script is not needed
 
 Results in::
 
-    *** libEnsemble 0.9.2+dev ***
+    *** libEnsemble 0.9.3 ***
     Imported PSI/J serialization: my_calling_script.json. Preparing submission...
     Calling script: my_calling_script.py
     ...found! Proceeding.
