@@ -85,7 +85,7 @@ setup(
             "ax-platform",
             "DFO-LS",
             "dragonfly-opt",
-            "funcx"
+            "funcx",
             "mpi4py",
             "mpmath",
             "nlopt",
