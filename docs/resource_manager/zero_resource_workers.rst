@@ -49,7 +49,7 @@ This would automatically set the ``num_resource_sets`` option and add a single
 worker for the persistent generator - a common use-case.
 
 In general, the number of resource sets should be set to enable the maximum
-concurrency desired by the ensemble, taking in to account generators and simulators.
+concurrency desired by the ensemble, taking into account generators and simulators.
 The users can set generator resources by setting ``persis_info['gen_resources']``
 to an integer value, representing the number of resource sets to give to the
 generator. The default is zero.
