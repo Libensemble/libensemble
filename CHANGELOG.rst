@@ -8,6 +8,31 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.9.3
+-------------
+
+:Date: October 12, 2022
+
+New capabilities:
+
+* Persistent functions can send intermediate values without the Manager assuming the worker is ready to receive. #880
+
+Other enhancements:
+
+* The Executor `manager_poll()` interface now sets consistent flags instead of literal strings. #877
+* Some internal modules and the testing suite now work on Windows. #869 #888
+* Specifying `num_resource_sets` instead of `zero_resource_workers` is now recommended to avoid assigning resources to workers that don't need them. #905
+* Some extraneous warnings removed. #903
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system), Perlmutter (HPE Cray EX with A100 NVIDIA GPUs).
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10.
+
+:Known issues:
+
+* See known issues section in the documentation.
+
 Release 0.9.2
 -------------
 
