@@ -29,10 +29,9 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python_ toolkit for coordinating adaptively generated experiments or simulations.
+libEnsemble is a Python_ toolkit for connecting and coordinating "outer loops" or "deciders" with experiments or simulations.
 
-libEnsemble can manage massively parallel resources to solve design, decision, and inference problems
-and help developers benefit from having more of those resources.
+libEnsemble can manage massively parallel resources to solve design, decision, and inference problems and help developers or researchers benefit from reserving more resources.
 
 libEnsemble aims for:
 
@@ -41,7 +40,7 @@ libEnsemble aims for:
 • **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
 • **Application Monitoring**: Ensemble members can poll or kill running apps.
 • **Coordinating data-flow between tasks**: libEnsemble can pass data between ensemble members.
-• **Low start-up cost**: Default deployments don't require additional services. `pip install libensemble` and go!
+• **Low start-up cost**: Default deployments don't require additional services. ``pip install libensemble`` and go!
 
 Basic Usage
 ===========
@@ -49,142 +48,84 @@ Basic Usage
 Select or supply Simulator and Generator functions
 --------------------------------------------------
 
-**Generator** and **Simulator** Python functions espectively produce candidate parameters and perform/monitor
-computations that use those parameters. Coupling them together with libEnsemble is easy:
+**Generator** and **Simulator** Python functions respectively produce candidate parameters and perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy:
 
-```
-import numpy as np
-from my_simulators import beamline_simulation
-from my_evaluators import adaptive_calibrator
+.. code-block:: python
+    :linenos:
 
-from libensemble import libE
-from libensemble.tools import parse_args
+    import numpy as np
+    from my_simulators import beamline_simulation
+    from my_evaluators import adaptive_calibrator
 
-if __name__ == "__main__":
+    from libensemble import libE
+    from libensemble.tools import parse_args
 
-    nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["save_every_k_gens"] = 300
+    if __name__ == "__main__":
 
-    sim_specs = {
-        "sim_f": beamline_simulation,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
+        nworkers, is_manager, libE_specs, _ = parse_args()
+        libE_specs["save_every_k_gens"] = 300
 
-    gen_specs = {
-        "gen_f": adaptive_calibrator,
-        "out": [("x", float, (1,))],
-        "user": {
-            "gen_batch_size": 500,
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
-    }
+        sim_specs = {
+            "sim_f": beamline_simulation,
+            "in": ["x"],
+            "out": [("f", float)],
+        }
 
-    exit_criteria = {"gen_max": 501}
+        gen_specs = {
+            "gen_f": adaptive_calibrator,
+            "out": [("x", float, (1,))],
+            "user": {
+                "gen_batch_size": 500,
+                "lb": np.array([-3]),
+                "ub": np.array([3]),
+            },
+        }
 
-    Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
+        exit_criteria = {"gen_max": 501}
+
+        Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
+
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
 
 libEnsemble includes an Executor interface so application-launching functions are
-portable, resilient, and flexible; it also automatically detects available nodes
+portable, resilient, and flexible. It also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
 
-```
-def run_simulation(Input, persis_info, sim_specs, libE_info):
-    calc_status = 0
+.. code-block:: python
+    :linenos:
 
-    particles = str(int(Input["x"][0][0]))
-    args = particles + " " + str(10) + " " + particles
+    def run_simulation(Input, persis_info, sim_specs, libE_info):
+        calc_status = 0
 
-    exctr = Executor.executor
-    task = exctr.submit(app_name="forces", app_args=args)
+        particles = str(int(Input["x"][0][0]))
+        args = "timesteps " + str(10) + " " + particles
 
-    task.wait()
+        exctr = Executor.executor
+        task = exctr.submit(app_name="forces", app_args=args)
 
-    try:
-        data = np.loadtxt("forces.stat")
-        final_energy = data[-1]
-        calc_status = WORKER_DONE
-    except Exception:
-        final_energy = np.nan
-        calc_status = TASK_FAILED
+        task.wait()
 
-    outspecs = sim_specs["out"]
-    output = np.zeros(1, dtype=outspecs)
-    output["energy"] = final_energy
+        try:
+            data = np.loadtxt("forces.stat")
+            final_energy = data[-1]
+            calc_status = WORKER_DONE
+        except Exception:
+            final_energy = np.nan
+            calc_status = TASK_FAILED
 
-    return output, persis_info, calc_status
-```
+        output = np.zeros(1, dtype=sim_specs["out"])
+        output["energy"] = final_energy
+
+        return output, persis_info, calc_status
+
+See the `user guide`_ for more information.
 
 .. before_dependencies_rst_tag
 
-Dependencies
-~~~~~~~~~~~~
-
-libEnsemble performs best on Unix-like systems like Linux and macOS. See the
-:ref:`FAQ<faqwindows>` for more information.
-
-**Required dependencies**:
-
-* Python_ 3.7 or above
-* NumPy_
-* psutil_
-* setuptools_
-
-When using  ``mpi4py`` for libEnsemble communications:
-
-* A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
-* mpi4py_ v2.0.0 or above
-
-**Optional dependencies**:
-
-* Balsam_
-
-As of v0.9.0, libEnsemble features an updated `Balsam Executor`_
-for workers to schedule and launch applications to *anywhere* with a running
-Balsam site, including to remote machines.
-
-* pyyaml_
-
-libEnsemble is typically configured and parameterized via Python dictionaries.
-As of v0.8.0, libEnsemble can also be parameterized via yaml.
-
-* funcX_
-
-As of v0.9.0, libEnsemble features a cross-system capability powered by funcX_,
-a function-as-a-service platform to which workers can submit remote generator or
-simulator function instances. This feature can help distribute an ensemble
-across systems and heterogeneous resources.
-
-* `psi-j-python`_
-
-As of v0.9.2+dev, libEnsemble features a set of command-line utilities for submitting
-libEnsemble jobs to almost any system or scheduler via a `PSI/J`_ Python interface. tqdm_
-is also required.
-
-The example simulation and generation functions and tests require the following:
-
-* SciPy_
-* mpmath_
-* petsc4py_
-* DEAP_
-* DFO-LS_
-* Tasmanian_
-* NLopt_
-* `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
-* Surmise_
-
-PETSc and NLopt must be built with shared libraries enabled and be present in
-``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-should produce a file ``nlopt.py`` if Python is found on the system. See the
-`NLopt documentation` for information about building NLopt with shared
-libraries. NLopt may also require SWIG_ to be installed on certain systems.
-
 Installation
-~~~~~~~~~~~~
+============
 
 libEnsemble can be installed or accessed from a variety of sources.
 
@@ -207,80 +148,53 @@ from xSDK version 0.5.0 onward. Install the xSDK and load the environment with::
     spack install xsdk
     spack load -r xsdk
 
-The codebase, tests and examples can be accessed in the GitHub_ repository.
-If necessary, you may install all optional dependencies (listed above) at once
-with::
-
-    pip install libensemble[extras]
-
 A tarball_ of the most recent release is also available.
 
-Testing
-~~~~~~~
+Dependencies
+============
 
-The provided test suite includes both unit and regression tests and is run
-regularly on:
+libEnsemble performs best on Unix-like systems like Linux and macOS. See the
+:ref:`FAQ<faqwindows>` for more information.
 
-* `GitHub Actions`_
+**Required dependencies**:
 
-The test suite requires the mock_, pytest_, pytest-cov_, and pytest-timeout_ packages
-to be installed and can be run from the ``libensemble/tests`` directory
-of the source distribution by running::
+* Python_ 3.7 or above
+* NumPy_
+* psutil_
+* setuptools_
 
-    ./run-tests.sh
+When using  ``mpi4py`` for libEnsemble communications:
 
-Further options are available. To see a complete list of options, run::
+* A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
+* mpi4py_ v2.0.0 or above
 
-    ./run-tests.sh -h
+**Optional dependencies**:
 
-The regression tests also work as good example libEnsemble scripts and can
-be run directly in ``libensemble/tests/regression_tests``. For example::
+* Balsam_
+* pyyaml_
+* funcX_
+* `psi-j-python`_
 
-    cd libensemble/tests/regression_tests
-    python test_uniform_sampling.py --comms local --nworkers 3
+The example simulation and generation functions and tests require the following:
 
-The ``libensemble/tests/scaling_tests`` directory includes example scripts that
-use the executor to run compiled applications. These are tested regularly on
-HPC systems.
+* SciPy_
+* mpmath_
+* petsc4py_
+* DEAP_
+* DFO-LS_
+* Tasmanian_
+* NLopt_
+* `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
+* Surmise_
 
-If you have the libEnsemble source code, you can download (but not install) the testing
-prerequisites and run the tests with::
-
-    python setup.py test
-
-in the top-level directory containing the setup script.
-
-Coverage reports are produced separately for unit tests and regression tests
-under the relevant directories. For parallel tests, the union of all processors
-is taken. Furthermore, a combined coverage report is created at the top level,
-which can be viewed at ``libensemble/tests/cov_merge/index.html``
-after ``run_tests.sh`` is completed. The coverage results are available
-online at Coveralls_.
-
-Basic Usage
-~~~~~~~~~~~
-
-The default manager/worker communications mode is MPI. The user script is
-launched as::
-
-    mpiexec -np N python myscript.py
-
-where ``N`` is the number of processors. This will launch one manager and
-``N-1`` workers.
-
-If running in local mode, which uses Python's multiprocessing module, the
-``local`` comms option and the number of workers must be specified, either in `libE_specs`_
-or via the command-line using the ``parse_args()`` function. The script
-can then be run as a regular Python script::
-
-    python myscript.py --comms local --nworkers N
-
-This will launch one manager and N workers.
-
-See the `user guide`_ for more information.
+PETSc and NLopt must be built with shared libraries enabled and be present in
+``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
+should produce a file ``nlopt.py`` if Python is found on the system. See the
+`NLopt documentation` for information about building NLopt with shared
+libraries. NLopt may also require SWIG_ to be installed on certain systems.
 
 Resources
-~~~~~~~~~
+=========
 
 **Support:**
 
