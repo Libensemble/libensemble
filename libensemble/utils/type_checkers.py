@@ -85,7 +85,7 @@ def _check_any_workers_and_disable_rm_if_tcp(cls, values):
     return values
 
 
-class _MPICommValidationModel:
+class _MPICommField:
     @classmethod
     def __get_validators__(cls):
         yield cls.validate

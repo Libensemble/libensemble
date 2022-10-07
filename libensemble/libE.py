@@ -192,7 +192,7 @@ def libE(
     persis_info: Dict = {},
     alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
     libE_specs: LibeSpecs = {},
-    H0=None,
+    H0: np.ndarray = np.empty([0]),
 ) -> (np.ndarray, Dict, int):
     """
     Parameters
@@ -258,9 +258,6 @@ def libE(
             2 = Manager timed out and ended simulation
             3 = Current process is not in libEnsemble MPI communicator
     """
-
-    if H0 is None:
-        H0 = np.empty([0])
 
     # check *everything*
     ensemble = EnsembleSpecs(

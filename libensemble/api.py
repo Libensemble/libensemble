@@ -3,6 +3,7 @@ import pprint
 import logging
 import inspect
 import importlib
+import numpy as np
 from libensemble.libE import libE
 from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
@@ -85,7 +86,7 @@ class Ensemble:
             "type": "alloc",
         }
         self.exit_criteria = {}
-        self.H0 = None
+        self.H0 = np.empty([0])
         self._filename = inspect.stack()[1].filename
 
     def __str__(self):
