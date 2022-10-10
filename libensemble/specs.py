@@ -9,7 +9,7 @@ from pydantic import (BaseConfig, BaseModel, Field, root_validator,
 
 from libensemble.utils.type_checkers import (
     _check_any_workers_and_disable_rm_if_tcp, _check_exit_criteria, _check_H0,
-    _check_output_fields, _MPICommField)
+    _check_output_fields, _MPICommValidationModel)
 
 BaseConfig.arbitrary_types_allowed = True
 
@@ -34,7 +34,7 @@ class SimSpecs(BaseModel):
 
 
 class GenSpecs(BaseModel):
-    gen_f: Optional[Callable]
+    gen_f: Callable
     inputs: Optional[List[str]] = Field([], alias="in")
     persis_in: Optional[List[str]]
     # list of tuples for dtype construction
@@ -74,7 +74,7 @@ class LibeSpecs(BaseModel):
     final_fields: Optional[List[str]] = []
     ip: Optional[ipaddress.IPv4Address] = None
     kill_canceled_sims: Optional[bool] = True
-    mpi_comm: Optional[_MPICommField] = None  # see utils/type_checkers.py
+    mpi_comm: Optional[_MPICommValidationModel] = None  # see utils/type_checkers.py
     num_resource_sets: Optional[int]
     nworkers: Optional[int]
     port: Optional[int] = 0
@@ -129,7 +129,7 @@ class LibeSpecs(BaseModel):
 
 
 class EnsembleSpecs(BaseModel):
-    H0: np.ndarray = Field(default_factory=lambda: np.empty([0]))
+    H0: Optional[np.ndarray]
     libE_specs: LibeSpecs
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]
