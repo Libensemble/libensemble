@@ -48,14 +48,15 @@ Basic Usage
 Select or supply Simulator and Generator functions
 --------------------------------------------------
 
-**Generator** and **Simulator** Python functions respectively produce candidate parameters and perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy:
+**Generator** and **Simulator** Python functions respectively produce candidate parameters and perform/monitor computations that use those parameters. 
+Coupling them together with libEnsemble is easy::
 
 .. code-block:: python
     :linenos:
 
     import numpy as np
     from my_simulators import beamline_simulation
-    from my_evaluators import adaptive_calibrator
+    from someones_evaluators import adaptive_calibrator
 
     from libensemble import libE
     from libensemble.tools import parse_args
@@ -64,6 +65,7 @@ Select or supply Simulator and Generator functions
 
         nworkers, is_manager, libE_specs, _ = parse_args()
         libE_specs["save_every_k_gens"] = 300
+        libE_specs["kill_cancelled_sims"] = True
 
         sim_specs = {
             "sim_f": beamline_simulation,
@@ -81,7 +83,7 @@ Select or supply Simulator and Generator functions
             },
         }
 
-        exit_criteria = {"gen_max": 501}
+        exit_criteria = {"gen_max": 500}
 
         Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
 
@@ -91,7 +93,7 @@ Launch and monitor apps on parallel resources
 
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible. It also automatically detects available nodes
-and cores, and can dynamically assign resources to workers.
+and cores, and can dynamically assign resources to workers::
 
 .. code-block:: python
     :linenos:
