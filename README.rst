@@ -49,78 +49,75 @@ Select or supply Simulator and Generator functions
 --------------------------------------------------
 
 **Generator** and **Simulator** Python functions respectively produce candidate parameters and perform/monitor computations that use those parameters. 
-Coupling them together with libEnsemble is easy::
+Coupling them together with libEnsemble is easy:
 
-.. code-block:: python
-    :linenos:
+```python
+import numpy as np
+from my_simulators import beamline_simulation
+from someones_evaluators import adaptive_calibrator
 
-    import numpy as np
-    from my_simulators import beamline_simulation
-    from someones_evaluators import adaptive_calibrator
+from libensemble import libE
+from libensemble.tools import parse_args
 
-    from libensemble import libE
-    from libensemble.tools import parse_args
+if __name__ == "__main__":
 
-    if __name__ == "__main__":
+    nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["save_every_k_gens"] = 300
+    libE_specs["kill_cancelled_sims"] = True
 
-        nworkers, is_manager, libE_specs, _ = parse_args()
-        libE_specs["save_every_k_gens"] = 300
-        libE_specs["kill_cancelled_sims"] = True
+    sim_specs = {
+        "sim_f": beamline_simulation,
+        "in": ["x"],
+        "out": [("f", float)],
+    }
 
-        sim_specs = {
-            "sim_f": beamline_simulation,
-            "in": ["x"],
-            "out": [("f", float)],
-        }
+    gen_specs = {
+        "gen_f": adaptive_calibrator,
+        "out": [("x", float, (1,))],
+        "user": {
+            "gen_batch_size": 500,
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        },
+    }
 
-        gen_specs = {
-            "gen_f": adaptive_calibrator,
-            "out": [("x", float, (1,))],
-            "user": {
-                "gen_batch_size": 500,
-                "lb": np.array([-3]),
-                "ub": np.array([3]),
-            },
-        }
+    exit_criteria = {"gen_max": 500}
 
-        exit_criteria = {"gen_max": 500}
-
-        Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
-
+    Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
+```
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
 
 libEnsemble includes an Executor interface so application-launching functions are
 portable, resilient, and flexible. It also automatically detects available nodes
-and cores, and can dynamically assign resources to workers::
+and cores, and can dynamically assign resources to workers:
 
-.. code-block:: python
-    :linenos:
+```python
+def run_simulation(Input, persis_info, sim_specs, libE_info):
+    calc_status = 0
 
-    def run_simulation(Input, persis_info, sim_specs, libE_info):
-        calc_status = 0
+    particles = str(int(Input["x"][0][0]))
+    args = "timesteps " + str(10) + " " + particles
 
-        particles = str(int(Input["x"][0][0]))
-        args = "timesteps " + str(10) + " " + particles
+    exctr = Executor.executor
+    task = exctr.submit(app_name="forces", app_args=args)
 
-        exctr = Executor.executor
-        task = exctr.submit(app_name="forces", app_args=args)
+    task.wait()
 
-        task.wait()
+    try:
+        data = np.loadtxt("forces.stat")
+        final_energy = data[-1]
+        calc_status = WORKER_DONE
+    except Exception:
+        final_energy = np.nan
+        calc_status = TASK_FAILED
 
-        try:
-            data = np.loadtxt("forces.stat")
-            final_energy = data[-1]
-            calc_status = WORKER_DONE
-        except Exception:
-            final_energy = np.nan
-            calc_status = TASK_FAILED
+    output = np.zeros(1, dtype=sim_specs["out"])
+    output["energy"] = final_energy
 
-        output = np.zeros(1, dtype=sim_specs["out"])
-        output["energy"] = final_energy
-
-        return output, persis_info, calc_status
+    return output, persis_info, calc_status
+```
 
 See the `user guide`_ for more information.
 
