@@ -15,15 +15,16 @@ Release 0.9.3
 
 New capabilities:
 
-* New pair of utilities, `liberegister` and `libesubmit`, for easily preparing and launching libEnsemble workflows onto most machines and schedulers. #807
-* Persistent functions can send intermediate values without the Manager assuming the worker is ready to receive. #880
+* New pair of utilities, `liberegister` and `libesubmit`, for easily preparing and launching libEnsemble workflows with local comms onto most machines and schedulers. #807
+* New persistent support function to cancel sim_ids (`request_cancel_sim_ids`). #880
+* `keep_state` option for persistent workers: this lets the manager know that the information being sent is intermediate. #880 
 
 Other enhancements:
 
 * The Executor `manager_poll()` interface now sets consistent flags instead of literal strings. #877
 * Some internal modules and the testing suite now work on Windows. #869 #888
 * Specifying `num_resource_sets` instead of `zero_resource_workers` is now recommended to avoid assigning resources to workers that don't need them. #905
-* Some extraneous warnings removed. #903
+* An extraneous warning removed. #903
 
 :Note:
 
