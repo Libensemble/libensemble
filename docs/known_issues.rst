@@ -4,6 +4,9 @@ Known Issues
 The following selection describes known bugs, errors, or other difficulties that
 may occur when using libEnsemble.
 
+* As of 10/13/2022, on Perlmutter there was an issue running concurrent applications
+  on a node, following a recent system update. This also affects previous versions
+  of libEnsemble, and is being investigated.
 * When using the Executor: OpenMPI does not work with direct MPI task
   submissions in mpi4py comms mode, since OpenMPI does not support nested MPI
   executions. Use either local mode or the Balsam Executor instead.
