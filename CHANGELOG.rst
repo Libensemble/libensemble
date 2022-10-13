@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 0.9.3
 -------------
 
-:Date: October 12, 2022
+:Date: October 13, 2022
 
 New capabilities:
 
