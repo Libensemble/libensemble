@@ -63,7 +63,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
     prev_T_k = 0
 
     if local_gen_id == 1:
-        print("[{}%]: ".format(0), flush=True, end="")
+        print(f"[{0}%]: ", flush=True, end="")
     print_final_score(prev_x_k, f_i_idxs, gen_specs, libE_info)
     percent = 0.1
 
@@ -118,7 +118,7 @@ def opt_slide(H, persis_info, gen_specs, libE_info):
         if k / N >= percent:
             curr_x_star = 1.0 / b_k_sum * weighted_x_hk_sum
             if local_gen_id == 1:
-                print("[{}%]: ".format(int(percent * 100)), flush=True, end="")
+                print(f"[{int(percent * 100)}%]: ", flush=True, end="")
             percent += 0.1
             print_final_score(curr_x_star, f_i_idxs, gen_specs, libE_info)
 

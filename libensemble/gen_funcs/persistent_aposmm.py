@@ -17,8 +17,6 @@ from libensemble.gen_funcs.aposmm_localopt_support import LocalOptInterfacer, Co
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
-import multiprocessing
-
 
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
@@ -143,11 +141,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
 
     try:
-
-        if multiprocessing.get_start_method() != "fork":
-            print("[APOSMM]: Detected multiprocessing start method is currently known to cause slowdowns. This will be fixed in a future release.")
-            print("[APOSMM]: Set the multiprocessing start method to 'fork' in your calling script to resolve in the meantime.")
-
         user_specs = gen_specs['user']
         ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
@@ -427,10 +420,10 @@ def update_history_optimal(x_opt, opt_flag, H, run_inds):
     failsafe = np.logical_and(H['f'][run_inds] < H['f'][opt_ind], dists < tol_x2)
     if opt_flag:
         if np.any(failsafe):
-            print("[APOSMM] This run has {} point(s) with smaller 'f' value within {} of "
+            print(f"[APOSMM] This run has {sum(failsafe)} point(s) with smaller 'f' value within {tol_x2} of "
                   "the point ruled to be the run minimum. \nMarking all as being "
                   "a 'local_min' to prevent APOSMM from starting another run "
-                  "immediately from these points.".format(sum(failsafe), tol_x2))
+                  "immediately from these points.")
             print("[APOSMM] Sim_ids to be marked optimal: ", opt_ind, run_inds[failsafe])
             print("[APOSMM] Check that the local optimizer is working correctly", flush=True)
             H['local_min'][run_inds[failsafe]] = 1
@@ -567,7 +560,6 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
 
 def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """ Calculate the critical distance r_k """
-
     if lhs_divisions == 0:
         r_k = rk_const*(log(n_s)/n_s)**(1/n)
     else:
@@ -667,7 +659,7 @@ def initialize_children(user_specs):
     elif user_specs['localopt_method'] in ['pounders', 'dfols']:
         fields_to_pass = ['x_on_cube', 'fvec']
     else:
-        raise NotImplementedError("Unknown local optimization method " "'{}'.".format(user_specs['localopt_method']))
+        raise NotImplementedError(f"Unknown local optimization method {user_specs['localopt_method']}.")
 
     return local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass
 

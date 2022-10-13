@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     def check_recv(comm, expected_msg):
         msg = comm.recv()
-        assert msg == expected_msg, "Expected {}, received {}".format(expected_msg, msg)
+        assert msg == expected_msg, f"Expected {expected_msg}, received {msg}"
 
     def worker_main(mpi_comm):
         "Worker main routine"
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         except Exception:
             rank = -1
         comm_ranks_in_world = MPI.COMM_WORLD.allgather(rank)
-        print("got {},  exp {} ".format(comm_ranks_in_world, test_exp[test_num]), flush=True)
+        print(f"got {comm_ranks_in_world},  exp {test_exp[test_num]} ", flush=True)
         # This is really testing the test is testing what is it supposed to test
         assert comm_ranks_in_world == test_exp[test_num], (
             "comm_ranks_in_world are: " + str(comm_ranks_in_world) + " Expected: " + str(test_exp[test_num])

@@ -1,12 +1,14 @@
 import pytest
+import platform
 import multiprocessing
-
-multiprocessing.set_start_method("fork", force=True)
 
 import libensemble.gen_funcs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
+
+if platform.system() in ["Linux", "Darwin"]:
+    multiprocessing.set_start_method("fork", force=True)
+    from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
 
 import numpy as np
 import libensemble.tests.unit_tests.setup as setup
@@ -111,7 +113,7 @@ def test_standalone_persistent_aposmm():
         print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
         if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
             min_found += 1
-    assert min_found >= 6, "Found {} minima".format(min_found)
+    assert min_found >= 6, f"Found {min_found} minima"
 
 
 @pytest.mark.extra

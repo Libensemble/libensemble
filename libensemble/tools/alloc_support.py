@@ -3,7 +3,7 @@ import logging
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources  # noqa: F401
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -178,11 +178,7 @@ class AllocSupport:
             "libE_info": libE_info,
         }
 
-        logger.debug(
-            "Alloc func packing SIM work for worker {}. Packing sim_ids: {}".format(
-                wid, EnsembleDirectory.extract_H_ranges(work) or None
-            )
-        )
+        logger.debug(f"Alloc func packing SIM work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}")
         return work
 
     def gen_work(self, wid, H_fields, H_rows, persis_info, **libE_info):
@@ -222,11 +218,7 @@ class AllocSupport:
             "libE_info": libE_info,
         }
 
-        logger.debug(
-            "Alloc func packing GEN work for worker {}. Packing sim_ids: {}".format(
-                wid, EnsembleDirectory.extract_H_ranges(work) or None
-            )
-        )
+        logger.debug(f"Alloc func packing GEN work for worker {wid}. Packing sim_ids: {extract_H_ranges(work) or None}")
         return work
 
     def _filter_points(self, H_in, pt_filter, low_bound):
@@ -320,14 +312,14 @@ class AllocSupport:
         try:
             H_rows = np.fromiter(H_rows, int)
         except Exception:
-            raise AllocException("H_rows could not be converted to a numpy array. Type {}".format(type(H_rows)))
+            raise AllocException(f"H_rows could not be converted to a numpy array. Type {type(H_rows)}")
         return H_rows
 
     @staticmethod
     def _check_H_fields(H_fields):
         """Ensure no duplicates in H_fields"""
         if len(H_fields) != len(set(H_fields)):
-            logger.debug("Removing duplicate field(s) when packing work request. {}".format(H_fields))
+            logger.debug(f"Removing duplicate field(s) when packing work request. {H_fields}")
             H_fields = list(set(H_fields))
             # H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
         return H_fields

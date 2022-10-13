@@ -18,6 +18,7 @@ class MPIRunner:
             "aprun": APRUN_MPIRunner,
             "srun": SRUN_MPIRunner,
             "jsrun": JSRUN_MPIRunner,
+            "msmpi": MSMPI_MPIRunner,
             "custom": MPIRunner,
         }
         mpi_runner = mpi_runners[mpi_runner_type]
@@ -92,7 +93,7 @@ class MPIRunner:
 
         hostlist = None
         if machinefile and not self.mfile_support:
-            logger.warning("User machinefile ignored - not supported by {}".format(self.run_command))
+            logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
 
         if machinefile is None and resources is not None:
@@ -171,8 +172,8 @@ class OPENMPI_MPIRunner(MPIRunner):
 
         machinefile = "machinefile_autogen"
         if workerID is not None:
-            machinefile += "_for_worker_{}".format(workerID)
-        machinefile += "_task_{}".format(task.id)
+            machinefile += f"_for_worker_{workerID}"
+        machinefile += f"_task_{task.id}"
         mfile_created, num_procs, num_nodes, procs_per_node = mpi_resources.create_machinefile(
             resources, machinefile, num_procs, num_nodes, procs_per_node, hyperthreads
         )
@@ -195,6 +196,23 @@ class APRUN_MPIRunner(MPIRunner):
             "-L {hostlist}",
             "-n {num_procs}",
             "-N {procs_per_node}",
+            "{extra_args}",
+        ]
+
+
+class MSMPI_MPIRunner(MPIRunner):
+    def __init__(self, run_command="mpiexec"):
+        self.run_command = run_command
+        self.subgroup_launch = False
+        self.mfile_support = False
+        self.arg_nprocs = ("-n", "-np")
+        self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
+        self.arg_ppn = ("-cores",)
+        self.mpi_command = [
+            self.run_command,
+            "-env {env}",
+            "-n {num_procs}",
+            "-cores {procs_per_node}",
             "{extra_args}",
         ]
 
@@ -243,7 +261,7 @@ class JSRUN_MPIRunner(MPIRunner):
 
         hostlist = None
         if machinefile and not self.mfile_support:
-            logger.warning("User machinefile ignored - not supported by {}".format(self.run_command))
+            logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
         if machinefile is None and resources is not None:
             num_procs, num_nodes, procs_per_node = mpi_resources.get_resources(

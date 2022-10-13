@@ -310,7 +310,7 @@ def readin_csv(fname):
         datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
 
-    assert i == n, "Expected {} datapoints, recorded {}".format(n, i)
+    assert i == n, f"Expected {n} datapoints, recorded {i}"
 
     return label, datas
 
@@ -367,7 +367,7 @@ def regls_opt(X, y, c, reg=None):
     elif reg is None:
         p = -1
     else:
-        assert False, 'illegal regularization "{}"'.format(reg)
+        assert False, f'illegal regularization "{reg}"'
 
     def obj_fn(X, y, beta, c, p):
         m = X.shape[0]

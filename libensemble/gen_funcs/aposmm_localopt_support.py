@@ -24,7 +24,7 @@ else:
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
-        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+        print(f'APOSMM Warning: unrecognized optimizers {unrec}')
 
     if 'petsc' in optimizers:
         from petsc4py import PETSc
@@ -248,7 +248,6 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
@@ -305,7 +304,7 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
     # cmd = ["matlab", "-nodisplay", "-nodesktop", "-nojvm", "-nosplash", "-r",
     cmd = ["octave", "--no-window-system", "--eval",
-           "x0=[" + " ".join(["{:18.18f}".format(x) for x in x0]) + "];"
+           "x0=[" + " ".join([f"{x:18.18f}" for x in x0]) + "];"
            "opt_file='" + opt_file + "';"
            "x_file='" + x_file + "';"
            "y_file='" + y_file + "';"
@@ -339,7 +338,6 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
     ub = np.ones(len(x0))
@@ -377,7 +375,6 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-
     assert isinstance(x0, np.ndarray)
 
     tao_comm = PETSc.COMM_SELF

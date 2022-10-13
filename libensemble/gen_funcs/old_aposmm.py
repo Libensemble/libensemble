@@ -27,7 +27,7 @@ else:
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
-        print('APOSMM Warning: unrecognized optimizers {}'.format(unrec))
+        print(f'APOSMM Warning: unrecognized optimizers {unrec}')
 
     if 'petsc' in optimizers:
         from petsc4py import PETSc
@@ -884,7 +884,6 @@ def look_in_history(x, Run_H, vector_return=False):
 
 def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """ Calculate the critical distance r_k """
-
     if lhs_divisions == 0:
         r_k = rk_const*(log(n_s)/n_s)**(1/n)
     else:
@@ -961,7 +960,7 @@ def display_exception(e):
     traceback.print_tb(tb)  # Fixed format
     tb_info = traceback.extract_tb(tb)
     filename, line, func, text = tb_info[-1]
-    print('An error occurred on line {} of function {} with statement {}'.format(line, func, text), flush=True)
+    print(f'An error occurred on line {line} of function {func} with statement {text}', flush=True)
 
     # PETSc/TAO errors are printed in the following manner:
     if hasattr(e, '_traceback_'):

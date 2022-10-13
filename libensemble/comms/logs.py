@@ -79,7 +79,7 @@ class WorkerIDFilter(logging.Filter):
             self.prefix = "Manager" + " " * (WorkerIDFilter.margin_align)
         else:
             worker_str = str(self.worker_id).rjust(WorkerIDFilter.margin_align, " ")
-            self.prefix = "Worker {}".format(worker_str)
+            self.prefix = f"Worker {worker_str}"
 
     def filter(self, record):
         """Add worker ID to a LogRecord"""
@@ -120,7 +120,6 @@ def init_worker_logger(logr, lev):
 
 def worker_logging_config(comm, worker_id=None):
     """Add a comm handler with worker ID filter to the indicated logger."""
-
     logconfig = LogConfig.config
     logger = logging.getLogger(logconfig.name)
     slogger = logging.getLogger(logconfig.stats_name)
@@ -142,7 +141,6 @@ def worker_logging_config(comm, worker_id=None):
 
 def manager_logging_config():
     """Add file-based logging at manager."""
-
     stat_timer = Timer()
     stat_timer.start()
 
@@ -181,11 +179,11 @@ def manager_logging_config():
     else:
         stat_logger = logging.getLogger(logconfig.stats_name)
 
-    stat_logger.info("Starting ensemble at: {}".format(stat_timer.date_start))
+    stat_logger.info(f"Starting ensemble at: {stat_timer.date_start}")
 
     def exit_logger():
         stat_timer.stop()
-        stat_logger.info("Exiting ensemble at: {} Time Taken: {}".format(stat_timer.date_end, stat_timer.elapsed))
+        stat_logger.info(f"Exiting ensemble at: {stat_timer.date_end} Time Taken: {stat_timer.elapsed}")
 
         # If closing logs - each libE() call will log to a new file.
         # fh.close()

@@ -53,7 +53,7 @@ match = all(
     [np.allclose(exp_results[name], results[name], rtol=rtol, atol=atol, equal_nan=True) for name in compare_fields]
 )
 
-print("Compare results: {}\n".format(match))
+print(f"Compare results: {match}\n")
 
 if not locate_mismatch:
     assert match, "Error: Results do NOT match"

@@ -92,24 +92,6 @@ print_summary_line() {
   done
 }
 
-#Get current time in seconds
-#In:  Nothing
-#Out: Returns time in seconds (seconds since 1970-01-01 00:00:00 UTC) as a string
-#     Or if bc not available uses SECONDS (whole seconds that script has been running)
-current_time() {
-  local time
-  #Is bc present
-  USE_BC=f
-  bc --version >> /dev/null && USE_BC=t
-  if [ $USE_BC = 't' ]; then
-    #time=$(date +%s.%N)
-    time=$(python -c 'import time; print(time.time())')
-  else
-    time=$SECONDS
-  fi;
-  echo "$time"
-}
-
 #Return a time difference
 #In:  Start and End times as strings
 #Out: Time difference as a string
@@ -339,6 +321,24 @@ fi;
 PYTHON_RUN="python$PYTHON_VER $PYTHON_FLAGS"
 echo -e "Python run: $PYTHON_RUN"
 
+#Get current time in seconds
+#In:  Nothing
+#Out: Returns time in seconds (seconds since 1970-01-01 00:00:00 UTC) as a string
+#     Or if bc not available uses SECONDS (whole seconds that script has been running)
+current_time() {
+  local time
+  #Is bc present
+  USE_BC=f
+  bc --version >> /dev/null && USE_BC=t
+  if [ $USE_BC = 't' ]; then
+    #time=$(date +%s.%N)
+    time=$($PYTHON_RUN -c 'import time; print(time.time())')
+  else
+    time=$SECONDS
+  fi;
+  echo "$time"
+}
+
 textreset=$(tput sgr0)
 fail_color=$(tput bold; tput setaf 1) #red
 pass_color=$(tput bold; tput setaf 2) #green
@@ -500,8 +500,13 @@ if [ "$root_found" = true ]; then
             if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
-            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = "OSX" ]]; then
+            if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then
               echo "Skipping test number for OSX: " $test_num
+              continue
+            fi
+
+            if [[ "$OSTYPE" = *"msys"* ]] && [[ "$OS_SKIP_LIST" = *"WIN"* ]]; then
+              echo "Skipping test number for Windows: " $test_num
               continue
             fi
 

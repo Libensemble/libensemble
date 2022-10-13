@@ -26,9 +26,10 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
-# TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_NPROCS: 2 3 4
 # TESTSUITE_OMPI_SKIP: true
+# TESTSUITE_EXTRA: true
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -52,7 +53,7 @@ if __name__ == "__main__":
         mess_resources = "Resource manager enabled"
 
     if is_manager:
-        print("\nCores req: {} Cores avail: {}\n  {}\n".format(cores_all_tasks, logical_cores, mess_resources))
+        print(f"\nCores req: {cores_all_tasks} Cores avail: {logical_cores}\n  {mess_resources}\n")
 
     sim_app = "./my_simtask.x"
     if not os.path.isfile(sim_app):
@@ -99,8 +100,8 @@ if __name__ == "__main__":
         calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
         # For debug
-        print("Expecting: {}".format(calc_status_list))
-        print("Received:  {}\n".format(H["cstat"]))
+        print(f"Expecting: {calc_status_list}")
+        print("Received:  {H['cstat']}\n")
 
         assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
             H["cstat"]

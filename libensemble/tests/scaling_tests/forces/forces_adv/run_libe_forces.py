@@ -34,7 +34,7 @@ if not os.path.isfile(sim_app):
     sys.exit("forces.x not found - please build first in ../forces_app dir")
 
 if is_manager:
-    print("\nRunning with {} workers\n".format(nworkers))
+    print(f"\nRunning with {nworkers} workers\n")
 
 
 # Create executor and register sim to it.

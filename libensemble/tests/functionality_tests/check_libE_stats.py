@@ -31,7 +31,7 @@ def check_datetime(t1, t2):
         dt = t1 + " " + t2
     else:
         dt = t1
-    assert is_date(dt), "Expected a datetime, found {}".format(dt)
+    assert is_date(dt), f"Expected a datetime, found {dt}"
 
 
 def check_start_end_times(start="Start:", end="End:", everyline=True):
@@ -58,9 +58,9 @@ def check_start_end_times(start="Start:", end="End:", everyline=True):
                     e_cnt += 1
             if everyline:
                 assert s_cnt > 0, "Expected timings not found"
-            assert s_cnt == e_cnt, "Start/end count different {} {}".format(s_cnt, e_cnt)
+            assert s_cnt == e_cnt, f"Start/end count different {s_cnt} {e_cnt}"
             total_cnt += s_cnt
-        assert total_cnt > 0, "No timings found starting {}".format(start)
+        assert total_cnt > 0, f"No timings found starting {start}"
 
 
 def check_libE_stats(task_datetime=False):

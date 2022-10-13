@@ -26,7 +26,8 @@ from libensemble.executors.mpi_executor import MPIExecutor
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 3 4
 # TESTSUITE_OMPI_SKIP: true
-# TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_OS_SKIP: OSX WIN
+# TESTSUITE_EXTRA: true
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         mess_resources = "Resource manager enabled"
 
     if is_manager:
-        print("\nCores req: {} Cores avail: {}\n  {}\n".format(cores_all_tasks, logical_cores, mess_resources))
+        print(f"\nCores req: {cores_all_tasks} Cores avail: {logical_cores}\n  {mess_resources}\n")
 
     sim_app = "./my_simtask.x"
     if not os.path.isfile(sim_app):
@@ -85,23 +86,31 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"wallclock_max": 30}
+    exit_criteria = {"wallclock_max": 10}
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    # TCP does not support multiple libE calls
+    if libE_specs["comms"] == "tcp":
+        iterations = 1
+    else:
+        iterations = 2
 
-    if is_manager:
-        print("\nChecking expected task status against Workers ...\n")
+    for i in range(iterations):
 
-        calc_status_list_in = np.asarray([0])
-        calc_status_list = np.repeat(calc_status_list_in, nworkers)
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-        # For debug
-        print("Expecting: {}".format(calc_status_list))
-        print("Received:  {}\n".format(H["cstat"]))
+        if is_manager:
+            print("\nChecking expected task status against Workers ...\n")
 
-        assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
-            H["cstat"]
-        )
+            calc_status_list_in = np.asarray([0])
+            calc_status_list = np.repeat(calc_status_list_in, nworkers)
 
-        print("\n\n\nRun completed.")
+            # For debug
+            print(f"Expecting: {calc_status_list}")
+            print(f"Received:  {H['cstat']}\n")
+
+            assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
+                H["cstat"]
+            )
+
+            print("\n\n\nRun completed.")

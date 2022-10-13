@@ -26,7 +26,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
 
     workdir = "sim" + str(libE_info["H_rows"][0]) + "_worker" + str(libE_info["workerID"])
 
-    statfile = "forces{}.stat".format(particles)
+    statfile = f"forces{particles}.stat"
 
     if THIS_SCRIPT_ON_THETA:
         transfer_statfile_path = GLOBUS_DEST_DIR + statfile
@@ -51,7 +51,7 @@ def run_forces_balsam(H, persis_info, sim_specs, libE_info):
     task.wait(timeout=300)
     task.poll()
 
-    print("Task {} polled. state: {}.".format(task.name, task.state))
+    print(f"Task {task.name} polled. state: {task.state}.")
 
     while True:
         time.sleep(1)

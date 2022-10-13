@@ -36,7 +36,7 @@ def get_MPI_variant():
     Returns
     -------
     mpi_variant: string:
-        MPI variant 'aprun' or 'jsrun' or 'mpich' or 'openmpi' or 'srun'
+        MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun'
 
     """
 
@@ -49,6 +49,14 @@ def get_MPI_variant():
     try:
         subprocess.check_call(["jsrun", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return "jsrun"
+    except Exception:
+        pass
+
+    try:
+        try_msmpi = subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stdout, _ = try_msmpi.communicate()
+        if "Microsoft" in stdout.decode():
+            return "msmpi"
     except Exception:
         pass
 
@@ -140,7 +148,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
     rassert(
         wresources.even_slots,
-        "Uneven distribution of node resources not yet supported. Nodes and slots are: {}".format(wresources.slots),
+        f"Uneven distribution of node resources not yet supported. Nodes and slots are: {wresources.slots}",
     )
 
     if not num_procs and not procs_per_node:
@@ -156,7 +164,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
             logger.debug(
                 "No decomposition supplied - "
                 "using all available resource. "
-                "Nodes: {}  procs_per_node {}".format(num_nodes, procs_per_node)
+                f"Nodes: {num_nodes}  procs_per_node {procs_per_node}"
             )
     elif not num_nodes and not procs_per_node:
         if num_procs <= cores_avail_per_node_per_worker:
@@ -171,32 +179,32 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
     rassert(
         num_nodes <= local_node_count,
-        "Not enough nodes to honor arguments. " "Requested {}. Only {} available".format(num_nodes, local_node_count),
+        "Not enough nodes to honor arguments. " f"Requested {num_nodes}. Only {local_node_count} available",
     )
 
     if gresources.enforce_worker_core_bounds:
         rassert(
             procs_per_node <= cores_avail_per_node,
             "Not enough processors on a node to honor arguments. "
-            "Requested {}. Only {} available".format(procs_per_node, cores_avail_per_node),
+            f"Requested {procs_per_node}. Only {cores_avail_per_node} available",
         )
 
         rassert(
             procs_per_node <= cores_avail_per_node_per_worker,
             "Not enough processors per worker to honor arguments. "
-            "Requested {}. Only {} available".format(procs_per_node, cores_avail_per_node_per_worker),
+            f"Requested {procs_per_node}. Only {cores_avail_per_node_per_worker} available",
         )
 
         rassert(
             num_procs <= (cores_avail_per_node * local_node_count),
             "Not enough procs to honor arguments. "
-            "Requested {}. Only {} available".format(num_procs, cores_avail_per_node * local_node_count),
+            f"Requested {num_procs}. Only {cores_avail_per_node * local_node_count} available",
         )
 
     if num_nodes < local_node_count:
         logger.warning(
             "User constraints mean fewer nodes being used "
-            "than available. {} nodes used. {} nodes available".format(num_nodes, local_node_count)
+            f"than available. {num_nodes} nodes used. {local_node_count} nodes available"
         )
 
     return num_procs, num_nodes, procs_per_node
@@ -214,10 +222,10 @@ def create_machinefile(
         try:
             os.remove(machinefile)
         except Exception as e:
-            logger.warning("Could not remove existing machinefile: {}".format(e))
+            logger.warning(f"Could not remove existing machinefile: {e}")
 
     node_list = resources.worker_resources.local_nodelist
-    logger.debug("Creating machinefile with {} nodes and {} ranks per node".format(num_nodes, procs_per_node))
+    logger.debug(f"Creating machinefile with {num_nodes} nodes and {procs_per_node} ranks per node")
 
     with open(machinefile, "w") as f:
         for node in node_list[:num_nodes]:

@@ -31,8 +31,8 @@ Introduction to libEnsemble
 
 libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
 
-libEnsemble can help users take advantage of massively parallel resources to solve design,
-decision, and inference problems and expand the class of problems that can benefit from
+libEnsemble helps users take advantage of massively parallel resources to solve design,
+decision, and inference problems and expands the class of problems that can benefit from
 increased parallelism.
 
 libEnsemble aims for:
@@ -58,7 +58,7 @@ With a basic familiarity of Python and NumPy_, users can easily incorporate
 any other mathematics, machine-learning, or resource-management libraries into libEnsemble
 workflows.
 
-libEnsemble employs a manager/worker scheme that runs on MPI, multiprocessing,
+libEnsemble employs a manager/worker scheme that communicates via MPI, multiprocessing,
 or TCP. Workers control and monitor any level of work using the aforementioned
 generator and simulator functions, from small subnode tasks to huge many-node computations.
 
@@ -66,12 +66,15 @@ libEnsemble includes an Executor interface so application-launching functions ar
 portable, resilient, and flexible; it also automatically detects available nodes
 and cores, and can dynamically assign resources to workers.
 
+libEnsemble performs best on Unix-like systems like Linux and macOS. See the
+:ref:`FAQ<faqwindows>` for more information.
+
 .. before_dependencies_rst_tag
 
 Dependencies
 ~~~~~~~~~~~~
 
-Required dependencies:
+**Required dependencies**:
 
 * Python_ 3.7 or above
 * NumPy_
@@ -83,7 +86,7 @@ When using  ``mpi4py`` for libEnsemble communications:
 * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
 * mpi4py_ v2.0.0 or above
 
-Optional dependencies:
+**Optional dependencies**:
 
 * Balsam_
 
@@ -93,8 +96,7 @@ Balsam site, including to remote machines.
 
 * pyyaml_
 
-libEnsemble is typically configured and parameterized via Python dictionaries.
-As of v0.8.0, libEnsemble can also be parameterized via yaml.
+libEnsemble is typically configured and parameterized via Python dictionaries. libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
@@ -102,6 +104,12 @@ As of v0.9.0, libEnsemble features a cross-system capability powered by funcX_,
 a function-as-a-service platform to which workers can submit remote generator or
 simulator function instances. This feature can help distribute an ensemble
 across systems and heterogeneous resources.
+
+* `psi-j-python`_
+
+As of v0.9.3, libEnsemble features a set of command-line utilities for submitting
+libEnsemble jobs to almost any system or scheduler via a `PSI/J`_ Python interface. tqdm_
+is also required.
 
 The example simulation and generation functions and tests require the following:
 
@@ -229,7 +237,8 @@ Resources
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
-- An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_
+- Contributions_ to libEnsemble are welcome.
+- An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_.
 - Examples of production user functions and complete workflows can be viewed, downloaded, and contributed to in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
@@ -243,7 +252,7 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.9.2},
+    number  = {Revision 0.9.3},
     year    = {2022},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
@@ -305,6 +314,7 @@ See a complete list of `example user scripts`_.
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
@@ -330,6 +340,8 @@ See a complete list of `example user scripts`_.
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
+.. _PSI/J: https://exaworks.org/psij
+.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
@@ -348,6 +360,7 @@ See a complete list of `example user scripts`_.
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
+.. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

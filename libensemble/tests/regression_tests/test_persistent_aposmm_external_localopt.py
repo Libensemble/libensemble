@@ -19,7 +19,7 @@ persistent generator.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
-# TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_EXTRA: true
 
 import sys
@@ -46,7 +46,6 @@ np.set_printoptions(precision=16)
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
 
-    # Temporary solution while we investigate/resolve slowdowns with "spawn" start method.
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()

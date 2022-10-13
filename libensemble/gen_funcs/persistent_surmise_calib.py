@@ -97,11 +97,7 @@ def cancel_columns(obs_offset, c, n_x, pending, ps):
                 sim_ids_to_cancel.append(sim_id_cancel)
                 pending[i, c] = 0
 
-    # Send only these fields to existing H rows and libEnsemble will slot in the change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[("sim_id", int), ("cancel_requested", bool)])
-    H_o["sim_id"] = sim_ids_to_cancel
-    H_o["cancel_requested"] = True
-    ps.send(H_o)
+    ps.request_cancel_sim_ids(sim_ids_to_cancel)
 
 
 def assign_priority(n_x, n_thetas):
@@ -242,7 +238,7 @@ def surmise_calib(H, persis_info, gen_specs, libE_info):
             # Determine evaluations to cancel
             c_obviate = info["obviatesugg"]
             if len(c_obviate) > 0:
-                print("columns sent for cancel is:  {}".format(c_obviate), flush=True)
+                print(f"columns sent for cancel is:  {c_obviate}", flush=True)
                 cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
             pending[:, c_obviate] = False
 

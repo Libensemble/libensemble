@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """ Script to set up apps and jobs for balsam tests """
-
 # Note: To see use of command line interface see bash_scripts/setup_balsam_tests.sh script.
 #       Currently that script does not create deps between jobs so may run simultaneously
 #       This script tests setup within python (could in theory be integrated with job!)
@@ -33,12 +32,12 @@ def add_app(name, exepath, desc):
 def run_cmd(cmd, echo=False):
     """Run a bash command"""
     if echo:
-        print("\nRunning %s ...\n" % cmd)
+        print(f"\nRunning {cmd} ...\n")
     try:
         subprocess.run(cmd.split(), check=True)
     except Exception as e:
         print(e)
-        raise ("Error: Command %s failed to run" % cmd)
+        raise (f"Error: Command {cmd} failed to run")
 
 
 # Use relative paths to balsam_tests dir

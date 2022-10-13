@@ -12,7 +12,7 @@ authenticated through Globus_.
 
 In order to initiate a Balsam executor, the calling script should contain ::
 
-    from libensemble.executors import BalsamExecutor
+    from libensemble.executors.balsam_executors import BalsamExecutor
     exctr = BalsamExecutor()
 
 Key differences to consider between this executor and libEnsemble's others is
@@ -21,7 +21,7 @@ submissions will not run until Balsam reserves compute resources at a site.
 
 This process may resemble::
 
-    from libensemble.executors import BalsamExecutor
+    from libensemble.executors.balsam_executors import BalsamExecutor
     from balsam.api import ApplicationDefinition
 
     class HelloApp(ApplicationDefinition):
@@ -79,7 +79,6 @@ from libensemble.executors.executor import (
     ExecutorException,
     TimeoutExpired,
     jassert,
-    STATES,
 )
 from libensemble.executors import Executor
 
@@ -120,7 +119,6 @@ class BalsamTask(Task):
 
     def _get_time_since_balsam_submit(self):
         """Return time since balsam task entered ``RUNNING`` state"""
-
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
             return 0
@@ -133,7 +131,6 @@ class BalsamTask(Task):
 
     def calc_task_timing(self):
         """Calculate timing information for this task"""
-
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
 
@@ -162,13 +159,10 @@ class BalsamTask(Task):
             ]:
                 self.success = True
                 self.state = "FINISHED"
-            elif balsam_state in STATES:  # In my states
-                self.state = balsam_state
             else:
-                logger.warning("Task finished, but in unrecognized " "Balsam state {}".format(balsam_state))
-                self.state = "UNKNOWN"
+                self.state = balsam_state
 
-            logger.info("Task {} ended with state {}".format(self.name, self.state))
+        logger.info(f"Task {self.name} ended with state {self.state}")
 
     def poll(self):
         """Polls and updates the status attributes of the supplied task. Requests
@@ -202,12 +196,7 @@ class BalsamTask(Task):
 
         elif balsam_state in ["RUN_ERROR", "RUN_TIMEOUT", "FAILED"]:
             self.state = "FAILED"
-
-        else:
-            raise ExecutorException(
-                "Task state returned from Balsam is not in known list of "
-                "Balsam states. Task state is {}".format(balsam_state)
-            )
+            self._set_complete()
 
     def wait(self, timeout=None):
         """Waits on completion of the task or raises ``TimeoutExpired``.
@@ -220,9 +209,7 @@ class BalsamTask(Task):
         timeout: int or float,  optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
-            Note that the task is not automatically killed if libEnsemble
-            timeouts from reaching exit_criteria["wallclock_max"].
-
+            Note that the task is not automatically killed on timeout.
         """
 
         if self.dry_run:
@@ -239,6 +226,9 @@ class BalsamTask(Task):
             "POSTPROCESSED",
             "STAGED_OUT",
             "JOB_FINISHED",
+            "RUN_ERROR",
+            "RUN_TIMEOUT",
+            "FAILED",
         ]:
             time.sleep(0.2)
             self.process.refresh_from_db()
@@ -251,10 +241,9 @@ class BalsamTask(Task):
 
     def kill(self):
         """Cancels the supplied task. Killing is unsupported at this time."""
-
         self.process.delete()
 
-        logger.info("Killing task {}".format(self.name))
+        logger.info(f"Killing task {self.name}")
         self.state = "USER_KILLED"
         self.finished = True
         self.calc_task_timing()
@@ -270,7 +259,6 @@ class BalsamExecutor(Executor):
 
     def __init__(self):
         """Instantiate a new ``BalsamExecutor`` instance."""
-
         super().__init__()
 
         self.workflow_name = "libe_workflow"
@@ -280,11 +268,11 @@ class BalsamExecutor(Executor):
         """Balsam serial setup includes emptying database and adding applications"""
         pass
 
-    def add_app(self, name, site, exepath, desc):
+    def add_app(self, *args):
         """Sync application with Balsam service"""
         pass
 
-    def register_app(self, BalsamApp, app_name, calc_type=None, desc=None, precedent=None):
+    def register_app(self, BalsamApp, app_name=None, calc_type=None, desc=None, precedent=None):
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
@@ -392,13 +380,12 @@ class BalsamExecutor(Executor):
         self.allocations.append(allocation)
 
         logger.info(
-            "Submitted Batch allocation to site {}: "
-            "nodes {} queue {} project {}".format(site_id, num_nodes, queue, project)
+            f"Submitted Batch allocation to site {site_id}: " f"nodes {num_nodes} queue {queue} project {project}"
         )
 
         return allocation
 
-    def revoke_allocation(self, allocation):
+    def revoke_allocation(self, allocation, timeout=60):
         """
         Terminates a Balsam ``BatchJob`` machine allocation remotely. Balsam apps should
         no longer be submitted to this allocation. Best to run after libEnsemble
@@ -409,16 +396,27 @@ class BalsamExecutor(Executor):
 
         allocation: ``BatchJob`` object
             a ``BatchJob`` with a corresponding machine allocation that should be cancelled.
+
+        timeout: int, optional
+            Timeout and warn user after this many seconds of attempting to revoke an allocation.
         """
         allocation.refresh_from_db()
+
+        start = time.time()
 
         while not allocation.scheduler_id:
             time.sleep(1)
             allocation.refresh_from_db()
+            if time.time() - start > timeout:
+                logger.warning(
+                    "Unable to terminate Balsam BatchJob. You may need to login to the machine and manually remove it."
+                )
+                return False
 
         batchjob = BatchJob.objects.get(scheduler_id=allocation.scheduler_id)
         batchjob.state = "pending_deletion"
         batchjob.save()
+        return True
 
     def set_resources(self, resources):
         self.resources = resources
@@ -523,16 +521,12 @@ class BalsamExecutor(Executor):
 
         if machinefile is not None:
             logger.warning("machinefile arg ignored - not supported in Balsam")
-            jassert(
-                num_procs or num_nodes or procs_per_node,
-                "No procs/nodes provided - aborting",
-            )
 
         task = BalsamTask(app, app_args, workdir, None, None, self.workerID)
 
         if dry_run:
             task.dry_run = True
-            logger.info("Test (No submit) Balsam app {}".format(app_name))
+            logger.info(f"Test (No submit) Balsam app {app_name}")
             task._set_complete(dry_run=True)
         else:
             App = app.pyobj
@@ -563,9 +557,7 @@ class BalsamExecutor(Executor):
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
 
-            logger.info(
-                "Submitted Balsam App to site {}: " "nodes {} ppn {}".format(App.site, num_nodes, procs_per_node)
-            )
+            logger.info(f"Submitted Balsam App to site {App.site}: " "nodes {num_nodes} ppn {procs_per_node}")
 
         self.list_of_tasks.append(task)
         return task

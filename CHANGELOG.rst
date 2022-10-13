@@ -8,6 +8,34 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.9.3
+-------------
+
+:Date: October 13, 2022
+
+New capabilities:
+
+* New pair of utilities, `liberegister` and `libesubmit` (based on *PSI/J*), for easily preparing and launching libEnsemble workflows with local comms onto most machines and schedulers. #807
+* New persistent support function to cancel sim_ids (`request_cancel_sim_ids`). #880
+* `keep_state` option for persistent workers: this lets the manager know that the information being sent is intermediate. #880 
+
+Other enhancements:
+
+* The Executor `manager_poll()` interface now sets consistent flags instead of literal strings. #877
+* Some internal modules and the test suite now work on Windows. #869 #888
+* Specifying the `num_resource_sets` *libE_specs* option instead of `zero_resource_workers` is now recommended except when using a fixed worker/resource mapping. Use ``persis_info["gen_resources"]`` to assign persistent generator resources (default is zero). #905
+* An extraneous warning removed. #903
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows, Theta (Cray XC40/Cobalt), Summit (IBM Power9/LSF), Bebop (Cray CS400/Slurm), Swing (A100 GPU system), Perlmutter (HPE Cray EX with A100 NVIDIA GPUs). For Perlmutter, see "Known issues" below.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10.
+
+:Known issues:
+
+* At time of testing on Perlmutter there was an issue running concurrent applications on a node, following a recent system update. This also affects previous versions of libEnsemble, and is being investigated.
+* See known issues section in the documentation.
+
 Release 0.9.2
 -------------
 
@@ -19,9 +47,9 @@ New capabilities:
 * Added configuration options for `libE_stats.txt` file. #743
 * Support for `spawn` and `forkserver` multiprocessing start methods. #797
 
- * Note that macOS no longer switches to using `fork`. macOS (since Python 3.8) and Windows
- default to using `spawn`. When using `spawn`, we recommend placing calling script code in
- an ``if __name__ == "__main__":`` block. The multiprocessing interface can be used to switch methods (https://docs.python.org/3/library/multiprocessing.html#multiprocessing.set_start_method).
+ * Note that macOS no longer switches to using `fork`. macOS (since Python 3.8) and Windows default to
+   using `spawn`. When using `spawn`, we recommend placing calling script code in an ``if __name__ == "__main__":`` block.
+   The multiprocessing interface can be used to switch methods (https://docs.python.org/3/library/multiprocessing.html#multiprocessing.set_start_method).
 
 Updates to example functions:
 

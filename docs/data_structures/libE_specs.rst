@@ -33,7 +33,7 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             processes are then terminated. multiprocessing default: 1
         'kill_canceled_sims' [bool]:
             Will libE try to kill sims that user functions mark 'cancel_requested' as True.
-            If False, the manager avoid this moderate overhead.
+            If False, the manager avoids this moderate overhead.
             Default: True
 
         Directory management options:
@@ -147,7 +147,9 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             Distributed mode means workers share nodes with applications.
             Default: False
         'zero_resource_workers' [list of ints]:
-            List of workers that require no resources.
+            List of workers that require no resources. For when a fixed mapping of workers
+            to resources is required. Otherwise, use "num_resource_sets".
+            For use with supported allocation functions.
         'resource_info' [dict]:
             Provide resource information that will override automatically detected resources.
             The allowable fields are given below in 'Overriding Auto-detection'

@@ -139,7 +139,7 @@ Zero-resource workers
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
 are still automatically assigned system resources. This can be resolved by
-using :ref:`zero resource workers<zero_resource_workers>`.
+:ref:`fixing the number of resource sets<zero_resource_workers>`.
 
 Overriding Auto-detection
 -------------------------
@@ -153,6 +153,8 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
+ .. _funcx_ref:
+
 funcX - Remote User functions
 -----------------------------
 
@@ -161,9 +163,9 @@ internet access (laptops, login nodes, other servers, etc.), workers can be inst
 launch generator or simulator user function instances to separate resources from
 themselves via funcX_, a distributed, high-performance function-as-a-service platform:
 
-    .. image:: ../images/funcx.png
+    .. image:: ../images/funcxmodel.png
         :alt: running_with_funcx
-        :scale: 40
+        :scale: 50
         :align: center
 
 This is useful for running ensembles across machines and heterogeneous resources, but

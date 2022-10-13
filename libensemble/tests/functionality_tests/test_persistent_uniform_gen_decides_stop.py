@@ -14,6 +14,7 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 5
+# TESTSUITE_OS_SKIP: WIN
 
 import sys
 import numpy as np
@@ -88,8 +89,8 @@ if __name__ == "__main__":
 
         gen_workers = np.unique(H["gen_worker"])
         print("Generators that issued points", gen_workers)
-        assert len(gen_workers) == ngens, "The number of gens used {} does not match num_active_gens {}".format(
-            len(gen_workers), ngens
-        )
+        assert (
+            len(gen_workers) == ngens
+        ), f"The number of gens used {len(gen_workers)} does not match num_active_gens {ngens}"
 
         save_libE_output(H, persis_info, __file__, nworkers)

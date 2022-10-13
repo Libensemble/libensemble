@@ -82,16 +82,17 @@ setup(
     ],
     extras_require={
         "extras": [
-            "pyyaml",
-            "scipy",
-            "nlopt",
+            "ax-platform",
+            "DFO-LS",
+            "dragonfly-opt",
+            "funcx",
             "mpi4py",
+            "mpmath",
+            "nlopt",
             "petsc",
             "petsc4py",
-            "DFO-LS",
-            "mpmath",
-            "dragonfly-opt",
-            "ax-platform",
+            "pyyaml",
+            "scipy",
         ],
         "docs": [
             "sphinx",
@@ -99,6 +100,10 @@ setup(
             "sphinx_rtd_theme",
         ],
     },
+    scripts=[
+        "scripts/liberegister",
+        "scripts/libesubmit",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

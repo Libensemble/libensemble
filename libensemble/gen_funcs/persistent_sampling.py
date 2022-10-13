@@ -7,7 +7,9 @@ __all__ = [
     "persistent_uniform",
     "uniform_random_sample_with_variable_resources",
     "persistent_request_shutdown",
+    "uniform_nonblocking",
     "batched_history_matching",
+    "persistent_uniform_with_cancellations",
 ]
 
 
@@ -79,7 +81,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
         H_o["priority"] = 10 * H_o["resource_sets"]
-        print("Created {} sims, with worker_teams req. of size(s) {}".format(b, H_o["resource_sets"]), flush=True)
+        print(f"Created {b} sims, with worker_teams req. of size(s) {H_o['resource_sets']}", flush=True)
         tag, Work, calc_in = ps.send_recv(H_o)
 
         if calc_in is not None:
@@ -202,5 +204,36 @@ def batched_history_matching(H, persis_info, gen_specs, libE_info):
             best_inds = all_inds[:q]
             mu = np.mean(H_o["x"][best_inds], axis=0)
             Sigma = np.cov(H_o["x"][best_inds].T)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
+
+    ub = gen_specs["user"]["ub"]
+    lb = gen_specs["user"]["lb"]
+    n = len(lb)
+    b = gen_specs["user"]["initial_batch_size"]
+
+    # Start cancelling points from half initial batch onward
+    cancel_from = b // 2  # Should get at least this many points back
+
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    # Send batches until manager sends stop tag
+    tag = None
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+
+        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        tag, Work, calc_in = ps.send_recv(H_o)
+
+        if hasattr(calc_in, "__len__"):
+            b = len(calc_in)
+
+            # Cancel as many points as got back
+            cancel_ids = list(range(cancel_from, cancel_from + b))
+            cancel_from += b
+            ps.request_cancel_sim_ids(cancel_ids)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

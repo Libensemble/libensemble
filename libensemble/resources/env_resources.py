@@ -98,7 +98,7 @@ class EnvResources:
         if self.scheduler:
             env = self.scheduler
             env_var = self.nodelists[env]
-            logger.debug("{} env found - getting nodelist from {}".format(env, env_var))
+            logger.debug(f"{env} env found - getting nodelist from {env_var}")
             get_list_func = self.ndlist_funcs[env]
             global_nodelist = get_list_func(env_var)
             return global_nodelist

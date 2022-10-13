@@ -30,6 +30,7 @@ We now present further information on running and testing libEnsemble.
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _Coveralls: https://coveralls.io/github/Libensemble/libensemble?branch=main
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
@@ -54,6 +55,8 @@ We now present further information on running and testing libEnsemble.
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _poster: https://figshare.com/articles/libEnsemble_A_Python_Library_for_Dynamic_Ensemble-Based_Computations/12559520
+.. _PSI/J: https://exaworks.org/psij
+.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
@@ -72,6 +75,7 @@ We now present further information on running and testing libEnsemble.
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
+.. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

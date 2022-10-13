@@ -1,5 +1,6 @@
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, EVAL_SIM_TAG, calc_type_strings
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -21,15 +22,19 @@ class PersistentSupport:
         assert self.calc_type in [
             EVAL_GEN_TAG,
             EVAL_SIM_TAG,
-        ], "The calc_type: {} specifies neither a simulator nor generator.".format(self.calc_type)
+        ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output, calc_status=UNSET_TAG):
+    def send(self, output, calc_status=UNSET_TAG, keep_state=False):
         """
         Send message from worker to manager.
 
         :param output: Output array to be sent to manager
         :param calc_status: Optional, Provides a task status
+        :param keep_state: Optional, If True the manager will not modify its
+            record of the workers state (usually the manager changes the
+            worker's state to inactive, indicating the worker is ready to receive
+            more work, unless using active receive mode).
 
         :returns: None
 
@@ -41,18 +46,22 @@ class PersistentSupport:
         else:
             libE_info = self.libE_info
 
+        libE_info["keep_state"] = keep_state
+
         D = {
             "calc_out": output,
             "libE_info": libE_info,
             "calc_status": calc_status,
             "calc_type": self.calc_type,
         }
-        logger.debug("Persistent {} function sending data message to manager".format(self.calc_str))
+        logger.debug(f"Persistent {self.calc_str} function sending data message to manager")
         self.comm.send(self.calc_type, D)
 
     def recv(self, blocking=True):
         """
         Receive message to worker from manager.
+
+        :param blocking: Optional, If True (default), will block until a message is received.
 
         :returns: message tag, Work dictionary, calc_in array
 
@@ -64,11 +73,11 @@ class PersistentSupport:
 
         tag, Work = self.comm.recv()  # Receive meta-data or signal
         if tag in [STOP_TAG, PERSIS_STOP]:
-            logger.debug("Persistent {} received signal {} from manager".format(self.calc_str, tag))
+            logger.debug(f"Persistent {self.calc_str} received signal {tag} from manager")
             self.comm.push_to_buffer(tag, Work)
             return tag, Work, None
         else:
-            logger.debug("Persistent {} received work request from manager".format(self.calc_str))
+            logger.debug(f"Persistent {self.calc_str} received work request from manager")
 
         # Update libE_info
         # self.libE_info = Work['libE_info']
@@ -81,13 +90,12 @@ class PersistentSupport:
         # Check for unexpected STOP (e.g. error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug(
-                "Persistent {} received signal {} ".format(self.calc_str, tag)
-                + "from manager while expecting work rows"
+                f"Persistent {self.calc_str} received signal {tag} " + "from manager while expecting work rows"
             )
             self.comm.push_to_buffer(data_tag, calc_in)
             return data_tag, calc_in, None  # calc_in is signal identifier
 
-        logger.debug("Persistent {} received work rows from manager".format(self.calc_str))
+        logger.debug(f"Persistent {self.calc_str} received work rows from manager")
         return tag, Work, calc_in
 
     def send_recv(self, output, calc_status=UNSET_TAG):
@@ -102,3 +110,16 @@ class PersistentSupport:
         """
         self.send(output, calc_status)
         return self.recv()
+
+    def request_cancel_sim_ids(self, sim_ids):
+        """Request cancellation of sim_ids
+
+        :param sim_ids: A list of sim_ids to cancel
+
+        A message is sent to the manager to mark requested sim_ids as cancel_requested
+        """
+        H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
+        H_o["sim_id"] = sim_ids
+        H_o["cancel_requested"] = True
+        print(H_o)
+        self.send(H_o, keep_state=True)
