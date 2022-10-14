@@ -166,8 +166,8 @@ Modification of existing points
 
 To change existing fields of the history array, the generator can initialize an output
 array where the *dtype* contains the ``sim_id`` and the fields to be modified (in
-place of ``gen_specs["out"]``), and then send to the manager as with regular
-communications. Any such message received by the manager will modify the given fields
+place of ``gen_specs["out"]``), and then send this output array to the manager (as with regular
+communications). Any such array received by the manager will overwrite the specific fields
 for the given *sim_ids*. If the changes do not correspond with newly generated points,
 then the generator needs to communicate to the manager that it is not ready
 to receive completed evaluations. Send to the manager with the ``keep_state`` argument

@@ -109,9 +109,9 @@ The ``libE_specs`` options for TCP are::
 Reverse-ssh interface
 ^^^^^^^^^^^^^^^^^^^^^
 
-Via specifying ``--comms ssh`` on the command line, libEnsemble workers can
+By specifying ``--comms ssh`` on the command line, libEnsemble workers can
 be launched to remote ssh-accessible systems without needing to specify ``'port'`` or ``'authkey'``. This allows users
-to colocate workers, simulation or generator functions, and any applications they submit on the same machine. Such user
+to colocate workers, simulation, or generator functions, and any applications they submit on the same machine. Such user
 functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
 
 The working directory and Python to run on the remote system need to be specified. Running a calling script may resemble::
@@ -209,7 +209,7 @@ Running ``qsub``, ``sbatch``, etc. on some batch submission script is not needed
 
 Results in::
 
-    *** libEnsemble 0.9.2+dev ***
+    *** libEnsemble 0.9.3 ***
     Imported PSI/J serialization: my_calling_script.json. Preparing submission...
     Calling script: my_calling_script.py
     ...found! Proceeding.
