@@ -96,8 +96,7 @@ Balsam site, including to remote machines.
 
 * pyyaml_
 
-libEnsemble is typically configured and parameterized via Python dictionaries.
-As of v0.8.0, libEnsemble can also be parameterized via yaml.
+libEnsemble is typically configured and parameterized via Python dictionaries. libEnsemble can also be parameterized via yaml.
 
 * funcX_
 
@@ -108,7 +107,7 @@ across systems and heterogeneous resources.
 
 * `psi-j-python`_
 
-As of v0.9.2+dev, libEnsemble features a set of command-line utilities for submitting
+As of v0.9.3, libEnsemble features a set of command-line utilities for submitting
 libEnsemble jobs to almost any system or scheduler via a `PSI/J`_ Python interface. tqdm_
 is also required.
 
@@ -253,7 +252,7 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.9.2+dev},
+    number  = {Revision 0.9.3},
     year    = {2022},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }

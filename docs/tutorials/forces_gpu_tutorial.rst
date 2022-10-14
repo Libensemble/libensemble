@@ -22,7 +22,7 @@ GPU build lines in build_forces.sh_ or similar for your platform.
 The libEnsemble scripts in this example are available under forces_gpu_ in
 the libEnsemble repository.
 
-Note that at time of writing the calling script **run_libe_forces.py** is functionally
+Note that at the time of writing, the calling script **run_libe_forces.py** is functionally
 the same as that in *forces_simple*, but contains some commented out lines that can
 be used for a variable resources example. The *forces_simf.py* file has slight modifications
 to assign GPUs.
@@ -140,7 +140,7 @@ eight workers. For example::
 
     python run_libe_forces.py --comms local --nworkers 8
 
-Note that if you are running one persistent generator which does not require
+Note that if you are running one persistent generator that does not require
 resources, then assign nine workers, and fix the number of *resource_sets* in
 you calling script::
 

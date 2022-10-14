@@ -228,9 +228,10 @@ macOS and Windows Errors
 
 **Can I run libEnsemble on Windows**
 
-Although we run many libEnsemble workflows successfully on Windows using both MPI and local comms, we do not
-rigorously support Windows, and recommend unix-like systems as a preference. Windows tends to produce more
-platform-specific issues that are difficult to reproduce and troubleshoot.
+Although we have run many libEnsemble workflows successfully on Windows using
+both MPI and local comms, Windows is not rigorously supported. We highly
+recommend Unix-like systems. Windows tends to produce more platform-specific
+issues that are difficult to reproduce and troubleshoot.
 
 Feel free to check our `Github Actions`_ page to see what tests we run regularly on Windows.
 
@@ -238,11 +239,14 @@ Feel free to check our `Github Actions`_ page to see what tests we run regularly
 
 **Windows - How can I run libEnsemble with MPI comms?**
 
-We have run workflows with MPI comms. However, as most MPI distributions have either dropped Windows support
- (MPICH and Open MPI) or are no longer being maintained (``msmpi``), we cannot guarantee success.
+We have run Windows workflows with MPI comms. However, as most MPI
+distributions have either dropped Windows support (MPICH and Open MPI) or are
+no longer being maintained (``msmpi``), we cannot guarantee success.
 
-If users wish to try, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
-and other such systems. The `Installing PETSc On Microsoft Windows`_ documentation contains valuable information.
+If users wish to try, we recommend experimenting with the many Unix-like
+emulators, containers, virtual machines, and other such systems. The
+`Installing PETSc On Microsoft Windows`_ documentation contains valuable
+information.
 
 Otherwise, install ``msmpi`` and ``mpi4py`` from conda and experiment, or use ``local`` comms.
 
@@ -267,8 +271,9 @@ Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatical
 method to ``'fork'``. We decided to stop doing this to avoid overriding defaults and compatibility issues with
 some libraries.
 
-If you'd prefer to use ``'fork'`` or not reformat your code, you can set the multiprocessing start method via
-the following, placed near the top of your calling script::
+If you'd prefer to use ``'fork'`` or not reformat your code, you can set the
+multiprocessing start method by placing 
+the following near the top of your calling script::
 
   import multiprocessing
   multiprocessing.set_start_method('fork', force=True)
