@@ -22,22 +22,22 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     print(args)
 
     # Retrieve our MPI Executor instance and resources
-    exctr = Executor.executor
-    resources = Resources.resources.worker_resources
+    # exctr = Executor.executor
+    # resources = Resources.resources.worker_resources
 
-    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    # resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
-    # # Submit our forces app for execution. Block until the task starts.
-    task = exctr.submit(
-         app_name="icesheet",
-         app_args=args,
-         num_nodes=resources.local_node_count,
-         procs_per_node=resources.slot_count,
-         wait_on_start=True,
-    )
+    # # # Submit our forces app for execution. Block until the task starts.
+    # task = exctr.submit(
+    #      app_name="icesheet",
+    #      app_args=args,
+    #      num_nodes=resources.local_node_count,
+    #      procs_per_node=resources.slot_count,
+    #      wait_on_start=True,
+    # )
 
-    # # Block until the task finishes
-    task.wait(timeout=60)
+    # # # Block until the task finishes
+    # task.wait(timeout=60)
 
     # Stat file to check for bad runs
     #statfile = "forces.stat"
@@ -53,22 +53,23 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     #      iterations = -1
     #    #  error = np.nan
     #      calc_status = TASK_FAILED
-    error = np.load('jeffs_vector.csv') # IN C, you need to save a csv file with the error at the end of the run.
-    iterations = np.load('num_iters.csv') # IN C, you need to save a csv file with the error at the end of the run.
+    # error = np.load('jeffs_vector.csv') # IN C, you need to save a csv file with the error at the end of the run.
+    # iterations = np.load('num_iters.csv') # IN C, you need to save a csv file with the error at the end of the run.
 
-    assert len(error) > 1, "Need to have a vector of errors"
+    # assert len(error) > 1, "Need to have a vector of errors"
 
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
     # output["iterations"][0] = 0
-    output["fvec"][0] = error
+    # output["fvec"][0] = error
     # output["fvec"][0] = np.random.uniform(0,1,100)
-   # iterations = np.random.randint(1,100)
-   # print(iterations)
-   output["iterations"][0] =iterations 
-   # velocity_field = np.random.uniform(-1,1,(100,100))
-   # print(velocity_field[0][0])
+    output["fvec"][0][:3] = H["x"]
+    # iterations = np.random.randint(1,100)
+    # print(iterations)
+    # output["iterations"][0] =100
+    # velocity_field = np.random.uniform(-1,1,(100,100))
+    # print(velocity_field[0][0])
     output["error"][0] = np.sum(output["fvec"][0]**2)
 
     # Return final information to worker, for reporting to manager
