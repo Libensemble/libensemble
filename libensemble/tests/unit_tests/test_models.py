@@ -59,9 +59,8 @@ def test_ensemble_specs():
     ls = LibeSpecs.parse_obj(libE_specs)
 
     # Should fail because H0 has points with 'sim_ended'==False
-    H0 = np.zeros(5, dtype=libE_fields)
+    H0 = np.zeros(5, dtype=[("x_on_cube", float, 8), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
     H0["sim_id"] = [0, 1, 2, -1, -1]
-    H0["sim_worker"][0:3] = range(1, 4)
     H0[["sim_started", "sim_ended"]][0:3] = True
 
     es = EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
