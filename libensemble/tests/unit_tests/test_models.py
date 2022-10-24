@@ -1,7 +1,6 @@
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.tools.fields_keys import libE_fields
 from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria, LibeSpecs, EnsembleSpecs
 
 
