@@ -54,7 +54,7 @@ class History:
 
         if len(H0):
             # H0_fields = [(x,str(y[0])) for x,y in sorted(H0.dtype.fields.items(),key=lambda k: k[1])]
-            H0_fields = [(name, typed[0]) for name,typed in H0.dtype.fields.items()]
+            H0_fields = [(name, typed[0]) for name, typed in H0.dtype.fields.items()]
             H0_fields += libE_fields
             H_fields_dup = list(set(specs_dtype_list + H0_fields))
 
@@ -63,7 +63,9 @@ class History:
                 if i not in H_fields:
                     H_fields.append(i)
 
-            H = np.zeros(L + len(H0), dtype=H_fields)  # This may be more history than is needed if H0 has un-given points
+            H = np.zeros(
+                L + len(H0), dtype=H_fields
+            )  # This may be more history than is needed if H0 has un-given points
 
             # Prepend H with H0
             fields = H0.dtype.names
@@ -83,8 +85,9 @@ class History:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
         else:
-            H = np.zeros(L + len(H0), dtype=specs_dtype_list)  # This may be more history than is needed if H0 has un-given points
-
+            H = np.zeros(
+                L + len(H0), dtype=specs_dtype_list
+            )  # This may be more history than is needed if H0 has un-given points
 
         H["sim_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf
