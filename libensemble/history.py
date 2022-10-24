@@ -39,8 +39,6 @@ class History:
 
     """
 
-    # Not currently using libE_specs, persis_info - need to add parameters
-    # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
         """
         Forms the numpy structured array that records everything from the
@@ -50,18 +48,28 @@ class History:
         L = exit_criteria.get("sim_max", 100)
 
         # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        specs = [sim_specs, alloc_specs, gen_specs]
-        dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
+        specs = [sim_specs, gen_specs]
+        specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
+        # combine specs_out fields, libE_fields, and H0 fields
 
         if len(H0):
+            # H0_fields = [(x,str(y[0])) for x,y in sorted(H0.dtype.fields.items(),key=lambda k: k[1])]
+            H0_fields = [(name, typed[0]) for name,typed in H0.dtype.fields.items()]
+            H0_fields += libE_fields
+            H_fields_dup = list(set(specs_dtype_list + H0_fields))
+
+            H_fields = []  # removes *similar* fields, e.g. ('sim_id', dtype('int64')) and ('sim_id', <class 'int'>)
+            for i in H_fields_dup:
+                if i not in H_fields:
+                    H_fields.append(i)
+
+            H = np.zeros(L + len(H0), dtype=H_fields)  # This may be more history than is needed if H0 has un-given points
+
             # Prepend H with H0
             fields = H0.dtype.names
 
             for field in fields:
                 H[field][: len(H0)] = H0[field]
-                # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
-                #     H[field][ind] = val
 
             if "sim_started" not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
@@ -74,6 +82,9 @@ class History:
             if "sim_id" not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
+        else:
+            H = np.zeros(L + len(H0), dtype=specs_dtype_list)  # This may be more history than is needed if H0 has un-given points
+
 
         H["sim_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf
