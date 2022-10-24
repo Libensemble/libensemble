@@ -49,15 +49,16 @@ def _check_H0(cls, values):
     if values.get("H0").size > 0:
         H0 = values.get("H0")
         specs = [values.get("sim_specs"), values.get("gen_specs")]
-        dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
-        Dummy_H = np.zeros(1 + len(H0), dtype=dtype_list)
+        specs_dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
+        specs_inputs_list = list(set(sum([k.inputs or [] for k in specs if k], [])))
+        Dummy_H = np.zeros(1 + len(H0), dtype=specs_dtype_list)
 
-        fields = H0.dtype.names
+        # should check that new fields compatible with sim/gen specs, if any?
+        assert all(
+            field in H0.dtype.names for field in specs_inputs_list
+        ), "H0 missing fields corresponding to expected input fields from sim_specs or gen_specs"
 
-        # assert set(fields).issubset(
-        #     set(Dummy_H.dtype.names)
-        # ), f"H0 contains fields {set(fields).difference(set(Dummy_H.dtype.names))} not in the History."
-        assert "sim_ended" not in fields or np.all(
+        assert "sim_ended" not in H0.dtype.names or np.all(
             H0["sim_started"] == H0["sim_ended"]
         ), "H0 contains unreturned or invalid points"
 
@@ -68,8 +69,9 @@ def _check_H0(cls, values):
                 np.array(field1.shape) >= np.array(field0.shape)
             ), f"H too small to receive all components of H0 in field {name}"
 
-        for field in fields:
-            _check_consistent_field(field, H0[field], Dummy_H[field])
+        for field in H0.dtype.names:
+            if field in specs_dtype_list:
+                _check_consistent_field(field, H0[field], Dummy_H[field])
     return values
 
 
@@ -92,6 +94,7 @@ class _MPICommValidationModel:
 
     def validate(cls, comm):
         from mpi4py import MPI
+
         assert comm != MPI.COMM_NULL, "Provided MPI communicator is invalid, is MPI.COMM_NULL"
         assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
         return comm
