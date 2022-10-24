@@ -54,9 +54,9 @@ def _check_H0(cls, values):
 
         fields = H0.dtype.names
 
-        assert set(fields).issubset(
-            set(Dummy_H.dtype.names)
-        ), f"H0 contains fields {set(fields).difference(set(Dummy_H.dtype.names))} not in the History."
+        # assert set(fields).issubset(
+        #     set(Dummy_H.dtype.names)
+        # ), f"H0 contains fields {set(fields).difference(set(Dummy_H.dtype.names))} not in the History."
         assert "sim_ended" not in fields or np.all(
             H0["sim_started"] == H0["sim_ended"]
         ), "H0 contains unreturned or invalid points"

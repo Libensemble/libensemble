@@ -51,7 +51,7 @@ if __name__ == "__main__":
     H0["sim_started"][:500] = True
     H0["sim_ended"][:500] = True
 
-    alloc_specs = {"alloc_f": alloc_f, "out": [("x", float, n)]}
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": len(H0)}
 
