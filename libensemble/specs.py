@@ -19,7 +19,7 @@ __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "E
 class SimSpecs(BaseModel):
     sim_f: Callable
     inputs: List[str] = Field([], alias="in")
-    persis_in: Optional[List[str]]
+    persis_in: Optional[List[str]] = []
     # list of tuples for dtype construction
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     funcx_endpoint: Optional[str] = ""
@@ -36,7 +36,7 @@ class SimSpecs(BaseModel):
 class GenSpecs(BaseModel):
     gen_f: Optional[Callable]
     inputs: Optional[List[str]] = Field([], alias="in")
-    persis_in: Optional[List[str]]
+    persis_in: Optional[List[str]] = []
     # list of tuples for dtype construction
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     funcx_endpoint: Optional[str] = ""

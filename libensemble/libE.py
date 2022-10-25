@@ -161,7 +161,6 @@ import traceback
 import numpy as np
 import pickle  # Only used when saving output on error
 from typing import Dict, Callable
-from pydantic import validate_arguments
 
 from libensemble.version import __version__
 from libensemble.utils import launcher
@@ -184,7 +183,6 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-@validate_arguments(config=dict(arbitrary_types_allowed=True))
 def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,
