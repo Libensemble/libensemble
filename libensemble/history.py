@@ -59,9 +59,11 @@ class History:
             H_fields_dup = list(set(specs_dtype_list + H0_fields))
 
             H_fields = []  # removes *similar* fields, e.g. ('sim_id', dtype('int64')) and ('sim_id', <class 'int'>)
+            H_fields_processed = []
             for i in H_fields_dup:
-                if i not in H_fields:
+                if i not in H_fields and i[0] not in H_fields_processed:
                     H_fields.append(i)
+                    H_fields_processed.append(i[0])
 
             H = np.zeros(
                 L + len(H0), dtype=H_fields
