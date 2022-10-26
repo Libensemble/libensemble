@@ -553,7 +553,7 @@ class Manager:
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
-            "use_resource_sets":  self.libE_specs.get("num_resource_sets")
+            "use_resource_sets": self.libE_specs.get("num_resource_sets")
         }
 
     def _alloc_work(self, H, persis_info):
