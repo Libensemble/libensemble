@@ -30,7 +30,7 @@ from libensemble.message_numbers import (
 from libensemble.message_numbers import calc_type_strings
 from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING

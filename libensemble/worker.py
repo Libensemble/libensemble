@@ -15,7 +15,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
 from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
 from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.output_directory import EnsembleDirectory
 
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.timer import Timer
