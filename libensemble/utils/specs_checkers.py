@@ -24,11 +24,12 @@ def _check_output_fields(cls, values):
     if values.get("gen_specs"):
         out_names += [e[0] for e in values.get("gen_specs").out]
 
-    for name in values.get("libE_specs").final_fields:
-        assert name in out_names, (
-            name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
-            "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
-        )
+    if values.get("libE_specs"):
+        for name in values.get("libE_specs").final_fields:
+            assert name in out_names, (
+                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
+                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
+            )
 
     for name in values.get("sim_specs").inputs:
         assert name in out_names, (

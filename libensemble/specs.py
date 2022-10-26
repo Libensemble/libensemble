@@ -127,9 +127,17 @@ class LibeSpecs(BaseModel):
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(cls, values)
 
+    @root_validator
+    def set_defaults_on_mpi(cls, values):
+        if values.get("comms") == "mpi":
+            if not values.get("mpi_comm"):
+                from mpi4py import MPI
+                values["mpi_comm"] = MPI.COMM_WORLD
+        return values
+
 
 class EnsembleSpecs(BaseModel):
-    H0: Optional[np.ndarray]
+    H0: Optional[np.ndarray] = None
     libE_specs: LibeSpecs
     sim_specs: SimSpecs
     gen_specs: Optional[GenSpecs]
@@ -153,8 +161,10 @@ class EnsembleSpecs(BaseModel):
     def set_ensemble_nworkers(cls, values):
         if values.get("libE_specs"):
             values["nworkers"] = values["libE_specs"].nworkers
-            return values
+        return values
 
     @root_validator
     def check_H0(cls, values):
-        return _check_H0(cls, values)
+        if values.get("H0") is not None:
+            return _check_H0(cls, values)
+        return values

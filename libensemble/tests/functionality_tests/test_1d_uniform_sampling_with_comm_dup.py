@@ -35,8 +35,6 @@ if __name__ == "__main__":
     else:
         from mpi4py import MPI
 
-    libE_specs = None  # Let MPI use defaults
-
     # Check independence of default communicator from MPI.COMM_WORLD
     world = MPI.COMM_WORLD
     if not is_manager:
@@ -64,7 +62,7 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 501}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
     if is_manager:
         # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
