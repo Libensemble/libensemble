@@ -171,8 +171,8 @@ class Manager:
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
-        self.safe_mode = libE_specs.get("safe_mode", True)
-        self.kill_canceled_sims = libE_specs.get("kill_canceled_sims", True)
+        self.safe_mode = libE_specs.get("safe_mode")
+        self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -549,11 +549,11 @@ class Manager:
             "elapsed_time": self.elapsed(),
             "gen_informed_count": self.hist.gen_informed_count,
             "manager_kill_canceled_sims": self.kill_canceled_sims,
-            "scheduler_opts": self.libE_specs.get("scheduler_opts", {}),
+            "scheduler_opts": self.libE_specs.get("scheduler_opts"),
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
-            "use_resource_sets": "num_resource_sets" in self.libE_specs,
+            "use_resource_sets":  self.libE_specs.get("num_resource_sets")
         }
 
     def _alloc_work(self, H, persis_info):
