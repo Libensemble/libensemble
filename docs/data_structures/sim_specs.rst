@@ -1,5 +1,10 @@
 .. _datastruct-sim-specs:
 
+.. autopydantic_model:: libensemble.specs.SimSpecs
+  :model-show-json: False
+  :members:
+
+
 sim_specs
 =========
 Used to specify the simulation function, its inputs and outputs, and user data::

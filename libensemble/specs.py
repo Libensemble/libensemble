@@ -4,12 +4,15 @@ import random
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from pydantic import (BaseConfig, BaseModel, Field, root_validator,
-                      validator)
+from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.utils.specs_checkers import (
-    _check_any_workers_and_disable_rm_if_tcp, _check_exit_criteria, _check_H0,
-    _check_output_fields, _MPICommValidationModel)
+    _check_any_workers_and_disable_rm_if_tcp,
+    _check_exit_criteria,
+    _check_H0,
+    _check_output_fields,
+    _MPICommValidationModel,
+)
 
 BaseConfig.arbitrary_types_allowed = True
 
@@ -17,49 +20,140 @@ __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "E
 
 
 class SimSpecs(BaseModel):
+    """
+    Specifications for configuring a Simulation Function. Equivalent to
+    the sim_specs dictionary with automatic validation of inputs
+    """
+
     sim_f: Callable
+    """
+    Python function that matches the sim_f api. e.g. `libensemble.sim_funcs.borehole`. Evaluates parameters
+    produced by a generator function
+    """
+
     inputs: List[str] = Field([], alias="in")
+    """
+    List of field names out of the complete history to pass
+    into the simulation function on initialization
+    """
+
     persis_in: Optional[List[str]] = []
+    """
+    List of field names that will be passed to a persistent simulation function
+    throughout runtime, following initialization
+    """
+
     # list of tuples for dtype construction
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
-    funcx_endpoint: Optional[str] = ""
-    user: Optional[Dict]
-    _out_dtype: np.dtype = []
+    """
+    List of tuples corresponding to NumPy dtypes. e.g. ("dim", int, (3,)), or ("path", str).
+    Typically used to initialize an output array within the simulation function:
+    `out = np.zeros(100, dtype=sim_specs["out"])`.
+    Also used to construct the complete dtype for libEnsemble's history array
+    """
 
-    @root_validator
-    def set_out_dtype(cls, values):
-        if values.get("out"):
-            values["_out_dtype"] = np.dtype(values.get("out"))
-        return values
+    funcx_endpoint: Optional[str] = ""
+    """
+    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
+    will submit simulator function instances to this endpoint to be executed, instead of being called in-place
+    """
+
+    user: Optional[Dict]
+    """
+    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
+    the simulator function
+    """
 
 
 class GenSpecs(BaseModel):
-    gen_f: Optional[Callable]
-    inputs: Optional[List[str]] = Field([], alias="in")
-    persis_in: Optional[List[str]] = []
-    # list of tuples for dtype construction
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
-    funcx_endpoint: Optional[str] = ""
-    user: Optional[Dict]
-    _out_dtype: np.dtype = []
+    """
+    Specifications for configuring a Generator Function. Equivalent to
+    the gen_specs dictionary with automatic validation of inputs
+    """
 
-    @root_validator
-    def set_out_dtype(cls, values):
-        if values.get("out"):
-            values["_out_dtype"] = np.dtype(values.get("out"))
-        return values
+    gen_f: Optional[Callable]
+    """
+    Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
+    evaluation by a simulator function, and makes decisions based on simulation function output.
+    """
+
+    inputs: Optional[List[str]] = Field([], alias="in")
+    """
+    List of field names out of the complete history to pass
+    into the simulation function on initialization
+    """
+
+    persis_in: Optional[List[str]] = []
+    """
+    List of field names that will be passed to a persistent generator function
+    throughout runtime, following initialization
+    """
+
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    """
+    List of tuples corresponding to NumPy dtypes. e.g. ("dim", int, (3,)), or ("path", str).
+    Typically used to initialize an output array within the generator function:
+    `out = np.zeros(100, dtype=gen_specs["out"])`. Also used to construct the complete dtype for libEnsemble's
+    history array
+    """
+
+    funcx_endpoint: Optional[str] = ""
+    """
+    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
+    will submit generator function instances to this endpoint to be executed, instead of being called in-place
+    """
+
+    user: Optional[Dict]
+    """
+    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the generator
+    function
+    """
 
 
 class AllocSpecs(BaseModel):
+    """
+    Specifications for configuring an Allocation Function. Equivalent to
+    the alloc_specs dictionary with automatic validation of inputs
+    """
+
     alloc_f: Callable
+    """
+    Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`. Decides if and
+    when simulator and generator functions should be called, and with what resources and parameters
+    """
+
     user: Optional[Dict]
+    """
+    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
+    function
+    """
 
 
 class ExitCriteria(BaseModel):
+    """
+    Specifications for configuring when libEnsemble should stop a given run. Equivalent to the
+    exit_criteria dictionary with automatic validation of inputs
+    """
+
     sim_max: Optional[int] = 100
+    """
+    Stop when this many new points have been evaluated by simulation functions
+    """
+
     gen_max: Optional[int]
+    """
+    Stop when this many new points have been generated by generator functions
+    """
+
     wallclock_max: Optional[float]
+    """
+    Stop when this much time has elapsed since the manager initialized
+    """
+
     stop_val: Optional[Tuple[str, float]]
+    """
+    Stop when `H[str] < float` for the given (str, float) pair
+    """
 
 
 class LibeSpecs(BaseModel):
@@ -132,6 +226,7 @@ class LibeSpecs(BaseModel):
         if values.get("comms") == "mpi":
             if not values.get("mpi_comm"):
                 from mpi4py import MPI
+
                 values["mpi_comm"] = MPI.COMM_WORLD
         return values
 

@@ -100,6 +100,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.imgconverter",
     "sphinx.ext.mathjax",
+    "sphinxcontrib.autodoc_pydantic",
 ]
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
@@ -114,6 +115,8 @@ bibtex_default_style = "unsrt"
 intersphinx_mapping = {
     "community": ("https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/", None)
 }
+
+autodoc_pydantic_model_show_json = False
 
 autodoc_mock_imports = ["balsam"]
 extlinks = {
