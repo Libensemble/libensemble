@@ -98,6 +98,7 @@ setup(
             "sphinx",
             "sphinxcontrib.bibtex",
             "sphinx_rtd_theme",
+            "autodoc_pydantic",
         ],
     },
     scripts=[

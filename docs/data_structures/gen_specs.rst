@@ -39,7 +39,7 @@ to main ``libE()`` routine::
     points uniformly over the 2D domain defined by ``gen_specs['ub']`` and
     ``gen_specs['lb']``.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
+  ..  literalinclude:: ../../libensemble/tests/functionality_tests/test_uniform_sampling.py
       :start-at: gen_specs
       :end-before: end_gen_specs_rst_tag
 
