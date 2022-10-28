@@ -16,8 +16,8 @@ from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_o
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
 
-libE_specs["zero_resource_workers"] = [1]
-#libE_specs["num_resource_sets"] = nworkers - 1
+#libE_specs["zero_resource_workers"] = [1]
+libE_specs["num_resource_sets"] = nworkers
 
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
@@ -49,11 +49,11 @@ gen_out += [("x", float, n), ("x_on_cube", float, n)]
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": gen_f,
-    "persis_in": ["x", "f", "sim_id", "fvec"],
+    "persis_in": ["x", "f", "sim_id", "fvec", "iterations"],
     "out": gen_out,
     "user": {
         "lb": np.array([0.9, 0.9, 0.01]),  # User parameters for the gen_f
-        "ub": np.array([0.99, 0.99, 0.03]),
+        "ub": np.array([0.99, 0.999, 0.05]),
         "gen_batch_size": nworkers - 1,  # Generate one random point x for each of the workers.
         "localopt_method": "DFOLS",
         "num_active_runs": 1,
@@ -67,7 +67,7 @@ alloc_specs = {"alloc_f": alloc_f, "out": gen_out, "user": {"batch_mode": True, 
 libE_specs["sim_dirs_make"] = True
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": 8}  # exit_criteria = {"sim_max": 8}
+exit_criteria = {"sim_max": 30*n}  # exit_criteria = {"sim_max": 8}
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -77,7 +77,8 @@ H0['x'] = np.array([0.98, 0.99, 0.03])  # The best starting point from random sa
 H0['iterations'] = 1657  # The final iteration for the starting point
 H0['x_on_cube'] = (H0['x']-gen_specs["user"]["lb"])/(gen_specs["user"]["ub"]-gen_specs["user"]["lb"])
 
-input_file = "/home/kuanghsu.wang/JKS8e4/test/starting_point_error.txt"
+input_file = "starting_point_error.txt"
+#input_file = "error.csv"
 #H0['fvec'], _, _ = read_stat_file(input_file, m)
 H0['fvec'], _, _ = read_stat_file(input_file, m)
 

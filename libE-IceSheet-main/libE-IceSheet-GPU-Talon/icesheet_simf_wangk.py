@@ -93,9 +93,9 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
 #    fvec, iterations, error = read_stat_file(statfile, max_size)
 
     errorfile = "error.csv"
-    error = read_stat_file(errorfile, max_size) #3.07613e-07 #np.load('error.csv') # IN C, you need to save a csv file with the error at the end of the run.
+    error,_,_ = read_stat_file(errorfile, max_size) #3.07613e-07 #np.load('error.csv') # IN C, you need to save a csv file with the error at the end of the run.
     iterfile = "iters.csv"
-    iterations = read_stat_file(iterfile, max_size)  #1657 #np.load('iters.csv') # IN C, you need to save a csv file with the final iteration at the end of the run.
+    _,iterations,_ = read_stat_file(iterfile, max_size)  #1657 #np.load('iters.csv') # IN C, you need to save a csv file with the final iteration at the end of the run.
 
     assert len(error) > 1, "Need to have a vector of errors"
 
@@ -103,7 +103,7 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
     # output["iterations"][0] = 0
-    output["fvec"][0] = error ### 3.07613e-07  ##error
+    output["fvec"][0] = fvec ##error ##3.07613e-07  ##error
     # output["fvec"][0] = np.random.uniform(0,1,100)
     #output["fvec"][0][:3] = H["x"]
     #iterations = np.random.randint(1,100)
