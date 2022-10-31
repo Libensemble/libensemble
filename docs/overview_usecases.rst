@@ -5,8 +5,8 @@ Overview
 ~~~~~~~~
 .. begin_overview_rst_tag
 
-libEnsemble is a Python library for coordinating the evaluation of dynamic ensembles
-of calculations in parallel. libEnsemble uses a manager process to allocate work to
+libEnsemble is a Python library for coordinating dynamic ensembles
+of evaluations in parallel. libEnsemble uses a manager process to allocate work to
 multiple worker processes. A libEnsemble worker is the smallest indivisible unit
 that can perform calculations. libEnsemble's work is governed by three routines,
 collectively known as **user functions**:

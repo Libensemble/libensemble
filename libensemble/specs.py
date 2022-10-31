@@ -34,7 +34,7 @@ class SimSpecs(BaseModel):
     inputs: List[str] = Field([], alias="in")
     """
     List of field names out of the complete history to pass
-    into the simulation function on initialization. Can use ``in`` or ``inputs``
+    into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword.
     """
 
     persis_in: Optional[List[str]] = []
@@ -80,7 +80,7 @@ class GenSpecs(BaseModel):
     inputs: Optional[List[str]] = Field([], alias="in")
     """
     List of field names out of the complete history to pass
-    into the simulation function on initialization
+    into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword
     """
 
     persis_in: Optional[List[str]] = []

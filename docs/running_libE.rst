@@ -150,13 +150,13 @@ a calling script in a familiar manner::
 
     liberegister my_calling_script.py --comms local --nworkers 4
 
-This produces an initial `my_calling_script.json` serialization conforming to PSI/J's specification:
+This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
 
 .. container:: toggle
 
     .. container:: header
 
-       `my_calling_script.json`
+       ``my_calling_script.json``
 
     .. code-block:: JSON
 
@@ -226,7 +226,7 @@ This also produces a Job-specific representation, e.g:
 
     .. container:: header
 
-       `8ba9de56.my_calling_script.json`
+      ``8ba9de56.my_calling_script.json``
 
     .. code-block:: JSON
 

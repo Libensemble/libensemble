@@ -206,7 +206,7 @@ For example::
     libE_specs['resource_info'] = customizer
 
 .. seealso::
-  Example ``libE_specs`` from the forces_ scaling test, completely populated::
+  Example ``libE_specs``::
 
       libE_specs = {'comm': MPI.COMM_WORLD,
                     'comms': 'mpi',
@@ -230,5 +230,3 @@ The allowable ``libE_specs["stats_fmt"]`` fields are::
     'show_resource_sets' [bool]:
         Shows the resource set IDs assigned to each worker for each call of the user function.
         Default: False
-
-.. _forces: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py

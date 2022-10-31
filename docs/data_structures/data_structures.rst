@@ -1,5 +1,5 @@
-Data Structures
-===============
+Configuring libEnsemble
+=======================
 
 This section outlines the data structures used by libEnsemble. We first discuss
 the dictionaries that are input to libEnsemble to declare the
@@ -32,14 +32,17 @@ function.
    :maxdepth: 3
    :caption: libEnsemble Data Structures:
 
-   history_array
    sim_specs
    gen_specs
-   alloc_specs
    libE_specs
+
+   alloc_specs
    persis_info
    exit_criteria
+   history_array
 
-   worker_array
-   work_dict
+   calc_status
+
+..    worker_array
+..    work_dict
    calc_status
