@@ -1,9 +1,10 @@
 .. _datastruct-libe-specs:
 
-libE_specs
+libE Specs
 ==========
 
-libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary::
+libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary or using the ``LibeSpecs`` class.
+Valid options are categorized and listed below::
 
     libE_specs: [dict, optional]:
 
@@ -159,7 +160,15 @@ libEnsemble is primarily customized by setting options within a ``libE_specs`` d
             A dictionary of options for the resource scheduler.
             See 'Scheduler Options' for more options.
 
-The following describe the dictionary options within ``libE_specs``.
+As a class:
+
+.. autopydantic_model:: libensemble.specs.LibeSpecs
+  :model-show-json: False
+  :model-show-config-member: False
+  :model-show-config-summary: False
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+  :field-list-validators: False
 
 Scheduler Options
 -----------------
