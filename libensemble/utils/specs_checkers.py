@@ -7,7 +7,7 @@ import numpy as np
 from libensemble.tools.fields_keys import libE_fields
 
 
-def _check_exit_criteria(cls, values):
+def _check_exit_criteria(values):
     if "stop_val" in values.get("exit_criteria"):
         stop_name = values.get("exit_criteria").stop_val[0]
         sim_out_names = [e[0] for e in values.get("sim_specs").out]
@@ -16,7 +16,7 @@ def _check_exit_criteria(cls, values):
     return values
 
 
-def _check_output_fields(cls, values):
+def _check_output_fields(values):
     out_names = [e[0] for e in libE_fields]
     if values.get("H0") is not None and values.get("H0").dtype.names is not None:
         out_names += list(values.get("H0").dtype.names)
@@ -46,7 +46,7 @@ def _check_output_fields(cls, values):
     return values
 
 
-def _check_H0(cls, values):
+def _check_H0(values):
     if values.get("H0").size > 0:
         H0 = values.get("H0")
         specs = [values.get("sim_specs"), values.get("gen_specs")]
@@ -78,7 +78,7 @@ def _check_H0(cls, values):
     return values
 
 
-def _check_any_workers_and_disable_rm_if_tcp(cls, values):
+def _check_any_workers_and_disable_rm_if_tcp(values):
     comms_type = values.get("comms")
     if comms_type in ["local", "tcp"]:
         if values.get("nworkers"):

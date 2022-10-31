@@ -1,6 +1,6 @@
 Main libE Module - Calling Script
 =================================
 
-.. automodule:: libE
+.. automodule:: libensemble.libE
    :members:
    :no-undoc-members:
