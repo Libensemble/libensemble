@@ -63,7 +63,7 @@ to be installed. The equivalent of above resembles:
     :linenos:
 
     import numpy as np
-    from libensemble import Ensemble
+    from libensemble.api import Ensemble
 
     my_experiment = Ensemble()
     my_experiment.from_yaml("my_parameters.yaml")
