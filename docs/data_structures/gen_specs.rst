@@ -1,7 +1,7 @@
 .. _datastruct-gen-specs:
 
-Gen Specs
-=========
+Generator Specs
+===============
 
 Used to specify the generator function, its inputs and outputs, and user data. Can be constructed and passed to libEnsemble
 as a Python class (with automatic input validation) or a simple dictionary.

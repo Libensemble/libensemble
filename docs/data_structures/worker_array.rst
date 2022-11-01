@@ -1,6 +1,6 @@
 .. _datastruct-worker-array:
 
-worker array
+Worker Array
 =============
 ::
 

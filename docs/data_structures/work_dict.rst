@@ -1,6 +1,6 @@
 .. _datastruct-work-dict:
 
-work dictionary
+Work Dictionary
 ===============
 
 The work dictionary contains metadata that is used by the manager to send a packet

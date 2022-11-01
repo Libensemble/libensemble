@@ -43,6 +43,5 @@ function.
 
    calc_status
 
-..    worker_array
-..    work_dict
-   calc_status
+   worker_array
+   work_dict

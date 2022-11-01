@@ -1,7 +1,7 @@
 .. _datastruct-libe-specs:
 
-libE Specs
-==========
+General Options
+===============
 
 libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary or using the ``LibeSpecs`` class.
 Valid options are categorized and listed below::

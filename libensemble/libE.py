@@ -2,12 +2,12 @@
 The libE module is the outer libEnsemble routine.
 
 This module sets up the manager and the team of workers, configured according
-to the contents of the ``libE_specs`` dictionary. The manager/worker
+to the contents of :ref:`libE_specs<datastruct-libe-specs>`. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 ``tcp``. MPI is the default; if a communicator is specified, each call to this
 module will initiate manager/worker communications on a duplicate of that
-communicator. Otherwise, a duplicate of COMM_WORLD will be used.
+communicator. Otherwise, a duplicate of ``COMM_WORLD`` will be used.
 
 In the vast majority of cases, programming with libEnsemble involves the creation
 of a *calling script*, a Python file where libEnsemble is parameterized via
@@ -143,6 +143,8 @@ all platforms and comms-types may resemble:
                                     libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``'fork'`` via the following:
+.. code-block:: python
+    :linenos:
 
     from multiprocessing import set_start_method
     set_start_method("fork")
