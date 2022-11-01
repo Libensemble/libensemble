@@ -82,7 +82,7 @@ def test_manager_exception():
         managerMock.side_effect = Exception
         # Collision between libE.py and libE() (after mods to __init__.py) means
         #   libensemble.libE.comms_abort tries to refer to the function, not file
-        with mock.patch("libensemble.comms_abort") as abortMock:
+        with mock.patch("libensemble.libE.comms_abort") as abortMock:
             abortMock.side_effect = Exception
             # Need fake MPI to get past the Manager only check and dump history
             with pytest.raises(Exception):
@@ -172,7 +172,7 @@ def test_logging_disabling():
 
     with mock.patch("libensemble.manager.manager_main") as managerMock:
         managerMock.side_effect = Exception
-        with mock.patch("libensemble.comms_abort") as abortMock:
+        with mock.patch("libensemble.libE.comms_abort") as abortMock:
             abortMock.side_effect = Exception
             with pytest.raises(Exception):
                 libE(sim_specs, gen_specs, exit_criteria, libE_specs=libE_specs)
