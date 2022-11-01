@@ -58,8 +58,7 @@ def _check_H0(values):
         # should check that new fields compatible with sim/gen specs, if any?
 
         for field in specs_inputs_list:
-            assert field in list(H0.dtype.names) + specs_dtype_fields, \
-                f"{field} not in H0 although expected as input"
+            assert field in list(H0.dtype.names) + specs_dtype_fields, f"{field} not in H0 although expected as input"
 
         assert "sim_ended" not in H0.dtype.names or np.all(
             H0["sim_started"] == H0["sim_ended"]

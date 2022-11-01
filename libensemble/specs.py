@@ -1,9 +1,7 @@
-import ipaddress
 import os
 import random
+import ipaddress
 from typing import Any, Callable, List, Optional, Tuple, Union
-
-import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.utils.specs_checkers import (
@@ -361,7 +359,7 @@ class LibeSpecs(BaseModel):
 
 
 class EnsembleSpecs(BaseModel):
-    """ An all-encompasing model for a libEnsemble workflow. """
+    """An all-encompasing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend """
