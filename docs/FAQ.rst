@@ -13,7 +13,8 @@ Common Errors
 running with multiprocessing and multiple workers specified.**
 
 If your calling script code was recently switched from MPI to multiprocessing,
-make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
+make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated 
+with ``comms: local`` and ``nworkers: [num]``.
 
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
 

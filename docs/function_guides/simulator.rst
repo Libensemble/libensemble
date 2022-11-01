@@ -15,7 +15,7 @@ dictionary containing pre-defined parameters for the ``sim_f``, and the other
 parameters serve similar purposes to those in the ``gen_f``.
 
 The pattern of setting up a local ``H``, parsing out parameters from
-``sim_specs``, performing calculations, and returning the local ``H``
+:class:`sim_specs<libensemble.specs.SimSpecs>`, performing calculations, and returning the local ``H``
 with ``persis_info`` should be familiar::
 
     batch_size = sim_specs['user']['batch_size']

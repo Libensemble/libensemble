@@ -4,7 +4,7 @@ Configuring libEnsemble
 This section outlines the data structures used by libEnsemble. We first discuss
 the dictionaries that are input to libEnsemble to declare the
 :ref:`simulation<datastruct-sim-specs>`,
-:ref:`generation<datastruct-gen-specs>`,
+:ref:`generator<datastruct-gen-specs>`,
 and
 :ref:`allocation<datastruct-alloc-specs>`
 specifications, as well as specify
@@ -20,13 +20,6 @@ and the
 :ref:`work<datastruct-history-array>` dictionary produced by the allocation
 function.
 
-.. note::
-
-    Since version 0.7.0, libEnsemble performs an initial check that all ``'in'``
-    fields in ``sim_specs``, ``gen_specs``, and ``alloc_specs`` correspond to
-    a field in the initial history array, ``H0`` or
-    at least one ``'out'`` field in the aforementioned data structures. This
-    guarantees that the required inputs are available.
 
 .. toctree::
    :maxdepth: 3
@@ -40,6 +33,7 @@ function.
    persis_info
    exit_criteria
    history_array
+   ensemble_specs
 
    calc_status
 

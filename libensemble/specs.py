@@ -68,7 +68,7 @@ class SimSpecs(BaseModel):
 class GenSpecs(BaseModel):
     """
     Specifications for configuring a Generator Function. Equivalent to
-    the ``gen_specs`` dictionary with automatic validation of inputs
+    a ``gen_specs`` dictionary with automatic validation of inputs
     """
 
     gen_f: Optional[Callable]
@@ -91,9 +91,9 @@ class GenSpecs(BaseModel):
 
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
-    List of tuples corresponding to NumPy dtypes. e.g. ("dim", int, (3,)), or ("path", str).
+    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the generator function:
-    `out = np.zeros(100, dtype=gen_specs["out"])`. Also used to construct the complete dtype for libEnsemble's
+    ``out = np.zeros(100, dtype=gen_specs["out"])``. Also used to construct the complete dtype for libEnsemble's
     history array
     """
 
@@ -113,7 +113,7 @@ class GenSpecs(BaseModel):
 class AllocSpecs(BaseModel):
     """
     Specifications for configuring an Allocation Function. Equivalent to
-    the ``alloc_specs`` dictionary with automatic validation of inputs
+    an ``alloc_specs`` dictionary with automatic validation of inputs
     """
 
     alloc_f: Callable
@@ -131,7 +131,7 @@ class AllocSpecs(BaseModel):
 
 class ExitCriteria(BaseModel):
     """
-    Specifications for configuring when libEnsemble should stop a given run. Equivalent to the
+    Specifications for configuring when libEnsemble should stop a given run. Equivalent to an
     ``exit_criteria`` dictionary with automatic validation of inputs
     """
 
@@ -150,7 +150,7 @@ class ExitCriteria(BaseModel):
 
 class LibeSpecs(BaseModel):
     """
-    Specifications for configuring libEnsemble's runtime behavior. Equivalent to the ``libE_specs`` dictionary
+    Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary
     with automatic validation of inputs
     """
 
@@ -361,6 +361,8 @@ class LibeSpecs(BaseModel):
 
 
 class EnsembleSpecs(BaseModel):
+    """ An all-encompasing model for a libEnsemble workflow. """
+
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend """
 

@@ -5,18 +5,18 @@ Worker Array
 ::
 
     W: numpy structured array
-        'worker_id' [int]:
+        "worker_id" [int]:
             The worker ID
-        'active' [int]:
+        "active" [int]:
             Is the worker active or not
-        'persis_state' [int]:
+        "persis_state" [int]:
             Is the worker in a persis_state
-        'active_recv' [int]:
+        "active_recv" [int]:
             Is the worker in an active receive state
-        'blocked' [int]:
-            Is the worker's resources blocked by another calculation
+        "blocked" [int]:
+            Is the worker"s resources blocked by another calculation
 
-The worker array ``W`` contains information about each worker's state. This is
+The worker array ``W`` contains information about each worker"s state. This is
 useful information for allocation functions determining what work should be
 performed next.
 
@@ -36,8 +36,8 @@ worker blocked by some other calculation       1          0           1
 =========================================   =======  ============  =======
 
 .. note::
-  * libE receives only from workers with a nonzero 'active' state
-  * libE calls the alloc_f only if some worker has an 'active' state of zero, or is in an *active receive* state.
+  * libEnsemble's manager receives only from workers with a nonzero ``"active"`` state
+  * libEnsemble's manager calls the ``alloc_f`` only if some worker has an ``"active"`` state of zero, or is in an *active receive* state.
 
 .. seealso::
   For an example allocation function that queries the worker array, see

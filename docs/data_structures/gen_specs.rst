@@ -12,6 +12,26 @@ As a Python class:
   :model-show-json: False
   :members:
 
+.. code-block:: python
+    :linenos:
+
+    ...
+    import numpy as np
+    from libensemble.specs import GenSpecs
+    from generator import gen_random_sample
+    ...
+
+    gen_specs = GenSpecs(
+        gen_f = gen_random_sample,
+        out = [("x", float, (1,))],
+        user = {
+            "lower": np.array([-3]),
+            "upper": np.array([3]),
+            "gen_batch_size": 5
+        }
+    )
+    ...
+
 As a dictionary:
 
 .. code-block:: python

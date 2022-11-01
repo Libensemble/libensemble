@@ -143,6 +143,7 @@ all platforms and comms-types may resemble:
                                     libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``'fork'`` via the following:
+
 .. code-block:: python
     :linenos:
 
@@ -198,7 +199,7 @@ def libE(
     Parameters
     ----------
 
-    sim_specs: :obj:`dict`
+    sim_specs: :obj:`dict` or :obj:`SimSpecs`
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`

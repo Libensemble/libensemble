@@ -1,6 +1,6 @@
 .. _datastruct-history-array:
 
-history array
+History Array
 =============
 ::
 

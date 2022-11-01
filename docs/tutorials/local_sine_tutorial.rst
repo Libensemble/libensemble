@@ -79,7 +79,7 @@ following parameters:
   and other specifications that libEnsemble depends on to operate the generator are
   placed outside ``user``.
 
-Later on, we'll populate ``gen_specs`` and ``persis_info`` when we initialize libEnsemble.
+Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
 For now, create a new Python file named ``generator.py``. Write the following:
 
@@ -153,7 +153,7 @@ Simulator function
 Next, we'll write our simulator function or :ref:`sim_f<api_sim_f>`. Simulator
 functions perform calculations based on values from the generator function.
 The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
-serves a purpose similar to the ``gen_specs`` dictionary.
+serves a purpose similar to the :class:`gen_specs<libensemble.specs.GenSpecs>` dictionary.
 
 Create a new Python file named ``simulator.py``. Write the following:
 
@@ -344,7 +344,7 @@ Exercise
 
 Write a Calling Script with the following specifications:
 
-  1. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate ``libE_specs``
+  1. Use the :meth:`parse_args()<tools.parse_args>` function to detect ``nworkers`` and auto-populate :class:`libE_specs<libensemble.specs.LibeSpecs>`
   2. Set the generator function's lower and upper bounds to -6 and 6, respectively
   3. Increase the generator batch size to 10
   4. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key

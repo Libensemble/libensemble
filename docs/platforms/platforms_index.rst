@@ -193,7 +193,7 @@ accessible on the remote system::
     exctr.register_app(full_path='/home/user/forces.x', app_name='forces')
     task = exctr.submit(app_name='forces', num_procs=64)
 
-Specify a funcX endpoint in either ``sim_specs`` or ``gen_specs`` via the ``funcx_endpoint``
+Specify a funcX endpoint in either :class:`sim_specs<libensemble.specs.SimSpecs>` or :class:`gen_specs<libensemble.specs.GenSpecs>` via the ``funcx_endpoint``
 key. For example::
 
     sim_specs = {
