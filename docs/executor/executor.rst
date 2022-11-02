@@ -37,8 +37,7 @@ Task Class
 Tasks are created and returned through the Executor ``submit()`` function. Tasks
 can be polled and killed with the respective poll and kill functions. Task
 information can be queried through the task attributes below and the query
-functions. Note that the task attributes are updated only when they are
-polled/killed (or through other task or Executor functions).
+functions.
 
 .. autoclass:: Task
   :members:
