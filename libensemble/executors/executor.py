@@ -192,7 +192,7 @@ class Task:
 
     def _check_poll(self):
         """Check whether polling this task makes sense."""
-        jassert(self.process is not None, f"Polled task {self.name} has no process ID - check tasks been launched")
+        jassert(self.process is not None, f"task {self.name} has no process ID - check task has been launched")
         if self.finished:
             logger.debug(f"Polled task {self.name} has already finished. Not re-polling. Status is {self.state}")
             return False
@@ -315,7 +315,7 @@ class Task:
             time.sleep(0.2)
             jassert(
                 self.process is not None,
-                f"Attempting to kill task {self.name} that has no process ID - check tasks been launched",
+                f"task {self.name} has no process ID - check task has been launched",
             )
 
         logger.info(f"Killing task {self.name}")

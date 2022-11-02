@@ -595,7 +595,7 @@ def test_kill_task_with_no_submit():
     # Create a task directly with no submit (Not supported for users)
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
-    exp_msg = "Attempting to kill task libe_task_my_simtask.x_.+that has " "no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")
@@ -616,7 +616,7 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = "Polled task libe_task_my_simtask.x_.+ " "has no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")
