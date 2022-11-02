@@ -287,10 +287,12 @@ class Task:
 
     def running(self):
         """Return ```True`` if task is currently running."""
+        self.poll()
         return self.state == "RUNNING"
 
     def done(self):
         """Return ```True`` if task is finished."""
+        self.poll()
         return self.finished
 
     def kill(self, wait_time=60):
@@ -301,6 +303,7 @@ class Task:
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
         never do a SIGKILL.
         """
+        self.poll()
         if self.dry_run:
             return
 
@@ -327,6 +330,7 @@ class Task:
 
     def cancelled(self):
         """Return ```True`` if task successfully cancelled."""
+        self.poll()
         return self.state == "USER_KILLED"
 
 
@@ -692,5 +696,6 @@ class Executor:
 
     def kill(self, task):
         "Kills a task"
+        task.poll()
         jassert(isinstance(task, Task), "Invalid task has been provided")
         task.kill(self.wait_time)
