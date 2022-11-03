@@ -20,7 +20,6 @@ and the
 :ref:`work<datastruct-history-array>` dictionary produced by the allocation
 function.
 
-
 .. toctree::
    :maxdepth: 3
    :caption: libEnsemble Data Structures:

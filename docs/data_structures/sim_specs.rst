@@ -28,7 +28,6 @@ As a Python class:
     )
     ...
 
-
 As a dictionary:
 
 .. code-block:: python

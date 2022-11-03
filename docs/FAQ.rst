@@ -13,7 +13,7 @@ Common Errors
 running with multiprocessing and multiple workers specified.**
 
 If your calling script code was recently switched from MPI to multiprocessing,
-make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated 
+make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated
 with ``comms: local`` and ``nworkers: [num]``.
 
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
@@ -273,7 +273,7 @@ method to ``'fork'``. We decided to stop doing this to avoid overriding defaults
 some libraries.
 
 If you'd prefer to use ``'fork'`` or not reformat your code, you can set the
-multiprocessing start method by placing 
+multiprocessing start method by placing
 the following near the top of your calling script::
 
   import multiprocessing
