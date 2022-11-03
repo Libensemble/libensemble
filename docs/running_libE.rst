@@ -65,7 +65,7 @@ where ``N`` is the number of workers. This will launch one manager and
 ``N`` workers.
 
 libEnsemble will run on one node in this scenario. If the user wants to dedicate the node
-to just the libEnsemble manager and workers, the ``libE_specs['dedicated_mode']`` option
+to just the libEnsemble manager and workers, the ``libE_specs["dedicated_mode"]`` option
 can be set (see :doc:`central mode<platforms/platforms_index>`).
 
 This mode is often used to run on a **launch** node of a three-tier

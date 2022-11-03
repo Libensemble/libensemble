@@ -118,7 +118,7 @@ environment variables::
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
 nodes while launching all tasks onto other nodes. To do this add a node for libEnsemble,
-and add ``libE_specs['dedicated_mode'] = True`` to your calling script.
+and add ``libE_specs["dedicated_mode"] = True`` to your calling script.
 
 **What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
 
