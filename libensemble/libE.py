@@ -13,9 +13,9 @@ In the vast majority of cases, programming with libEnsemble involves the creatio
 of a *calling script*, a Python file where libEnsemble is parameterized via
 the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
 :ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
-outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and called with such dictionaries to initiate
-libEnsemble. A simple calling script (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`)
-may resemble:
+outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and called with such
+dictionaries to initiate libEnsemble. A simple calling script
+(from :doc:`the first tutorial<tutorials/local_sine_tutorial>`) may resemble:
 
 .. code-block:: python
     :linenos:
