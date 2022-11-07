@@ -3,7 +3,7 @@ Output Management
 
 Default Log Files
 ~~~~~~~~~~~~~~~~~
-The history array :ref:`H<datastruct-history-array>` and
+The history array :ref:`H<funcguides-history>` and
 :ref:`persis_info<datastruct-persis-info>` dictionary are returned to the user
 by libEnsemble.  If libEnsemble aborts on an exception, these structures are
 dumped automatically to the respective files:
@@ -12,7 +12,7 @@ dumped automatically to the respective files:
 * ``libE_history_at_abort_<sim_count>.pickle``
 
 where ``sim_count`` is the number of points evaluated. To suppress libEnsemble
-from producing these two files, set ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
+from producing these two files, set ``libE_specs["save_H_and_persis_on_abort"]`` to ``False``.
 
 Two other libEnsemble files produced by default:
 
@@ -26,7 +26,7 @@ Two other libEnsemble files produced by default:
   append output. Messages at or above MANAGER_WARNING are also copied to stderr
   to alert the user promptly.
 
-To suppress libEnsemble from producing these two files, set ``libE_specs['disable_log_files']`` to ``True``.
+To suppress libEnsemble from producing these two files, set ``libE_specs["disable_log_files"]`` to ``True``.
 
 .. _logger_config:
 
@@ -44,7 +44,7 @@ file name can also be supplied.
 To change the logging level to DEBUG, provide the following in the calling scripts::
 
     from libensemble import logger
-    logger.set_level('DEBUG')
+    logger.set_level("DEBUG")
 
 Logger messages of MANAGER_WARNING level or higher are also displayed through stderr by default.
 This boundary can be adjusted as follows::
@@ -52,7 +52,7 @@ This boundary can be adjusted as follows::
     from libensemble import logger
 
     # Only display messages with level >= ERROR
-    logger.set_stderr_level('ERROR')
+    logger.set_stderr_level("ERROR")
 
 stderr displaying can be effectively disabled by setting the stderr level to CRITICAL.
 
@@ -79,37 +79,37 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
 .. Defining any compatible settings initiates this system with default settings for
 .. unspecified options. Each setting will be described in detail here:
 
-.. * ``'sim_dirs_make'``: boolean. Enables per-simulation directories with default
-..   settings. Directories are labeled in the form ``'sim0-worker1'``, by sim ID
+.. * ``"sim_dirs_make"``: boolean. Enables per-simulation directories with default
+..   settings. Directories are labeled in the form ``"sim0-worker1"``, by sim ID
 ..   and initiating worker. Without further configuration, directories are placed
 ..   in the ensemble directory ``./ensemble``, relative to where libEnsemble was
 ..   launched. Default: ``True`` with other sim_dir options enabled. If
 ..   ``False``, all workers will operate within the ensemble directory without
 ..   producing per-simulation directories.
 
-.. * ``'gen_dirs_make'``: boolean. Enabled per-generator instance directories with
-..   default settings. Directories are labeled in the form ``'gen1-worker1'``. by
+.. * ``"gen_dirs_make"``: boolean. Enabled per-generator instance directories with
+..   default settings. Directories are labeled in the form ``"gen1-worker1"``. by
 ..   initiating worker and how many times that worker has initiated the generator.
 ..   These behave similarly to simulation directories. Default: ``True`` with
 ..   other gen_dir options enabled.
 
-.. * ``'ensemble_dir_path'``: This location, typically referred to as the ensemble
+.. * ``"ensemble_dir_path"``: This location, typically referred to as the ensemble
 ..   directory, is where each worker places its calculation directories. If not
 ..   specified, calculation directories are placed in ``./ensemble``, relative to
-..   where libEnsemble was launched. If ``'sim_dirs_make'`` is ``False``, workers
+..   where libEnsemble was launched. If ``"sim_dirs_make"`` is ``False``, workers
 ..   initiating simulation instances will run within this directory. This behavior
-..   is similar when ``'gen_dirs_make'`` is ``False``. On supported systems,
+..   is similar when ``"gen_dirs_make"`` is ``False``. On supported systems,
 ..   writing to local-node storage is possible and recommended for increased
 ..   performance.::
 
-..       libE_specs['ensemble_dir_path'] = "/scratch/my_ensemble"
+..       libE_specs["ensemble_dir_path"] = "/scratch/my_ensemble"
 
-.. * ``'use_worker_dirs'``: boolean. Sorts calculation directories into
+.. * ``"use_worker_dirs"``: boolean. Sorts calculation directories into
 ..   per-worker directories at runtime. Particularly useful for organization when
 ..   running with multiple workers on global scratch spaces or the same node, and
 ..   may produce performance benefits. Default: ``False``.
 
-..   Default structure with ``'use_worker_dirs'`` unspecified::
+..   Default structure with ``"use_worker_dirs"`` unspecified::
 
 ..         - /ensemble_dir
 ..             - /sim0-worker1
@@ -117,7 +117,7 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
 ..             - /sim1-worker2
 ..             ...
 
-..   Structure with ``libE_specs['use_worker_dirs'] = True``::
+..   Structure with ``libE_specs["use_worker_dirs"] = True``::
 
 ..         - /ensemble_dir
 ..             - /worker1
@@ -128,36 +128,36 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
 ..             - /worker2
 ..             ...
 
-.. * ``'sim_dir_copy_files'``: A list of paths for files to copy into simulation
-..   directories. If ``'sim_dirs_make'`` is False, these files are copied to the
+.. * ``"sim_dir_copy_files"``: A list of paths for files to copy into simulation
+..   directories. If ``"sim_dirs_make"`` is False, these files are copied to the
 ..   ensemble directory. If using the :ref:`Executor<executor_index>` to launch an
 ..   application, this may be helpful for copying over configuration files for each
 ..   launch.
 
-.. * ``'gen_dir_copy_files'``: A list of paths for files to copy into generator
-..   directories. If ``'gen_dirs_make'`` is False, these files are copied to the
+.. * ``"gen_dir_copy_files"``: A list of paths for files to copy into generator
+..   directories. If ``"gen_dirs_make"`` is False, these files are copied to the
 ..   ensemble directory.
 
-.. * ``'sim_dir_symlink_files'``: A list of paths for files to symlink into
+.. * ``"sim_dir_symlink_files"``: A list of paths for files to symlink into
 ..   simulation directories.
 
-.. * ``'gen_dir_symlink_files'``: A list of paths for files to symlink into
+.. * ``"gen_dir_symlink_files"``: A list of paths for files to symlink into
 ..   generator directories.
 
-.. * ``'ensemble_copy_back'``: boolean. Instructs the manager to create an empty
+.. * ``"ensemble_copy_back"``: boolean. Instructs the manager to create an empty
 ..   directory where libEnsemble was launched where workers copy back their calculation
 ..   directories when a run concludes or an exception occurs. Especially useful when
-..   ``'ensemble_dir_path'`` has been set to some scratch space or another temporary
+..   ``"ensemble_dir_path"`` has been set to some scratch space or another temporary
 ..   location. Default: ``False``.
 
-.. * ``'sim_input_dir'``: A path to a directory to copy for simulation
+.. * ``"sim_input_dir"``: A path to a directory to copy for simulation
 ..   directories. This directory and its contents are copied to form the base
-..   of new simulation directories. If ``'sim_dirs_make'`` is False, this directory's
+..   of new simulation directories. If ``"sim_dirs_make"`` is False, this directory's
 ..   contents are copied into the ensemble directory.
 
-.. * ``'gen_input_dir'``: A path to a directory to copy for generator
+.. * ``"gen_input_dir"``: A path to a directory to copy for generator
 ..   directories. This directory and its contents are copied to form the base
-..   of new generator directories. If ``'gen_dirs_make'`` is False, this directory's
+..   of new generator directories. If ``"gen_dirs_make"`` is False, this directory's
 ..   contents are copied into the ensemble directory.
 
 .. See the regression tests ``test_sim_dirs_per_calc.py`` and

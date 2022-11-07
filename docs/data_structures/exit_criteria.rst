@@ -3,7 +3,11 @@
 Exit Criteria
 =============
 
-The following criteria (or termination tests) can be used to tell libEnsemble when to stop a given run:
+The following criteria (or termination tests) can be used to configure when to stop a workflow.
+
+Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class, 
+all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
+upon passing into :meth:`libE()<libensemble.libE.libE>`.
 
 .. autopydantic_model:: libensemble.specs.ExitCriteria
   :model-show-json: False

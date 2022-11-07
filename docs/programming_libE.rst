@@ -12,7 +12,11 @@ We now give greater detail in programming with libEnsemble.
    :caption: libEnsemble User Functions:
 
    function_guides/function_guide_index
-   sim_gen_alloc_funcs
+
+.. toctree::
+   :caption: History Array
+
+   function_guides/history_array
 
 .. toctree::
    executor/ex_index

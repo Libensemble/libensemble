@@ -186,7 +186,7 @@ class Worker:
             :ref:`(example)<datastruct-work-dict>`
 
         calc_in: obj: numpy structured array
-            Rows from the :ref:`history array<datastruct-history-array>`
+            Rows from the :ref:`history array<funcguides-history>`
             for processing
         """
         calc_type = Work["tag"]

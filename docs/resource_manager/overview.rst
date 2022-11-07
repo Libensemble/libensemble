@@ -53,16 +53,16 @@ this is technically a user space field, the allocation functions are set up to
 read this field, check available resources, and assign resource sets to workers,
 along with the work request (simulation).
 
-In the calling script, use a ``gen_specs['out']`` field called ``resource_sets``:
+In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``:
 
 .. code-block:: python
     :emphasize-lines: 4
 
-    gen_specs = {'gen_f': gen_f,
-                 'in': ['sim_id'],
-                 'out': [('priority', float),
-                         ('resource_sets', int),
-                         ('x', float, n)]
+    gen_specs = {"gen_f": gen_f,
+                 "in": ["sim_id"],
+                 "out": [("priority", float),
+                         ("resource_sets", int),
+                         ("x", float, n)]
                 }
 
 For an example calling script, see the regression test
@@ -75,10 +75,10 @@ and supply zero resources).
 .. code-block:: python
     :emphasize-lines: 4
 
-    H_o = np.zeros(b, dtype=gen_specs['out'])
+    H_o = np.zeros(b, dtype=gen_specs["out"])
     for i in range(0, b):
-        H_o['x'][i] = x[b]
-        H_o['resource_sets'][i] = sim_size[b]
+        H_o["x"][i] = x[b]
+        H_o["resource_sets"][i] = sim_size[b]
 
 For an example generator, see the *uniform_random_sample_with_variable_resources*
 function in `persistent_sampling.py`_
@@ -142,7 +142,7 @@ Resource Scheduler Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following options are available for the :doc:`built-in scheduler<scheduler_module>`
-and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
+and can be set by a dictionary supplied via ``libE_specs["scheduler_opts"]``
 
  **split2fit** [boolean]
     Try to split resource sets across more nodes if space is not currently
@@ -157,7 +157,7 @@ and can be set by a dictionary supplied via ``libE_specs['scheduler_opts']``
     Default: True
 
 In the following example, assume the next simulation requires **four** resource
-sets. This could fit on one node if all slots were free – but only two are free on each
+sets. This could fit on one node if all slots were free, but only two are free on each
 node.
 
 .. image:: ../images/variable_resources_sched_opts.png
@@ -167,7 +167,7 @@ will not be scheduled unless ``match_slots`` is set to *False*:
 
 .. code-block:: python
 
-    libE_specs['scheduler_opts'] = {'match_slots': False}
+    libE_specs["scheduler_opts"] = {"match_slots": False}
 
 This is only recommended if not enumerating resources to slot IDs (e.g. via ``CUDA_VISIBLE_DEVICES``).
 
@@ -177,7 +177,7 @@ if ``split2fit`` is *False*, as this could otherwise never be scheduled.
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For all supporting allocation functions, setting the ``persis_info['gen_resources']``
+For all supporting allocation functions, setting the ``persis_info["gen_resources"]``
 to an integer value will provide resource sets to generators when they are started,
 with the default to provide no resources. This could be set in the calling script
 or inside the allocation function.
@@ -198,13 +198,13 @@ Either explicitly set eight resource sets (recommended):
 
 .. code-block:: python
 
-    libE_specs['num_resource_sets'] = 8
+    libE_specs["num_resource_sets"] = 8
 
 Or if the generator should always be the same worker, use one zero resource worker:
 
 .. code-block:: python
 
-    libE_specs['zero_resource_workers'] = [1]
+    libE_specs["zero_resource_workers"] = [1]
 
 For the second option, an allocation function supporting zero resource workers must be used.
 
@@ -245,7 +245,7 @@ This could be achieved by setting:
 
 .. code-block:: python
 
-    libE_specs['num_resource_sets'] = 8
+    libE_specs["num_resource_sets"] = 8
 
 and running on 5 workers.
 

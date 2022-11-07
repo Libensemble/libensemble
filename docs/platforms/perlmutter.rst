@@ -114,22 +114,22 @@ four resource sets (the example generator does not need dedicated resources):
 
 .. code-block:: python
 
-    libE_specs['num_resource_sets'] = 4
+    libE_specs["num_resource_sets"] = 4
 
 The MPIExecutor is also initiated in the calling script, ensuring that ``srun`` is picked up::
 
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})
+    exctr = MPIExecutor(custom_info={"mpi_runner":"srun"})
 
 Each worker runs a simulator function that uses the :doc:`MPIExecutor<../executor/mpi_executor>`
 ``submit`` function, including the argument ``--gpus-per-task=1``::
 
     from libensemble.executors.executor import Executor
     exctr = Executor.executor
-    task = exctr.submit(app_name='sim1',
+    task = exctr.submit(app_name="sim1",
                         num_procs=n_rsets,
-                        app_args='input.txt',
-                        extra_args='--gpus-per-task=1'
+                        app_args="input.txt",
+                        extra_args="--gpus-per-task=1"
                         )
 
 If running using :doc:`variable resource workers<../resource_manager/overview>`,
@@ -172,7 +172,7 @@ If running the libEnsemble user calling script with ``srun``, then it is recomme
 ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
 GPU runs will be submitted, instead of in the batch script. E.g::
 
-    os.environ['MPICH_GPU_SUPPORT_ENABLED'] = "1"
+    os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
 
 Additional Information
 ----------------------

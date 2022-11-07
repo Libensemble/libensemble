@@ -1,10 +1,14 @@
 .. _datastruct-libe-specs:
 
-General libEnsemble Specs
-=========================
+General Options - libE Specs
+============================
 
 libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary or using the ``LibeSpecs`` class.
-Valid options are categorized and listed below::
+Valid options are categorized and listed below. When provided as a Python class, 
+options are validated immediately on instantiation. When provided as a dictionary, all data is validated
+upon passing into :meth:`libE()<libensemble.libE.libE>`.
+
+::
 
     libE_specs: [dict, optional]:
 
@@ -99,11 +103,11 @@ Valid options are categorized and listed below::
         "workers" [list]:
             TCP Only: A list of worker hostnames.
         "ip" [str]:
-            TCP Only: IP address for Manager"s system
+            TCP Only: IP address for Manager's system
         "port" [int]:
-            TCP Only: Port number for Manager"s system
+            TCP Only: Port number for Manager's system
         "authkey" [str]:
-            TCP Only: Authkey for Manager"s system
+            TCP Only: Authkey for Manager's system
         "workerID" [int]:
             TCP Only: Worker ID number assigned to the new process.
         "worker_cmd" [list]:

@@ -1,7 +1,11 @@
-.. _datastruct-worker-array:
+.. _funcguides-workerarray:
 
 Worker Array
 =============
+
+The worker array ``W`` contains information about each worker's state. Used within allocation 
+functions to determine which workers are eligible to receive work.
+
 ::
 
     W: numpy structured array
@@ -14,11 +18,7 @@ Worker Array
         "active_recv" [int]:
             Is the worker in an active receive state
         "blocked" [int]:
-            Is the worker"s resources blocked by another calculation
-
-The worker array ``W`` contains information about each worker"s state. This is
-useful information for allocation functions determining what work should be
-performed next.
+            Is the worker's resources blocked by another calculation
 
 We use the following convention:
 

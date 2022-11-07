@@ -1,4 +1,4 @@
-.. _datastruct-calc-status:
+.. _funcguides-calcstatus:
 
 calc_status
 ===========

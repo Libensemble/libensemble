@@ -20,7 +20,7 @@ __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "E
 class SimSpecs(BaseModel):
     """
     Specifications for configuring a Simulation Function. Equivalent to
-    a ``sim_specs`` dictionary with automatic validation of inputs
+    a ``sim_specs`` dictionary.
     """
 
     sim_f: Callable
@@ -66,7 +66,7 @@ class SimSpecs(BaseModel):
 class GenSpecs(BaseModel):
     """
     Specifications for configuring a Generator Function. Equivalent to
-    a ``gen_specs`` dictionary with automatic validation of inputs
+    a ``gen_specs`` dictionary.
     """
 
     gen_f: Optional[Callable]
@@ -111,7 +111,7 @@ class GenSpecs(BaseModel):
 class AllocSpecs(BaseModel):
     """
     Specifications for configuring an Allocation Function. Equivalent to
-    an ``alloc_specs`` dictionary with automatic validation of inputs
+    an ``alloc_specs`` dictionary.
     """
 
     alloc_f: Callable
@@ -130,7 +130,7 @@ class AllocSpecs(BaseModel):
 class ExitCriteria(BaseModel):
     """
     Specifications for configuring when libEnsemble should stop a given run. Equivalent to an
-    ``exit_criteria`` dictionary with automatic validation of inputs
+    ``exit_criteria`` dictionary.
     """
 
     sim_max: Optional[int] = 100
@@ -148,8 +148,7 @@ class ExitCriteria(BaseModel):
 
 class LibeSpecs(BaseModel):
     """
-    Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary
-    with automatic validation of inputs
+    Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary.
     """
 
     abort_on_exception: Optional[bool] = True

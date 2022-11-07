@@ -102,7 +102,7 @@ user applications (via the Executor or a direct run command such as ``mpiexec``)
 
 This is an example of running in :doc:`centralized<platforms_index>` mode;
 if using the :doc:`Executor<../executor/ex_index>`, libEnsemble should
-be initiated with ``libE_specs['dedicated_mode']=True``. libEnsemble must be run in central mode
+be initiated with ``libE_specs["dedicated_mode"]=True``. libEnsemble must be run in central mode
 on Cori because jobs cannot share nodes.
 
 Batch Runs

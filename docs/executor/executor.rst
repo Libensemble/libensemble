@@ -60,7 +60,7 @@ retrieved from a task.
 Task status attributes include the following:
 
 :task.state: (string) The task status. One of
-             ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
+             ("UNKNOWN"|"CREATED"|"WAITING"|"RUNNING"|"FINISHED"|"USER_KILLED"|"FAILED")
 
 :task.process: (process obj) The process object used by the underlying process
                manager (e.g., return value of subprocess.Popen).

@@ -32,7 +32,7 @@ no ``gen_f`` output to give, the worker is told to call ``gen_f``.
 
 |
 
-libEnsemble uses a NumPy structured array known as the :ref:`history array<datastruct-history-array>`
+libEnsemble uses a NumPy structured array known as the :ref:`history array<funcguides-history>`
 to keep a record of all simulations. The global history array is stored on the
 manager, while selected rows and fields of this array are passed to and from user functions.
 

@@ -13,7 +13,7 @@ In the vast majority of cases, programming with libEnsemble involves the creatio
 of a *calling script*, a Python file where libEnsemble is parameterized via
 the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
 :ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
-outer libEnsemble routine ``libE()`` is imported and called with such dictionaries to initiate
+outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and called with such dictionaries to initiate
 libEnsemble. A simple calling script (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`)
 may resemble:
 
@@ -100,7 +100,7 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
             y:
                 type: float
 
-On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``'spawn'``
+On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``"spawn"``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
 an ``if __name__ == "__main__:"`` block.
 
@@ -142,7 +142,7 @@ all platforms and comms-types may resemble:
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
                                     libE_specs=libE_specs)
 
-Alternatively, you may set the multiprocessing start method to ``'fork'`` via the following:
+Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
 
 .. code-block:: python
     :linenos:
@@ -152,7 +152,7 @@ Alternatively, you may set the multiprocessing start method to ``'fork'`` via th
 
 But note that this is incompatible with some libraries.
 
-See below for the complete traditional ``libE()`` API.
+See below for the complete traditional API.
 """
 
 __all__ = ["libE"]
@@ -199,17 +199,17 @@ def libE(
     Parameters
     ----------
 
-    sim_specs: :obj:`dict` or :obj:`SimSpecs`
+    sim_specs: :obj:`dict` or :class:`SimSpecs<libensemble.specs.SimSpecs>`
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
 
-    gen_specs: :obj:`dict`
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
 
         Specifications for the generator function
         :doc:`(example)<data_structures/gen_specs>`
 
-    exit_criteria: :obj:`dict`
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
 
         Tell libEnsemble when to stop a run
         :doc:`(example)<data_structures/exit_criteria>`
@@ -219,12 +219,12 @@ def libE(
         Persistent information to be passed between user functions
         :doc:`(example)<data_structures/persis_info>`
 
-    alloc_specs: :obj:`dict`, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
 
         Specifications for the allocation function
         :doc:`(example)<data_structures/alloc_specs>`
 
-    libE_specs: :obj:`dict`, optional
+    libE_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.libESpecs>`, optional
 
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
@@ -233,7 +233,7 @@ def libE(
 
         A previous libEnsemble history to be prepended to the history in the
         current libEnsemble run
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<funcguides-history>`
 
     Returns
     -------
@@ -241,7 +241,7 @@ def libE(
     H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
 
         History array storing rows for each point.
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<funcguides-history>`
 
     persis_info: :obj:`dict`
 

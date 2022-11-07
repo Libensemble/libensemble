@@ -1,3 +1,5 @@
+.. _platform-index:
+
 Running on HPC Systems
 ======================
 
@@ -10,7 +12,7 @@ two basic modes of configuring libEnsemble to run and launch tasks (user applica
 on the available nodes.
 
 The first mode we refer to as **central** mode, where the libEnsemble manager and worker processes
-are grouped on to one or more dedicated nodes. Workers' launch applications on to
+are grouped on to one or more dedicated nodes. Workers launch applications onto
 the remaining allocated nodes:
 
     .. image:: ../images/centralized_new_detailed.png
@@ -46,7 +48,7 @@ The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from th
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
 available on most systems. Alternatively, the user can provide a file called **node_list** in
 the run directory. By default, the Executor will divide up the nodes evenly to each worker.
-If the argument ``libE_specs['dedicated_mode']=True`` is used when initializing libEnsemble, then any node
+If the argument ``libE_specs["dedicated_mode"]=True`` is used when initializing libEnsemble, then any node
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
@@ -61,7 +63,7 @@ or::
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
 4 nodes will be divided amongst the workers for submitted applications. If the same run was
-performed without ``libE_specs['dedicated_mode']=True``, runs could be submitted to all 5 nodes. The number of workers
+performed without ``libE_specs["dedicated_mode"ß]=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 
 To launch libEnsemble distributed requires a less trivial libEnsemble run script.
@@ -190,17 +192,17 @@ accessible on the remote system::
     # Within remote user function
     from libensemble.executors import MPIExecutor
     exctr = MPIExecutor()
-    exctr.register_app(full_path='/home/user/forces.x', app_name='forces')
-    task = exctr.submit(app_name='forces', num_procs=64)
+    exctr.register_app(full_path="/home/user/forces.x", app_name="forces")
+    task = exctr.submit(app_name="forces", num_procs=64)
 
 Specify a funcX endpoint in either :class:`sim_specs<libensemble.specs.SimSpecs>` or :class:`gen_specs<libensemble.specs.GenSpecs>` via the ``funcx_endpoint``
 key. For example::
 
     sim_specs = {
-        'sim_f': sim_f,
-        'in': ['x'],
-        'out': [('f', float)],
-        'funcx_endpoint': '3af6dc24-3f27-4c49-8d11-e301ade15353',
+        "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
+        "funcx_endpoint": "3af6dc24-3f27-4c49-8d11-e301ade15353",
     }
 
 See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
