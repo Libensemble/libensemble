@@ -23,7 +23,6 @@ to configure a workflow, oftentimes within a single Python file we refer to as a
 .. :ref:`work<datastruct-history-array>` dictionary produced by the allocation
 .. function.
 
-
 .. toctree::
    :maxdepth: 3
    :caption: libEnsemble Specifications:
