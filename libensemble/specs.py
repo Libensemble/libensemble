@@ -1,6 +1,5 @@
 import os
 import random
-import ipaddress
 from typing import Any, Callable, List, Optional, Tuple, Union
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
@@ -201,7 +200,7 @@ class LibeSpecs(BaseModel):
     workers along with the ``PERSIS_STOP`` tag at the end of a run
     """
 
-    ip: Optional[ipaddress.IPv4Address] = None
+    ip: Optional[str] = None
     """ TCP Only: IP address for Manager's system """
 
     kill_canceled_sims: Optional[bool] = True

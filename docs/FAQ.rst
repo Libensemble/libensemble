@@ -14,7 +14,7 @@ running with multiprocessing and multiple workers specified.**
 
 If your calling script code was recently switched from MPI to multiprocessing,
 make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated
-with ``comms: local`` and ``nworkers: [num]``.
+with ``"comms": "local"`` and ``"nworkers": [int]``.
 
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
@@ -295,7 +295,7 @@ System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall.
 Alternatively, adding a firewall "Allow incoming connections" rule can be
 attempted for the offending executable. We've had limited success running
 ``sudo codesign --force --deep --sign - /path/to/application.app``
-on our Executor executables, then confirming the next alerts for the executable
+on our executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
 
 **Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``

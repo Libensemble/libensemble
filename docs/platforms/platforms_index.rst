@@ -1,5 +1,3 @@
-.. _platform-index:
-
 Running on HPC Systems
 ======================
 
