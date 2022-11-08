@@ -40,5 +40,4 @@ patterns and optional components for each kind of User Function:
    work_dict
    worker_array
 
-
 .. _NumPy: http://www.numpy.org

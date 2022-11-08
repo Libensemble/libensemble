@@ -3,7 +3,7 @@
 Worker Array
 =============
 
-The worker array ``W`` contains information about each worker's state. Used within allocation 
+The worker array ``W`` contains information about each worker's state. Used within allocation
 functions to determine which workers are eligible to receive work.
 
 ::

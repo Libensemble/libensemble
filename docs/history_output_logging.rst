@@ -65,9 +65,9 @@ stderr displaying can be effectively disabled by setting the stderr level to CRI
 Working Directories for User Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By setting certain options in :ref:`libE_specs<datastruct-libe-specs>`, 
+By setting certain options in :ref:`libE_specs<datastruct-libe-specs>`,
 libEnsemble can direct workers to call their user functions on separate filesystems
-or in other directories. This is helpful for taking advantage of scratch spaces or 
+or in other directories. This is helpful for taking advantage of scratch spaces or
 organizing I/O  by application run.
 
 * ``"sim_dirs_make"``: ``[bool] = False``. Enables per-simulation directories with default
@@ -76,8 +76,8 @@ organizing I/O  by application run.
 * ``"gen_dirs_make"``: ``[bool] = False``. Enabled per-generator instance directories with
   default settings. Directories are placed in ``./ensemble`` by default.
 
-* ``"ensemble_dir_path"``: ``[str] = "./ensemble"``. Specifies where each worker places its 
-  calculation directories. If ``"sim_dirs_make"`` or ``"gen_dirs_make"`` are ``False`` respectively, 
+* ``"ensemble_dir_path"``: ``[str] = "./ensemble"``. Specifies where each worker places its
+  calculation directories. If ``"sim_dirs_make"`` or ``"gen_dirs_make"`` are ``False`` respectively,
   matching workers will run within this directory::
 
       libE_specs["ensemble_dir_path"] = "/scratch/my_ensemble"

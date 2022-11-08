@@ -6,7 +6,7 @@ Allocation Specs
 Allocation function specifications to be set in the user calling script and passed
 to main ``libE()`` routine. *Optional*.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class, 
+Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
 all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
 upon passing into :meth:`libE()<libensemble.libE.libE>`.
 

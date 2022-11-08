@@ -5,7 +5,7 @@ Generator Specs
 
 Used to specify the generator function, its inputs and outputs, and user data.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class, 
+Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
 all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
 upon passing into :meth:`libE()<libensemble.libE.libE>`.
 
