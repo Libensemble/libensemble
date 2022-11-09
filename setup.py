@@ -95,10 +95,10 @@ setup(
             "scipy",
         ],
         "docs": [
-            "sphinx",
-            "sphinxcontrib.bibtex",
-            "sphinx_rtd_theme",
             "autodoc_pydantic",
+            "sphinx",
+            "sphinx_rtd_theme",
+            "sphinxcontrib.bibtex",
         ],
     },
     scripts=[

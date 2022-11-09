@@ -44,7 +44,7 @@ def test_set_log_level():
 #     assert level_from_logger == 20, "Log level from logger should be 20. Found: " + str(level)
 
 #     # Now test logger level after change
-#     logger.set_level('DEBUG')
+#     logger.set_level("DEBUG")
 #     level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
 #     assert level_from_logger == 10, "Log level from logger should be 10. Found: " + str(level)
 

@@ -51,7 +51,6 @@ exctr.register_app(full_path=sim_app, app_name="forces")
 # Note: Attributes such as kill_rate are to control forces tests, this would not be a typical parameter.
 
 # State the objective function, its arguments, output, and necessary parameters (and their sizes)
-# sim_f
 sim_specs = {
     "sim_f": run_forces,  # Function whose output is being minimized
     "in": ["x"],  # Name of input for sim_f

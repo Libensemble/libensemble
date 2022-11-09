@@ -40,7 +40,7 @@ from libensemble.sim_funcs.surmise_test_function import tstd2theta
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
-# logger.set_level('DEBUG')  # To get debug logging in ensemble.log
+# logger.set_level("DEBUG")  # To get debug logging in ensemble.log
 
 if __name__ == "__main__":
 

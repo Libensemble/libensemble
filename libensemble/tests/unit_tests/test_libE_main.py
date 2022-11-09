@@ -130,10 +130,10 @@ def test_exception_raising_manager_no_abort():
         pytest.fail("Expected MPISendException exception")
 
 
-# So it's a key error rather than assertion error as does not test if 'in' is
+# So it's a key error rather than assertion error as does not test if "in" is
 # missing, only that it's a list - needs updating in future.
 def test_exception_raising_check_inputs():
-    """Intentionally running without sim_specs['in'] to test exception raising (Fails)"""
+    """Intentionally running without sim_specs["in"] to test exception raising (Fails)"""
     libE_specs = {"mpi_comm": fake_mpi, "disable_resource_manager": True}
     with pytest.raises(Exception):
         H, _, _ = libE({"out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs)
@@ -151,9 +151,9 @@ def test_exception_raising_check_inputs():
 
 
 # def test_exception_raising_worker():
-#     # Intentionally running without sim_specs['in'] to test exception raising (Fails)
-#     H, _, _ = libE({'out': [('f', float)]}, {'out': [('x', float)]},
-#                    {'sim_max': 1}, libE_specs={'mpi_comm': MPI.COMM_WORLD})
+#     # Intentionally running without sim_specs["in"] to test exception raising (Fails)
+#     H, _, _ = libE({"out": [("f", float)]}, {"out": [("x", float)]},
+#                    {"sim_max": 1}, libE_specs={"mpi_comm": MPI.COMM_WORLD})
 #     assert H==[]
 
 
