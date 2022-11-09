@@ -115,8 +115,8 @@ if __name__ == "__main__":
         for i in np.where(H["local_min"])[0]:
             F = EvaluateFunction(H["x"][i])
             J = EvaluateJacobian(H["x"][i])
-            # u = gen_specs['user']['ub'] - H['x'][i]
-            # l = H['x'][i] - gen_specs['user']['lb']
+            # u = gen_specs["user"]["ub"] - H["x"][i]
+            # l = H["x"][i] - gen_specs["user"]["lb"]
             # if np.any(u <= 1e-7) or np.any(l <= 1e-7):
             #     grad = -2 * np.dot(J.T, F)
             #     assert np.all(grad[u <= 1e-7] >= 0)

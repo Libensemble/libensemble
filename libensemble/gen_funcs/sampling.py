@@ -17,8 +17,8 @@ __all__ = [
 
 def uniform_random_sample(H, persis_info, gen_specs, _):
     """
-    Generates ``gen_specs['user']['gen_batch_size']`` points uniformly over the domain
-    defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
+    Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
+    defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     .. seealso::
         `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
@@ -38,8 +38,8 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
 
 def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     """
-    Generates ``gen_specs['user']['gen_batch_size']`` points uniformly over the domain
-    defined by ``gen_specs['user']['ub']`` and ``gen_specs['user']['lb']``.
+    Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
+    defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     Also randomly requests a different number of resource sets to be used in each evaluation.
 
@@ -68,8 +68,8 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
 
 def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs, _):
     """
-    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``. Also, randomly requests a different priority and number of
+    Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
+    ``gen_specs["user"]["lb"]``. Also, randomly requests a different priority and number of
     resource sets to be used in the evaluation of the generated points, after the initial batch.
 
     This generator is used to test/demonstrate setting of priorities and resource sets.
@@ -94,19 +94,19 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
 
     else:
         H_o = np.zeros(1, dtype=gen_specs["out"])
-        # H_o['x'] = len(H)*np.ones(n)  # Can use a simple count for testing.
+        # H_o["x"] = len(H)*np.ones(n)  # Can use a simple count for testing.
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub)
         H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1)
         H_o["priority"] = 10 * H_o["resource_sets"]
-        # print('Created sim for {} resource sets'.format(H_o['resource_sets']), flush=True)
+        # print("Created sim for {} resource sets".format(H_o["resource_sets"]), flush=True)
 
     return H_o, persis_info
 
 
 def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     """
-    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']``
-    and ``gen_specs['user']['lb']`` but requests each ``obj_component`` be evaluated
+    Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]``
+    and ``gen_specs["user"]["lb"]`` but requests each ``obj_component`` be evaluated
     separately.
 
     .. seealso::
@@ -155,9 +155,9 @@ def uniform_random_sample_cancel(H, persis_info, gen_specs, _):
 
 def latin_hypercube_sample(H, persis_info, gen_specs, _):
     """
-    Generates ``gen_specs['user']['gen_batch_size']`` points in a Latin
-    hypercube sample over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``.
+    Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin
+    hypercube sample over the domain defined by ``gen_specs["user"]["ub"]`` and
+    ``gen_specs["user"]["lb"]``.
 
     .. seealso::
         `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_1d_sampling.py>`_ # noqa

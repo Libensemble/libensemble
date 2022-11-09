@@ -1,6 +1,6 @@
 """
 This module is a persistent generation function that performs a uniform
-random sample when ``libE_info['persistent']`` isn't ``True``, or performs a
+random sample when ``libE_info["persistent"]`` isn't ``True``, or performs a
 single persistent persistent nlopt local optimization run.
 """
 
@@ -16,9 +16,9 @@ import nlopt
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
-    This generation function returns ``gen_specs['user']['gen_batch_size']`` uniformly
+    This generation function returns ``gen_specs["user"]["gen_batch_size"]`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
-    ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
+    ``libE_info["persistent"]`` isn't ``True``).  Otherwise, the generation
     function starts a persistent nlopt local optimization run.
 
     .. seealso::
@@ -101,7 +101,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
     # Run local optimization.  Only send persis_info_updates back so new
     # information added to persis_info since this persistent instance started
-    # (e.g., 'run_order'), is not overwritten
+    # (e.g., "run_order"), is not overwritten
     try:
         x_opt = opt.optimize(x0)
         exit_code = opt.last_optimize_result()

@@ -23,7 +23,7 @@ class ResourcesException(Exception):
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is ``True``.
+    A resources instance is always initialized unless ``libE_specs["disable_resource_manager"]`` is ``True``.
 
     **Class Attributes:**
 
@@ -136,7 +136,7 @@ class GlobalResources:
 
         node_file: String, optional
             If supplied, give the name of a file in the run directory to use as a node-list
-            for use by libEnsemble. Defaults to a file named 'node_list'. If the file does
+            for use by libEnsemble. Defaults to a file named "node_list". If the file does
             not exist, then the node-list will be auto-detected.
 
         nodelist_env_slurm: String, optional

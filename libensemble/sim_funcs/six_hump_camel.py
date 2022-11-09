@@ -26,9 +26,9 @@ from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FIN
 
 def six_hump_camel(H, persis_info, sim_specs, _):
     """
-    Evaluates the six hump camel function for a collection of points given in ``H['x']``.
-    Additionally evaluates the gradient if ``'grad'`` is a field in
-    ``sim_specs['out']`` and pauses for ``sim_specs['user']['pause_time']]`` if
+    Evaluates the six hump camel function for a collection of points given in ``H["x"]``.
+    Additionally evaluates the gradient if ``"grad"`` is a field in
+    ``sim_specs["out"]`` and pauses for ``sim_specs["user"]["pause_time"]]`` if
     defined.
 
     .. seealso::
@@ -70,7 +70,7 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
 
 def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info):
     """
-    Evaluates the six hump camel for a collection of points given in ``H['x']``
+    Evaluates the six hump camel for a collection of points given in ``H["x"]``
     via the executor, supporting variable sized simulations/resources, as
     determined by the generator.
 
@@ -113,7 +113,7 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
         task_states.append(task.state)
 
         if app == "six_hump_camel":
-            # H_o['f'][i] = float(task.read_stdout())  # Reads whole file
+            # H_o["f"][i] = float(task.read_stdout())  # Reads whole file
             with open("out.txt") as f:
                 H_o["f"][i] = float(f.readline().strip())  # Read just first line
         else:

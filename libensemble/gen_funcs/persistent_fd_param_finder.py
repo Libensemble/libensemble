@@ -56,16 +56,16 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     tag = None
 
     # # Request evaluations of the base point x0 at all p f_inds
-    # H0 = np.zeros(p, dtype=gen_specs['out'])
+    # H0 = np.zeros(p, dtype=gen_specs["out"])
     # for j in range(p):
-    #     H0['x'][j] = x0
-    #     H0['x_ind'][j] = -1  # Marking these to know they are the basepoint
-    #     H0['f_ind'][j] = j
-    #     H0['n_ind'][j] = nf/2
+    #     H0["x"][j] = x0
+    #     H0["x_ind"][j] = -1  # Marking these to know they are the basepoint
+    #     H0["f_ind"][j] = j
+    #     H0["n_ind"][j] = nf/2
     # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
     for i in range(n):
         for j in range(p):
-            # Fhist0[i, j, nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
+            # Fhist0[i, j, nf//2] = calc_in["f_val"][calc_in["f_ind"]==j]
             Fhist0[i, j, nf // 2] = U["f0"][j]
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)
