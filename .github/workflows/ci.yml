@@ -265,7 +265,7 @@ jobs:
 
     spellcheck:
         name: Spellcheck release branch
-        if: contains(github.base_ref, "main")
+        if: contains(github.base_ref, 'main')
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v2
