@@ -97,7 +97,7 @@ jobs:
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers and older SDK
-          if: matrix.os == "macos-latest"
+          if: matrix.os == 'macos-latest'
           run: |
             wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.14.sdk.tar.xz
             mkdir ../sdk; tar xf MacOSX10.14.sdk.tar.xz -C ../sdk
@@ -228,7 +228,7 @@ jobs:
            ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
-          if: matrix.os == "macos-latest"
+          if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
