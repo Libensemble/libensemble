@@ -34,7 +34,7 @@ Used to specify the simulation function, its inputs and outputs, and user data::
     example<gen-specs-example1>`).  Only the field name is required in
     ``sim_specs['in']``.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
+  ..  literalinclude:: ../../libensemble/tests/functionality_tests/test_uniform_sampling.py
       :start-at: sim_specs
       :end-before: end_sim_specs_rst_tag
 
@@ -48,4 +48,4 @@ Used to specify the simulation function, its inputs and outputs, and user data::
 
 .. _forces_simf.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_simf.py
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/run_libe_forces.py
-.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py
