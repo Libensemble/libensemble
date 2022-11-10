@@ -39,7 +39,7 @@ to main ``libE()`` routine::
     points uniformly over the 2D domain defined by ``gen_specs['ub']`` and
     ``gen_specs['lb']``.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling.py
+  ..  literalinclude:: ../../libensemble/tests/functionality_tests/test_uniform_sampling.py
       :start-at: gen_specs
       :end-before: end_gen_specs_rst_tag
 
@@ -57,7 +57,7 @@ to main ``libE()`` routine::
       already has ``x`` for those points. See `more example uses`_ of ``persis_in``.
 
 .. _sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/sampling.py
-.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py
 .. _test_persistent_aposmm_nlopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_nlopt.py
 .. _test_persistent_aposmm_with_grad.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
 .. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field
