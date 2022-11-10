@@ -81,7 +81,7 @@ As a dictionary:
       already has ``x`` for those points. See `more example uses`_ of ``persis_in``.
 
 .. _sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/sampling.py
-.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py
 .. _test_persistent_aposmm_nlopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_nlopt.py
 .. _test_persistent_aposmm_with_grad.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
 .. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field
