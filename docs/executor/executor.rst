@@ -23,7 +23,7 @@ Only create an object of this class for running local serial-launched applicatio
 To run MPI applications and use detected resources, use an alternative Executor
 class, as shown above.
 
-.. autoclass:: Executor
+.. autoclass:: libensemble.executors.executor.Executor
   :members:
   :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
 
@@ -40,7 +40,7 @@ information can be queried through the task attributes below and the query
 functions. Note that the task attributes are updated only when they are
 polled/killed (or through other task or Executor functions).
 
-.. autoclass:: Task
+.. autoclass:: libensemble.executors.executor.Task
   :members:
   :exclude-members: calc_task_timing, check_poll
 ..  :member-order: bysource
@@ -60,7 +60,7 @@ retrieved from a task.
 Task status attributes include the following:
 
 :task.state: (string) The task status. One of
-             ('UNKNOWN'|'CREATED'|'WAITING'|'RUNNING'|'FINISHED'|'USER_KILLED'|'FAILED')
+             ("UNKNOWN"|"CREATED"|"WAITING"|"RUNNING"|"FINISHED"|"USER_KILLED"|"FAILED")
 
 :task.process: (process obj) The process object used by the underlying process
                manager (e.g., return value of subprocess.Popen).

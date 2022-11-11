@@ -182,7 +182,7 @@ def sparse_grid_batched(H, persis_info, gen_specs, libE_info):
         if "tasmanian_checkpoint_file" in U:
             grid.write(U["tasmanian_checkpoint_file"])
 
-        # set refinement, using user['refinement'] to pick the refinement strategy
+        # set refinement, using user["refinement"] to pick the refinement strategy
         if U["refinement"] in ["setAnisotropicRefinement", "getAnisotropicRefinement"]:
             assert "sType" in U
             assert "iMinGrowth" in U
@@ -213,7 +213,7 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     ), f"Must provide a gen_specs['user']['refinement'] in: {allowed_refinements}"
     tol = U["_match_tolerance"] if "_match_tolerance" in U else 1.0e-12
 
-    # Choose the refinement function based on U['refinement'].
+    # Choose the refinement function based on U["refinement"].
     if U["refinement"] == "getCandidateConstructionPoints":
         assert "sType" in U
         assert "liAnisotropicWeightsOrOutput" in U
@@ -294,7 +294,7 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode="batc
 
     INPUTS:
         user_specs  (dict)   : a dictionary of user specs that is needed in the generator specs;
-                               expects the key 'tasmanian_init' whose value is a 0-argument lambda
+                               expects the key "tasmanian_init" whose value is a 0-argument lambda
                                that initializes an appropriate Tasmanian sparse grid object.
 
         sim_f       (func)   : a lambda function that takes in generator outputs (simulator inputs)
@@ -304,7 +304,7 @@ def get_sparse_grid_specs(user_specs, sim_f, num_dims, num_outputs=1, mode="batc
 
         num_outputs (int)    : number of model outputs.
 
-        mode        (string) : can either be 'batched' or 'async'.
+        mode        (string) : can either be "batched" or "async".
 
     OUTPUTS:
         sim_specs   (dict) : a dictionary of simulation specs and also one of the inputs of libE().

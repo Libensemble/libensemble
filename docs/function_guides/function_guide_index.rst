@@ -25,9 +25,19 @@ patterns and optional components for each kind of User Function:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Writing User Functions
 
    generator
    simulator
    allocator
+   sim_gen_alloc_api
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Useful Data Structures
+
+   calc_status
+   work_dict
+   worker_array
 
 .. _NumPy: http://www.numpy.org

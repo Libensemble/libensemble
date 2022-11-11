@@ -1,5 +1,11 @@
 Put variables (e.g., gen_f or H) in between double ticks ``stuff here`` (no quotes)
 
+Code or monospaced values that contain quotes should only use double-quotes ("stuff_here")
+
+Documented classes and functions should be linked to using :class: and :meth: respectively.
+
+Links to other pages should *preferably* use :ref:, so references persist even when files are moved.
+
 Put short code in between double ticks ``stuff here`` (no quotes)
 
 Put referenced file names in between double ticks ``stuff here`` (no quotes)

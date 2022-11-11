@@ -52,7 +52,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     calc_status = 0  # Returns to worker
 
     x = H["x"]
-    # keys = sim_specs['user']['keys']
+    # keys = sim_specs["user"]["keys"]
     sim_particles = sim_specs["user"]["sim_particles"]
     sim_timesteps = sim_specs["user"]["sim_timesteps"]
     time_limit = sim_specs["user"]["sim_kill_minutes"] * 60.0
@@ -72,7 +72,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor  # Get Executor
 
     args = str(int(sim_particles)) + " " + str(sim_timesteps) + " " + str(seed) + " " + str(kill_rate)
-    # task = exctr.submit( app_name='forces', num_procs=cores, app_args=args, stdout='out.txt', stderr='err.txt')
+    # task = exctr.submit( app_name="forces", num_procs=cores, app_args=args, stdout="out.txt", stderr="err.txt")
 
     machinefile = None
     if sim_specs["user"]["fail_on_submit"]:
@@ -138,7 +138,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         final_energy = data[-1]
     except Exception:
         final_energy = np.nan
-        # print('Warning - Energy Nan')
+        # print("Warning - Energy Nan")
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)

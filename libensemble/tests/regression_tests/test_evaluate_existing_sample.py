@@ -45,7 +45,7 @@ if __name__ == "__main__":
     H0["sim_id"] = range(n_samp)
     H0["sim_started"] = False
 
-    alloc_specs = {"alloc_f": alloc_f, "out": [("x", float, n)]}
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": len(H0)}
 

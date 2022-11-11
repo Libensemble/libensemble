@@ -141,7 +141,7 @@ class LegacyBalsamTask(Task):
             )
 
     def wait(self, timeout=None):
-        """Waits on completion of the task or raises TimeoutExpired exception
+        """Waits on completion of the task or raises ``TimeoutExpired`` exception
 
         Status attributes of task are updated on completion.
 

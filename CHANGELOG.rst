@@ -17,7 +17,7 @@ New capabilities:
 
 * New pair of utilities, `liberegister` and `libesubmit` (based on *PSI/J*), for easily preparing and launching libEnsemble workflows with local comms onto most machines and schedulers. #807
 * New persistent support function to cancel sim_ids (`request_cancel_sim_ids`). #880
-* `keep_state` option for persistent workers: this lets the manager know that the information being sent is intermediate. #880 
+* `keep_state` option for persistent workers: this lets the manager know that the information being sent is intermediate. #880
 
 Other enhancements:
 

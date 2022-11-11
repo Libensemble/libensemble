@@ -1,24 +1,24 @@
-.. _datastruct-work-dict:
+.. _funcguides-workdict:
 
-work dictionary
+Work Dictionary
 ===============
 
 The work dictionary contains metadata that is used by the manager to send a packet
 of work to a worker. The dictionary uses integer keys ``i`` and values that determine
-the data given to worker ``i``. ``Work[i]`` has the following form::
+the data given to worker ``i``. Populated in the allocation function. ``Work[i]`` has the following form::
 
     Work[i]: [dict]:
 
         Required keys:
-        'H_fields' [list]: The field names of the history 'H' to be sent to worker 'i'
-        'persis_info' [dict]: Any persistent info to be sent to worker 'i'
-        'tag' [int]: 'EVAL_SIM_TAG'/'EVAL_GEN_TAG' if worker 'i' is to call sim/gen_func
-        'libE_info' [dict]: Info sent to/from worker to help manager update the 'H' array
+        "H_fields" [list]: The field names of the history H to be sent to worker i
+        "persis_info" [dict]: Any persistent info to be sent to worker i
+        "tag" [int]: "EVAL_SIM_TAG"/"EVAL_GEN_TAG" if worker i is to call sim/gen_func
+        "libE_info" [dict]: Info sent to/from worker to help manager update the H array
 
         libE_info contains the following:
-        'H_rows' [list of ints]: History rows to send to worker 'i'
-        'rset_team' [list of ints]: The resource sets to be assigned (if dynamic scheduling is used)
-        'persistent' [bool]: True if worker 'i' will enter persistent mode (Default: False)
+        "H_rows" [list of ints]: History rows to send to worker i
+        "rset_team" [list of ints]: The resource sets to be assigned (if dynamic scheduling is used)
+        "persistent" [bool]: True if worker i will enter persistent mode (Default: False)
 
 The work dictionary is typically set using the ``gen_work`` or ``sim_work``
 :doc:`helper functions<../function_guides/allocator>` in the allocation function.

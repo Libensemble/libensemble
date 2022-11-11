@@ -58,6 +58,7 @@ We now present further information on running and testing libEnsemble.
 .. _PSI/J: https://exaworks.org/psij
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
+.. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/

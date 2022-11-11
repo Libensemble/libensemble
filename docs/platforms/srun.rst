@@ -17,7 +17,7 @@ not work well, then try telling the MPIExecutor to use ``srun`` when it is initi
 in the calling script::
 
     from libensemble.executors.mpi_executor import MPIExecutor
-    exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})
+    exctr = MPIExecutor(custom_info={"mpi_runner":"srun"})
 
 Common Errors
 -------------
@@ -60,7 +60,7 @@ If running the libEnsemble user calling script with ``srun``, then it is recomme
 ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
 GPU runs will be submitted, instead of in the batch script. E.g::
 
-    os.environ['MPICH_GPU_SUPPORT_ENABLED'] = "1"
+    os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
 
 Note on Resource Binding
 ------------------------
@@ -93,7 +93,7 @@ Find SLURM system configuration::
 
     scontrol show config
 
-Find SLURM partition configuration for a partition called 'gpu'::
+Find SLURM partition configuration for a partition called "gpu"::
 
     scontrol show partition gpu
 

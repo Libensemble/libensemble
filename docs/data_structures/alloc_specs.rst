@@ -1,24 +1,20 @@
 .. _datastruct-alloc-specs:
 
-alloc_specs
-===========
+Allocation Specs
+================
 
 Allocation function specifications to be set in the user calling script and passed
-to main ``libE()`` routine::
+to main ``libE()`` routine. *Optional*.
 
-    alloc_specs: [dict, optional]:
+Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
+all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
+upon passing into :meth:`libE()<libensemble.libE.libE>`.
 
-        'alloc_f' [func]:
-            Default: give_sim_work_first
-        'in' [list of strings]:
-            Default: None
-        'out' [list of tuples]:
-            Default: [('allocated',bool)]
-        'user' [dict]:
-            Default: {'batch_mode': True}
+.. autopydantic_model:: libensemble.specs.AllocSpecs
+  :model-show-json: False
+  :members:
 
 .. note::
-  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`.
   * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
   ..  literalinclude:: ../../libensemble/alloc_funcs/defaults.py

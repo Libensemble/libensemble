@@ -18,7 +18,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     these.
 
     From the caller function, the user must pass a square matrix in
-    `persis_info['A']. Typically, this is a Laplacian matrix of a connected
+    `persis_info["A"]. Typically, this is a Laplacian matrix of a connected
     graph or a doubly stochastic matrix. Note that the alloc will send the
     row i's non-zero indices values to gen i when initializing the gen
     via the persis_info object. This information is used methods such as
@@ -28,17 +28,17 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     The user has three remaining optional values to pass into the alloc,
     which are all set from the calling script.
 
-    - 1. The user can set `persis_info['print_progress']=1`
+    - 1. The user can set `persis_info["print_progress"]=1`
     This tells alloc function print the consensus value and iteration count
     whenever a consensus step is taken
 
-    - 2. The user can set `persis_info['gen_params']={... dictionary ...}`.
+    - 2. The user can set `persis_info["gen_params"]={... dictionary ...}`.
     The dictionary contains the any parameters that the gen will utilize.
     This can include, for example, functions that the gen can use to compute
     gradients rather than requesting a sim to complete the work (see the
     linear regression tests in `tests/regression_tests/test_persistent_pds.py`)
 
-    - 3. The user can set `persis_info['sim_params']={... dictionary ...}`.
+    - 3. The user can set `persis_info["sim_params"]={... dictionary ...}`.
     Similarly, the dictionary contains the any parameters that the sim will
     utilize
 
@@ -65,7 +65,7 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs['user'] as user.
+    # Initialize alloc_specs["user"] as user.
     user = alloc_specs.get("user", {})
     manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)

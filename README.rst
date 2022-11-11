@@ -80,6 +80,7 @@ Dependencies
 * NumPy_
 * psutil_
 * setuptools_
+* pydantic_
 
 When using  ``mpi4py`` for libEnsemble communications:
 
@@ -343,6 +344,7 @@ See a complete list of `example user scripts`_.
 .. _PSI/J: https://exaworks.org/psij
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
+.. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/

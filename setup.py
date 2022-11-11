@@ -71,7 +71,7 @@ setup(
         "libensemble.tests.regression_tests",
     ],
     package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
-    install_requires=["numpy", "psutil", "setuptools"],
+    install_requires=["numpy", "psutil", "setuptools", "pydantic"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
@@ -95,9 +95,10 @@ setup(
             "scipy",
         ],
         "docs": [
+            "autodoc_pydantic",
             "sphinx",
-            "sphinxcontrib.bibtex",
             "sphinx_rtd_theme",
+            "sphinxcontrib.bibtex",
         ],
     },
     scripts=[

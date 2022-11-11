@@ -198,7 +198,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
 
     # Multifidelity settings.
     cost_func = gen_specs["user"]["cost_func"]
-    # discrete_fidel = gen_specs['user']['discrete']
+    # discrete_fidel = gen_specs["user"]["discrete"]
     fidel_range = gen_specs["user"]["range"]
 
     # Number of points to generate initially.
