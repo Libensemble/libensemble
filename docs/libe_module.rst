@@ -1,3 +1,5 @@
+.. _libe-module:
+
 Main libE Module - Calling Script
 =================================
 
