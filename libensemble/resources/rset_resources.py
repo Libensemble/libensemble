@@ -71,7 +71,11 @@ class RSetResources:
     @staticmethod
     def even_assignment(nnodes, nworkers):
         """Returns True if workers are evenly distributied to nodes, else False"""
-        return nnodes % nworkers == 0 or nworkers % nnodes == 0
+        try:
+            return nnodes % nworkers == 0 or nworkers % nnodes == 0
+        except ZeroDivisionError:
+            logger.error("Either nworkers or nnodes is zero. Check that MPI ranks > 1")
+            raise
 
     @staticmethod
     def expand_list(nnodes, nworkers, nodelist):

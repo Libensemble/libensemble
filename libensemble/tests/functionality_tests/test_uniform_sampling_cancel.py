@@ -49,12 +49,12 @@ def create_H0(persis_info, gen_specs, sim_max):
             H0[i]["cancel_requested"] = True
 
     # Using uniform_random_sample_cancel call - need to adjust some gen_specs though
-    # gen_specs['out'].append(('sim_id', int))
-    # gen_specs['out'].append(('sim_started', bool))
-    # gen_specs['user']['gen_batch_size'] = sim_max
+    # gen_specs["out"].append(("sim_id", int))
+    # gen_specs["out"].append(("sim_started", bool))
+    # gen_specs["user"]["gen_batch_size"] = sim_max
     # H0, persis_info[0] = uniform_random_sample_cancel({}, persis_info[0], gen_specs, {})
-    # H0['sim_id'] = range(gen_specs['user']['gen_batch_size'])
-    # H0['sim_started'] = False
+    # H0["sim_id"] = range(gen_specs["user"]["gen_batch_size"])
+    # H0["sim_started"] = False
     return H0
 
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     }
     # end_sim_specs_rst_tag
 
-    # Note that it is unusual to specify cancel_requested as gen_specs['out']. It is here
+    # Note that it is unusual to specify cancel_requested as gen_specs["out"]. It is here
     # so that cancellations are combined with regular generator outputs for testing purposes.
     # For a typical use case see test_persistent_surmise_calib.py.
     gen_specs = {
@@ -90,7 +90,6 @@ if __name__ == "__main__":
 
     aspec1 = {
         "alloc_f": gswf,
-        "out": [],
         "user": {
             "batch_mode": True,
             "num_active_gens": 1,
@@ -99,7 +98,6 @@ if __name__ == "__main__":
 
     aspec2 = {
         "alloc_f": gswf,
-        "out": [],
         "user": {
             "batch_mode": True,
             "num_active_gens": 2,
@@ -108,19 +106,16 @@ if __name__ == "__main__":
 
     aspec3 = {
         "alloc_f": fast_gswf,
-        "out": [],
         "user": {},
     }
 
     aspec4 = {
         "alloc_f": ensure_one_active_gen,
-        "out": [],
         "user": {},
     }
 
     aspec5 = {
         "alloc_f": give_pregenerated_sim_work,
-        "out": [],
         "user": {},
     }
 

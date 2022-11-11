@@ -18,7 +18,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
 from libensemble import logger
 
-# logger.set_level('DEBUG')  # For testing the test
+# logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh

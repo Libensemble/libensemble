@@ -190,6 +190,7 @@ jobs:
           env:
               BALSAM_DB_PATH: $HOME/test-balsam
           run: |
+            pip install pydantic
             pip install -r install/testing_requirements.txt
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
             mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;

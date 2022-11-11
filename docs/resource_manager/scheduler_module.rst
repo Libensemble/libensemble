@@ -13,7 +13,7 @@ that fits this interface. This could be achieved, for example, by inheriting
 the built-in scheduler and making modifications.
 
 Options can also be provided to the scheduler though the
-``libE_specs['scheduler_opts']`` dictionary.
+``libE_specs["scheduler_opts"]`` dictionary.
 
 .. automodule:: resources.scheduler
 

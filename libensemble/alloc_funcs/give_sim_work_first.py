@@ -7,19 +7,19 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
-    completed or running does it start (at most ``alloc_specs['user']['num_active_gens']``)
+    completed or running does it start (at most ``alloc_specs["user"]["num_active_gens"]``)
     generator instances.
 
-    Allows for a ``alloc_specs['user']['batch_mode']`` where no generation
+    Allows for a ``alloc_specs["user"]["batch_mode"]`` where no generation
     work is given out unless all entries in ``H`` are returned.
 
-    Can give points in highest priority, if ``'priority'`` is a field in ``H``.
-    If alloc_specs['user']['give_all_with_same_priority'] is set to True, then
+    Can give points in highest priority, if ``"priority"`` is a field in ``H``.
+    If alloc_specs["user"]["give_all_with_same_priority"] is set to True, then
     all points with the same priority value are given as a batch to the sim.
 
-    Workers performing sims will be assigned resources given in H['resource_sets']
+    Workers performing sims will be assigned resources given in H["resource_sets"]
     this field exists, else defaulting to one. Workers performing gens are
-    assigned resource_sets given by persis_info['gen_resources'] or zero.
+    assigned resource_sets given by persis_info["gen_resources"] or zero.
 
     This is the default allocation function if one is not defined.
 
@@ -42,7 +42,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs['user'] as user.
+    # Initialize alloc_specs["user"] as user.
     batch_give = user.get("give_all_with_same_priority", False)
     gen_in = gen_specs.get("in", [])
 

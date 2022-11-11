@@ -1,35 +1,37 @@
+.. _funcguides-gen:
+
 Generator Functions
 ===================
 
 As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by a
 libEnsemble worker via the following::
 
-    out = gen_f(H[gen_specs['in']][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
+    out = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
 In practice, most ``gen_f`` function definitions written by users resemble::
 
     def my_generator(H, persis_info, gen_specs, libE_info):
 
-Where :doc:`H<../data_structures/history_array>` is a selection of the
-:doc:`History array<../history_output_logging>`, determined by sim IDs from the
-``alloc_f``, :doc:`persis_info<../data_structures/persis_info>` is a dictionary
-containing state information, :doc:`gen_specs<../data_structures/gen_specs>` is a
+Where ``H`` is a selection of the
+:ref:`History array<funcguides-history>`, determined by sim IDs from the
+``alloc_f``, :ref:`persis_info<datastruct-persis-info>` is a dictionary
+containing state information, :ref:`gen_specs<datastruct-gen-specs>` is a
 dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``
 is a dictionary containing libEnsemble-specific entries. See the API above for
 more detailed descriptions of the parameters.
 
 .. note::
 
-    If the ``gen_f`` is a persistent generator, then ``gen_specs['in']`` only specifies
-    the fields to send when the ``gen_f`` is *first called.* Use ``gen_specs['persis_in']``
+    If the ``gen_f`` is a persistent generator, then ``gen_specs["in"]`` only specifies
+    the fields to send when the ``gen_f`` is *first called.* Use ``gen_specs["persis_in"]``
     to specify fields to send back to the generator throughout runtime.
 
 Typically users start by extracting their custom parameters initially defined
-within ``gen_specs['user']`` in the calling script and defining a *local* History
-array based on the datatype in ``gen_specs['out']``, to be returned. For example::
+within ``gen_specs["user"]`` in the calling script and defining a *local* History
+array based on the datatype in ``gen_specs["out"]``, to be returned. For example::
 
-        batch_size = gen_specs['user']['batch_size']
-        local_H_out = np.zeros(batch_size, dtype=gen_specs['out'])
+        batch_size = gen_specs["user"]["batch_size"]
+        local_H_out = np.zeros(batch_size, dtype=gen_specs["out"])
 
 This array should be populated by whatever values are generated within
 the function. Finally, this array should be returned to libEnsemble
@@ -121,7 +123,7 @@ the tag from the manager, it should return with an additional tag::
 
     return local_H_out, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
-See :doc:`calc_status<../data_structures/calc_status>` for more information about
+See :ref:`calc_status<funcguides-calcstatus>` for more information about
 the message tags.
 
 .. _gen_active_recv:
@@ -179,9 +181,9 @@ the following (where ``sim_ids_to_cancel`` is a list of integers):
 .. code-block:: python
 
     # Send only these fields to existing H rows and libEnsemble will slot in the change.
-    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[('sim_id', int), ('cancel_requested', bool)])
-    H_o['sim_id'] = sim_ids_to_cancel
-    H_o['cancel_requested'] = True
+    H_o = np.zeros(len(sim_ids_to_cancel), dtype=[("sim_id", int), ("cancel_requested", bool)])
+    H_o["sim_id"] = sim_ids_to_cancel
+    H_o["cancel_requested"] = True
     ps.send(H_o, keep_state=True)
 
 Generator initiated shutdown

@@ -114,7 +114,7 @@ previous results:
     :linenos:
 
     # Create and work inside separate per-simulation directories
-    libE_specs['sim_dirs_make'] = True
+    libE_specs["sim_dirs_make"] = True
 
 After configuring :ref:`persis_info<datastruct-persis-info>` and
 :ref:`exit_criteria<datastruct-exit-criteria>`, we initialize libEnsemble
@@ -142,7 +142,7 @@ This may take some additional browsing of the docs to complete.
 Write an alternative Calling Script similar to above, but with the following differences:
 
  1. Add an additional :ref:`worker directory setting<output_dirs>` so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
- 2. Override the MPIExecutor's detected MPI runner with ``'openmpi'``.
+ 2. Override the MPIExecutor's detected MPI runner with ``"openmpi"``.
  3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
  4. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
@@ -170,15 +170,15 @@ Write an alternative Calling Script similar to above, but with the following dif
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         # Adjust logger level
-        logger.set_level('DEBUG')
+        logger.set_level("DEBUG")
 
         # Initialize MPI Executor instance
-        exctr = MPIExecutor(custom_info={'mpi_runner': 'openmpi'})
+        exctr = MPIExecutor(custom_info={"mpi_runner": "openmpi"})
 
         ...
 
         # Instruct workers to operate somewhere else on the filesystem
-        libE_specs['ensemble_dir_path'] = "/scratch/ensemble"
+        libE_specs["ensemble_dir_path"] = "/scratch/ensemble"
 
         ...
 
@@ -233,7 +233,7 @@ for starters:
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
 as a random number seed here. Note a fourth argument can be added to forces
-that gives forces a chance of a 'bad run' (a float between 0 and 1), but
+that gives forces a chance of a "bad run" (a float between 0 and 1), but
 for now that will default to zero.
 
 We then retrieve our previously instantiated Executor instance from the
@@ -251,8 +251,8 @@ computations for every time-step or a "kill" message if particles were lost, whi
 indicates a bad run - this can be ignored for now.
 
 To complete our simulation function, parse the last energy value from the output file into
-a local output :ref:`History array<datastruct-history-array>`, and if successful,
-set the simulation function's exit status :ref:`calc_status<datastruct-calc-status>`
+a local output :ref:`History array<funcguides-history>`, and if successful,
+set the simulation function's exit status :ref:`calc_status<funcguides-calcstatus>`
 to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
 .. code-block:: python
@@ -314,7 +314,7 @@ My ``ensemble.log`` (on a ten-core laptop) resembled::
   [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
   [0]  ... libensemble.libE (INFO): libE version v0.9.0
   [0]  ... libensemble.manager (INFO): Manager initiated on node my_laptop
-  [0]  ... libensemble.manager (INFO): Manager exit_criteria: {'sim_max': 8}
+  [0]  ... libensemble.manager (INFO): Manager exit_criteria: {"sim_max": 8}
   [1]  ... libensemble.worker (INFO): Worker 1 initiated on node my_laptop
   [2]  ... libensemble.worker (INFO): Worker 2 initiated on node my_laptop
   [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2023 10 2023
@@ -384,7 +384,7 @@ These may require additional browsing of the documentation to complete.
           task.poll()
 
           if task.file_exists_in_workdir(statfile):
-            with open(statfile, 'r') as f:
+            with open(statfile, "r") as f:
                 if "kill\n" in f.readlines():
                     task.kill()
 

@@ -3,7 +3,7 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 
 def give_pregenerated_sim_work(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
-    This allocation function gives (in order) entries in alloc_spec['x'] to
+    This allocation function gives (in order) entries in alloc_spec["x"] to
     idle workers. It is an example use case where no gen_func is used.
 
     .. seealso::

@@ -90,7 +90,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
     H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
 
         History array storing rows for each point.
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<funcguides-history>`
 
     persis_info: :obj:`dict`
 
@@ -148,7 +148,7 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     persis_info: :obj:`dict`
 
         Persistent information dictionary
-        :doc:`(example)<data_structures/persis_info>`
+        :ref:`(example)<datastruct-persis-info>`
 
     nstreams: :obj:`int`
 

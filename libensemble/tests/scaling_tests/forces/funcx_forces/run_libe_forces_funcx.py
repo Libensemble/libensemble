@@ -2,7 +2,7 @@
 import secrets
 import numpy as np
 
-from libensemble import Ensemble
+from libensemble.api import Ensemble
 
 if __name__ == "__main__":
 

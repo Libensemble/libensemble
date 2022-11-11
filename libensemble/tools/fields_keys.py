@@ -35,33 +35,8 @@ protected_libE_fields = [
     "kill_sent",
 ]
 
-allowed_sim_spec_keys = [
-    "sim_f",  #
-    "in",  #
-    "persis_in",
-    "out",  #
-    "funcx_endpoint",  #
-    "user",
-]
-
-allowed_gen_spec_keys = [
-    "gen_f",  #
-    "in",  #
-    "persis_in",
-    "out",  #
-    "funcx_endpoint",  #
-    "user",
-]
-
-allowed_alloc_spec_keys = [
-    "alloc_f",  #
-    "out",  #
-    "user",
-]
-
 libE_spec_calc_dir_misc = [
     "ensemble_copy_back",
-    "ensemble_dir_path",
     "use_worker_dirs",
 ]
 
@@ -78,36 +53,3 @@ libE_spec_gen_dir_keys = [
     "gen_dir_symlink_files",
     "gen_input_dir",
 ]
-
-libE_spec_calc_dir_combined = libE_spec_calc_dir_misc + libE_spec_sim_dir_keys + libE_spec_gen_dir_keys
-
-allowed_libE_spec_keys = [
-    "abort_on_exception",  #
-    "enforce_worker_core_bounds",  #
-    "authkey",  #
-    "disable_resource_manager",  #
-    "dedicated_mode",  #
-    "comms",  #
-    "resource_info",  #
-    "disable_log_files",  #
-    "final_fields",  #
-    "ip",  #
-    "kill_canceled_sims",  #
-    "mpi_comm",  #
-    "num_resource_sets",  #
-    "nworkers",  #
-    "port",  #
-    "profile",  #
-    "safe_mode",  #
-    "save_every_k_gens",  #
-    "save_every_k_sims",  #
-    "save_H_and_persis_on_abort",  #
-    "scheduler_opts",  #
-    "stats_fmt",  #
-    "use_persis_return_gen",  #
-    "use_persis_return_sim",  #
-    "workerID",  #
-    "worker_timeout",  #
-    "zero_resource_workers",  #
-    "worker_cmd",
-] + libE_spec_calc_dir_combined

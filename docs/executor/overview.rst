@@ -42,7 +42,7 @@ described in the API.
 
 In calling script::
 
-    sim_app = '/path/to/my/exe'
+    sim_app = "/path/to/my/exe"
     USE_BALSAM = False
 
     if USE_BALSAM:
@@ -52,7 +52,7 @@ In calling script::
         from libensemble.executors.mpi_executor import MPIExecutor
         exctr = MPIExecutor()
 
-    exctr.register_app(full_path=sim_app, app_name='sim1')
+    exctr.register_app(full_path=sim_app, app_name="sim1")
 
 Note that Executor instances in the calling script are also stored as class attributes, and
 do **not** have to be passed to ``libE()``. They can be extracted via *Executor.executor*
@@ -66,8 +66,8 @@ In user simulation function::
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
 
-    task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
-                        stdout='out.txt', stderr='err.txt')
+    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
+                        stdout="out.txt", stderr="err.txt")
 
     timeout_sec = 600
     poll_delay_sec = 1
@@ -82,7 +82,7 @@ In user simulation function::
 
         # Check output file for error and kill task
         elif task.stdout_exists():
-            if 'Error' in task.read_stdout():
+            if "Error" in task.read_stdout():
                 task.kill()
 
         elif task.runtime > timeout_sec:
@@ -100,8 +100,8 @@ although this is effectively syntactical sugar to above::
     from libensemble.executors import Executor
 
     with Executor.executor as exctr:
-        task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
-                            stdout='out.txt', stderr='err.txt')
+        task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
+                            stdout="out.txt", stderr="err.txt")
 
     ...
 
@@ -115,8 +115,8 @@ to the above simulation function may resemble::
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
 
-    task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
-                        stdout='out.txt', stderr='err.txt')
+    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
+                        stdout="out.txt", stderr="err.txt")
 
     timeout_sec = 600
     poll_delay_sec = 1
@@ -132,8 +132,8 @@ Or put *yet another way*::
     # Will return Executor (whether MPI or inherited such as Balsam).
     exctr = Executor.executor
 
-    task = exctr.submit(app_name='sim1', num_procs=8, app_args='input.txt',
-                        stdout='out.txt', stderr='err.txt')
+    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
+                        stdout="out.txt", stderr="err.txt")
 
     print(task.result(timeout=600))  # returns state on completion
 
@@ -161,7 +161,7 @@ an existing resource pool. However, submissions to a batch scheduler may be
 supported in future Executors.
 
 See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
-diagrams, how common options such as ``libE_specs['dedicated_mode']`` affect the
+diagrams, how common options such as ``libE_specs["dedicated_mode"]`` affect the
 run configuration on clusters and supercomputers.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/

@@ -38,9 +38,9 @@ class AllocSupport:
         By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
         module and the built-in libEnsemble scheduler.
 
-        :param W: A :doc:`Worker array<../data_structures/worker_array>`
+        :param W: A :ref:`Worker array<funcguides-workerarray>`
         :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
-        :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
+        :param persis_info: Optional, A :ref:`dictionary of persistent information.<datastruct-persis-info>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
         :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
@@ -153,8 +153,8 @@ class AllocSupport:
          persistent state.
 
         :param wid: Int. Worker ID.
-        :param H: :doc:`History array<../data_structures/history_array>`. For parsing out requested resource sets.
-        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H: :ref:`History array<funcguides-history>`. For parsing out requested resource sets.
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
@@ -187,9 +187,9 @@ class AllocSupport:
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
+        :param Work: :ref:`Work dictionary<funcguides-workdict>`
         :param wid: Worker ID.
-        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
