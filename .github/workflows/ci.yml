@@ -193,7 +193,8 @@ jobs:
             pip install pydantic
             pip install -r install/testing_requirements.txt
             wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
-            mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
+            mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam
+            echo "NOW INSTALLING OLD BALSAM"
             python install/configure_balsam_install.py
 
         - name: Modify Balsam for testing, create DB
