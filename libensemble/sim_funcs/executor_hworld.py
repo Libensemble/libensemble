@@ -8,7 +8,6 @@ from libensemble.message_numbers import (
     WORKER_KILL_ON_TIMEOUT,
 )
 import numpy as np
-import os
 
 __all__ = ["executor_hworld"]
 

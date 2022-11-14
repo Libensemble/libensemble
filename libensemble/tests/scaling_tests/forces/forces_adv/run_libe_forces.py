@@ -10,6 +10,7 @@ from libensemble.manager import ManagerException
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble import logger
 from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
+from libensemble.executors.mpi_executor import MPIExecutor
 
 PERSIS_GEN = False
 
@@ -33,7 +34,6 @@ if not os.path.isfile(sim_app):
 if is_manager:
     print(f"\nRunning with {nworkers} workers\n")
 
-from libensemble.executors.mpi_executor import MPIExecutor
 exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name="forces")
 

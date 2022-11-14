@@ -3,7 +3,6 @@ Common plumbing for regression tests
 """
 
 import os
-import json
 import os.path
 
 
