@@ -182,7 +182,7 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install psutil
             pip install pyyaml
-            pip install funcx==1.0.4 funcx-endpoint==1.0.4
+            pip install funcx==1.0.4
             pip install balsam
 
         - name: Install and configure Balsam 0.5.0
