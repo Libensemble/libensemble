@@ -179,6 +179,7 @@ jobs:
         - name: Install other testing dependencies
           if: matrix.do-balsam == false
           run: |
+            conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install psutil
             pip install pyyaml
