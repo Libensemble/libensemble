@@ -73,6 +73,7 @@ jobs:
           run: |
             python --version
             pip install -I --upgrade certifi
+            pip install Cython --install-option="--no-cython-compile"
 
         - name: Windows - Add clang path to $PATH env
           shell: bash
