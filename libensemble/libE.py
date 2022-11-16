@@ -171,7 +171,6 @@ from libensemble.utils.timer import Timer
 from libensemble.history import History
 from libensemble.manager import manager_main, report_worker_exc, WorkerException, LoggedException
 from libensemble.worker import worker_main
-from libensemble.alloc_funcs import defaults as alloc_defaults
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
@@ -191,7 +190,7 @@ def libE(
     gen_specs: GenSpecs,
     exit_criteria: ExitCriteria,
     persis_info: Dict = {},
-    alloc_specs: AllocSpecs = alloc_defaults.alloc_specs,
+    alloc_specs: AllocSpecs = AllocSpecs(),
     libE_specs: LibeSpecs = {},
     H0=None,
 ) -> (np.ndarray, Dict, int):
@@ -275,10 +274,10 @@ def libE(
     )
 
     # get corresponding dictionaries back (casted in libE() def)
-    sim_specs = ensemble.sim_specs.dict(by_alias=True, exclude_unset=True)
-    gen_specs = ensemble.gen_specs.dict(by_alias=True, exclude_unset=True)
+    sim_specs = ensemble.sim_specs.dict(by_alias=True)
+    gen_specs = ensemble.gen_specs.dict(by_alias=True)
     exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
-    alloc_specs = ensemble.alloc_specs.dict(by_alias=True, exclude_unset=True)
+    alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
