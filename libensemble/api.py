@@ -3,7 +3,8 @@ import yaml
 import tomli
 import logging
 import importlib
-from dataclasses import dataclass
+from typing import Union, Any
+from dataclasses import dataclass, field
 from libensemble.libE import libE
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.specs import SimSpecs, GenSpecs, AllocSpecs, LibeSpecs, ExitCriteria, EnsembleSpecs
@@ -20,13 +21,13 @@ NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 class Persis_Info:
     """
     ``persis_info`` persistent information dictionary management class. An
-    instance of this (with random streams) is created on initiation of Ensemble,
+    instance of this (with random streams) is created on initiation of an ``Ensemble``,
     since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
     """
     nworkers: int = 4
     persis_info = {}
 
-    def add_random_streams(self, num_streams: int=0, seed=""):
+    def add_random_streams(self, num_streams: int=0, seed: str=""):
         if num_streams:
             nstreams = num_streams
         else:
@@ -35,35 +36,33 @@ class Persis_Info:
         self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
         return self.persis_info
 
+@dataclass
 class Ensemble:
     """
-    The vast majority of libEnsemble cases require the user to instantiate
-    and populate a set of specification dictionaries inside a calling script,
-    call ``parse_args()``, then call ``libE()`` while passing in each spec
-    dictionary. Many calling scripts and ``libE()`` calls are often identical,
-    even across widely varying use-cases. This is an alternative interface for
+    An alternative interface for
     parameterizing libEnsemble by interacting with a class instance, and
-    potentially populating it via a yaml file.
+    potentially populating it via a yaml or toml file.
     """
 
-    def __init__(self):
-        """Initializes an Ensemble instance. ``parse_args()`` called on instantiation"""
+    sim_specs: Union[SimSpecs, dict] = field(default_factory=dict)
+    gen_specs: Union[GenSpecs, dict] = field(default_factory=dict)
+    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=dict)
+    libE_specs: Union[LibeSpecs, dict] = field(default_factory=dict)
+    exit_criteria: Union[ExitCriteria, dict] = field(default_factory=dict)
+    H0: Any = None
+
+    def __post_init__(self):
         self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
+        self.libE_specs.update(libE_specs_parsed)
         self.persis_info = Persis_Info(self.nworkers)
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
-        self.sim_specs = {}
-        self.gen_specs = {}
-        self.alloc_specs = {}
-        self.libE_specs = libE_specs_parsed
-        self.exit_criteria = {}
-        self.H0 = None
 
     def run(self):
         """
         Initializes libEnsemble, passes in all specification dictionaries.
-        Sets Ensemble instance's output H, final persis_info state, and flag.
+        Sets Ensemble instance's output ``H``, final ``persis_info`` state, and ``flag``.
         Spec checking (and other error handling) occurs within ``libE()``.
         """
 
@@ -75,18 +74,15 @@ class Ensemble:
             alloc_specs=self.alloc_specs,
             libE_specs=self.libE_specs,
             H0=self.H0,
-            )
+        )
 
         return self.H, self.persis_info.persis_info, self.flag
 
     def _get_func(self, loaded):
-        """Extracts user function specified in loaded yaml dict"""
-        if isinstance(loaded, str):
-            func_path_split = loaded.rsplit(".", 1)
-        else:
-            return loaded
+        """Extracts user function specified in loaded dict"""
+        func_path_split = loaded.rsplit(".", 1)
+        func_name = func_path_split[-1]
         try:
-            func_name = func_path_split[-1]
             return getattr(importlib.import_module(func_path_split[0]), func_name)
         except AttributeError:
             self._util_logger.manager_warning(ATTR_ERR_MSG.format(func_name))
@@ -97,7 +93,7 @@ class Ensemble:
 
     @staticmethod
     def _get_outputs(loaded):
-        """Extracts output parameters from loaded yaml dict"""
+        """Extracts output parameters from loaded dict"""
         if not loaded:
             return []
         fields = [i for i in loaded]
@@ -120,8 +116,8 @@ class Ensemble:
     def _get_normal(loaded):
         return loaded
 
-    def _load_spec(self, loaded_spec):
-        """Parses and creates traditional libEnsemble dictionary from yaml section"""
+    def _parse_spec(self, loaded_spec):
+        """Parses and creates traditional libEnsemble dictionary from loaded dict info"""
 
         field_f = {
             "sim_f": self._get_func,
@@ -146,18 +142,28 @@ class Ensemble:
 
         return loaded_spec
 
-    def from_yaml(self, file):
-        """Parameterizes libEnsemble from yaml file"""
-
-        with open(file, "r") as f:
-            loaded = yaml.full_load(f)
-
+    def _parameterize(self, loaded):
+        """ Updates and sets attributes from specs loaded from file"""
         for field in loaded:
-            loaded_spec = self._load_spec(loaded[field])
+            loaded_spec = self._parse_spec(loaded[field])
             old_spec = getattr(self, field)
             old_spec.update(loaded_spec)
             setattr(self, field, old_spec)
 
-    def save_output(self, file):
-        """Class wrapper for save_libE_output"""
+    def from_yaml(self, file_path: str):
+        """Parameterizes libEnsemble from yaml file"""
+        with open(file_path, "r") as f:
+            loaded = yaml.full_load(f)
+
+        self._parameterize(loaded)
+
+    def from_toml(self, file_path: str):
+        """Parameterizes libEnsemble from toml file"""
+        with open(file_path, "rb") as f:
+            loaded = tomli.load(f)
+
+        self._parameterize(loaded)
+
+    def save_output(self, file: str):
+        """Class wrapper for ``save_libE_output``"""
         save_libE_output(self.H, self.persis_info, file, self.nworkers)
