@@ -19,3 +19,5 @@ gen_specs:
         x:
             type: float
             size: 1
+    user:
+        gen_batch_size: 500

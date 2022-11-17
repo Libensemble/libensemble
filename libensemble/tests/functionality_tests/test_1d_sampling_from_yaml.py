@@ -24,11 +24,10 @@ if __name__ == "__main__":
     sampling = Ensemble()
     sampling.from_yaml("1d_sampling.yaml")
 
-    sampling.gen_specs.user = {
+    sampling.gen_specs["user"].update({
         "lb": np.array([-3]),
         "ub": np.array([3]),
-        "gen_batch_size": 500,
-    }
+    })
 
     sampling.persis_info.add_random_streams()
 

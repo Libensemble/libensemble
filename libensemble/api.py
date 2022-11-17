@@ -53,11 +53,11 @@ class Ensemble:
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
-        self.sim_specs: SimSpecs = SimSpecs()
-        self.gen_specs: GenSpecs = GenSpecs()
-        self.alloc_specs: AllocSpecs = AllocSpecs()
-        self.libE_specs: LibeSpecs = LibeSpecs.parse_obj(libE_specs_parsed)
-        self.exit_criteria: ExitCriteria = ExitCriteria()
+        self.sim_specs = {}
+        self.gen_specs = {}
+        self.alloc_specs = {}
+        self.libE_specs = libE_specs_parsed
+        self.exit_criteria = {}
         self.H0 = None
 
     def run(self):
@@ -152,53 +152,11 @@ class Ensemble:
         with open(file, "r") as f:
             loaded = yaml.full_load(f)
 
-        specs = {
-            "sim_specs": SimSpecs,
-            "gen_specs": GenSpecs,
-            "alloc_specs": AllocSpecs,
-            "libE_specs": LibeSpecs,
-            "exit_criteria": ExitCriteria,
-        }
-
-        specs_out = {
-            "sim_specs": None,
-            "gen_specs": None,
-            "alloc_specs": None,
-            "libE_specs": None,
-            "exit_criteria": None,
-        }
-
-        # TODO: Replacing classes with instantiated objects???
-        for spec in loaded:
-            specs_out[spec] = specs[spec].parse_obj(self._load_spec(loaded[spec]))
-
-        # Merge data, need past as dicts first
-        sim_specs_p = self.sim_specs.dict(by_alias=True)
-        gen_specs_p = self.gen_specs.dict(by_alias=True)
-        exit_criteria_p = self.exit_criteria.dict(by_alias=True, exclude_unset=True)
-        alloc_specs_p = self.alloc_specs.dict(by_alias=True)
-        libE_specs_p = self.libE_specs.dict(by_alias=True)
-
-        # then newly updated as dicts
-        sim_specs_f = specs["sim_specs"].dict(by_alias=True)
-        gen_specs_f = specs["gen_specs"].dict(by_alias=True)
-        exit_criteria_f = specs["exit_criteria"].dict(by_alias=True, exclude_unset=True)
-        alloc_specs_f = specs["alloc_specs"].dict(by_alias=True)
-        libE_specs_f = specs["libE_specs"].dict(by_alias=True)
-
-        # then update on each
-        sim_specs_p.update(sim_specs_f)
-        gen_specs_p.update(gen_specs_f)
-        exit_criteria_p.update(exit_criteria_f)
-        alloc_specs_p.update(alloc_specs_f)
-        libE_specs_p.update(libE_specs_f)
-
-        # then set back as classes
-        self.sim_specs = SimSpecs.parse_obj(sim_specs_p)
-        self.gen_specs = GenSpecs.parse_obj(gen_specs_p)
-        self.alloc_specs = AllocSpecs.parse_obj(exit_criteria_p)
-        self.libE_specs = LibeSpecs.parse_obj(alloc_specs_p)
-        self.exit_criteria = ExitCriteria.parse_obj(libE_specs_p)
+        for field in loaded:
+            loaded_spec = self._load_spec(loaded[field])
+            old_spec = getattr(self, field)
+            old_spec.update(loaded_spec)
+            setattr(self, field, old_spec)
 
     def save_output(self, file):
         """Class wrapper for save_libE_output"""
