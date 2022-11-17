@@ -185,6 +185,7 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install psutil
             pip install pyyaml
+            pip install tomli
             pip install funcx
             pip install balsam
 
