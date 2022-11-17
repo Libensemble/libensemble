@@ -1,4 +1,5 @@
 import sys
+import json
 import yaml
 import tomli
 import logging
@@ -161,6 +162,13 @@ class Ensemble:
         """Parameterizes libEnsemble from toml file"""
         with open(file_path, "rb") as f:
             loaded = tomli.load(f)
+
+        self._parameterize(loaded)
+
+    def from_json(self, file_path: str):
+        """Parameterizes libEnsemble from json file"""
+        with open(file_path, "rb") as f:
+            loaded = json.load(f)
 
         self._parameterize(loaded)
 

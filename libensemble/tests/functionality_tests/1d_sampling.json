@@ -1,0 +1,32 @@
+{
+  "libE_specs": {
+    "save_every_k_gens": 300,
+    "safe_mode": false
+  },
+  "exit_criteria": {
+    "gen_max": 501
+  },
+  "sim_specs": {
+    "sim_f": "libensemble.sim_funcs.one_d_func.one_d_example",
+    "inputs": [
+      "x"
+    ],
+    "out": {
+      "f": {
+        "type": "float"
+      }
+    }
+  },
+  "gen_specs": {
+    "gen_f": "libensemble.gen_funcs.sampling.latin_hypercube_sample",
+    "out": {
+      "x": {
+        "type": "float",
+        "size": 1
+      }
+    },
+    "user": {
+      "gen_batch_size": 500
+    }
+  }
+}

@@ -56,8 +56,8 @@ encountered by the manager or workers, the history array is dumped to file, and
 MPI abort is called.
 
 An alternative approach to parameterizing and interacting with libEnsemble via
-``Ensemble`` objects and ``yaml`` files is available, but requires ``pyyaml``
-to be installed. The equivalent of above resembles:
+``Ensemble`` objects and ``yaml``, ``toml``, or ``json files is available, but the first two require ``pyyaml``
+or ``tomli`` to be installed respectively. The equivalent of above resembles:
 
 .. code-block:: python
     :linenos:
@@ -66,7 +66,12 @@ to be installed. The equivalent of above resembles:
     from libensemble.api import Ensemble
 
     my_experiment = Ensemble()
+
     my_experiment.from_yaml("my_parameters.yaml")
+    # or...
+    my_experiment.from_toml("my_parameters.toml")
+    # or...
+    my_experiment.from_json("my_parameters.json")
 
     my_experiment.gen_specs["user"]["lower"] = np.array([-3])
     my_experiment.gen_specs["user"]["upper"] = np.array([3])
@@ -75,30 +80,109 @@ to be installed. The equivalent of above resembles:
 
 The remaining parameters may be found in a ``yaml`` file that resembles:
 
-.. code-block:: yaml
-    :linenos:
+.. container:: toggle
 
-    libE_specs:
-        save_every_k_gens: 20
+    .. container:: header
+
+        **Click Here for my_parameters.yaml**
+
+    .. code-block:: yaml
+        :linenos:
+
+        libE_specs:
+            save_every_k_gens: 20
+
         exit_criteria:
             sim_max: 80
 
-    gen_specs:
-        function: generator.gen_random_sample
-        outputs:
-            x:
-                type: float
-                size: 1
-        user:
-            gen_batch_size: 5
+        gen_specs:
+            gen_f: generator.gen_random_sample
+            outputs:
+                x:
+                    type: float
+                    size: 1
+            user:
+                gen_batch_size: 5
 
-    sim_specs:
-        function: simulator.sim_find_sine
-        inputs:
-            - x
-        outputs:
-            y:
-                type: float
+        sim_specs:
+            sim_f: simulator.sim_find_sine
+            inputs:
+                - x
+            outputs:
+                y:
+                    type: float
+
+Or a ``toml`` file that resembles:
+
+.. container:: toggle
+
+    .. container:: header
+
+        **Click Here for my_parameters.toml**
+
+    .. code-block:: toml
+        :linenos:
+
+        [libE_specs]
+            save_every_k_gens = 300
+
+        [exit_criteria]
+            sim_max = 80
+
+        [gen_specs]
+            gen_f = "generator.gen_random_sample"
+            [gen_specs.out]
+                [gen_specs.out.x]
+                    type = "float"
+                    size = 1
+            [gen_specs.user]
+                gen_batch_size = 5
+
+        [sim_specs]
+            sim_f = "simulator.sim_find_sine"
+            inputs = ["x"]
+            [sim_specs.out]
+                [sim_specs.out.y]
+                    type = "float"
+
+Or a ``json`` file that resembles:
+
+.. container:: toggle
+
+    .. container:: header
+
+        **Click Here for my_parameters.json**
+
+    .. code-block:: json
+        :linenos:
+
+        {
+            "libE_specs": {
+                "save_every_k_gens": 300,
+            },
+            "exit_criteria": {
+                "sim_max": 80
+            },
+            "gen_specs": {
+                "gen_f": "generator.gen_random_sample",
+                "out": {
+                    "x": {
+                        "type": "float",
+                        "size": 1
+                    }
+                },
+                "user": {
+                    "gen_batch_size": 5
+                }
+            },
+            "sim_specs": {
+                "sim_f": "simulator.sim_find_sine",
+                "inputs": ["x"],
+                "out": {
+                    "f": {"type": "float"}
+                }
+            }
+    }
 
 On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``"spawn"``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in

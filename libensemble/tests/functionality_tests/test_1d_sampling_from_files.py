@@ -22,6 +22,7 @@ from libensemble.api import Ensemble
 if __name__ == "__main__":
 
     sampling = Ensemble()
+    sampling.from_json("1d_sampling.json")
     sampling.from_toml("1d_sampling.toml")
     sampling.from_yaml("1d_sampling.yaml")
 
