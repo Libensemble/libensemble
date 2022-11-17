@@ -56,7 +56,8 @@ encountered by the manager or workers, the history array is dumped to file, and
 MPI abort is called.
 
 An alternative approach to parameterizing and interacting with libEnsemble via
-``Ensemble`` objects and ``yaml``, ``toml``, or ``json files is available, but the first two require ``pyyaml``
+:class:`Ensemble<libensemble.api.Ensemble>` objects and ``yaml``, ``toml``, or ``json``
+files is available, but the first two require ``pyyaml``
 or ``tomli`` to be installed respectively. The equivalent of above resembles:
 
 .. code-block:: python
@@ -182,7 +183,7 @@ Or a ``json`` file that resembles:
                     "f": {"type": "float"}
                 }
             }
-    }
+        }
 
 On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``"spawn"``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in

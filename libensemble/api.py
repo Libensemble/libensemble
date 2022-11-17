@@ -1,4 +1,3 @@
-import sys
 import json
 import yaml
 import tomli
@@ -8,8 +7,7 @@ from typing import Union, Any
 from dataclasses import dataclass, field
 from libensemble.libE import libE
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.specs import SimSpecs, GenSpecs, AllocSpecs, LibeSpecs, ExitCriteria, EnsembleSpecs
-from libensemble.version import __version__
+from libensemble.specs import SimSpecs, GenSpecs, AllocSpecs, LibeSpecs, ExitCriteria
 from libensemble import logger
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
@@ -18,6 +16,7 @@ ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
 NOTFOUND_ERR_MSG = 'Unable to load "{}". Is the package installed or the relative path correct?'
 NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 
+
 @dataclass
 class Persis_Info:
     """
@@ -25,10 +24,11 @@ class Persis_Info:
     instance of this (with random streams) is created on initiation of an ``Ensemble``,
     since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
     """
+
     nworkers: int = 4
     persis_info = {}
 
-    def add_random_streams(self, num_streams: int=0, seed: str=""):
+    def add_random_streams(self, num_streams: int = 0, seed: str = ""):
         if num_streams:
             nstreams = num_streams
         else:
@@ -36,6 +36,7 @@ class Persis_Info:
 
         self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
         return self.persis_info
+
 
 @dataclass
 class Ensemble:
@@ -131,25 +132,25 @@ class Ensemble:
             "user": self._get_normal,
         }
 
-        userf_fields = [field for field in loaded_spec if field in field_f.keys()]
+        userf_fields = [f for f in loaded_spec if f in field_f.keys()]
 
         if len(userf_fields):
-            for field in userf_fields:
-                if field == "inputs":
-                    loaded_spec["in"] = field_f[field](loaded_spec[field])
+            for f in userf_fields:
+                if f == "inputs":
+                    loaded_spec["in"] = field_f[f](loaded_spec[f])
                     loaded_spec.pop("inputs")
                 else:
-                    loaded_spec[field] = field_f[field](loaded_spec[field])
+                    loaded_spec[f] = field_f[f](loaded_spec[f])
 
         return loaded_spec
 
     def _parameterize(self, loaded):
-        """ Updates and sets attributes from specs loaded from file"""
-        for field in loaded:
-            loaded_spec = self._parse_spec(loaded[field])
-            old_spec = getattr(self, field)
+        """Updates and sets attributes from specs loaded from file"""
+        for f in loaded:
+            loaded_spec = self._parse_spec(loaded[f])
+            old_spec = getattr(self, f)
             old_spec.update(loaded_spec)
-            setattr(self, field, old_spec)
+            setattr(self, f, old_spec)
 
     def from_yaml(self, file_path: str):
         """Parameterizes libEnsemble from yaml file"""

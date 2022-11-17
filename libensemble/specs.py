@@ -1,6 +1,5 @@
 import os
 import random
-import numpy as np
 from typing import Any, Callable, List, Optional, Tuple, Union
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
@@ -129,6 +128,7 @@ class AllocSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
     function
     """
+    # end_alloc_tag
 
 
 class ExitCriteria(BaseModel):
