@@ -12,3 +12,7 @@ or email questions to:
 or communicate (and establish a private channel, if desired) at:
 
 * https://libensemble.slack.com
+
+Or open an issue on GitHub:
+
+* https://github.com/Libensemble/libensemble
