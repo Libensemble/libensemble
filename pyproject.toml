@@ -36,8 +36,8 @@ dependencies = ["numpy==1.23.4", "psutil==5.9.4", "setuptools==65.5.1", "pydanti
 dynamic = ["version", "readme"]
 
 [project.scripts]
-liberegister = "libensemble.tools.liberegister:main"
-libesubmit = "libensemble.tools.libesubmit:main"
+liberegister = "libensemble.tools:register_main"
+libesubmit = "libensemble.tools:submit_main"
 
 [project.urls]
 Homepage = "https://github.com/Libensemble/libensemble"
