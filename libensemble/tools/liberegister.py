@@ -1,15 +1,13 @@
 #! /usr/bin/env python
 
-import os
 import sys
-import shutil
 import argparse
 from pathlib import Path
 from libensemble.version import __version__
 from libensemble.tools.parse_args import parser as callscript_parser
 
 try:
-    from psij import Job, JobSpec
+    from psij import JobSpec
     from psij.resource_spec import ResourceSpecV1
     from psij.job_attributes import JobAttributes
     from psij.serialize import Export
@@ -18,6 +16,7 @@ except ModuleNotFoundError:
     print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")
     print("     git clone https://github.com/ExaWorks/psi-j-python.git")
     print("     cd psi-j-python; pip install -e .\n")
+
 
 def main():
 
@@ -40,9 +39,7 @@ def main():
         default="libe-job.json",
     )
 
-    parser.add_argument(
-        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1
-    )
+    parser.add_argument("-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1)
 
     parser.add_argument(
         "-p",
@@ -72,9 +69,7 @@ def main():
         default="libe-job",
     )
 
-    parser.add_argument(
-        "-q", "--queue", type=str, nargs="?", help="Scheduler queue name.", default=None
-    )
+    parser.add_argument("-q", "--queue", type=str, nargs="?", help="Scheduler queue name.", default=None)
 
     parser.add_argument(
         "-A",
@@ -107,9 +102,7 @@ def main():
 
     if not jobargs.calling_script:
         parser.print_help()
-        sys.exit(
-            "\nMust supply a calling script, with the --comms and --nworkers options"
-        )
+        sys.exit("\nMust supply a calling script, with the --comms and --nworkers options")
 
     if not jobargs.calling_script.endswith(".py"):
         parser.print_help()
@@ -133,15 +126,13 @@ def main():
         resources = ResourceSpecV1(node_count=jobargs.nnodes)
     else:  # jobargs.comms == "mpi":
         arguments = [jobargs.calling_script]
-        resources = ResourceSpecV1(
-            process_count=jobargs.nworkers + 1, processes_per_node=1
-        )
+        resources = ResourceSpecV1(process_count=jobargs.nworkers + 1, processes_per_node=1)
 
     if jobargs.nsim_workers:
-        arguments.extend(['--nsim_workers', str(jobargs.nsim_workers)])
+        arguments.extend(["--nsim_workers", str(jobargs.nsim_workers)])
 
     if jobargs.nresource_sets:
-        arguments.extend(['--nresource_sets', str(jobargs.nresource_sets)])
+        arguments.extend(["--nresource_sets", str(jobargs.nresource_sets)])
 
     jobspec = JobSpec(
         name=jobargs.jobname,
@@ -160,8 +151,10 @@ def main():
     Export().export(obj=jobspec, dest=outfile_default)
     print(f"*** libEnsemble {__version__} ***")
     print(
-        f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libesubmit`."
+        f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields," +
+        "or specify job attributes on submission to `libesubmit`."
     )
+
 
 if __name__ == "__main__":
     main()

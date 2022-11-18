@@ -2,13 +2,10 @@
 
 import os
 import sys
-import time
-import shutil
 import argparse
 from pathlib import Path
 
 from libensemble.version import __version__
-from libensemble.resources import node_resources
 
 try:
     from tqdm.auto import tqdm
@@ -21,18 +18,19 @@ except ModuleNotFoundError:
 try:
     from psij import JobExecutor, Import, Export, JobSpec, Job
     from psij.resource_spec import ResourceSpecV1
-    from psij.job_attributes import JobAttributes
 except ModuleNotFoundError:
     print(f"*** libEnsemble {__version__} ***")
     print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")
     print("     git clone https://github.com/ExaWorks/psi-j-python.git")
     print("     cd psi-j-python; pip install -e .\n")
 
+
 def main():
 
     parser = argparse.ArgumentParser(
         prog="libesubmit",
-        description="Submit a libEnsemble PSI/J job representation for execution. Additional options may overwrite the input file.",
+        description="Submit a libEnsemble PSI/J job representation for execution. \
+            Additional options may overwrite the input file.",
         conflict_handler="resolve",
     )
 
@@ -61,9 +59,7 @@ def main():
         help="Parameterize and re-serialize a Job, without submitting.",
     )
 
-    parser.add_argument(
-        "-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1
-    )
+    parser.add_argument("-n", "--nnodes", type=int, nargs="?", help="Number of nodes", default=1)
 
     parser.add_argument(
         "-p",
@@ -74,9 +70,7 @@ def main():
         default=sys.executable,
     )
 
-    parser.add_argument(
-        "-q", "--queue", type=str, nargs="?", help="Scheduler queue name.", default=None
-    )
+    parser.add_argument("-q", "--queue", type=str, nargs="?", help="Scheduler queue name.", default=None)
 
     parser.add_argument(
         "-A",
@@ -132,9 +126,7 @@ def main():
     callscript = [i for i in jobspec.arguments if str(i).endswith(".py")][0]
     print(f"Calling script: {callscript}")
 
-    if callscript not in os.listdir(jobargs.directory) and not os.path.isfile(
-        callscript
-    ):
+    if callscript not in os.listdir(jobargs.directory) and not os.path.isfile(callscript):
         print("... not found in Job working directory!")
         exit = input("Check somewhere else? (Y/N): ")
         if exit.upper() != "Y":
@@ -152,7 +144,7 @@ def main():
             print(f"   {i[0]+1}. /{i[1]}")
 
         inchoice = input("Specify a starting directory: ")
-        choice = home + "/" + check_dirs[int(inchoice)-1]
+        choice = home + "/" + check_dirs[int(inchoice) - 1]
 
         def walkdir(folder):
             """Walk through every file in a directory"""
@@ -172,17 +164,13 @@ def main():
             for filepath in tqdm(walkdir(choice), total=filescount):
                 if callscript in filepath.split("/"):
                     candidate_script_paths.append(filepath)
-                    tqdm.write(
-                        f"   {len(candidate_script_paths)}. {filepath.split(choice)[1]}"
-                    )
+                    tqdm.write(f"   {len(candidate_script_paths)}. {filepath.split(choice)[1]}")
 
             exit = input("Specify a detected script: ")
             new_callscript = candidate_script_paths[int(exit) - 1]
 
         except KeyboardInterrupt:
-            exit = input(
-                "detection interrupted. ctrl+c again to exit, or specify a detected script: "
-            )
+            exit = input("detection interrupted. ctrl+c again to exit, or specify a detected script: ")
             new_callscript = candidate_script_paths[int(exit) - 1]
 
         jobspec.arguments[jobspec.arguments.index(callscript)] = new_callscript
@@ -191,13 +179,9 @@ def main():
         print("...found! Proceeding.")
 
     # Little bit strange I have to re-initialize this class to re-serialize
-    if not jobspec.resources[
-        "node_count"
-    ]:  # running with MPI - need corresponding executor
+    if not jobspec.resources["node_count"]:  # running with MPI - need corresponding executor
         jobspec.resources = ResourceSpecV1(
-            process_count=jobspec.resources["process_count"],
-            processes_per_node=1,
-            cpu_cores_per_process=64
+            process_count=jobspec.resources["process_count"], processes_per_node=1, cpu_cores_per_process=64
         )
         jobspec.launcher = choices[jobargs.scheduler]
     else:
@@ -227,6 +211,7 @@ def main():
     if jobargs.wait:
         print("Waiting on Job completion...")
         job.wait()
+
 
 if __name__ == "__main__":
     main()

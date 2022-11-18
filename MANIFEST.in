@@ -8,7 +8,7 @@ include install/*
 recursive-include libensemble *
 recursive-include scripts *
 recursive-include examples *
-recursive-exclude * /__pycache__
+recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * cov_*/*
 recursive-exclude * *.o
