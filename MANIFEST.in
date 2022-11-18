@@ -2,18 +2,22 @@ include setup.py
 include *.cfg
 include *.rst
 include LICENSE
-include CONTRIBUTING
+include CONTRIBUTING.rst
 include install/*
-include .flake8
 
 recursive-include libensemble *
 recursive-include scripts *
 recursive-include examples *
-recursive-exclude * __pycache__
+recursive-exclude * /__pycache__
 recursive-exclude * *.py[co]
-recursive-exclude * cov_*
+recursive-exclude * cov_*/*
 recursive-exclude * *.o
+recursive-exclude * *.out
 recursive-exclude * *.npy
 recursive-exclude * *.gitignore
+recursive-exclude * *.html
+recursive-exclude * .DS_Store
+recursive-exclude * .ipynb_checkpoints
 
-recursive-include docs *
+include docs
+exclude docs/_build

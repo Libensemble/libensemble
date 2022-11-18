@@ -78,28 +78,6 @@ testing = [
     "python-dateutil==2.8.2"
 ]
 
-[tool.setuptools.packages.find]
-include = [
-    "libensemble/*",
-    "scripts/*",
-    "examples/*",
-    "setup.py",
-    "*.cfg",
-    "*.rst",
-    "LICENSE",
-    "CONTRIBUTING",
-    "install/*"
-]
-
-exclude = [
-    "*/__pycache__",
-    "*/*.py[co]",
-    "*/cov_*",
-    "*/*.o",
-    "*/*.npy",
-    "*/*.gitignore"
-]
-
 [tool.setuptools.package-data]
 "libensemble.sim_funcs.branin" = ["known_minima_and_func_values"]
 
