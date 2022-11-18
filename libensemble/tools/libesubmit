@@ -28,7 +28,7 @@ except ModuleNotFoundError:
     print("     git clone https://github.com/ExaWorks/psi-j-python.git")
     print("     cd psi-j-python; pip install -e .\n")
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser(
         prog="libesubmit",
@@ -227,3 +227,6 @@ if __name__ == "__main__":
     if jobargs.wait:
         print("Waiting on Job completion...")
         job.wait()
+
+if __name__ == "__main__":
+    main()

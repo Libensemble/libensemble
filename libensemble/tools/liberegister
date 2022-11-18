@@ -19,7 +19,7 @@ except ModuleNotFoundError:
     print("     git clone https://github.com/ExaWorks/psi-j-python.git")
     print("     cd psi-j-python; pip install -e .\n")
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser(
         prog="liberegister",
@@ -162,3 +162,6 @@ if __name__ == "__main__":
     print(
         f"Exported PSI/J serialization: {outfile_default}\nOptionally adjust any fields, or specify job attributes on submission to `libesubmit`."
     )
+
+if __name__ == "__main__":
+    main()
