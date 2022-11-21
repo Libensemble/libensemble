@@ -29,11 +29,10 @@
 Introduction to libEnsemble
 ===========================
 
-libEnsemble is a Python_ toolkit for connecting and coordinating "outer loops" or "deciders" with experiments or simulations.
+libEnsemble is a Python_ toolkit for connecting and coordinating "outer loops" or "deciders" with multiple concurrent experiments or simulations.
 
-libEnsemble can manage massively parallel resources to solve design, decision, and inference problems and help developers or researchers benefit from reserving more resources.
-
-libEnsemble aims for:
+libEnsemble can manage massively parallel resources to help solve design, decision,
+and inference problems.
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
 • **Adaptive Ensembles**: Generate multiple new tasks on-the-fly based on previous computations.
@@ -122,8 +121,6 @@ See the `user guide`_ for more information.
 Installation
 ============
 
-libEnsemble can be installed or accessed from a variety of sources.
-
 Install libEnsemble and its dependencies from PyPI_ using pip::
 
     pip install libensemble
@@ -137,8 +134,8 @@ Install libEnsemble using the Spack_ distribution::
 
     spack install py-libensemble
 
-libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_
-from xSDK version 0.5.0 onward. Install the xSDK and load the environment with::
+libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_.
+Install the xSDK and load the environment with::
 
     spack install xsdk
     spack load -r xsdk
@@ -153,7 +150,7 @@ libEnsemble performs best on Unix-like systems like Linux and macOS. See the
 
 **Required dependencies**:
 
-* Python_ 3.7 or above
+* Python_ 3.8 or above
 * NumPy_
 * psutil_
 * setuptools_
@@ -166,12 +163,12 @@ When using  ``mpi4py`` for libEnsemble communications:
 
 **Optional dependencies**:
 
-* Balsam_
-* pyyaml_
-* funcX_
-* `psi-j-python`_
+* Balsam_ - Manage and submit applications to the Balsam service with our BalsamExecutor
+* pyyaml_ - Parameterize libEnsemble via yaml
+* funcX_ - Submit function instances to remote funcX endpoints
+* `psi-j-python`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
-The example simulation and generation functions and tests require the following:
+**Integration Dependencies**:
 
 * SciPy_
 * mpmath_
