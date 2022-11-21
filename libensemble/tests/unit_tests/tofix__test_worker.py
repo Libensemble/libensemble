@@ -14,7 +14,7 @@ def test_worker_init_run():
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
     L = exit_criteria["sim_max"]
-    # H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs['out'] + gen_specs['out'] + alloc_specs['out'])))
+    # H = np.zeros(L + len(H0), dtype=list(set(libE_fields + sim_specs["out"] + gen_specs["out"] + alloc_specs["out"])))
     H = np.zeros(L, dtype=list(set(libE_fields + sim_specs["out"] + gen_specs["out"])))
 
     # check

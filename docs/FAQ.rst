@@ -13,7 +13,8 @@ Common Errors
 running with multiprocessing and multiple workers specified.**
 
 If your calling script code was recently switched from MPI to multiprocessing,
-make sure that ``libE_specs`` is populated with ``comms: local`` and ``nworkers: [num]``.
+make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated
+with ``"comms": "local"`` and ``"nworkers": [int]``.
 
 **"AssertionError: alloc_f did not return any work, although all workers are idle."**
 
@@ -57,16 +58,16 @@ You may have set `enforce_worker_core_bounds` to True when setting
 up the Executor. Also, the resource manager can be completely disabled
 with::
 
-    libE_specs['disable_resource_manager'] = True
+    libE_specs["disable_resource_manager"] = True
 
 Note that the Executor ``submit()`` method has a parameter ``hyperthreads``
 which will attempt to use all hyperthreads/SMT threads available if set to ``True``.
 
-**FileExistsError: [Errno 17] File exists: './ensemble'**
+**FileExistsError: [Errno 17] File exists: "./ensemble"**
 
 This can happen when libEnsemble tries to create ensemble or simulation directories
 that already exist from previous runs. To avoid this, ensure the ensemble directory
-paths are unique by appending some unique value to ``libE_specs['ensemble_dir_path']``
+paths are unique by appending some unique value to ``libE_specs["ensemble_dir_path"]``
 
 **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
@@ -117,9 +118,9 @@ environment variables::
 
 Alternatively, libEnsemble can be run in central mode where all workers run on dedicated
 nodes while launching all tasks onto other nodes. To do this add a node for libEnsemble,
-and add ``libE_specs['dedicated_mode'] = True`` to your calling script.
+and add ``libE_specs["dedicated_mode"] = True`` to your calling script.
 
-**What does "_pickle.UnpicklingError: invalid load key, '\x00'." indicate?**
+**What does "_pickle.UnpicklingError: invalid load key, "\x00"." indicate?**
 
 This has been observed with the OFA fabric when using mpi4py and usually
 indicates MPI messages aren't being received correctly. The solution
@@ -128,7 +129,7 @@ does libEnsemble hang on certain systems when running with MPI?"
 
 For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
 
-**Error in `<PATH>/bin/python': break adjusted to free malloc space: 0x0000010000000000**
+**Error in `<PATH>/bin/python": break adjusted to free malloc space: 0x0000010000000000**
 
 This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
 Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
@@ -177,7 +178,7 @@ libEnsemble Help
 
 This is most easily addressed when running libEnsemble locally. Try
 
- ``mpiexec -np [num processes] xterm -e 'python [calling script].py'``
+ ``mpiexec -np [num processes] xterm -e "python [calling script].py"``
 
 to launch an xterm terminal window specific to each process. Mac users will
 need to install xQuartz_.
@@ -200,11 +201,11 @@ for manager/worker communications.
 **How can I disable libEnsemble's output files?**
 
 To disable ``libe_stats.txt`` and ``ensemble.log``, which libEnsemble typically
-always creates, set ``libE_specs['disable_log_files']`` to ``True``.
+always creates, set ``libE_specs["disable_log_files"]`` to ``True``.
 
 If libEnsemble aborts on an exception, the History array and ``persis_info``
 dictionaries will be dumped. This can be suppressed by
-setting ``libE_specs['save_H_and_persis_on_abort']`` to ``False``.
+setting ``libE_specs["save_H_and_persis_on_abort"]`` to ``False``.
 
 See :doc:`here<history_output_logging>` for more information about these files.
 
@@ -215,7 +216,7 @@ to stderr automatically. To disable this, set the minimum stderr displaying leve
 to ``CRITICAL`` via the following::
 
     from libensemble import logger
-    logger.set_stderr_level('CRITICAL')
+    logger.set_stderr_level("CRITICAL")
 
 This effectively puts libEnsemble in silent mode.
 
@@ -228,9 +229,10 @@ macOS and Windows Errors
 
 **Can I run libEnsemble on Windows**
 
-Although we run many libEnsemble workflows successfully on Windows using both MPI and local comms, we do not
-rigorously support Windows, and recommend unix-like systems as a preference. Windows tends to produce more
-platform-specific issues that are difficult to reproduce and troubleshoot.
+Although we have run many libEnsemble workflows successfully on Windows using
+both MPI and local comms, Windows is not rigorously supported. We highly
+recommend Unix-like systems. Windows tends to produce more platform-specific
+issues that are difficult to reproduce and troubleshoot.
 
 Feel free to check our `Github Actions`_ page to see what tests we run regularly on Windows.
 
@@ -238,40 +240,44 @@ Feel free to check our `Github Actions`_ page to see what tests we run regularly
 
 **Windows - How can I run libEnsemble with MPI comms?**
 
-We have run workflows with MPI comms. However, as most MPI distributions have either dropped Windows support
- (MPICH and Open MPI) or are no longer being maintained (``msmpi``), we cannot guarantee success.
+We have run Windows workflows with MPI comms. However, as most MPI
+distributions have either dropped Windows support (MPICH and Open MPI) or are
+no longer being maintained (``msmpi``), we cannot guarantee success.
 
-If users wish to try, we recommend experimenting with the many Unix-like emulators, containers, virtual machines,
-and other such systems. The `Installing PETSc On Microsoft Windows`_ documentation contains valuable information.
+If users wish to try, we recommend experimenting with the many Unix-like
+emulators, containers, virtual machines, and other such systems. The
+`Installing PETSc On Microsoft Windows`_ documentation contains valuable
+information.
 
 Otherwise, install ``msmpi`` and ``mpi4py`` from conda and experiment, or use ``local`` comms.
 
 .. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
 
-**Windows - 'A required privilege is not held by the client'**
+**Windows - "A required privilege is not held by the client"**
 
 Assuming you were trying to use the ``sim_dir_symlink_files`` or ``gen_dir_symlink_files`` options, this indicates that to
 allow libEnsemble to create symlinks, you need to run your current ``cmd`` shell as administrator.
 
 **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
-" if __name__ == '__main__': freeze_support() ...**
+" if __name__ == "__main__": freeze_support() ...**
 
 You need to place your main calling script code underneath an ``if __name__ == "__main__":`` block.
 
 Explanation: Python chooses one of three methods to start new processes when using multiprocessing
-(``--comms local`` with libEnsemble). These are ``'fork'``, ``'spawn'``, and ``'forkserver'``. ``'fork'``
-is the default on Unix, and in our experience is quicker and more reliable, but ``'spawn'`` is the default
+(``--comms local`` with libEnsemble). These are ``"fork"``, ``"spawn"``, and ``"forkserver"``. ``"fork"``
+is the default on Unix, and in our experience is quicker and more reliable, but ``"spawn"`` is the default
 on Windows and macOS (See the `Python multiprocessing docs`_).
 
 Prior to libEnsemble v0.9.2, if libEnsemble detected macOS, it would automatically switch the multiprocessing
-method to ``'fork'``. We decided to stop doing this to avoid overriding defaults and compatibility issues with
+method to ``"fork"``. We decided to stop doing this to avoid overriding defaults and compatibility issues with
 some libraries.
 
-If you'd prefer to use ``'fork'`` or not reformat your code, you can set the multiprocessing start method via
-the following, placed near the top of your calling script::
+If you'd prefer to use ``"fork"`` or not reformat your code, you can set the
+multiprocessing start method by placing
+the following near the top of your calling script::
 
   import multiprocessing
-  multiprocessing.set_start_method('fork', force=True)
+  multiprocessing.set_start_method("fork", force=True)
 
 .. _`Python multiprocessing docs`: https://docs.python.org/3/library/multiprocessing.html
 
@@ -289,13 +295,13 @@ System Preferences -> Security & Privacy -> Firewall -> Turn Off Firewall.
 Alternatively, adding a firewall "Allow incoming connections" rule can be
 attempted for the offending executable. We've had limited success running
 ``sudo codesign --force --deep --sign - /path/to/application.app``
-on our Executor executables, then confirming the next alerts for the executable
+on our executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
 
 **Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``
 
 Following a failed wheel build for PETSc, the installation process may freeze when
 attempting to configure PETSc with the local Fortran compiler if it doesn't exist.
-Run the above command again after disabling Fortran configuring with ``export PETSC_CONFIGURE_OPTIONS='--with-fc=0'``.
+Run the above command again after disabling Fortran configuring with ``export PETSC_CONFIGURE_OPTIONS="--with-fc=0"``.
 The wheel build will still fail, but PETSc and petsc4py should still install
 successfully via ``setup.py`` after some time.

@@ -1,3 +1,5 @@
+.. _running-libe:
+
 Running libEnsemble
 ===================
 
@@ -65,7 +67,7 @@ where ``N`` is the number of workers. This will launch one manager and
 ``N`` workers.
 
 libEnsemble will run on one node in this scenario. If the user wants to dedicate the node
-to just the libEnsemble manager and workers, the ``libE_specs['dedicated_mode']`` option
+to just the libEnsemble manager and workers, the ``libE_specs["dedicated_mode"]`` option
 can be set (see :doc:`central mode<platforms/platforms_index>`).
 
 This mode is often used to run on a **launch** node of a three-tier
@@ -89,29 +91,14 @@ TCP Comms
 
 The TCP option can be used to run the Manager on one system and launch workers to remote
 systems or nodes over TCP. The necessary configuration options can be provided through
-``libE_specs``, or on the command line if you are using the :doc:`parse_args()<utilities>` function.
-
-The ``libE_specs`` options for TCP are::
-
-    'comms' [string]:
-        'tcp'
-    'nworkers' [int]:
-        Number of worker processes to spawn
-    'workers' list:
-        A list of worker hostnames.
-    'ip' [String]:
-        IP address
-    'port' [int]:
-        Port number.
-    'authkey' [String]:
-        Authkey.
+:class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line if you are using the :doc:`parse_args()<utilities>` function.
 
 Reverse-ssh interface
 ^^^^^^^^^^^^^^^^^^^^^
 
-Via specifying ``--comms ssh`` on the command line, libEnsemble workers can
-be launched to remote ssh-accessible systems without needing to specify ``'port'`` or ``'authkey'``. This allows users
-to colocate workers, simulation or generator functions, and any applications they submit on the same machine. Such user
+By specifying ``--comms ssh`` on the command line, libEnsemble workers can
+be launched to remote ssh-accessible systems without needing to specify ``"port"`` or ``"authkey"``. This allows users
+to colocate workers, simulation, or generator functions, and any applications they submit on the same machine. Such user
 functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
 
 The working directory and Python to run on the remote system need to be specified. Running a calling script may resemble::
@@ -150,13 +137,13 @@ a calling script in a familiar manner::
 
     liberegister my_calling_script.py --comms local --nworkers 4
 
-This produces an initial `my_calling_script.json` serialization conforming to PSI/J's specification:
+This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
 
 .. container:: toggle
 
     .. container:: header
 
-       `my_calling_script.json`
+       ``my_calling_script.json``
 
     .. code-block:: JSON
 
@@ -209,7 +196,7 @@ Running ``qsub``, ``sbatch``, etc. on some batch submission script is not needed
 
 Results in::
 
-    *** libEnsemble 0.9.2+dev ***
+    *** libEnsemble 0.9.3 ***
     Imported PSI/J serialization: my_calling_script.json. Preparing submission...
     Calling script: my_calling_script.py
     ...found! Proceeding.
@@ -226,7 +213,7 @@ This also produces a Job-specific representation, e.g:
 
     .. container:: header
 
-       `8ba9de56.my_calling_script.json`
+      ``8ba9de56.my_calling_script.json``
 
     .. code-block:: JSON
 

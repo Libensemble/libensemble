@@ -2,7 +2,7 @@ import os
 import pytest
 import shutil
 import numpy as np
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 

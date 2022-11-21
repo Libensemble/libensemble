@@ -99,7 +99,7 @@ cancelled ("obviated"). If so, the generator then calls ``cancel_columns()``::
     if select_condition(pending):
         new_theta, info = select_next_theta(step_add_theta, cal, emu, pending, n_explore_theta)
         ...
-        c_obviate = info['obviatesugg']  # suggested
+        c_obviate = info["obviatesugg"]  # suggested
         if len(c_obviate) > 0:
             cancel_columns(obs_offset, c_obviate, n_x, pending, ps)
 
@@ -147,10 +147,10 @@ The allocation function used in this example is the *only_persistent_gens* funct
 
 .. code-block:: python
 
-    alloc_specs = {'alloc_f': alloc_f,
-                   'user': {'init_sample_size': init_sample_size,
-                            'async_return': True,
-                            'active_recv_gen': True
+    alloc_specs = {"alloc_f": alloc_f,
+                   "user": {"init_sample_size": init_sample_size,
+                            "async_return": True,
+                            "active_recv_gen": True
                             }
                    }
 
@@ -163,7 +163,7 @@ This is calculated from other parameters in the calling script.
 **active_recv_gen** allows the persistent generator to handle irregular communications (see below).
 
 By default, workers (including persistent workers), are only
-allocated work when they're in an :doc:`idle or non-active state<../data_structures/worker_array>`.
+allocated work when they're in an :ref:`idle or non-active state<funcguides-workerarray>`.
 However, since this generator must asynchronously update its model, the worker
 running this generator remains in an *active receive* state, until it becomes
 non-persistent. This means both the manager and persistent worker (generator in
@@ -175,30 +175,30 @@ this case) must be prepared for irregular sending/receiving of data.
 .. Between routines to call the allocation function and distribute allocated work
 .. to each Worker, the Manager selects points from the History array that are:
 ..
-..     1) Marked as ``'sim_started'`` by the allocation function
-..     2) Marked with ``'cancel_requested'`` by the generator
-..     3) *Not* been marked as ``'sim_ended'`` by the Manager
-..     4) *Not* been marked with ``'kill_sent'`` by the Manager
+..     1) Marked as ``"sim_started"`` by the allocation function
+..     2) Marked with ``"cancel_requested"`` by the generator
+..     3) *Not* been marked as ``"sim_ended"`` by the Manager
+..     4) *Not* been marked with ``"kill_sent"`` by the Manager
 ..
 .. If any points match these characteristics, the Workers that are processing these
-.. points are sent ``STOP`` tags and a kill signal. ``'kill_sent'``
+.. points are sent ``STOP`` tags and a kill signal. ``"kill_sent"``
 .. is set to ``True`` for each of these points in the Manager's History array. During
 .. the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-.. function calls, any points in the Manager's History array that have ``'cancel_requested'``
+.. function calls, any points in the Manager's History array that have ``"cancel_requested"``
 .. as ``True`` are not allocated::
 ..
-..     task_avail = ~H['sim_started'] & ~H['cancel_requested']
+..     task_avail = ~H["sim_started"] & ~H["cancel_requested"]
 ..
 .. This ``alloc_f`` also can prioritize allocating points that have
-.. higher ``'priority'`` values from the ``gen_f`` values in the local History array::
+.. higher ``"priority"`` values from the ``gen_f`` values in the local History array::
 ..
 ..     # Loop through available simulation workers
 ..     for i in support.avail_worker_ids(persistent=False):
 ..
 ..         if np.any(task_avail):
-..             if 'priority' in H.dtype.fields:
-..                 priorities = H['priority'][task_avail]
-..                 if alloc_specs['user'].get('give_all_with_same_priority'):
+..             if "priority" in H.dtype.fields:
+..                 priorities = H["priority"][task_avail]
+..                 if alloc_specs["user"].get("give_all_with_same_priority"):
 ..                     indexes = (priorities == np.max(priorities))
 ..                 else:
 ..                     indexes = np.argmax(priorities)
@@ -213,11 +213,11 @@ this case) must be prepared for irregular sending/receiving of data.
 .. and then enters a routine to loop and check for signals from the Manager::
 ..
 ..     def subproc_borehole_func(H, subp_opts, libE_info):
-..         sim_id = libE_info['H_rows'][0]
-..         H_o = np.zeros(H.shape[0], dtype=sim_specs['out'])
+..         sim_id = libE_info["H_rows"][0]
+..         H_o = np.zeros(H.shape[0], dtype=sim_specs["out"])
 ..         ...
 ..         exctr = Executor.executor
-..         task = exctr.submit(app_name='borehole', app_args=args, stdout='out.txt', stderr='err.txt')
+..         task = exctr.submit(app_name="borehole", app_args=args, stdout="out.txt", stderr="err.txt")
 ..         calc_status = polling_loop(exctr, task, sim_id)
 ..
 .. where ``polling_loop()`` resembles the following::
@@ -237,7 +237,7 @@ this case) must be prepared for irregular sending/receiving of data.
 ..                 task.poll()
 ..                 time.sleep(poll_interval)
 ..
-..         if task.state == 'FAILED':
+..         if task.state == "FAILED":
 ..             calc_status = TASK_FAILED
 ..
 ..         return calc_status
@@ -263,7 +263,7 @@ that were marked as cancelled::
                                 libE_specs=libE_specs)
 
     if is_manager:
-        print('Cancelled sims', H['cancel_requested'])
+        print("Cancelled sims", H["cancel_requested"])
 
 Here's an example graph showing the relationship between scheduled, cancelled (obviated),
 failed, and completed simulations requested by the ``gen_f``. Notice that for each

@@ -1,3 +1,5 @@
+.. _examples-alloc:
+
 Allocation Functions
 ====================
 
@@ -6,7 +8,8 @@ Below are example allocation functions available in libEnsemble.
 .. IMPORTANT::
   See the API for allocation functions :ref:`here<api_alloc_f>`.
 
-.. note:: The default alloc_func is give_sim_work_first.
+.. note::
+   The default allocation function is ``give_sim_work_first``.
 
 .. role:: underline
     :class: underline
@@ -71,6 +74,6 @@ start_only_persistent
 
 start_persistent_local_opt_gens
 -------------------------------
-.. automodule:: start_persistent_local_opt_gens
+.. automodule:: libensemble.alloc_funcs.start_persistent_local_opt_gens
   :members:
   :undoc-members:

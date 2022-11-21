@@ -71,7 +71,7 @@ setup(
         "libensemble.tests.regression_tests",
     ],
     package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
-    install_requires=["numpy", "psutil", "setuptools"],
+    install_requires=["numpy", "psutil", "setuptools", "pydantic"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
@@ -82,21 +82,23 @@ setup(
     ],
     extras_require={
         "extras": [
-            "pyyaml",
-            "scipy",
-            "nlopt",
+            "ax-platform",
+            "DFO-LS",
+            "dragonfly-opt",
+            "funcx",
             "mpi4py",
+            "mpmath",
+            "nlopt",
             "petsc",
             "petsc4py",
-            "DFO-LS",
-            "mpmath",
-            "dragonfly-opt",
-            "ax-platform",
+            "pyyaml",
+            "scipy",
         ],
         "docs": [
+            "autodoc_pydantic",
             "sphinx",
-            "sphinxcontrib.bibtex",
             "sphinx_rtd_theme",
+            "sphinxcontrib.bibtex",
         ],
     },
     scripts=[

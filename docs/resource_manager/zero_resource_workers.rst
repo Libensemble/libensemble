@@ -19,7 +19,6 @@ following.
         :scale: 40
         :align: center
 
-
 To avoid the the wasted node above, add an extra worker::
 
     python run_ensemble_persistent_gen.py --comms local --nworkers 4
@@ -30,7 +29,7 @@ number of resource sets to the number of workers that will be running simulation
 .. code-block:: python
 
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs['num_resource_sets'] = nworkers - 1
+    libE_specs["num_resource_sets"] = nworkers - 1
 
 When the ``num_resource_sets`` option is used, libEnsemble will use the dynamic
 resource scheduler, and any worker may assign work to any node. This works well
@@ -50,8 +49,8 @@ This would automatically set the ``num_resource_sets`` option and add a single
 worker for the persistent generator - a common use-case.
 
 In general, the number of resource sets should be set to enable the maximum
-concurrency desired by the ensemble, taking in to account generators and simulators.
-The users can set generator resources by setting ``persis_info['gen_resources']``
+concurrency desired by the ensemble, taking into account generators and simulators.
+The users can set generator resources by setting ``persis_info["gen_resources"]``
 to an integer value, representing the number of resource sets to give to the
 generator. The default is zero.
 
@@ -67,11 +66,9 @@ Placing zero-resource functions on a fixed worker
 If the generator must must always be on worker one, then instead of using
 ``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
 
-
 .. code-block:: python
 
-    libE_specs['zero_resource_workers'] = [1]
-
+    libE_specs["zero_resource_workers"] = [1]
 
 in the calling script and worker one will not be allocated resources. In general,
 set the parameter ``zero_resource_workers`` to a list of worker IDs that should not

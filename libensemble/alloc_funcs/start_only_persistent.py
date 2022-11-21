@@ -6,12 +6,12 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but
-    otherwise start up to ``alloc_specs['user']['num_active_gens']``
+    otherwise start up to ``alloc_specs["user"]["num_active_gens"]``
     persistent generators (defaulting to one).
 
     By default, evaluation results are given back to the generator once
     all generated points have been returned from the simulation evaluation.
-    If ``alloc_specs['user']['async_return']`` is set to True, then any
+    If ``alloc_specs["user"]["async_return"]`` is set to True, then any
     returned points are given back to the generator.
 
     If any workers are marked as zero_resource_workers, then these will only
@@ -22,7 +22,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     **User options**:
 
-    To be provided in calling script: E.g., ``alloc_specs['user']['async_return'] = True``
+    To be provided in calling script: E.g., ``alloc_specs["user"]["async_return"] = True``
 
     init_sample_size: int, optional
         Initial sample size - always return in batch. Default: 0
@@ -50,7 +50,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs['user'] as user.
+    # Initialize alloc_specs["user"] as user.
     user = alloc_specs.get("user", {})
     manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications
@@ -132,11 +132,11 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     placed into a persistent state that will be maintained until libE is exited.
 
     Otherwise, zero resource workers will be given up to a maximum of
-    ``alloc_specs['user']['num_active_gens']`` persistent generators (defaulting to one).
+    ``alloc_specs["user"]["num_active_gens"]`` persistent generators (defaulting to one).
 
     By default, evaluation results are given back to the generator once
     all generated points have been returned from the simulation evaluation.
-    If ``alloc_specs['user']['async_return']`` is set to True, then any
+    If ``alloc_specs["user"]["async_return"]`` is set to True, then any
     returned points are given back to the generator.
 
     If any of the persistent generators has exited, then ensemble shutdown
@@ -148,7 +148,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
     **User options**:
 
-    To be provided in calling script: E.g., ``alloc_specs['user']['async_return'] = True``
+    To be provided in calling script: E.g., ``alloc_specs["user"]["async_return"] = True``
 
     init_sample_size: int, optional
         Initial sample size - always return in batch. Default: 0
@@ -172,7 +172,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs['user'] as user.
+    # Initialize alloc_specs["user"] as user.
     user = alloc_specs.get("user", {})
     manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications

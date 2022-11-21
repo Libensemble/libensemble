@@ -1,5 +1,5 @@
 APOSMM
------------------
+------
 
 Asynchronously Parallel Optimization Solver for finding Multiple Minima
 (APOSMM) coordinates concurrent local optimization runs in order to identify
@@ -21,7 +21,7 @@ add the following lines in that calling script, before importing APOSMM::
 
 Where ``optimizers`` is a string (or list of strings) from the available options:
 
-``'petsc'``, ``'nlopt'``, ``'dfols'``, ``'scipy'``, ``'external'``
+``"petsc"``, ``"nlopt"``, ``"dfols"``, ``"scipy"``, ``"external"``
 
 To see the optimization algorithms supported, see `LocalOptInterfacer`_.
 

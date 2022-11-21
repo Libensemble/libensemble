@@ -42,7 +42,7 @@ from libensemble.executors.executor import Executor
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
-# logger.set_level('DEBUG')  # To get debug logging in ensemble.log
+# logger.set_level("DEBUG")  # To get debug logging in ensemble.log
 
 if __name__ == "__main__":
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # Subprocess variant creates input and output files for each sim
     libE_specs["sim_dirs_make"] = True  # To keep all - make sim dirs
-    # libE_specs['use_worker_dirs'] = True  # To overwrite - make worker dirs only
+    # libE_specs["use_worker_dirs"] = True  # To overwrite - make worker dirs only
 
     # Rename ensemble dir for non-inteference with other regression tests
     libE_specs["ensemble_dir_path"] = "ensemble_calib_kills"

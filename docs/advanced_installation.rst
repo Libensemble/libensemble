@@ -8,7 +8,7 @@ offer a trade-off between convenience and the ability
 to customize builds, including platform-specific optimizations.
 
 Further recommendations for selected HPC systems are given in the
-:doc:`HPC platform guides<platforms/platforms_index>`.
+:ref:`HPC platform guides<platform-index>`.
 
 pip
 ---

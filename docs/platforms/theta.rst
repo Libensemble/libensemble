@@ -212,10 +212,10 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     export EXE=calling_script.py
 
     # Communication Method
-    export COMMS='--comms local'
+    export COMMS="--comms local"
 
     # Number of workers.
-    export NWORKERS='--nworkers 128'
+    export NWORKERS="--nworkers 128"
 
     # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1

@@ -164,7 +164,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
         launch_shc = True
         calc_status = UNSET_TAG
 
-        # This is temp - return something - so doing six_hump_camel_func again...
+        # Comparing six_hump_camel output, directly called vs. submitted as app
         for i, x in enumerate(H["x"]):
             H_o["f"][i] = six_hump_camel_func(x)
             if launch_shc:

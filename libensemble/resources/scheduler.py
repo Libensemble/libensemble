@@ -40,18 +40,18 @@ class ResourceScheduler:
             A resources object. If present overrides the class variable.
 
         sched_opts: dict, optional
-            A dictionary of scheduler options. Passed via ``libE_specs['scheduler_opts']``
+            A dictionary of scheduler options. Passed via ``libE_specs["scheduler_opts"]``
 
 
         The supported fields for sched_opts are::
 
-            'split2fit' [boolean]:
+            "split2fit" [boolean]:
                 Try to split resource sets across more nodes if space is not currently
                 available on the minimum node count required. Allows more efficient
                 scheduling.
                 Default: True
 
-            'match_slots' [boolean]:
+            "match_slots" [boolean]:
                 When splitting resource sets across multiple nodes, slot IDs must match.
                 Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
                 to specific slots counts, which should match over multiple nodes.

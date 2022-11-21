@@ -31,11 +31,9 @@ if __name__ == "__main__":
 
     if libE_specs["comms"] != "mpi":
         sys.exit("This test only runs with MPI -- aborting...")
-        # After this check will remove libE_specs['comms']
+        # After this check will remove libE_specs["comms"]
     else:
         from mpi4py import MPI
-
-    libE_specs = None  # Let MPI use defaults
 
     # Check independence of default communicator from MPI.COMM_WORLD
     world = MPI.COMM_WORLD
@@ -64,10 +62,10 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 501}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
     if is_manager:
-        # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+        # assert libE_specs["comms"] == "mpi", "MPI default comms should be set"
         # Potential to cause a hang
         worker_ids = []
         exp_worker_ids = list(range(1, nworkers + 1))

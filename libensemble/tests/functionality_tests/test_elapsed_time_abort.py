@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"elapsed_wallclock_time": 1}  # Intentionally using deprecated term. Use wallclock_max instead.
+    exit_criteria = {"wallclock_max": 1}
 
     # Perform the run
     H, persis_info, flag = libE(

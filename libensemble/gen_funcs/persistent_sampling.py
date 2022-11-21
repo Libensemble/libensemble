@@ -16,7 +16,7 @@ __all__ = [
 def persistent_uniform(H, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns
-    ``gen_specs['initial_batch_size']`` uniformly sampled points the first time it
+    ``gen_specs["initial_batch_size"]`` uniformly sampled points the first time it
     is called. Afterwards, it returns the number of points given. This can be
     used in either a batch or asynchronous mode by adjusting the allocation
     function.
@@ -52,8 +52,8 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
 
 def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, libE_info):
     """
-    Generates points uniformly over the domain defined by ``gen_specs['user']['ub']`` and
-    ``gen_specs['user']['lb']``. Also randomly requests a different number of resource
+    Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
+    ``gen_specs["user"]["lb"]``. Also randomly requests a different number of resource
     sets to be used in the evaluation of the generated points after the initial batch.
 
     .. seealso::
@@ -77,7 +77,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
     tag, Work, calc_in = ps.send_recv(H_o)
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        # H_o['x'] = len(H)*np.ones(n)
+        # H_o["x"] = len(H)*np.ones(n)
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
         H_o["priority"] = 10 * H_o["resource_sets"]

@@ -157,6 +157,7 @@ libEnsemble performs best on Unix-like systems like Linux and macOS. See the
 * NumPy_
 * psutil_
 * setuptools_
+* pydantic_
 
 When using  ``mpi4py`` for libEnsemble communications:
 
@@ -215,7 +216,7 @@ Resources
     author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
                David Bindel and John-Luke Navarro},
     institution = {Argonne National Laboratory},
-    number  = {Revision 0.9.2+dev},
+    number  = {Revision 0.9.3},
     year    = {2022},
     url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
   }
@@ -306,6 +307,7 @@ See a complete list of `example user scripts`_.
 .. _PSI/J: https://exaworks.org/psij
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
+.. _pydantic: https://pydantic-docs.helpmanual.io/
 .. _PyPI: https://pypi.org
 .. _pytest-cov: https://pypi.org/project/pytest-cov/
 .. _pytest-timeout: https://pypi.org/project/pytest-timeout/

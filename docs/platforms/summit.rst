@@ -86,16 +86,16 @@ To express this line in the ``submit`` function may look
 something like the following::
 
     exctr = Executor.executor
-    task = exctr.submit(app_name='mycode',
+    task = exctr.submit(app_name="mycode",
                         num_procs=3,
-                        extra_args='-a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"'
+                        extra_args="-a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu""
                         app_args="-i input")
 
 This would be equivalent to::
 
     exctr = Executor.executor
-    task = exctr.submit(app_name='mycode',
-                        extra_args='-n 3 -a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu"'
+    task = exctr.submit(app_name="mycode",
+                        extra_args="-n 3 -a 1 -g 1 -c 1 --bind=packed:1 --smpiargs="-gpu""
                         app_args="-i input")
 
 The libEnsemble resource manager works out the resources available to each worker,
@@ -105,7 +105,7 @@ size runs to easily be handled on Summit. If oversubsciption to the `jsrun` syst
 is desired, then libEnsemble's resource manager can be disabled in the
 calling script via::
 
-    libE_specs['disable_resource_manager'] = True
+    libE_specs["disable_resource_manager"] = True
 
 In the above example, the task being submitted used three GPUs, which is half those
 available on a Summit node, and thus two such tasks may be allocated to each node
@@ -171,10 +171,10 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     export EXE=calling_script.py
 
     # Communication Method
-    export COMMS='--comms local'
+    export COMMS="--comms local"
 
     # Number of workers.
-    export NWORKERS='--nworkers 128'
+    export NWORKERS="--nworkers 128"
 
     hash -r # Check no commands hashed (pip/python...)
 
