@@ -21,7 +21,7 @@ class LogConfig:
 
     config = None
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         """Instantiate a new LogConfig instance."""
         LogConfig.config = self
         self.logger_set = False

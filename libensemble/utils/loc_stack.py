@@ -4,17 +4,20 @@ libensemble utility class -- keeps a stack of directory locations.
 
 import os
 import shutil
+from typing import List, Optional, Union
 
 
 class LocationStack:
     """Keep a stack of directory locations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the location dictionary and directory stack."""
         self.dirs = {}
         self.stack = []
 
-    def copy_or_symlink(self, destdir, copy_files=[], symlink_files=[], ignore_FileExists=False):
+    def copy_or_symlink(
+        self, destdir: str, copy_files: List[str] = [], symlink_files: List[str] = [], ignore_FileExists: bool = False
+    ) -> None:
         """Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
@@ -44,7 +47,15 @@ class LocationStack:
                 else:  # Indicates problem with unique sim_dirs
                     raise
 
-    def register_loc(self, key, dirname, prefix=None, copy_files=[], symlink_files=[], ignore_FileExists=False):
+    def register_loc(
+        self,
+        key: Union[str, int],
+        dirname: str,
+        prefix: Optional[str] = None,
+        copy_files: List[str] = [],
+        symlink_files: List[str] = [],
+        ignore_FileExists: bool = False,
+    ) -> str:
         """Register a new location in the dictionary.
 
         Parameters

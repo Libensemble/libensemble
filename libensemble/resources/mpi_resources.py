@@ -5,13 +5,15 @@ Manages libensemble resources related to MPI tasks launched from nodes.
 import os
 import logging
 import subprocess
+from libensemble.resources.resources import Resources
+from typing import Optional, Tuple, Union
 
 
 class MPIResourcesException(Exception):
     "Resources module exception."
 
 
-def rassert(test, *args):
+def rassert(test: Optional[Union[int, bool]], *args) -> None:
     if not test:
         raise MPIResourcesException(*args)
 
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def get_MPI_runner():
+def get_MPI_runner() -> str:
     """Return whether ``mpirun`` is openmpi or mpich"""
     var = get_MPI_variant()
     if var in ["mpich", "openmpi"]:
@@ -30,7 +32,7 @@ def get_MPI_runner():
         return var
 
 
-def get_MPI_variant():
+def get_MPI_variant() -> str:
     """Returns MPI base implementation
 
     Returns
@@ -79,7 +81,9 @@ def get_MPI_variant():
     return None
 
 
-def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):
+def task_partition(
+    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: Optional[str] = None
+) -> Union[Tuple[None, None, None], Tuple[int, int, int]]:
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
     """
@@ -211,8 +215,13 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 
 def create_machinefile(
-    resources, machinefile=None, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False
-):
+    resources: Resources,
+    machinefile: Optional[str] = None,
+    num_procs: None = None,
+    num_nodes: Optional[int] = None,
+    procs_per_node: Optional[int] = None,
+    hyperthreads: bool = False,
+) -> Tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """

@@ -4,6 +4,7 @@ from collections import Counter
 from collections import OrderedDict
 import numpy as np
 from libensemble.resources.rset_resources import RSetResources
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -28,7 +29,7 @@ class ResourceManager(RSetResources):
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 
-    def __init__(self, num_workers, resources):
+    def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
         """Initializes a new ResourceManager instance
 
         Instantiates the numpy structured array that holds information for each
@@ -87,7 +88,7 @@ class ResourceManager(RSetResources):
             self.rsets_free += len(rsets_to_free)
 
     @staticmethod
-    def get_group_list(split_list):
+    def get_group_list(split_list: List[List[str]]) -> Tuple[List[int], List[int]]:
         """Return lists of group ids and slot IDs by resource set"""
         group = 1
         slot = 0
@@ -109,7 +110,9 @@ class ResourceManager(RSetResources):
         return group_list, slot_list
 
     @staticmethod
-    def get_index_list(num_workers, num_rsets, zero_resource_list):
+    def get_index_list(
+        num_workers: int, num_rsets: int, zero_resource_list: List[Union[int, Any]]
+    ) -> List[Optional[int]]:
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
@@ -175,7 +178,7 @@ class WorkerResources(RSetResources):
 
     """
 
-    def __init__(self, num_workers, resources, workerID):
+    def __init__(self, num_workers: int, resources: "GlobalResources", workerID: int) -> None:  # noqa: F821
 
         """Initializes a new WorkerResources instance
 
@@ -255,7 +258,7 @@ class WorkerResources(RSetResources):
 
     # libEnsemble functions ---------------------------------------------------
 
-    def set_rset_team(self, rset_team):
+    def set_rset_team(self, rset_team: List[int]) -> None:
         """Update worker team and local attributes
 
         Updates: rset_team
@@ -279,7 +282,7 @@ class WorkerResources(RSetResources):
             self.set_slot_count()
             self.local_node_count = len(self.local_nodelist)
 
-    def set_slot_count(self):
+    def set_slot_count(self) -> None:
         """Sets attributes even_slots and matching_slots.
 
         Also sets slot_count if even_slots (else None) and
@@ -303,7 +306,9 @@ class WorkerResources(RSetResources):
             self.slot_count = first_len if self.even_slots else None
 
     @staticmethod
-    def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):
+    def get_local_nodelist(
+        workerID: int, rset_team: List[int], split_list: List[List[str]], rsets_per_node: int
+    ) -> Tuple[List[str], Dict[str, List[int]]]:
         """Returns the list of nodes available to the given worker and the slot dictionary"""
         if workerID is None:
             raise WorkerResourcesException("Worker has no workerID - aborting")

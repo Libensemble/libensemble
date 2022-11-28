@@ -29,7 +29,7 @@ from threading import Thread
 # from multiprocessing import Process, Queue, Value, Lock
 from multiprocessing import Process, Queue
 from traceback import format_exc
-import queue
+import queue as thread_queue
 import copy
 
 import numpy as np
@@ -140,7 +140,7 @@ class QComm(Comm):
             if not self._inbox.empty():
                 return self._inbox.get()
             return self._inbox.get(timeout=timeout)
-        except queue.Empty:
+        except thread_queue.Empty:
             raise Timeout()
 
     # TODO: This should go away once I have internal comms working
@@ -156,8 +156,8 @@ class QCommThread(Comm):
     """Launch a user function in a thread with an attached QComm."""
 
     def __init__(self, main, nworkers, *args, **kwargs):
-        self.inbox = queue.Queue()
-        self.outbox = queue.Queue()
+        self.inbox = thread_queue.Queue()
+        self.outbox = thread_queue.Queue()
         self.main = main
         self._result = None
         self._exception = None
@@ -174,7 +174,7 @@ class QCommThread(Comm):
             if not self.outbox.empty():
                 return self.outbox.get()
             return self.outbox.get(timeout=timeout)
-        except queue.Empty:
+        except thread_queue.Empty:
             raise Timeout()
 
     def mail_flag(self):
@@ -256,7 +256,7 @@ class QCommProcess(Comm):
             if self._is_result_msg(msg):
                 raise CommFinishedException()
             return msg
-        except queue.Empty:
+        except thread_queue.Empty:
             raise Timeout()
 
     def mail_flag(self):
@@ -273,7 +273,7 @@ class QCommProcess(Comm):
         while not self._done and (timeout is None or timeout >= 0):
             try:
                 msg = self.outbox.get(timeout=timeout)
-            except queue.Empty:
+            except thread_queue.Empty:
                 raise Timeout()
             self._is_result_msg(msg)
             timeout = get_timeout()
