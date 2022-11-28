@@ -1,7 +1,8 @@
 from libensemble.resources import mpi_resources
-from libensemble.executors.executor import jassert
+from libensemble.executors.executor import Task, jassert
 import argparse
 import logging
+from typing import Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -9,26 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class MPIRunner:
-    @staticmethod
-    def get_runner(mpi_runner_type, runner_name=None):
-
-        mpi_runners = {
-            "mpich": MPICH_MPIRunner,
-            "openmpi": OPENMPI_MPIRunner,
-            "aprun": APRUN_MPIRunner,
-            "srun": SRUN_MPIRunner,
-            "jsrun": JSRUN_MPIRunner,
-            "msmpi": MSMPI_MPIRunner,
-            "custom": MPIRunner,
-        }
-        mpi_runner = mpi_runners[mpi_runner_type]
-        if runner_name is not None:
-            runner = mpi_runner(runner_name)
-        else:
-            runner = mpi_runner()
-        return runner
-
-    def __init__(self, run_command="mpiexec"):
+    def __init__(self, run_command: str = "mpiexec") -> None:
         self.run_command = run_command
         self.mpi_command = [self.run_command, "{extra_args}"]
         self.subgroup_launch = False
@@ -81,8 +63,17 @@ class MPIRunner:
         return hostlist, machinefile
 
     def get_mpi_specs(
-        self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
-    ):
+        self,
+        task: Task,
+        num_procs: Optional[int],
+        num_nodes: Optional[int],
+        procs_per_node: Optional[int],
+        machinefile: Optional[str],
+        hyperthreads: bool,
+        extra_args: None,
+        resources: None,
+        workerID: None,
+    ) -> Dict[str, Optional[Union[int, str]]]:
         "Form the mpi_specs dictionary."
 
         # Return auto_resource variables inc. extra_args additions
@@ -125,7 +116,7 @@ class MPIRunner:
 
 
 class MPICH_MPIRunner(MPIRunner):
-    def __init__(self, run_command="mpirun"):
+    def __init__(self, run_command: str = "mpirun") -> None:
         self.run_command = run_command
         self.subgroup_launch = True
         self.mfile_support = True
@@ -291,3 +282,26 @@ class JSRUN_MPIRunner(MPIRunner):
             "machinefile": machinefile,
             "hostlist": hostlist,
         }
+
+
+def get_runner(
+    mpi_runner_type: str, runner_name: Optional[str] = None
+) -> Union[
+    MPICH_MPIRunner, OPENMPI_MPIRunner, APRUN_MPIRunner, SRUN_MPIRunner, JSRUN_MPIRunner, MSMPI_MPIRunner, MPIRunner
+]:
+
+    mpi_runners = {
+        "mpich": MPICH_MPIRunner,
+        "openmpi": OPENMPI_MPIRunner,
+        "aprun": APRUN_MPIRunner,
+        "srun": SRUN_MPIRunner,
+        "jsrun": JSRUN_MPIRunner,
+        "msmpi": MSMPI_MPIRunner,
+        "custom": MPIRunner,
+    }
+    mpi_runner = mpi_runners[mpi_runner_type]
+    if runner_name is not None:
+        runner = mpi_runner(runner_name)
+    else:
+        runner = mpi_runner()
+    return runner

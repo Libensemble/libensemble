@@ -164,7 +164,7 @@ class Task:
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
 
-    def workdir_exists(self):
+    def workdir_exists(self) -> Optional[bool]:
         """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
@@ -188,11 +188,11 @@ class Task:
         """Opens and reads the task's stdout file in the task's workdir"""
         return self.read_file_in_workdir(self.stdout)
 
-    def stderr_exists(self):
+    def stderr_exists(self) -> bool:
         """Returns true if the task's stderr file exists in the workdir"""
         return self.file_exists_in_workdir(self.stderr)
 
-    def read_stderr(self):
+    def read_stderr(self) -> str:
         """Opens and reads the task's stderr file in the task's workdir"""
         return self.read_file_in_workdir(self.stderr)
 
@@ -422,7 +422,7 @@ class Executor:
         return self.default_apps["sim"]
 
     @property
-    def gen_default_app(self):
+    def gen_default_app(self) -> Application:
         """Returns the default generator app"""
         return self.default_apps["gen"]
 

@@ -5,7 +5,6 @@ Manages libensemble resources related to MPI tasks launched from nodes.
 import os
 import logging
 import subprocess
-from libensemble.resources.resources import Resources
 from typing import Optional, Tuple, Union
 
 
@@ -21,15 +20,6 @@ def rassert(test: Optional[Union[int, bool]], *args) -> None:
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
-
-
-def get_MPI_runner() -> str:
-    """Return whether ``mpirun`` is openmpi or mpich"""
-    var = get_MPI_variant()
-    if var in ["mpich", "openmpi"]:
-        return "mpirun"
-    else:
-        return var
 
 
 def get_MPI_variant() -> str:
@@ -79,6 +69,15 @@ def get_MPI_variant() -> str:
         pass
 
     return None
+
+
+def get_MPI_runner() -> str:
+    """Return whether ``mpirun`` is openmpi or mpich"""
+    var = get_MPI_variant()
+    if var in ["mpich", "openmpi"]:
+        return "mpirun"
+    else:
+        return var
 
 
 def task_partition(
@@ -215,7 +214,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 
 def create_machinefile(
-    resources: Resources,
+    resources: "resources.Resources",  # noqa: F821
     machinefile: Optional[str] = None,
     num_procs: None = None,
     num_nodes: Optional[int] = None,

@@ -6,6 +6,7 @@ libensemble helpers for launching subprocesses.
 import os
 import shlex
 import signal
+import time
 import subprocess
 
 from itertools import chain
@@ -58,6 +59,16 @@ def terminatepg(process: subprocess.Popen) -> bool:
         return True
     except OSError:  # In Python 3: ProcessLookupError
         return False
+
+
+def process_is_stopped(process, timeout):
+    "Wait for timeout to see if process is finished; True if done."
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        time.sleep(0.01)
+        if process.poll() is not None:
+            return True
+    return process.poll() is not None
 
 
 def wait_py33(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None) -> Optional[int]:

@@ -15,7 +15,8 @@ import time
 import libensemble.utils.launcher as launcher
 from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.executors.executor import Executor, Task, ExecutorException
-from libensemble.executors.mpi_runner import MPIRunner
+from libensemble.executors.mpi_runner import MPIRunner, get_runner
+from typing import Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -31,7 +32,7 @@ class MPIExecutor(Executor):
     :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
-    def __init__(self, custom_info={}):
+    def __init__(self, custom_info: Dict[str, Union[str, bool]] = {}) -> None:
         """Instantiate a new MPIExecutor instance.
 
         A new MPIExecutor is created with an application
@@ -94,7 +95,7 @@ class MPIExecutor(Executor):
 
         if not mpi_runner_type:
             mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
+        self.mpi_runner = get_runner(MPIRunner.mpi_runner_type, runner_name)
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
         self.resources = None
@@ -102,7 +103,7 @@ class MPIExecutor(Executor):
     def set_resources(self, resources):
         self.resources = resources
 
-    def _launch_with_retries(self, task, runline, subgroup_launch, wait_on_start):
+    def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
         while retry_count < self.max_launch_attempts:
@@ -144,21 +145,21 @@ class MPIExecutor(Executor):
 
     def submit(
         self,
-        calc_type=None,
-        app_name=None,
-        num_procs=None,
-        num_nodes=None,
-        procs_per_node=None,
-        machinefile=None,
-        app_args=None,
-        stdout=None,
-        stderr=None,
-        stage_inout=None,
-        hyperthreads=False,
-        dry_run=False,
-        wait_on_start=False,
-        extra_args=None,
-    ):
+        calc_type: Optional[str] = None,
+        app_name: Optional[str] = None,
+        num_procs: Optional[int] = None,
+        num_nodes: Optional[int] = None,
+        procs_per_node: Optional[int] = None,
+        machinefile: Optional[str] = None,
+        app_args: Optional[str] = None,
+        stdout: Optional[str] = None,
+        stderr: None = None,
+        stage_inout: None = None,
+        hyperthreads: bool = False,
+        dry_run: bool = False,
+        wait_on_start: bool = False,
+        extra_args: None = None,
+    ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
         The created task object is returned.

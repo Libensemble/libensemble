@@ -82,7 +82,8 @@ from libensemble.executors.executor import (
 )
 from libensemble.executors import Executor
 
-from balsam.api import Job, BatchJob, EventLog
+from balsam.api import Job, BatchJob, EventLog, ApplicationDefinition
+from typing import Any, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -101,13 +102,13 @@ class BalsamTask(Task):
 
     def __init__(
         self,
-        app=None,
-        app_args=None,
-        workdir=None,
-        stdout=None,
-        stderr=None,
-        workerid=None,
-    ):
+        app: Optional[Application] = None,
+        app_args: None = None,
+        workdir: Optional[str] = None,
+        stdout: None = None,
+        stderr: None = None,
+        workerid: None = None,
+    ) -> None:
         """Instantiate a new ``BalsamTask`` instance.
 
         A new ``BalsamTask`` object is created with an id, status and
@@ -117,7 +118,7 @@ class BalsamTask(Task):
         # May want to override workdir with Balsam value when it exists
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
-    def _get_time_since_balsam_submit(self):
+    def _get_time_since_balsam_submit(self) -> Union[int, float]:
         """Return time since balsam task entered ``RUNNING`` state"""
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
@@ -129,7 +130,7 @@ class BalsamTask(Task):
         else:
             return 0
 
-    def calc_task_timing(self):
+    def calc_task_timing(self) -> None:
         """Calculate timing information for this task"""
         # Get runtime from Balsam
         self.runtime = self._get_time_since_balsam_submit()
@@ -141,7 +142,7 @@ class BalsamTask(Task):
         if self.total_time is None:
             self.total_time = time.time() - self.submit_time
 
-    def _set_complete(self, dry_run=False):
+    def _set_complete(self, dry_run: bool = False) -> None:
         """Set task as complete"""
         self.finished = True
         if dry_run:
@@ -164,7 +165,7 @@ class BalsamTask(Task):
 
         logger.info(f"Task {self.name} ended with state {self.state}")
 
-    def poll(self):
+    def poll(self) -> None:
         """Polls and updates the status attributes of the supplied task. Requests
         Job information from Balsam service."""
         if self.dry_run:
@@ -198,7 +199,7 @@ class BalsamTask(Task):
             self.state = "FAILED"
             self._set_complete()
 
-    def wait(self, timeout=None):
+    def wait(self, timeout: Optional[int] = None) -> None:
         """Waits on completion of the task or raises ``TimeoutExpired``.
 
         Status attributes of task are updated on completion.
@@ -239,7 +240,7 @@ class BalsamTask(Task):
         self.runtime = self._get_time_since_balsam_submit()
         self._set_complete()
 
-    def kill(self):
+    def kill(self) -> None:
         """Cancels the supplied task. Killing is unsupported at this time."""
         self.process.delete()
 
@@ -257,22 +258,29 @@ class BalsamExecutor(Executor):
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Instantiate a new ``BalsamExecutor`` instance."""
         super().__init__()
 
         self.workflow_name = "libe_workflow"
         self.allocations = []
 
-    def serial_setup(self):
+    def serial_setup(self) -> None:
         """Balsam serial setup includes emptying database and adding applications"""
         pass
 
-    def add_app(self, *args):
+    def add_app(self, *args) -> None:
         """Sync application with Balsam service"""
         pass
 
-    def register_app(self, BalsamApp, app_name=None, calc_type=None, desc=None, precedent=None):
+    def register_app(
+        self,
+        BalsamApp: ApplicationDefinition,
+        app_name: Optional[str] = None,
+        calc_type: Optional[str] = None,
+        desc: None = None,
+        precedent: Optional[str] = None,
+    ) -> None:
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
         instance *must* have a ``site`` and ``command_template`` specified. See
         the Balsam docs for information on other optional fields.
@@ -313,16 +321,16 @@ class BalsamExecutor(Executor):
 
     def submit_allocation(
         self,
-        site_id,
-        num_nodes,
-        wall_time_min,
-        job_mode="mpi",
-        queue="local",
-        project="local",
-        optional_params={},
-        filter_tags={},
-        partitions=[],
-    ):
+        site_id: str,
+        num_nodes: int,
+        wall_time_min: int,
+        job_mode: str = "mpi",
+        queue: str = "local",
+        project: str = "local",
+        optional_params: Dict[Any, Any] = {},
+        filter_tags: Dict[Any, Any] = {},
+        partitions: List[Any] = [],
+    ) -> BatchJob:
         """
         Submits a Balsam ``BatchJob`` machine allocation request to Balsam.
         Corresponding Balsam applications with a matching site can be submitted to
@@ -385,7 +393,7 @@ class BalsamExecutor(Executor):
 
         return allocation
 
-    def revoke_allocation(self, allocation, timeout=60):
+    def revoke_allocation(self, allocation: BatchJob, timeout: int = 60) -> bool:
         """
         Terminates a Balsam ``BatchJob`` machine allocation remotely. Balsam apps should
         no longer be submitted to this allocation. Best to run after libEnsemble
@@ -418,27 +426,27 @@ class BalsamExecutor(Executor):
         batchjob.save()
         return True
 
-    def set_resources(self, resources):
+    def set_resources(self, resources: str) -> None:
         self.resources = resources
 
     def submit(
         self,
-        calc_type=None,
-        app_name=None,
-        app_args=None,
-        num_procs=None,
-        num_nodes=None,
-        procs_per_node=None,
-        max_tasks_per_node=None,
-        machinefile=None,
-        gpus_per_rank=0,
-        transfers={},
-        workdir="",
-        dry_run=False,
-        wait_on_start=False,
-        extra_args={},
-        tags={},
-    ):
+        calc_type: Optional[str] = None,
+        app_name: Optional[str] = None,
+        app_args: None = None,
+        num_procs: None = None,
+        num_nodes: None = None,
+        procs_per_node: None = None,
+        max_tasks_per_node: None = None,
+        machinefile: Optional[str] = None,
+        gpus_per_rank: int = 0,
+        transfers: Dict[Any, Any] = {},
+        workdir: str = "",
+        dry_run: bool = False,
+        wait_on_start: bool = False,
+        extra_args: Dict[Any, Any] = {},
+        tags: Dict[Any, Any] = {},
+    ) -> BalsamTask:
         """Initializes and submits a Balsam ``Job`` based on a registered ``ApplicationDefinition``
         and requested resources. A corresponding libEnsemble ``Task`` object is returned.
 
