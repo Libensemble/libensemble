@@ -6,6 +6,7 @@ from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.tools.fields_keys import libE_spec_sim_dir_keys, libE_spec_gen_dir_keys, libE_spec_calc_dir_misc
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
+from typing import Optional, Union
 
 
 class EnsembleDirectory:
@@ -37,7 +38,7 @@ class EnsembleDirectory:
         A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
 
-    def __init__(self, libE_specs=None, loc_stack=None):
+    def __init__(self, libE_specs: dict = None, loc_stack: Optional[LocationStack] = None) -> None:
 
         self.specs = libE_specs
         self.loc_stack = loc_stack
@@ -57,14 +58,14 @@ class EnsembleDirectory:
             self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
             self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
 
-    def _make_copyback_dir(self):
+    def _make_copyback_dir(self) -> None:
         """Make copyback directory, adding suffix if identical to ensemble dir"""
         copybackdir = os.path.basename(self.prefix)  # Current directory, same basename
         if os.path.relpath(self.prefix) == os.path.relpath(copybackdir):
             copybackdir += "_back"
         os.makedirs(copybackdir)
 
-    def make_copyback_check(self):
+    def make_copyback_check(self) -> None:
         """Check for existing copyback, make copyback if doesn't exist"""
         try:
             os.rmdir(self.prefix)
@@ -75,14 +76,16 @@ class EnsembleDirectory:
         if self.ensemble_copy_back:
             self._make_copyback_dir()
 
-    def use_calc_dirs(self, type):
+    def use_calc_dirs(self, type: int) -> bool:
         """Determines calc_dirs enabling for each calc type"""
         if type == EVAL_SIM_TAG:
             return self.sim_use
         else:
             return self.gen_use
 
-    def _make_calc_dir(self, workerID, H_rows, calc_str, locs):
+    def _make_calc_dir(
+        self, workerID: int, H_rows: Union[str, int], calc_str: str, locs: LocationStack
+    ) -> Union[str, int]:
         """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
         if calc_str == "sim":
             input_dir = self.sim_input_dir
@@ -155,7 +158,7 @@ class EnsembleDirectory:
 
         return calc_dir
 
-    def prep_calc_dir(self, Work, calc_iter, workerID, calc_type):
+    def prep_calc_dir(self, Work: dict, calc_iter: dict, workerID: int, calc_type: int) -> (LocationStack, str):
         """Determines choice for calc_dir structure, then performs calculation."""
         if not self.loc_stack:
             self.loc_stack = LocationStack()
@@ -171,7 +174,7 @@ class EnsembleDirectory:
 
         return self.loc_stack, calc_dir
 
-    def copy_back(self):
+    def copy_back(self) -> None:
         """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.ensemble_copy_back:
 

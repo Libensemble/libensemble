@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 import time
 import logging
 
@@ -39,7 +40,7 @@ class History:
 
     """
 
-    def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+    def __init__(self, alloc_specs: dict, sim_specs: dict, gen_specs: dict, exit_criteria: dict, H0: npt.NDArray):
         """
         Forms the numpy structured array that records everything from the
         libEnsemble run
@@ -109,7 +110,7 @@ class History:
         self.sim_ended_offset = self.sim_ended_count
         self.gen_informed_offset = self.gen_informed_count
 
-    def update_history_f(self, D, safe_mode):
+    def update_history_f(self, D: dict, safe_mode: bool):
         """
         Updates the history after points have been evaluated
         """
@@ -139,7 +140,7 @@ class History:
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
 
-    def update_history_x_out(self, q_inds, sim_worker):
+    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int):
         """
         Updates the history (in place) when new points have been given out to be evaluated
 
@@ -160,7 +161,7 @@ class History:
 
         self.sim_started_count += len(q_inds)
 
-    def update_history_to_gen(self, q_inds):
+    def update_history_to_gen(self, q_inds: npt.NDArray):
         """Updates the history (in place) when points are given back to the gen"""
         q_inds = np.atleast_1d(q_inds)
         t = time.time()
@@ -182,7 +183,7 @@ class History:
             self.H["gen_informed_time"][q_inds] = t
             self.gen_informed_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D, safe_mode, gen_started_time):
+    def update_history_x_in(self, gen_worker: int, D: npt.NDArray, safe_mode: bool, gen_started_time: int):
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -237,7 +238,7 @@ class History:
         self.H["gen_worker"][first_gen_inds] = gen_worker
         self.index += num_new
 
-    def grow_H(self, k):
+    def grow_H(self, k: int):
         """
         Adds k rows to H in response to gen_f producing more points than
         available rows in H.

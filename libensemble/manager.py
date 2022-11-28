@@ -11,6 +11,8 @@ import socket
 import platform
 import traceback
 import numpy as np
+import numpy.typing as npt
+from typing import Any, Union
 
 from libensemble.utils.timer import Timer
 from libensemble.utils.misc import extract_H_ranges
@@ -60,7 +62,7 @@ class LoggedException(Exception):
     """Raise exception for handling without re-logging"""
 
 
-def report_worker_exc(wrk_exc=None):
+def report_worker_exc(wrk_exc: Exception = None) -> None:
     """Write worker exception to log"""
     if wrk_exc is not None:
         from_line, msg, exc = wrk_exc.args
@@ -69,7 +71,16 @@ def report_worker_exc(wrk_exc=None):
         logger.error(exc)
 
 
-def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
+def manager_main(
+    hist: npt.NDArray,
+    libE_specs: dict,
+    alloc_specs: dict,
+    sim_specs: dict,
+    gen_specs: dict,
+    exit_criteria: dict,
+    persis_info: dict,
+    wcomms: list = [],
+) -> (dict, int, int):
     """Manager routine to coordinate the generation and simulation evaluations
 
     Parameters
@@ -136,7 +147,7 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     return result
 
 
-def filter_nans(array):
+def filter_nans(array: npt.NDArray) -> npt.NDArray:
     """Filters out NaNs from a numpy array"""
     return array[~np.isnan(array)]
 
@@ -166,7 +177,16 @@ class Manager:
         ("zero_resource_worker", bool),
     ]
 
-    def __init__(self, hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms=[]):
+    def __init__(
+        self,
+        hist: npt.NDArray,
+        libE_specs: dict,
+        alloc_specs: dict,
+        sim_specs: dict,
+        gen_specs: dict,
+        exit_criteria: dict,
+        wcomms: list = [],
+    ):
         """Initializes the manager"""
         timer = Timer()
         timer.start()
@@ -212,25 +232,25 @@ class Manager:
 
     # --- Termination logic routines
 
-    def term_test_wallclock(self, max_elapsed):
+    def term_test_wallclock(self, max_elapsed: int) -> bool:
         """Checks against wallclock timeout"""
         return self.elapsed() >= max_elapsed
 
-    def term_test_sim_max(self, sim_max):
+    def term_test_sim_max(self, sim_max: int) -> bool:
         """Checks against max simulations"""
         return self.hist.sim_ended_count >= sim_max + self.hist.sim_ended_offset
 
-    def term_test_gen_max(self, gen_max):
+    def term_test_gen_max(self, gen_max: int) -> bool:
         """Checks against max generator calls"""
         return self.hist.index >= gen_max + self.hist.gen_informed_offset
 
-    def term_test_stop_val(self, stop_val):
+    def term_test_stop_val(self, stop_val: Any) -> bool:
         """Checks against stop value criterion"""
         key, val = stop_val
         H = self.hist.H
         return np.any(filter_nans(H[key][H["sim_ended"]]) <= val)
 
-    def term_test(self, logged=True):
+    def term_test(self, logged: bool = True) -> Union[bool, int]:
         """Checks termination criteria"""
         for retval, key, testf in self.term_tests:
             if key in self.exit_criteria:
@@ -242,14 +262,14 @@ class Manager:
 
     # --- Low-level communication routines
 
-    def _kill_workers(self):
+    def _kill_workers(self) -> None:
         """Kills the workers"""
         for w in self.W["worker_id"]:
             self.wcomms[w - 1].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
     # --- Checkpointing logic
 
-    def _save_every_k(self, fname, count, k):
+    def _save_every_k(self, fname: str, count: int, k: int) -> None:
         """Saves history every kth step"""
         count = k * (count // k)
         filename = fname.format(self.date_start, count)
@@ -260,7 +280,7 @@ class Manager:
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 
-    def _save_every_k_sims(self):
+    def _save_every_k_sims(self) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
             "libE_history_for_run_starting_{}_after_sim_{}.npy",
@@ -268,7 +288,7 @@ class Manager:
             self.libE_specs["save_every_k_sims"],
         )
 
-    def _save_every_k_gens(self):
+    def _save_every_k_gens(self) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
             "libE_history_for_run_starting_{}_after_gen_{}.npy",
@@ -278,7 +298,7 @@ class Manager:
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
-    def _check_work_order(self, Work, w):
+    def _check_work_order(self, Work: dict, w: int) -> None:
         """Checks validity of an allocation function order"""
         assert w != 0, "Can't send to worker 0; this is the manager."
         if self.W[w - 1]["active_recv"]:
@@ -303,7 +323,7 @@ class Manager:
 
             assert not diff_fields, f"Allocation function requested invalid fields {diff_fields} be sent to worker={w}."
 
-    def _set_resources(self, Work, w):
+    def _set_resources(self, Work: dict, w: int) -> None:
         """Check rsets given in Work match rsets assigned in resources.
 
         If rsets are not assigned, then assign using default mapping
@@ -320,12 +340,12 @@ class Manager:
 
         resource_manager.assign_rsets(Work["libE_info"]["rset_team"], w)
 
-    def _freeup_resources(self, w):
+    def _freeup_resources(self, w: int) -> None:
         """Free up resources assigned to the worker"""
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
-    def _send_work_order(self, Work, w):
+    def _send_work_order(self, Work: dict, w: int) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
 
@@ -351,7 +371,7 @@ class Manager:
             else:
                 self.wcomms[w - 1].send(0, self.hist.H[Work["H_fields"]][work_rows])
 
-    def _update_state_on_alloc(self, Work, w):
+    def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
         self.W[w - 1]["active"] = Work["tag"]
         if "libE_info" in Work:
@@ -371,7 +391,7 @@ class Manager:
     # --- Handle incoming messages from workers
 
     @staticmethod
-    def _check_received_calc(D_recv):
+    def _check_received_calc(D_recv: dict) -> None:
         """Checks the type and status fields on a receive calculation"""
         calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
@@ -384,7 +404,7 @@ class Manager:
             calc_status, str
         ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
 
-    def _receive_from_workers(self, persis_info):
+    def _receive_from_workers(self, persis_info: dict) -> dict:
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
         communticate. If any output is received, all other workers are
@@ -404,7 +424,7 @@ class Manager:
             self._save_every_k_gens()
         return persis_info
 
-    def _update_state_on_worker_msg(self, persis_info, D_recv, w):
+    def _update_state_on_worker_msg(self, persis_info: dict, D_recv: dict, w: int) -> None:
         """Updates history and worker info on worker message"""
         calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
@@ -448,7 +468,7 @@ class Manager:
         if D_recv.get("persis_info"):
             persis_info[w].update(D_recv["persis_info"])
 
-    def _handle_msg_from_worker(self, persis_info, w):
+    def _handle_msg_from_worker(self, persis_info: dict, w: int) -> None:
         """Handles a message from worker w"""
         try:
             msg = self.wcomms[w - 1].recv()
@@ -470,7 +490,7 @@ class Manager:
             logger.debug(f"Manager received data message from worker {w}")
             self._update_state_on_worker_msg(persis_info, D_recv, w)
 
-    def _kill_cancelled_sims(self):
+    def _kill_cancelled_sims(self) -> None:
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
             kill_sim = (
@@ -491,7 +511,7 @@ class Manager:
 
     # --- Handle termination
 
-    def _final_receive_and_kill(self, persis_info):
+    def _final_receive_and_kill(self, persis_info: dict) -> (dict, int, int):
         """
         Tries to receive from any active workers.
 
@@ -535,13 +555,13 @@ class Manager:
 
     # --- Main loop
 
-    def _sim_max_given(self):
+    def _sim_max_given(self) -> bool:
         if "sim_max" in self.exit_criteria:
             return self.hist.sim_started_count >= self.exit_criteria["sim_max"] + self.hist.sim_started_offset
         else:
             return False
 
-    def _get_alloc_libE_info(self):
+    def _get_alloc_libE_info(self) -> dict:
         """Selected statistics useful for alloc_f"""
         return {
             "any_idle_workers": any(self.W["active"] == 0),
@@ -556,7 +576,7 @@ class Manager:
             "use_resource_sets": self.libE_specs.get("num_resource_sets"),
         }
 
-    def _alloc_work(self, H, persis_info):
+    def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
         """
         Calls work allocation function from alloc_specs. Copies protected libE
         fields before the alloc_f call and ensures they weren't modified
@@ -591,7 +611,7 @@ class Manager:
 
         return output
 
-    def run(self, persis_info):
+    def run(self, persis_info: dict) -> (dict, int, int):
         """Runs the manager"""
         logger.info(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")

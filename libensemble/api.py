@@ -27,7 +27,7 @@ class Persis_Info:
         self.nworkers = nworkers
         self.persis_info = {}
 
-    def add_random_streams(self, num_streams=None, seed=""):
+    def add_random_streams(self, num_streams: int = None, seed: str = ""):
         """
         ``Persis_Info`` wrapper for ``add_unique_random_streams``. Attempt
         to simplify call, since most are identical anyway.
