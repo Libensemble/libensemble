@@ -39,7 +39,7 @@ m = 44229
 sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
-    "out": [("f", float), ("fvec", float, 2*m), ("error", float), ("iterations", int)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "out": [("f", float), ("fvec", float, 2*m), ("iterations", int), ("error", float)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
     "user": {"max_size": m},
     }
 
@@ -52,8 +52,10 @@ gen_specs = {
     "persis_in": ["x", "f", "sim_id", "fvec", "iterations"],
     "out": gen_out,
     "user": {
-        "lb": np.array([0.9, 0.9, 0.01]),  # User parameters for the gen_f
-        "ub": np.array([0.99, 0.999, 0.05]),
+        "lb": np.array([0.9, 0.01, 0.9]),  # User parameters for the gen_f
+        "ub": np.array([0.99, 0.05, 0.999]),
+        #"lb": np.array([0.9, 0.9, 0.01]),  # User parameters for the gen_f
+        #"ub": np.array([0.99, 0.999, 0.05]),
         "gen_batch_size": nworkers - 1,  # Generate one random point x for each of the workers.
         "localopt_method": "DFOLS",
         "num_active_runs": 1,
@@ -72,8 +74,9 @@ exit_criteria = {"sim_max": 30*n}  # exit_criteria = {"sim_max": 8}
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-H0 = np.zeros(1, dtype = [('x', float, 3), ('x_on_cube', float, 3), ('f', float), ('fvec', float, 2*m), ('sim_id', int), ('local_pt', bool), ('dist_to_better_l', float), ('dist_to_better_s', float), ('iterations', int) ])
-H0['x'] = np.array([0.98, 0.99, 0.03])  # The best starting point from random sampling
+H0 = np.zeros(1, dtype = [('x', float, 3), ('x_on_cube', float, 3), ('f', float), ('fvec', float, 2*m), ('sim_id', int), ('local_pt', bool), ('dist_to_better_l', float), ('dist_to_better_s', float), ('iterations', int), ('error', float) ])
+H0['x'] = np.array([0.98, 0.03, 0.99])  # The best starting point from random sampling
+#H0['x'] = np.array([0.98, 0.99, 0.03])  # The best starting point from random sampling
 H0['iterations'] = 1657  # The final iteration for the starting point
 H0['x_on_cube'] = (H0['x']-gen_specs["user"]["lb"])/(gen_specs["user"]["ub"]-gen_specs["user"]["lb"])
 
@@ -85,6 +88,7 @@ H0['fvec'], _, _ = read_stat_file(input_file, m)
 #H0['fvec'] = np.load("/home/kuanghsu.wang/JKS8e4/test/starting_point_error.txt") # Error for the starting point
 #H0['fvec'] = error # Error for the starting point
 H0['f'] = np.sum(H0['fvec']**2)  # Norm of the errors
+#H0['error'] = 3.076126985e-07
 H0['x_on_cube'] = (H0['x']-gen_specs["user"]["lb"])/(gen_specs["user"]["ub"]-gen_specs["user"]["lb"])
 H0['sim_id'] = 0
 H0['dist_to_better_s'] = np.inf

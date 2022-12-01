@@ -68,7 +68,8 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     )
 
     # # # Block until the task finishes
-    task.wait(timeout=60)
+    #task.wait(timeout=60)
+    task.wait()
 
     # Stat file to check for bad runs
     #statfile = "forces.stat"
@@ -89,15 +90,15 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     # If max_size not set, then assume random sample
     max_size = sim_specs["user"].get("max_size",0)
 
+#    _, _, error = read_stat_file(statfile, max_size)
     fvec, iterations, error = read_stat_file(statfile, max_size)
-#    fvec, iterations, error = read_stat_file(statfile, max_size)
 
-    errorfile = "error.csv"
-    error,_,_ = read_stat_file(errorfile, max_size) #3.07613e-07 #np.load('error.csv') # IN C, you need to save a csv file with the error at the end of the run.
-    iterfile = "iters.csv"
-    _,iterations,_ = read_stat_file(iterfile, max_size)  #1657 #np.load('iters.csv') # IN C, you need to save a csv file with the final iteration at the end of the run.
+#    errorfile = "error.csv"
+#    fvec,_,_ = read_stat_file(errorfile, max_size) #3.07613e-07 #np.load('error.csv') # IN C, you need to save a csv file with the error at the end of the run.
+#    iterfile = "iters.csv"
+#    _,iterations,_ = read_stat_file(iterfile, max_size)  #1657 #np.load('iters.csv') # IN C, you need to save a csv file with the final iteration at the end of the run.
 
-    assert len(error) > 1, "Need to have a vector of errors"
+    assert len(fvec) > 1, "Need to have a vector of errors"
 
     # Define our output array,  populate with energy reading
     outspecs = sim_specs["out"]
@@ -112,7 +113,7 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     # output["iterations"][0] =100
     # velocity_field = np.random.uniform(-1,1,(100,100))
     # print(velocity_field[0][0])
-    output["error"][0] = np.sum(output["fvec"][0]**2)
+    output["error"][0] = error
     output["f"][0] = np.sum(output["fvec"][0]**2)
 
     # Return final information to worker, for reporting to manager
