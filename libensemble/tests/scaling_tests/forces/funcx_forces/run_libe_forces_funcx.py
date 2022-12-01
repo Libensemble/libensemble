@@ -4,18 +4,20 @@ import numpy as np
 
 from libensemble.api import Ensemble
 
-forces = Ensemble()
-forces.from_yaml("funcx_forces.yaml")
+if __name__ == "__main__":
 
-forces.sim_specs["user"]["remote_ensemble_dir"] += secrets.token_hex(nbytes=3)
+    forces = Ensemble()
+    forces.from_yaml("funcx_forces.yaml")
 
-forces.gen_specs["user"].update(
-    {
-        "lb": np.array([0]),
-        "ub": np.array([32767]),
-    }
-)
+    forces.sim_specs["user"]["remote_ensemble_dir"] += secrets.token_hex(nbytes=3)
 
-forces.persis_info.add_random_streams()
+    forces.gen_specs["user"].update(
+        {
+            "lb": np.array([0]),
+            "ub": np.array([32767]),
+        }
+    )
 
-forces.run()
+    forces.persis_info.add_random_streams()
+
+    forces.run()
