@@ -76,7 +76,7 @@ Dependencies
 
 **Required dependencies**:
 
-* Python_ 3.7 or above
+* Python_ 3.8 or above
 * NumPy_
 * psutil_
 * setuptools_

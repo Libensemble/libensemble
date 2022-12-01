@@ -35,7 +35,7 @@ the correct version is installed.
 .. code-block:: bash
 
     $ python --version
-    Python 3.7.0            # This should be >= 3.7
+    Python 3.8.0            # This should be >= 3.8
 
 .. _Python: https://www.python.org/
 

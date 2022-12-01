@@ -5,13 +5,13 @@ libE_specs:
         sim_max: 8
 
 sim_specs:
-    function: libensemble.tests.scaling_tests.funcx_forces.forces_simf.run_forces_funcx
+    function: libensemble.tests.scaling_tests.forces.funcx_forces.forces_simf.run_forces_funcx
     inputs:
         - x
     outputs:
         energy:
             type: float
-    funcx_endpoint: 8ae6dc54-7f57-4c46-8d21-e601fde15553
+    funcx_endpoint: 6ba45bb8-ec45-4ae1-847f-c4ce0c511c6d
     user:
         keys:
             - seed
