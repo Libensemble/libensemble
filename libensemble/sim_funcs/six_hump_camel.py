@@ -141,8 +141,9 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
     slots = resources.slots
+    gpus_per_node = resources.gpus_per_node
     gpus_per_slot = resources.gpus_per_rset
-    print(f"From sim func: {gpus_per_slot=}")
+    print(f"From sim func: {gpus_per_node=}  {gpus_per_slot=}")
 
     assert resources.matching_slots, f"Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {slots}"
 
