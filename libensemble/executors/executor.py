@@ -122,8 +122,8 @@ class Task:
         app_args: Optional[str] = None,
         workdir: Optional[str] = None,
         stdout: Optional[str] = None,
-        stderr: None = None,
-        workerid: None = None,
+        stderr: Optional[str] = None,
+        workerid: Optional[int] = None,
         dry_run: bool = False,
     ) -> None:
         """Instantiate a new Task instance.
@@ -273,7 +273,7 @@ class Task:
 
         self._set_complete()
 
-    def result(self, timeout: None = None) -> str:
+    def result(self, timeout: Union[int, float] = None) -> str:
         """Wrapper for task.wait() that also returns the task's status on completion.
 
         Parameters
@@ -304,11 +304,11 @@ class Task:
         return self.errcode
 
     def running(self) -> bool:
-        """Return ```True`` if task is currently running."""
+        """Return ``True`` if task is currently running."""
         return self.state == "RUNNING"
 
     def done(self) -> bool:
-        """Return ```True`` if task is finished."""
+        """Return ``True`` if task is finished."""
         return self.finished
 
     def kill(self, wait_time: Optional[int] = 60) -> None:
@@ -466,20 +466,20 @@ class Executor:
         Parameters
         ----------
 
-        full_path: String
+        full_path: str
             The full path of the user application to be registered
 
-        app_name: String, optional
+        app_name: str, optional
             Name to identify this application.
 
-        calc_type: String, optional
+        calc_type: str, optional
             Calculation type: Set this application as the default 'sim'
             or 'gen' function.
 
-        desc: String, optional
+        desc: str, optional
             Description of this application
 
-        precedent: String, optional
+        precedent: str, optional
             Any string that should directly precede the application full path.
         """
 
@@ -648,11 +648,11 @@ class Executor:
         Parameters
         ----------
 
-        calc_type: String, optional
+        calc_type: str, optional
             The calculation type: 'sim' or 'gen'
             Only used if app_name is not supplied. Uses default sim or gen application.
 
-        app_name: String, optional
+        app_name: str, optional
             The application name. Must be supplied if calc_type is not.
 
         app_args: string, optional
@@ -676,7 +676,7 @@ class Executor:
         Returns
         -------
 
-        task: obj: Task
+        task: Task
             The launched task object
         """
 
@@ -724,7 +724,7 @@ class Executor:
         "Polls a task"
         task.poll()
 
-    def kill(self, task: Union[str, Task]) -> None:
+    def kill(self, task: Task) -> None:
         "Kills a task"
         jassert(isinstance(task, Task), "Invalid task has been provided")
         task.kill(self.wait_time)
