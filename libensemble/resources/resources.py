@@ -206,6 +206,8 @@ class GlobalResources:
             )
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
+        self.gpus_avail_per_node = cores_on_node[2]
+        print(f"From resources: {cores_on_node=}")  # testing - and rename!
         self.libE_nodes = None
 
     def add_comm_info(self, libE_nodes):
