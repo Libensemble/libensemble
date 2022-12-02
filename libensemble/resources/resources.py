@@ -128,6 +128,10 @@ class GlobalResources:
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 
+        gpus_on_node: int, optional
+            If supplied gives number of GPUs for the nodes. If not supplied,
+            this will be auto-detected.
+
         enforce_worker_core_bounds: boolean, optional
             If True, then libEnsemble's executor will raise an exception if it detects that
             a worker has been instructed to launch tasks with the number of requested processes
@@ -164,6 +168,7 @@ class GlobalResources:
 
         resource_info = libE_specs.get("resource_info", {})
         cores_on_node = resource_info.get("cores_on_node", None)
+        gpus_on_node = resource_info.get("gpus_on_node", None)
         node_file = resource_info.get("node_file", None)
         nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)
         nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
@@ -198,16 +203,27 @@ class GlobalResources:
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
-        if not cores_on_node:
-            cores_on_node = node_resources.get_sub_node_resources(
+        if not cores_on_node or not gpus_on_node:
+            detected_cores_on_node = node_resources.get_sub_node_resources(
                 launcher=self.launcher,
                 remote_mode=remote_detect,
                 env_resources=self.env_resources,
             )
+
+        if not cores_on_node:
+            cores_on_node = detected_cores_on_node[0:2]
+            # print('nnnn cores_on_node', cores_on_node)
+            # print('nnnn cores_on_node type', type(cores_on_node))
+
+        if not gpus_on_node:
+            gpus_on_node = detected_cores_on_node[2]
+
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
-        self.gpus_avail_per_node = cores_on_node[2]
-        print(f"From resources: {cores_on_node=}")  # testing - and rename!
+        self.gpus_avail_per_node = gpus_on_node
+
+        print(f"From resources: {cores_on_node=}")  # testing
+        print(f"From resources: {gpus_on_node=}")  # testing
         self.libE_nodes = None
 
     def add_comm_info(self, libE_nodes):

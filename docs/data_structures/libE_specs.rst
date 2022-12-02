@@ -188,6 +188,8 @@ The allowable ``libE_specs["resource_info"]`` fields are::
 
     "cores_on_node" [tuple (int, int)]:
         Tuple (physical cores, logical cores) on nodes.
+    "gpus_on_node" [int]:
+        Number of GPUs on each node.
     "node_file" [str]:
         Name of file containing a node-list. Default is "node_list".
     "nodelist_env_slurm" [str]:

@@ -89,7 +89,7 @@ def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None)
 
     # In some cases may be worth getting GPUs from env even when local
     num_gpus = get_gpus_from_env(env_resources=env_resources)
-    print(f"{num_gpus=}")
+    # print(f"{num_gpus=}")
 
     if remote_mode:
         # May be unnecessary condition
