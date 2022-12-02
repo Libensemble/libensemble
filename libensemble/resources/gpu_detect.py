@@ -93,7 +93,8 @@ def get_gpus_from_env(env_resources=None):
         gpu_count = os.getenv("SLURM_GPUS_ON_NODE")
         print("gpu count from SLURM_GPUS_ON_NODE", gpu_count)
         # return os.getenv("SLURM_GPUS_ON_NODE")
-        return gpu_count
+        if gpu_count is not None:
+            return int(gpu_count)
 
     return None
 
