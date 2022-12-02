@@ -13,6 +13,7 @@ def pynvml():
         pynvml.nvmlInit()
         gpu_count = pynvml.nvmlDeviceGetCount()
         pynvml.nvmlShutdown()
+        print("gpu count from pynvml", gpu_count)
     except Exception:
         print("pynvml (optional) not found or failed")
         return None
@@ -24,6 +25,7 @@ def nvidia_smi():
     try:
         output = subprocess.check_output(["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"])
         gpu_count = len(output.decode().split())
+        print("gpu count from nvidia-smi", gpu_count)
     except Exception:
         print("nvidia-smi (optional) not found or failed")
         return None
@@ -37,6 +39,7 @@ def pyadl():
 
         devices = ADLManager.getInstance().getDevices()
         gpu_count = len(devices)
+        print("gpu count from pyadl", gpu_count)
     except Exception:
         print("pyadl (optional) not found or failed")
         return None
@@ -63,7 +66,7 @@ METHODS = {
 }
 
 
-def get_num_gpus():
+def get_num_gpus(testall=False):
     """Return number of GPUs on node if can detect - else None"""
 
     # Default zero or None
@@ -71,7 +74,7 @@ def get_num_gpus():
 
     for method in METHODS:
         gpu_count = METHODS[method]()
-        if isinstance(gpu_count, int):
+        if isinstance(gpu_count, int) and not testall:
             return gpu_count
 
     # gpus not found
@@ -93,3 +96,7 @@ def get_gpus_from_env(env_resources=None):
         return int(gpu_count)
 
     return None
+
+# temp
+if __name__ == "__main__":
+    get_num_gpus(testall=True)
