@@ -11,8 +11,8 @@ from libensemble.utils.specs_checkers import (
     _MPICommValidationModel,
 )
 
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.sim_funcs.one_d_func import one_d_example
+from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 BaseConfig.arbitrary_types_allowed = True
@@ -26,13 +26,13 @@ class SimSpecs(BaseModel):
     a ``sim_specs`` dictionary.
     """
 
-    sim_f: Callable = six_hump_camel
+    sim_f: Callable = one_d_example
     """
     Python function that matches the ``sim_f`` api. e.g. ``libensemble.sim_funcs.borehole``. Evaluates parameters
     produced by a generator function
     """
 
-    inputs: List[str] = Field([], alias="in")
+    inputs: List[str] = Field(["x"], alias="in")
     """
     List of field names out of the complete history to pass
     into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword.
@@ -45,7 +45,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = [("f", float)]
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
@@ -72,7 +72,7 @@ class GenSpecs(BaseModel):
     a ``gen_specs`` dictionary.
     """
 
-    gen_f: Optional[Callable] = uniform_random_sample
+    gen_f: Optional[Callable] = latin_hypercube_sample
     """
     Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
     evaluation by a simulator function, and makes decisions based on simulation function output
@@ -90,7 +90,7 @@ class GenSpecs(BaseModel):
     throughout runtime, following initialization
     """
 
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = [("x", float, (1,))]
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the generator function:

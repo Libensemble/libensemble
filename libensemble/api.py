@@ -18,45 +18,25 @@ NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 
 
 @dataclass
-class Persis_Info:
-    """
-    ``persis_info`` persistent information dictionary management class. An
-    instance of this (with random streams) is created on initiation of an ``Ensemble``,
-    since ``persis_info`` is populated like so for most libEnsemble test-cases anyway.
-    """
-
-    nworkers: int = 4
-    persis_info = {}
-
-    def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        if num_streams:
-            nstreams = num_streams
-        else:
-            nstreams = self.nworkers + 1
-
-        self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
-        return self.persis_info
-
-
-@dataclass
 class Ensemble:
     """
     An alternative interface for
     parameterizing libEnsemble by interacting with a class instance, and
-    potentially populating it via a yaml or toml file.
+    potentially populating it via a yaml, json, or toml file.
     """
 
     sim_specs: Union[SimSpecs, dict] = field(default_factory=dict)
     gen_specs: Union[GenSpecs, dict] = field(default_factory=dict)
-    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=dict)
+    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=AllocSpecs)
     libE_specs: Union[LibeSpecs, dict] = field(default_factory=dict)
     exit_criteria: Union[ExitCriteria, dict] = field(default_factory=dict)
+    persis_info: dict = field(default_factory=dict)
     H0: Any = None
 
     def __post_init__(self):
-        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
-        self.libE_specs.update(libE_specs_parsed)
-        self.persis_info = Persis_Info(self.nworkers)
+        _, self.is_manager, libE_specs_parsed, _ = parse_args()
+        if isinstance(self.libE_specs, dict) and not len(self.libE_specs):
+            self.libE_specs.update(libE_specs_parsed)
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
@@ -68,17 +48,23 @@ class Ensemble:
         Spec checking (and other error handling) occurs within ``libE()``.
         """
 
-        self.H, self.persis_info.persis_info, self.flag = libE(
+        self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
             self.gen_specs,
             self.exit_criteria,
-            persis_info=self.persis_info.persis_info,
+            persis_info=self.persis_info,
             alloc_specs=self.alloc_specs,
             libE_specs=self.libE_specs,
             H0=self.H0,
         )
 
-        return self.H, self.persis_info.persis_info, self.flag
+        return self.H, self.persis_info, self.flag
+
+    def _nworkers(self):
+        if isinstance(self.libE_specs, dict):
+            return self.libE_specs["nworkers"]
+        elif isinstance(self.libE_specs, LibeSpecs):
+            return self.libE_specs.nworkers
 
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""
@@ -173,6 +159,16 @@ class Ensemble:
 
         self._parameterize(loaded)
 
+    def add_random_streams(self, num_streams: int = 0, seed: str = ""):
+        """Adds np.random generators for each worker to persis_info"""
+        if num_streams:
+            nstreams = num_streams
+        else:
+            nstreams = self._nworkers()
+
+        self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
+        return self.persis_info
+
     def save_output(self, file: str):
         """Class wrapper for ``save_libE_output``"""
-        save_libE_output(self.H, self.persis_info, file, self.nworkers)
+        save_libE_output(self.H, self.persis_info, file, self._nworkers())
