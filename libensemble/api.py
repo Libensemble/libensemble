@@ -166,7 +166,7 @@ class Ensemble:
         else:
             nstreams = self._nworkers()
 
-        self.persis_info = add_unique_random_streams({}, nstreams, seed=seed)
+        self.persis_info = add_unique_random_streams({}, nstreams+1, seed=seed)
         return self.persis_info
 
     def save_output(self, file: str):
