@@ -88,6 +88,7 @@ class SimSpecs(BaseModel):
             raise ValueError("Value should be a list of field names (a list of strings).")
         return v
 
+
 class GenSpecs(BaseModel):
     """
     Specifications for configuring a Generator Function. Equivalent to
@@ -146,6 +147,7 @@ class GenSpecs(BaseModel):
         if not all(isinstance(s, str) for s in v):
             raise ValueError("Value should be a list of field names (a list of strings).")
         return v
+
 
 class AllocSpecs(BaseModel):
     """
