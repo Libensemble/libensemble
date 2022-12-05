@@ -1,5 +1,6 @@
 import os
 import random
+import numpy as np
 from typing import Any, Callable, List, Optional, Tuple, Union
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
@@ -16,6 +17,11 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 BaseConfig.arbitrary_types_allowed = True
+BaseConfig.extra = "forbid"
+BaseConfig.error_msg_templates = {
+    "value_error.extra": "Unrecognized field. Check closely for typos, or the docs.",
+    "type_error.callable": "Specified sim_f or gen_f is not callable. It should be a user function.",
+}
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
 
@@ -65,6 +71,22 @@ class SimSpecs(BaseModel):
     the simulator function
     """
 
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(f"Unable to coerce '{v}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples.")
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not v:
+            raise ValueError("SimSpecs requires specification of input fields.")
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError("Value should be a list of field names (a list of strings).")
+        return v
 
 class GenSpecs(BaseModel):
     """
@@ -110,6 +132,20 @@ class GenSpecs(BaseModel):
     function
     """
 
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(f"Unable to coerce '{v}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples.")
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError("Value should be a list of field names (a list of strings).")
+        return v
 
 class AllocSpecs(BaseModel):
     """
