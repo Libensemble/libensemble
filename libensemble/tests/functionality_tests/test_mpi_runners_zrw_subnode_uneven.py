@@ -100,7 +100,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f, "out": []}
+    alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     test_list_base = [

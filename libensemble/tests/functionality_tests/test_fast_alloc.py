@@ -62,9 +62,9 @@ if __name__ == "__main__":
     for time in np.append([0], np.logspace(-5, -1, 5)):
         print("Starting for time: ", time, flush=True)
         if time == 0:
-            alloc_specs = {"alloc_f": alloc_f2, "out": []}
+            alloc_specs = {"alloc_f": alloc_f2}
         else:
-            alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
+            alloc_specs = {"alloc_f": alloc_f, "user": {"num_active_gens": 1}}
 
         for rep in range(1):
             sim_specs["user"]["pause_time"] = time

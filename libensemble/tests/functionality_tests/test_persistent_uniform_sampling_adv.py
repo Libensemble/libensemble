@@ -57,7 +57,7 @@ if __name__ == "__main__":
     sim_max = 40
     exit_criteria = {"sim_max": sim_max}
 
-    alloc_specs = {"alloc_f": alloc_f, "out": []}
+    alloc_specs = {"alloc_f": alloc_f}
 
     # Perform the runs
     for prob_id in range(2):

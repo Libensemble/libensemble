@@ -52,7 +52,7 @@ class Fake_MPI_1P(Fake_MPI):
 fake_mpi = Fake_MPI()
 fake_mpi_1p = Fake_MPI_1P()
 
-alloc_specs = {"alloc_f": give_sim_work_first, "out": []}
+alloc_specs = {"alloc_f": give_sim_work_first}
 hfile_abort = "libE_history_at_abort_0.npy"
 pfile_abort = "libE_persis_info_at_abort_0.pickle"
 
