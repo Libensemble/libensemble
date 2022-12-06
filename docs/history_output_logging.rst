@@ -145,5 +145,3 @@ without simulation-specific directories.
   contains scripts to compare outputs and create plots based on the ensemble output.
 
 .. include:: ../scripts/readme.rst
-
-.. include:: ../scripts/balsam/readme.rst
