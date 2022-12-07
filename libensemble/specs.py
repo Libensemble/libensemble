@@ -23,6 +23,7 @@ _IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
 
 BaseConfig.arbitrary_types_allowed = True
+BaseConfig.allow_population_by_field_name = True
 BaseConfig.extra = "forbid"
 BaseConfig.error_msg_templates = {
     "value_error.extra": _UNRECOGNIZED_ERR,
@@ -44,7 +45,7 @@ class SimSpecs(BaseModel):
     produced by a generator function
     """
 
-    inputs: List[str] = Field(["x"], alias="in")
+    inputs: List[str] = Field([], alias="in")
     """
     List of field names out of the complete history to pass
     into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword.

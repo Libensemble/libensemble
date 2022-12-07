@@ -82,8 +82,11 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
-        sim_specs=SimSpecs(),
+        sim_specs=SimSpecs(inputs=["x"],
+            out=[("f", float)]
+        ),
         gen_specs=GenSpecs(
+            out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
                 "lb": np.array([-3]),

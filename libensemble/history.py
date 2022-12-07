@@ -62,7 +62,7 @@ class History:
             for i in range(len(H0.dtype.names)):
                 dtype = H0.dtype[i]
                 subd = dtype.subdtype[0] if dtype.subdtype else dtype
-                pytype = type(subd.type(0).item())
+                pytype = type(subd.type(0).item())  # kinda redundant innit?
                 if dtype.shape:
                     H0_fields.append((H0.dtype.names[i], pytype, dtype.shape))
                 else:
