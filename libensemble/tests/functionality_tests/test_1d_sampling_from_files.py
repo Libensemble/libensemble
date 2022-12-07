@@ -33,7 +33,7 @@ if __name__ == "__main__":
         }
     )
 
-    sampling.persis_info.add_random_streams()
+    sampling.add_random_streams()
 
     # Perform the run
     sampling.run()

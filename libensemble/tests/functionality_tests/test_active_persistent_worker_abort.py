@@ -60,7 +60,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": alloc_f,
-        "out": gen_out,
         "user": {
             "batch_mode": True,
             "num_active_gens": 1,

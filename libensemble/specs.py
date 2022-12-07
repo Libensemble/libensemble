@@ -57,7 +57,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = [("f", float)]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
@@ -119,7 +119,7 @@ class GenSpecs(BaseModel):
     throughout runtime, following initialization
     """
 
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = [("x", float, (1,))]
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the generator function:
