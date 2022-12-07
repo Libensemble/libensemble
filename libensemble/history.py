@@ -68,7 +68,9 @@ class History:
                 else:
                     H0_fields.append((H0.dtype.names[i], pytype))
 
-            H_fields = list(set(specs_dtype_list + H0_fields))
+            # remove duplicate fields from specs dtype list if those already in H0 (H0 takes precedence)
+            pruned_specs_dtype_list = [i for i in specs_dtype_list if i[0] not in H0.dtype.names]
+            H_fields = list(set(pruned_specs_dtype_list + H0_fields))
 
             H = np.zeros(L + len(H0), dtype=H_fields)
 
