@@ -88,7 +88,6 @@ if __name__ == "__main__":
             ("x", float, (2,)),
             ("task", str, max([len(mt_params["name_hifi"]), len(mt_params["name_lofi"])])),
             ("resource_sets", int),
-            ("gen_informed", bool),
         ],
         "user": {
             "range": [1, 8],
