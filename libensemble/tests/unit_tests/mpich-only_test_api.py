@@ -9,12 +9,8 @@ def test_ensemble_init():
     from libensemble.api import Ensemble
 
     e = Ensemble()
-    assert (
-        "comms" in e.libE_specs
-    ), "internal parse_args() didn't populate defaults for class's libE_specs"
-    assert (
-        "mpi_comm" in e.libE_specs
-    ), "parse_args() didn't populate defaults for class's libE_specs"
+    assert "comms" in e.libE_specs, "internal parse_args() didn't populate defaults for class's libE_specs"
+    assert "mpi_comm" in e.libE_specs, "parse_args() didn't populate defaults for class's libE_specs"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
@@ -40,17 +36,13 @@ def test_from_files():
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
         assert e.exit_criteria == exit_criteria, "exit_criteria wasn't correctly loaded"
-        assert (
-            e.sim_specs == sim_specs
-        ), "instance's sim_specs isn't equivalent to sample sim_specs"
+        assert e.sim_specs == sim_specs, "instance's sim_specs isn't equivalent to sample sim_specs"
 
         # can't specify np arrays in yaml - have to manually update.
         e.gen_specs["user"]["ub"] = np.ones(1)
         e.gen_specs["user"]["lb"] = np.zeros(1)
 
-        assert (
-            e.gen_specs == gen_specs
-        ), "instance's gen_specs isn't equivalent to sample gen_specs"
+        assert e.gen_specs == gen_specs, "instance's gen_specs isn't equivalent to sample gen_specs"
 
 
 @pytest.mark.extra
@@ -82,16 +74,14 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LibeSpecs(comms="local", nworkers=4),
-        sim_specs=SimSpecs(inputs=["x"],
-            out=[("f", float)]
-        ),
+        sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
         gen_specs=GenSpecs(
             out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
                 "lb": np.array([-3]),
                 "ub": np.array([3]),
-            }
+            },
         ),
         exit_criteria=ExitCriteria(gen_max=101),
     )
