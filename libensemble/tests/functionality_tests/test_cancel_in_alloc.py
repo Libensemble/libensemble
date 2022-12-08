@@ -51,7 +51,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
-        "out": [],
         "user": {
             "cancel_sims_time": 3,
             "batch_mode": False,

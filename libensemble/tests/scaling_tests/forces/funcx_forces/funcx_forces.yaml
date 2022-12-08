@@ -1,14 +1,15 @@
 libE_specs:
     save_every_k_gens: 1000
     profile: False
-    exit_criteria:
-        sim_max: 8
+
+exit_criteria:
+    sim_max: 8
 
 sim_specs:
     function: libensemble.tests.scaling_tests.forces.funcx_forces.forces_simf.run_forces_funcx
     inputs:
         - x
-    outputs:
+    out:
         energy:
             type: float
     funcx_endpoint: 6ba45bb8-ec45-4ae1-847f-c4ce0c511c6d
@@ -27,8 +28,8 @@ sim_specs:
         fail_on_submit: False
 
 gen_specs:
-    function: libensemble.gen_funcs.sampling.uniform_random_sample
-    outputs:
+    gen_f: libensemble.gen_funcs.sampling.uniform_random_sample
+    out:
         x:
             type: float
             size: 1
@@ -36,8 +37,8 @@ gen_specs:
         gen_batch_size: 1000
 
 alloc_specs:
-    function: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first
-    outputs:
+    alloc_f: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first
+    out:
         allocated:
             type: bool
     user:
