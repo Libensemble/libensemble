@@ -71,7 +71,7 @@ if __name__ == "__main__":
         "wallclock_max": 300,
     }
 
-    alloc_specs = {"out": [], "alloc_f": alloc_f}
+    alloc_specs = {"alloc_f": alloc_f}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

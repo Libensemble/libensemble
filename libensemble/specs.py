@@ -1,6 +1,7 @@
 import os
 import random
-from typing import Dict, Any, Callable, List, Optional, Tuple, Union
+import numpy as np
+from typing import Any, Callable, List, Optional, Tuple, Union
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.utils.specs_checkers import (
@@ -11,7 +12,23 @@ from libensemble.utils.specs_checkers import (
     _MPICommValidationModel,
 )
 
+from libensemble.sim_funcs.one_d_func import one_d_example
+from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+
+_UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
+_OUT_DTYPE_ERR = "Unable to coerce '{}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
+_IN_MISSING_ERR = "SimSpecs requires specification of input fields"
+_IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
+_UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
+
 BaseConfig.arbitrary_types_allowed = True
+BaseConfig.allow_population_by_field_name = True
+BaseConfig.extra = "forbid"
+BaseConfig.error_msg_templates = {
+    "value_error.extra": _UNRECOGNIZED_ERR,
+    "type_error.callable": _UFUNC_INVALID_ERR,
+}
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
 
@@ -22,7 +39,7 @@ class SimSpecs(BaseModel):
     a ``sim_specs`` dictionary.
     """
 
-    sim_f: Callable
+    sim_f: Callable = one_d_example
     """
     Python function that matches the ``sim_f`` api. e.g. ``libensemble.sim_funcs.borehole``. Evaluates parameters
     produced by a generator function
@@ -55,11 +72,28 @@ class SimSpecs(BaseModel):
     will submit simulator function instances to this endpoint to be executed, instead of calling them locally
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
     the simulator function
     """
+
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(_OUT_DTYPE_ERR.format(v))
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not v:
+            raise ValueError(_IN_MISSING_ERR)
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError(_IN_INVALID_ERR)
+        return v
 
 
 class GenSpecs(BaseModel):
@@ -68,7 +102,7 @@ class GenSpecs(BaseModel):
     a ``gen_specs`` dictionary.
     """
 
-    gen_f: Optional[Callable]
+    gen_f: Optional[Callable] = latin_hypercube_sample
     """
     Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
     evaluation by a simulator function, and makes decisions based on simulation function output
@@ -100,11 +134,26 @@ class GenSpecs(BaseModel):
     will submit generator function instances to this endpoint to be executed, instead of being called in-place
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the generator
     function
     """
+
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(_OUT_DTYPE_ERR.format(v))
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError(_IN_INVALID_ERR)
+        return v
 
 
 class AllocSpecs(BaseModel):
@@ -113,17 +162,18 @@ class AllocSpecs(BaseModel):
     an ``alloc_specs`` dictionary.
     """
 
-    alloc_f: Callable
+    alloc_f: Callable = give_sim_work_first
     """
     Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`. Decides if and
     when simulator and generator functions should be called, and with what resources and parameters
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {"num_active_gens": 1}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
     function
     """
+    # end_alloc_tag
 
 
 class ExitCriteria(BaseModel):
@@ -132,7 +182,7 @@ class ExitCriteria(BaseModel):
     ``exit_criteria`` dictionary.
     """
 
-    sim_max: Optional[int] = 100
+    sim_max: Optional[int]
     """ Stop when this many new points have been evaluated by simulation functions"""
 
     gen_max: Optional[int]

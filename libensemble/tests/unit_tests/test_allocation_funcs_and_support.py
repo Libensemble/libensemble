@@ -10,7 +10,7 @@ from libensemble.history import History
 from libensemble.resources.scheduler import ResourceScheduler
 from libensemble.resources.resources import Resources
 
-al = {"alloc_f": give_sim_work_first, "out": []}
+al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
 H0 = []
 
