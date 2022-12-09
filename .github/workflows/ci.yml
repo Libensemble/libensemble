@@ -156,7 +156,12 @@ jobs:
 
             pip install ax-platform
 
-            pip install scikit-build packaging==21.3 Tasmanian --user
+            pip install scikit-build
+            git clone -b fix/setuppy_deprecate_LegacyVersion https://github.com/jlnav/TASMANIAN.git
+            cd TASMANIAN/InterfacePython/PipInstaller; pip install -e . --user; cd -
+            # pip install git+https://github.com/jlnav/TASMANIAN.git@fix/setuppy_deprecate_LegacyVersion
+
+            # pip install scikit-build packaging Tasmanian --user
 
         - name: Install other testing dependencies
           run: |
