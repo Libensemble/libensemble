@@ -27,7 +27,7 @@ from libensemble.message_numbers import (
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 
 logger = logging.getLogger(__name__)
@@ -81,8 +81,8 @@ class Application:
         full_path: str,
         name: Optional[str] = None,
         calc_type: Optional[str] = "sim",
-        desc: None = None,
-        pyobj: None = None,
+        desc: Optional[str] = None,
+        pyobj: Optional[Any] = None,  # used by balsam_executor to store ApplicationDefinition
         precedent: str = "",
     ) -> None:
         """Instantiates a new Application instance."""
@@ -453,7 +453,7 @@ class Executor:
         full_path: str,
         app_name: Optional[str] = None,
         calc_type: Optional[str] = None,
-        desc: None = None,
+        desc: Optional[str] = None,
         precedent: str = "",
     ) -> None:
         """Registers a user application to libEnsemble.
@@ -492,7 +492,7 @@ class Executor:
             jassert(calc_type in self.default_apps, "Unrecognized calculation type", calc_type)
             self.default_apps[calc_type] = self.apps[app_name]
 
-    def manager_poll(self):
+    def manager_poll(self) -> int:
         """
         .. _manager_poll_label:
 
@@ -521,7 +521,7 @@ class Executor:
         self.comm.push_to_buffer(mtag, man_signal)
         return man_signal
 
-    def manager_kill_received(self):
+    def manager_kill_received(self) -> bool:
         """Return True if received kill signal from the manager"""
         man_signal = self.manager_poll()
         if man_signal in MAN_KILL_SIGNALS:
@@ -596,7 +596,7 @@ class Executor:
             logger.warning(f"Task {taskid} not found in tasklist")
         return task
 
-    def new_tasks_timing(self, datetime=False):
+    def new_tasks_timing(self, datetime=False) -> str:
         """Returns timing of new tasks as a string
 
         Parameters
@@ -617,11 +617,11 @@ class Executor:
                 self.last_task += 1
         return timing_msg
 
-    def set_workerID(self, workerid):
+    def set_workerID(self, workerid) -> None:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, comm, workerid=None):
+    def set_worker_info(self, comm, workerid=None) -> None:
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
@@ -636,8 +636,8 @@ class Executor:
         calc_type: Optional[str] = None,
         app_name: Optional[str] = None,
         app_args: Optional[str] = None,
-        stdout: None = None,
-        stderr: None = None,
+        stdout: Optional[str] = None,
+        stderr: Optional[str] = None,
         dry_run: bool = False,
         wait_on_start: bool = False,
     ) -> Task:

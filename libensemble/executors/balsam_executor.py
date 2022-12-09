@@ -103,11 +103,11 @@ class BalsamTask(Task):
     def __init__(
         self,
         app: Optional[Application] = None,
-        app_args: None = None,
+        app_args: dict = None,
         workdir: Optional[str] = None,
-        stdout: None = None,
-        stderr: None = None,
-        workerid: None = None,
+        stdout: str = None,
+        stderr: str = None,
+        workerid: int = None,
     ) -> None:
         """Instantiate a new ``BalsamTask`` instance.
 
@@ -278,7 +278,7 @@ class BalsamExecutor(Executor):
         BalsamApp: ApplicationDefinition,
         app_name: Optional[str] = None,
         calc_type: Optional[str] = None,
-        desc: None = None,
+        desc: str = None,
         precedent: Optional[str] = None,
     ) -> None:
         """Registers a Balsam ``ApplicationDefinition`` to libEnsemble. This class
@@ -440,12 +440,12 @@ class BalsamExecutor(Executor):
         max_tasks_per_node: None = None,
         machinefile: Optional[str] = None,
         gpus_per_rank: int = 0,
-        transfers: Dict[Any, Any] = {},
+        transfers: dict = {},
         workdir: str = "",
         dry_run: bool = False,
         wait_on_start: bool = False,
-        extra_args: Dict[Any, Any] = {},
-        tags: Dict[Any, Any] = {},
+        extra_args: dict = {},
+        tags: dict = {},
     ) -> BalsamTask:
         """Initializes and submits a Balsam ``Job`` based on a registered ``ApplicationDefinition``
         and requested resources. A corresponding libEnsemble ``Task`` object is returned.

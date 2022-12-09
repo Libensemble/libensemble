@@ -32,7 +32,7 @@ class MPIExecutor(Executor):
     :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
-    def __init__(self, custom_info: Dict[str, Union[str, bool]] = {}) -> None:
+    def __init__(self, custom_info: dict = {}) -> None:
         """Instantiate a new MPIExecutor instance.
 
         A new MPIExecutor is created with an application
@@ -95,7 +95,7 @@ class MPIExecutor(Executor):
 
         if not mpi_runner_type:
             mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = get_runner(MPIRunner.mpi_runner_type, runner_name)
+        self.mpi_runner = get_runner(mpi_runner_type, runner_name)
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
         self.resources = None
