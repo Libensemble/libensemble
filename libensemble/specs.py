@@ -1,7 +1,7 @@
 import os
 import random
 import numpy as np
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union, Dict
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.utils.specs_checkers import (
