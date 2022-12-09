@@ -15,8 +15,8 @@ import time
 import libensemble.utils.launcher as launcher
 from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.executors.executor import Executor, Task, ExecutorException
-from libensemble.executors.mpi_runner import MPIRunner, get_runner
-from typing import Dict, List, Optional, Union
+from libensemble.executors.mpi_runner import get_runner
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
