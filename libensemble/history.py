@@ -57,6 +57,7 @@ class History:
             # - dtypes aren't iterable, but you can index into them
             # - must split out actual numpy type if subdtype refers to sub-array
             # - then convert that type into a python type in the best way known so far...
+            # - we need to make sure the size of string types is preserved
             # - if sub-array shape, save as 3-tuple
             H0_fields = []
             for i in range(len(H0.dtype.names)):
