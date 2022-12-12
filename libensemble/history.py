@@ -63,8 +63,9 @@ class History:
                 dtype = H0.dtype[i]
                 subd = dtype.subdtype[0] if dtype.subdtype else dtype
                 pytype = type(subd.type(0).item())  # kinda redundant innit?
-                if dtype.shape:
-                    H0_fields.append((H0.dtype.names[i], pytype, dtype.shape))
+                size = int(dtype.str.split("<U")[-1]) if "<U" in dtype.str else dtype.shape
+                if size:
+                    H0_fields.append((H0.dtype.names[i], pytype, size))
                 else:
                     H0_fields.append((H0.dtype.names[i], pytype))
 
