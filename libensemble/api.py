@@ -60,6 +60,14 @@ class Ensemble:
 
         return self.H, self.persis_info, self.flag
 
+    def _nworkers(self):
+        if self.nworkers:
+            return self.nworkers
+        elif isinstance(self.libE_specs, dict) and self.libE_specs.get("nworkers"):
+            return self.libE_specs["nworkers"]
+        elif isinstance(self.libE_specs, LibeSpecs):
+            return self.libE_specs.nworkers
+
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""
         func_path_split = loaded.rsplit(".", 1)
@@ -158,7 +166,7 @@ class Ensemble:
         if num_streams:
             nstreams = num_streams
         else:
-            nstreams = self.nworkers
+            nstreams = self._nworkers()
 
         self.persis_info = add_unique_random_streams({}, nstreams+1, seed=seed)
         return self.persis_info
