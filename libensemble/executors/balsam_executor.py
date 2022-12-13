@@ -86,7 +86,7 @@ from libensemble.executors import Executor
 
 util.config_root_logger("ERROR")  # Balsam prevent auto-load client warning?
 
-from balsam.api import Job, BatchJob, EventLog  # noqa: E402
+from balsam.api import Job, BatchJob, EventLog, ApplicationDefinition  # noqa: E402
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
