@@ -72,6 +72,8 @@ import os
 import logging
 import time
 import datetime
+from balsam import util
+from typing import Any, Dict, List, Optional, Union
 
 from libensemble.executors.executor import (
     Application,
@@ -82,8 +84,9 @@ from libensemble.executors.executor import (
 )
 from libensemble.executors import Executor
 
-from balsam.api import Job, BatchJob, EventLog, ApplicationDefinition
-from typing import Any, Dict, List, Optional, Union
+util.config_root_logger("ERROR")  # Balsam prevent auto-load client warning?
+
+from balsam.api import Job, BatchJob, EventLog  # noqa: E402
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
