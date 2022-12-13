@@ -34,7 +34,7 @@ class Ensemble:
     H0: Any = None
 
     def __post_init__(self):
-        _, self.is_manager, libE_specs_parsed, _ = parse_args()
+        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
         if isinstance(self.libE_specs, dict) and not len(self.libE_specs):
             self.libE_specs.update(libE_specs_parsed)
         self._util_logger = logging.getLogger(__name__)
@@ -61,7 +61,9 @@ class Ensemble:
         return self.H, self.persis_info, self.flag
 
     def _nworkers(self):
-        if isinstance(self.libE_specs, dict):
+        if self.nworkers:
+            return self.nworkers
+        elif isinstance(self.libE_specs, dict) and self.libE_specs.get("nworkers"):
             return self.libE_specs["nworkers"]
         elif isinstance(self.libE_specs, LibeSpecs):
             return self.libE_specs.nworkers
@@ -171,4 +173,4 @@ class Ensemble:
 
     def save_output(self, file: str):
         """Class wrapper for ``save_libE_output``"""
-        save_libE_output(self.H, self.persis_info, file, self._nworkers())
+        save_libE_output(self.H, self.persis_info, file, self.nworkers)

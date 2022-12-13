@@ -57,14 +57,16 @@ class History:
             # - dtypes aren't iterable, but you can index into them
             # - must split out actual numpy type if subdtype refers to sub-array
             # - then convert that type into a python type in the best way known so far...
+            # - we need to make sure the size of string types is preserved
             # - if sub-array shape, save as 3-tuple
             H0_fields = []
             for i in range(len(H0.dtype.names)):
                 dtype = H0.dtype[i]
                 subd = dtype.subdtype[0] if dtype.subdtype else dtype
                 pytype = type(subd.type(0).item())  # kinda redundant innit?
-                if dtype.shape:
-                    H0_fields.append((H0.dtype.names[i], pytype, dtype.shape))
+                size = int(dtype.str.split("<U")[-1]) if "<U" in dtype.str else dtype.shape
+                if size:
+                    H0_fields.append((H0.dtype.names[i], pytype, size))
                 else:
                     H0_fields.append((H0.dtype.names[i], pytype))
 

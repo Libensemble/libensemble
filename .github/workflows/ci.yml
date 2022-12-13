@@ -156,6 +156,11 @@ jobs:
 
             pip install ax-platform
 
+            pip install scikit-build
+            # git clone https://github.com/ORNL/TASMANIAN.git
+            # cd TASMANIAN/InterfacePython/PipInstaller; pip install -e .; cd -
+            # pip install git+https://github.com/jlnav/TASMANIAN.git@fix/setuppy_deprecate_LegacyVersion
+
             pip install scikit-build packaging Tasmanian --user
 
         - name: Install other testing dependencies
