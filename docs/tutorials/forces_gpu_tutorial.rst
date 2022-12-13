@@ -122,7 +122,7 @@ Such options can be added to the `exctr.submit` call as ``extra_args``::
 
     task = exctr.submit(
     ...
-        extra_args='--gpus-per-task=1'
+        extra_args="--gpus-per-task=1"
     )
 
 Alternative environment variables can be simply substituted in ``set_env_to_slots``.
@@ -144,7 +144,7 @@ Note that if you are running one persistent generator that does not require
 resources, then assign nine workers, and fix the number of *resource_sets* in
 you calling script::
 
-    libE_specs['num_resource_sets'] = 8
+    libE_specs["num_resource_sets"] = 8
 
 See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
@@ -162,11 +162,11 @@ Varying resources
 -----------------
 
 The same code can be used when varying worker resources. In this case, you may
-add an integer field called ``resource_sets`` as a ``gen_specs['out']`` in your
+add an integer field called ``resource_sets`` as a ``gen_specs["out"]`` in your
 calling script.
 
 In the generator function, assign the ``resource_sets`` field of
-:doc:`H<../data_structures/history_array>` for each point generated. For example
+:ref:`H<funcguides-history>` for each point generated. For example
 if a larger simulation requires two MPI tasks (and two GPUs), set ``resource_sets``
 field to *2* for that sim_id in the generator function.
 

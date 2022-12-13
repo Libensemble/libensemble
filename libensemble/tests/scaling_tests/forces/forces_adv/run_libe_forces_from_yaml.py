@@ -3,7 +3,7 @@ import os
 import sys
 import numpy as np
 
-from libensemble import Ensemble
+from libensemble.api import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
 
 ####################

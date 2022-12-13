@@ -76,7 +76,7 @@ if __name__ == "__main__":
         "user": {"give_all_with_same_priority": False},
     }
 
-    # comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
+    # comms = libE_specs["disable_resource_manager"] = True # SH TCP testing
 
     comms = libE_specs["comms"]
     node_file = "nodelist_adaptive_workers_persistent_ovsub_rsets_comms_" + str(comms) + "_wrks_" + str(nworkers)

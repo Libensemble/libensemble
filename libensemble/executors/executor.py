@@ -510,7 +510,7 @@ class Executor:
     def polling_loop(self, task, timeout=None, delay=0.1, poll_manager=False):
         """Optional, blocking, generic task status polling loop. Operates until the task
         finishes, times out, or is optionally killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<datastruct-calc-status>` integer. Potentially useful
+        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Potentially useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
 

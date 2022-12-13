@@ -30,7 +30,7 @@ from libensemble.message_numbers import (
 from libensemble.message_numbers import calc_type_strings
 from libensemble.comms.comms import CommFinishedException
 from libensemble.worker import WorkerErrMsg
-from libensemble.output_directory import EnsembleDirectory
+from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING
@@ -171,8 +171,8 @@ class Manager:
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
-        self.safe_mode = libE_specs.get("safe_mode", True)
-        self.kill_canceled_sims = libE_specs.get("kill_canceled_sims", True)
+        self.safe_mode = libE_specs.get("safe_mode")
+        self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
@@ -398,9 +398,9 @@ class Manager:
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
-        if "save_every_k_sims" in self.libE_specs:
+        if self.libE_specs.get("save_every_k_sims"):
             self._save_every_k_sims()
-        if "save_every_k_gens" in self.libE_specs:
+        if self.libE_specs.get("save_every_k_gens"):
             self._save_every_k_gens()
         return persis_info
 
@@ -549,11 +549,11 @@ class Manager:
             "elapsed_time": self.elapsed(),
             "gen_informed_count": self.hist.gen_informed_count,
             "manager_kill_canceled_sims": self.kill_canceled_sims,
-            "scheduler_opts": self.libE_specs.get("scheduler_opts", {}),
+            "scheduler_opts": self.libE_specs.get("scheduler_opts"),
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
-            "use_resource_sets": "num_resource_sets" in self.libE_specs,
+            "use_resource_sets": self.libE_specs.get("num_resource_sets"),
         }
 
     def _alloc_work(self, H, persis_info):

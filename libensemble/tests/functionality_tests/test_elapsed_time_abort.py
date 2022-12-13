@@ -47,7 +47,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
-        "out": [],
         "user": {
             "batch_mode": False,
             "num_active_gens": 2,
@@ -56,7 +55,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"elapsed_wallclock_time": 1}  # Intentionally using deprecated term. Use wallclock_max instead.
+    exit_criteria = {"wallclock_max": 1}
 
     # Perform the run
     H, persis_info, flag = libE(

@@ -5,11 +5,11 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
-    to evaluate in the simulation function. The fields in ``sim_specs['in']``
+    to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If all entries in `H` have been given to be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
-    for a ``'batch_mode'``.
+    more than ``alloc_specs["user"]["num_active_gen"]`` active generators. Also allows
+    for a ``"batch_mode"``.
 
     tags: alloc, simple, fast, batch, aposmm
 

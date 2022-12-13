@@ -19,8 +19,6 @@ from libensemble.resources.mpi_resources import MPIResourcesException
 from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
 from libensemble.executors.executor import NOT_STARTED_STATES
 
-
-USE_BALSAM = False
 NCORES = 1
 build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]
 
@@ -72,14 +70,8 @@ def build_simfuncs():
 # This would typically be in the user calling script
 def setup_executor():
     """Set up an MPI Executor with sim app"""
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
-
-        exctr = LegacyBalsamMPIExecutor()
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-
-        exctr = MPIExecutor()
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
@@ -102,23 +94,14 @@ def setup_executor_startups():
 
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
-
-        exctr = LegacyBalsamMPIExecutor()
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-
-        exctr = MPIExecutor()
-        if exctr.workerID is not None:
-            sys.exit("Something went wrong in creating Executor")
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor()
+    if exctr.workerID is not None:
+        sys.exit("Something went wrong in creating Executor")
 
 
 def setup_executor_fakerunner():
     """Set up an MPI Executor with a non-existent MPI runner"""
-    if USE_BALSAM:
-        print("Balsom does not support this feature - running MPIExecutor")
-
     # Create non-existent MPI runner.
     customizer = {
         "mpi_runner": "custom",

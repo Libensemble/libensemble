@@ -39,8 +39,6 @@ class History:
 
     """
 
-    # Not currently using libE_specs, persis_info - need to add parameters
-    # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
     def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
         """
         Forms the numpy structured array that records everything from the
@@ -49,19 +47,40 @@ class History:
         """
         L = exit_criteria.get("sim_max", 100)
 
-        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        specs = [sim_specs, alloc_specs, gen_specs]
-        dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
+        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs
+        specs = [sim_specs, gen_specs]
+        specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
 
         if len(H0):
+
+            # a whole lot of work to parse numpy dtypes to python types and 2- or 3-tuples
+            # - dtypes aren't iterable, but you can index into them
+            # - must split out actual numpy type if subdtype refers to sub-array
+            # - then convert that type into a python type in the best way known so far...
+            # - we need to make sure the size of string types is preserved
+            # - if sub-array shape, save as 3-tuple
+            H0_fields = []
+            for i in range(len(H0.dtype.names)):
+                dtype = H0.dtype[i]
+                subd = dtype.subdtype[0] if dtype.subdtype else dtype
+                pytype = type(subd.type(0).item())  # kinda redundant innit?
+                size = int(dtype.str.split("<U")[-1]) if "<U" in dtype.str else dtype.shape
+                if size:
+                    H0_fields.append((H0.dtype.names[i], pytype, size))
+                else:
+                    H0_fields.append((H0.dtype.names[i], pytype))
+
+            # remove duplicate fields from specs dtype list if those already in H0 (H0 takes precedence)
+            pruned_specs_dtype_list = [i for i in specs_dtype_list if i[0] not in H0.dtype.names]
+            H_fields = list(set(pruned_specs_dtype_list + H0_fields))
+
+            H = np.zeros(L + len(H0), dtype=H_fields)
+
             # Prepend H with H0
             fields = H0.dtype.names
 
             for field in fields:
                 H[field][: len(H0)] = H0[field]
-                # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
-                #     H[field][ind] = val
 
             if "sim_started" not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
@@ -74,6 +93,8 @@ class History:
             if "sim_id" not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
+        else:
+            H = np.zeros(L + len(H0), dtype=specs_dtype_list)
 
         H["sim_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf

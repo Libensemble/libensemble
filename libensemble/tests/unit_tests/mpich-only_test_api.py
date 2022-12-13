@@ -1,76 +1,48 @@
 import pytest
 import numpy as np
-import pprint
-from libensemble.version import __version__
 import libensemble.tests.unit_tests.setup as setup
 
 
 @pytest.mark.extra
 def test_ensemble_init():
-    """Only testing attrs most likely to encounter errors"""
+    """testing init attrs"""
     from libensemble.api import Ensemble
 
     e = Ensemble()
-    assert "comms" in e.libE_specs, "parse_args() didn't populate default value for class instance's libE_specs"
+    assert "comms" in e.libE_specs, "internal parse_args() didn't populate defaults for class's libE_specs"
+    assert "mpi_comm" in e.libE_specs, "parse_args() didn't populate defaults for class's libE_specs"
+    assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
-
-    assert e._filename == __file__, "Class instance's detected calling script not correctly set."
+    pass
 
 
 @pytest.mark.extra
-def test_from_yaml():
+def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
     from libensemble.api import Ensemble
 
-    e = Ensemble()
-    e.from_yaml("./simdir/test_example.yaml")
+    for ft in ["yaml", "json", "toml"]:
 
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-    # unit_test sample specs dont (but perhaps should) contain 'user' field
-    sim_specs.update({"user": {}})
+        e = Ensemble()
+        file_path = f"./simdir/test_example.{ft}"
+        if ft == "yaml":
+            e.from_yaml(file_path)
+        elif ft == "json":
+            e.from_json(file_path)
+        else:
+            e.from_toml(file_path)
 
-    assert all([e.alloc_specs[i] is not None for i in ["user"]]), "class instance's alloc_specs wasn't populated."
+        sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
-    assert e.exit_criteria == exit_criteria, "exit_criteria wasn't correctly loaded or separated from libE_specs."
+        assert e.exit_criteria == exit_criteria, "exit_criteria wasn't correctly loaded"
+        assert e.sim_specs == sim_specs, "instance's sim_specs isn't equivalent to sample sim_specs"
 
-    assert e.sim_specs == sim_specs, "instance's sim_specs isn't equivalent to sample sim_specs"
+        # can't specify np arrays in yaml - have to manually update.
+        e.gen_specs["user"]["ub"] = np.ones(1)
+        e.gen_specs["user"]["lb"] = np.zeros(1)
 
-    # can't specify np arrays in yaml - have to manually update.
-    e.gen_specs["user"]["ub"] = np.ones(1)
-    e.gen_specs["user"]["lb"] = np.zeros(1)
-
-    assert e.gen_specs == gen_specs, "instance's gen_specs isn't equivalent to sample gen_specs"
-
-
-@pytest.mark.extra
-def test_str_rep():
-    """Test that Ensemble() string rep resembles setup dicts string reps"""
-    from libensemble.api import Ensemble
-
-    e = Ensemble()
-    e.from_yaml("./simdir/test_example.yaml")
-
-    sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
-
-    e.gen_specs["user"]["ub"] = np.ones(1)
-    e.gen_specs["user"]["lb"] = np.zeros(1)
-
-    repd = str(e).split()
-
-    unmatched_strings = []
-
-    for spec in [sim_specs, gen_specs, exit_criteria]:
-        for i in pprint.pformat(spec).split():
-            if i in repd:
-                continue
-            else:
-                unmatched_strings.append(i)
-
-    # Only possible unmatches should be addresses?
-    assert all(["0x" in item for item in unmatched_strings]), "String representation components didn't match expected."
-
-    assert __version__ in repd, "libEnsemble version not detected in string representation."
+        assert e.gen_specs == gen_specs, "instance's gen_specs isn't equivalent to sample gen_specs"
 
 
 @pytest.mark.extra
@@ -93,8 +65,34 @@ def test_bad_func_loads():
         assert flag == 0
 
 
+@pytest.mark.extra
+def test_full_workflow():
+    """Test initializing a workflow via Specs and Ensemble.run()"""
+    from libensemble.api import Ensemble
+    from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria, LibeSpecs
+
+    # parameterizes and validates everything!
+    ens = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
+        gen_specs=GenSpecs(
+            out=[("x", float, (1,))],
+            user={
+                "gen_batch_size": 100,
+                "lb": np.array([-3]),
+                "ub": np.array([3]),
+            },
+        ),
+        exit_criteria=ExitCriteria(gen_max=101),
+    )
+    ens.add_random_streams()
+    ens.run()
+    if ens.is_manager:
+        assert len(ens.H) >= 101
+
+
 if __name__ == "__main__":
     test_ensemble_init()
-    test_from_yaml()
-    test_str_rep()
+    test_from_files()
     test_bad_func_loads()
+    test_full_workflow()

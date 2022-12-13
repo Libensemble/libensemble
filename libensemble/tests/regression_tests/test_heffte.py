@@ -51,7 +51,7 @@ if __name__ == "__main__":
     H0["exec_and_args"] = full_list
     H0["sim_id"] = range(n_samp)
 
-    alloc_specs = {"alloc_f": alloc_f, "out": [("exec_and_args", str, max_len)]}
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": len(H0)}
 

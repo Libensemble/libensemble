@@ -42,7 +42,7 @@ Alternative
 If you do not wish to clone the miniconda environment and instead create your own, and
 you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers. E.g::
 
-    $ conda create --name my_env python=3.7
+    $ conda create --name my_env python=3.8
     $ export PYTHONNOUSERSITE=1
     $ conda activate my_env
     $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
@@ -80,34 +80,11 @@ Balsam (Optional)
 ^^^^^^^^^^^^^^^^^
 
 Balsam_ allows libEnsemble to be run on compute nodes, and still submit tasks
-from workers (see Job Submission below). The Balsam Executor will stage in tasks
-to a database hosted on a MOM node, which will submit these tasks dynamically to
-the compute nodes.
+from workers (see Job Submission below). The Balsam Executor can submit tasks
+to the Balsam Service, which will submit these tasks dynamically to a corresponding
+Balsam Site.
 
-Balsam can be installed with::
-
-    pip install balsam-flow
-
-Initialize a Balsam database at a location of your choice. E.g::
-
-    balsam init ~/myWorkflow
-
-Further notes on using Balsam:
-
-* Call ``balsamactivate`` in the batch script (see below). Make sure no active postgres databases are running on either login or MOM nodes before calling ``qsub``. You can check with the script ps_nodes_.
-
-* Balsam requires PostgreSQL version 9.6.4 or later, but problems may be encountered when using the default ``pg_ctl`` and PostgreSQL 10.12 installation installed in ``/usr/bin``. This may be resolved by loading the postgresql/9.6.12 modules within submission scripts that use Balsam.
-
-* By default there are a maximum of 128 concurrent database connections. Each worker will use a connection and a few extra are needed. Increase the number of connections by appending a new ``max_connections=`` line to ``balsamdb/postgresql.conf`` in the database directory. E.g.~ ``max_connections=1024``
-
-* There is a Balsam module available (balsam/0.3.8), but the module's Python installation supersedes others when loaded. In practice, libEnsemble or other Python packages installed into another environment become inaccessible. Installing Balsam into a separate Python virtual environment is recommended instead.
-
-Read Balsam's documentation here_.
-
-.. note::
-    Balsam creates run-specific directories inside ``data/my_workflow`` in the database
-    directory. For example: ``$HOME/my_balsam_db/data/libe_workflow/job_run_libe_forces_b7073fa9/``.
-    From here, files can be staged out (see the example batch script below).
+See the :ref:`Balsam Executor<balsam-exctr>` docs for more information.
 
 Job Submission
 --------------
@@ -120,9 +97,9 @@ On Theta, libEnsemble can be launched to two locations:
     libEnsemble must be configured to run with *multiprocessing* communications,
     since mpi4py isn't configured for use on the MOM nodes.
 
-    2. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
+    1. **The Compute Nodes**: libEnsemble is submitted to Balsam, and all manager
     and worker processes are tasked to a back-end compute node and run centrally. libEnsemble's
-    Balsam Executor interfaces with Balsam running on a MOM node for dynamic
+    Balsam Executor interfaces with the Balsam service for dynamic
     user-application submission to the compute nodes.
 
     .. image:: ../images/centralized_new_detailed_balsam.png
@@ -173,8 +150,7 @@ This will place you on a MOM node. Then, to launch jobs to the compute
 nodes, use ``aprun`` where you would use ``mpirun``.
 
 .. note::
-    You will need to reactivate your conda virtual environment, reactivate your
-    Balsam database (if using Balsam), and reload your modules. Configuring this
+    You will need to reactivate your conda virtual environment. Configuring this
     routine to occur automatically is recommended.
 
 Batch Runs
@@ -212,10 +188,10 @@ convenience function from libEnsemble's :doc:`tools module<../utilities>`.
     export EXE=calling_script.py
 
     # Communication Method
-    export COMMS='--comms local'
+    export COMMS="--comms local"
 
     # Number of workers.
-    export NWORKERS='--nworkers 128'
+    export NWORKERS="--nworkers 128"
 
     # Required for killing tasks from workers on Theta
     export PMI_NO_FORK=1
@@ -231,106 +207,6 @@ With this saved as ``myscript.sh``, allocating, configuring, and queueing
 libEnsemble on Theta is achieved by running ::
 
     $ qsub --mode script myscript.sh
-
-Balsam Runs
-^^^^^^^^^^^
-
-Here is an example Balsam submission script. It requires a pre-initialized (but not activated)
-postgresql_ database. Note, the example runs libEnsemble over two dedicated nodes, reserving the
-other 127 nodes for launched applications. libEnsemble is run with MPI on 128 processors
-(one manager and 127 workers).:
-
-.. code-block:: bash
-
-    #!/bin/bash -x
-    #COBALT -t 60
-    #COBALT -O libE_test
-    #COBALT -n 129
-    #COBALT -q default
-    #COBALT -A [project]
-
-    # Name of calling script
-    export EXE=calling_script.py
-
-    # Number of workers.
-    export NUM_WORKERS=127
-
-    # Number of nodes to run libE
-    export LIBE_NODES=2
-
-    # Wall-clock for entire libE run (supplied to Balsam)
-    export LIBE_WALLCLOCK=45
-
-    # Name of working directory where Balsam places running jobs/output
-    export WORKFLOW_NAME=libe_workflow
-
-    # If user script takes ``wallclock_max`` argument.
-    # export SCRIPT_ARGS=$(($LIBE_WALLCLOCK-3))
-    export SCRIPT_ARGS=""
-
-    # Name of conda environment
-    export CONDA_ENV_NAME=my_env
-    export BALSAM_DB_NAME=myWorkflow
-
-    # Required for killing tasks from workers on Theta
-    export PMI_NO_FORK=1
-
-    # Unload Theta modules that may interfere with task monitoring/kills
-    module unload trackdeps
-    module unload darshan
-    module unload xalt
-
-    # Obtain Conda PATH from miniconda-3/latest module
-    CONDA_DIR=/soft/datascience/conda/miniconda3/latest/bin
-
-    # Ensure environment is isolated
-    export PYTHONNOUSERSITE=1
-
-    # Activate conda environment
-    source $CONDA_DIR/activate $CONDA_ENV_NAME
-
-    # Activate Balsam database
-    source balsamactivate $BALSAM_DB_NAME
-
-    # Currently need at least one DB connection per worker (for postgres).
-    if [[ $NUM_WORKERS -gt 100 ]]
-    then
-       # Add a margin
-       export BALSAM_DB_PATH=~/$BALSAM_DB_NAME  # Pre-pend with PATH
-       echo -e "max_connections=$(($NUM_WORKERS+20)) # Appended by submission script" \
-       >> $BALSAM_DB_PATH/balsamdb/postgresql.conf
-    fi
-    wait
-
-    # Make sure no existing apps/jobs
-    balsam rm apps --all --force
-    balsam rm jobs --all --force
-    wait
-    sleep 3
-
-    # Add calling script to Balsam database as app and job.
-    export THIS_DIR=$PWD
-    export SCRIPT_BASENAME=${EXE%.*}
-
-    export LIBE_PROCS=$((NUM_WORKERS+1))  # Manager and workers
-    export PROCS_PER_NODE=$((LIBE_PROCS/LIBE_NODES))  # Must divide evenly
-
-    balsam app --name $SCRIPT_BASENAME.app --exec $EXE --desc "Run $SCRIPT_BASENAME"
-
-    balsam job --name job_$SCRIPT_BASENAME --workflow $WORKFLOW_NAME \
-    --application $SCRIPT_BASENAME.app --args $SCRIPT_ARGS \
-    --wall-time-minutes $LIBE_WALLCLOCK \
-    --num-nodes $LIBE_NODES --ranks-per-node $PROCS_PER_NODE \
-    --url-out="local:/$THIS_DIR" --stage-out-files="*.out *.txt *.log" \
-    --url-in="local:/$THIS_DIR/*" --yes
-
-    # Run job
-    balsam launcher --consume-all --job-mode=mpi --num-transition-threads=1
-
-    wait
-    source balsamdeactivate
-
-Further examples of Balsam submission scripts can be be found in the :doc:`examples<example_scripts>`.
 
 Debugging Strategies
 --------------------

@@ -28,7 +28,7 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_worker
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 
 # from libensemble import logger
-# logger.set_level('DEBUG')
+# logger.set_level("DEBUG")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

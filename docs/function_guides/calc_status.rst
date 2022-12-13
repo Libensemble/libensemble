@@ -1,4 +1,4 @@
-.. _datastruct-calc-status:
+.. _funcguides-calcstatus:
 
 calc_status
 ===========
@@ -24,7 +24,7 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
 
     from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
 
-    task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_start=True)
+    task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
     calc_status = UNSET_TAG
     poll_interval = 1  # secs
     while(not task.finished):
@@ -35,21 +35,21 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
             task.poll()
 
     if task.finished:
-        if task.state == 'FINISHED':
+        if task.state == "FINISHED":
             print("Task {} completed".format(task.name))
             calc_status = WORKER_DONE
-        elif task.state == 'FAILED':
+        elif task.state == "FAILED":
             print("Warning: Task {} failed: Error code {}".format(task.name, task.errcode))
             calc_status = TASK_FAILED
-        elif task.state == 'USER_KILLED':
+        elif task.state == "USER_KILLED":
             print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
             print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
-    outspecs = sim_specs['out']
+    outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
-    output['energy'][0] = final_energy
+    output["energy"][0] = final_energy
 
     return output, persis_info, calc_status
 
@@ -61,7 +61,7 @@ are insufficient:
 
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
-    task = exctr.submit(calc_type='sim', num_procs=cores, wait_on_start=True)
+    task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
 
     task.wait(timeout=60)
 
@@ -74,9 +74,9 @@ are insufficient:
     else:
       calc_status = TASK_FAILED
 
-    outspecs = sim_specs['out']
+    outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
-    output['energy'][0] = final_energy
+    output["energy"][0] = final_energy
 
     return output, persis_info, calc_status
 

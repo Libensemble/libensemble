@@ -65,13 +65,12 @@ setup(
         "libensemble.utils",
         "libensemble.tools",
         "libensemble.executors",
-        "libensemble.executors.balsam_executors",
         "libensemble.resources",
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
     package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
-    install_requires=["numpy", "psutil", "setuptools"],
+    install_requires=["numpy", "psutil", "setuptools", "pydantic"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
@@ -95,9 +94,10 @@ setup(
             "scipy",
         ],
         "docs": [
+            "autodoc_pydantic",
             "sphinx",
-            "sphinxcontrib.bibtex",
             "sphinx_rtd_theme",
+            "sphinxcontrib.bibtex",
         ],
     },
     scripts=[
@@ -114,10 +114,10 @@ setup(
         "Operating System :: Unix",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development :: Libraries :: Python Modules",

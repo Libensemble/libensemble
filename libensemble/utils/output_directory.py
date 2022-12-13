@@ -54,8 +54,8 @@ class EnsembleDirectory:
             self.gen_dir_copy_files = self.specs.get("gen_dir_copy_files", [])
             self.gen_dir_symlink_files = self.specs.get("gen_dir_symlink_files", [])
             self.ensemble_copy_back = self.specs.get("ensemble_copy_back", False)
-            self.sim_use = any([i in self.specs for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
-            self.gen_use = any([i in self.specs for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
+            self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
+            self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
 
     def _make_copyback_dir(self):
         """Make copyback directory, adding suffix if identical to ensemble dir"""
