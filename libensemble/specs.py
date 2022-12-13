@@ -173,6 +173,12 @@ class AllocSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
     function
     """
+
+    out: Optional[List] = []
+    """
+    Deprecated. Optional list of 2 or 3-tuples corresponding to numpy dtypes. Previously used to
+    construct H with additional fields that didn't belong in sim_specs or gen_specs.
+    """
     # end_alloc_tag
 
 
