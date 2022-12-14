@@ -27,7 +27,7 @@ from libensemble.message_numbers import (
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
-from libensemble.resources import Resources
+from libensemble.resources.resources import Resources
 from typing import Optional, Union, Any
 
 
