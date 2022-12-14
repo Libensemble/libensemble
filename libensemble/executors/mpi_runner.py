@@ -1,4 +1,5 @@
-from libensemble.resources import mpi_resources, Resources
+from libensemble.resources import mpi_resources
+from libensemble.resources.resources import Resources
 from libensemble.executors.executor import Task, jassert
 import argparse
 import logging
