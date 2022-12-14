@@ -27,7 +27,7 @@ def form_command(cmd_template: List[str], specs: dict) -> List[str]:
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))
 
 
-def launch(cmd_template: List[str], specs: None = None, **kwargs) -> subprocess.Popen:
+def launch(cmd_template: List[str], specs: dict = None, **kwargs) -> subprocess.Popen:
     "Launch a new subprocess (with command templating and Python 3 help)."
     cmd = form_command(cmd_template, specs) if specs is not None else cmd_template
     return subprocess.Popen(cmd, **kwargs)

@@ -27,6 +27,7 @@ from libensemble.message_numbers import (
 
 import libensemble.utils.launcher as launcher
 from libensemble.utils.timer import TaskTimer
+from libensemble.resources import Resources
 from typing import Optional, Union, Any
 
 
@@ -254,7 +255,7 @@ class Task:
         Parameters
         ----------
 
-        timeout: int or float,  optional
+        timeout: int or float,  Optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
@@ -273,13 +274,13 @@ class Task:
 
         self._set_complete()
 
-    def result(self, timeout: Union[int, float] = None) -> str:
+    def result(self, timeout: Optional[Union[int, float]] = None) -> str:
         """Wrapper for task.wait() that also returns the task's status on completion.
 
         Parameters
         ----------
 
-        timeout: int or float,  optional
+        timeout: int or float,  Optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
@@ -288,13 +289,13 @@ class Task:
         self.wait(timeout=timeout)
         return self.state
 
-    def exception(self, timeout=None):
+    def exception(self, timeout: Optional[Union[int, float]] = None):
         """Wrapper for task.wait() that instead returns the task's error code on completion.
 
         Parameters
         ----------
 
-        timeout: int or float,  optional
+        timeout: int or float,  Optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
@@ -311,7 +312,7 @@ class Task:
         """Return ``True`` if task is finished."""
         return self.finished
 
-    def kill(self, wait_time: Optional[int] = 60) -> None:
+    def kill(self, wait_time: int = 60) -> None:
         """Kills or cancels the supplied task
 
         Sends SIGTERM, waits for a period of <wait_time> for graceful
@@ -444,7 +445,7 @@ class Executor:
         jassert(app, f"Default {calc_type} app is not set")
         return app
 
-    def set_resources(self, resources):
+    def set_resources(self, resources: Resources):
         # Does not use resources
         pass
 
@@ -469,18 +470,18 @@ class Executor:
         full_path: str
             The full path of the user application to be registered
 
-        app_name: str, optional
+        app_name: str, Optional
             Name to identify this application.
 
-        calc_type: str, optional
+        calc_type: str, Optional
             Calculation type: Set this application as the default 'sim'
             or 'gen' function.
 
-        desc: str, optional
+        desc: str, Optional
             Description of this application
 
-        precedent: str, optional
-            Any string that should directly precede the application full path.
+        precedent: str, Optional
+            Any str that should directly precede the application full path.
         """
 
         if not app_name:
@@ -532,7 +533,7 @@ class Executor:
         self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        finishes, times out, or is Optionally killed via a manager signal. On completion, returns a
         presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Potentially useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
@@ -543,14 +544,14 @@ class Executor:
         task: object
             a Task object returned by the executor on submission
 
-        timeout: int, optional
+        timeout: int, Optional
             Maximum number of seconds for the polling loop to run. Tasks that run
             longer than this limit are killed. Default: No timeout
 
-        delay: int, optional
+        delay: int, Optional
             Sleep duration between polling loop iterations. Default: 0.1 seconds
 
-        poll_manager: bool, optional
+        poll_manager: bool, Optional
             Whether to also poll the manager for 'finish' or 'kill' signals.
             If detected, the task is killed. Default: False.
 
@@ -597,12 +598,12 @@ class Executor:
         return task
 
     def new_tasks_timing(self, datetime=False) -> str:
-        """Returns timing of new tasks as a string
+        """Returns timing of new tasks as a str
 
         Parameters
         ----------
 
-        datetime: boolean
+        datetime: bool
             If True, returns start and end times in addition to elapsed time.
         """
 
@@ -648,28 +649,28 @@ class Executor:
         Parameters
         ----------
 
-        calc_type: str, optional
+        calc_type: str, Optional
             The calculation type: 'sim' or 'gen'
             Only used if app_name is not supplied. Uses default sim or gen application.
 
-        app_name: str, optional
+        app_name: str, Optional
             The application name. Must be supplied if calc_type is not.
 
-        app_args: string, optional
-            A string of the application arguments to be added to task
+        app_args: str, Optional
+            A str of the application arguments to be added to task
             submit command line
 
-        stdout: string, optional
+        stdout: str, Optional
             A standard output filename
 
-        stderr: string, optional
+        stderr: str, Optional
             A standard error filename
 
-        dry_run: boolean, optional
+        dry_run: bool, Optional
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: boolean, optional
+        wait_on_start: bool, Optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 

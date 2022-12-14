@@ -40,7 +40,7 @@ class EnvResources:
         self,
         nodelist_env_slurm: Optional[str] = None,
         nodelist_env_cobalt: Optional[str] = None,
-        nodelist_env_pbs: None = None,
+        nodelist_env_pbs: Optional[str] = None,
         nodelist_env_lsf: Optional[str] = None,
         nodelist_env_lsf_shortform: Optional[str] = None,
     ) -> None:
@@ -106,7 +106,7 @@ class EnvResources:
         return []
 
     @staticmethod
-    def abbrev_nodenames(node_list: List[str], prefix: None = None) -> List[str]:
+    def abbrev_nodenames(node_list: List[str], prefix:str = None) -> List[str]:
         """Returns nodelist with only string up to first dot"""
         newlist = [s.split(".", 1)[0] for s in node_list]
         return newlist

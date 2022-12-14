@@ -5,7 +5,7 @@ In order to create an MPI executor, the calling script should contain ::
 
     exctr = MPIExecutor()
 
-See the executor API below for optional arguments.
+See the executor API below for Optional arguments.
 """
 
 import os
@@ -13,6 +13,7 @@ import logging
 import time
 
 import libensemble.utils.launcher as launcher
+from libensemble.resources.resources import Resources
 from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import get_runner
@@ -45,7 +46,7 @@ class MPIExecutor(Executor):
         Parameters
         ----------
 
-        custom_info: dict, optional
+        custom_info: dict, Optional
             Provide custom overrides to selected variables that are usually
             auto-detected. See below.
 
@@ -65,7 +66,7 @@ class MPIExecutor(Executor):
             'runner_name' [string]:
                 Runner name: Replaces run command if present. All runners have a default
                 except for 'custom'.
-            'subgroup_launch' [boolean]:
+            'subgroup_launch' [bool]:
                 Whether MPI runs should be initiatied in a new process group. This needs
                 to be correct for kills to work correctly. Use the standalone test at
                 libensemble/tests/standalone_tests/kill_test to determine correct value
@@ -100,7 +101,7 @@ class MPIExecutor(Executor):
             self.mpi_runner.subgroup_launch = subgroup_launch
         self.resources = None
 
-    def set_resources(self, resources):
+    def set_resources(self, resources:Resources) -> None:
         self.resources = resources
 
     def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
@@ -153,12 +154,12 @@ class MPIExecutor(Executor):
         machinefile: Optional[str] = None,
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
-        stderr: None = None,
-        stage_inout: None = None,
+        stderr: Optional[str] = None,
+        stage_inout: Optional[str] = None,
         hyperthreads: bool = False,
         dry_run: bool = False,
         wait_on_start: bool = False,
-        extra_args: None = None,
+        extra_args: Optional[str] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
@@ -167,51 +168,51 @@ class MPIExecutor(Executor):
         Parameters
         ----------
 
-        calc_type: String, optional
+        calc_type: str, Optional
             The calculation type: 'sim' or 'gen'
             Only used if app_name is not supplied. Uses default sim or gen application.
 
-        app_name: String, optional
+        app_name: str, Optional
             The application name. Must be supplied if calc_type is not.
 
-        num_procs: int, optional
+        num_procs: int, Optional
             The total number of MPI tasks on which to submit the task
 
-        num_nodes: int, optional
+        num_nodes: int, Optional
             The number of nodes on which to submit the task
 
-        procs_per_node: int, optional
+        procs_per_node: int, Optional
             The processes per node for this task
 
-        machinefile: string, optional
+        machinefile: str, Optional
             Name of a machinefile for this task to use
 
-        app_args: string, optional
+        app_args: str, Optional
             A string of the application arguments to be added to task
             submit command line
 
-        stdout: string, optional
+        stdout: str, Optional
             A standard output filename
 
-        stderr: string, optional
+        stderr: str, Optional
             A standard error filename
 
-        stage_inout: string, optional
+        stage_inout: str, Optional
             A directory to copy files from; default will take from
             current directory
 
-        hyperthreads: boolean, optional
+        hyperthreads: bool, Optional
             Whether to submit MPI tasks to hyperthreads
 
-        dry_run: boolean, optional
+        dry_run: bool, Optional
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: boolean, optional
+        wait_on_start: bool, Optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
-        extra_args: String, optional
+        extra_args: str, Optional
             Additional command line arguments to supply to MPI runner. If
             arguments are recognised as MPI resource configuration
             (num_procs, num_nodes, procs_per_node) they will be used in

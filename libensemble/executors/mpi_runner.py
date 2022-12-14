@@ -1,4 +1,4 @@
-from libensemble.resources import mpi_resources
+from libensemble.resources import mpi_resources, Resources
 from libensemble.executors.executor import Task, jassert
 import argparse
 import logging
@@ -70,9 +70,9 @@ class MPIRunner:
         procs_per_node: Optional[int],
         machinefile: Optional[str],
         hyperthreads: bool,
-        extra_args: None,
-        resources: None,
-        workerID: None,
+        extra_args: Optional[str],
+        resources: Resources,
+        workerID: int,
     ) -> Dict[str, Optional[Union[int, str]]]:
         "Form the mpi_specs dictionary."
 

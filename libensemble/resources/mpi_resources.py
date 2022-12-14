@@ -216,7 +216,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 def create_machinefile(
     resources: "resources.Resources",  # noqa: F821
     machinefile: Optional[str] = None,
-    num_procs: None = None,
+    num_procs: int = None,
     num_nodes: Optional[int] = None,
     procs_per_node: Optional[int] = None,
     hyperthreads: bool = False,

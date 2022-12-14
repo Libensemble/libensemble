@@ -27,7 +27,7 @@ class PersistentSupport:
         ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False):
+    def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False) -> None:
         """
         Send message from worker to manager.
 
@@ -37,8 +37,6 @@ class PersistentSupport:
             record of the workers state (usually the manager changes the
             worker's state to inactive, indicating the worker is ready to receive
             more work, unless using active receive mode).
-
-        :returns: None
 
         """
         if "comm" in self.libE_info:
@@ -59,7 +57,7 @@ class PersistentSupport:
         logger.debug(f"Persistent {self.calc_str} function sending data message to manager")
         self.comm.send(self.calc_type, D)
 
-    def recv(self, blocking: bool = True):
+    def recv(self, blocking: bool = True) -> (int, dict, npt.NDArray):
         """
         Receive message to worker from manager.
 
@@ -100,7 +98,7 @@ class PersistentSupport:
         logger.debug(f"Persistent {self.calc_str} received work rows from manager")
         return tag, Work, calc_in
 
-    def send_recv(self, output: npt.NDArray, calc_status=UNSET_TAG):
+    def send_recv(self, output: npt.NDArray, calc_status: int = UNSET_TAG) -> (int, dict, npt.NDArray):
         """
         Send message from worker to manager and receive response.
 
