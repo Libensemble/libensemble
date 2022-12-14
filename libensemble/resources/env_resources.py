@@ -106,7 +106,7 @@ class EnvResources:
         return []
 
     @staticmethod
-    def abbrev_nodenames(node_list: List[str], prefix:str = None) -> List[str]:
+    def abbrev_nodenames(node_list: List[str], prefix: str = None) -> List[str]:
         """Returns nodelist with only string up to first dot"""
         newlist = [s.split(".", 1)[0] for s in node_list]
         return newlist

@@ -101,7 +101,7 @@ class MPIExecutor(Executor):
             self.mpi_runner.subgroup_launch = subgroup_launch
         self.resources = None
 
-    def set_resources(self, resources:Resources) -> None:
+    def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
     def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
