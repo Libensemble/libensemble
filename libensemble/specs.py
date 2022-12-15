@@ -174,10 +174,12 @@ class AllocSpecs(BaseModel):
     function
     """
 
-    out: Optional[List] = []
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
-    Deprecated. Optional list of 2 or 3-tuples corresponding to numpy dtypes. Previously used to
-    construct H with additional fields that didn't belong in sim_specs or gen_specs.
+    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
+    Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
+    timing information, or determine if parameters should be distributed again, etc.) should list those
+    fields here. Also used to construct the complete dtype for libEnsemble's history array
     """
     # end_alloc_tag
 

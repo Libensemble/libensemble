@@ -47,8 +47,8 @@ class History:
         """
         L = exit_criteria.get("sim_max", 100)
 
-        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs
-        specs = [sim_specs, gen_specs]
+        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, alloc_specs
+        specs = [sim_specs, gen_specs, alloc_specs]
         specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
 
         if len(H0):
