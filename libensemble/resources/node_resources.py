@@ -199,11 +199,7 @@ def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None)
     # SH TODO: Could receive if cpu/gpu is already set by resource_info so don't need to get.
     #          Though will be not overwrite anyway.
 
-    remote_detection = False
     cores_info = [None, None, None]
-    num_gpus = 0
-
-    print("type is", type(cores_info))
 
     # Check for known system
     cores_info = known_sys_check() or [None, None, None]
