@@ -2,7 +2,14 @@ import os
 import ast
 import subprocess
 
-# SH TODO - Remove prints
+# SH TODO while testing - REMOVE
+from libensemble.tools import eprint
+
+# SH TODO - Remove eprints
+# import sys
+# def eprint(*args, **kwargs):
+#    """Prints a user message to standard error"""
+#    print(*args, file=sys.stderr, **kwargs)
 
 
 def pynvml():
@@ -13,9 +20,9 @@ def pynvml():
         pynvml.nvmlInit()
         gpu_count = pynvml.nvmlDeviceGetCount()
         pynvml.nvmlShutdown()
-        print("gpu count from pynvml", gpu_count)
+        eprint("gpu count from pynvml", gpu_count)
     except Exception:
-        print("pynvml (optional) not found or failed")
+        eprint("pynvml (optional) not found or failed")
         return None
     return gpu_count
 
@@ -25,9 +32,9 @@ def nvidia_smi():
     try:
         output = subprocess.check_output(["nvidia-smi", "--query-gpu=index", "--format=csv,noheader,nounits"])
         gpu_count = len(output.decode().split())
-        print("gpu count from nvidia-smi", gpu_count)
+        eprint("gpu count from nvidia-smi", gpu_count)
     except Exception:
-        print("nvidia-smi (optional) not found or failed")
+        eprint("nvidia-smi (optional) not found or failed")
         return None
     return gpu_count
 
@@ -39,9 +46,9 @@ def pyadl():
 
         devices = ADLManager.getInstance().getDevices()
         gpu_count = len(devices)
-        print("gpu count from pyadl", gpu_count)
+        eprint("gpu count from pyadl", gpu_count)
     except Exception:
-        print("pyadl (optional) not found or failed")
+        eprint("pyadl (optional) not found or failed")
         return None
     return gpu_count
 
@@ -51,9 +58,9 @@ def rocm_smi():
     try:
         output = subprocess.check_output(["rocm-smi", "-i", "--json"])
         gpu_count = len(ast.literal_eval(output.decode()))
-        print("gpu count from rocm-smi", gpu_count)
+        eprint("gpu count from rocm-smi", gpu_count)
     except Exception:
-        print("rocm-smi (optional) not found or failed")
+        eprint("rocm-smi (optional) not found or failed")
         return None
     return gpu_count
 
@@ -77,10 +84,7 @@ def get_num_gpus(testall=False):
         if isinstance(gpu_count, int) and not testall:
             return gpu_count
 
-    # gpus not found
-    # Simpler for string conversion to return int.
-    return 0
-    # return None
+    return None
 
 
 def get_gpus_from_env(env_resources=None):
@@ -91,13 +95,14 @@ def get_gpus_from_env(env_resources=None):
 
     if env_resources.scheduler == "Slurm":
         gpu_count = os.getenv("SLURM_GPUS_ON_NODE")
-        print("gpu count from SLURM_GPUS_ON_NODE", gpu_count)
+        eprint("gpu count from SLURM_GPUS_ON_NODE", gpu_count)
         # return os.getenv("SLURM_GPUS_ON_NODE")
         if gpu_count is not None:
             return int(gpu_count)
 
     return None
 
-# temp
+
+# for testing
 if __name__ == "__main__":
     get_num_gpus(testall=True)
