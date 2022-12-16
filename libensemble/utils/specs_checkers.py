@@ -23,6 +23,8 @@ def _check_output_fields(values):
     out_names += [e[0] for e in values.get("sim_specs").out]
     if values.get("gen_specs"):
         out_names += [e[0] for e in values.get("gen_specs").out]
+    if values.get("alloc_specs"):
+        out_names += [e[0] for e in values.get("alloc_specs").out]
 
     if values.get("libE_specs"):
         for name in values.get("libE_specs").final_fields:
