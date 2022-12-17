@@ -478,6 +478,13 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     if resources is not None:
         local_host = [socket.gethostname()]
         resources.add_comm_info(libE_nodes=local_host)
+        if libE_specs.get("set_workers_by_gpus", False):
+            # set num_resource_sets and nworkers is that + 1 incase have a persistent gen
+            num_resource_sets = resources.glob_resources.num_resource_sets
+            nworkers = num_resource_sets + 1  # Should I honor workers if exist (whether more or less than rsets)
+            print(f"\nChange nworkers from {libE_specs['nworkers']} to {nworkers}")  # SH: remove after testing
+            print(f"num_resource_sets {num_resource_sets}\n")  # SH: remove after testing
+            # libE_specs["nworkers"] = nworkers
 
     exctr = Executor.executor
     if exctr is not None:

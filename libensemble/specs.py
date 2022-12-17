@@ -220,6 +220,9 @@ class LibeSpecs(BaseModel):
     nworkers: Optional[int]
     """ Number of worker processes to spawn (only in local/tcp modes) """
 
+    set_workers_by_gpus: Optional[bool] = False
+    """Allow nworkers to be set by number of GPUs available"""
+
     port: Optional[int] = 0
     """ TCP Only: Port number for Manager's system """
 

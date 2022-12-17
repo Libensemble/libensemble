@@ -166,6 +166,7 @@ class GlobalResources:
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
 
+        set_workers_by_gpus = libE_specs["set_workers_by_gpus"]
         resource_info = libE_specs.get("resource_info", {})
         cores_on_node = resource_info.get("cores_on_node", None)
         gpus_on_node = resource_info.get("gpus_on_node", None)
@@ -225,6 +226,10 @@ class GlobalResources:
         print(f"From resources: {cores_on_node=}")  # testing
         print(f"From resources: {gpus_on_node=}")  # testing
         self.libE_nodes = None
+
+        if set_workers_by_gpus:
+            new_rsets = self.gpus_avail_per_node * len(self.global_nodelist)
+            self.num_resource_sets = new_rsets
 
     def add_comm_info(self, libE_nodes):
         """Adds comms-specific information to resources
