@@ -1,9 +1,11 @@
 libE_specs:
-    save_every_k_gens: 300
+    save_every_k_gens: 100
     safe_mode: False
+    nworkers: 4
+    comms: local
 
 exit_criteria:
-    gen_max: 501
+    gen_max: 201
 
 sim_specs:
     sim_f: libensemble.sim_funcs.one_d_func.one_d_example
@@ -20,4 +22,4 @@ gen_specs:
             type: float
             size: 1
     user:
-        gen_batch_size: 500
+        gen_batch_size: 200

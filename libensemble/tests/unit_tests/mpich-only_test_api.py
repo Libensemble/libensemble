@@ -66,7 +66,7 @@ def test_bad_func_loads():
 
 
 @pytest.mark.extra
-def test_full_workflow():
+def test_full_workflow_from_specs():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.api import Ensemble
     from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria, LibeSpecs
@@ -91,8 +91,39 @@ def test_full_workflow():
         assert len(ens.H) >= 101
 
 
+@pytest.mark.extra
+def test_full_workflow_from_files():
+    """Test initializing a workflow via files and Ensemble.run()"""
+    from libensemble.api import Ensemble
+
+    # import ipdb; ipdb.set_trace()
+
+    sampling = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    sampling.from_json("./simdir/1d_sampling.json")
+    sampling.from_toml("./simdir/1d_sampling.toml")
+    sampling.from_yaml("./simdir/1d_sampling.yaml")
+
+    sampling.gen_specs["user"].update(
+        {
+            "lb": np.array([-3]),
+            "ub": np.array([3]),
+        }
+    )
+
+    sampling.add_random_streams()
+
+    # Perform the run
+    sampling.run()
+
+    if sampling.is_manager:
+        assert len(sampling.H) >= 201
+        print("\nlibEnsemble with random sampling has generated enough points")
+        sampling.save_output(__file__)
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_from_files()
     test_bad_func_loads()
-    test_full_workflow()
+    test_full_workflow_from_specs()
+    test_full_workflow_from_files()
