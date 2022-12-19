@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 REMOTE_LAUNCH_LIST = ["aprun", "jsrun", "srun"]  # Move to feature of mpi_runner
 
 
-def known_sys_check():
+def known_sys_check(cmd="hostname -d"):
     """Detect system domain name and return any CPU / GPU data found as a tuple
 
     If the system is found, will return an int tuple of (cores, logical cores, gpus),
@@ -26,8 +26,10 @@ def known_sys_check():
 
     """
 
+    run_cmd = cmd.split()
+
     try:
-        domain_name = subprocess.check_output(["hostname", "-d"]).decode().rstrip()
+        domain_name = subprocess.check_output(run_cmd).decode().rstrip()
 
         print("domain", domain_name)
 
@@ -122,7 +124,7 @@ def _get_cpu_resources_from_env(env_resources=None):
 
 # tuple or change to list? or dict? - do for all 3 funcs
 def _cpu_info_complete(cores_info):
-    """Returns true if cpu tuple values have an integer value, else False"""
+    """Returns true if cpu tuple/list entries have an integer value, else False"""
 
     if cores_info is None:
         return False
@@ -134,7 +136,7 @@ def _cpu_info_complete(cores_info):
 
 
 def _gpu_info_complete(cores_info):
-    """Returns true if gpu tuple values have an integer value, else False"""
+    """Returns true if gpu tuple/list entries have an integer value, else False"""
 
     if cores_info is None:
         return False
@@ -146,7 +148,7 @@ def _gpu_info_complete(cores_info):
 
 
 def _complete_set(cores_info):
-    """Returns True if all tuple entries have an integer value, else False"""
+    """Returns True if all tuple/list entries have an integer value, else False"""
 
     if cores_info is None:
         return False
@@ -158,7 +160,7 @@ def _complete_set(cores_info):
 
 
 def _update_values(cores_info, cores_info_updates):
-    """Update values that are not set"""
+    """Update list entries in cores_info that are not set"""
     if not _cpu_info_complete(cores_info):
         cores_info[:2] = list(cores_info_updates[:2] or [None, None])
     if not _gpu_info_complete(cores_info):
@@ -167,7 +169,7 @@ def _update_values(cores_info, cores_info_updates):
 
 
 def _update_from_str(cores_info, cores_info_str):
-    """Update values that are not set from a string"""
+    """Update entries in cores_info that are not set from a string"""
     cores_phy, cores_log, num_gpus, *_ = cores_info_str.split()
 
     if not _cpu_info_complete(cores_info):
