@@ -2,7 +2,7 @@
 
 # SH TODO
 # gpu_setting may need two values - one for type and one for name
-# e.g. gpu_set_type = "env" or gpu_set_type = "argument"
+# e.g. gpu_setting_type = "env" or gpu_set_type = "arg" (or 1 / 2)
 #      gpu_setting_name = "CUDA_VISIBLE_DEVICES" or gpu_setting_name = "gpus_per_task"
 
 
@@ -11,7 +11,8 @@ summit = {
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
-    "GPU_setting": None,  # System automatically finds GPUs
+    "gpu_setting_type": "arg",
+    "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
 }
 
