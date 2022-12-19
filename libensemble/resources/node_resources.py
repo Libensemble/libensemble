@@ -122,7 +122,6 @@ def _get_cpu_resources_from_env(env_resources=None):
         return None
 
 
-# tuple or change to list? or dict? - do for all 3 funcs
 def _cpu_info_complete(cores_info):
     """Returns true if cpu tuple/list entries have an integer value, else False"""
 
@@ -160,7 +159,10 @@ def _complete_set(cores_info):
 
 
 def _update_values(cores_info, cores_info_updates):
-    """Update list entries in cores_info that are not set"""
+    """Update list entries in cores_info that are not set
+
+    Both CPU core entries will get overwritten if one is not set
+    """
     if not _cpu_info_complete(cores_info):
         cores_info[:2] = list(cores_info_updates[:2] or [None, None])
     if not _gpu_info_complete(cores_info):
@@ -169,7 +171,10 @@ def _update_values(cores_info, cores_info_updates):
 
 
 def _update_from_str(cores_info, cores_info_str):
-    """Update entries in cores_info that are not set from a string"""
+    """Update unset entries in cores_info from a string
+
+    Both CPU core entries will get overwritten if one is not set
+    """
     cores_phy, cores_log, num_gpus, *_ = cores_info_str.split()
 
     if not _cpu_info_complete(cores_info):

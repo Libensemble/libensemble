@@ -91,6 +91,53 @@ def test_get_cpu_resources_from_env_unknown_env():
     assert cores_info is None, "cores_info should be None"
 
 
+def test_known_sys_check():
+    get_sys_cmd = "echo summit.olcf.ornl.gov"  # Overrides default "hostname -d"
+    core_info = node_resources.known_sys_check(cmd=get_sys_cmd)
+    assert core_info == (42, 168, 6), "Summit cores/gpus does not match expected"
+
+    # Try unknown system
+    get_sys_cmd = "echo madeup.system"  # Overrides default "hostname -d"
+    core_info = node_resources.known_sys_check(cmd=get_sys_cmd)
+    assert core_info is None, "Expected known_sys_check to return None for unknown system"
+    #print('core_info is', core_info)
+
+
+def test_complete_set():
+    assert not node_resources._complete_set([None, None, None])
+    assert not node_resources._complete_set([2, None, 5])
+    assert not node_resources._complete_set([2, 8, None])
+    assert node_resources._complete_set([2, 4, 6])
+    assert node_resources._complete_set([2, 0, 5])
+
+
+def test_cpu_info_complete():
+    assert not node_resources._cpu_info_complete([None, None, None])
+    assert not node_resources._cpu_info_complete([2, None, 5])
+    assert node_resources._cpu_info_complete([2, 8, None])
+    assert node_resources._cpu_info_complete([2, 4, 6])
+
+
+def test_gpu_info_complete():
+    assert not node_resources._gpu_info_complete([None, None, None])
+    assert node_resources._gpu_info_complete([2, None, 5])
+    assert not node_resources._gpu_info_complete([2, 8, None])
+    assert node_resources._gpu_info_complete([2, 4, 6])
+
+
+def test_update_values():
+    result = node_resources._update_values([None, 2, 3], [11, 12, 13])
+    assert result == [11, 12, 3], f"Unexpected result {result}"
+    result = node_resources._update_values([1, 2, None], [11, 12, 13])
+    assert result == [1, 2, 13], f"Unexpected result {result}"
+
+def test_update_from_str():
+    result = node_resources._update_from_str([None, 2, 3], "11 12 13")
+    assert result == [11, 12, 3], f"Unexpected result {result}"
+    result = node_resources._update_from_str([1, 2, None], "11 12 13")
+    assert result == [1, 2, 13], f"Unexpected result {result}"
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -98,5 +145,11 @@ if __name__ == "__main__":
     test_get_cpu_resources_from_env_lsf()
     test_get_cpu_resources_from_env_lsf_shortform()
     test_get_cpu_resources_from_env_unknown_env()
+    test_known_sys_check()
+    test_complete_set()
+    test_cpu_info_complete()
+    test_gpu_info_complete()
+    test_update_values()
+    test_update_from_str()
 
     teardown_standalone_run()

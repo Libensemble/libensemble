@@ -212,8 +212,6 @@ class GlobalResources:
 
         if not cores_on_node:
             cores_on_node = detected_cores_on_node[0:2]
-            # print('nnnn cores_on_node', cores_on_node)
-            # print('nnnn cores_on_node type', type(cores_on_node))
 
         if not gpus_on_node:
             gpus_on_node = detected_cores_on_node[2]
