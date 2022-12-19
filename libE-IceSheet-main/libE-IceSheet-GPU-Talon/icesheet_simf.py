@@ -64,13 +64,14 @@ def run_icesheet(H, persis_info, sim_specs, libE_info):
     # output["iterations"][0] = 0
     # output["fvec"][0] = error
     # output["fvec"][0] = np.random.uniform(0,1,100)
-    output["fvec"][0][:3] = H["x"]
+    # output["fvec"][0][:3] = H["x"]
+    output["f"][0] = 0 # Iterations here!
     # iterations = np.random.randint(1,100)
     # print(iterations)
     # output["iterations"][0] =100
     # velocity_field = np.random.uniform(-1,1,(100,100))
     # print(velocity_field[0][0])
-    output["error"][0] = np.sum(output["fvec"][0]**2)
+    output["error"][0] = 0
 
     # Return final information to worker, for reporting to manager
     return output, persis_info, calc_status

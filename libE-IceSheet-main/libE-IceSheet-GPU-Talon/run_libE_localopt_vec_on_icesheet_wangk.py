@@ -2,8 +2,8 @@
 import os
 import sys
 import numpy as np
-#from icesheet_simf import run_icesheet  # Sim func from current dir
-from icesheet_simf import run_icesheet, read_stat_file # Sim func from current dir
+from icesheet_simf import run_icesheet  # Sim func from current dir
+# from icesheet_simf import run_icesheet, read_stat_file # Sim func from current dir
 
 from libensemble.libE import libE
 from libensemble.tools import parse_args, add_unique_random_streams, save_libE_output
@@ -39,7 +39,8 @@ m = 44229
 sim_specs = {
     "sim_f": run_icesheet,  # sim_f, imported above
     "in": ["x"],  # Name of input for sim_f
-    "out": [("f", float), ("fvec", float, 2*m), ("iterations", int), ("error", float)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    # "out": [("f", float), ("fvec", float, 2*m), ("iterations", int), ("error", float)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
+    "out": [("f", float), ("iterations", int), ("error", float)],  # Name, type of output from sim_f, fix velocity_field to error (last error value)
     "user": {"max_size": m},
     }
 
@@ -49,7 +50,7 @@ gen_out += [("x", float, n), ("x_on_cube", float, n)]
 # State the gen_f, inputs, outputs, additional parameters
 gen_specs = {
     "gen_f": gen_f,
-    "persis_in": ["x", "f", "sim_id", "fvec", "iterations"],
+    "persis_in": ["x", "f", "sim_id", "iterations"],
     "out": gen_out,
     "user": {
         "lb": np.array([0.9, 0.01, 0.9]),  # User parameters for the gen_f
@@ -57,7 +58,7 @@ gen_specs = {
         #"lb": np.array([0.9, 0.9, 0.01]),  # User parameters for the gen_f
         #"ub": np.array([0.99, 0.999, 0.05]),
         "gen_batch_size": nworkers - 1,  # Generate one random point x for each of the workers.
-        "localopt_method": "DFOLS",
+        "localopt_method": "LN_BOBYQA",
         "num_active_runs": 1,
         "xtol_rel": 1e-4,
     },
@@ -74,7 +75,8 @@ exit_criteria = {"sim_max": 30*n}  # exit_criteria = {"sim_max": 8}
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
-H0 = np.zeros(1, dtype = [('x', float, 3), ('x_on_cube', float, 3), ('f', float), ('fvec', float, 2*m), ('sim_id', int), ('local_pt', bool), ('dist_to_better_l', float), ('dist_to_better_s', float), ('iterations', int), ('error', float) ])
+# H0 = np.zeros(1, dtype = [('x', float, 3), ('x_on_cube', float, 3), ('f', float), ('fvec', float, 2*m), ('sim_id', int), ('local_pt', bool), ('dist_to_better_l', float), ('dist_to_better_s', float), ('iterations', int), ('error', float) ])
+H0 = np.zeros(1, dtype = [('x', float, 3), ('x_on_cube', float, 3), ('f', float), ('sim_id', int), ('local_pt', bool), ('dist_to_better_l', float), ('dist_to_better_s', float), ('iterations', int), ('error', float) ])
 H0['x'] = np.array([0.98, 0.03, 0.99])  # The best starting point from random sampling
 #H0['x'] = np.array([0.98, 0.99, 0.03])  # The best starting point from random sampling
 H0['iterations'] = 1657  # The final iteration for the starting point
@@ -83,11 +85,12 @@ H0['x_on_cube'] = (H0['x']-gen_specs["user"]["lb"])/(gen_specs["user"]["ub"]-gen
 input_file = "starting_point_error.txt"
 #input_file = "error.csv"
 #H0['fvec'], _, _ = read_stat_file(input_file, m)
-H0['fvec'], _, _ = read_stat_file(input_file, m)
+# H0['fvec'], _, _ = read_stat_file(input_file, m)
 
 #H0['fvec'] = np.load("/home/kuanghsu.wang/JKS8e4/test/starting_point_error.txt") # Error for the starting point
 #H0['fvec'] = error # Error for the starting point
-H0['f'] = np.sum(H0['fvec']**2)  # Norm of the errors
+# H0['f'] = np.sum(H0['fvec']**2)  # Norm of the errors
+H0['f'] = H0['iterations'][0] 
 #H0['error'] = 3.076126985e-07
 H0['x_on_cube'] = (H0['x']-gen_specs["user"]["lb"])/(gen_specs["user"]["ub"]-gen_specs["user"]["lb"])
 H0['sim_id'] = 0
@@ -97,5 +100,6 @@ H0['dist_to_better_l'] = np.inf
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0 = H0)
 
 if is_manager:
-    print(np.sum(H['fvec']**2,axis=1))
+    # print(np.sum(H['fvec']**2,axis=1))
+    print(H['f'])
     save_libE_output(H, persis_info, __file__, nworkers)
