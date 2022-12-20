@@ -186,6 +186,12 @@ jobs:
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
+        - name: Experiment with running multiple pytest workers
+          run: |
+            pip install pytest-xdist
+            cd libensemble/tests/unit_tests; pytest -n 2 --runextra .
+            cd -
+
         - name: Run extensive tests, Ubuntu, Python 3.8-3.11
           if: matrix.os == 'ubuntu-latest' && contains('3.8_3.9_3.10_3.11', matrix.python-version)
           run: |
