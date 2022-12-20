@@ -1,11 +1,8 @@
 import sys
-import time
 import pytest
-import platform
 import numpy as np
 from libensemble import logger
 from libensemble.libE import libE
-import libensemble.tests.unit_tests.setup as setup
 from libensemble.tools import add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
@@ -78,10 +75,10 @@ def test_basic():
         {"testid": "mp2", "e_args": "-np 8 --xarg 1 --ppn 4"},  # parse extra_args
     ]
 
-    eargs_openmpi = [
-        {"testid": "ompi1", "nprocs": 16, "e_args": "--xarg 1 -npernode 16"},  # nprocs + parse extra_args
-        {"testid": "ompi2", "e_args": "-np 8 --xarg 1 -npernode 4"},  # parse extra_args
-    ]
+    # eargs_openmpi = [
+    #     {"testid": "ompi1", "nprocs": 16, "e_args": "--xarg 1 -npernode 16"},  # nprocs + parse extra_args
+    #     {"testid": "ompi2", "e_args": "-np 8 --xarg 1 -npernode 4"},  # parse extra_args
+    # ]
 
     eargs_aprun = [
         {"testid": "ap1", "nprocs": 16, "e_args": "--xarg 1 -N 16"},  # nprocs + parse extra_args

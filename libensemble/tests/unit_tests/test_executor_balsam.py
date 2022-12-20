@@ -31,26 +31,6 @@ class LogEventTest:
     timestamp: datetime.datetime = None
 
 
-# def setup_module(module):
-#     try:
-#         print(f"setup_module module:{module.__name__}")
-#     except AttributeError:
-#         print(f"setup_module (direct run) module:{module}")
-#     if Executor.executor is not None:
-#         del Executor.executor
-#         Executor.executor = None
-
-
-# def teardown_module(module):
-#     try:
-#         print(f"teardown_module module:{module.__name__}")
-#     except AttributeError:
-#         print(f"teardown_module (direct run) module:{module}")
-#     if Executor.executor is not None:
-#         del Executor.executor
-#         Executor.executor = None
-
-
 # This would typically be in the user calling script
 def setup_executor():
     """Set up a Balsam Executor with sim app"""
@@ -88,7 +68,9 @@ def test_register_app():
 def test_submit_app_defaults():
     """Test of submitting an App"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     with mock.patch("libensemble.executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")
         task = exctr.submit(app_name="test")
@@ -106,7 +88,9 @@ def test_submit_app_defaults():
 def test_submit_app_workdir():
     """Test of submitting an App with a workdir"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     with mock.patch("libensemble.executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim", workdir="output", machinefile="nope")
 
@@ -117,7 +101,9 @@ def test_submit_app_workdir():
 def test_submit_app_dry():
     """Test of dry-run submitting an App"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     task = exctr.submit(calc_type="sim", dry_run=True)
     task.poll()
 
@@ -128,7 +114,9 @@ def test_submit_app_dry():
 def test_submit_app_wait():
     """Test of exctr.submit blocking until app is running"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     with mock.patch("libensemble.executors.balsam_executor.Job") as job:
         with mock.patch("libensemble.executors.balsam_executor.EventLog") as log:
             job.return_value.state = "RUNNING"
@@ -147,7 +135,9 @@ def test_submit_app_wait():
 def test_submit_revoke_alloc():
     """Test creating and revoking BatchJob objects through the executor"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     with mock.patch("libensemble.executors.balsam_executor.BatchJob"):
         alloc = exctr.submit_allocation(site_id="libe-unit-test", num_nodes=1, wall_time_min=30)
 
@@ -244,7 +234,6 @@ def test_task_kill():
 
 
 if __name__ == "__main__":
-    # setup_module(__file__)
     test_register_app()
     test_submit_app_defaults()
     test_submit_app_workdir()
@@ -254,4 +243,3 @@ if __name__ == "__main__":
     test_task_poll()
     test_task_wait()
     test_task_kill()
-    # teardown_module(__file__)

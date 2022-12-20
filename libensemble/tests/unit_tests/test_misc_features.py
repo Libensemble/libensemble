@@ -1,23 +1,23 @@
 import os
 import time
 import pytest
-import platform
 import numpy as np
 from libensemble.libE import libE
-import libensemble.tests.unit_tests.setup as setup
 from libensemble.tools import add_unique_random_streams
 from libensemble.manager import LoggedException
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
+
 def six_hump_camel_err(H, persis_info, sim_specs, _):
     raise Exception("Deliberate error")
 
+
 @pytest.mark.extra
 def test_profiling():
-    
+
     from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
     from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
-    
+
     nworkers = 4
     libE_specs = {"comms": "local", "nworkers": nworkers}
 
@@ -57,6 +57,7 @@ def test_profiling():
             "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
         )
         os.remove(file)
+
 
 @pytest.mark.extra
 def test_calc_exception():
@@ -102,7 +103,6 @@ def test_worker_exception():
 
     nworkers = 4
     libE_specs = {"comms": "local", "nworkers": nworkers}
-    n = 2
 
     sim_specs = {
         "sim_f": sim_f,
