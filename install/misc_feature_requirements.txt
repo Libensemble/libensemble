@@ -1,0 +1,3 @@
+pip install pyyaml==6.0
+pip install tomli==2.0.1
+pip install funcx==1.0.4
