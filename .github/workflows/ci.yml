@@ -61,15 +61,15 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Cache installed dependencies
+        - uses: actions/cache@v3
+          name: Cache installed dependencies
           id: cache
-          uses: actions/cache@v3
           if: matrix.os == 'ubuntu-latest'
           with:
             path: |
               /home/runner/work/libensemble/libensemble/heffte/build/
               /usr/share/miniconda3/envs/condaenv
-            key: ${{ matrix.python-version }-${{ hashFiles('totallock.txt') }}
+            key: ${{ matrix.python-version }}-${{ hashFiles('totallock.txt') }}
 
         - name: Force-update certifi
           run: |
