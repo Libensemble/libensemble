@@ -23,6 +23,8 @@ def _check_output_fields(values):
     out_names += [e[0] for e in values.get("sim_specs").out]
     if values.get("gen_specs"):
         out_names += [e[0] for e in values.get("gen_specs").out]
+    if values.get("alloc_specs"):
+        out_names += [e[0] for e in values.get("alloc_specs").out]
 
     if values.get("libE_specs"):
         for name in values.get("libE_specs").final_fields:
@@ -83,7 +85,8 @@ def _check_any_workers_and_disable_rm_if_tcp(values):
         if values.get("nworkers"):
             assert values.get("nworkers") >= 1, "Must specify at least one worker"
         else:
-            assert values.get("workers"), "Without nworkers, must specify worker hosts on TCP"
+            if comms_type == "tcp":
+                assert values.get("workers"), "Without nworkers, must specify worker hosts on TCP"
     if comms_type == "tcp":
         values["disable_resource_manager"] = True  # Resource management not supported with TCP
     return values

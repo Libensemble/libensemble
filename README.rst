@@ -164,11 +164,11 @@ When using  ``mpi4py`` for libEnsemble communications:
 **Optional dependencies**:
 
 * Balsam_ - Manage and submit applications to the Balsam service with our BalsamExecutor
-* pyyaml_ - Parameterize libEnsemble via yaml
+* pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
 * funcX_ - Submit function instances to remote funcX endpoints
 * `psi-j-python`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
-**Integration Dependencies**:
+**Example Generator Dependencies**:
 
 * SciPy_
 * mpmath_
@@ -322,6 +322,7 @@ See a complete list of `example user scripts`_.
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
+.. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop

@@ -22,6 +22,8 @@ from libensemble.api import Ensemble
 if __name__ == "__main__":
 
     sampling = Ensemble()
+    sampling.from_json("1d_sampling.json")
+    sampling.from_toml("1d_sampling.toml")
     sampling.from_yaml("1d_sampling.yaml")
 
     sampling.gen_specs["user"].update(
@@ -31,7 +33,7 @@ if __name__ == "__main__":
         }
     )
 
-    sampling.persis_info.add_random_streams()
+    sampling.add_random_streams()
 
     # Perform the run
     sampling.run()

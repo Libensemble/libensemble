@@ -103,7 +103,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": only_persistent_gens,
-        "out": [("gen_informed", bool)],
         "user": {"async_return": False},
     }
 

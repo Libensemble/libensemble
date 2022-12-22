@@ -7,54 +7,41 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                do-balsam: [false]
                 mpi-version: [mpich]
-                python-version: [3.7, 3.8, 3.9, "3.10"]
+                python-version: [3.8, 3.9, "3.10", "3.11"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      do-balsam: false
-                      python-version: 3.8
-                      mpi-version: 'mpich'
+                      python-version: 3.9
+                      mpi-version: "mpich"
                       comms-type: m
                     - os: macos-latest
-                      do-balsam: false
-                      python-version: 3.8
-                      mpi-version: 'mpich'
+                      python-version: 3.9
+                      mpi-version: "mpich"
                       comms-type: l
-                    #- os: ubuntu-latest
-                    #  do-balsam: false
-                    #  python-version: '3.11'
-                    #  mpi-version: 'mpich'
-                    #  comms-type: l
                     - os: ubuntu-latest
-                      do-balsam: false
-                      python-version: 3.8
-                      mpi-version: 'mpich'
+                      python-version: "3.10"
+                      mpi-version: "mpich"
                       comms-type: t
                     - os: ubuntu-latest
-                      do-balsam: false
-                      mpi-version: 'openmpi=4.1.2'
-                      python-version: 3.9
+                      mpi-version: "openmpi=4.1.2"
+                      python-version: "3.10"
                       comms-type: l
                     - os: ubuntu-latest
-                      python-version: 3.8
+                      python-version: "3.10"
                       comms-type: l
-                      mpi-version: 'mpich'
-                      do-balsam: true
+                      mpi-version: "mpich"
                     - os: windows-latest
-                      python-version: '3.10'
+                      python-version: "3.10"
                       comms-type: l
-                      mpi-version: 'msmpi'
-                      do-balsam: false
+                      mpi-version: "msmpi"
                     - os: windows-latest
-                      python-version: '3.10'
+                      python-version: "3.10"
                       comms-type: m
-                      mpi-version: 'msmpi'
-                      do-balsam: false
+                      mpi-version: "msmpi"
 
         env:
-            HYDRA_LAUNCHER: 'fork'
+            HYDRA_LAUNCHER: "fork"
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -90,16 +77,6 @@ jobs:
           if: matrix.os == 'ubuntu-latest'
           run: conda install gcc_linux-64
 
-        - name: Install postgreql
-          if: matrix.do-balsam == true
-          env:
-              BALSAM_DB_PATH: $HOME/test-balsam
-          run: |
-            conda install libpq postgresql postgresql-plpython
-            sudo apt-get update
-            sudo apt-get install bc
-            pg_ctl --version
-
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers and older SDK
           if: matrix.os == 'macos-latest'
@@ -131,7 +108,7 @@ jobs:
             pip install mpi4py
 
         - name: Install generator dependencies
-          if: contains('3.7_3.8_3.9_3.10', matrix.python-version) && matrix.do-balsam == false && matrix.os != 'windows-latest'
+          if: contains('3.8_3.9_3.10_3.11', matrix.python-version) && matrix.os != 'windows-latest'
           run: |
             python -m pip install --upgrade pip
             conda install nlopt
@@ -144,7 +121,7 @@ jobs:
             pip install DFO-LS
 
             pip install mpmath
-            pip install ax-platform
+            pip install ax-platform==0.2.8
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
         - name: Install some generator dependencies on Windows
@@ -156,7 +133,7 @@ jobs:
             pip install mpmath
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
+          if: matrix.os == 'ubuntu-latest'
           run: |
             sudo apt-get update
             sudo apt-get install octave
@@ -179,42 +156,25 @@ jobs:
 
             pip install ax-platform
 
+            pip install scikit-build
+            # git clone https://github.com/ORNL/TASMANIAN.git
+            # cd TASMANIAN/InterfacePython/PipInstaller; pip install -e .; cd -
+            # pip install git+https://github.com/jlnav/TASMANIAN.git@fix/setuppy_deprecate_LegacyVersion
+
+            pip install scikit-build packaging Tasmanian --user
+
         - name: Install other testing dependencies
-          if: matrix.do-balsam == false
           run: |
+            conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install psutil
             pip install pyyaml
-            pip install funcx
-            pip install balsam
+            pip install tomli
+            pip install funcx==1.0.4
+            git clone https://github.com/argonne-lcf/balsam.git
+            sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
+            cd balsam; pip install -e .; cd ..
 
-        - name: Install Tasmanian on Ubuntu
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false
-          run: |
-            pip install scikit-build packaging Tasmanian --user
-
-        - name: Install and configure Balsam 0.5.0
-          if: matrix.do-balsam == true
-          env:
-              BALSAM_DB_PATH: $HOME/test-balsam
-          run: |
-            pip install pydantic
-            pip install -r install/testing_requirements.txt
-            wget https://github.com/argonne-lcf/balsam/archive/refs/tags/0.5.0.tar.gz
-            mkdir ../balsam; tar xf 0.5.0.tar.gz -C ../balsam;
-            python install/configure_balsam_install.py
-
-        - name: Modify Balsam for testing, create DB
-          if: matrix.do-balsam == true
-          env:
-              BALSAM_DB_PATH: $HOME/test-balsam
-          run: |
-            pg_ctl --version
-            balsam init $HOME/test-balsam
-            sudo chmod -R 700 $HOME/test-balsam/balsamdb
-            source balsamactivate test-balsam
-            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_pyCoverage; modify_Balsam_pyCoverage()'
-            python -c 'from libensemble.tests.regression_tests.common import modify_Balsam_settings; modify_Balsam_settings()'
 
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
@@ -226,8 +186,8 @@ jobs:
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
-        - name: Run extensive tests, Ubuntu, Python 3.7-3.10
-          if: matrix.os == 'ubuntu-latest' && matrix.do-balsam == false && contains('3.7_3.8_3.9_3.10', matrix.python-version)
+        - name: Run extensive tests, Ubuntu, Python 3.8-3.11
+          if: matrix.os == 'ubuntu-latest' && contains('3.8_3.9_3.10_3.11', matrix.python-version)
           run: |
            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
@@ -242,14 +202,6 @@ jobs:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
-
-        - name: Run Balsam test, Ubuntu
-          if: matrix.do-balsam == true
-          env:
-              BALSAM_DB_PATH: $HOME/test-balsam
-          run: |
-           source balsamactivate test-balsam
-           ./libensemble/tests/run-tests.sh -re -y 'test_balsam_hworld*' -z -l
 
         - name: Merge coverage, run Coveralls
           env:

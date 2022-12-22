@@ -55,7 +55,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": alloc_f,
-        "out": [],
         "user": {"async_return": True},
     }
 

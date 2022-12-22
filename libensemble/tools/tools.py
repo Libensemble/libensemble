@@ -15,7 +15,7 @@ logger.propagate = False
 logger.setLevel(logging.INFO)
 
 # Set up format (Alt. Import LogConfig and base on that)
-utils_logformat = "%(name)s: %(message)s"
+utils_logformat = "%(message)s"
 formatter = logging.Formatter(utils_logformat)
 
 # Log to file

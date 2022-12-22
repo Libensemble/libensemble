@@ -68,7 +68,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,  # Allocation function
-        "out": [],  # Output fields (included in History)
         "user": {
             "stop_on_NaNs": True,  # Should alloc preempt evals
             "batch_mode": True,  # Wait until all sim evals are done

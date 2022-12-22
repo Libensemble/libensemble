@@ -47,7 +47,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
-        "out": [],
         "user": {
             "batch_mode": False,
             "num_active_gens": 2,

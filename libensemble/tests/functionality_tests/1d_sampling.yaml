@@ -1,20 +1,21 @@
 libE_specs:
     save_every_k_gens: 300
     safe_mode: False
-    exit_criteria:
-        gen_max: 501
+
+exit_criteria:
+    gen_max: 501
 
 sim_specs:
-    function: libensemble.sim_funcs.one_d_func.one_d_example
+    sim_f: libensemble.sim_funcs.one_d_func.one_d_example
     inputs:
         - x
-    outputs:
+    out:
         f:
             type: float
 
 gen_specs:
-    function: libensemble.gen_funcs.sampling.latin_hypercube_sample
-    outputs:
+    gen_f: libensemble.gen_funcs.sampling.latin_hypercube_sample
+    out:
         x:
             type: float
             size: 1

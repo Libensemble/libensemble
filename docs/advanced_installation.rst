@@ -140,7 +140,7 @@ the ``py-petsc4py`` module thus created.
 
 **Hint**: When combining Spack and Conda, you can access your Conda Python and packages in your
 ``~/.spack/packages.yaml`` while your Conda environment is activated, using ``CONDA_PREFIX``
-For example, if you have an activated Conda environment with Python 3.7 and SciPy installed:
+For example, if you have an activated Conda environment with Python 3.8 and SciPy installed:
 
 .. code-block:: yaml
 
@@ -153,12 +153,12 @@ For example, if you have an activated Conda environment with Python 3.7 and SciP
       py-numpy:
         externals:
         - spec: "py-numpy"
-          prefix: $CONDA_PREFIX/lib/python3.7/site-packages/numpy
+          prefix: $CONDA_PREFIX/lib/python3.8/site-packages/numpy
         buildable: False
       py-scipy:
         externals:
         - spec: "py-scipy"
-          prefix: $CONDA_PREFIX/lib/python3.7/site-packages/scipy
+          prefix: $CONDA_PREFIX/lib/python3.8/site-packages/scipy
         buildable: True
 
 For more information on Spack builds and any particular considerations

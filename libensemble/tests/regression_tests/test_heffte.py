@@ -27,8 +27,10 @@ if __name__ == "__main__":
     fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
     arg1 = ["-no-reorder", "-reorder"]
     arg2 = ["-a2a", "-a2av", "-p2p", "-p2p_pl"]
+    arg3 = ["-ingrid 4 1 1", "-ingrid 2 2 1"]
+    arg4 = ["-outgrid 4 1 1", "-outgrid 2 2 1"]
 
-    part_list = list(itertools.product(fixed, arg1, arg2))
+    part_list = list(itertools.product(fixed, arg1, arg2, arg3, arg4))
 
     full_list = list(map(" ".join, part_list))
 
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     H0["exec_and_args"] = full_list
     H0["sim_id"] = range(n_samp)
 
-    alloc_specs = {"alloc_f": alloc_f, "out": [("exec_and_args", str, max_len)]}
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": len(H0)}
 
