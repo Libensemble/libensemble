@@ -173,6 +173,14 @@ class AllocSpecs(BaseModel):
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
     function
     """
+
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    """
+    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
+    Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
+    timing information, or determine if parameters should be distributed again, etc.) should list those
+    fields here. Also used to construct the complete dtype for libEnsemble's history array
+    """
     # end_alloc_tag
 
 
