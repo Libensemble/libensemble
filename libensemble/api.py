@@ -25,12 +25,12 @@ class Ensemble:
     potentially populating it via a yaml, json, or toml file.
     """
 
+    libE_specs: Union[LibeSpecs, dict] = field(default_factory=dict)
     sim_specs: Union[SimSpecs, dict] = field(default_factory=dict)
     gen_specs: Union[GenSpecs, dict] = field(default_factory=dict)
-    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=AllocSpecs)
-    libE_specs: Union[LibeSpecs, dict] = field(default_factory=dict)
     exit_criteria: Union[ExitCriteria, dict] = field(default_factory=dict)
     persis_info: dict = field(default_factory=dict)
+    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=AllocSpecs)
     H0: Any = None
 
     def __post_init__(self):

@@ -25,19 +25,19 @@
 
 .. after_badges_rst_tag
 
-===========================
-Introduction to libEnsemble
-===========================
+============
+Introduction
+============
 
 libEnsemble is a Python_ toolkit for connecting and coordinating "outer loops" or "deciders" with multiple concurrent experiments or simulations.
 
-libEnsemble can manage massively parallel resources to help solve design, decision,
+libEnsemble can adaptively manage massively parallel resources to help solve design, decision,
 and inference problems.
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
-• **Adaptive Ensembles**: Generate multiple new tasks on-the-fly based on previous computations.
-• **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
-• **Application Monitoring**: Ensemble members can poll or kill running apps.
+• **Adaptive Ensembles**: Generate multiple new *parallel tasks* on-the-fly based on previous computations.
+• **Dynamic Resource Management**: Adaptively reassign resource partitions and GPUs to tasks.
+• **Application Monitoring**: Ensemble members can run, poll or kill apps.
 • **Coordinating data-flow between tasks**: libEnsemble can pass data between ensemble members.
 • **Low start-up cost**: Default deployments don't require additional services. ``pip install libensemble`` and go!
 
@@ -47,41 +47,40 @@ Basic Usage
 Select or supply Simulator and Generator functions
 --------------------------------------------------
 
-**Generator** and **Simulator** Python functions respectively produce candidate parameters and perform/monitor computations that use those parameters. 
-Coupling them together with libEnsemble is easy::
+**Generator** and **Simulator** Python functions respectively produce candidate parameters and 
+perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy::
 
-    import numpy as np
-    from my_simulators import beamline_simulation
-    from someones_evaluators import adaptive_calibrator
+    from my_simulators import beamline_simulation_function
+    from someones_evaluators import adaptive_calibrator_function
 
-    from libensemble import libE
-    from libensemble.tools import parse_args
+    from libensemble.api import Ensemble, SimSpecs, GenSpecs, LibeSpecs, ExitCriteria
 
     if __name__ == "__main__":
 
-        nworkers, is_manager, libE_specs, _ = parse_args()
-        libE_specs["save_every_k_gens"] = 300
-        libE_specs["kill_cancelled_sims"] = True
+        basic_settings = LibeSpecs(
+          comms = "local",
+          nworkers = 16,
+          save_every_k_gens = 100,
+          kill_cancelled_sims = True
+        )
 
-        sim_specs = {
-            "sim_f": beamline_simulation,
-            "in": ["x"],
-            "out": [("f", float)],
-        }
+        simulation = SimSpecs(
+          sim_f = beamline_simulation_function,
+          inputs = ["x"],
+          out = [("f", float)]
+        )
 
-        gen_specs = {
-            "gen_f": adaptive_calibrator,
-            "out": [("x", float, (1,))],
-            "user": {
-                "gen_batch_size": 500,
-                "lb": np.array([-3]),
-                "ub": np.array([3]),
-            },
-        }
+        outer_loop = GenSpecs(
+          gen_f = adaptive_calibrator_function,
+          inputs = ["f"],
+          out = [("x", float, (1,))]
+        )
 
-        exit_criteria = {"gen_max": 500}
+        when_to_stop = ExitCriteria(gen_max = 500)
 
-        Output, persistent_state, flag = libE(sim_specs, gen_specs, exit_criteria, libE_specs)
+        my_experiment = Ensemble(basic_settings, simulation, outer_loop, when_to_stop)
+
+        Output, persistent_state, flag = my_experiment.run()
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
@@ -90,19 +89,23 @@ libEnsemble includes an Executor interface so application-launching functions ar
 portable, resilient, and flexible. It also automatically detects available nodes
 and cores, and can dynamically assign resources to workers::
 
-    def run_simulation(Input, persis_info, sim_specs, libE_info):
+    import numpy as np
+    from libensemble.executors import MPIExecutor
+
+    def beamline_simulation_function(Input, persis_info, sim_specs, _):
         calc_status = 0
 
         particles = str(int(Input["x"][0][0]))
         args = "timesteps " + str(10) + " " + particles
 
-        exctr = Executor.executor
-        task = exctr.submit(app_name="forces", app_args=args)
+        exctr = MPIExecutor()
+        exctr.register_app("./path/to/particles.o", app_name="particles")
+        task = exctr.submit(app_name="particles", app_args=args)
 
         task.wait()
 
         try:
-            data = np.loadtxt("forces.stat")
+            data = np.loadtxt("particles.stat")
             final_energy = data[-1]
             calc_status = WORKER_DONE
         except Exception:
@@ -165,8 +168,8 @@ When using  ``mpi4py`` for libEnsemble communications:
 
 * Balsam_ - Manage and submit applications to the Balsam service with our BalsamExecutor
 * pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
-* funcX_ - Submit function instances to remote funcX endpoints
-* `psi-j-python`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
+* funcX_ - Submit simulation or generator function instances to remote funcX endpoints
+* `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
 **Example Generator Dependencies**:
 
@@ -192,7 +195,7 @@ Resources
 **Support:**
 
 - Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
-- Open issues on GitHub_.
+- Open issues or ask questions on GitHub_.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
