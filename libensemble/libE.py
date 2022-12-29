@@ -258,11 +258,11 @@ from libensemble.executors.executor import Executor
 from libensemble.history import History
 from libensemble.manager import (LoggedException, WorkerException,
                                  manager_main, report_worker_exc)
+from libensemble.message_numbers import _USER_SIM_ID_WARNING
 from libensemble.resources.resources import Resources
 from libensemble.specs import (AllocSpecs, EnsembleSpecs, ExitCriteria,
                                GenSpecs, LibeSpecs, SimSpecs)
 from libensemble.tools.alloc_support import AllocSupport
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__

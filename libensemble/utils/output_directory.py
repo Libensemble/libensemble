@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from dataclasses import dataclass
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 from libensemble.tools.fields_keys import (libE_spec_calc_dir_misc,
@@ -39,9 +40,10 @@ class EnsembleDirectory:
         A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
 
-    def __init__(self, libE_specs=None, loc_stack=None):
+    def __init__(self, libE_specs=None, workerID=None, loc_stack=None):
 
         self.specs = libE_specs
+        self.workerID = workerID
         self.loc_stack = loc_stack
 
         if self.specs is not None:
@@ -77,14 +79,14 @@ class EnsembleDirectory:
         if self.ensemble_copy_back:
             self._make_copyback_dir()
 
-    def use_calc_dirs(self, type):
+    def use_calc_dirs(self, intype):
         """Determines calc_dirs enabling for each calc type"""
-        if type == EVAL_SIM_TAG:
+        if intype == EVAL_SIM_TAG:
             return self.sim_use
         else:
             return self.gen_use
 
-    def _make_calc_dir(self, workerID, H_rows, calc_str, locs):
+    def _make_calc_dir(self, H_rows, calc_str):
         """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
         if calc_str == "sim":
             input_dir = self.sim_input_dir
@@ -112,17 +114,17 @@ class EnsembleDirectory:
         # Cases where individual sim_dirs or gen_dirs not created.
         if not do_calc_dirs:
             if self.use_worker_dirs:  # Each worker does work in worker dirs
-                key = workerID
-                dir = "worker" + str(workerID)
+                key = self.workerID
+                cdir = "worker" + str(self.workerID)
                 prefix = self.prefix
             else:  # Each worker does work in prefix (ensemble_dir)
                 key = self.prefix
-                dir = self.prefix
+                cdir = self.prefix
                 prefix = None
 
-            locs.register_loc(
+            self.locs.register_loc(
                 key,
-                dir,
+                cdir,
                 prefix=prefix,
                 copy_files=copy_files,
                 symlink_files=symlink_files,
@@ -133,21 +135,21 @@ class EnsembleDirectory:
         # All cases now should involve sim_dirs or gen_dirs
         # ensemble_dir/worker_dir registered here, set as parent dir for calc dirs
         if self.use_worker_dirs:
-            worker_dir = "worker" + str(workerID)
+            worker_dir = "worker" + str(self.workerID)
             worker_path = os.path.abspath(os.path.join(self.prefix, worker_dir))
             calc_dir = calc_str + str(H_rows)
-            locs.register_loc(workerID, worker_dir, prefix=self.prefix)
+            self.locs.register_loc(self.workerID, worker_dir, prefix=self.prefix)
             calc_prefix = worker_path
 
         # Otherwise, ensemble_dir set as parent dir for sim dirs
         else:
-            calc_dir = f"{calc_str}{H_rows}_worker{workerID}"
+            calc_dir = f"{calc_str}{H_rows}_worker{self.workerID}"
             if not os.path.isdir(self.prefix):
                 os.makedirs(self.prefix, exist_ok=True)
             calc_prefix = self.prefix
 
         # Register calc dir with adjusted parent dir and source-file location
-        locs.register_loc(
+        self.locs.register_loc(
             calc_dir,
             calc_dir,  # Dir name also label in loc stack dict
             prefix=calc_prefix,
@@ -157,7 +159,7 @@ class EnsembleDirectory:
 
         return calc_dir
 
-    def prep_calc_dir(self, Work, calc_iter, workerID, calc_type):
+    def prep_calc_dir(self, Work, calc_iter, calc_type):
         """Determines choice for calc_dir structure, then performs calculation."""
         if not self.loc_stack:
             self.loc_stack = LocationStack()
@@ -168,8 +170,7 @@ class EnsembleDirectory:
             H_rows = str(calc_iter[calc_type])
 
         calc_str = calc_type_strings[calc_type]
-
-        calc_dir = self._make_calc_dir(workerID, H_rows, calc_str, self.loc_stack)
+        calc_dir = self._make_calc_dir(H_rows, calc_str)
 
         return self.loc_stack, calc_dir
 
@@ -177,24 +178,22 @@ class EnsembleDirectory:
         """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.ensemble_copy_back:
 
-            no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
-
             copybackdir = os.path.basename(self.prefix)
 
             if os.path.relpath(self.prefix) == os.path.relpath(copybackdir):
                 copybackdir += "_back"
 
-            for dir in self.loc_stack.dirs.values():
+            for cdir in self.loc_stack.dirs.values():
                 dest_path = os.path.join(copybackdir, os.path.basename(dir))
-                if dir == self.prefix:  # occurs when no_calc_dirs is True
+                if cdir == self.prefix:
                     continue  # otherwise, entire ensemble dir copied into copyback dir
 
-                shutil.copytree(dir, dest_path, symlinks=True)
-                if os.path.basename(dir).startswith("worker"):
+                shutil.copytree(cdir, dest_path, symlinks=True)
+                if os.path.basename(cdir).startswith("worker"):
                     return  # Worker dir (with all contents) has been copied.
 
             # If not using calc dirs, likely miscellaneous files to copy back
-            if no_calc_dirs:
+            if not self.sim_dirs_make or not self.gen_dirs_make:
                 p = re.compile(r"((^sim)|(^gen))\d+_worker\d+")
                 for file in [i for i in os.listdir(self.prefix) if not p.match(i)]:  # each non-calc_dir file
                     source_path = os.path.join(self.prefix, file)

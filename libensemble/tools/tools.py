@@ -19,60 +19,10 @@ logger.setLevel(logging.INFO)
 utils_logformat = "%(message)s"
 formatter = logging.Formatter(utils_logformat)
 
-# Log to file
-# util_filename = 'util.log'
-# fh = logging.FileHandler(util_filename, mode='w')
-# fh.setFormatter(formatter)
-# logger.addHandler(fh)
-
 # Log to standard error
 sth = logging.StreamHandler(stream=sys.stderr)
 sth.setFormatter(formatter)
 logger.addHandler(sth)
-
-# ==================== User Sim-ID Warning =====================================
-
-_USER_SIM_ID_WARNING = (
-    "\n"
-    + 79 * "*"
-    + "\n"
-    + "User generator script will be creating sim_id.\n"
-    + "Take care to do this sequentially.\n"
-    + "Information given back to the gen_f for existing sim_id values may be overwritten!\n"
-    + "\n"
-    + 79 * "*"
-    + "\n\n"
-)
-
-# ==================== Ensemble directory re-use error =========================
-
-_USER_CALC_DIR_WARNING = (
-    "\n"
-    + 79 * "*"
-    + "\n"
-    + "libEnsemble attempted to reuse {} as a parent directory for calc dirs.\n"
-    + "If allowed to continue, previous results may have been overwritten!\n"
-    + "Resolve this by ensuring libE_specs['ensemble_dir_path'] is unique for each run."
-    + "\n"
-    + 79 * "*"
-    + "\n\n"
-)
-
-# ==================== Warning that persistent return data is not used ==========
-
-_PERSIS_RETURN_WARNING = (
-    "\n"
-    + 79 * "*"
-    + "\n"
-    + "A persistent worker has returned history data on shutdown. This data is\n"
-    + "not currently added to the manager's history to avoid possibly overwriting, but\n"
-    + "will be added to the manager's history in a future release. If you want to\n"
-    + "overwrite/append, you can set the libE_specs option ``use_persis_return_gen``\n"
-    + "or ``use_persis_return_sim``"
-    "\n" + 79 * "*" + "\n\n"
-)
-
-# =================== save libE output to pickle and np ========================
 
 
 def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed"):

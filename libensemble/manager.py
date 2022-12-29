@@ -14,11 +14,17 @@ import socket
 import sys
 import time
 import traceback
+from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 
 from libensemble.comms.comms import CommFinishedException
-from libensemble.message_numbers import (EVAL_GEN_TAG, EVAL_SIM_TAG,
+from libensemble.message_numbers import (_PERSIS_RETURN_WARNING,
+                                         _USER_CALC_DIR_WARNING,
+                                         _WALLCLOCK_MSG_ACTIVE,
+                                         _WALLCLOCK_MSG_ALL_RETURNED,
+                                         EVAL_GEN_TAG, EVAL_SIM_TAG,
                                          FINISHED_PERSISTENT_GEN_TAG,
                                          FINISHED_PERSISTENT_SIM_TAG,
                                          MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL,
@@ -27,9 +33,7 @@ from libensemble.message_numbers import (EVAL_GEN_TAG, EVAL_SIM_TAG,
                                          calc_type_strings)
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
-from libensemble.tools.tools import (_PERSIS_RETURN_WARNING,
-                                     _USER_CALC_DIR_WARNING)
-from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.misc import extract_H_ranges, filter_nans
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg
@@ -129,55 +133,38 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
 
     return result
 
+worker_dtype = [
+    ("worker_id", int),
+    ("active", int),
+    ("persis_state", int),
+    ("active_recv", int),
+    ("gen_started_time", float),
+    ("zero_resource_worker", bool),
+]
 
-def filter_nans(array):
-    """Filters out NaNs from a numpy array"""
-    return array[~np.isnan(array)]
-
-
-_WALLCLOCK_MSG_ALL_RETURNED = """
-Termination due to wallclock_max has occurred.
-All completed work has been returned.
-Posting kill messages for all workers.
-"""
-
-_WALLCLOCK_MSG_ACTIVE = """
-Termination due to wallclock_max has occurred.
-Some issued work has not been returned.
-Posting kill messages for all workers.
-"""
-
-
+@dataclass
 class Manager:
     """Manager class for libensemble."""
 
-    worker_dtype = [
-        ("worker_id", int),
-        ("active", int),
-        ("persis_state", int),
-        ("active_recv", int),
-        ("gen_started_time", float),
-        ("zero_resource_worker", bool),
-    ]
+    hist: npt.NDArray
+    libE_specs: dict
+    alloc_specs: dict
+    sim_specs: dict
+    gen_specs: dict
+    exit_criteria: dict
+    wcomms: list = []
+    persis_pending: list = []
 
-    def __init__(self, hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms=[]):
+    def __post_init__(self):
         """Initializes the manager"""
         timer = Timer()
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
-        self.safe_mode = libE_specs.get("safe_mode")
-        self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
-        self.hist = hist
-        self.libE_specs = libE_specs
-        self.alloc_specs = alloc_specs
-        self.sim_specs = sim_specs
-        self.gen_specs = gen_specs
-        self.exit_criteria = exit_criteria
+        self.safe_mode = self.libE_specs.get("safe_mode")
+        self.kill_canceled_sims = self.libE_specs.get("kill_canceled_sims")
         self.elapsed = lambda: timer.elapsed
-        self.wcomms = wcomms
         self.WorkerExc = False
-        self.persis_pending = []
-        self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
+        self.W = np.zeros(len(self.wcomms), dtype=worker_dtype)
         self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
         self.term_tests = [
             (2, "wallclock_max", self.term_test_wallclock),
@@ -186,7 +173,6 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         if self.resources is not None:
             for wrk in self.W:
@@ -194,6 +180,7 @@ class Manager:
                     wrk["zero_resource_worker"] = True
 
         try:
+            temp_EnsembleDirectory = EnsembleDirectory(libE_specs=self.libE_specs)
             temp_EnsembleDirectory.make_copyback_check()
         except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))

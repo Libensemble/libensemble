@@ -21,3 +21,8 @@ def extract_H_ranges(Work):
             else:
                 ranges.append(str(group[0]))
         return "_".join(ranges)
+
+
+def filter_nans(array):
+    """Filters out NaNs from a numpy array"""
+    return array[~np.isnan(array)]

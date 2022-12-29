@@ -104,6 +104,7 @@ class WorkerErrMsg:
     exc: Exception
 
 
+@dataclass
 class Worker:
 
     """The worker class provides methods for controlling sim and gen funcs
@@ -128,19 +129,21 @@ class Worker:
         Dictionary containing counts for each type of calc (e.g. sim or gen)
     """
 
-    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
-        """Initializes new worker object"""
-        self.comm = comm
-        self.dtypes = dtypes
-        self.workerID = workerID
-        self.libE_specs = libE_specs
-        self.stats_fmt = libE_specs.get("stats_fmt", {})
+    comm: "Communicator"
+    dtypes: "dtypes"
+    workerID: int
+    sim_specs: dict
+    gen_specs: dict
+    libE_specs: dict
 
+    def __post_init__(self):
+        """Initializes new worker object"""
+        self.stats_fmt = self.libE_specs.get("stats_fmt", {})
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         self._run_calc = Runners(sim_specs, gen_specs).make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
-        self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
+        self._calc_dir = EnsembleDirectory(libE_specs=self.libE_specs, workerID=self.workerID)
 
     @staticmethod
     def _set_rset_team(rset_team):
@@ -204,11 +207,10 @@ class Worker:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
             calc = self._run_calc[calc_type]
             with timer:
-                if self.EnsembleDirectory.use_calc_dirs(calc_type):
-                    loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(
+                if self._calc_dir.use_calc_dirs(calc_type):
+                    loc_stack, calc_dir = self._calc_dir.prep_calc_dir(
                         Work,
                         self.calc_iter,
-                        self.workerID,
                         calc_type,
                     )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
@@ -339,4 +341,4 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            self.EnsembleDirectory.copy_back()
+            self._calc_dir.copy_back()
