@@ -1,14 +1,18 @@
-import json
-import yaml
-import tomli
-import logging
 import importlib
-from typing import Union, Any
+import json
+import logging
 from dataclasses import dataclass, field
-from libensemble.libE import libE
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.specs import SimSpecs, GenSpecs, AllocSpecs, LibeSpecs, ExitCriteria
+from typing import Any, Union
+
+import tomli
+import yaml
+
 from libensemble import logger
+from libensemble.libE import libE
+from libensemble.specs import (AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs,
+                               SimSpecs)
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
 ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"

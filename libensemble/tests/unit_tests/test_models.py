@@ -2,16 +2,9 @@ import numpy as np
 from pydantic import ValidationError
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.specs import (
-    SimSpecs,
-    GenSpecs,
-    ExitCriteria,
-    LibeSpecs,
-    EnsembleSpecs,
-    _UNRECOGNIZED_ERR,
-    _IN_INVALID_ERR,
-    _UFUNC_INVALID_ERR,
-)
+from libensemble.specs import (_IN_INVALID_ERR, _UFUNC_INVALID_ERR,
+                               _UNRECOGNIZED_ERR, EnsembleSpecs, ExitCriteria,
+                               GenSpecs, LibeSpecs, SimSpecs)
 
 
 class Fake_MPI:

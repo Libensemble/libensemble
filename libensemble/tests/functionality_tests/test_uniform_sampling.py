@@ -16,12 +16,14 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
+from libensemble.gen_funcs.sampling import uniform_random_sample
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+from libensemble.tests.regression_tests.support import \
+    six_hump_camel_minima as minima
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

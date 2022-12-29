@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 
+import argparse
 import os
+import shutil
 import sys
 import time
-import shutil
-import argparse
 from pathlib import Path
 
-from libensemble.version import __version__
 from libensemble.resources import node_resources
+from libensemble.version import __version__
 
 try:
     from tqdm.auto import tqdm
@@ -19,9 +19,9 @@ except ModuleNotFoundError:
     print("     pip install tqdm")
 
 try:
-    from psij import JobExecutor, Import, Export, JobSpec, Job
-    from psij.resource_spec import ResourceSpecV1
+    from psij import Export, Import, Job, JobExecutor, JobSpec
     from psij.job_attributes import JobAttributes
+    from psij.resource_spec import ResourceSpecV1
 except ModuleNotFoundError:
     print(f"*** libEnsemble {__version__} ***")
     print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")

@@ -2,9 +2,9 @@
 This module stores environment variables for use in resource detection
 """
 
+import logging
 import os
 import re
-import logging
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)

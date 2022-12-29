@@ -5,19 +5,22 @@ optimization routines.
 __all__ = ['LocalOptInterfacer', 'run_local_nlopt', 'run_local_tao',
            'run_local_dfols', 'run_local_scipy_opt', 'run_external_localopt']
 
-import psutil
-import numpy as np
-from libensemble.message_numbers import STOP_TAG, EVAL_GEN_TAG  # Only used to simulate receiving from manager
 from multiprocessing import Event, Process, Queue
+
+import numpy as np
+import psutil
+
 import libensemble.gen_funcs
+from libensemble.message_numbers import (  # Only used to simulate receiving from manager
+    EVAL_GEN_TAG, STOP_TAG)
 
 optimizer_list = ['petsc', 'nlopt', 'dfols', 'scipy', 'external']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is None:
-    from petsc4py import PETSc
-    import nlopt
     import dfols
+    import nlopt
+    from petsc4py import PETSc
     from scipy import optimize as sp_opt
 else:
     if not isinstance(optimizers, list):
@@ -290,8 +293,8 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
     parameters in ``user_specs``.
     """
 
-    import subprocess
     import os
+    import subprocess
     from uuid import uuid4
 
     run_id = uuid4().hex

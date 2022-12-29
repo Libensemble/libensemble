@@ -1,9 +1,10 @@
 import copy
-import logging
-import numpy as np
 import itertools
-from libensemble.resources.resources import Resources
+import logging
 
+import numpy as np
+
+from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

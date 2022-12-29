@@ -4,10 +4,14 @@ A persistent generator using the uncertainty quantification capabilities in
 """
 
 import numpy as np
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
-from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as allocf
+
+from libensemble.alloc_funcs.start_only_persistent import \
+    only_persistent_gens as allocf
+from libensemble.message_numbers import (EVAL_GEN_TAG,
+                                         FINISHED_PERSISTENT_GEN_TAG,
+                                         PERSIS_STOP, STOP_TAG)
 from libensemble.tools import parse_args
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def lex_le(x, y, tol=1e-12):

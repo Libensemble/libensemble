@@ -3,8 +3,9 @@
 """
 Unit test of libensemble log functions.
 """
-import os
 import logging
+import os
+
 from libensemble import logger
 from libensemble.comms.logs import LogConfig
 

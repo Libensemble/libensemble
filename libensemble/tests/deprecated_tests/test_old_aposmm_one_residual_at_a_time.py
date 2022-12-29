@@ -15,18 +15,21 @@
 
 import numpy as np
 
+import libensemble.gen_funcs
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
-import libensemble.gen_funcs
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
+from libensemble.alloc_funcs.fast_alloc_and_pausing import \
+    give_sim_work_first as alloc_f
 from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
-
-from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import persis_info_3 as persis_info, aposmm_gen_out as gen_out
+from libensemble.tests.regression_tests.support import \
+    aposmm_gen_out as gen_out
+from libensemble.tests.regression_tests.support import \
+    persis_info_3 as persis_info
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 

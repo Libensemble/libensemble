@@ -1,6 +1,8 @@
 import numpy as np
+
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+from libensemble.tools.alloc_support import (AllocSupport,
+                                             InsufficientFreeResources)
 
 
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import secrets
+
 import numpy as np
 
 from libensemble.api import Ensemble

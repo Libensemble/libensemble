@@ -10,13 +10,14 @@ Execute via one of the following commands (e.g. 5 workers):
 
 import numpy as np
 
-from libensemble.libE import libE
-from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.tests.regression_tests.common import create_node_file
 from libensemble import logger
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.libE import libE
+from libensemble.sim_funcs.run_line_check import \
+    runline_check_by_worker as sim_f
+from libensemble.tests.regression_tests.common import create_node_file
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")

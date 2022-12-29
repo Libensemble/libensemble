@@ -1,10 +1,10 @@
+import mock
 import numpy as np
 import pytest
-import mock
 
 import libensemble.tests.unit_tests.setup as setup
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from libensemble.utils.runners import Runners
 
 

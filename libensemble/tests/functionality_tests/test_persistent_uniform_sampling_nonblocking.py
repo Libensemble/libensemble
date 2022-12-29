@@ -17,14 +17,18 @@ persistent generator.
 # TESTSUITE_NPROCS: 3 4
 
 import sys
+
 import numpy as np
 
+from libensemble.alloc_funcs.start_only_persistent import \
+    only_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_sampling import \
+    uniform_nonblocking as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_nonblocking as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

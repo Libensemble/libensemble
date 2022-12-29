@@ -3,29 +3,31 @@ libEnsemble worker class
 ====================================================
 """
 
-import socket
+import cProfile
 import logging
 import logging.handlers
+import pstats
+import socket
+from dataclasses import dataclass
 from itertools import count
 from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
-from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.utils.output_directory import EnsembleDirectory
-
-from libensemble.utils.misc import extract_H_ranges
-from libensemble.utils.timer import Timer
-from libensemble.utils.runners import Runners
+from libensemble.comms.logs import LogConfig, worker_logging_config
 from libensemble.executors.executor import Executor
+from libensemble.message_numbers import (CALC_EXCEPTION, EVAL_GEN_TAG,
+                                         EVAL_SIM_TAG, MAN_SIGNAL_FINISH,
+                                         MAN_SIGNAL_KILL, PERSIS_STOP,
+                                         STOP_TAG, UNSET_TAG,
+                                         calc_status_strings,
+                                         calc_type_strings)
 from libensemble.resources.resources import Resources
-from libensemble.comms.logs import worker_logging_config
-from libensemble.comms.logs import LogConfig
-import cProfile
-import pstats
+from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.output_directory import EnsembleDirectory
+from libensemble.utils.runners import Runners
+from libensemble.utils.timer import Timer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -96,11 +98,10 @@ def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=
 # Worker Class
 ######################################################################
 
-
+@dataclass
 class WorkerErrMsg:
-    def __init__(self, msg, exc):
-        self.msg = msg
-        self.exc = exc
+    msg: str
+    exc: Exception
 
 
 class Worker:
@@ -147,9 +148,6 @@ class Worker:
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.worker_resources.set_rset_team(rset_team)
-            return True
-        else:
-            return False
 
     @staticmethod
     def _set_executor(workerID, comm):
@@ -157,10 +155,8 @@ class Worker:
         exctr = Executor.executor
         if isinstance(exctr, Executor):
             exctr.set_worker_info(comm, workerID)  # When merge update
-            return True
         else:
             logger.debug(f"No executor set on worker {workerID}")
-            return False
 
     @staticmethod
     def _set_resources(workerID, comm):
@@ -168,10 +164,8 @@ class Worker:
         resources = Resources.resources
         if isinstance(resources, Resources):
             resources.set_worker_resources(comm.get_num_workers(), workerID)
-            return True
         else:
             logger.debug(f"No resources set on worker {workerID}")
-            return False
 
     def _handle_calc(self, Work, calc_in):
         """Runs a calculation on this worker object.
@@ -182,20 +176,15 @@ class Worker:
         Parameters
         ----------
 
-        Work: :obj:`dict`
+        Work: dict
             :ref:`(example)<datastruct-work-dict>`
 
-        calc_in: obj: numpy structured array
-            Rows from the :ref:`history array<funcguides-history>`
-            for processing
+        calc_in: numpy structured array
+            Rows from the :ref:`history array<funcguides-history>` for processing
         """
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        # calc_stats stores timing and summary info for this Calc (sim or gen)
-        # calc_id = next(self._calc_id_counter)
-
-        # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = "sim_id"
             calc_id = extract_H_ranges(Work)
@@ -229,7 +218,6 @@ class Worker:
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
-            assert isinstance(out, tuple), "Calculation output must be a tuple."
             assert len(out) >= 2, "Calculation output must be at least two elements."
 
             if len(out) >= 3:
@@ -253,9 +241,7 @@ class Worker:
             ctype_str = calc_type_strings[calc_type]
             status = calc_status_strings.get(calc_status, calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
-
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
-            # logging.getLogger(LogConfig.config.random_name).info(calc_msg)
 
     def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
         """Construct line for libE_stats.txt file"""
@@ -293,7 +279,6 @@ class Worker:
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
 
-        # Call user function
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])

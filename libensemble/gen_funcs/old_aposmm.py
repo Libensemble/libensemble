@@ -6,21 +6,23 @@ described in detail in :cite:`LW16`.
 __all__ = ['aposmm_logic', 'initialize_APOSMM',
            'decide_where_to_start_localopt', 'update_history_dist']
 
-import sys
 import pickle
+import sys
 import traceback
+from math import gamma, log, pi, sqrt
+
 import numpy as np
-from scipy.spatial.distance import cdist, pdist, squareform
 from numpy.lib.recfunctions import merge_arrays
-from math import log, gamma, pi, sqrt
+from scipy.spatial.distance import cdist, pdist, squareform
 
 import libensemble.gen_funcs
+
 optimizer_list = ['petsc', 'nlopt', 'scipy']
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is None:
-    from petsc4py import PETSc
     import nlopt
+    from petsc4py import PETSc
     from scipy import optimize as scipy_optimize
 else:
     if not isinstance(optimizers, list):

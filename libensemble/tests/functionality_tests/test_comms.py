@@ -16,12 +16,14 @@ The number of concurrent evaluations of the objective function will be N-1.
 
 import numpy as np
 
+from libensemble.executors.mpi_executor import \
+    MPIExecutor  # Only used to get workerID in float_x1000
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.comms_testing import float_x1000 as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor  # Only used to get workerID in float_x1000
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
