@@ -140,7 +140,7 @@ class Worker:
         """Initializes new worker object"""
         self.stats_fmt = self.libE_specs.get("stats_fmt", {})
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self._run_calc = Runners(sim_specs, gen_specs).make_runners()
+        self._run_calc = Runners(self.sim_specs, self.gen_specs).make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self._calc_dir = EnsembleDirectory(libE_specs=self.libE_specs, workerID=self.workerID)
@@ -241,7 +241,10 @@ class Worker:
             raise
         finally:
             ctype_str = calc_type_strings[calc_type]
-            status = calc_status_strings.get(calc_status, calc_status)
+            try:
+                status = calc_status_strings.get(calc_status, calc_status)
+            except TypeError:  # Allow user to return custom objects as calc_statuses?
+                status = str(calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
 

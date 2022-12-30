@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
+from numpy.lib.recfunctions import repack_fields
 
 from libensemble.comms.comms import CommFinishedException
 from libensemble.message_numbers import (_PERSIS_RETURN_WARNING,
@@ -38,9 +39,6 @@ from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg
 
-if tuple(np.__version__.split(".")) >= ("1", "15"):
-    from numpy.lib.recfunctions import repack_fields
-
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
@@ -57,15 +55,27 @@ class WorkerException(Exception):
 class LoggedException(Exception):
     """Raise exception for handling without re-logging"""
 
-
-def report_worker_exc(wrk_exc=None):
+def report_worker_exc(wrk_exc):
     """Write worker exception to log"""
-    if wrk_exc is not None:
-        from_line, msg, exc = wrk_exc.args
-        logger.error(f"---- {from_line} ----")
-        logger.error(f"Message: {msg}")
-        logger.error(exc)
+    from_line, msg, exc = wrk_exc.args
+    logger.error(f"---- {from_line} ----")
+    logger.error(f"Message: {msg}")
+    logger.error(exc)
 
+
+def _start_profile(libE_specs):
+    if libE_specs.get("profile"):
+        pr = cProfile.Profile()
+        pr.enable()
+
+def _end_profile(libE_specs):
+    if libE_specs.get("profile"):
+        pr.disable()
+        profile_stats_fname = "manager.prof"
+
+        with open(profile_stats_fname, "w") as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
+            ps.print_stats()
 
 def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, persis_info, wcomms=[]):
     """Manager routine to coordinate the generation and simulation evaluations
@@ -97,39 +107,18 @@ def manager_main(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_crite
     wcomms: :obj:`list`, optional
         A list of comm type objects for each worker. Default is an empty list.
     """
-    if libE_specs.get("profile"):
-        pr = cProfile.Profile()
-        pr.enable()
 
-    if "in" not in gen_specs:
-        gen_specs["in"] = []
-
-    # Send dtypes to workers
-    if "repack_fields" in globals():
-        dtypes = {
-            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-        }
-    else:
-        dtypes = {
-            EVAL_SIM_TAG: hist.H[sim_specs["in"]].dtype,
-            EVAL_GEN_TAG: hist.H[gen_specs["in"]].dtype,
-        }
+    _start_profile(libE_specs)
 
     for wcomm in wcomms:
-        wcomm.send(0, dtypes)
+        wcomm.send(0, {
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+    })
 
-    # Set up and run manager
-    mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms)
-    result = mgr.run(persis_info)
+    result = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms).run(persis_info)
 
-    if libE_specs.get("profile"):
-        pr.disable()
-        profile_stats_fname = "manager.prof"
-
-        with open(profile_stats_fname, "w") as f:
-            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
-            ps.print_stats()
+    _end_profile(libE_specs)
 
     return result
 
@@ -152,13 +141,13 @@ class Manager:
     sim_specs: dict
     gen_specs: dict
     exit_criteria: dict
-    wcomms: list = []
-    persis_pending: list = []
+    wcomms: list
 
     def __post_init__(self):
         """Initializes the manager"""
         timer = Timer()
         timer.start()
+        self.persis_pending = []
         self.date_start = timer.date_start.replace(" ", "_")
         self.safe_mode = self.libE_specs.get("safe_mode")
         self.kill_canceled_sims = self.libE_specs.get("kill_canceled_sims")
@@ -262,14 +251,15 @@ class Manager:
     def _check_work_order(self, Work, w):
         """Checks validity of an allocation function order"""
         assert w != 0, "Can't send to worker 0; this is the manager."
-        if self.W[w - 1]["active_recv"]:
+        worker = self.W[w - 1]
+        if worker["active_recv"]:
             assert "active_recv" in Work["libE_info"], (
                 "Messages to a worker in active_recv mode should have active_recv"
                 f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
             )
         else:
-            assert self.W[w - 1]["active"] == 0, (
-                "Allocation function requested work be sent to worker %d, an already active worker." % w
+            assert worker["active"] == 0, (
+                f"Allocation function requested work be sent to worker {w}, an already active worker."
             )
         work_rows = Work["libE_info"]["H_rows"]
         if len(work_rows):
@@ -312,8 +302,8 @@ class Manager:
 
         if self.resources:
             self._set_resources(Work, w)
-
-        self.wcomms[w - 1].send(Work["tag"], Work)
+        communicator = self.wcomms[w - 1]
+        communicator.send(Work["tag"], Work)
 
         if Work["tag"] == EVAL_GEN_TAG:
             self.W[w - 1]["gen_started_time"] = time.time()
@@ -322,24 +312,21 @@ class Manager:
         work_name = calc_type_strings[Work["tag"]]
         logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
         if len(work_rows):
-            if "repack_fields" in globals():
-                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
-                H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
-                for i, row in enumerate(work_rows):
-                    H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
-                # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
-                self.wcomms[w - 1].send(0, H_to_be_sent)
-            else:
-                self.wcomms[w - 1].send(0, self.hist.H[Work["H_fields"]][work_rows])
+            new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
+            H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
+            for i, row in enumerate(work_rows):
+                H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
+            communicator.send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work, w):
         """Updates a workers' active/idle status following an allocation order"""
-        self.W[w - 1]["active"] = Work["tag"]
+        worker = self.W[w - 1]
+        worker["active"] = Work["tag"]
         if "libE_info" in Work:
             if "persistent" in Work["libE_info"]:
-                self.W[w - 1]["persis_state"] = Work["tag"]
+                worker["persis_state"] = Work["tag"]
                 if Work["libE_info"].get("active_recv", False):
-                    self.W[w - 1]["active_recv"] = Work["tag"]
+                    worker["active_recv"] = Work["tag"]
             else:
                 assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
 
@@ -360,10 +347,6 @@ class Manager:
             EVAL_SIM_TAG,
             EVAL_GEN_TAG,
         ], f"Aborting, Unknown calculation type received. Received type: {calc_type}"
-
-        assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
-            calc_status, str
-        ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
 
     def _receive_from_workers(self, persis_info):
         """Receives calculation output from workers. Loops over all
@@ -392,37 +375,38 @@ class Manager:
         Manager._check_received_calc(D_recv)
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
-        if w not in self.persis_pending and not self.W[w - 1]["active_recv"] and not keep_state:
-            self.W[w - 1]["active"] = 0
+        worker = self.W[w - 1]
+        if w not in self.persis_pending and not worker["active_recv"] and not keep_state:
+            worker["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w - 1]["gen_started_time"])
+                    self.hist.update_history_x_in(w, final_data, self.safe_mode, worker["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     self.hist.update_history_f(D_recv, self.safe_mode)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
-            self.W[w - 1]["persis_state"] = 0
-            if self.W[w - 1]["active_recv"]:
-                self.W[w - 1]["active"] = 0
-                self.W[w - 1]["active_recv"] = 0
+            worker["persis_state"] = 0
+            if worker["active_recv"]:
+                worker["active"] = 0
+                worker["active_recv"] = 0
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
-                self.W[w - 1]["active"] = 0
+                worker["active"] = 0
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.safe_mode)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.W[w - 1]["gen_started_time"])
+                self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, worker["gen_started_time"])
                 assert (
-                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w - 1]["persis_state"]
+                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or worker["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."
             if "libE_info" in D_recv and "persistent" in D_recv["libE_info"]:
                 # Now a waiting, persistent worker
-                self.W[w - 1]["persis_state"] = calc_type
+                worker["persis_state"] = calc_type
             else:
                 self._freeup_resources(w)
 

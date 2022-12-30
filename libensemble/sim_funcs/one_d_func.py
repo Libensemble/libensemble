@@ -18,4 +18,4 @@ def one_d_example(x, persis_info, sim_specs, _):
 
     H_o["f"] = np.linalg.norm(x)
 
-    return H_o, persis_info
+    return H_o, persis_info, ["hello", "world"]
