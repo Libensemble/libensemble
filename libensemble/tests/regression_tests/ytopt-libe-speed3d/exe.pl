@@ -20,7 +20,7 @@ foreach $filename (@ARGV) {
         $line = $_;
         chomp ($line);
 
-        if ($line =~ /run_time/) {
+        if ($line =~ /Time per run/) {
                 ($v1, $v2) = split(': ', $line);
                 printf("%.3f", $v2)
         }
