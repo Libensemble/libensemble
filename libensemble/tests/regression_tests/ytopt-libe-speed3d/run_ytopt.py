@@ -58,7 +58,7 @@ libE_specs['sim_dirs_make'] = False  # Otherwise directories separated by each s
 libE_specs['ensemble_dir_path'] = './ensemble_' + secrets.token_hex(nbytes=4)
 
 # Copy or symlink needed files into unique directories
-libE_specs['sim_dir_symlink_files'] = [here + f for f in ['speed3d.sh', 'exe.pl', 'plopper.py', 'processexe.pl']]
+libE_specs['sim_dir_symlink_files'] = [here + f for f in ['speed3d.sh', 'speed3d_c2c', 'exe.pl', 'plopper.py', 'processexe.pl']]
 
 # Declare the sim_f to be optimized, and the input/outputs
 sim_specs = {

@@ -55,12 +55,14 @@ def persistent_ytopt(H, persis_info, gen_specs, libE_info):
 
         if calc_in is not None:
             if len(calc_in):
-                b = np.vstack(map(list, calc_in))
+                b = []
+                for entry in calc_in[0]:
+                    try: 
+                        b += [str(entry[0])]
+                    except: 
+                        b += [str(entry)]
+
                 with open('../../results.csv', 'a') as f:
-                    if first_write:
-                        np.savetxt(f, b, header=','.join(calc_in.dtype.names), delimiter=',',fmt=','.join(['%s']*b.shape[1]))
-                        first_write = False
-                    else:
-                        np.savetxt(f, b, delimiter=',',fmt=','.join(['%s']*b.shape[1]))
+                    f.write(",".join(b))
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

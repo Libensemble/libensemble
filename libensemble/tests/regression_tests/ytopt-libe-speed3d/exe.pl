@@ -21,11 +21,11 @@ foreach $filename (@ARGV) {
         chomp ($line);
 
         if ($line =~ /Time per run/) {
-                ($v1, $v2) = split(': ', $line);
-                printf("%.3f", $v2)
+                ($v1, $v2, $v3, $v4, $v5) = split(' ', $line);
+                printf("%.6f", $v4);
         }
    }
-   if ($v2 == 0 ) {
+   if ($v4 == 0 ) {
         printf("-1");
    }
    close(TEMFILE);
