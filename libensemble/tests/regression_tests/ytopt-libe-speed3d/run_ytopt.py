@@ -36,50 +36,55 @@ user_args_in = ["--learner=RF", "--max-evals=10"]
 assert len(user_args_in), "learner, etc. not specified, e.g. --learner RF"
 user_args = {}
 for entry in user_args_in:
-    if entry.startswith('--'):
-        if '=' not in entry:
-            key = entry.strip('--')
-            value = user_args_in[user_args_in.index(entry)+1]
+    if entry.startswith("--"):
+        if "=" not in entry:
+            key = entry.strip("--")
+            value = user_args_in[user_args_in.index(entry) + 1]
         else:
-            split = entry.split('=')
-            key = split[0].strip('--')
+            split = entry.split("=")
+            key = split[0].strip("--")
             value = split[1]
 
     user_args[key] = value
 
-req_settings = ['learner','max-evals']
-assert all([opt in user_args for opt in req_settings]), \
-    "Required settings missing. Specify each setting in " + str(req_settings)
+req_settings = ["learner", "max-evals"]
+assert all([opt in user_args for opt in req_settings]), "Required settings missing. Specify each setting in " + str(
+    req_settings
+)
 
 # Set options so workers operate in unique directories
-here = os.getcwd() + '/'
-libE_specs['use_worker_dirs'] = True
-libE_specs['sim_dirs_make'] = False  # Otherwise directories separated by each sim call
-libE_specs['ensemble_dir_path'] = './ensemble_' + secrets.token_hex(nbytes=4)
+here = os.getcwd() + "/"
+libE_specs["use_worker_dirs"] = True
+libE_specs["sim_dirs_make"] = False  # Otherwise directories separated by each sim call
+libE_specs["ensemble_dir_path"] = "./ensemble_" + secrets.token_hex(nbytes=4)
 
 # Copy or symlink needed files into unique directories
-libE_specs['sim_dir_symlink_files'] = [here + f for f in ['speed3d.sh', 'speed3d_c2c', 'exe.pl', 'plopper.py', 'processexe.pl']]
+libE_specs["sim_dir_symlink_files"] = [
+    here + f for f in ["speed3d.sh", "speed3d_c2c", "exe.pl", "plopper.py", "processexe.pl"]
+]
 
 # Declare the sim_f to be optimized, and the input/outputs
 sim_specs = {
-    'sim_f': init_obj,
-    'in': ['p0', 'p1', 'p2', 'p3'],
-    'out': [('RUNTIME', float),('elapsed_sec', float)],
+    "sim_f": init_obj,
+    "in": ["p0", "p1", "p2", "p3"],
+    "out": [("RUNTIME", float), ("elapsed_sec", float)],
 }
 
 cs = CS.ConfigurationSpace(seed=1234)
-p0 = CSH.CategoricalHyperparameter(name='p0', choices=["-no-reorder", "-reorder"], default_value="-no-reorder")
-p1 = CSH.CategoricalHyperparameter(name='p1', choices=["-a2a", "-a2av", "-p2p", "-p2p_pl"], default_value="-a2a")
-p2 = CSH.CategoricalHyperparameter(name='p2', choices=["-ingrid 4 1 1", "-ingrid 2 2 1"], default_value="-ingrid 4 1 1")
-p3 = CSH.CategoricalHyperparameter(name='p3', choices=["-outgrid 4 1 1", "-outgrid 2 2 1"], default_value="-outgrid 4 1 1")
+p0 = CSH.CategoricalHyperparameter(name="p0", choices=["-no-reorder", "-reorder"], default_value="-no-reorder")
+p1 = CSH.CategoricalHyperparameter(name="p1", choices=["-a2a", "-a2av", "-p2p", "-p2p_pl"], default_value="-a2a")
+p2 = CSH.CategoricalHyperparameter(name="p2", choices=["-ingrid 4 1 1", "-ingrid 2 2 1"], default_value="-ingrid 4 1 1")
+p3 = CSH.CategoricalHyperparameter(
+    name="p3", choices=["-outgrid 4 1 1", "-outgrid 2 2 1"], default_value="-outgrid 4 1 1"
+)
 cs.add_hyperparameters([p0, p1, p2, p3])
 
 ytoptimizer = Optimizer(
     num_workers=num_sim_workers,
     space=cs,
-    learner=user_args['learner'],
-    liar_strategy='cl_max',
-    acq_func='gp_hedge',
+    learner=user_args["learner"],
+    liar_strategy="cl_max",
+    acq_func="gp_hedge",
     set_KAPPA=1.96,
     set_SEED=2345,
     set_NI=10,
@@ -87,41 +92,41 @@ ytoptimizer = Optimizer(
 
 # Declare the gen_f that will generate points for the sim_f, and the various input/outputs
 gen_specs = {
-    'gen_f': persistent_ytopt,
-    'out': [('p0', "<U24", (1,)), ('p1', "<U24", (1,)),('p2', "<U24", (1,)),
-            ('p3', "<U24", (1,))],
-    'persis_in': sim_specs['in'] + ['RUNTIME'] + ['elapsed_sec'],
-    'user': {
-        'ytoptimizer': ytoptimizer,  # provide optimizer to generator function
-        'num_sim_workers': num_sim_workers,
+    "gen_f": persistent_ytopt,
+    "out": [("p0", "<U24", (1,)), ("p1", "<U24", (1,)), ("p2", "<U24", (1,)), ("p3", "<U24", (1,))],
+    "persis_in": sim_specs["in"] + ["RUNTIME"] + ["elapsed_sec"],
+    "user": {
+        "ytoptimizer": ytoptimizer,  # provide optimizer to generator function
+        "num_sim_workers": num_sim_workers,
     },
 }
 
 alloc_specs = {
-    'alloc_f': alloc_f,
-    'user': {'async_return': True},
+    "alloc_f": alloc_f,
+    "user": {"async_return": True},
 }
 
 # Specify when to exit. More options: https://libensemble.readthedocs.io/en/main/data_structures/exit_criteria.html
-exit_criteria = {'gen_max': int(user_args['max-evals'])}
+exit_criteria = {"gen_max": int(user_args["max-evals"])}
 
 # Added as a workaround to issue that's been resolved on develop
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Perform the libE run
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                            alloc_specs=alloc_specs, libE_specs=libE_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+)
 
 # Save History array to file
 if is_manager:
     print("\nlibEnsemble has completed evaluations.")
-    #save_libE_output(H, persis_info, __file__, nworkers)
+    # save_libE_output(H, persis_info, __file__, nworkers)
 
-    #print("\nSaving just sim_specs[['in','out']] to a CSV")
-    #H = np.load(glob.glob('*.npy')[0])
-    #H = H[H["sim_ended"]]
-    #H = H[H["returned"]]
-    #dtypes = H[gen_specs['persis_in']].dtype
-    #b = np.vstack(map(list, H[gen_specs['persis_in']]))
-    #print(b)
-    #np.savetxt('results.csv',b, header=','.join(dtypes.names), delimiter=',',fmt=','.join(['%s']*b.shape[1]))
+    # print("\nSaving just sim_specs[['in','out']] to a CSV")
+    # H = np.load(glob.glob('*.npy')[0])
+    # H = H[H["sim_ended"]]
+    # H = H[H["returned"]]
+    # dtypes = H[gen_specs['persis_in']].dtype
+    # b = np.vstack(map(list, H[gen_specs['persis_in']]))
+    # print(b)
+    # np.savetxt('results.csv',b, header=','.join(dtypes.names), delimiter=',',fmt=','.join(['%s']*b.shape[1]))
