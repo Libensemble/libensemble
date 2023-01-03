@@ -11,7 +11,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.rosenbrock import rosenbrock_eval_2 as sim_f
+from libensemble.sim_funcs.heffte import call_and_process_heffte as sim_f
 from libensemble.gen_funcs.ytopt_gen_xsbench import persistent_ytopt as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output

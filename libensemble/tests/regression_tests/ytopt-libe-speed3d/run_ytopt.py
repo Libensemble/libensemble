@@ -32,6 +32,7 @@ from ytopt.search.optimizer import Optimizer
 nworkers, is_manager, libE_specs, user_args_in = parse_args()
 num_sim_workers = nworkers - 1  # Subtracting one because one worker will be the generator
 
+user_args_in = ["--learner=RF", "--max-evals=10"]
 assert len(user_args_in), "learner, etc. not specified, e.g. --learner RF"
 user_args = {}
 for entry in user_args_in:
@@ -67,15 +68,10 @@ sim_specs = {
 }
 
 cs = CS.ConfigurationSpace(seed=1234)
-# arg1 
-p0 = CSH.CategoricalHyperparameter(name='p0', choices=["-no-reorder", "-reorder"," "], default_value=" ")
-# arg2 
-p1 = CSH.CategoricalHyperparameter(name='p1', choices=["-a2a", "-a2av", "-p2p", "-p2p_pl"," "], default_value=" ")
-# arg3 
-p2 = CSH.CategoricalHyperparameter(name='p2', choices=["-ingrid 4 1 1", "-ingrid 2 2 1", " "], default_value=" ")
-# arg4 
-p3 = CSH.CategoricalHyperparameter(name='p3', choices=["-outgrid 4 1 1", "-outgrid 2 2 1"," "], default_value=" ")
-
+p0 = CSH.CategoricalHyperparameter(name='p0', choices=["-no-reorder", "-reorder"], default_value="-no-reorder")
+p1 = CSH.CategoricalHyperparameter(name='p1', choices=["-a2a", "-a2av", "-p2p", "-p2p_pl"], default_value="-a2a")
+p2 = CSH.CategoricalHyperparameter(name='p2', choices=["-ingrid 4 1 1", "-ingrid 2 2 1"], default_value="-ingrid 4 1 1")
+p3 = CSH.CategoricalHyperparameter(name='p3', choices=["-outgrid 4 1 1", "-outgrid 2 2 1"], default_value="-outgrid 4 1 1")
 cs.add_hyperparameters([p0, p1, p2, p3])
 
 ytoptimizer = Optimizer(
