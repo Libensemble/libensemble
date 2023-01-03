@@ -63,6 +63,10 @@ def persistent_ytopt(H, persis_info, gen_specs, libE_info):
                         b += [str(entry)]
 
                 with open("../../results.csv", "a") as f:
-                    f.write(",".join(b) + "\n")
+                    if first_write:
+                        f.write(",".join(calc_in.dtype.names) + "\n")
+                        first_write = False
+                    else:
+                        f.write(",".join(b) + "\n")
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
