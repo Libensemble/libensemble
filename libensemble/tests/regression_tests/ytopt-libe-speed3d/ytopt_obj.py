@@ -4,7 +4,6 @@ This module is a wrapper around an example ytopt objective function
 __all__ = ["init_obj"]
 
 import numpy as np
-import os
 import time
 from plopper import Plopper
 

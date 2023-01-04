@@ -1,6 +1,4 @@
 import pandas
-from sklearn import model_selection
-from sklearn.linear_model import LogisticRegression
 
 dataframe = pandas.read_csv("results.csv")
 array = dataframe.values

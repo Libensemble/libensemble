@@ -57,10 +57,10 @@ def persistent_ytopt(H, persis_info, gen_specs, libE_info):
             if len(calc_in):
                 b = []
                 for entry in calc_in[0]:
-                    try:
-                        b += [str(entry[0])]
-                    except:
+                    if isinstance(entry, float):
                         b += [str(entry)]
+                    else:
+                        b += [str(entry[0])]
 
                 with open("../../results.csv", "a") as f:
                     if first_write:

@@ -11,24 +11,21 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import os
 import sys
-import glob
 import secrets
 import numpy as np
-import time
 
-sys.path.append('./ytopt-libe-speed3d/')
+sys.path.append("./ytopt-libe-speed3d/")
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import parse_args, add_unique_random_streams
 
 from ytopt_obj import init_obj  # Simulator function, calls Plopper
 from ytopt_asktell import persistent_ytopt  # Generator function, communicates with ytopt optimizer
 
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
-from ConfigSpace import ConfigurationSpace, EqualsCondition
 from ytopt.search.optimizer import Optimizer
 
 
@@ -64,9 +61,8 @@ libE_specs["sim_dirs_make"] = False  # Otherwise directories separated by each s
 libE_specs["ensemble_dir_path"] = "./ensemble_" + secrets.token_hex(nbytes=4)
 
 # Copy or symlink needed files into unique directories
-libE_specs["sim_dir_symlink_files"] = [
-    here + f for f in ["speed3d.sh", "speed3d_c2c", "exe.pl", "plopper.py", "processexe.pl"]
-]
+libE_specs["sim_dir_symlink_files"] = [here + f for f in ["speed3d.sh", "exe.pl", "plopper.py", "processexe.pl"]]
+libE_specs["sim_dir_symlink_files"] += ["speed3d_c2c"]
 
 # Declare the sim_f to be optimized, and the input/outputs
 sim_specs = {
@@ -125,6 +121,9 @@ H, persis_info, flag = libE(
 # Save History array to file
 if is_manager:
     print("\nlibEnsemble has completed evaluations.")
+    assert np.all(H["sim_ended"]), "Every point should have been marked as ended"
+    assert len(np.unique(H["RUN_TIME"])) == len(H), "Every RUN_TIME should be unique"
+
     # save_libE_output(H, persis_info, __file__, nworkers)
 
     # print("\nSaving just sim_specs[['in','out']] to a CSV")

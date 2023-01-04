@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 import random
 import psutil
@@ -41,7 +40,8 @@ class Plopper:
                     # To avoid writing the Marker
                     f2.write(line)
 
-    # Function to find the execution time of the interim file, and return the execution time as cost to the search module
+    # Function to find the execution time of the interim file, and return the
+    # execution time as cost to the search module
     def findRuntime(self, x, params, worker):
         interimfile = ""
         # exetime = float('inf')
