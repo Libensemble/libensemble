@@ -14,15 +14,17 @@ import sys
 import secrets
 import numpy as np
 
-sys.path.append("./ytopt-libe-speed3d/")
+ytopt_files_loc =  "./scripts_used_by_reg_tests/ytopt-libe-speed3d/"
+
+sys.path.append(ytopt_files_loc)
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-from ytopt_obj import init_obj  # Simulator function, calls Plopper
-from ytopt_asktell import persistent_ytopt  # Generator function, communicates with ytopt optimizer
+from libensemble.sim_funcs.ytopt_obj import init_obj  # Simulator function, calls Plopper
+from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Generator function, communicates with ytopt optimizer
 
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
@@ -54,7 +56,7 @@ assert all([opt in user_args for opt in req_settings]), "Required settings missi
 )
 
 # Set options so workers operate in unique directories
-here = os.getcwd() + "/ytopt-libe-speed3d/"
+here = os.path.join(os.getcwd(), ytopt_files_loc)
 
 libE_specs["use_worker_dirs"] = True
 libE_specs["sim_dirs_make"] = False  # Otherwise directories separated by each sim call
