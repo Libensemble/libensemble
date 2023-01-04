@@ -14,7 +14,7 @@ def call_and_process_heffte(H, persis_info, sim_specs, _):
 
     H_o = np.zeros(1, dtype=sim_specs["out"])
 
-    runstring = "mpirun -np 4 ./speed3d_c2c fftw double 128 128 128" + " " + str(H[0]['p0']) + " " + str(H[0]['p1']) + " " + str(H[0]['p2']) + " " + str(H[0]['p3'])
+    p = subprocess.run(H["exec_and_args"][0].split(" "), cwd="./", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     p = subprocess.run(runstring.split(" "), cwd="./", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
