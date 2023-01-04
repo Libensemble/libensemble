@@ -16,8 +16,6 @@ def call_and_process_heffte(H, persis_info, sim_specs, _):
 
     p = subprocess.run(H["exec_and_args"][0].split(" "), cwd="./", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    p = subprocess.run(runstring.split(" "), cwd="./", stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
     assert p.returncode == 0, "heFFTe call has failed"
 
     time = float(p.stdout.decode().split("Time per run: ")[1].split(" ")[0])
