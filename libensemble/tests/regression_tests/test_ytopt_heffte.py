@@ -14,8 +14,7 @@ import sys
 import secrets
 import numpy as np
 
-ytopt_files_loc =  "./scripts_used_by_reg_tests/ytopt-libe-speed3d/"
-
+ytopt_files_loc = "./scripts_used_by_reg_tests/ytopt-libe-speed3d/"
 sys.path.append(ytopt_files_loc)
 
 # Import libEnsemble items for this test
@@ -23,8 +22,8 @@ from libensemble.libE import libE
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, add_unique_random_streams
 
-from libensemble.sim_funcs.ytopt_obj import init_obj  # Simulator function, calls Plopper
-from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Generator function, communicates with ytopt optimizer
+from libensemble.sim_funcs.ytopt_obj import init_obj  # Sim function, calls Plopper
+from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Gen function, communicates with ytopt optimizer
 
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
