@@ -21,19 +21,22 @@ The number gens will be 4.
 # TESTSUITE_EXTRA: true
 
 import sys
+import urllib.request
+
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
-import urllib.request
 
-from libensemble.libE import libE
+from libensemble.alloc_funcs.start_persistent_consensus import \
+    start_consensus_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
-from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, readin_csv, gm_opt, svm_opt
-
+from libensemble.libE import libE
 from libensemble.sim_funcs.geomedian import geomedian_eval
 from libensemble.sim_funcs.svm import svm_eval
+from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools.consensus_subroutines import (get_k_reach_chain_matrix,
+                                                     gm_opt, readin_csv,
+                                                     svm_opt)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

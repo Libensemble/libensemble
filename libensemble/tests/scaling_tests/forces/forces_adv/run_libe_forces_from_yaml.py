@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+
 import numpy as np
 
 from libensemble.api import Ensemble

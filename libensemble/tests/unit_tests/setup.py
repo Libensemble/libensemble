@@ -1,7 +1,7 @@
 import numpy as np
-from libensemble.specs import AllocSpecs
-from libensemble.history import History
 
+from libensemble.history import History
+from libensemble.specs import AllocSpecs
 
 # -------------------------------------------------------------------------------------------------
 # Set up sim_specs, gen_specs, exit_criteria

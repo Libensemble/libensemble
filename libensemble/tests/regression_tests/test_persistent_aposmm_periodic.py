@@ -16,20 +16,21 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
 import multiprocessing
+import sys
+
 import numpy as np
 
 import libensemble.gen_funcs
 
 libensemble.gen_funcs.rc.aposmm_optimizers = ["nlopt", "scipy"]
+from libensemble.alloc_funcs.persistent_aposmm_alloc import \
+    persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
-import pytest
-import platform
 import multiprocessing
+import platform
+
+import pytest
 
 import libensemble.gen_funcs
 
@@ -11,8 +12,10 @@ if platform.system() in ["Linux", "Darwin"]:
     from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
 
 import numpy as np
+
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
+from libensemble.sim_funcs.six_hump_camel import (six_hump_camel_func,
+                                                  six_hump_camel_grad)
 
 libE_info = {"comm": {}}
 
@@ -61,12 +64,14 @@ def combined_func(x):
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm():
-    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
     from math import gamma, pi, sqrt
-    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
     import libensemble.gen_funcs
+    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+    from libensemble.sim_funcs.six_hump_camel import (six_hump_camel_func,
+                                                      six_hump_camel_grad)
+    from libensemble.tests.regression_tests.support import \
+        six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
@@ -118,11 +123,12 @@ def test_standalone_persistent_aposmm():
 
 @pytest.mark.extra
 def test_standalone_persistent_aposmm_combined_func():
-    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
     from math import gamma, pi, sqrt
-    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
     import libensemble.gen_funcs
+    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+    from libensemble.tests.regression_tests.support import \
+        six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 

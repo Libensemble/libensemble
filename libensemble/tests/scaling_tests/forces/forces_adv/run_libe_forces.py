@@ -1,25 +1,31 @@
 #!/usr/bin/env python
 import os
 import sys
+
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
+from forces_support import (check_log_exception, test_ensemble_dir,
+                            test_libe_stats)
 
+from libensemble import logger
+from libensemble.executors.mpi_executor import MPIExecutor
 # Import libEnsemble modules
 from libensemble.libE import libE
 from libensemble.manager import ManagerException
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble import logger
-from forces_support import test_libe_stats, test_ensemble_dir, check_log_exception
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 PERSIS_GEN = False
 
 if PERSIS_GEN:
-    from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-    from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+    from libensemble.alloc_funcs.start_only_persistent import \
+        only_persistent_gens as alloc_f
+    from libensemble.gen_funcs.persistent_sampling import \
+        persistent_uniform as gen_f
 else:
+    from libensemble.alloc_funcs.give_sim_work_first import \
+        give_sim_work_first as alloc_f
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-    from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
 
 
 logger.set_level("INFO")  # INFO is now default

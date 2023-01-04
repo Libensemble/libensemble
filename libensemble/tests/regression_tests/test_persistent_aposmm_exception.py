@@ -15,21 +15,21 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
 import multiprocessing
+import sys
+
 import numpy as np
 
+import libensemble.gen_funcs
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.periodic_func import func_wrapper as sim_f
 
-import libensemble.gen_funcs
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+from libensemble.alloc_funcs.persistent_aposmm_alloc import \
+    persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 
 def assertion(passed):

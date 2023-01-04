@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 
 @pytest.mark.extra
@@ -39,7 +39,8 @@ def test_cdist_issue():
 @pytest.mark.extra
 def test_save():
     """Seeing if I can save parts of the H array."""
-    from libensemble.tests.regression_tests.support import uniform_or_localopt_gen_out as gen_out
+    from libensemble.tests.regression_tests.support import \
+        uniform_or_localopt_gen_out as gen_out
 
     n = 2
     gen_out += [("x", float, n), ("x_on_cube", float, n)]

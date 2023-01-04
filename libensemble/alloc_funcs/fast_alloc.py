@@ -1,4 +1,5 @@
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
+from libensemble.tools.alloc_support import (AllocSupport,
+                                             InsufficientFreeResources)
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):

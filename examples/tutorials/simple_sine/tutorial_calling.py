@@ -1,9 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams
+import numpy as np
 from tutorial_gen import gen_random_sample
 from tutorial_sim import sim_find_sine
+
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams
 
 nworkers = 4
 libE_specs = {"nworkers": nworkers, "comms": "local"}

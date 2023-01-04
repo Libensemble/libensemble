@@ -1,7 +1,11 @@
 import numpy as np
+
+from libensemble.gen_funcs.old_aposmm import (decide_where_to_start_localopt,
+                                              initialize_APOSMM,
+                                              update_history_dist)
 from libensemble.message_numbers import EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
-from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
+from libensemble.tools.alloc_support import (AllocSupport,
+                                             InsufficientFreeResources)
 
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):

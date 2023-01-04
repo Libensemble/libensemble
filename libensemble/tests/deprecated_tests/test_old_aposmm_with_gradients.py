@@ -13,26 +13,28 @@
 # TESTSUITE_NPROCS: 2 4
 
 import sys
-import numpy as np
-from math import gamma, pi, sqrt
 from copy import deepcopy
+from math import gamma, pi, sqrt
 
+import numpy as np
+
+import libensemble.gen_funcs
 # Import libEnsemble items for this test
 from libensemble.libE import libE, libE_tcp_worker
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
-import libensemble.gen_funcs
-
 libensemble.gen_funcs.rc.aposmm_optimizers = ["nlopt", "petsc"]
+from libensemble.alloc_funcs.fast_alloc_to_aposmm import \
+    give_sim_work_first as alloc_f
 from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
-
-from libensemble.alloc_funcs.fast_alloc_to_aposmm import give_sim_work_first as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.tests.regression_tests.support import (
-    persis_info_1 as persis_info,
-    aposmm_gen_out as gen_out,
-    six_hump_camel_minima as minima,
-)
+from libensemble.tests.regression_tests.support import \
+    aposmm_gen_out as gen_out
+from libensemble.tests.regression_tests.support import \
+    persis_info_1 as persis_info
+from libensemble.tests.regression_tests.support import \
+    six_hump_camel_minima as minima
+from libensemble.tools import (add_unique_random_streams, parse_args,
+                               save_libE_output)
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 

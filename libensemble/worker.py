@@ -3,29 +3,30 @@ libEnsemble worker class
 ====================================================
 """
 
-import socket
+import cProfile
 import logging
 import logging.handlers
+import pstats
+import socket
 from itertools import count
 from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG, UNSET_TAG, STOP_TAG, PERSIS_STOP, CALC_EXCEPTION
-from libensemble.message_numbers import MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL
-from libensemble.message_numbers import calc_type_strings, calc_status_strings
-from libensemble.utils.output_directory import EnsembleDirectory
-
-from libensemble.utils.misc import extract_H_ranges
-from libensemble.utils.timer import Timer
-from libensemble.utils.runners import Runners
+from libensemble.comms.logs import LogConfig, worker_logging_config
 from libensemble.executors.executor import Executor
+from libensemble.message_numbers import (CALC_EXCEPTION, EVAL_GEN_TAG,
+                                         EVAL_SIM_TAG, MAN_SIGNAL_FINISH,
+                                         MAN_SIGNAL_KILL, PERSIS_STOP,
+                                         STOP_TAG, UNSET_TAG,
+                                         calc_status_strings,
+                                         calc_type_strings)
 from libensemble.resources.resources import Resources
-from libensemble.comms.logs import worker_logging_config
-from libensemble.comms.logs import LogConfig
-import cProfile
-import pstats
+from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.output_directory import EnsembleDirectory
+from libensemble.utils.runners import Runners
+from libensemble.utils.timer import Timer
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
