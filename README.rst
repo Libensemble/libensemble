@@ -29,10 +29,10 @@
 Introduction
 ============
 
-libEnsemble is a Python_ toolkit for connecting and coordinating "outer loops" or "deciders" with multiple concurrent experiments or simulations.
+libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
 
-libEnsemble can adaptively manage massively parallel resources to help solve design, decision,
-and inference problems.
+libEnsemble can *adaptively manage* massively parallel resources to help solve design, decision,
+and inference problems, and is *especially* effective at connecting "outer loops" or "deciders" to experiments or simulations.
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
 • **Adaptive Ensembles**: Generate multiple new *parallel tasks* on-the-fly based on previous computations.
