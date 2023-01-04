@@ -505,7 +505,8 @@ def test_repack_fields():
 
 
 def test_H0_str_fields_conversion():
-    """ Test that string-fields can be parsed out of H0 into the expected numpy dtype"""
+    """Test that string-fields can be parsed out of H0 into the expected numpy dtype"""
+
     import secrets
 
     from libensemble.history import History

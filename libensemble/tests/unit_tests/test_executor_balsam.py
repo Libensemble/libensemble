@@ -195,9 +195,7 @@ def test_task_wait():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executor.Job") as job:
-        with mock.patch(
-            "libensemble.executors.balsam_executor.EventLog"
-        ):  # need to patch since wait polls
+        with mock.patch("libensemble.executors.balsam_executor.EventLog"):  # need to patch since wait polls
             task = exctr.submit(calc_type="sim")
 
             job.return_value.state = "RUNNING"
