@@ -71,6 +71,7 @@ def build_simfuncs():
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
@@ -95,6 +96,7 @@ def setup_executor_startups():
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
     from libensemble.executors.mpi_executor import MPIExecutor
+
     exctr = MPIExecutor()
     if exctr.workerID is not None:
         sys.exit("Something went wrong in creating Executor")
