@@ -130,9 +130,7 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
   persis_info = add_unique_random_streams({}, nworkers + 1)
 
   # Launch libEnsemble
-  H, persis_info, flag = libE(
-      sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-  )
+  H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 Exercise
 ^^^^^^^^
@@ -183,9 +181,7 @@ Write an alternative Calling Script similar to above, but with the following dif
         ...
 
         # Launch libEnsemble
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-        )
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
         if is_manager:
             save_libE_output(H, persis_info, __file__, nworkers)

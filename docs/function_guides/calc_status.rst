@@ -45,11 +45,7 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
             print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print(
-                "Warning: Task {} in unknown state {}. Error code {}".format(
-                    task.name, task.state, task.errcode
-                )
-            )
+            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)

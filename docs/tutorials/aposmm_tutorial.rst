@@ -164,16 +164,16 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
     sim_specs = {
         "sim_f": six_hump_camel,  # Simulation function
         "in": ["x"],  # Accepts "x" values
-        "out": [("f", float)],
-    }  # Returns f(x) values
+        "out": [("f", float)], # Returns f(x) values
+    }
 
     gen_out = [
         ("x", float, 2),  # Produces "x" values
         ("x_on_cube", float, 2),  # "x" values scaled to unit cube
         ("sim_id", int),  # Produces sim_id's for History array indexing
         ("local_min", bool),  # Is a point a local minimum?
-        ("local_pt", bool),
-    ]  # Is a point from a local opt run?
+        ("local_pt", bool), # Is a point from a local opt run?
+    ] 
 
     gen_specs = {
         "gen_f": aposmm,  # APOSMM generator function
@@ -185,8 +185,8 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
             "opt_return_codes": [0],  # Status integers specific to localopt_method
             "max_active_runs": 6,  # Occur in parallel
             "lb": np.array([-2, -1]),  # Lower bound of search domain
-            "ub": np.array([2, 1]),
-        },  # Upper bound of search domain
+            "ub": np.array([2, 1]), # Upper bound of search domain
+        },  
     }
 
     alloc_specs = {"alloc_f": persistent_aposmm_alloc}
@@ -237,9 +237,7 @@ check calculated minima:
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
     if is_manager:
         print("Minima:", H[np.where(H["local_min"])]["x"])
 

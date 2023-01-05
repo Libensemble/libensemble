@@ -257,8 +257,8 @@ what inputs and outputs from those functions to expect.
     sim_specs = {
         "sim_f": sim_find_sine,  # Our simulator function
         "in": ["x"],  # Input field names. "x" from gen_f output
-        "out": [("y", float)],
-    }  # sim_f output. "y" = sine("x")
+        "out": [("y", float)], # sim_f output. "y" = sine("x")
+    }
 
 Recall that each worker is assigned an entry in the
 :ref:`persis_info<datastruct-persis-info>`  dictionary that, in this tutorial,
@@ -281,9 +281,7 @@ the history array. ``flag`` should be zero if no errors occur.
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     print([i for i in H.dtype.fields])  # (optional) to visualize our history array
     print(H)
@@ -379,7 +377,7 @@ Write a Calling Script with the following specifications:
        gen_specs = {
            "gen_f": gen_random_ints,
            "out": [("x", float, (1,))],
-           "user": {"lower": np.array([-6]), "upper": np.array([6]), "gen_batch_size": 10},
+           "user": {"lower": np.array([-6]), "upper": np.array([6]), "gen_batch_size": 10,},
        }
 
        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
@@ -387,9 +385,7 @@ Write a Calling Script with the following specifications:
        persis_info = add_unique_random_streams({}, nworkers + 1)
        exit_criteria = {"gen_max": 160}
 
-       H, persis_info, flag = libE(
-           sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
-       )
+       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
        if flag != 0:
            print("Oh no! An error occurred!")
@@ -446,9 +442,7 @@ modify the bottom of the calling script like this:
   :linenos:
   :emphasize-lines: 4
 
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         # Some (optional) statements to visualize our history array

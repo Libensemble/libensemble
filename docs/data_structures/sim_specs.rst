@@ -25,7 +25,7 @@ As a Python class:
 
     ...
 
-    sim_specs = SimSpecs(sim_f=sim_find_sine, inputs=["x"], out=[("y", float)])
+    sim_specs = SimSpecs(sim_f=sim_find_sine, inputs=["x"], out=[("y", float)],)
     ...
 
 As a dictionary:
