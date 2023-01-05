@@ -20,5 +20,8 @@ def call_and_process_heffte(H, persis_info, sim_specs, _):
 
     time = float(p.stdout.decode().split("Time per run: ")[1].split(" ")[0])
 
+    print(p)
+    print(f"time = {time}", flush=True)
+
     H_o["RUN_TIME"] = time
     return H_o, persis_info

@@ -63,6 +63,7 @@ if __name__ == "__main__":
     )
 
     if is_manager:
+        print(H["RUN_TIME"])
         assert len(H) == len(H0)
         assert np.all(H["sim_ended"]), "Every point should have been marked as ended"
         assert len(np.unique(H["RUN_TIME"])) == len(H), "Every RUN_TIME should be unique"
