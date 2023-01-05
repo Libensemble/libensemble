@@ -15,13 +15,22 @@ __all__ = [
 
 import os
 import sys
-import numpy as np
 import time
+
+import numpy as np
+
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
+from libensemble.message_numbers import (
+    EVAL_SIM_TAG,
+    FINISHED_PERSISTENT_SIM_TAG,
+    PERSIS_STOP,
+    STOP_TAG,
+    TASK_FAILED,
+    UNSET_TAG,
+    WORKER_DONE,
+)
 from libensemble.resources.resources import Resources
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
 
 
 def six_hump_camel(H, persis_info, sim_specs, _):

@@ -16,20 +16,21 @@ Tests sampling with cancellations.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
-import numpy as np
 import gc
+
+import numpy as np
+
+from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as fast_gswf
+from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as gswf
+from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen
+from libensemble.gen_funcs.sampling import uniform_random_sample_cancel
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-from libensemble.gen_funcs.sampling import uniform_random_sample_cancel
-from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as gswf
-from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as fast_gswf
-from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen
-from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work
+from libensemble.tools import add_unique_random_streams, parse_args
 
 
 def create_H0(persis_info, gen_specs, sim_max):

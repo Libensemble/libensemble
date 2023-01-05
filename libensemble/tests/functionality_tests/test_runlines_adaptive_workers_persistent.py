@@ -17,19 +17,19 @@ requires running a fixed, rather than random number of resource sets for a given
 
 import numpy as np
 
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.tests.regression_tests.common import create_node_file
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.tests.regression_tests.common import create_node_file
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

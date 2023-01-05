@@ -16,6 +16,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_EXTRA: true
 
 import numpy as np
+
 from libensemble.api import Ensemble
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).

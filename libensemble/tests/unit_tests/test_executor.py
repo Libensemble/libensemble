@@ -2,12 +2,13 @@
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
 import os
+import platform
 import re
+import socket
 import sys
 import time
+
 import pytest
-import socket
-import platform
 
 if platform.system() != "Windows":
     import mpi4py
@@ -15,9 +16,8 @@ if platform.system() != "Windows":
     mpi4py.rc.initialize = False
     from mpi4py import MPI
 
+from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
 from libensemble.resources.mpi_resources import MPIResourcesException
-from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
-from libensemble.executors.executor import NOT_STARTED_STATES
 
 NCORES = 1
 build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]

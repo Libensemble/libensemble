@@ -1,8 +1,9 @@
+import numpy as np
+from numpy import inf
+
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.tools.fields_keys import libE_fields
-import numpy as np
-from numpy import inf
 
 if tuple(np.__version__.split(".")) >= ("1", "15"):
     from numpy.lib.recfunctions import repack_fields
@@ -505,8 +506,9 @@ def test_repack_fields():
 
 def test_H0_str_fields_conversion():
     """Test that string-fields can be parsed out of H0 into the expected numpy dtype"""
-    from libensemble.history import History
     import secrets
+
+    from libensemble.history import History
 
     H0 = np.zeros(10, dtype=[("uuid", str, 10), ("sim_id", int), ("sim_started", bool)])
 

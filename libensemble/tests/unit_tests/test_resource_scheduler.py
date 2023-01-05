@@ -1,8 +1,10 @@
 import sys
 import time
-import pytest
+
 import numpy as np
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources, InsufficientResourcesError
+import pytest
+
+from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
 
 
 class MyResources:
