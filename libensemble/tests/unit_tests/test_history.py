@@ -518,7 +518,7 @@ def test_H0_str_fields_conversion():
     H0["sim_id"] = range(10)
 
     hist = History({}, sim_specs, {}, {}, H0)
-    assert all(hist.H["uuid"][:10] == H0["uuid"]), "str field from H0 wasnt converted over into H"
+    assert all(hist.H["uuid"][:10] == H0["uuid"]), "str field from H0 wasn't converted over into H"
 
 
 if __name__ == "__main__":
