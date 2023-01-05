@@ -176,7 +176,6 @@ jobs:
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
 
-
         - name: Find MPI, Install libEnsemble, flake8, ulimit adjust
           run: |
             pip install -e .
