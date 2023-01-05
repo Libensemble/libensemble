@@ -2,8 +2,10 @@
 Calls the branin function. Default behavior uses the python function, but
 uncommenting lines will write x.in to file, call branin.py, and then read f.out.
 """
-import numpy as np
 import time
+
+import numpy as np
+
 from libensemble.sim_funcs.branin.branin import branin
 
 

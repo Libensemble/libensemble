@@ -5,6 +5,7 @@
 
 import numpy as np
 import scipy.sparse as spp
+
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 

@@ -1,4 +1,5 @@
 import numpy as np
+
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 

@@ -19,13 +19,14 @@ persistent generator.
 # TESTSUITE_NPROCS: 3 4
 
 import sys
+
 import numpy as np
 
+from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
+from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
-from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
-from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_for_inverse_bayes as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

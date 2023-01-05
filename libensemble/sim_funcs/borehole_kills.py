@@ -1,7 +1,8 @@
 import numpy as np
+
 from libensemble.executors.executor import Executor
+from libensemble.message_numbers import MAN_KILL_SIGNALS, TASK_FAILED, UNSET_TAG
 from libensemble.sim_funcs.surmise_test_function import borehole_true
-from libensemble.message_numbers import UNSET_TAG, TASK_FAILED, MAN_KILL_SIGNALS
 
 
 def subproc_borehole(H, delay):

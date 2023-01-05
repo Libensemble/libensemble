@@ -1,19 +1,15 @@
 # !/usr/bin/env python
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
+import datetime
 import os
 import sys
-import mock
-import pytest
-import datetime
 from dataclasses import dataclass
 
-from libensemble.executors.executor import (
-    Executor,
-    Application,
-    ExecutorException,
-    TimeoutExpired,
-)
+import mock
+import pytest
+
+from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
 
 
 # fake Balsam app

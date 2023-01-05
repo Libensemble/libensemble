@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+
 import numpy as np
 
 if len(sys.argv) > 1:

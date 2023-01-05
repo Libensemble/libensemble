@@ -1,8 +1,9 @@
-import os
 import logging
-from collections import Counter
-from collections import OrderedDict
+import os
+from collections import Counter, OrderedDict
+
 import numpy as np
+
 from libensemble.resources.rset_resources import RSetResources
 
 logger = logging.getLogger(__name__)

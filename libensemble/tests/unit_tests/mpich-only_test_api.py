@@ -1,5 +1,6 @@
-import pytest
 import numpy as np
+import pytest
+
 import libensemble.tests.unit_tests.setup as setup
 
 
@@ -69,7 +70,7 @@ def test_bad_func_loads():
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.api import Ensemble
-    from libensemble.specs import SimSpecs, GenSpecs, ExitCriteria, LibeSpecs
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     # parameterizes and validates everything!
     ens = Ensemble(
