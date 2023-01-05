@@ -237,9 +237,7 @@ check calculated minima:
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
-    )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
     if is_manager:
         print("Minima:", H[np.where(H["local_min"])]["x"])
 
