@@ -28,4 +28,5 @@ repos:
   hooks:
   -   id: blacken-docs
       additional_dependencies: [black==22.12.0]
+      args: [--line-length=120]
       files: ^(.*\.py|.*\.rst)$
