@@ -1,8 +1,10 @@
-import numpy as np
 import time
-from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
-import numpy.typing as npt
 from typing import Any, Dict, Tuple
+
+import numpy as np
+import numpy.typing as npt
+
+from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_sim_work_first(

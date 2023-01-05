@@ -18,16 +18,18 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import sys
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
+
+from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first
+from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components as gen_f
 
 # Import libEnsemble items
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample_obj_components as gen_f
-from libensemble.alloc_funcs.fast_alloc_and_pausing import give_sim_work_first
 from libensemble.tests.regression_tests.support import persis_info_3 as persis_info
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

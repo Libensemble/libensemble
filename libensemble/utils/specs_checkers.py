@@ -4,6 +4,7 @@ Reference the models in that file.
 """
 
 import numpy as np
+
 from libensemble.tools.fields_keys import libE_fields
 
 

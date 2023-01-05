@@ -2,9 +2,9 @@
 This module stores environment variables for use in resource detection
 """
 
+import logging
 import os
 import re
-import logging
 from collections import OrderedDict
 from typing import Any, List, Optional, Tuple, Union
 

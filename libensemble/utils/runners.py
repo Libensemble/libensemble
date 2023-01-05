@@ -1,9 +1,10 @@
 import logging
 import logging.handlers
-
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
 from typing import Callable, Dict, Optional
+
 import numpy.typing as npt
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 
 logger = logging.getLogger(__name__)
 

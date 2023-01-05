@@ -1,7 +1,8 @@
+import logging
+import time
+
 import numpy as np
 import numpy.typing as npt
-import time
-import logging
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 

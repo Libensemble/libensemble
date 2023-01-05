@@ -5,7 +5,9 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
+
 import pytest
+
 import libensemble.utils.launcher as launcher
 
 

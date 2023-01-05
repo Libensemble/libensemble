@@ -6,9 +6,8 @@ libensemble helpers for launching subprocesses.
 import os
 import shlex
 import signal
-import time
 import subprocess
-
+import time
 from itertools import chain
 from typing import List, Optional, Union
 

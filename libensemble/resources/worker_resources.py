@@ -1,10 +1,11 @@
-import os
 import logging
-from collections import Counter
-from collections import OrderedDict
-import numpy as np
-from libensemble.resources.rset_resources import RSetResources
+import os
+from collections import Counter, OrderedDict
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+
+from libensemble.resources.rset_resources import RSetResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

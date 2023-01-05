@@ -1,13 +1,11 @@
 import numpy as np
-
 from tutorial_six_hump_camel import six_hump_camel
 
-from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_aposmm import aposmm
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
-from libensemble.tools import parse_args, add_unique_random_streams
-
 import libensemble.gen_funcs
+from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc
+from libensemble.gen_funcs.persistent_aposmm import aposmm
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 

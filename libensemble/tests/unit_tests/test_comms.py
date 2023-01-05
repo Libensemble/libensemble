@@ -4,11 +4,12 @@
 Unit test of comms for libensemble.
 """
 
-import time
-import queue as tqueue
 import logging
+import queue as tqueue
+import time
 
 import numpy as np
+
 import libensemble.comms.comms as comms
 import libensemble.comms.logs as commlogs
 

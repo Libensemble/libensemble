@@ -3,12 +3,14 @@ This module for detects and returns intranode resources
 
 """
 
-import os
-import psutil
-import logging
 import collections
-from libensemble.resources.env_resources import EnvResources
+import logging
+import os
 from typing import Optional, Tuple
+
+import psutil
+
+from libensemble.resources.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
 

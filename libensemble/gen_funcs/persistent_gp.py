@@ -8,16 +8,18 @@ This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 """
 
+from argparse import Namespace
+
 import numpy as np
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
-from libensemble.tools.persistent_support import PersistentSupport
+from dragonfly.exd.cp_domain_utils import load_config
 
 # import dragonfly Gaussian Process functions
 from dragonfly.exd.domains import EuclideanDomain
-from dragonfly.exd.experiment_caller import EuclideanFunctionCaller, CPFunctionCaller
-from dragonfly.opt.gp_bandit import EuclideanGPBandit, CPGPBandit
-from dragonfly.exd.cp_domain_utils import load_config
-from argparse import Namespace
+from dragonfly.exd.experiment_caller import CPFunctionCaller, EuclideanFunctionCaller
+from dragonfly.opt.gp_bandit import CPGPBandit, EuclideanGPBandit
+
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):

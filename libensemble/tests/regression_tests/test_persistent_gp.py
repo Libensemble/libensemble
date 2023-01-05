@@ -19,16 +19,16 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
+import warnings
+
 import numpy as np
-from libensemble.libE import libE
+
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.tools import add_unique_random_streams
-from libensemble.tools import parse_args, save_libE_output
+from libensemble.gen_funcs.persistent_gp import persistent_gp_gen_f, persistent_gp_mf_disc_gen_f, persistent_gp_mf_gen_f
+from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.gen_funcs.persistent_gp import persistent_gp_gen_f, persistent_gp_mf_gen_f, persistent_gp_mf_disc_gen_f
-
-import warnings
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Dragonfly uses a deprecated np.asscalar command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)

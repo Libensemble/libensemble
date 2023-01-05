@@ -1,9 +1,10 @@
-from libensemble.resources import mpi_resources
-from libensemble.resources.resources import Resources
-from libensemble.executors.executor import Task, jassert
 import argparse
 import logging
 from typing import Dict, Optional, Union
+
+from libensemble.executors.executor import Task, jassert
+from libensemble.resources import mpi_resources
+from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

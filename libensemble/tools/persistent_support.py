@@ -1,8 +1,10 @@
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, EVAL_SIM_TAG, calc_type_strings
 import logging
+from typing import Any, Dict, List
+
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Dict, List
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG, PERSIS_STOP, STOP_TAG, UNSET_TAG, calc_type_strings
 
 logger = logging.getLogger(__name__)
 
