@@ -29,6 +29,6 @@ repos:
       additional_dependencies: [black==22.12.0]
       files: |
         (?x)(
-          '.*\.rst'
           '.*\.py'
+          '.*\.rst'
         )
