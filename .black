@@ -4,11 +4,9 @@ target-version = ['py37', 'py38', 'py39', 'py310']
 force-exclude = '''
 (
   /(
-    | \.git       
-    | \.github       
+    | \.git
+    | \.github
   )/
-    | libensemble/gen_funcs/old_aposmm.py
-    | libensemble/gen_funcs/persistent_aposmm.py
-    | libensemble/gen_funcs/aposmm_localopt_support.py
+    | libensemble/files/to/avoid
 )
 '''
