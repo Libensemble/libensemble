@@ -41,9 +41,9 @@ per-file-ignores =
         libensemble/tests/scaling_tests/warpx/run_libensemble_on_warpx.py:E402
         examples/calling_scripts/run_libensemble_on_warpx.py:E402
         libensemble/gen_funcs/persistent_aposmm.py:E402, E501
-        libensemble/tests/regression_tests/test_persistent_aposmm*:E402
-        libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py:E402
-        libensemble/tests/regression_tests/test_ytopt_heffte.py:E402
+        libensemble/tests/regression_tests/temp_out/test_persistent_aposmm*:E402
+        libensemble/tests/regression_tests/temp_out/test_persistent_gp_multitask_ax.py:E402
+        libensemble/tests/regression_tests/temp_out/test_ytopt_heffte.py:E402
         libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py:E402
         libensemble/tests/functionality_tests/test_active_persistent_worker_abort.py:E402
         libensemble/tests/deprecated_tests/test_old_aposmm*:E402
