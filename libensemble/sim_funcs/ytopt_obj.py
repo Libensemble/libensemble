@@ -3,8 +3,9 @@ This module is a wrapper around an example ytopt objective function
 """
 __all__ = ["init_obj"]
 
-import numpy as np
 import time
+
+import numpy as np
 from plopper import Plopper
 
 start_time = time.time()

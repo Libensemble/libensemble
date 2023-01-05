@@ -15,7 +15,7 @@ $filename1 =  $ARGV[0];
     while (<TEMFILE>) {
         $line = $_;
 	chomp ($line);
-	
+
         if ($line =~ /app_timeout =/) {
                 ($v1, $v2) = split('= ', $line);
 		print OUTFILE $v1, " = ", $ARGV[1], "\n";

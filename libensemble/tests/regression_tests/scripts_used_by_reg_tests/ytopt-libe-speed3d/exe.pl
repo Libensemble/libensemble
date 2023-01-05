@@ -4,7 +4,7 @@
 #MCS, ANL
 # exe.pl: average the execution time in 5 runs
 #
-use Time::HiRes qw(gettimeofday); 
+use Time::HiRes qw(gettimeofday);
 
 $A_FILE = "tmpoutfile.txt";
 foreach $filename (@ARGV) {
@@ -13,7 +13,7 @@ foreach $filename (@ARGV) {
    $nmax = 1;
    @nn = (1..$nmax);
    for(@nn) {
-    #$retval = gettimeofday( ); 
+    #$retval = gettimeofday( );
     system("mpirun -n 4  sh $filename > tmpoutfile.txt 2>&1");
     open (TEMFILE, '<', $A_FILE);
     while (<TEMFILE>) {

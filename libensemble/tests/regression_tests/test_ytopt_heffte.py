@@ -16,25 +16,24 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_OS_SKIP: OSX
 
 import os
-import sys
 import secrets
-import numpy as np
+import sys
 
 ytopt_files_loc = "./scripts_used_by_reg_tests/ytopt-libe-speed3d/"
 sys.path.append(ytopt_files_loc)
 
-# Import libEnsemble items for this test
-from libensemble.libE import libE
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-
-from libensemble.sim_funcs.ytopt_obj import init_obj  # Sim function, calls Plopper
-from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Gen function, communicates with ytopt optimizer
-
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
+import numpy as np
 from ytopt.search.optimizer import Optimizer
 
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Gen function, communicates with ytopt optimizer
+
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.sim_funcs.ytopt_obj import init_obj  # Sim function, calls Plopper
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Parse comms, default options from commandline
 nworkers, is_manager, libE_specs, user_args_in = parse_args()
