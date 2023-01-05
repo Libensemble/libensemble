@@ -28,3 +28,4 @@ repos:
   -   id: blacken-docs
       additional_dependencies: [black==22.12.0]
       files: '.*\.rst'
+      files: '.*\.py'
