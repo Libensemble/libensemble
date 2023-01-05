@@ -58,12 +58,11 @@ In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``
 .. code-block:: python
     :emphasize-lines: 4
 
-    gen_specs = {"gen_f": gen_f,
-                 "in": ["sim_id"],
-                 "out": [("priority", float),
-                         ("resource_sets", int),
-                         ("x", float, n)]
-                }
+    gen_specs = {
+        "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+    }
 
 For an example calling script, see the regression test
 `test_persistent_sampling_CUDA_variable_resources.py`_

@@ -212,6 +212,7 @@ for starters:
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
+
     def run_forces(H, persis_info, sim_specs, libE_info):
         calc_status = 0
 
@@ -370,26 +371,30 @@ These may require additional browsing of the documentation to complete.
        :linenos:
 
         import time
+
         ...
         args = particles + " " + str(10) + " " + particles + " " + str(0.2)
         ...
         statfile = "forces.stat"
-        task = exctr.submit(app_name="forces", app_args=args,
-                            num_procs=4,
-                            stdout="stdout.txt",
-                            stderr="stderr.txt")
+        task = exctr.submit(
+            app_name="forces",
+            app_args=args,
+            num_procs=4,
+            stdout="stdout.txt",
+            stderr="stderr.txt",
+        )
 
         while not task.finished:
-          time.sleep(0.1)
-          task.poll()
+            time.sleep(0.1)
+            task.poll()
 
-          if task.file_exists_in_workdir(statfile):
-            with open(statfile, "r") as f:
-                if "kill\n" in f.readlines():
-                    task.kill()
+            if task.file_exists_in_workdir(statfile):
+                with open(statfile, "r") as f:
+                    if "kill\n" in f.readlines():
+                        task.kill()
 
-          if task.runtime > 60:
-            task.kill()
+            if task.runtime > 60:
+                task.kill()
 
         ...
 

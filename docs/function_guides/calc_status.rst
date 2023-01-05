@@ -27,7 +27,7 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
     task = exctr.submit(calc_type="sim", num_procs=cores, wait_on_start=True)
     calc_status = UNSET_TAG
     poll_interval = 1  # secs
-    while(not task.finished):
+    while not task.finished:
         if task.runtime > time_limit:
             task.kill()  # Timeout
         else:
@@ -45,7 +45,11 @@ Example of ``calc_status`` used along with :ref:`Executor<executor_index>` in si
             print("Warning: Task {} has been killed".format(task.name))
             calc_status = WORKER_KILL
         else:
-            print("Warning: Task {} in unknown state {}. Error code {}".format(task.name, task.state, task.errcode))
+            print(
+                "Warning: Task {} in unknown state {}. Error code {}".format(
+                    task.name, task.state, task.errcode
+                )
+            )
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)
@@ -67,12 +71,12 @@ are insufficient:
 
     file_output = read_task_output(task)
     if task.errcode == 0:
-      if "fail" in file_output:
-        calc_status = "Task failed successfully?"
-      else:
-        calc_status = WORKER_DONE
+        if "fail" in file_output:
+            calc_status = "Task failed successfully?"
+        else:
+            calc_status = WORKER_DONE
     else:
-      calc_status = TASK_FAILED
+        calc_status = TASK_FAILED
 
     outspecs = sim_specs["out"]
     output = np.zeros(1, dtype=outspecs)

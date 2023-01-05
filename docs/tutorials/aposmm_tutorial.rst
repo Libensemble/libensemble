@@ -31,24 +31,26 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
 
     import numpy as np
 
+
     def six_hump_camel(H, persis_info, sim_specs, _):
         """Six-Hump Camel sim_f."""
 
-        batch = len(H["x"])                            # Num evaluations each sim_f call.
+        batch = len(H["x"])  # Num evaluations each sim_f call.
         H_o = np.zeros(batch, dtype=sim_specs["out"])  # Define output array H
 
         for i, x in enumerate(H["x"]):
-            H_o["f"][i] = three_hump_camel_func(x)     # Function evaluations placed into H
+            H_o["f"][i] = three_hump_camel_func(x)  # Function evaluations placed into H
 
         return H_o, persis_info
 
+
     def six_hump_camel_func(x):
-        """ Six-Hump Camel function definition """
+        """Six-Hump Camel function definition"""
         x1 = x[0]
         x2 = x[1]
-        term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2
-        term2 = x1*x2
-        term3 = (-4+4*x2**2) * x2**2
+        term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+        term2 = x1 * x2
+        term3 = (-4 + 4 * x2**2) * x2**2
 
         return term1 + term2 + term3
 
@@ -146,6 +148,7 @@ method to use, and help prevent unnecessary imports or package installations:
     :linenos:
 
     import libensemble.gen_funcs
+
     libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
 Set up :doc:`parse_args()<../utilities>`,
@@ -158,26 +161,33 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    sim_specs = {"sim_f": six_hump_camel, # Simulation function
-                 "in": ["x"],             # Accepts "x" values
-                 "out": [("f", float)]}   # Returns f(x) values
+    sim_specs = {
+        "sim_f": six_hump_camel,  # Simulation function
+        "in": ["x"],  # Accepts "x" values
+        "out": [("f", float)],
+    }  # Returns f(x) values
 
-    gen_out = [("x", float, 2),           # Produces "x" values
-               ("x_on_cube", float, 2),   # "x" values scaled to unit cube
-               ("sim_id", int),           # Produces sim_id's for History array indexing
-               ("local_min", bool),       # Is a point a local minimum?
-               ("local_pt", bool)]        # Is a point from a local opt run?
+    gen_out = [
+        ("x", float, 2),  # Produces "x" values
+        ("x_on_cube", float, 2),  # "x" values scaled to unit cube
+        ("sim_id", int),  # Produces sim_id's for History array indexing
+        ("local_min", bool),  # Is a point a local minimum?
+        ("local_pt", bool),
+    ]  # Is a point from a local opt run?
 
-    gen_specs = {"gen_f": aposmm,         # APOSMM generator function
-                 "in": [],
-                 "out": gen_out,          # Output defined like above dict
-                 "user": {"initial_sample_size": 100,  # Random sample 100 points to start
-                          "localopt_method": "scipy_Nelder-Mead",
-                          "opt_return_codes": [0],   # Status integers specific to localopt_method
-                          "max_active_runs": 6,      # Occur in parallel
-                          "lb": np.array([-2, -1]),  # Lower bound of search domain
-                          "ub": np.array([2, 1])}    # Upper bound of search domain
-                 }
+    gen_specs = {
+        "gen_f": aposmm,  # APOSMM generator function
+        "in": [],
+        "out": gen_out,  # Output defined like above dict
+        "user": {
+            "initial_sample_size": 100,  # Random sample 100 points to start
+            "localopt_method": "scipy_Nelder-Mead",
+            "opt_return_codes": [0],  # Status integers specific to localopt_method
+            "max_active_runs": 6,  # Occur in parallel
+            "lb": np.array([-2, -1]),  # Lower bound of search domain
+            "ub": np.array([2, 1]),
+        },  # Upper bound of search domain
+    }
 
     alloc_specs = {"alloc_f": persistent_aposmm_alloc}
 
@@ -227,8 +237,9 @@ check calculated minima:
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs
+    )
     if is_manager:
         print("Minima:", H[np.where(H["local_min"])]["x"])
 
