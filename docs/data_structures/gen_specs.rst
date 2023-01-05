@@ -28,7 +28,11 @@ As a Python class:
     gen_specs = GenSpecs(
         gen_f=gen_random_sample,
         out=[("x", float, (1,))],
-        user={"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+        user={
+            "lower": np.array([-3]),
+            "upper": np.array([3]),
+            "gen_batch_size": 5,
+        },
     )
     ...
 
@@ -40,7 +44,11 @@ As a dictionary:
     gen_specs = {
         "gen_f": gen_random_sample,
         "out": [("x", float, (1,))],
-        "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+        "user": {
+            "lower": np.array([-3]),
+            "upper": np.array([3]),
+            "gen_batch_size": 5,
+        },
     }
 
 .. note::
