@@ -1,8 +1,9 @@
 """
 Example sim_f for simple heFFTe use case.
 """
-import numpy as np
 import subprocess
+
+import numpy as np
 
 
 def call_and_process_heffte(H, persis_info, sim_specs, _):

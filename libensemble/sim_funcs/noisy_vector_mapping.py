@@ -3,8 +3,8 @@ This module contains a test noisy function
 """
 
 import numpy as np
-from numpy.linalg import norm
 from numpy import cos, sin
+from numpy.linalg import norm
 
 
 def func_wrapper(H, persis_info, sim_specs, libE_info):

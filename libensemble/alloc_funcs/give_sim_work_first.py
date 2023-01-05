@@ -1,5 +1,7 @@
-import numpy as np
 import time
+
+import numpy as np
+
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 

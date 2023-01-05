@@ -1,4 +1,5 @@
 import numpy as np
+
 import libensemble.gen_funcs.old_aposmm as al
 import libensemble.tests.unit_tests.setup as setup
 

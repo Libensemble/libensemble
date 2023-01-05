@@ -1,8 +1,9 @@
-import time
-import pytest
 import platform
+import time
+
 import numpy as np
 import numpy.lib.recfunctions
+import pytest
 
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup

@@ -15,12 +15,14 @@
 # TESTSUITE_EXTRA: true
 
 import numpy as np
+from support import aposmm_gen_out as gen_out
+from support import nan_func as sim_f
+
+from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from support import nan_func as sim_f, aposmm_gen_out as gen_out
-from libensemble.gen_funcs.old_aposmm import aposmm_logic as gen_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 nworkers, is_manager, libE_specs, _ = parse_args()
 n = 2

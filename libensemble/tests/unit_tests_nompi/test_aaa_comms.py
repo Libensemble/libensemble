@@ -8,9 +8,11 @@ installs a SIGTERM handler.  Temporarily uninstalled from the test suite,
 since pytest slurps up everything (including all the modules) in one go.
 """
 
-import time
-import pytest
 import signal
+import time
+
+import pytest
+
 import libensemble.comms.comms as comms
 
 

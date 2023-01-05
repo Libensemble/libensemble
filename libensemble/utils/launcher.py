@@ -4,12 +4,11 @@ libensemble helpers for launching subprocesses.
 """
 
 import os
-import sys
 import shlex
 import signal
-import time
 import subprocess
-
+import sys
+import time
 from itertools import chain
 
 

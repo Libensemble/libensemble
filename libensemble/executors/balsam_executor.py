@@ -68,24 +68,19 @@ via Globus.
 .. _Globus: https://www.globus.org/
 """
 
-import os
-import logging
-import time
 import datetime
+import logging
+import os
+import time
+
 from balsam import util
 
-from libensemble.executors.executor import (
-    Application,
-    Task,
-    ExecutorException,
-    TimeoutExpired,
-    jassert,
-)
 from libensemble.executors import Executor
+from libensemble.executors.executor import Application, ExecutorException, Task, TimeoutExpired, jassert
 
 util.config_root_logger("ERROR")  # Balsam prevent auto-load client warning?
 
-from balsam.api import Job, BatchJob, EventLog  # noqa: E402
+from balsam.api import BatchJob, EventLog, Job  # noqa: E402
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

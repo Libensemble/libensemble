@@ -2,9 +2,10 @@
 
 Testing for message errors and correctness of data
 """
-from mpi4py import MPI
-import numpy as np
 import time
+
+import numpy as np
+from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
 num_workers = MPI.COMM_WORLD.Get_size() - 1

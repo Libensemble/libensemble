@@ -1,6 +1,7 @@
+import glob
 import os
 import time
-import glob
+
 from balsam.api import ApplicationDefinition, BatchJob
 
 """

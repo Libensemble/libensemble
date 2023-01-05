@@ -2,9 +2,10 @@ import mpi4py
 
 mpi4py.rc.recv_mprobe = False
 
-from mpi4py import MPI  # for libE communicator
-import sys
 import subprocess
+import sys
+
+from mpi4py import MPI  # for libE communicator
 
 task_nprocs = sys.argv[1]
 

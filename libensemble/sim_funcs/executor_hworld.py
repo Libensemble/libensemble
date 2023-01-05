@@ -1,13 +1,14 @@
+import numpy as np
+
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (
-    UNSET_TAG,
-    WORKER_KILL_ON_ERR,
     MAN_SIGNAL_FINISH,
-    WORKER_DONE,
     TASK_FAILED,
+    UNSET_TAG,
+    WORKER_DONE,
+    WORKER_KILL_ON_ERR,
     WORKER_KILL_ON_TIMEOUT,
 )
-import numpy as np
 
 __all__ = ["executor_hworld"]
 

@@ -3,10 +3,11 @@ This module for detects and returns intranode resources
 
 """
 
-import os
-import psutil
-import logging
 import collections
+import logging
+import os
+
+import psutil
 
 logger = logging.getLogger(__name__)
 

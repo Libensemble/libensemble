@@ -10,24 +10,22 @@ also provided to access and interrogate files in the ``task``'s working director
 ``manager_poll`` function can be used to poll for STOP signals from the manager.
 """
 
+import itertools
+import logging
 import os
 import sys
-import logging
-import itertools
 import time
 
-from libensemble.message_numbers import (
-    UNSET_TAG,
-    MAN_KILL_SIGNALS,
-    WORKER_DONE,
-    TASK_FAILED,
-    WORKER_KILL_ON_TIMEOUT,
-    STOP_TAG,
-)
-
 import libensemble.utils.launcher as launcher
+from libensemble.message_numbers import (
+    MAN_KILL_SIGNALS,
+    STOP_TAG,
+    TASK_FAILED,
+    UNSET_TAG,
+    WORKER_DONE,
+    WORKER_KILL_ON_TIMEOUT,
+)
 from libensemble.utils.timer import TaskTimer
-
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
