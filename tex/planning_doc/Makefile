@@ -3,7 +3,7 @@ TEXFILES = *.tex
 PICS = ../images
 BIBFILES = ../bibs/*.bib
 
-all: $(SOURCE).pdf 
+all: $(SOURCE).pdf
 
 $(SOURCE).pdf: $(TEXFILES) $(BIBFILES) $(PICS)
 	pdflatex $(SOURCE).tex
@@ -11,10 +11,10 @@ $(SOURCE).pdf: $(TEXFILES) $(BIBFILES) $(PICS)
 	pdflatex $(SOURCE).tex
 	pdflatex $(SOURCE).tex
 
-#$(preprint).pdf: $(TEXFILES) 
+#$(preprint).pdf: $(TEXFILES)
 #  pdflatex $(preprint).tex
 
-#$(response).pdf: $(TEXFILES) 
+#$(response).pdf: $(TEXFILES)
 #  pdflatex $(response).tex
 
 view: $(SOURCE).pdf
@@ -22,4 +22,3 @@ view: $(SOURCE).pdf
 clean:
 	-rm -f  $(SOURCE).log $(SOURCE).aux $(SOURCE).bbl $(SOURCE).blg \
 	$(SOURCE).pdf $(SOURCE).out *.backup *.tex~ *.log
-
