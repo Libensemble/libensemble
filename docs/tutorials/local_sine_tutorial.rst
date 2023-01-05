@@ -244,21 +244,21 @@ what inputs and outputs from those functions to expect.
 .. code-block:: python
     :linenos:
 
-    gen_specs = {
-        "gen_f": gen_random_sample,  # Our generator function
-        "out": [("x", float, (1,))],  # gen_f output (name, type, size)
-        "user": {
-            "lower": np.array([-3]),  # lower boundary for random sampling
-            "upper": np.array([3]),  # upper boundary for random sampling
-            "gen_batch_size": 5,  # number of x's gen_f generates per call
-        },
-    }
+   gen_specs = {
+       "gen_f": gen_random_sample,  # Our generator function
+       "out": [("x", float, (1,))],  # gen_f output (name, type, size)
+       "user": {
+           "lower": np.array([-3]),  # lower boundary for random sampling
+           "upper": np.array([3]),  # upper boundary for random sampling
+           "gen_batch_size": 5,  # number of x's gen_f generates per call
+       },
+   }
 
    sim_specs = {
-     "sim_f": sim_find_sine,  # Our simulator function
-           "in": ["x"],  # Input field names. "x" from gen_f output
-        "out": [("y", float)],  # sim_f output. "y" = sine("x")
-    }
+       "sim_f": sim_find_sine,  # Our simulator function
+       "in": ["x"],  # Input field names. "x" from gen_f output
+       "out": [("y", float)],  # sim_f output. "y" = sine("x")
+   }
 
 Recall that each worker is assigned an entry in the
 :ref:`persis_info<datastruct-persis-info>`  dictionary that, in this tutorial,
