@@ -281,7 +281,9 @@ the history array. ``flag`` should be zero if no errors occur.
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
     print([i for i in H.dtype.fields])  # (optional) to visualize our history array
     print(H)
@@ -389,7 +391,9 @@ Write a Calling Script with the following specifications:
        persis_info = add_unique_random_streams({}, nworkers + 1)
        exit_criteria = {"gen_max": 160}
 
-       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+       H, persis_info, flag = libE(
+           sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+       )
 
        if flag != 0:
            print("Oh no! An error occurred!")
@@ -446,7 +450,9 @@ modify the bottom of the calling script like this:
   :linenos:
   :emphasize-lines: 4
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(
+        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs
+    )
 
     if is_manager:
         # Some (optional) statements to visualize our history array
