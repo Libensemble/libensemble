@@ -257,7 +257,7 @@ what inputs and outputs from those functions to expect.
     sim_specs = {
         "sim_f": sim_find_sine,  # Our simulator function
         "in": ["x"],  # Input field names. "x" from gen_f output
-        "out": [("y", float)], # sim_f output. "y" = sine("x")
+        "out": [("y", float)],  # sim_f output. "y" = sine("x")
     }
 
 Recall that each worker is assigned an entry in the
@@ -377,7 +377,11 @@ Write a Calling Script with the following specifications:
        gen_specs = {
            "gen_f": gen_random_ints,
            "out": [("x", float, (1,))],
-           "user": {"lower": np.array([-6]), "upper": np.array([6]), "gen_batch_size": 10,},
+           "user": {
+               "lower": np.array([-6]),
+               "upper": np.array([6]),
+               "gen_batch_size": 10,
+           },
        }
 
        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}

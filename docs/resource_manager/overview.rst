@@ -61,7 +61,11 @@ In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``
     gen_specs = {
         "gen_f": gen_f,
         "in": ["sim_id"],
-        "out": [("priority", float), ("resource_sets", int), ("x", float, n),],
+        "out": [
+            ("priority", float),
+            ("resource_sets", int),
+            ("x", float, n),
+        ],
     }
 
 For an example calling script, see the regression test
