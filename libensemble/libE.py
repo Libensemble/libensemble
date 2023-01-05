@@ -30,25 +30,19 @@ dictionaries to initiate libEnsemble. A simple calling script
 
     libE_specs["save_every_k_gens"] = 20
 
-    gen_specs = {"gen_f": gen_random_sample,
-                 "out": [("x", float, (1,))],
-                 "user": {
-                    "lower": np.array([-3]),
-                    "upper": np.array([3]),
-                    "gen_batch_size": 5
-                    }
-                 }
+    gen_specs = {
+        "gen_f": gen_random_sample,
+        "out": [("x", float, (1,))],
+        "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+    }
 
-    sim_specs = {"sim_f": sim_find_sine,
-                 "in": ["x"],
-                 "out": [("y", float)]}
+    sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = add_unique_random_streams({}, nworkers+1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 80}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
 the command line), and runs on laptops or supercomputers. If an exception is
@@ -201,31 +195,25 @@ all platforms and comms-types may resemble:
     from simulator import sim_find_sine
     from libensemble.tools import add_unique_random_streams
 
-    if __name__ == "__main__:
+    if __name__ == "__main__":
 
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         libE_specs["save_every_k_gens"] = 20
 
-        gen_specs = {"gen_f": gen_random_sample,
-                    "out": [("x", float, (1,))],
-                    "user": {
-                        "lower": np.array([-3]),
-                        "upper": np.array([3]),
-                        "gen_batch_size": 5
-                        }
-                    }
+        gen_specs = {
+            "gen_f": gen_random_sample,
+            "out": [("x", float, (1,))],
+            "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+        }
 
-        sim_specs = {"sim_f": sim_find_sine,
-                    "in": ["x"],
-                    "out": [("y", float)]}
+        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-        persis_info = add_unique_random_streams({}, nworkers+1)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
         exit_criteria = {"sim_max": 80}
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                    libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
 
@@ -233,6 +221,7 @@ Alternatively, you may set the multiprocessing start method to ``"fork"`` via th
     :linenos:
 
     from multiprocessing import set_start_method
+
     set_start_method("fork")
 
 But note that this is incompatible with some libraries.
