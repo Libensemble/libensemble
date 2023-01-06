@@ -1,9 +1,13 @@
 import os
 import random
-import numpy as np
 from typing import Any, Callable, List, Optional, Tuple, Union
+
+import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
@@ -11,10 +15,6 @@ from libensemble.utils.specs_checkers import (
     _check_output_fields,
     _MPICommValidationModel,
 )
-
-from libensemble.sim_funcs.one_d_func import one_d_example
-from libensemble.gen_funcs.sampling import latin_hypercube_sample
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
 _OUT_DTYPE_ERR = "Unable to coerce '{}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"

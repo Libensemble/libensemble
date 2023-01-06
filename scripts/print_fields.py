@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import sys
-import numpy as np
 import argparse
+import sys
+
+import numpy as np
 
 desc = "Script to print selected fields of a libEnsemble history array from a file"
 example = """examples:

@@ -1,9 +1,10 @@
 import os
 import time
+
 import numpy as np
 
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def run_forces_balsam(H, persis_info, sim_specs, libE_info):

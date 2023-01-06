@@ -1,9 +1,10 @@
 import os
 import time
+
 import numpy as np
 
 from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
+from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL
 
 MAX_SEED = 32767
 

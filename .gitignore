@@ -16,6 +16,7 @@ x.log
 *.err
 *.stat
 *.csv
+*.DS_Store
 
 .vscode
 build/

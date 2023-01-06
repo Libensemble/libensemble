@@ -22,12 +22,13 @@ As a Python class:
     import numpy as np
     from libensemble.specs import SimSpecs
     from simulator import sim_find_sine
+
     ...
 
     sim_specs = SimSpecs(
-      sim_f = sim_find_sine,
-      inputs = ["x"],
-      out = [("y", float)]
+        sim_f=sim_find_sine,
+        inputs=["x"],
+        out=[("y", float)],
     )
     ...
 
@@ -39,12 +40,13 @@ As a dictionary:
     ...
     import numpy as np
     from simulator import six_hump_camel
+
     ...
 
     sim_specs = {
-      "sim_f": six_hump_camel,
-      "in": ["x"],
-      "out": [("y", float)],
+        "sim_f": six_hump_camel,
+        "in": ["x"],
+        "out": [("y", float)],
     }
     ...
 

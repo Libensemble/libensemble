@@ -1,5 +1,6 @@
 import numpy as np
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 

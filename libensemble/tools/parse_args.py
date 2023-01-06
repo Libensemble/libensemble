@@ -1,6 +1,6 @@
-import sys
-import os
 import argparse
+import os
+import sys
 
 from libensemble.tools.tools import logger
 
@@ -157,6 +157,7 @@ def parse_args():
     .. code-block:: python
 
         from libensemble.tools import parse_args
+
         nworkers, is_manager, libE_specs, misc_args = parse_args()
 
     From the shell::

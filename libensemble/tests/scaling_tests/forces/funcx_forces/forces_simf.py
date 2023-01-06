@@ -1,12 +1,13 @@
 def run_forces_funcx(H, persis_info, sim_specs, libE_info):
 
     import os
-    import time
     import secrets
+    import time
+
     import numpy as np
 
     from libensemble.executors.mpi_executor import MPIExecutor
-    from libensemble.message_numbers import WORKER_DONE, WORKER_KILL, TASK_FAILED
+    from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL
 
     class ForcesException(Exception):
         """Raised on some issue with Forces"""

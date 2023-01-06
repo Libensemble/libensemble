@@ -47,6 +47,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
+
     def run_forces(H, persis_info, sim_specs, libE_info):
         calc_status = 0
 
@@ -92,6 +93,8 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         output["energy"][0] = final_energy
 
         # Return final information to worker, for reporting to manager
+
+
     return output, persis_info, calc_status
 
 The above code can be run on most systems, and will assign a GPU to each worker,

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import numpy as np
 import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # Loop through objective points in f and extract the Pareto front.

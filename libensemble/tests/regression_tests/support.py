@@ -1,5 +1,6 @@
-import numpy as np
 import copy
+
+import numpy as np
 
 branin_vals_and_minima = np.array(
     [
@@ -48,8 +49,9 @@ def remote_write_sim_func(calc_in, persis_info, sim_specs, libE_info):
 
 
 def remote_write_gen_func(calc_in, persis_info, gen_specs, libE_info):
-    import socket
     import secrets
+    import socket
+
     import numpy as np
 
     H_o = np.zeros(1, dtype=gen_specs["out"])

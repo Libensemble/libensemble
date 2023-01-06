@@ -1,10 +1,12 @@
 import os
-import pytest
 import shutil
+
 import numpy as np
-from libensemble.utils.output_directory import EnsembleDirectory
+import pytest
+
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.output_directory import EnsembleDirectory
 
 
 def test_range_single_element():

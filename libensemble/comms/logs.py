@@ -13,6 +13,7 @@ a given log message (manager or worker ID).
 
 import logging
 import sys
+
 from libensemble.utils.timer import Timer
 
 

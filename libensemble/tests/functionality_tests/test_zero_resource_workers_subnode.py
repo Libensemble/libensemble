@@ -12,16 +12,17 @@ Execute via one of the following commands (e.g. 3 workers):
 """
 
 import sys
+
 import numpy as np
 
+from libensemble import logger
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import logger
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
