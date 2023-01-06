@@ -139,7 +139,7 @@ jobs:
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
           run: |
-            sudo apt-get install octave
+            conda install octave
             sudo apt-get install bc
 
             # begin heffte build and dependencies
@@ -185,7 +185,7 @@ jobs:
         - name: Experiment with running multiple pytest workers
           run: |
             pip install pytest-xdist
-            cd libensemble/tests/unit_tests; pytest -n 2 --runextra .
+            cd libensemble/tests/unit_tests; pytest -n auto --runextra .
             cd -
 
         - name: Run extensive tests, Ubuntu
