@@ -69,6 +69,9 @@ jobs:
             path: |
               /home/runner/work/libensemble/libensemble/heffte/build/
               /usr/share/miniconda3/envs/condaenv
+              /usr/share/miniconda3/bin
+              /usr/share/miniconda3/lib
+              /usr/share/miniconda3/include
             key: ${{ matrix.python-version }}-${{ hashFiles('totallock.txt') }}
 
         - name: Force-update certifi
