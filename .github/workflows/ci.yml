@@ -124,7 +124,22 @@ jobs:
             pip install ax-platform==0.2.8
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
-            # Build ytopt and dependencies
+        - name: Build ytopt and dependencies
+          if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+          run: |
+            sudo apt-get install autoconf automake libtool libgsl-dev
+            git clone git@github.com:argonne-lcf/CCS.git
+            cd CCS
+            ./autogen.sh
+            mkdir build
+            cd build
+            ../configure
+            make
+            make install
+            cd ../bindings/python
+            pip install parglare==0.12.0
+            pip install -e .
+            cd ..
             git clone https://github.com/ytopt-team/ConfigSpace.git
             cd ConfigSpace
             pip install -e .
