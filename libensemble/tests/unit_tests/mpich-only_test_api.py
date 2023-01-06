@@ -97,8 +97,6 @@ def test_full_workflow_from_files():
     """Test initializing a workflow via files and Ensemble.run()"""
     from libensemble.api import Ensemble
 
-    # import ipdb; ipdb.set_trace()
-
     sampling = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
     sampling.from_json("./simdir/1d_sampling.json")
     sampling.from_toml("./simdir/1d_sampling.toml")
