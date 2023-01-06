@@ -127,19 +127,6 @@ jobs:
         - name: Build ytopt and dependencies
           if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
           run: |
-            sudo apt-get install autoconf automake libtool libgsl-dev
-            git clone https://github.com/argonne-lcf/CCS.git
-            cd CCS
-            ./autogen.sh
-            mkdir build
-            cd build
-            ../configure
-            make
-            make install
-            cd ../bindings/python
-            pip install parglare==0.12.0
-            pip install -e .
-            cd ..
             git clone https://github.com/ytopt-team/ConfigSpace.git
             cd ConfigSpace
             pip install -e .
@@ -156,7 +143,6 @@ jobs:
             cd ytopt
             pip install -e .
             cd ..
-
 
         # - name: Install some generator dependencies on Windows
         #   if: matrix.os == 'windows-latest'

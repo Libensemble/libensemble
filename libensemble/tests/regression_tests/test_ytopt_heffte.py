@@ -15,6 +15,11 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
+import warnings
+
+# A ytopt dependency uses an ImportWarning
+warnings.filterwarnings("ignore", category=ImportWarning)
+
 import os
 import secrets
 import sys
