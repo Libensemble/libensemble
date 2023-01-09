@@ -160,6 +160,11 @@ jobs:
             pip install ax-platform
             pip install scikit-build packaging Tasmanian --user
 
+        - name: Copy heffte exe on cache-hit
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
+          run: |
+            cp /home/runner/work/libensemble/libensemble/heffte/benchmarks/speed3d_c2c /home/runner/work/libensemble/libensemble/tests/regression_tests/
+
         - name: Install other testing dependencies
           run: |
             conda install pyzmq
