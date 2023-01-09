@@ -68,7 +68,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: libe-${{ matrix.comms-type }}-${{ matrix.python-version }}
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}
 
         - name: Force-update certifi
           run: |
@@ -151,7 +151,6 @@ jobs:
             make -j 4
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            echo HEFFTE >> totallock.txt
             # end heffte build and dependencies
 
             # pip install dragonfly-opt
@@ -174,8 +173,6 @@ jobs:
           run: |
             pip install -e .
             flake8 libensemble
-            pip freeze >> totallock.txt
-            conda env export --no-builds >> totallock.txt
 
         - name: Activate API unit test if using mpich
           if: matrix.mpi-version == 'mpich'
