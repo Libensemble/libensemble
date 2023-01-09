@@ -61,6 +61,13 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
+        - name: Force-update certifi
+          id: begin
+          run: |
+            python --version
+            pip install -I --upgrade certifi
+            echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+
         - uses: actions/cache@v3
           name: Cache installed dependencies
           id: cache
@@ -72,12 +79,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: ${{ matrix.python-version }}-${{ hashFiles('**/totallock.txt') }}
-
-        - name: Force-update certifi
-          run: |
-            python --version
-            pip install -I --upgrade certifi
+            key: libe-${{ matrix.python-version }}-${{ steps.begin.output.date }}
 
         # - name: Windows - Add clang path to $PATH env
         #   shell: bash
