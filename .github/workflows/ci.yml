@@ -72,7 +72,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: ${{ matrix.python-version }}-${{ hashFiles('totallock.txt') }}
+            key: ${{ matrix.python-version }}-${{ hashFiles('**/totallock.txt') }}
 
         - name: Force-update certifi
           run: |
@@ -155,6 +155,7 @@ jobs:
             make -j 4
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            echo HEFFTE >> totallock.txt
             # end heffte build and dependencies
 
             # pip install dragonfly-opt
