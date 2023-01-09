@@ -207,7 +207,7 @@ jobs:
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           env:
-              CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.14.sdk
+              CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
 
