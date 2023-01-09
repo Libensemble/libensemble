@@ -4,9 +4,10 @@ TCP-based bidirectional communicator
 
 """
 
-from libensemble.comms.comms import QComm
-from multiprocessing.managers import BaseManager
 from multiprocessing import Queue
+from multiprocessing.managers import BaseManager
+
+from libensemble.comms.comms import QComm
 
 
 class ServerQCommManager:

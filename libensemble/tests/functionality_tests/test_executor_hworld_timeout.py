@@ -9,18 +9,20 @@ Execute via one of the following commands (e.g. 3 workers):
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
-import os
-import numpy as np
 import multiprocessing
+import os
+
+import numpy as np
+
+import libensemble.sim_funcs.six_hump_camel as six_hump_camel
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.executor_hworld import executor_hworld as sim_f
-import libensemble.sim_funcs.six_hump_camel as six_hump_camel
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.tests.regression_tests.common import build_simfunc
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local tcp

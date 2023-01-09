@@ -30,25 +30,19 @@ dictionaries to initiate libEnsemble. A simple calling script
 
     libE_specs["save_every_k_gens"] = 20
 
-    gen_specs = {"gen_f": gen_random_sample,
-                 "out": [("x", float, (1,))],
-                 "user": {
-                    "lower": np.array([-3]),
-                    "upper": np.array([3]),
-                    "gen_batch_size": 5
-                    }
-                 }
+    gen_specs = {
+        "gen_f": gen_random_sample,
+        "out": [("x", float, (1,))],
+        "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+    }
 
-    sim_specs = {"sim_f": sim_find_sine,
-                 "in": ["x"],
-                 "out": [("y", float)]}
+    sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = add_unique_random_streams({}, nworkers+1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 80}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
 the command line), and runs on laptops or supercomputers. If an exception is
@@ -201,31 +195,25 @@ all platforms and comms-types may resemble:
     from simulator import sim_find_sine
     from libensemble.tools import add_unique_random_streams
 
-    if __name__ == "__main__:
+    if __name__ == "__main__":
 
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         libE_specs["save_every_k_gens"] = 20
 
-        gen_specs = {"gen_f": gen_random_sample,
-                    "out": [("x", float, (1,))],
-                    "user": {
-                        "lower": np.array([-3]),
-                        "upper": np.array([3]),
-                        "gen_batch_size": 5
-                        }
-                    }
+        gen_specs = {
+            "gen_f": gen_random_sample,
+            "out": [("x", float, (1,))],
+            "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+        }
 
-        sim_specs = {"sim_f": sim_find_sine,
-                    "in": ["x"],
-                    "out": [("y", float)]}
+        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-        persis_info = add_unique_random_streams({}, nworkers+1)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
         exit_criteria = {"sim_max": 80}
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                    libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
 
@@ -233,6 +221,7 @@ Alternatively, you may set the multiprocessing start method to ``"fork"`` via th
     :linenos:
 
     from multiprocessing import set_start_method
+
     set_start_method("fork")
 
 But note that this is incompatible with some libraries.
@@ -242,28 +231,29 @@ See below for the complete traditional API.
 
 __all__ = ["libE"]
 
-import os
 import logging
+import os
+import pickle  # Only used when saving output on error
 import socket
 import traceback
-import numpy as np
-import pickle  # Only used when saving output on error
-from typing import Dict, Callable
+from typing import Callable, Dict
 
-from libensemble.version import __version__
-from libensemble.utils import launcher
-from libensemble.utils.timer import Timer
-from libensemble.history import History
-from libensemble.manager import manager_main, report_worker_exc, WorkerException, LoggedException
-from libensemble.worker import worker_main
+import numpy as np
+
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
-from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
+from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.history import History
+from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.specs import AllocSpecs, EnsembleSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools.alloc_support import AllocSupport
-from libensemble.specs import SimSpecs, GenSpecs, AllocSpecs, ExitCriteria, LibeSpecs, EnsembleSpecs
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.utils import launcher
+from libensemble.utils.timer import Timer
+from libensemble.version import __version__
+from libensemble.worker import worker_main
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

@@ -22,15 +22,15 @@ access and monitoring (for persistent gens):
 
 """
 
+import copy
+import queue
 from abc import ABC, abstractmethod
-from time import time
-from threading import Thread
 
 # from multiprocessing import Process, Queue, Value, Lock
 from multiprocessing import Process, Queue
+from threading import Thread
+from time import time
 from traceback import format_exc
-import queue
-import copy
 
 import numpy as np
 

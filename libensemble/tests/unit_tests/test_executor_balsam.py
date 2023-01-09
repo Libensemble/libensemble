@@ -1,19 +1,15 @@
 # !/usr/bin/env python
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
+import datetime
 import os
 import sys
-import mock
-import pytest
-import datetime
 from dataclasses import dataclass
 
-from libensemble.executors.executor import (
-    Executor,
-    Application,
-    ExecutorException,
-    TimeoutExpired,
-)
+import mock
+import pytest
+
+from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
 
 
 # fake Balsam app
@@ -198,9 +194,7 @@ def test_task_wait():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     exctr = Executor.executor
     with mock.patch("libensemble.executors.balsam_executor.Job") as job:
-        with mock.patch(
-            "libensemble.executors.balsam_executor.EventLog"
-        ):  # need to patch since wait polls
+        with mock.patch("libensemble.executors.balsam_executor.EventLog"):  # need to patch since wait polls
             task = exctr.submit(calc_type="sim")
 
             job.return_value.state = "RUNNING"

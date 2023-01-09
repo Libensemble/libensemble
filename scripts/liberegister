@@ -1,17 +1,18 @@
 #! /usr/bin/env python
 
-import os
-import sys
-import shutil
 import argparse
+import os
+import shutil
+import sys
 from pathlib import Path
-from libensemble.version import __version__
+
 from libensemble.tools.parse_args import parser as callscript_parser
+from libensemble.version import __version__
 
 try:
     from psij import Job, JobSpec
-    from psij.resource_spec import ResourceSpecV1
     from psij.job_attributes import JobAttributes
+    from psij.resource_spec import ResourceSpecV1
     from psij.serialize import Export
 except ModuleNotFoundError:
     print(f"*** libEnsemble {__version__} ***")

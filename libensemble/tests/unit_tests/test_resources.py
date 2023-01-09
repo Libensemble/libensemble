@@ -1,9 +1,10 @@
 import os
 import socket
+
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
-from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 from libensemble.resources.mpi_resources import create_machinefile
+from libensemble.resources.resources import GlobalResources, Resources, ResourcesException
+from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
 
 def setup_standalone_run():

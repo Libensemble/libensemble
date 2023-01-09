@@ -19,6 +19,7 @@ class ForkablePdb(pdb.Pdb):
     .. code-block:: python
 
         from libensemble.tools import ForkablePdb
+
         ForkablePdb().set_trace()
 
     """

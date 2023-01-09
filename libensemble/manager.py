@@ -3,42 +3,40 @@ libEnsemble manager routines
 ============================
 """
 
-import sys
-import os
+import copy
+import cProfile
 import glob
 import logging
-import socket
+import os
 import platform
+import pstats
+import socket
+import sys
+import time
 import traceback
+
 import numpy as np
 
-from libensemble.utils.timer import Timer
-from libensemble.utils.misc import extract_H_ranges
-
+from libensemble.comms.comms import CommFinishedException
 from libensemble.message_numbers import (
-    EVAL_SIM_TAG,
     EVAL_GEN_TAG,
-    PERSIS_STOP,
-    STOP_TAG,
+    EVAL_SIM_TAG,
+    FINISHED_PERSISTENT_GEN_TAG,
+    FINISHED_PERSISTENT_SIM_TAG,
     MAN_SIGNAL_FINISH,
     MAN_SIGNAL_KILL,
-    FINISHED_PERSISTENT_SIM_TAG,
-    FINISHED_PERSISTENT_GEN_TAG,
+    PERSIS_STOP,
+    STOP_TAG,
     calc_status_strings,
+    calc_type_strings,
 )
-
-from libensemble.message_numbers import calc_type_strings
-from libensemble.comms.comms import CommFinishedException
-from libensemble.worker import WorkerErrMsg
-from libensemble.utils.output_directory import EnsembleDirectory
-from libensemble.tools.tools import _USER_CALC_DIR_WARNING
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _PERSIS_RETURN_WARNING
 from libensemble.tools.fields_keys import protected_libE_fields
-import cProfile
-import pstats
-import copy
-import time
+from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
+from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.output_directory import EnsembleDirectory
+from libensemble.utils.timer import Timer
+from libensemble.worker import WorkerErrMsg
 
 if tuple(np.__version__.split(".")) >= ("1", "15"):
     from numpy.lib.recfunctions import repack_fields

@@ -12,17 +12,19 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 import gc
+import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
-from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

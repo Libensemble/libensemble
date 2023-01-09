@@ -6,9 +6,10 @@ Copy to a regression test and run:
 where <hist_filename.npy> is the saved history file and <num> is the number of workers.
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Declaring a figure "gnt"
 fig, gnt = plt.subplots()
