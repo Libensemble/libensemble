@@ -129,7 +129,7 @@ jobs:
           run: |
             git clone https://github.com/ytopt-team/ConfigSpace.git
             cd ConfigSpace
-            pip install -e . --user
+            pip install .
             cd ..
             python -c "import ConfigSpace as CS; print(dir(CS)); print('1'); print(CS.__path__); print('2');"
             python -c "import ConfigSpace as CS; CS.ConfigurationSpace()"
