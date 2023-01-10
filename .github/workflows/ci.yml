@@ -168,7 +168,13 @@ jobs:
             cd libensemble
             pwd
             ls
-            cp /home/runner/work/libensemble/libensemble/heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
+            cd tests
+            pwd
+            ls
+            cd regression_tests
+            pwd
+            ls
+            cp /home/runner/work/libensemble/libensemble/heffte/build/benchmarks/speed3d_c2c .
 
         - name: Install other testing dependencies
           run: |
