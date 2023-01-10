@@ -125,11 +125,11 @@ jobs:
             python -m pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
         - name: Build ytopt and dependencies
-          if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+          if: matrix.python-version == '3.8' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
           run: |
             git clone https://github.com/ytopt-team/ConfigSpace.git
             cd ConfigSpace
-            pip install -e .
+            pip install -e . --user
             cd ..
             git clone https://github.com/ytopt-team/scikit-optimize.git
             cd scikit-optimize
