@@ -131,6 +131,7 @@ jobs:
             cd ConfigSpace
             pip install -e . --user
             cd ..
+            python -c "import ConfigSpace as CS; CS.ConfigSpace()"
             git clone https://github.com/ytopt-team/scikit-optimize.git
             cd scikit-optimize
             pip install -e .
