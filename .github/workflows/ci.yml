@@ -64,6 +64,7 @@ jobs:
           with:
             path: |
               /home/runner/work/libensemble/libensemble/heffte/build/
+              /home/runner/.local
               /usr/share/miniconda3/envs/condaenv
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
@@ -117,7 +118,7 @@ jobs:
             pip install mpi4py
 
         - name: Install generator dependencies
-          if: matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit != 'true'
+          if: matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit == 'false'
           run: |
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
@@ -136,7 +137,7 @@ jobs:
         #     pip install mpmath
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'false'
           run: |
             conda install octave
             sudo apt-get install bc
@@ -161,20 +162,10 @@ jobs:
             pip install scikit-build packaging Tasmanian --user
 
         - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit == 'true'
           run: |
-            pwd
-            ls
-            cd libensemble
-            pwd
-            ls
-            cd tests
-            pwd
-            ls
-            cd regression_tests
-            pwd
-            ls
-            cp /home/runner/work/libensemble/libensemble/heffte/build/benchmarks/speed3d_c2c .
+            cd /home/runner/work/libensemble/libensemble
+            cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
 
         - name: Install other testing dependencies
           run: |
