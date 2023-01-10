@@ -164,8 +164,11 @@ jobs:
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
           run: |
             pwd
-            ls libensemble
-            cp /home/runner/work/libensemble/libensemble/heffte/build/benchmarks/speed3d_c2c /home/runner/work/libensemble/libensemble/tests/regression_tests/
+            ls
+            cd libensemble
+            pwd
+            ls
+            cp /home/runner/work/libensemble/libensemble/heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
 
         - name: Install other testing dependencies
           run: |
