@@ -2,6 +2,7 @@ name: libEnsemble-CI
 on: [pull_request]
 jobs:
     test-libE:
+        if: github.event.pull_request.draft == 'false'
         runs-on: ${{ matrix.os }}
         strategy:
             fail-fast: false
