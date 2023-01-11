@@ -2,10 +2,10 @@ name: libEnsemble-CI
 on:
   pull_request:
     types:
+      - ready_for_review
       - opened
       - reopened
       - synchronize
-      - ready_for_review
 jobs:
     test-libE:
         if: github.event.pull_request.draft == 'false'
