@@ -220,7 +220,7 @@ jobs:
     coveralls:
         name: Notify coveralls of all jobs completing
         needs: [test-libE]
-        if: always()
+        if: github.event.pull_request.draft == 'false'
         runs-on: ubuntu-latest
         container: python:3-slim
         steps:
