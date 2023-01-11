@@ -9,7 +9,10 @@
     Particle force arrays are allreduced across ranks.
 
     Sept 2019:
-    Added OpenMP options for CPU and GPU. Toggle in forces_naive function.
+    Added OpenMP options for CPU and GPU.
+
+    Jan 2022:
+    Use GPU preprocessor option to compile for GPU (e.g. -DGPU).
 
     Run executable on N procs:
 
@@ -138,18 +141,17 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
+#ifdef GPU
     // For GPU/Accelerators
-    /*
     #pragma omp target teams distribute parallel for \
                 map(to: lower, upper, n) map(tofrom: parr[0:n]) \
-                reduction(+: ret) //thread_limit(128) //*/
-
-    // For CPU
-    //*
+                reduction(+: ret)
+#else
+    // Use OpenMP threads on CPU
     #pragma omp parallel for default(none) shared(n, lower, upper, parr) \
                              private(i, j, dx, dy, dz, r, force) \
-                             reduction(+:ret)  //*/
-
+                             reduction(+:ret)
+#endif
     for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
 
