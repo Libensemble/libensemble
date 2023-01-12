@@ -34,7 +34,7 @@
     _a < _b ? _a : _b; })
 
 // Flags 0 or 1
-#define PRINT_HOSTNAME_ALL_PROCS 1
+#define PRINT_HOSTNAME_ALL_PROCS 0
 #define PRINT_PARTICLE_DECOMP 0
 #define PRINT_ALL_PARTICLES 0
 #define CHECK_THREADS 0
@@ -116,22 +116,26 @@ int init_forces(int lower, int upper, particle* parr) {
     return 0;
 }
 
-
+#ifdef GPU
 #pragma omp declare target
+#endif
 void print_target_info() {
     #if defined(_OPENMP)
-    int nthreads= omp_get_num_threads();
+    int nthreads = omp_get_num_threads();
     if (omp_is_initial_device()) {
-        printf("Running on host with %d threads\n",nthreads);
+        printf("Running on host with %d threads per rank\n",nthreads);
 
     } else {
-         int nteams= omp_get_num_teams();
-        printf("Running on device with %d teams in total and %d threads in each team\n",nteams,nthreads);
+         int nteams = omp_get_num_teams();
+        printf("Running on device with %d teams in total and %d threads in each team\n", nteams, nthreads);
     }
+    #else
+    printf("Running on host without threads\n");
     #endif
 }
+#ifdef GPU
 #pragma omp end declare target
-
+#endif
 
 // Electrostatics pairwise forces kernel (O(N^2))
 // No Eq/Opp - no reduction required (poss adv on fine-grained parallel arch).
