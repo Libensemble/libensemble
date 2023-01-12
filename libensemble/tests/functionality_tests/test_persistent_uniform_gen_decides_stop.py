@@ -77,7 +77,8 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-        [_, counts] = np.unique(H["gen_ended_time"], return_counts=True)
+        [ended_times, counts] = np.unique(H["gen_ended_time"], return_counts=True)
+        print("Ended times:", ended_times)
         print("Num. points in each gen iteration:", counts)
         assert (
             counts[0] == nworkers

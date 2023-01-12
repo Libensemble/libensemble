@@ -190,7 +190,7 @@ class Task:
 
     def _check_poll(self):
         """Check whether polling this task makes sense."""
-        jassert(self.process is not None, f"Polled task {self.name} has no process ID - check tasks been launched")
+        jassert(self.process is not None, f"task {self.name} has no process ID - check task has been launched")
         if self.finished:
             logger.debug(f"Polled task {self.name} has already finished. Not re-polling. Status is {self.state}")
             return False
@@ -285,10 +285,12 @@ class Task:
 
     def running(self):
         """Return ```True`` if task is currently running."""
+        self.poll()
         return self.state == "RUNNING"
 
     def done(self):
         """Return ```True`` if task is finished."""
+        self.poll()
         return self.finished
 
     def kill(self, wait_time=60):
@@ -299,6 +301,7 @@ class Task:
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
         never do a SIGKILL.
         """
+        self.poll()
         if self.dry_run:
             return
 
@@ -310,7 +313,7 @@ class Task:
             time.sleep(0.2)
             jassert(
                 self.process is not None,
-                f"Attempting to kill task {self.name} that has no process ID - check tasks been launched",
+                f"task {self.name} has no process ID - check task has been launched",
             )
 
         logger.info(f"Killing task {self.name}")
@@ -325,6 +328,7 @@ class Task:
 
     def cancelled(self):
         """Return ```True`` if task successfully cancelled."""
+        self.poll()
         return self.state == "USER_KILLED"
 
 
@@ -691,4 +695,5 @@ class Executor:
     def kill(self, task):
         "Kills a task"
         jassert(isinstance(task, Task), "Invalid task has been provided")
+        task.poll()
         task.kill(self.wait_time)
