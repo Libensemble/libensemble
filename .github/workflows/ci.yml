@@ -111,7 +111,8 @@ jobs:
           if: contains('3.8_3.9_3.10_3.11', matrix.python-version) && matrix.os != 'windows-latest'
           run: |
             python -m pip install --upgrade pip
-            pip install scikit-learn==1.2.0
+            pip install scikit-learn==1.0.2
+            pip install numpy==1.24.1
             git clone https://github.com/ytopt-team/ConfigSpace.git
             cd ConfigSpace
             pip install .
