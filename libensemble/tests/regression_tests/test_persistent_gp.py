@@ -134,4 +134,5 @@ if __name__ == "__main__":
 
                         save_libE_output(H, persis_info, __file__, nworkers)  # Loaded in next persistent_gp calls
                     else:
+                        print(H["resource_sets"])
                         assert len(np.unique(H["resource_sets"])) > 1, "Resource sets should be variable."
