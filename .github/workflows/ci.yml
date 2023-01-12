@@ -223,10 +223,10 @@ jobs:
             mv libensemble/tests/.cov* .
             coveralls --service=github
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        - name: Coveralls
+          uses: coverallsapp/github-action@master
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
 
     coveralls:
         name: Notify coveralls of all jobs completing
