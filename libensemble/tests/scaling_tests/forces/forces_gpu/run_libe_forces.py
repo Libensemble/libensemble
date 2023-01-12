@@ -47,8 +47,8 @@ gen_specs = {
         # ("resource_sets", int)  # Uncomment for var resources
     ],
     "user": {
-        "lb": np.array([1000]),  # User parameters for the gen_f
-        "ub": np.array([3000]),
+        "lb": np.array([50000]),  # User parameters for the gen_f
+        "ub": np.array([100000]),
         "gen_batch_size": 8,
         # "max_resource_sets": nworkers  # Uncomment for var resources
     },
@@ -67,3 +67,7 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+
+# This is for configuration of this test (inc. lb/ub and sim_max values)
+chksum = np.sum(H["energy"])
+assert np.isclose(chksum, 1265631.74097), f"energy check sum is {chksum}"
