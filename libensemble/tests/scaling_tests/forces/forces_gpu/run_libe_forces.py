@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import os
 import sys
 
@@ -69,5 +70,9 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 # This is for configuration of this test (inc. lb/ub and sim_max values)
-chksum = np.sum(H["energy"])
-assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
+if exit_criteria["sim_max"] == 8:
+    chksum = np.sum(H["energy"])
+    assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
+    print("Checksum passed")
+else:
+    print("Run complete. A checksum has not been provided for the given sim_max")
