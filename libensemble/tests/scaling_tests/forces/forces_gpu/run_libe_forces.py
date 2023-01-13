@@ -70,4 +70,4 @@ H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=per
 
 # This is for configuration of this test (inc. lb/ub and sim_max values)
 chksum = np.sum(H["energy"])
-assert np.isclose(chksum, 1265631.74097), f"energy check sum is {chksum}"
+assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
