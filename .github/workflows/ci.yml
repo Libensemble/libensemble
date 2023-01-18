@@ -130,12 +130,8 @@ jobs:
             python -m pip install --upgrade pip
             pip install scikit-learn==1.0.2
             pip install numpy==1.24.1
-            git clone https://github.com/ytopt-team/ConfigSpace.git
-            cd ConfigSpace
-            pip install .
-            cd ..
-            python -c "import ConfigSpace as CS; print(dir(CS)); print('1'); print(CS.__path__); print('2');"
-            python -c "import ConfigSpace as CS; CS.ConfigurationSpace()"
+            pip install ConfigSpace
+            pip install "ray[default]"
             git clone https://github.com/ytopt-team/scikit-optimize.git
             cd scikit-optimize
             pip install .
