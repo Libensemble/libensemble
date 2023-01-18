@@ -20,6 +20,7 @@ import warnings
 # A ytopt dependency uses an ImportWarning
 warnings.filterwarnings("ignore", category=ImportWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 import os
 import secrets
