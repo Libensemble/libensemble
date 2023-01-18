@@ -36,7 +36,7 @@ def persistent_ytopt(H, persis_info, gen_specs, libE_info):
                 for field in fields:
                     field_params[field] = entry[field][0]
                 results += [(field_params, entry["RUNTIME"])]
-            print("results: ", results)
+            print("results debug: ", results)
             ytoptimizer.tell(results)
 
             ytopt_points = ytoptimizer.ask(n_points=batch_size)  # Returns a generator that we convert to a list

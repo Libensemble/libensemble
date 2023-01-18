@@ -31,7 +31,7 @@ sys.path.append(ytopt_files_loc)
 import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
 import numpy as np
-from ytopt.search.optimizer import Optimizer
+from optimizer import Optimizer
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.ytopt_asktell import persistent_ytopt  # Gen function, communicates with ytopt optimizer
