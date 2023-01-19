@@ -65,11 +65,25 @@ def rocm_smi():
     return gpu_count
 
 
+def zeinfo():
+    """Detect GPU from zeinfo or return None"""
+    try:
+        ps = subprocess.Popen(('zeinfo'), stderr=subprocess.PIPE)
+        output = subprocess.check_output(('grep', 'Number of devices'), stdin=ps.stderr)
+        gpu_count = int(output.decode().split()[3])
+        eprint("gpu count from zeinfo", gpu_count)
+    except Exception:
+        eprint("zeinfo (optional) not found or failed")
+        return None
+    return gpu_count
+
+
 METHODS = {
     "pynvml": pynvml,
     "nvidia_smi": nvidia_smi,
     "pyadl": pyadl,
     "rocm_smi": rocm_smi,
+    "zeinfo": zeinfo,
 }
 
 
