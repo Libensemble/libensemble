@@ -135,8 +135,7 @@ jobs:
         - name: Build ytopt and dependencies
           if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
           run: |
-            pip install scikit-learn==1.0.2
-            pip install numpy==1.24.1
+            pip install scikit-learn
             pip install ConfigSpace
             pip install "ray[default]"
             git clone https://github.com/ytopt-team/scikit-optimize.git
