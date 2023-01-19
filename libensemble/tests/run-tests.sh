@@ -112,6 +112,7 @@ cleanup() {
   THISDIR=${PWD}
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
+    filelist=(coverage.lcov);          [ -e ${filelist[0]} ] && rm coverage.lcov
     filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
   for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
   cd $ROOT_DIR/$DIR
@@ -119,6 +120,7 @@ cleanup() {
     filelist=(*.out);                   [ -e ${filelist[0]} ] && rm *.out
     filelist=(*.err);                   [ -e ${filelist[0]} ] && rm *.err
     filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
+    filelist=(coverage.lcov);           [ -e ${filelist[0]} ] && rm coverage.lcov
     filelist=(.cov_unit_out*);          [ -e ${filelist[0]} ] && rm .cov_unit_out*
     filelist=(simdir/*.x);              [ -e ${filelist[0]} ] && rm simdir/*.x
     filelist=(libe_task_*.out);         [ -e ${filelist[0]} ] && rm libe_task_*.out
@@ -134,6 +136,7 @@ cleanup() {
     filelist=(*.npy);                   [ -e ${filelist[0]} ] && rm *.npy
     filelist=(*.pickle);                [ -e ${filelist[0]} ] && rm *.pickle
     filelist=(.cov_reg_out*);           [ -e ${filelist[0]} ] && rm .cov_reg_out*
+    filelist=(coverage.lcov);           [ -e ${filelist[0]} ] && rm coverage.lcov
     filelist=(*active_runs.txt);        [ -e ${filelist[0]} ] && rm *active_runs.txt
     filelist=(*.err);                   [ -e ${filelist[0]} ] && rm *.err
     filelist=(outfile*.txt);            [ -e ${filelist[0]} ] && rm outfile*.txt
@@ -626,6 +629,7 @@ if [ "$root_found" = true ]; then
           # Must combine all if in sep sub-dirs will copy to dir above
           coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
           coverage html
+          coverage lcov
           echo -e "..Coverage HTML written to dir $DIR/cov_reg/"
 
         done
@@ -644,6 +648,7 @@ if [ "$root_found" = true ]; then
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
           coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
           coverage html #Should create cov_merge/ dir
+          coverage lcov
           echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
 
         else
@@ -655,6 +660,7 @@ if [ "$root_found" = true ]; then
 
           coverage combine .cov_reg_out .cov_reg_out2
           coverage html
+          coverage lcov
           echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
       fi;
