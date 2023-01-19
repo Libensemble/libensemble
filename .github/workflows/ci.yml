@@ -158,11 +158,10 @@ jobs:
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
 
-            pip install dragonfly-opt
+            # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
-            #pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
-            pip install ax-platform
             pip install scikit-build packaging Tasmanian --user
 
         - name: Copy heffte exe on cache-hit
