@@ -104,6 +104,31 @@ jobs:
             pip install ax-platform==0.2.8
             pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
+        - name: Install generator dependencies for Ubuntu tests
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+          run: |
+            conda install octave
+            sudo apt-get install bc
+
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://bitbucket.org/icl/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make -j 4
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
+
+            # pip install dragonfly-opt
+            # pip install git+https://github.com/dragonfly/dragonfly.git
+            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+
+            pip install ax-platform
+            pip install scikit-build packaging Tasmanian --user
+
         - name: Copy heffte exe on cache-hit
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
           run: |
@@ -144,20 +169,18 @@ jobs:
           with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
             path-to-lcov: ./libensemble/tests/coverage.lcov
+            flag-name: run-${{ matrix.os }}-${{ matrix.python-version}}-${{ matrix.comms-type }}
+            parallel: true
 
     coveralls:
         name: Notify coveralls of all jobs completing
         needs: [test-libE]
         if: '! github.event.pull_request.draft'
         runs-on: ubuntu-latest
-        container: python:3-slim
-        steps:
-        - name: Finished
-          run: |
-            pip3 install --upgrade coveralls
-            coveralls --finish
-          env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true
 
     spellcheck:
         name: Spellcheck release branch
