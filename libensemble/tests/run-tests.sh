@@ -684,7 +684,7 @@ if [ "$root_found" = true ]; then
         if [ "$RTEST_SHOW_OUT_ERR" != "true" ]; then
           echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
         fi
-        summ_line="$reg_fail failed, $reg_pass passed in $reg_time seconds"
+        summ_line="$reg_fail failed (possibly due to warning=error), $reg_pass passed in $reg_time seconds"
         tput bold; tput setaf 1;
         print_summary_line $summ_line
         tput sgr 0
