@@ -177,10 +177,11 @@ jobs:
         needs: [test-libE]
         if: '! github.event.pull_request.draft'
         runs-on: ubuntu-latest
-        uses: coverallsapp/github-action@1.1.3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
+        steps:
+        - uses: coverallsapp/github-action@1.1.3
+          with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            parallel-finished: true
 
     spellcheck:
         name: Spellcheck release branch
