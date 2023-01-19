@@ -88,7 +88,7 @@ jobs:
             conda install clang_osx-64
 
         - name: Install mpi4py and MPI from conda
-          if: matrix.python-version != '3.10' && matrix.os != 'windows-latest'
+          if: matrix.os != 'windows-latest'
           run: |
             conda install ${{ matrix.mpi-version }}
             conda install mpi4py
