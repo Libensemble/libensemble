@@ -128,6 +128,22 @@ jobs:
           if: matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit != 'true'
           run: |
             python -m pip install --upgrade pip
+            conda install nlopt
+            conda install scipy
+            conda install superlu_dist
+            conda install hypre
+            conda install mumps-mpi
+            conda install petsc
+            conda install petsc4py
+
+            pip install DFO-LS
+            pip install mpmath
+            pip install ax-platform==0.2.8
+            pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
+
+        - name: Build ytopt and dependencies
+          if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+          run: |
             pip install scikit-learn==1.0.2
             pip install numpy==1.24.1
             pip install ConfigSpace
@@ -144,29 +160,6 @@ jobs:
             cd ytopt
             pip install .
             cd ..
-            conda install nlopt
-            conda install scipy
-            conda install superlu_dist
-            conda install hypre
-            conda install mumps-mpi
-            conda install petsc
-            conda install petsc4py
-            pip install DFO-LS
-
-            pip install DFO-LS
-            pip install mpmath
-            pip install ax-platform==0.2.8
-            pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
-
-        #- name: Build ytopt and dependencies
-        #  if: matrix.python-version == '3.8' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
-        #  run: |
-        #    git clone https://github.com/ytopt-team/ConfigSpace.git
-        #    cd ConfigSpace
-        #    pip install .
-        #    cd ..
-        #    python -c "import ConfigSpace as CS; print(dir(CS)); print('1'); print(CS.__path__); print('2');"
-        #    python -c "import ConfigSpace as CS; CS.ConfigurationSpace()"
 
         # - name: Install some generator dependencies on Windows
         #   if: matrix.os == 'windows-latest'
