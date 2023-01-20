@@ -30,11 +30,22 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
+    # ---------------- Alt. settings for workers/resource sets ----------------
+
     # The persistent gen does not need resources
 
-    libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
+    # libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
 
     # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
+
+    # Or do not give nworkers - and allow workers and resource sets to be set by no. of gpus.
+
+    libE_specs["set_workers_by_gpus"] = True
+
+    # For laptop testing - comment out for testing on actual GPU system
+    libE_specs["resource_info"] = {"gpus_on_node": 4}
+
+    # ----------------------------------------------------------
 
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
