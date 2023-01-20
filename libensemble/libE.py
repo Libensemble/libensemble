@@ -204,10 +204,18 @@ all platforms and comms-types may resemble:
         gen_specs = {
             "gen_f": gen_random_sample,
             "out": [("x", float, (1,))],
-            "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+            "user": {
+                "lower": np.array([-3]),
+                "upper": np.array([3]),
+                "gen_batch_size": 5,
+            },
         }
 
-        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
+        sim_specs = {
+            "sim_f": sim_find_sine,
+            "in": ["x"],
+            "out": [("y", float)],
+        }
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 

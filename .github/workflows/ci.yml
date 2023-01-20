@@ -104,6 +104,34 @@ jobs:
             pip install ax-platform==0.2.8
             pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
+        - name: Build ytopt and dependencies
+          if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+          run: |
+            pip install scikit-learn==1.0.2
+            pip install numpy==1.24.1
+            pip install ConfigSpace
+            pip install "ray[default]"
+            git clone https://github.com/ytopt-team/scikit-optimize.git
+            cd scikit-optimize
+            pip install .
+            cd ..
+            git clone -b version1 https://github.com/ytopt-team/autotune.git
+            cd autotune
+            pip install .
+            cd ..
+            git clone -b main https://github.com/ytopt-team/ytopt.git
+            cd ytopt
+            pip install .
+            cd ..
+
+        # - name: Install some generator dependencies on Windows
+        #   if: matrix.os == 'windows-latest'
+        #   run: |
+        #     python -m pip install --upgrade pip
+        #     conda install nlopt
+        #     conda install scipy
+        #     pip install mpmath
+
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
           run: |
@@ -151,6 +179,11 @@ jobs:
           if: matrix.mpi-version == 'mpich'
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
+
+        - name: Remove ytopt-heffte test on Python 3.11 (easy way)
+          if: matrix.python-version == '3.11'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
