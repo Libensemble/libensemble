@@ -5,7 +5,6 @@ channels:
 
 dependencies:
   - pip
-  - numpy
   - nlopt
   - scipy
   - superlu_dist

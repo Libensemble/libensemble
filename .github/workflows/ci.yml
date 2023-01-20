@@ -130,6 +130,7 @@ jobs:
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
 
+            pip install --upgrade numpy
             pip install ax-platform==0.2.8
             pip install --upgrade git+https://github.com/mosesyhc/surmise.git@development/PCGPwM
 
