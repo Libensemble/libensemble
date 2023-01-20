@@ -39,6 +39,7 @@ jobs:
             HYDRA_LAUNCHER: "fork"
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            COVERALLS_PARALLEL: true
 
         defaults:
             run:
@@ -188,35 +189,48 @@ jobs:
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
-           cd libensemble/tests; coverage lcov; cd -
+           ./libensemble/tests/run-tests.sh -ue -A "-W error" -z -${{ matrix.comms-type }}
+           cd libensemble/tests; coverage lcov; coveralls --service=github; cd -
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
-            cd libensemble/tests; coverage lcov; cd -
+            ./libens emble/tests/run-tests.sh -ue -A "-W error" -z -${{ matrix.comms-type }}
+            cd libensemble/tests; coverage lcov; coveralls --service=github; cd -
 
-        - name: Merge coverage, run Coveralls
-          uses: coverallsapp/github-action@1.1.3
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            path-to-lcov: ./libensemble/tests/coverage.lcov
-            flag-name: run-${{ matrix.os }}-${{ matrix.python-version}}-${{ matrix.comms-type }}
-            parallel: true
+        # - name: Merge coverage, run Coveralls action
+        #   uses: coverallsapp/github-action@1.1.3
+        #   with:
+        #     github-token: ${{ secrets.GITHUB_TOKEN }}
+        #     path-to-lcov: ./libensemble/tests/coverage.lcov
+        #     flag-name: run-${{ matrix.os }}-${{ matrix.python-version}}-${{ matrix.comms-type }}
+        #     parallel: true
+
+    # coveralls:
+    #     name: Notify coveralls of all jobs completing action
+    #     needs: [test-libE]
+    #     if: '! github.event.pull_request.draft'
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #     - uses: coverallsapp/github-action@1.1.3
+    #       with:
+    #         github-token: ${{ secrets.GITHUB_TOKEN }}
+    #         parallel-finished: true
 
     coveralls:
-        name: Notify coveralls of all jobs completing
-        needs: [test-libE]
-        if: '! github.event.pull_request.draft'
-        runs-on: ubuntu-latest
-        steps:
-        - uses: coverallsapp/github-action@1.1.3
-          with:
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            parallel-finished: true
+      name: Indicate completion to coveralls.io
+      needs: [test-libE]
+      runs-on: ubuntu-latest
+      container: python:3-slim
+      steps:
+      - name: Finished
+        run: |
+          pip install --upgrade coveralls
+          coveralls --service=github --finish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     spellcheck:
         name: Spellcheck release branch
