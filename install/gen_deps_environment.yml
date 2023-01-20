@@ -15,4 +15,3 @@ dependencies:
   - petsc4py
   - DFO-LS
   - mpmath
-  - ax-platform==0.2.8
