@@ -13,3 +13,5 @@ dependencies:
   - mumps-mpi
   - petsc
   - petsc4py
+  - DFO-LS
+  - mpmath
