@@ -76,10 +76,7 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams(persis_info, nworkers + 1)
         persis_info["gen_params"] = {}
 
-        if prob_id <= 4:
-            exit_criteria = {"wallclock_max": 600}
-        else:
-            exit_criteria = {"sim_max": 50}
+        exit_criteria = {"sim_max": 5000}
 
         if prob_id == 0:
             sim_f = rosenbrock_eval
