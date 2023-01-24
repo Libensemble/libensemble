@@ -3,9 +3,9 @@
 """
 This example is based on the simple forces test. The default number of
 particles is increased considerably to give perceptible time on the GPUs when
-live checking GPU usage.
+live-checking GPU usage.
 
-The forces.c application should be built setting the GPU preprocessor condition
+The forces.c application should be built by setting the GPU preprocessor condition
 in addition to openMP GPU flags for the given system. See examples in
 ../forces_app/build_forces.sh. We recommend running forces.x standalone first
 and confirm it is running on the GPU (this is given clearly in the output).
