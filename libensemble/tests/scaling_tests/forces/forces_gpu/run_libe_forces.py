@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+
+"""
+This example is based on the simple forces test. The default number of
+particles is increased considerably to give perceptible time on the GPUs when
+live-checking GPU usage.
+
+The forces.c application should be built by setting the GPU preprocessor condition
+in addition to openMP GPU flags for the given system. See examples in
+../forces_app/build_forces.sh. We recommend running forces.x standalone first
+and confirm it is running on the GPU (this is given clearly in the output).
+
+An alternative variable resource generator is available (search 'var resources'
+in this script and uncomment relevant lines).
+"""
+
 import os
 import sys
 
@@ -47,8 +62,8 @@ gen_specs = {
         # ("resource_sets", int)  # Uncomment for var resources
     ],
     "user": {
-        "lb": np.array([1000]),  # User parameters for the gen_f
-        "ub": np.array([3000]),
+        "lb": np.array([50000]),  # User parameters for the gen_f
+        "ub": np.array([100000]),
         "gen_batch_size": 8,
         # "max_resource_sets": nworkers  # Uncomment for var resources
     },
@@ -57,7 +72,8 @@ gen_specs = {
 # Create and work inside separate per-simulation directories
 libE_specs["sim_dirs_make"] = True
 
-# libE_specs["stats_fmt"] = {"show_resource_sets": True}  # Uncomment to see resource sets in libE_stats.txt
+# Uncomment to see resource sets in libE_stats.txt - useful with var resources
+# libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
 # Instruct libEnsemble to exit after this many simulations
 exit_criteria = {"sim_max": 8}
@@ -67,3 +83,11 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+
+# This is for configuration of this test (inc. lb/ub and sim_max values)
+if exit_criteria["sim_max"] == 8:
+    chksum = np.sum(H["energy"])
+    assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
+    print("Checksum passed")
+else:
+    print("Run complete. A checksum has not been provided for the given sim_max")
