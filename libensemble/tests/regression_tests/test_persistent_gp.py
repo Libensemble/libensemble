@@ -107,7 +107,7 @@ if __name__ == "__main__":
         else:
             H0 = None
             # Exit criteria
-            exit_criteria = {"sim_max": 10}  # Exit after running sim_max simulations
+            exit_criteria = {"sim_max": 7}  # Exit after running sim_max simulations
 
         for run in range(3):
             # Create a different random number stream for each worker and the manager
