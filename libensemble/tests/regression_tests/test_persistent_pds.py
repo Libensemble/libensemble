@@ -64,7 +64,7 @@ if __name__ == "__main__":
     A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
     lam_max = np.amax(la.eig(A.toarray())[0])
 
-    eps = 5e-2
+    eps = 2e-1
 
     # 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
     for prob_id in range(6):
@@ -74,10 +74,10 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams(persis_info, nworkers + 1)
         persis_info["gen_params"] = {}
 
-        if prob_id <= 4:
+        if prob_id == 4:
             exit_criteria = {"wallclock_max": 600}
         else:
-            exit_criteria = {"sim_max": 100}
+            exit_criteria = {"sim_max": 500}
 
         # Perform the run
         libE_specs["safe_mode"] = False

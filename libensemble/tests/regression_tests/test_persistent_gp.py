@@ -100,14 +100,14 @@ if __name__ == "__main__":
         if use_H0:
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
-            H0 = np.load("persistent_gp_history_length=12_evals=10_workers=4.npy")
-            H0 = H0[:10]
+            H0 = np.load("persistent_gp_history_length=7_evals=6_workers=4.npy")
+            H0 = H0[:6]
             gen_specs["in"] = list(H0.dtype.names)
             exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
         else:
             H0 = None
             # Exit criteria
-            exit_criteria = {"sim_max": 10}  # Exit after running sim_max simulations
+            exit_criteria = {"sim_max": 6}  # Exit after running sim_max simulations
 
         for run in range(3):
             # Create a different random number stream for each worker and the manager
