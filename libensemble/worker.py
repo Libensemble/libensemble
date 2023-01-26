@@ -243,11 +243,14 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:
+            if out:  # better way of doing this logic?
                 if len(out) >= 3:
                     calc_status = out[2]
-
-                return *out, calc_status
+                    return out
+                elif len(out) == 2:
+                    return *out, calc_status
+                else:
+                    return out, {}, calc_status
             else:
                 return np.zeros(1), {}, calc_status
 
