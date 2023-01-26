@@ -122,9 +122,10 @@ class History:
 
         new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
         returned_H = D["calc_out"]
+        fields = returned_H.dtype.names if returned_H.dtype.names else []
 
         for j, ind in enumerate(new_inds):
-            for field in returned_H.dtype.names:
+            for field in fields:
                 if safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):

@@ -1,3 +1,4 @@
+import inspect
 import logging
 import logging.handlers
 
@@ -62,7 +63,9 @@ class Runners:
 
     def _normal_result(self, calc_in, persis_info, specs, libE_info, user_f):
         """User function called in-place"""
-        return user_f(calc_in, persis_info, specs, libE_info)
+        nparams = len(inspect.signature(user_f).parameters)
+        args = [calc_in, persis_info, specs, libE_info]
+        return user_f(*args[:nparams])
 
     def _funcx_result(self, calc_in, persis_info, specs, libE_info, user_f):
         """User function submitted to funcX"""
