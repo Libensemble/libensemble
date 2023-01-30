@@ -95,12 +95,13 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
+    outfile = None
     # Run LibEnsemble, and store results in history array H
     for use_H0 in [False, True]:
         if use_H0:
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
-            H0 = np.load("persistent_gp_history_length=12_evals=10_workers=4.npy")
+            H0 = np.load(outfile)
             H0 = H0[:10]
             gen_specs["in"] = list(H0.dtype.names)
             exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
@@ -133,7 +134,8 @@ if __name__ == "__main__":
                     if run == 0:
                         assert not len(np.unique(H["resource_sets"])) > 1, "Resource sets should be the same"
 
-                        save_libE_output(H, persis_info, __file__, nworkers)  # Loaded in next persistent_gp calls
+                        # Loaded in next persistent_gp calls
+                        outfile = save_libE_output(H, persis_info, __file__, nworkers)
                     else:
                         print(H["resource_sets"])
                         assert len(np.unique(H["resource_sets"])) > 1, "Resource sets should be variable."

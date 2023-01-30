@@ -127,6 +127,8 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
     with open(p_filename + ".pickle", "wb") as f:
         pickle.dump(persis_info, f)
 
+    return h_filename
+
 
 # ===================== per-process numpy random-streams =======================
 
