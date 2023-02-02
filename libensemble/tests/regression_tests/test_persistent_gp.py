@@ -33,6 +33,33 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # Dragonfly uses a deprecated np.asscalar command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
+def run_simulation(H, persis_info, sim_specs, libE_info):
+    # Extract input parameters
+    values = list(H["x"][0])
+    x0 = values[0]
+    x1 = values[1]
+    # Extract fidelity parameter
+    z = H["z"][0]
+
+    libE_output = np.zeros(1, dtype=sim_specs["out"])
+    calc_status = WORKER_DONE
+
+    # Function that depends on the resolution parameter
+    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
+
+    return libE_output, persis_info, calc_status
+
+
+def cost(z):
+    return z[0]
+
+
+def cost1(z):
+    return z[0][0] ** 3
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -40,22 +67,6 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     assert nworkers == 4, "This test requires exactly 4 workers"
-
-    def run_simulation(H, persis_info, sim_specs, libE_info):
-        # Extract input parameters
-        values = list(H["x"][0])
-        x0 = values[0]
-        x1 = values[1]
-        # Extract fidelity parameter
-        z = H["z"][0]
-
-        libE_output = np.zeros(1, dtype=sim_specs["out"])
-        calc_status = WORKER_DONE
-
-        # Function that depends on the resolution parameter
-        libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
-
-        return libE_output, persis_info, calc_status
 
     sim_specs = {
         "sim_f": run_simulation,
@@ -101,6 +112,7 @@ if __name__ == "__main__":
         if use_H0:
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
+
             H0 = np.load(outfile)
             H0 = H0[:6]
             gen_specs["in"] = list(H0.dtype.names)
@@ -116,14 +128,14 @@ if __name__ == "__main__":
 
             if run == 0:
                 gen_specs["gen_f"] = persistent_gp_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0]
+                gen_specs["user"]["cost_func"] = cost
             if run == 1:
                 gen_specs["gen_f"] = persistent_gp_mf_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0]
+                gen_specs["user"]["cost_func"] = cost
 
             elif run == 2:
                 gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0][0] ** 3
+                gen_specs["user"]["cost_func"] = cost1
 
             H, persis_info, flag = libE(
                 sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0
