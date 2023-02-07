@@ -19,6 +19,8 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
+import os
+import time
 import warnings
 
 import numpy as np
@@ -112,9 +114,10 @@ if __name__ == "__main__":
         if use_H0:
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
-
+            while not os.path.isfile("gp_out.npy"):
+                time.sleep(0.01)
             # other MPI processes don't have shared memory don't know outfile has been updated?
-            H0 = np.load("persistent_gp_history_length=6_evals=6_workers=4.npy")
+            H0 = np.load("gp_out.npy")
             H0 = H0[:6]
             gen_specs["in"] = list(H0.dtype.names)
             exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
@@ -146,6 +149,7 @@ if __name__ == "__main__":
                     if run == 0:
                         assert not len(np.unique(H["resource_sets"])) > 1, "Resource sets should be the same"
                         outfile = save_libE_output(H, persis_info, __file__, nworkers)
+                        os.rename(outfile, "gp_out.npy")
                     else:
                         print(H["resource_sets"])
                         assert len(np.unique(H["resource_sets"])) > 1, "Resource sets should be variable."
