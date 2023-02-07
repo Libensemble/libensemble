@@ -33,14 +33,14 @@ mpicc -O3 -o forces.x forces.c -lm
 # Need to toggle to OpenMP target directive in forces.c.
 
 # xl
-# xlc_r -O3 -qsmp=omp -qoffload -o forces.x forces.c
+# xlc_r -WF,-DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
 
 # Nvidia (nvc) compiler with mpicc and on Cray system with target (Perlmutter)
-# mpicc -O3 -fopenmp -mp=gpu -o forces.x forces.c
-# cc -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
+# mpicc -DGPU -O3 -fopenmp -mp=gpu -o forces.x forces.c
+# cc -DGPU -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
 
 # Spock/Crusher (AMD ROCm compiler)
-# cc -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
+# cc -DGPU -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
 
 # Intel oneAPI (Clang based) Compiler (JIT compiled for device)
-# mpiicx -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
+# mpiicx -DGPU -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c

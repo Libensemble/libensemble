@@ -362,11 +362,18 @@ class Worker:
                         continue
 
                 # Active recv is for persistent worker only - throw away here
-                if Work.get("libE_info", False):
-                    if Work["libE_info"].get("active_recv", False) and not Work["libE_info"].get("persistent", False):
-                        if len(Work["libE_info"]["H_rows"]) > 0:
-                            _, _, _ = self._recv_H_rows(Work)
-                        continue
+                if isinstance(Work, dict):
+                    if Work.get("libE_info", False):
+                        if Work["libE_info"].get("active_recv", False) and not Work["libE_info"].get(
+                            "persistent", False
+                        ):
+                            if len(Work["libE_info"]["H_rows"]) > 0:
+                                _, _, _ = self._recv_H_rows(Work)
+                            continue
+                else:
+                    print(mtag, Work)
+                    logger.debug(f"mtag: {mtag}; Work: {Work}")
+                    raise
 
                 response = self._handle(Work)
                 if response is None:

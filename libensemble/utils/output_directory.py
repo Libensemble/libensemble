@@ -46,11 +46,11 @@ class EnsembleDirectory:
         if self.specs is not None:
             self.prefix = self.specs.get("ensemble_dir_path", "./ensemble")
             self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
-            self.sim_input_dir = self.specs.get("sim_input_dir", "").rstrip("/")
+            self.sim_input_dir = self.specs.get("sim_input_dir", "")
             self.sim_dirs_make = self.specs.get("sim_dirs_make", False)
             self.sim_dir_copy_files = self.specs.get("sim_dir_copy_files", [])
             self.sim_dir_symlink_files = self.specs.get("sim_dir_symlink_files", [])
-            self.gen_input_dir = self.specs.get("gen_input_dir", "").rstrip("/")
+            self.gen_input_dir = self.specs.get("gen_input_dir", "")
             self.gen_dirs_make = self.specs.get("gen_dirs_make", False)
             self.gen_dir_copy_files = self.specs.get("gen_dir_copy_files", [])
             self.gen_dir_symlink_files = self.specs.get("gen_dir_symlink_files", [])
@@ -190,7 +190,7 @@ class EnsembleDirectory:
                 if dir == self.prefix:  # occurs when no_calc_dirs is True
                     continue  # otherwise, entire ensemble dir copied into copyback dir
 
-                shutil.copytree(dir, dest_path, symlinks=True)
+                shutil.copytree(dir, dest_path, symlinks=True, dirs_exist_ok=True)
                 if os.path.basename(dir).startswith("worker"):
                     return  # Worker dir (with all contents) has been copied.
 
