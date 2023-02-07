@@ -268,7 +268,7 @@ def test_kill_on_file():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = "sleep 0.1 Error"
+    args_for_sim = "sleep 0.2 Error"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
