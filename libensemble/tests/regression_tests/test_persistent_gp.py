@@ -113,7 +113,8 @@ if __name__ == "__main__":
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
 
-            H0 = np.load(outfile)
+            # other MPI processes don't have shared memory don't know outfile has been updated?
+            H0 = np.load("persistent_gp_history_length=6_evals=6_workers=4.npy")
             H0 = H0[:6]
             gen_specs["in"] = list(H0.dtype.names)
             exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
@@ -132,7 +133,6 @@ if __name__ == "__main__":
             if run == 1:
                 gen_specs["gen_f"] = persistent_gp_mf_gen_f
                 gen_specs["user"]["cost_func"] = cost
-
             elif run == 2:
                 gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
                 gen_specs["user"]["cost_func"] = cost1
@@ -145,8 +145,6 @@ if __name__ == "__main__":
                 if use_H0 is False:
                     if run == 0:
                         assert not len(np.unique(H["resource_sets"])) > 1, "Resource sets should be the same"
-
-                        # Loaded in next persistent_gp calls
                         outfile = save_libE_output(H, persis_info, __file__, nworkers)
                     else:
                         print(H["resource_sets"])
