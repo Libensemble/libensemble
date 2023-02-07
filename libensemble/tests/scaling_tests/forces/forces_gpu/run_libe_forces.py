@@ -24,12 +24,11 @@ from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, parse_args
-
 # Uncomment for var resources
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
@@ -37,6 +36,7 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
 # exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter
+# exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})  # Polaris (use mpiexec)
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")

@@ -49,7 +49,7 @@ if __name__ == "__main__":
     A = spp.diags([2, 3, 3, 2]) - get_k_reach_chain_matrix(num_gens, 2)
     lam_max = np.amax((la.eig(A.todense())[0]).real)
 
-    eps = 1e-1
+    eps = 5e-1
 
     # 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3&4: SVM w/ STOP_TAG
     for prob_id in range(0, 4):
@@ -59,10 +59,12 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams(persis_info, nworkers + 1)
         persis_info["gen_params"] = {}
 
-        if prob_id < 3:
+        if prob_id < 2:
+            exit_criteria = {"wallclock_max": 30, "sim_max": 200}
+        elif prob_id == 2:
             exit_criteria = {"wallclock_max": 600}
         else:
-            exit_criteria = {"wallclock_max": 600, "sim_max": 1}
+            exit_criteria = {"wallclock_max": 30, "sim_max": 10}
 
         libE_specs["safe_mode"] = False
 
