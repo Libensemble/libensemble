@@ -3,6 +3,7 @@ The libEnsemble utilities module assists in writing consistent calling scripts
 and user functions.
 """
 
+import functools
 import logging
 import os
 import pickle
@@ -185,6 +186,16 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
                 "worker_num": i,
             }
     return persis_info
+
+
+def libE_fx(user_f):
+    @functools.wraps(user_f)
+    def wrap(*args):
+        return user_f(*args)
+
+    setattr(user_f, "unpacking", True)
+
+    return wrap
 
 
 # A very specific exception to using the logger.
