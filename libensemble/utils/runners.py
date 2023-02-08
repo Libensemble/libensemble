@@ -70,7 +70,7 @@ class Runners:
     @staticmethod
     def _unpacked_repacked_result(nparams, args, calc_in, specs, user_f):
         outfield = specs["out"][0][0]  # hopefully only outfield
-        calc_in = calc_in.item()[0]  # unpack
+        args[0] = calc_in.item()[0]  # adjust first argument to be unpacked item
         H_o = np.zeros(1, dtype=specs["out"])  # repacking
 
         out = user_f(*args[:nparams])  # call
