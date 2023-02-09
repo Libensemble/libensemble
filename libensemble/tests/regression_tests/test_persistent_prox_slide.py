@@ -20,6 +20,7 @@ The number gens will be 4.
 # TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_EXTRA: true
 
+import os
 import sys
 import urllib.request
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
             if prob_id == 3:
                 if is_manager:
                     fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
-                    urllib.request.urlretrieve(fname, "./wdbc.data")
+                    urllib.request.urlretrieve(fname, os.path.abspath("./wdbc.data"))
 
             if libE_specs["comms"] == "mpi":
                 libE_specs["mpi_comm"].Barrier()
@@ -108,7 +109,7 @@ if __name__ == "__main__":
                 prob_name += " w/ stoppage"
             err_const = 1e1
             N_const = 1
-            b, X = readin_csv("wdbc.data")
+            b, X = readin_csv(os.path.abspath("./wdbc.data"))
             X = X.T
             c = 0.1
 
