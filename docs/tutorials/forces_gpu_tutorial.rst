@@ -3,27 +3,22 @@ Executor - Assign GPUs
 ======================
 
 This tutorial shows the most portable way to assign tasks (user applications)
-to the GPU.
-
-In the first example, each worker will be using one GPU. We assume the workers are on a
-cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
-variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
-devices.
+to the GPU. The libEnsemble scripts in this example are available under
+forces_gpu_ in the libEnsemble repository.
 
 This example is based on the
 :doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
 a slightly modified simulation function (to assign GPUs) and an increased number
 of particles (allows live GPU usage to be viewed).
 
-Compile **forces.x** using one of the GPU build lines in build_forces.sh_
-or similar for your platform.
+In the first example, each worker will be using one GPU. We assume the workers are on a
+cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
+variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
+devices.
 
-The libEnsemble scripts in this example are available under forces_gpu_ in
-the libEnsemble repository.
-
-Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_. Note, in
-the first two videos are from an earlier release - you no longer need to change
-particle count or modify the `forces.c` file).
+Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_.
+*The first two videos are from an earlier release - you no longer need to change
+particle count or modify the `forces.c` file).*
 
 Simulation function
 -------------------
@@ -129,6 +124,16 @@ Alternative environment variables can be simply substituted in ``set_env_to_slot
     On some systems ``CUDA_VISIBLE_DEVICES`` may be overridden by other assignments
     such as ``--gpus-per-task=1``
 
+
+Compiling the Forces application
+--------------------------------
+
+First compile the forces application under the ``forces_app`` directory.
+
+Compile **forces.x** using one of the GPU build lines in build_forces.sh_
+or similar for your platform.
+
+
 Running the example
 -------------------
 
@@ -180,9 +185,13 @@ Further guidance on varying resource to workers can be found under the
 Checking GPU usage
 ------------------
 
-You can check you are running forces on the GPUs as expected by using profiling tools and/or by using
-a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is generally available
-and can be run from the command line. To simply run `forces.x` stand-alone you could run::
+The output of `forces.x` will say if it has run on the host or device. When running
+libEnsemble, this can be found under the ``ensemble`` direcotry.
+
+You can check you are running forces on the GPUs as expected by using profiling tools and/or
+by using a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is
+generally available and can be run from the command line. To simply run `forces.x` stand-alone
+you could run::
 
     nsys profile --stats=true mpirun -n 2 ./forces.x
 
@@ -199,15 +208,10 @@ runs for long enough to register on the monitor, so lets try 100,000 particles::
 It is also recommended that you run without the profiler when using the `nvidia-smi` utility.
 
 This can also be used when running via libEnsemble, so long as you are on the node where the
-forces applications are being run. As the default particles in the forces example is 1000, you
-will need to to increase particles to see clear GPU usage in the live monitor. E.g.,~ in line 14
-to multiply the particles by 10::
+forces applications are being run.
 
-        # Parse out num particles, from generator function
-        particles = str(int(H["x"][0][0]) * 10)
-
-Alternative monitoring devices include ``rocm-smi`` (AMD) and ``intel_gpu_top`` (Intel). The latter
-does not need the *watch* command.
+Alternative monitoring devices include ``rocm-smi`` (AMD) and ``intel_gpu_top`` (Intel).
+The latter does not need the *watch* command.
 
 Example submission script
 -------------------------
