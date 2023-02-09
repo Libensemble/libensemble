@@ -34,8 +34,8 @@ environment (if you need conda install). More details at `Python for Polaris`_.
        python -m venv /path/to-venv --system-site-packages
        . /path/to-venv/bin/activate
 
-   Where ``/path/to-venv`` can be anywhere you have write access. You now have access to
-   For future uses just load the conda module and run the activate line.
+   Where ``/path/to-venv`` can be anywhere you have write access. For future sessions,
+   just load the conda module and run the activate line.
 
    You can now pip install libEnsemble::
 
