@@ -12,27 +12,24 @@ devices.
 
 This example is based on the
 :doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
-a slightly modified simulation function.
+a slightly modified simulation function (to assign GPUs) and an increased number
+of particles (allows live GPU usage to be viewed).
 
-To compile the forces application to use the GPU, ensure forces.c_ has the
-``#pragma omp target`` line uncommented and comment out the equivalent
-``#pragma omp parallel`` line. Then compile **forces.x** using one of the
-GPU build lines in build_forces.sh_ or similar for your platform.
+Compile **forces.x** using one of the GPU build lines in build_forces.sh_
+or similar for your platform.
 
 The libEnsemble scripts in this example are available under forces_gpu_ in
 the libEnsemble repository.
 
-Note that at the time of writing, the calling script **run_libe_forces.py** is functionally
-the same as that in *forces_simple*, but contains some commented out lines that can
-be used for a variable resources example. The *forces_simf.py* file has slight modifications
-to assign GPUs.
-
-Videos demonstrate running this example on Perlmutter_ and Spock_.
+Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_. Note, in
+the first two videos are from an earlier release - you no longer need to change
+particle count or modify the `forces.c` file).
 
 Simulation function
 -------------------
 
-The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlighted:
+The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
+to the forces simple example are highlighted:
 
 .. code-block:: python
     :linenos:
@@ -242,4 +239,5 @@ resource conflicts on each node.
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
 .. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
 .. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
+.. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
