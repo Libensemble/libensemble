@@ -128,7 +128,7 @@ Alternative environment variables can be simply substituted in ``set_env_to_slot
 Compiling the Forces application
 --------------------------------
 
-First compile the forces application under the ``forces_app`` directory.
+First, compile the forces application under the ``forces_app`` directory.
 
 Compile **forces.x** using one of the GPU build lines in build_forces.sh_
 or similar for your platform.
@@ -143,22 +143,22 @@ eight workers. For example::
     python run_libe_forces.py --comms local --nworkers 8
 
 Note that if you are running one persistent generator that does not require
-resources, then assign nine workers, and fix the number of *resource_sets* in
-you calling script::
+resources, then assign nine workers and fix the number of *resource_sets* in
+your calling script::
 
     libE_specs["num_resource_sets"] = 8
 
 See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
-Changing number of GPUs per worker
-----------------------------------
+Changing the number of GPUs per worker
+--------------------------------------
 
 If you want to have two GPUs per worker on the same system (four GPUs per node),
 you could assign only four workers, and change line 24 to::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
 
-In this case there are two GPUs per worker (and per slot).
+In this case, there are two GPUs per worker (and per slot).
 
 Varying resources
 -----------------
@@ -172,21 +172,21 @@ In the generator function, assign the ``resource_sets`` field of
 if a larger simulation requires two MPI tasks (and two GPUs), set ``resource_sets``
 field to *2* for that sim_id in the generator function.
 
-The calling script run_libe_forces.py_ contains alternative commented out lines for
+The calling script run_libe_forces.py_ contains alternative commented-out lines for
 a variable resource example. Search for "Uncomment for var resources"
 
 In this case, the simulator function will still work, assigning one CPU processor
 and one GPU to each MPI rank. If you want to have one rank with multiple GPUs,
 then change source lines 29/30 accordingly.
 
-Further guidance on varying resource to workers can be found under the
-:doc:`resource manager<../resource_manager/resources_index>`.
+Further guidance on varying the resources assigned to workers can be found under the
+:doc:`resource manager<../resource_manager/resources_index>` section.
 
 Checking GPU usage
 ------------------
 
 The output of `forces.x` will say if it has run on the host or device. When running
-libEnsemble, this can be found under the ``ensemble`` direcotry.
+libEnsemble, this can be found under the ``ensemble`` directory.
 
 You can check you are running forces on the GPUs as expected by using profiling tools and/or
 by using a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is
@@ -201,7 +201,7 @@ running (this may entail using *ssh* to get on to the node), and run::
     watch -n 0.1 nvidia-smi
 
 This will update GPU usage information every 0.1 seconds. You would need to ensure the code
-runs for long enough to register on the monitor, so lets try 100,000 particles::
+runs for long enough to register on the monitor, so let's try 100,000 particles::
 
     mpirun -n 2 ./forces.x 100000
 
