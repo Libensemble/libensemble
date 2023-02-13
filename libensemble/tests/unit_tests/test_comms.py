@@ -356,7 +356,6 @@ def run_qcomm_threadproc_test(ThreadProc):
     try:
         bad_worker_okay = True
         with ThreadProc(bad_worker_thread, nworkers=2) as comm:
-
             flag = True
             try:
                 comm.recv(0.1)

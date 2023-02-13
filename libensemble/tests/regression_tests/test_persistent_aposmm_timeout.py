@@ -36,7 +36,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()

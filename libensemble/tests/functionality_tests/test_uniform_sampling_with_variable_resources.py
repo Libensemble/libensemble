@@ -32,7 +32,6 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_re
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True

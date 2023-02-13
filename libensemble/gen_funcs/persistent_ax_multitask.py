@@ -98,7 +98,6 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     model_iteration = 0
     hifi_trials = []
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if model_iteration == 0:
             # Initialize with sobol sample.
             for model, n_gen in zip([hifi_task, lofi_task], [n_init_hifi, n_init_lofi]):

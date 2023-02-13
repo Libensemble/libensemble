@@ -6,7 +6,6 @@ import numpy as np
 from libensemble.api import Ensemble
 
 if __name__ == "__main__":
-
     forces = Ensemble()
     forces.from_yaml("funcx_forces.yaml")
 

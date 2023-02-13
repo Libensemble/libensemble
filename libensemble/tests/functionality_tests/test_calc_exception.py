@@ -26,7 +26,6 @@ def six_hump_camel_err(H, persis_info, sim_specs, _):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {

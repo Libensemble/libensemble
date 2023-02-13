@@ -161,7 +161,6 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
     start = time.time()
 
     while time.time() - start < timeout_sec:
-
         # Test all done - (return list of not-finished tasks and test if empty)
         active_list = [task for task in task_list if not task.finished]
         if not active_list:

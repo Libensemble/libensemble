@@ -60,7 +60,6 @@ def test_funcx_runner_init():
     sim_specs["funcx_endpoint"] = "1234"
 
     with mock.patch("funcx.FuncXClient"):
-
         runners = Runners(sim_specs, gen_specs)
 
         assert (
@@ -75,7 +74,6 @@ def test_funcx_runner_pass():
     sim_specs["funcx_endpoint"] = "1234"
 
     with mock.patch("funcx.FuncXClient"):
-
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock funcXExecutor and funcX future object - no exception
@@ -101,7 +99,6 @@ def test_funcx_runner_fail():
     gen_specs["funcx_endpoint"] = "4321"
 
     with mock.patch("funcx.FuncXClient"):
-
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock funcXExecutor and funcX future object - yes exception
