@@ -310,6 +310,7 @@ def readin_csv(fname):
         label[i] = data[1] == "M"
         datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
+    fp.close()
 
     assert i == n, f"Expected {n} datapoints, recorded {i}"
 
