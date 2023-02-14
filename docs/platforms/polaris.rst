@@ -2,7 +2,7 @@
 Polaris
 =======
 
-Polaris_ is a 560 node HPE system located in the ALCF_ at Argonne
+Polaris_ is a 560-node HPE system located in the ALCF_ at Argonne
 National Laboratory. The compute nodes are equipped with a single AMD EPYC Milan
 processor and four A100 NVIDIA GPUs. It uses the PBS scheduler to submit
 jobs from login nodes to run on the compute nodes.
@@ -17,11 +17,11 @@ Python and libEnsemble are available on Polaris with the `conda` module. Load th
     module load conda
     conda activate base
 
-This also gives you access to machine optimized packages such as mpi4py_.
+This also gives you access to machine-optimized packages such as mpi4py_.
 
 To install further packages, including updating libEnsemble, you may either create
-a virtual environment on top of this (if just using pip install), or clone the base
-environment (if you need conda install). More details at `Python for Polaris`_.
+a virtual environment on top of this (if just using ``pip install``) or clone the base
+environment (if you need ``conda install``). More details at `Python for Polaris`_.
 
 .. container:: toggle
 
@@ -35,7 +35,7 @@ environment (if you need conda install). More details at `Python for Polaris`_.
        . /path/to-venv/bin/activate
 
    Where ``/path/to-venv`` can be anywhere you have write access. For future sessions,
-   just load the conda module and run the activate line.
+   just load the ``conda`` module and run the activate line.
 
    You can now pip install libEnsemble::
 
@@ -97,8 +97,8 @@ Demonstration
 -------------
 
 For an example that runs a small ensemble using a C application (offloading work to the
-GPU), see :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A video demonstration_
-of this example is available.
+GPU), see the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A video demonstration_
+of this example is also available.
 
 
 .. _Polaris: https://www.alcf.anl.gov/polaris

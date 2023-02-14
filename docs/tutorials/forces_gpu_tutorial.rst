@@ -169,7 +169,7 @@ calling script.
 
 In the generator function, assign the ``resource_sets`` field of
 :ref:`H<funcguides-history>` for each point generated. For example
-if a larger simulation requires two MPI tasks (and two GPUs), set ``resource_sets``
+if a larger simulation requires two MPI tasks (and two GPUs), set the ``resource_sets``
 field to *2* for that sim_id in the generator function.
 
 The calling script run_libe_forces.py_ contains alternative commented-out lines for
