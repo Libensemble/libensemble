@@ -53,7 +53,6 @@ class History:
         specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
 
         if len(H0):
-
             # a whole lot of work to parse numpy dtypes to python types and 2- or 3-tuples
             # - dtypes aren't iterable, but you can index into them
             # - must split out actual numpy type if subdtype refers to sub-array

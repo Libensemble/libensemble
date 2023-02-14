@@ -21,7 +21,6 @@ def branin(x1, x2):
 
 
 if __name__ == "__main__":
-
     x = np.loadtxt("./x.in")
     assert len(x) == 2, "branin.py is two dimensional"
 

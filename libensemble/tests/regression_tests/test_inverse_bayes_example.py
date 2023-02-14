@@ -30,7 +30,6 @@ from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     # Parse args for test code
     nworkers, is_manager, libE_specs, _ = parse_args()
 

@@ -177,7 +177,6 @@ class WorkerResources(RSetResources):
     """
 
     def __init__(self, num_workers, resources, workerID):
-
         """Initializes a new WorkerResources instance
 
         Determines the compute resources available for current worker, including

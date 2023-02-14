@@ -48,7 +48,6 @@ from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, lo
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if nworkers < 2:

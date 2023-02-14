@@ -46,7 +46,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
             persis_info["next_to_give"] += 1
 
         elif gen_count < user.get("num_active_gens", gen_count + 1):
-
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
             try:

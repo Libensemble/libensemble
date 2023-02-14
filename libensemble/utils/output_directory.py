@@ -38,7 +38,6 @@ class EnsembleDirectory:
     """
 
     def __init__(self, libE_specs=None, loc_stack=None):
-
         self.specs = libE_specs
         self.loc_stack = loc_stack
 
@@ -174,7 +173,6 @@ class EnsembleDirectory:
     def copy_back(self):
         """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.ensemble_copy_back:
-
             no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
 
             copybackdir = os.path.basename(self.prefix)

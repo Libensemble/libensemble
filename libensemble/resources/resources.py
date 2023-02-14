@@ -98,7 +98,6 @@ class GlobalResources:
     """
 
     def __init__(self, libE_specs, top_level_dir=None):
-
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including

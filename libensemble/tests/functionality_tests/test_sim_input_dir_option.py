@@ -27,7 +27,6 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     sim_input_dir = "./sim_input_dir"
     dir_to_copy = sim_input_dir + "/copy_this"
     o_ensemble = "./ensemble_inputdir_w" + str(nworkers) + "_" + libE_specs.get("comms")

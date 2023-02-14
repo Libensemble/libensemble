@@ -523,7 +523,6 @@ def opt_runner(run_local_opt, user_specs, comm_queue, x0, f0, child_can_read, pa
 
 # Callback functions and routines
 def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, user_specs):
-
     if user_specs["localopt_method"] in ["LD_MMA"]:
         x_recv, f_recv, grad_recv = put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
         grad[:] = grad_recv
@@ -542,9 +541,7 @@ def nlopt_callback_fun(x, grad, comm_queue, child_can_read, parent_can_read, use
 
 
 def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs):
-
     if user_specs["localopt_method"] in ["scipy_BFGS"]:
-
         (
             x_recv,
             f_x_recv,
@@ -562,7 +559,6 @@ def scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, use
 
 
 def tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, user_specs):
-
     (
         x_recv,
         f_recv,
@@ -572,7 +568,6 @@ def tao_callback_fun_nm(tao, x, comm_queue, child_can_read, parent_can_read, use
 
 
 def tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_read, user_specs):
-
     (
         x_recv,
         f_recv,
@@ -583,7 +578,6 @@ def tao_callback_fun_pounders(tao, x, f, comm_queue, child_can_read, parent_can_
 
 
 def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read, user_specs):
-
     x_recv, f_recv, grad_recv = put_set_wait_get(x.array_r, comm_queue, parent_can_read, child_can_read, user_specs)
     g.array[:] = grad_recv
 
@@ -591,7 +585,6 @@ def tao_callback_fun_grad(tao, x, g, comm_queue, child_can_read, parent_can_read
 
 
 def finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs):
-
     if user_specs.get("print") and opt_flag:
         print("[APOSMM] Local optimum on the [0,1]^n domain", x_opt, flush=True)
     comm_queue.put(ConvergedMsg(x_opt, opt_flag))

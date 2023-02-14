@@ -34,7 +34,6 @@ from libensemble.tools import add_unique_random_streams, parse_args
 
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True
@@ -95,7 +94,6 @@ if __name__ == "__main__":
 
     # Note that libE_stats.txt output will be appended across libE calls.
     for prob_id in range(iterations):
-
         sim_specs["user"]["app"] = "six_hump_camel"
 
         libE_specs["ensemble_dir_path"] = (

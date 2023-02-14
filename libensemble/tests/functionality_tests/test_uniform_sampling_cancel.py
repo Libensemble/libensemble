@@ -61,7 +61,6 @@ def create_H0(persis_info, gen_specs, sim_max):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {

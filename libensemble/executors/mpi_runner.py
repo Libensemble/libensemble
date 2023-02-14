@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 class MPIRunner:
     @staticmethod
     def get_runner(mpi_runner_type, runner_name=None):
-
         mpi_runners = {
             "mpich": MPICH_MPIRunner,
             "openmpi": OPENMPI_MPIRunner,
@@ -47,7 +46,6 @@ class MPIRunner:
         return args
 
     def _parse_extra_args(self, num_procs, num_nodes, procs_per_node, hyperthreads, extra_args):
-
         splt_extra_args = extra_args.split()
         p_args = self._get_parser(splt_extra_args, self.arg_nprocs, self.arg_nnodes, self.arg_ppn)
 
@@ -74,7 +72,6 @@ class MPIRunner:
     def express_spec(
         self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
     ):
-
         hostlist = None
         machinefile = None
         # Always use host lists (unless uneven mapping)
@@ -165,7 +162,6 @@ class OPENMPI_MPIRunner(MPIRunner):
     def express_spec(
         self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
     ):
-
         hostlist = None
         machinefile = None
         # Use machine files for OpenMPI
@@ -251,7 +247,6 @@ class JSRUN_MPIRunner(MPIRunner):
     def get_mpi_specs(
         self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
     ):
-
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
             num_procs, num_nodes, procs_per_node, p_args = self._parse_extra_args(

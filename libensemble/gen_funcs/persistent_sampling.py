@@ -209,7 +209,6 @@ def batched_history_matching(H, persis_info, gen_specs, libE_info):
 
 
 def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
-
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
@@ -223,7 +222,6 @@ def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         tag, Work, calc_in = ps.send_recv(H_o)

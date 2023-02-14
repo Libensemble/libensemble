@@ -64,7 +64,6 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])
@@ -152,7 +151,6 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])
@@ -262,7 +260,6 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
         H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])

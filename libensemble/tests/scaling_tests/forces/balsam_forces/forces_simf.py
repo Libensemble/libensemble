@@ -8,7 +8,6 @@ from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def run_forces_balsam(H, persis_info, sim_specs, libE_info):
-
     calc_status = 0
 
     particles = str(int(H["x"][0][0]))

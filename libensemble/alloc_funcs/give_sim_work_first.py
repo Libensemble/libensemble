@@ -55,7 +55,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
     for wid in support.avail_worker_ids():
-
         if np.any(points_to_evaluate):
             sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
             try:
@@ -64,7 +63,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
             points_to_evaluate[sim_ids_to_send] = False
         else:
-
             # Allow at most num_active_gens active generator instances
             if gen_count >= user.get("num_active_gens", gen_count + 1):
                 break

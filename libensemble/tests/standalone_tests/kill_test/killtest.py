@@ -88,7 +88,6 @@ for run_num in range(2):
     finished = False
     state = "Not started"
     while not finished:
-
         time.sleep(2)
         poll = process.poll()
         if poll is None:
