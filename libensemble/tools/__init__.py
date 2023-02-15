@@ -1,6 +1,6 @@
 from .forkable_pdb import ForkablePdb
 from .parse_args import parse_args
-from .tools import add_unique_random_streams, eprint, libE_fx, save_libE_output
+from .tools import add_unique_random_streams, eprint, save_libE_output
 
 __all__ = [
     "add_unique_random_streams",
@@ -8,5 +8,4 @@ __all__ = [
     "ForkablePdb",
     "parse_args",
     "save_libE_output",
-    "libE_fx",
 ]

@@ -2,8 +2,6 @@ import inspect
 import logging
 import logging.handlers
 
-import numpy as np
-
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 
 logger = logging.getLogger(__name__)
@@ -63,33 +61,11 @@ class Runners:
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
-    @staticmethod
-    def _is_fx_wrapped(user_f):
-        return hasattr(user_f, "__wrapped__") and hasattr(user_f.__wrapped__, "unpacking")
-
-    @staticmethod
-    def _unpacked_repacked_result(nparams, args, calc_in, specs, user_f):
-        outfield = specs["out"][0][0]  # hopefully only outfield
-        args[0] = calc_in.item()[0]  # adjust first argument to be unpacked item
-        H_o = np.zeros(1, dtype=specs["out"])  # repacking
-
-        out = user_f(*args[:nparams])  # call
-        if not isinstance(out, tuple):  # got one return
-            H_o[outfield] = out
-            return H_o
-        else:  # multiple returns, adjust first to be repacked array
-            H_o[outfield] = out[0]
-            return (H_o,) + out[1:]
-
     def _normal_result(self, calc_in, persis_info, specs, libE_info, user_f):
         """User function called in-place"""
         nparams = len(inspect.signature(user_f).parameters)
         args = [calc_in, persis_info, specs, libE_info]
-
-        if self._is_fx_wrapped(user_f):  # wrapped function is tagged
-            return self._unpacked_repacked_result(nparams, args, calc_in, specs, user_f)
-        else:
-            return user_f(*args[:nparams])
+        return user_f(*args[:nparams])
 
     def _funcx_result(self, calc_in, persis_info, specs, libE_info, user_f):
         """User function submitted to funcX"""

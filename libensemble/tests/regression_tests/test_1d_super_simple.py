@@ -19,10 +19,9 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, libE_fx, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 
-@libE_fx
 def sim_f(In):
     return np.linalg.norm(In)
 
