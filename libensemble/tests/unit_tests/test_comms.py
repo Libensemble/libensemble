@@ -5,7 +5,7 @@ Unit test of comms for libensemble.
 """
 
 import logging
-import queue
+import queue as tqueue
 import time
 
 import numpy as np
@@ -17,22 +17,22 @@ import libensemble.comms.logs as commlogs
 def test_qcomm():
     "Test queue-based bidirectional communicator."
 
-    inq = queue.Queue()
-    outq = queue.Queue()
+    inq = tqueue.Queue()
+    outq = tqueue.Queue()
     comm = comms.QComm(inq, outq, 2)
 
     comm.send("a", 1)
     comm.send("b")
     assert (
         outq.get() == ("a", 1) and outq.get() == ("b",) and outq.empty()
-    ), "Check send appropriately goes to output queue."
+    ), "Check send appropriately goes to output tqueue."
 
     comm.push_to_buffer("b", 0)
     inq.put(("c", 3))
     inq.put(("d",))
     assert (
         comm.recv() == ("b", 0) and comm.recv() == ("c", 3) and comm.recv() == ("d",) and inq.empty()
-    ), "Check recv appropriately comes from input queue."
+    ), "Check recv appropriately comes from input tqueue."
 
     flag = True
     try:
@@ -98,8 +98,8 @@ def test_gen_comm_handler():
         def on_killed(self, sim_id):
             return "on_killed", sim_id
 
-    inq = queue.Queue()
-    outq = queue.Queue()
+    inq = tqueue.Queue()
+    outq = tqueue.Queue()
     comm = comms.QComm(inq, outq, 4)
     gcomm = TestGenComm(comm)
 
@@ -164,8 +164,8 @@ def test_sim_comm_handler():
         def on_kill(self, sim_id):
             return "on_kill", sim_id
 
-    inq = queue.Queue()
-    outq = queue.Queue()
+    inq = tqueue.Queue()
+    outq = tqueue.Queue()
     comm = comms.QComm(inq, outq, 2)
     scomm = TestSimComm(comm)
 
@@ -215,8 +215,8 @@ def test_comm_eval():
 
     gen_specs = {"out": [("x", float), ("flag", bool)]}
 
-    inq = queue.Queue()
-    outq = queue.Queue()
+    inq = tqueue.Queue()
+    outq = tqueue.Queue()
     comm = comms.QComm(inq, outq, 2)
     gcomm = comms.CommEval(comm, gen_specs=gen_specs)
 
@@ -397,3 +397,13 @@ def test_comm_logging():
     with comms.QCommProcess(worker_main, nworkers=2) as mgr_comm:
         msg = mgr_comm.recv()
         assert isinstance(msg[0], logging.LogRecord)
+
+
+if __name__ == "__main__":
+    test_qcomm()
+    test_missing_handler()
+    test_gen_comm_handler()
+    test_sim_comm_handler()
+    test_comm_eval()
+    test_qcomm_threadproc()
+    test_comm_logging()
