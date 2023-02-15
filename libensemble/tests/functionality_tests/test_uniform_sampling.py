@@ -20,7 +20,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_fx
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     libE_specs["save_every_k_gens"] = 300
 
     sim_specs = {
-        "sim_f": six_hump_camel_fx,  # Function whose output is being minimized
+        "sim_f": six_hump_camel,  # Function whose output is being minimized
         "in": ["x"],  # Keys to be given to sim_f
         "out": [("f", float)],  # Name of the outputs from sim_f
     }
