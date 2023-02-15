@@ -11,13 +11,18 @@ libEnsemble package.
 
 :doc:`See here for more in-depth guides to writing user functions<function_guide_index>`
 
+As of v0.9.3+dev, valid simulator and generator functions
+can *accept and return a smaller subset of the listed parameters and return values*. For instance,
+a ``def my_simulation(one_Input) -> one_Output`` function is now accepted,
+as is ``def my_generator(Input, persis_info) -> Output, persis_info``.
+
 sim_f API
 ~~~~~~~~~
 .. _api_sim_f:
 
-The simulator function will be called by libEnsemble's workers with the following API::
+The simulator function will be called by libEnsemble's workers with *up to* the following arguments and returns::
 
-    out = sim_f(H[sim_specs["in"]][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
+    Out, persis_info, calc_status = sim_f(H[sim_specs["in"]][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
 
 Parameters:
 ***********
@@ -52,9 +57,9 @@ gen_f API
 ~~~~~~~~~
 .. _api_gen_f:
 
-The generator function will be called by libEnsemble's workers with the following API::
+The generator function will be called by libEnsemble's workers with *up to* the following arguments and returns::
 
-    out = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
+    Out, persis_info, calc_status = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
 Parameters:
 ***********

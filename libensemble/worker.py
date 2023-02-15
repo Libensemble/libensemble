@@ -267,10 +267,12 @@ class Worker:
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
                     if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
                         calc_status = out[1]
-                        return out[0], {}, calc_status
+                        return out[0], Work["persis_info"], calc_status
                     return *out, calc_status  # got Out, persis_info
-                return out, {}, calc_status
-            return np.zeros(1), {}, calc_status
+                else:
+                    return out, Work["persis_info"], calc_status
+            else:
+                return np.zeros(1), Work["persis_info"], calc_status
 
         except Exception as e:
             logger.debug(f"Re-raising exception from calc {e}")

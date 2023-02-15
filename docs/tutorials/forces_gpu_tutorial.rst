@@ -48,7 +48,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
 
-    def run_forces(H, persis_info, sim_specs, libE_info):
+    def run_forces(H, _, sim_specs):
         calc_status = 0
 
         # Parse out num particles, from generator function
@@ -95,7 +95,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         # Return final information to worker, for reporting to manager
 
 
-    return output, persis_info, calc_status
+    return output, calc_status
 
 The above code can be run on most systems, and will assign a GPU to each worker,
 so long as the number of workers is chosen to fit the resources.
