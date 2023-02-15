@@ -9,7 +9,7 @@ import numpy as np
 from libensemble.sim_funcs.branin.branin import branin
 
 
-def call_branin(H, persis_info, sim_specs, _):
+def call_branin(H, persis_info, sim_specs):
     """Evaluates the Branin function"""
     batch = len(H["x"])
 
@@ -27,4 +27,4 @@ def call_branin(H, persis_info, sim_specs, _):
         if "user" in sim_specs and "uniform_random_pause_ub" in sim_specs["user"]:
             time.sleep(sim_specs["user"]["uniform_random_pause_ub"] * np.random.uniform())
 
-    return H_o, persis_info
+    return H_o

@@ -66,7 +66,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     return task, calc_status
 
 
-def executor_hworld(H, persis_info, sim_specs, libE_info):
+def executor_hworld(H, _, sim_specs):
     """Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs["user"]["cores"]
@@ -144,7 +144,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     # This is just for testing at calling script level - status of each task
     H_o["cstat"] = calc_status
 
-    return H_o, persis_info, calc_status
+    return H_o, _, calc_status
 
 
 def six_hump_camel_func(x):

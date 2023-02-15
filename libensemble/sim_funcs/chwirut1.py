@@ -255,7 +255,7 @@ def EvaluateJacobian(x):
     return j
 
 
-def chwirut_eval(H, persis_info, sim_specs, _):
+def chwirut_eval(H, persis_info, sim_specs):
     """
     Evaluates the chwirut objective function at a given set of points in
     ``H["x"]``. If ``"obj_component"`` is a field in ``sim_specs["out"]``, only that
@@ -289,7 +289,7 @@ def chwirut_eval(H, persis_info, sim_specs, _):
             O["fvec"][i] = EvaluateFunction(x)
             O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
 
-    return O, persis_info
+    return O
 
 
 # if __name__ == "__main__":
