@@ -23,7 +23,9 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 
 def sim_f(In):
-    return np.linalg.norm(In)
+    Out = np.zeros(1, dtype=[("f", float)])
+    Out["f"] = np.linalg.norm(In)
+    return Out
 
 
 if __name__ == "__main__":
