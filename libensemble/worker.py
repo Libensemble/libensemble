@@ -261,15 +261,16 @@ class Worker:
                     calc_status = MAN_SIGNAL_FINISH
 
             if out:  # better way of doing this logic?
-                if len(out) >= 3:
+                if len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
-                elif len(out) == 2:
-                    return *out, calc_status
-                else:
-                    return out, {}, calc_status
-            else:
-                return np.zeros(1), {}, calc_status
+                elif len(out) == 2:  # Out, persis_info OR Out, calc_status
+                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                        calc_status = out[1]
+                        return out[0], {}, calc_status
+                    return *out, calc_status  # got Out, persis_info
+                return out, {}, calc_status
+            return np.zeros(1), {}, calc_status
 
         except Exception as e:
             logger.debug(f"Re-raising exception from calc {e}")
