@@ -40,6 +40,7 @@ def sname(name):
 
 # Tests ========================================================================================
 
+
 # Tests GlobalResources.get_global_nodelist (This requires above tests to work)
 def test_get_global_nodelist_frm_slurm():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0137-0139,1234]"
@@ -257,7 +258,6 @@ def _assert_worker_attr(wres, attr, exp):
 
 # These are all 1 worker per rset.
 def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
-
     # Create dictionary of attributes and expected values
     exp_dict = {
         "workerID": wrk + 1,
@@ -778,7 +778,6 @@ def _check_mfile(machinefile, exp_list):
 
 
 def test_machinefile_from_resources():
-
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST"}
     libE_specs = {

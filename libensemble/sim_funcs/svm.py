@@ -56,7 +56,6 @@ def EvaluateJacobian(theta, component, X, b, c, reg):
 
 
 def svm_eval(H, persis_info, sim_specs, _):
-
     X = persis_info["params"]["X"]
     b = persis_info["params"]["b"]
     c = persis_info["params"]["c"]

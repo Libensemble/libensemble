@@ -26,11 +26,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     # If wid is idle, but in persistent mode, and generated work has all returned
     # give output back to wid. Otherwise, give nothing to wid
     for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
-
         # if > 1 persistent generator, assign the correct work to it
         inds_generated_by_wid = H["gen_worker"] == wid
         if support.all_sim_ended(H, inds_generated_by_wid):
-
             # Has sim_f completed everything from this persistent worker?
             # Then give back everything in the last batch
             batch_ids = H["batch"][inds_generated_by_wid]
@@ -46,7 +44,6 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
     for wid in support.avail_worker_ids(persistent=False):
         if np.any(points_to_evaluate):
-
             # perform sim evaluations (if any point hasn't been given).
             sim_subbatches = H["subbatch"][points_to_evaluate]
             sim_inds = sim_subbatches == np.min(sim_subbatches)
@@ -59,7 +56,6 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             points_to_evaluate[sim_ids_to_send] = False
 
         elif gen_count == 0:
-
             # Finally, generate points since there is nothing else to do.
             try:
                 Work[wid] = support.gen_work(wid, gen_specs["in"], [], persis_info.get(wid), persistent=True)

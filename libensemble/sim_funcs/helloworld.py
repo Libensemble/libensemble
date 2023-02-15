@@ -4,7 +4,6 @@ Parallel Hello World
 """
 
 if __name__ == "__main__":
-
     import sys
 
     from mpi4py import MPI

@@ -526,7 +526,6 @@ def advance_local_run(H, user_specs, c_flag, run, persis_info):
         advance_local_run.pt_in_run = 0
 
         if user_specs["localopt_method"] in ["LN_SBPLX", "LN_BOBYQA", "LN_COBYLA", "LN_NELDERMEAD", "LD_MMA"]:
-
             if user_specs["localopt_method"] in ["LD_MMA"]:
                 fields_to_pass = ["x_on_cube", "f", "grad"]
             else:
@@ -540,7 +539,6 @@ def advance_local_run(H, user_specs, c_flag, run, persis_info):
                 display_exception(e)
 
         elif user_specs["localopt_method"] in ["pounders", "blmvm"]:
-
             if c_flag:
                 Run_H_F = np.zeros(len(sorted_run_inds), dtype=[("fvec", float, user_specs["components"])])
                 for i, ind in enumerate(sorted_run_inds):
@@ -561,7 +559,6 @@ def advance_local_run(H, user_specs, c_flag, run, persis_info):
                 display_exception(e)
 
         elif user_specs["localopt_method"] == "scipy_COBYLA":
-
             fields_to_pass = ["x_on_cube", "f"]
 
             try:

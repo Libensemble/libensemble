@@ -49,7 +49,6 @@ def EvaluateJacobian(theta, component, X, y, c, reg):
 
 
 def linear_regression_eval(H, persis_info, sim_specs, _):
-
     X = persis_info["params"]["X"]
     y = persis_info["params"]["y"]
     c = persis_info["params"]["c"]

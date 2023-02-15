@@ -177,7 +177,6 @@ class EnsembleDirectory:
     def copy_back(self) -> None:
         """Copy back all ensemble dir contents to launch location"""
         if os.path.isdir(self.prefix) and self.ensemble_copy_back:
-
             no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
 
             copybackdir = os.path.basename(self.prefix)

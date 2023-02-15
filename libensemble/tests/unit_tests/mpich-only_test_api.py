@@ -24,7 +24,6 @@ def test_from_files():
     from libensemble.api import Ensemble
 
     for ft in ["yaml", "json", "toml"]:
-
         e = Ensemble()
         file_path = f"./simdir/test_example.{ft}"
         if ft == "yaml":

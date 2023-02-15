@@ -30,7 +30,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if nworkers < 2:
@@ -68,7 +67,6 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
     if is_manager:
-
         # For reproducible test, only tests if cancel requested on points - not whether got evaluated
         assert np.all(H["cancel_requested"][:49] == False), "Values cancelled which should not be"  # noqa: E712
         assert np.all(H["cancel_requested"][50:100]), "Values not cancelled which should be"

@@ -166,7 +166,6 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     """
 
     for i in range(nstreams):
-
         if isinstance(seed, int) or seed is None:
             random_seed = seed
         else:

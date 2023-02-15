@@ -45,7 +45,6 @@ def clear_resources():
 
 
 def test_decide_work_and_resources():
-
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     hist = History(al, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -61,7 +60,6 @@ def test_decide_work_and_resources():
 
 
 def test_als_init_normal():
-
     als = AllocSupport(W, True)
     assert als.manage_resources, "AllocSupport instance should be managing resources for sim_work and gen_work."
 
@@ -83,7 +81,6 @@ def test_als_init_withresources():
 
 
 def test_als_assign_resources():
-
     als = AllocSupport(W, True)
     assert not als.assign_resources(4), "AllocSupport instance shouldn't assign resources if not assigned a Scheduler"
 

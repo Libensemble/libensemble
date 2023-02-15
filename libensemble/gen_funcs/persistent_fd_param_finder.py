@@ -8,7 +8,6 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 
 def build_H0(x_f_pairs, gen_specs, noise_h_mat):
-
     U = gen_specs["user"]
     x0 = U["x0"]
 
