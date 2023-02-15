@@ -31,7 +31,7 @@ Introduction
 
 libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
 
-libEnsemble can *adaptively manage* massively parallel resources to help solve design, decision,
+libEnsemble can *adaptively* manage massively parallel resources to help solve design, decision,
 and inference problems, and is *especially* effective at connecting "outer loops" or "deciders" to experiments or simulations.
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
@@ -47,7 +47,7 @@ Basic Usage
 Select or supply Simulator and Generator functions
 --------------------------------------------------
 
-**Generator** and **Simulator** Python functions respectively produce candidate parameters and 
+**Generator** and **Simulator** Python functions respectively produce candidate parameters and
 perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy::
 
     from my_simulators import beamline_simulation_function
@@ -92,7 +92,7 @@ and cores, and can dynamically assign resources to workers::
     import numpy as np
     from libensemble.executors import MPIExecutor
 
-    def beamline_simulation_function(Input, persis_info, sim_specs, _):
+    def beamline_simulation_function(Input, _, sim_specs):
         calc_status = 0
 
         particles = str(int(Input["x"][0][0]))
@@ -115,7 +115,7 @@ and cores, and can dynamically assign resources to workers::
         output = np.zeros(1, dtype=sim_specs["out"])
         output["energy"] = final_energy
 
-        return output, persis_info, calc_status
+        return output, calc_status
 
 See the `user guide`_ for more information.
 
