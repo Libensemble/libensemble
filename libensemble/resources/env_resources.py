@@ -43,7 +43,6 @@ class EnvResources:
         nodelist_env_lsf=None,
         nodelist_env_lsf_shortform=None,
     ):
-
         """Initializes a new EnvResources instance
 
         Determines the environment variables to query for resource

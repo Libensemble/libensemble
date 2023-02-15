@@ -51,7 +51,6 @@ def EvaluateJacobian(x, component=np.nan):
 
 
 def nesterov_quadratic_eval(H, persis_info, sim_specs, _):
-
     batch = len(H["x"])
     H_o = np.zeros(batch, dtype=sim_specs["out"])
 

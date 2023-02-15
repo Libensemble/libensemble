@@ -77,7 +77,6 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             gen_count += 1
 
         elif np.any(points_to_evaluate):
-
             # Perform sim evaluations from existing runs
             q_inds_logical = np.logical_and(points_to_evaluate, H["local_pt"])
             if not np.any(q_inds_logical):

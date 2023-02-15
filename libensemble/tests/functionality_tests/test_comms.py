@@ -26,7 +26,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["disable_resource_manager"] = True
     exctr = MPIExecutor()

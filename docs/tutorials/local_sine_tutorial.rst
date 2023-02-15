@@ -137,7 +137,6 @@ the ``numpy.random.Generator.integers(low, high, size)`` function.
 
 
        def gen_random_ints(H_in, persis_info, gen_specs, _):
-
            user_specs = gen_specs["user"]
            lower = user_specs["lower"]
            upper = user_specs["upper"]
@@ -201,7 +200,6 @@ value, using the ``numpy.cos(x)`` function.
 
 
        def sim_find_cosine(H_in, persis_info, gen_specs, _):
-
            out = np.zeros(1, dtype=sim_specs["out"])
 
            out["y"] = np.cos(H_in["x"])

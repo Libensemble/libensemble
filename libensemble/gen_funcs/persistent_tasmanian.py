@@ -250,7 +250,6 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
 
     # Subsequent runs.
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         # Parse the points returned by the allocator.
         num_completed += calc_in["x"].shape[0]
         queued_pts, queued_ids, offset = get_state(

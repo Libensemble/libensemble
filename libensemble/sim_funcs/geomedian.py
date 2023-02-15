@@ -32,7 +32,6 @@ def EvaluateJacobian(x, component, B):
 
 
 def geomedian_eval(H, persis_info, sim_specs, _):
-
     B = persis_info["params"]["B"]
 
     num_xs = len(H["x"])  # b==1 always?

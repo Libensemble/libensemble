@@ -179,7 +179,6 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
 
 
 def lhs_sample(n, k, stream):
-
     # Generate the intervals and random values
     intervals = np.linspace(0, 1, k + 1)
     rand_source = stream.uniform(0, 1, (k, n))

@@ -46,7 +46,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     idle_workers = support.avail_worker_ids()
 
     while len(idle_workers):
-
         pt_ids_to_pause = set()
 
         # Find indices of H that are not yet given out to be evaluated
@@ -67,7 +66,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
                 # Mark "complete" and "has_nan" pt_ids, compute complete and partial fvals
                 for j, pt_id in enumerate(pt_ids):
-
                     a1 = persis_info["inds_of_pt_ids"][pt_id]
                     if np.any(np.isnan(H["f_i"][a1])):
                         persis_info["has_nan"].add(pt_id)
@@ -86,7 +84,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                         partial_fvals[j] = gen_specs["user"]["combine_component_func"](H["f_i"][a1])
 
                 if len(persis_info["complete"]) and len(pt_ids) > 1:
-
                     worse_flag = np.zeros(len(pt_ids), dtype=bool)
                     for j, pt_id in enumerate((pt_ids)):
                         if (

@@ -10,7 +10,6 @@ __all__ = ["persistent_ytopt"]
 
 
 def persistent_ytopt(H, persis_info, gen_specs, libE_info):
-
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     user_specs = gen_specs["user"]
     ytoptimizer = user_specs["ytoptimizer"]
@@ -23,7 +22,6 @@ def persistent_ytopt(H, persis_info, gen_specs, libE_info):
 
     # Send batches until manager sends stop tag
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if first_call:
             ytopt_points = ytoptimizer.ask_initial(n_points=user_specs["num_sim_workers"])  # Returns a list
             batch_size = len(ytopt_points)

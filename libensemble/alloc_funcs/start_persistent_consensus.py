@@ -93,7 +93,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     avail_persis_worker_ids = np.sort(support.avail_worker_ids(persistent=EVAL_GEN_TAG))
 
     for wid in avail_persis_worker_ids:
-
         # If at consensus, wait until everyone is done
         if persis_info[wid].get("at_consensus", False):
             num_gens_at_consensus += 1
@@ -101,7 +100,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # Gen is waiting on sim work
         elif len(persis_info[wid].get("curr_H_ids", [])):
-
             [l_H_id, r_H_id] = persis_info[wid].get("curr_H_ids")
             num_sims_req = r_H_id - l_H_id
 
@@ -111,7 +109,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
             # if completed all work, send back
             if completed_all_sims_for_gen_i:
-
                 sims_to_ret_to_gen = np.arange(l_H_id, r_H_id)
 
                 Work[wid] = support.gen_work(
@@ -166,7 +163,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     # If all gens at consensus, distribute data to all gens
     if num_gens_at_consensus == user["num_gens"]:
-
         assert num_gens_at_consensus == len(
             avail_persis_worker_ids
         ), f"All gens must be available, only {len(avail_persis_worker_ids)}/{len(num_gens_at_consensus)} are though..."
@@ -188,7 +184,6 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         A = persis_info["A"]
         for i0, wid in enumerate(avail_persis_worker_ids):
-
             incident_gens = A.indices[A.indptr[i0] : A.indptr[i0 + 1]]
             # remove own index
             own_idx = np.argwhere(incident_gens == i0)
@@ -240,10 +235,8 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     inactive_workers = np.sort(support.avail_worker_ids(persistent=False))
     for i0, wid in enumerate(inactive_workers):
-
         # start up gens
         if is_first_iter and gen_count < user["num_gens"]:
-
             # Checking resources first before call to gen_work
             rset_team = None
             if support.manage_resources:
@@ -280,14 +273,12 @@ def start_consensus_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
         # give sim work when task available
         elif persis_info["next_to_give"] < len(H):
-
             # skip points that are not sim work or are already done
             while persis_info["next_to_give"] < len(H) and (
                 H[persis_info["next_to_give"]]["sim_started"]
                 or H[persis_info["next_to_give"]]["consensus_pt"]
                 or H[persis_info["next_to_give"]]["cancel_requested"]
             ):
-
                 persis_info["next_to_give"] += 1
 
             if persis_info["next_to_give"] >= len(H):

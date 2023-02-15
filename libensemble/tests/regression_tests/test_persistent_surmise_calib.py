@@ -44,7 +44,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # logger.set_level("DEBUG")  # To get debug logging in ensemble.log
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     n_init_thetas = 15  # Initial batch of thetas

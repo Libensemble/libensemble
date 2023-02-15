@@ -203,7 +203,6 @@ def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):
         tag, Work, calc_in = ps.recv()
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         # calc_in: This should either be a function (unpack_work ?) or included/unpacked in ps.recv/ps.send_recv.
         if Work is not None:
             persis_info = Work.get("persis_info", persis_info)

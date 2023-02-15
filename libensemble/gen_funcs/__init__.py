@@ -9,7 +9,6 @@ class RC:
     """Runtime configuration options."""
 
     def __init__(self):
-
         self._opt_modules = None  # optional string or list of strings
         self._csv_path: str = __file__.replace("__init__.py", ".opt_modules.csv")
         self._csv_exists: bool = os.path.isfile(self._csv_path)
@@ -30,7 +29,6 @@ class RC:
 
     @aposmm_optimizers.setter
     def aposmm_optimizers(self, values):
-
         current_opt = self.aposmm_optimizers
         if not isinstance(values, list):
             values = [values]

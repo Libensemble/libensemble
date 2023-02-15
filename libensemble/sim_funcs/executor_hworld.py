@@ -80,7 +80,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     H_o = np.zeros(batch, dtype=sim_specs["out"])
 
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
-
         global sim_ended_count
         sim_ended_count += 1
         print("sim_ended_count", sim_ended_count, flush=True)

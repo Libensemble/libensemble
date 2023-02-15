@@ -23,7 +23,6 @@ from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     assert exists("speed3d_c2c"), "The heFFTe executable doesn't exist"
 
     fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
