@@ -6,15 +6,18 @@ This module for detects and returns intranode resources
 import collections
 import logging
 import os
+from typing import Optional, Tuple
 
 import psutil
+
+from libensemble.resources.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
 
 REMOTE_LAUNCH_LIST = ["aprun", "jsrun", "srun"]  # Move to feature of mpi_runner
 
 
-def get_cpu_cores(hyperthreads=False):
+def get_cpu_cores(hyperthreads: bool = False) -> int:
     """Returns the number of cores on the node.
 
     If hyperthreads is true, this is the logical CPU cores; else
@@ -26,7 +29,7 @@ def get_cpu_cores(hyperthreads=False):
     return psutil.cpu_count(logical=hyperthreads)  # This is ranks available per node
 
 
-def _get_local_cpu_resources():
+def _get_local_cpu_resources() -> Tuple[int, int]:
     """Returns logical and physical cores on the local node"""
     logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
     physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
@@ -47,7 +50,7 @@ def _get_remote_cpu_resources(launcher):
     return output.decode()
 
 
-def _get_cpu_resources_from_env(env_resources=None):
+def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) -> Optional[Tuple[int, int]]:
     """Returns logical and physical cores per node by querying environment or None"""
     if not env_resources:
         return None
@@ -79,7 +82,9 @@ def _get_cpu_resources_from_env(env_resources=None):
         return None
 
 
-def get_sub_node_resources(launcher=None, remote_mode=False, env_resources=None):
+def get_sub_node_resources(
+    launcher: Optional[str] = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
+) -> Tuple[int, int]:
     """Returns logical and physical cores per node as a tuple"""
     remote_detection = False
     if remote_mode:

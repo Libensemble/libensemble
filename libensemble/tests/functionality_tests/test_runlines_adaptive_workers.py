@@ -31,7 +31,6 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     # For varying size test - relate node count to nworkers
     total_nodes = nworkers // 4  # 4 workers per node - run on 4N workers
 

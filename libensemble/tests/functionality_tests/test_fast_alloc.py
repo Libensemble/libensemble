@@ -28,7 +28,6 @@ from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     num_pts = 30 * (nworkers)
@@ -61,8 +60,9 @@ if __name__ == "__main__":
         # each time, and the worker will not know what port to connect to.
         sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-    for time in np.append([0], np.logspace(-5, -1, 5)):
-        print("Starting for time: ", time, flush=True)
+    for time in np.append([0], np.logspace(-5, -1, 2)):
+        if is_manager:
+            print("Starting for time: ", time, flush=True)
         if time == 0:
             alloc_specs = {"alloc_f": alloc_f2}
         else:

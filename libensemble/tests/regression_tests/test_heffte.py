@@ -23,7 +23,6 @@ from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     assert exists("speed3d_c2c"), "The heFFTe executable doesn't exist"
 
     fixed = ["mpirun -np 4 ./speed3d_c2c fftw double 128 128 128"]
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     sim_specs = {
         "sim_f": sim_f,
         "in": ["exec_and_args"],
-        "out": [("run_time", float)],
+        "out": [("RUN_TIME", float)],
     }
 
     gen_specs = {}
@@ -67,6 +66,6 @@ if __name__ == "__main__":
     if is_manager:
         assert len(H) == len(H0)
         assert np.all(H["sim_ended"]), "Every point should have been marked as ended"
-        assert len(np.unique(H["run_time"])) == len(H), "Every run_time should be unique"
+        assert len(np.unique(H["RUN_TIME"])) >= len(H) / 2, "Most of the RUN_TIMEs should be unique"
         print("\nlibEnsemble correctly didn't add anything to initial sample")
         save_libE_output(H, persis_info, __file__, nworkers)

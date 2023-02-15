@@ -46,7 +46,6 @@ def test_sim_gen_alloc_exit_specs():
 
 
 def test_sim_gen_alloc_exit_specs_invalid():
-
     bad_specs = {
         "sim_f": "path.to.module",  # sim: _UFUNC_INVALID_ERR, gen: _UNRECOGNIZED_ERR
         "in": [("f", float), ("fvec", float, 3)],  # _IN_INVALID_ERR

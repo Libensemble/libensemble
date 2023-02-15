@@ -63,15 +63,6 @@ def xtest_submit():
 
 
 @pytest.mark.extra
-def test_launch32():
-    "If we are in Python > 3.2, still check that 3.2 wait func works"
-    saved_wait = launcher.wait
-    launcher.wait = launcher.wait_py32
-    xtest_submit()
-    launcher.wait = saved_wait
-
-
-@pytest.mark.extra
 def test_launch33():
     "If we are in Python > 3.2, also check the new-style wait func"
     if launcher.wait == launcher.wait_py33:

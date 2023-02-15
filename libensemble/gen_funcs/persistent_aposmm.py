@@ -265,7 +265,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
 
 def update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass):
-
     for name in ["f", "x_on_cube", "grad", "fvec"]:
         if name in fields_to_pass:
             assert name in calc_in.dtype.names, (
@@ -720,7 +719,6 @@ def initialize_children(user_specs):
 
 
 def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds):
-
     if "sample_points" in user_specs:
         v = np.sum(~local_H["local_pt"])  # Number of sample points so far
         sampled_points = user_specs["sample_points"][v : v + k]

@@ -38,7 +38,6 @@ logger.set_level("INFO")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     rounds = 1
     sim_app = "/path/to/fakeapp.x"
@@ -148,7 +147,6 @@ if __name__ == "__main__":
 
     iterations = 2
     for prob_id in range(iterations):
-
         if prob_id == 0:
             # Uses dynamic scheduler - will find node 2 slots first (as fewer)
             libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen

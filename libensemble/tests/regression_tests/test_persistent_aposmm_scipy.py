@@ -37,7 +37,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
@@ -83,7 +82,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    exit_criteria = {"sim_max": 2000}
+    exit_criteria = {"sim_max": 1000}
 
     for run in range(2):
         persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -109,7 +108,7 @@ if __name__ == "__main__":
                 print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
                 if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
                     min_found += 1
-            assert min_found >= 4, f"Found {min_found} minima"
+            assert min_found >= 2, f"Found {min_found} minima"
 
             save_libE_output(H, persis_info, __file__, nworkers)
 

@@ -19,6 +19,8 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
+import os
+import time
 import warnings
 
 import numpy as np
@@ -32,29 +34,40 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Dragonfly uses a deprecated np.asscalar command.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
+def run_simulation(H, persis_info, sim_specs, libE_info):
+    # Extract input parameters
+    values = list(H["x"][0])
+    x0 = values[0]
+    x1 = values[1]
+    # Extract fidelity parameter
+    z = H["z"][0]
+
+    libE_output = np.zeros(1, dtype=sim_specs["out"])
+    calc_status = WORKER_DONE
+
+    # Function that depends on the resolution parameter
+    libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
+
+    return libE_output, persis_info, calc_status
+
+
+def cost(z):
+    return z[0]
+
+
+def cost1(z):
+    return z[0][0] ** 3
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     assert nworkers == 4, "This test requires exactly 4 workers"
-
-    def run_simulation(H, persis_info, sim_specs, libE_info):
-        # Extract input parameters
-        values = list(H["x"][0])
-        x0 = values[0]
-        x1 = values[1]
-        # Extract fidelity parameter
-        z = H["z"][0]
-
-        libE_output = np.zeros(1, dtype=sim_specs["out"])
-        calc_status = WORKER_DONE
-
-        # Function that depends on the resolution parameter
-        libE_output["f"] = -(x0 + 10 * np.cos(x0 + 0.1 * z)) * (x1 + 5 * np.cos(x1 - 0.2 * z))
-
-        return libE_output, persis_info, calc_status
 
     sim_specs = {
         "sim_f": run_simulation,
@@ -94,19 +107,23 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
+    outfile = None
     # Run LibEnsemble, and store results in history array H
     for use_H0 in [False, True]:
         if use_H0:
             if libE_specs["comms"] == "mpi":  # Want to make sure manager has saved output
                 libE_specs["mpi_comm"].Barrier()
-            H0 = np.load("persistent_gp_history_length=12_evals=10_workers=4.npy")
-            H0 = H0[:10]
+            while not os.path.isfile("gp_out.npy"):
+                time.sleep(0.01)
+            # other MPI processes don't have shared memory don't know outfile has been updated?
+            H0 = np.load("gp_out.npy")
+            H0 = H0[:6]
             gen_specs["in"] = list(H0.dtype.names)
             exit_criteria = {"sim_max": 5}  # Do 5 more evaluations
         else:
             H0 = None
             # Exit criteria
-            exit_criteria = {"sim_max": 10}  # Exit after running sim_max simulations
+            exit_criteria = {"sim_max": 6}  # Exit after running sim_max simulations
 
         for run in range(3):
             # Create a different random number stream for each worker and the manager
@@ -114,14 +131,13 @@ if __name__ == "__main__":
 
             if run == 0:
                 gen_specs["gen_f"] = persistent_gp_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0]
+                gen_specs["user"]["cost_func"] = cost
             if run == 1:
                 gen_specs["gen_f"] = persistent_gp_mf_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0]
-
+                gen_specs["user"]["cost_func"] = cost
             elif run == 2:
                 gen_specs["gen_f"] = persistent_gp_mf_disc_gen_f
-                gen_specs["user"]["cost_func"] = lambda z: z[0][0] ** 3
+                gen_specs["user"]["cost_func"] = cost1
 
             H, persis_info, flag = libE(
                 sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0
@@ -131,7 +147,8 @@ if __name__ == "__main__":
                 if use_H0 is False:
                     if run == 0:
                         assert not len(np.unique(H["resource_sets"])) > 1, "Resource sets should be the same"
-
-                        save_libE_output(H, persis_info, __file__, nworkers)  # Loaded in next persistent_gp calls
+                        outfile = save_libE_output(H, persis_info, __file__, nworkers)
+                        os.rename(outfile, "gp_out.npy")
                     else:
+                        print(H["resource_sets"])
                         assert len(np.unique(H["resource_sets"])) > 1, "Resource sets should be variable."

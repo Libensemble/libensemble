@@ -161,7 +161,6 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
     start = time.time()
 
     while time.time() - start < timeout_sec:
-
         # Test all done - (return list of not-finished tasks and test if empty)
         active_list = [task for task in task_list if not task.finished]
         if not active_list:
@@ -268,7 +267,7 @@ def test_kill_on_file():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = "sleep 0.1 Error"
+    args_for_sim = "sleep 0.2 Error"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -580,7 +579,7 @@ def test_kill_task_with_no_submit():
     # Create a task directly with no submit (Not supported for users)
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
-    exp_msg = "Attempting to kill task libe_task_my_simtask.x_.+that has " "no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")
@@ -601,7 +600,7 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = "Polled task libe_task_my_simtask.x_.+ " "has no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")

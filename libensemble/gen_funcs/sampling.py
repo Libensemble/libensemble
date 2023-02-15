@@ -61,7 +61,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
     H_o["resource_sets"] = persis_info["rand_stream"].integers(1, max_rsets + 1, b)
 
-    # print(f'GEN: H rsets requested: {H_o["resource_sets"]}')
+    print(f'GEN: H rsets requested: {H_o["resource_sets"]}')
 
     return H_o, persis_info
 
@@ -179,7 +179,6 @@ def latin_hypercube_sample(H, persis_info, gen_specs, _):
 
 
 def lhs_sample(n, k, stream):
-
     # Generate the intervals and random values
     intervals = np.linspace(0, 1, k + 1)
     rand_source = stream.uniform(0, 1, (k, n))

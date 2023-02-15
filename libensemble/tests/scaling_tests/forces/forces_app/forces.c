@@ -9,7 +9,10 @@
     Particle force arrays are allreduced across ranks.
 
     Sept 2019:
-    Added OpenMP options for CPU and GPU. Toggle in forces_naive function.
+    Added OpenMP options for CPU and GPU.
+
+    Jan 2022:
+    Use GPU preprocessor option to compile for GPU (e.g. -DGPU).
 
     Run executable on N procs:
 
@@ -31,10 +34,11 @@
     _a < _b ? _a : _b; })
 
 // Flags 0 or 1
-#define PRINT_HOSTNAME_ALL_PROCS 1
+#define PRINT_HOSTNAME_ALL_PROCS 0
 #define PRINT_PARTICLE_DECOMP 0
 #define PRINT_ALL_PARTICLES 0
 #define CHECK_THREADS 0
+#define CHECK_TARGET_DEVICE 1
 
 static FILE* stat_fp;
 
@@ -112,6 +116,26 @@ int init_forces(int lower, int upper, particle* parr) {
     return 0;
 }
 
+#ifdef GPU
+#pragma omp declare target
+#endif
+void print_target_info() {
+    #if defined(_OPENMP)
+    int nthreads = omp_get_num_threads();
+    if (omp_is_initial_device()) {
+        printf("Running on host with %d threads per rank\n",nthreads);
+
+    } else {
+         int nteams = omp_get_num_teams();
+        printf("Running on device with %d teams in total and %d threads in each team\n", nteams, nthreads);
+    }
+    #else
+    printf("Running on host without threads\n");
+    #endif
+}
+#ifdef GPU
+#pragma omp end declare target
+#endif
 
 // Electrostatics pairwise forces kernel (O(N^2))
 // No Eq/Opp - no reduction required (poss adv on fine-grained parallel arch).
@@ -121,19 +145,26 @@ double forces_naive(int n, int lower, int upper, particle* parr) {
     double ret = 0.0;
     double dx, dy, dz, r, force;
 
+#ifdef GPU
     // For GPU/Accelerators
-    /*
     #pragma omp target teams distribute parallel for \
                 map(to: lower, upper, n) map(tofrom: parr[0:n]) \
-                reduction(+: ret) //thread_limit(128) //*/
-
-    // For CPU
-    //*
+                reduction(+: ret)
+#else
+    // Use OpenMP threads on CPU
     #pragma omp parallel for default(none) shared(n, lower, upper, parr) \
                              private(i, j, dx, dy, dz, r, force) \
-                             reduction(+:ret)  //*/
+                             reduction(+:ret)
+#endif
     for(i=lower; i<upper; i++) {
         for(j=0; j<n; j++){
+
+            if (CHECK_TARGET_DEVICE) {
+                if ((i==0) & (j==0)){
+                    print_target_info();
+                }
+            }
+
             if (i==j) {
                 continue;
             }
@@ -238,10 +269,9 @@ int print_particles(int n, particle* parr) {
 }
 
 
-int print_step_summary(int step, double total_en,
+int print_step_summary(double total_en,
                        double compute_forces_time,
                        double comms_time) {
-    printf("\nStep: %d\n", step);
     printf("Forces kernel returned: %f \n", total_en);
     printf("Forces compute time: %.3f seconds\n", compute_forces_time);
     printf("Forces comms time:   %.3f seconds\n", comms_time);
@@ -324,7 +354,7 @@ int main(int argc, char **argv) {
     int rand_seed = 1; // default seed
     double kill_rate = 0.0; // default proportion of tasks to kill
 
-    int ierr, rank, num_procs, k, m, p_lower, p_upper, local_n;
+    int rank, num_procs, k, m, p_lower, p_upper, local_n;
     int step;
     double compute_forces_time, comms_time, total_time;
     struct timeval tstart, tend;
@@ -357,9 +387,9 @@ int main(int argc, char **argv) {
     build_system(num_particles, parr);
     //printf("\n");
 
-    ierr = MPI_Init(&argc, &argv);
-    ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     if (rank == 0) {
         printf("Particles: %d\n", num_particles);
@@ -379,9 +409,6 @@ int main(int argc, char **argv) {
 
     if (PRINT_HOSTNAME_ALL_PROCS) {
         MPI_Barrier(MPI_COMM_WORLD);
-        if (num_devices == 0) {
-            check_threads(rank);
-        }
         char processor_name[MPI_MAX_PROCESSOR_NAME];
         int name_len;
         MPI_Get_processor_name(processor_name, &name_len);
@@ -413,6 +440,10 @@ int main(int argc, char **argv) {
 
     gettimeofday(&tstart, NULL);
     for (step=0; step<num_steps; step++) {
+
+        if (rank == 0) {
+            printf("\nStep: %d\n", step);
+        }
 
         gettimeofday(&compute_start, NULL);
 
@@ -447,7 +478,7 @@ int main(int argc, char **argv) {
 
 
         if (rank == 0) {
-            print_step_summary(step, total_en, compute_forces_time, comms_time);
+            print_step_summary(total_en, compute_forces_time, comms_time);
             if (badrun) {
                 write_stat_file_kill();
             }
@@ -480,6 +511,6 @@ int main(int argc, char **argv) {
         close_stat_file();
     }
     free(parr); //todo - prob do in teardown routine.
-    ierr = MPI_Finalize();
+    MPI_Finalize();
     return 0;
 }

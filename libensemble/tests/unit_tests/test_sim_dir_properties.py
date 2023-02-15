@@ -39,10 +39,29 @@ def test_range_mixes():
     assert extract_H_ranges(work) == "2-4_6_8-9_11_14", "Failed to correctly parse H row single elements and ranges."
 
 
-def test_copy_back():
+def test_copy_back(tmp_path):
     """When workers conclude their work, workers have the option of copying
     back their work into a directory created by the manager."""
 
+    inputdir = tmp_path / "calc"
+    copybackdir = "./calc"
+    inputfile = tmp_path / "calc/file"
+
+    for dir in [inputdir, copybackdir]:
+        os.makedirs(dir, exist_ok=True)
+
+    libE_specs = {"sim_dirs_make": True, "ensemble_dir_path": inputdir, "ensemble_copy_back": True}
+
+    ls = LocationStack()
+    ls.register_loc("test", inputfile)
+    ed = EnsembleDirectory(libE_specs, ls)
+    ed.copy_back()
+    assert "file" in os.listdir(copybackdir), "File not copied back to starting dir"
+
+    for dir in [inputdir, copybackdir]:
+        shutil.rmtree(dir)
+
+    # If copyback directory in starting location, test contents copied back to directory suffixed with _back
     inputdir = "./calc"
     copybackdir = "./calc_back"
     inputfile = "./calc/file"
@@ -54,20 +73,19 @@ def test_copy_back():
 
     ls = LocationStack()
     ls.register_loc("test", inputfile)
-    # fake_worker = FakeWorker(libE_specs, inputdir, '.', ls)
     ed = EnsembleDirectory(libE_specs, ls)
-    EnsembleDirectory.copy_back(ed)
+    ed.copy_back()
     assert "file" in os.listdir(copybackdir), "File not copied back to starting dir"
 
     for dir in [inputdir, copybackdir]:
         shutil.rmtree(dir)
 
 
-def test_worker_dirs_but_no_sim_dirs():
+def test_worker_dirs_but_no_sim_dirs(tmp_path):
     """Test Worker._make_calc_dir() directory structure without sim_dirs"""
-    inputdir = "./calc"
-    inputfile = "./calc/file"
-    ensemble_dir = "./test_ens"
+    inputdir = tmp_path / "calc"
+    inputfile = tmp_path / "calc/file"
+    ensemble_dir = tmp_path / "test_ens"
 
     for dir in [inputdir, inputfile, ensemble_dir]:
         os.makedirs(dir, exist_ok=True)
@@ -87,11 +105,11 @@ def test_worker_dirs_but_no_sim_dirs():
 
 
 @pytest.mark.extra
-def test_loc_stack_FileExists_exceptions():
-    inputdir = "./calc"
-    copyfile = "./calc/copy"
-    symlinkfile = "./calc/symlink"
-    ensemble_dir = "./test_ens"
+def test_loc_stack_FileExists_exceptions(tmp_path):
+    inputdir = tmp_path / "calc"
+    copyfile = tmp_path / "calc/copy"
+    symlinkfile = tmp_path / "calc/symlink"
+    ensemble_dir = tmp_path / "test_ens"
 
     for dir in [inputdir, copyfile, symlinkfile]:
         os.makedirs(dir, exist_ok=True)

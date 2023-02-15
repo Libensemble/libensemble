@@ -127,6 +127,8 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
     with open(p_filename + ".pickle", "wb") as f:
         pickle.dump(persis_info, f)
 
+    return h_filename + ".npy"
+
 
 # ===================== per-process numpy random-streams =======================
 
@@ -164,7 +166,6 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     """
 
     for i in range(nstreams):
-
         if isinstance(seed, int) or seed is None:
             random_seed = seed
         else:

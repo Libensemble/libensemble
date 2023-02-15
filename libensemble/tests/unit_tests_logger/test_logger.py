@@ -84,7 +84,6 @@ def test_set_filename():
 
 
 def test_set_stderr_level():
-
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 35, "Default stderr copying level is 35, found " + str(stderr_level)
 

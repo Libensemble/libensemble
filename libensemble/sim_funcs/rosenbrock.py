@@ -69,7 +69,6 @@ def EvaluateJacobian(x, component, const):
 
 
 def rosenbrock_eval(H, persis_info, sim_specs, _):
-
     if "params" in persis_info:
         const = persis_info["params"].get("const", 1000)
     else:
@@ -88,7 +87,6 @@ def rosenbrock_eval(H, persis_info, sim_specs, _):
                 H_o["f_i"][i] = EvaluateFunction(x, obj_component)
 
         else:
-
             if persis_info.get("get_grad", False):
                 H_o["grad"][i] = EvaluateJacobian(x, np.nan, const)
 

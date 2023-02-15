@@ -204,10 +204,18 @@ all platforms and comms-types may resemble:
         gen_specs = {
             "gen_f": gen_random_sample,
             "out": [("x", float, (1,))],
-            "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+            "user": {
+                "lower": np.array([-3]),
+                "upper": np.array([3]),
+                "gen_batch_size": 5,
+            },
         }
 
-        sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
+        sim_specs = {
+            "sim_f": sim_find_sine,
+            "in": ["x"],
+            "out": [("y", float)],
+        }
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
 
@@ -671,7 +679,6 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     authkey = libE_specs["authkey"]
 
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
-
         # Get port if needed because of auto-assignment
         if port == 0:
             _, port = tcp_manager.address

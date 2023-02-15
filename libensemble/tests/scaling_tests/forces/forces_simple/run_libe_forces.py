@@ -11,7 +11,6 @@ from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
 if __name__ == "__main__":
-
     # Parse number of workers, comms type, etc. from arguments
     nworkers, is_manager, libE_specs, _ = parse_args()
 
