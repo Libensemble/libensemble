@@ -51,7 +51,7 @@ class Resources:
     DEFAULT_NODEFILE = "node_list"
 
     @classmethod
-    def init_resources(cls, libE_specs):
+    def init_resources(cls, libE_specs: dict) -> None:
         """Initiate resource management"""
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
@@ -59,22 +59,22 @@ class Resources:
             top_level_dir = os.getcwd()
             Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
 
-    def __init__(self, libE_specs, top_level_dir=None):
+    def __init__(self, libE_specs: dict, top_level_dir: str = None) -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
 
-    def set_worker_resources(self, num_workers, workerid):
+    def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
         self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
 
-    def set_resource_manager(self, num_workers):
+    def set_resource_manager(self, num_workers: int) -> None:
         """Initiate the resource manager component of resources"""
         self.resource_manager = ResourceManager(num_workers, self.glob_resources)
 
-    def add_comm_info(self, libE_nodes):
+    def add_comm_info(self, libE_nodes) -> None:
         """Adds comms-specific information to resources
 
         Removes libEnsemble nodes from nodelist if in dedicated_mode.
@@ -97,7 +97,8 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs, top_level_dir=None):
+    def __init__(self, libE_specs: dict, top_level_dir: str = None) -> None:
+
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including

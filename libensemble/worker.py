@@ -13,6 +13,7 @@ from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
 
 import numpy as np
+import numpy.typing as npt
 
 from libensemble.comms.logs import LogConfig, worker_logging_config
 from libensemble.executors.executor import Executor
@@ -40,7 +41,16 @@ logger = logging.getLogger(__name__)
 task_timing = False
 
 
-def worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=None, log_comm=True, resources=None, executor=None):
+def worker_main(
+    comm: "Communicator",  # noqa: F821
+    sim_specs: dict,
+    gen_specs: dict,
+    libE_specs: dict,
+    workerID: int = None,
+    log_comm: bool = True,
+    resources: Resources = None,
+    executor: Executor = None,
+) -> None:  # noqa: F821
     """Evaluates calculations given to it by the manager.
 
     Creates a worker object, receives work from manager, runs worker,
@@ -134,7 +144,15 @@ class Worker:
         Dictionary containing counts for each type of calc (e.g. sim or gen)
     """
 
-    def __init__(self, comm, dtypes, workerID, sim_specs, gen_specs, libE_specs):
+    def __init__(
+        self,
+        comm: "Communicator",  # noqa: F821
+        dtypes: npt.DTypeLike,
+        workerID: int,
+        sim_specs: dict,
+        gen_specs: dict,
+        libE_specs: dict,
+    ) -> None:  # noqa: F821
         """Initializes new worker object"""
         self.comm = comm
         self.dtypes = dtypes
@@ -149,7 +167,7 @@ class Worker:
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
-    def _set_rset_team(rset_team):
+    def _set_rset_team(rset_team: list) -> bool:
         """Pass new rset_team to worker resources"""
         resources = Resources.resources
         if isinstance(resources, Resources):
@@ -159,7 +177,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_executor(workerID, comm):
+    def _set_executor(workerID: int, comm: "Communicator") -> bool:  # noqa: F821
         """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
@@ -170,7 +188,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm):
+    def _set_resources(workerID, comm: "Communicator") -> bool:  # noqa: F821
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
@@ -180,7 +198,7 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
-    def _handle_calc(self, Work, calc_in):
+    def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
         """Runs a calculation on this worker object.
 
         This routine calls the user calculations. Exceptions are caught,
@@ -202,7 +220,6 @@ class Worker:
         # calc_stats stores timing and summary info for this Calc (sim or gen)
         # calc_id = next(self._calc_id_counter)
 
-        # from output_directory.py
         if calc_type == EVAL_SIM_TAG:
             enum_desc = "sim_id"
             calc_id = extract_H_ranges(Work)
@@ -266,7 +283,7 @@ class Worker:
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
             # logging.getLogger(LogConfig.config.random_name).info(calc_msg)
 
-    def _get_calc_msg(self, enum_desc, calc_id, calc_type, timer, status):
+    def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
         """Construct line for libE_stats.txt file"""
         calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 
@@ -283,7 +300,7 @@ class Worker:
 
         return calc_msg
 
-    def _recv_H_rows(self, Work):
+    def _recv_H_rows(self, Work: dict) -> (dict, int, npt.NDArray):
         """Unpacks Work request and receives any history rows"""
         libE_info = Work["libE_info"]
         calc_type = Work["tag"]
@@ -297,7 +314,7 @@ class Worker:
 
         return libE_info, calc_type, calc_in
 
-    def _handle(self, Work):
+    def _handle(self, Work: dict) -> dict:
         """Handles a work request from the manager"""
         # Check work request and receive second message (if needed)
         libE_info, calc_type, calc_in = self._recv_H_rows(Work)
@@ -330,7 +347,7 @@ class Worker:
             "calc_type": calc_type,
         }
 
-    def run(self):
+    def run(self) -> None:
         """Runs the main worker loop."""
         try:
             logger.info(f"Worker {self.workerID} initiated on node {socket.gethostname()}")

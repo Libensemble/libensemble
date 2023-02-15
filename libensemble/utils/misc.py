@@ -6,7 +6,7 @@ from itertools import groupby
 from operator import itemgetter
 
 
-def extract_H_ranges(Work):
+def extract_H_ranges(Work: dict) -> str:
     """Convert received H_rows into ranges for labeling"""
     work_H_rows = Work["libE_info"]["H_rows"]
     if len(work_H_rows) == 1:

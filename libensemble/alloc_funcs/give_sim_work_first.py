@@ -1,11 +1,21 @@
 import time
+from typing import Any, Dict, Tuple
 
 import numpy as np
+import numpy.typing as npt
 
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
-def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
+def give_sim_work_first(
+    W: npt.NDArray,
+    H: npt.NDArray,
+    sim_specs: dict,
+    gen_specs: dict,
+    alloc_specs: dict,
+    persis_info: dict,
+    libE_info: dict,
+) -> Tuple[Dict[Any, Any], Dict[Any, Any]]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
