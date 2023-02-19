@@ -240,7 +240,7 @@ being passed to our functions. These dictionaries also describe to libEnsemble
 what inputs and outputs from those functions to expect.
 
 .. code-block:: python
-    :linenos:
+   :linenos:
 
    gen_specs = {
        "gen_f": gen_random_sample,  # Our generator function
