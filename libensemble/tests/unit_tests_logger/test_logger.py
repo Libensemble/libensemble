@@ -36,24 +36,6 @@ def test_set_log_level():
     assert level == 20, "Log level should be 20. Found: " + str(level)
 
 
-# def test_change_log_level():
-#     from libensemble.comms.logs import manager_logging_config
-#     manager_logging_config()
-#     level_from_config = logger.get_level()
-#     assert level_from_config == 20, "Log level from config should be 20. Found: " + str(level)
-#     level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
-#     assert level_from_logger == 20, "Log level from logger should be 20. Found: " + str(level)
-
-#     # Now test logger level after change
-#     logger.set_level("DEBUG")
-#     level_from_logger = logging.getLogger('libensemble').getEffectiveLevel()
-#     assert level_from_logger == 10, "Log level from logger should be 10. Found: " + str(level)
-
-#     # Now test inherited logger
-#     level_from_child_logger = logging.getLogger('libensemble.libE').getEffectiveLevel()
-#     assert level_from_child_logger == 10, "Log level from child logger should be 10. Found: " + str(level)
-
-
 def test_set_filename():
     from libensemble.comms.logs import manager_logging_config
 
@@ -81,6 +63,27 @@ def test_set_filename():
     logs = LogConfig.config
     logs.logger_set = True
     logs.set_level("DEBUG")
+
+
+def test_set_directory(tmp_path):
+    from libensemble.comms.logs import manager_logging_config
+
+    logs = LogConfig.config
+    logs.logger_set = False
+    logs.filename = "ensemble.log"
+    logs.stat_filename = "libE_stats.txt"
+
+    logger.set_directory(tmp_path)
+    assert logs.filename == os.path.join(tmp_path, "ensemble.log")
+    assert logs.stat_filename == os.path.join(tmp_path, "libE_stats.txt")
+
+    manager_logging_config()
+    logger.set_directory("toolate")
+    assert logs.filename == os.path.join(tmp_path, "ensemble.log")
+    assert logs.stat_filename == os.path.join(tmp_path, "libE_stats.txt")
+
+    assert os.path.isfile(os.path.join(tmp_path, "ensemble.log"))
+    assert os.path.isfile(os.path.join(tmp_path, "libE_stats.txt"))
 
 
 def test_set_stderr_level():
@@ -118,6 +121,6 @@ def test_set_stderr_level():
 #   move this unit test to its own directory.
 if __name__ == "__main__":
     test_set_log_level()
-    # test_change_log_level()
     test_set_filename()
+    test_set_directory()
     test_set_stderr_level()

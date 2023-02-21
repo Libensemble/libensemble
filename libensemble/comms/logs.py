@@ -34,7 +34,7 @@ class LogConfig:
         self.fmt = "[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s"
         self.stderr_level = logging.MANAGER_WARNING
 
-    def set_level(self, level):
+    def set_level(self, level: int) -> None:
         """Set logger level either before or after creating loggers"""
         numeric_level = getattr(logging, level.upper(), 10)
         self.log_level = numeric_level
@@ -42,7 +42,7 @@ class LogConfig:
             logger = logging.getLogger(self.name)
             logger.setLevel(self.log_level)
 
-    def set_stderr_level(self, level):
+    def set_stderr_level(self, level: int) -> None:
         """Set logger level for copying messages to stderr"""
         numeric_level = getattr(logging, level.upper(), 30)
         self.stderr_level = numeric_level

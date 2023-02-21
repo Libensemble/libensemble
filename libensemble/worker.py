@@ -279,7 +279,6 @@ class Worker:
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
-            # logging.getLogger(LogConfig.config.random_name).info(calc_msg)
 
     def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
         """Construct line for libE_stats.txt file"""
