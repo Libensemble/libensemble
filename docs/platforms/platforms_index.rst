@@ -210,6 +210,7 @@ libEnsemble on specific HPC systems.
     bebop
     cori
     perlmutter
+    polaris
     spock/crusher <spock_crusher>
     summit
     theta
