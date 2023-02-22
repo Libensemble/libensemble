@@ -13,7 +13,7 @@ import logging
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.resources.mpi_resources import get_MPI_variant
+from libensemble.resources.mpi_resources import get_MPI_variant, task_partition
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
 
@@ -142,6 +142,60 @@ class MPIExecutor(Executor):
             else:
                 break
 
+    def _assign_procs_to_slots(self):
+        """Assign CPU resources to slots
+
+        Assumes num_procs/num_nodes/procs_per_node are not assigned.
+        """
+        resources = self.resources.worker_resources
+
+        if resources.matching_slots:
+            num_nodes = resources.local_node_count
+            procs_per_node = resources.slot_count
+            # procs_per_node = resources.slot_count * resources.gpus_per_rset  # One CPU per GPU
+            print(f"num nodes {num_nodes} procs_per_node {procs_per_node}") #Testing
+        else:
+            raise ExecutorException(
+                f"Cannot assign CPUs to non-matching slots {resources.slots}"
+            )
+        return num_nodes, procs_per_node
+
+    def _assign_gpus_to_slots(self, extra_args, procs_per_node):
+        """Assign GPU resources to slots
+
+        First tries getting method from user settings, otherwise use detection or default.
+        """
+
+        resources = self.resources.worker_resources
+
+        #TODO  Add here - check for user supplied GPU option first
+
+        if self.mpi_runner.run_command == "srun":
+            if procs_per_node == resources.slot_count:
+                gpus_opt = "--gpus-per-task=1"
+            else:
+                gpus_opt = "--gpus-per-node=" + str(resources.slot_count)
+
+            if extra_args is None:
+                extra_args = gpus_opt
+            else:
+                extra_args = " ".join((extra_args, gpus_opt))
+            print(f"srun: extra_args {extra_args}") #Testing
+
+        elif resources.matching_slots:
+            #TODO Could use gpu detection module to help determine best setting
+            default_env = "CUDA_VISIBLE_DEVICES"
+            # resources.set_env_to_slots(default_env, multiplier=gpus_per_slot)  # to use avail GPUS.
+            resources.set_env_to_slots(default_env)
+            print(
+                f"Worker {self.workerID}: {default_env}={os.environ[default_env]} ppn {procs_per_node}"
+            )
+        else:
+            raise ExecutorException(
+                f"Cannot assign {default_env} to non-matching slots {resources.slots}"
+            )
+        return extra_args
+
     def submit(
         self,
         calc_type=None,
@@ -158,6 +212,8 @@ class MPIExecutor(Executor):
         dry_run=False,
         wait_on_start=False,
         extra_args=None,
+        assign_procs_to_slots=False,  # Boolean (TODO: or an integer multiplier?)
+        assign_gpus_to_slots=False,  # Boolean (TODO: or an integer multiplier?)
     ):
         """Creates a new task, and either executes or schedules execution.
 
@@ -217,6 +273,13 @@ class MPIExecutor(Executor):
             resources determination unless also supplied in the direct
             options.
 
+        assign_procs_to_slots: bool, optional  #TODO or int - also not nec to slots - just a count!
+            Auto-assign MPI processors to slots (the number of resource sets on each node).
+
+        assign_gpus_to_slots: bool, optional  #TODO or int
+            Auto-assign GPUs to slots using the method either supplied in configuration or
+            determined by detected environment.
+
         Returns
         -------
 
@@ -246,6 +309,22 @@ class MPIExecutor(Executor):
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
 
+        if assign_procs_to_slots:
+            if num_procs or num_nodes or procs_per_node:
+                raise ExecutorException(
+                    f"Cannot specify assign_procs_to_slots when any of num_procs/num_nodes/procs_per_node are set"
+                )
+            else:
+                num_nodes, procs_per_node = self._assign_procs_to_slots()
+
+        #extra_args must be set before mpi_specs (task_partition ensures procs_per_node is set
+        if assign_gpus_to_slots:
+            if procs_per_node is None:
+                num_procs, num_nodes, procs_per_node = task_partition(
+                num_procs, num_nodes, procs_per_node, machinefile
+            )
+            extra_args = self._assign_gpus_to_slots(extra_args, procs_per_node)
+
         mpi_specs = self.mpi_runner.get_mpi_specs(
             task,
             num_procs,
@@ -267,6 +346,9 @@ class MPIExecutor(Executor):
             runline.extend(task.app_args.split())
 
         task.runline = " ".join(runline)  # Allow to be queried
+
+        print(f"{runline=}")
+
         if dry_run:
             task.dry_run = True
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
