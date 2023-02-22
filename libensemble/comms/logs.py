@@ -13,6 +13,7 @@ a given log message (manager or worker ID).
 
 import logging
 import sys
+from pathlib import Path
 
 from libensemble.utils.timer import Timer
 
@@ -46,6 +47,20 @@ class LogConfig:
         """Set logger level for copying messages to stderr"""
         numeric_level = getattr(logging, level.upper(), 30)
         self.stderr_level = numeric_level
+
+    def set_directory(self, dirname: str) -> None:
+        """Sets target directory to contain logfiles if loggers not yet created"""
+        dirname = Path(dirname)
+        if not dirname.exists():
+            dirname.mkdir()
+        if self.logger_set:
+            logger = logging.getLogger(self.name)
+            logger.warning("Cannot set directory after loggers initialized")
+        else:
+            baselog = Path(self.filename).name
+            basestat = Path(self.stat_filename).name
+            self.filename = str(dirname / baselog)
+            self.stat_filename = str(dirname / basestat)
 
 
 class CommLogHandler(logging.Handler):
@@ -140,7 +155,7 @@ def worker_logging_config(comm, worker_id=None):
     slogger.addHandler(ch)
 
 
-def manager_logging_config():
+def manager_logging_config(specs):
     """Add file-based logging at manager."""
     stat_timer = Timer()
     stat_timer.start()
@@ -149,6 +164,10 @@ def manager_logging_config():
     logconfig = LogConfig.config
 
     if not logconfig.logger_set:
+
+        if specs["use_workflow_dir"]:  # placing logfiles in separate directory
+            logconfig.set_directory(specs["workflow_dir"])
+
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
         fh = logging.FileHandler(logconfig.filename, mode="w")

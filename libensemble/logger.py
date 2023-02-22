@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 from libensemble.comms.logs import LogConfig
 
@@ -43,18 +42,8 @@ def set_filename(filename: str) -> None:
 
 def set_directory(dirname: str) -> None:
     """Sets target directory to contain logfiles if loggers not yet created"""
-    dirname = Path(dirname)
-    if not dirname.exists:
-        dirname.mkdir()
     logs = LogConfig.config
-    if logs.logger_set:
-        logger = logging.getLogger(logs.name)
-        logger.warning("Cannot set directory after loggers initialized")
-    else:
-        baselog = Path(logs.filename).name
-        basestat = Path(logs.stat_filename).name
-        logs.filename = str(dirname / baselog)
-        logs.stat_filename = str(dirname / basestat)
+    logs.set_directory(dirname)
 
 
 def set_stderr_level(level: int) -> None:
