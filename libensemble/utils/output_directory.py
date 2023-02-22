@@ -1,6 +1,8 @@
 import os
 import re
+import secrets
 import shutil
+from pathlib import Path
 from typing import Optional, Union
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
@@ -42,6 +44,7 @@ class EnsembleDirectory:
 
         self.specs = libE_specs
         self.loc_stack = loc_stack
+        self.workflow_dir = str(Path("workflow_" + secrets.token_hex(3)))
 
         if self.specs is not None:
             self.prefix = self.specs.get("ensemble_dir_path", "./ensemble")

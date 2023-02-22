@@ -331,6 +331,12 @@ class LibeSpecs(BaseModel):
     workers: Optional[List[str]]
     """ TCP Only: A list of worker hostnames """
 
+    use_output_dir: Optional[bool] = False
+    """
+    Whether to store all log files and ensemble-directories into a separate `workflow`
+    directory. New runs and workflow directories will be automatically differentiated
+    """
+
     ensemble_copy_back: Optional[bool] = False
     """
     Whether to copy back directories within ``ensemble_dir_path`` back to launch
