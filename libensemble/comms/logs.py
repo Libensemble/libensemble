@@ -155,7 +155,7 @@ def worker_logging_config(comm, worker_id=None):
     slogger.addHandler(ch)
 
 
-def manager_logging_config(specs):
+def manager_logging_config(specs={}):
     """Add file-based logging at manager."""
     stat_timer = Timer()
     stat_timer.start()
@@ -165,8 +165,8 @@ def manager_logging_config(specs):
 
     if not logconfig.logger_set:
 
-        if specs["use_workflow_dir"]:  # placing logfiles in separate directory
-            logconfig.set_directory(specs["workflow_dir"])
+        if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
+            logconfig.set_directory(specs.get("workflow_dir"))
 
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
