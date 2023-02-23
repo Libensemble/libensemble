@@ -272,7 +272,7 @@ class Worker:
                 else:
                     return out, Work["persis_info"], calc_status
             else:
-                return np.zeros(1), Work["persis_info"], calc_status
+                return None, Work["persis_info"], calc_status
 
         except Exception as e:
             logger.debug(f"Re-raising exception from calc {e}")
