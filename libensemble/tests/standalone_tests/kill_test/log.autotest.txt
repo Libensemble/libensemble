@@ -1,0 +1,112 @@
+Kill tests
+==========
+
+Launching MPI tasks which write at regular intervals to an output file (see sleep_and_print.c).
+
+This test launches a job, then kills after a few seconds, and then monitors
+file to see if output continues. If the first job is successfully killed, a
+second is launched and the test repeated.
+
+Instructions
+------------
+
+Build the C program:
+    mpicc -g -o sleep_and_print.x sleep_and_print.c
+    OR (e.g. on Theta/Cori):
+    cc -g -o sleep_and_print.x sleep_and_print.c
+
+Either run on local node - or create an allocation of nodes and run::
+
+    python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
+
+where kill_type currently is 1 or 2. [1 is the original kill - 2 is using group ID approach]
+
+E.g Single node with 4 processes:
+--------------------------------
+kill 1: python killtest.py 1 1 4
+kill 2: python killtest.py 2 1 4
+--------------------------------
+
+E.g Two nodes with 2 processes each:
+--------------------------------
+kill 1: python killtest.py 1 2 2
+kill 2: python killtest.py 2 2 2
+--------------------------------
+
+
+Results
+---------------------------------------------------------------------
+
+2018-07-03:
+
+Ubuntu laptop (mpich)::
+
+    Single node on 4 processes:
+
+    kill 1: Works
+    kill 2: Works
+
+Bebop (intelmpi)::
+
+    Single node on 4 processes:
+
+    kill 1: Fails
+    kill 2: Works
+
+    Two nodes with 2 processes each:
+
+    kill 1: Fails
+    kill 2: Works
+
+    [*Update 2019: kill 1 seems to also work if use srun instead of mpirun]
+
+Cooley (intelmpi)::
+
+    Single node on 4 processes:
+
+    kill 1: Fails
+    kill 2: Works
+
+    Two nodes with 2 processes each:
+
+    kill 1:
+    kill 2:
+
+Theta (intelmpi)::
+
+    Single node on 4 processes:
+
+    kill 1: Fails (Works with 'module unload xalt')
+    kill 2: Launch does not work
+
+    Two nodes with 2 processes each:
+
+    kill 1: Fails (Works with 'module unload xalt')
+    kill 2: Launch does not work
+
+    Kill type 2:
+      Detaches subprocess from controlling terminal - but ALPS uses PID to keep track of things
+      so cannot do this on Theta.
+
+    Solution:
+    Module unload xalt
+
+    Now kill type 1 works (presumably supported by ALPS system).
+    xalt creates a wrapper around aprun - and kill just kills the wrapping process.
+
+    Alternative - may be to use apkill. This may work without unloading xalt - not tried.
+
+
+Cori (intelmpi - launched with srun)::
+
+    Single node on 4 processes:
+
+    kill 1: Works
+    kill 2: Works
+
+    Two nodes with 2 processes each:
+
+    kill 1: Works
+    kill 2: Works
+
+    *Note: Launching of sruns from python subprocess is slow.

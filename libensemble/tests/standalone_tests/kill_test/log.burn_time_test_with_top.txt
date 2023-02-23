@@ -1,0 +1,109 @@
+Kill tests
+==========
+
+Launching MPI tasks and observing processes with top on each compute node:
+Note: This is NOT an automated test.
+
+Instructions
+------------
+
+Either run on local node - or create an allocation of nodes and run::
+
+    python killtest.py <kill_type> <num_nodes> <num_procs_per_node>
+
+where kill_type currently is 1 or 2. [1 is the original kill - 2 is using group ID approach]
+
+Then observe "top" on target nodes for burn_time.x processes.
+
+The processes should appear, then disappear after first job killed, then appear and disappear after second job killed.
+Also output files for tasks (e.g. out_0.txt out_1.txt) should be created but empty (as job killed before output)
+If output files contain anything (e.g., "Sum =") - they were not killed before finishing.
+
+To kill remaining processes from command line use::
+
+    pkill burn_time.x
+
+
+Results
+---------------------------------------------------------------------
+
+2018-06-29:
+
+Single node with 4 processes:
+--------------------------------
+kill 1: python killtest.py 1 1 4
+kill 2: python killtest.py 2 1 4
+--------------------------------
+
+Ubuntu laptop (mpich)::
+
+    kill 1: Works
+    kill 2: Works
+
+Bebop (intelmpi)::
+
+    kill 1: Fails
+    kill 2: Works
+
+Cooley (intelmpi)::
+
+    kill 1: Fails
+    kill 2: Works
+
+Theta (intelmpi)::
+
+    kill 1:
+    kill 2:
+
+
+
+2018-07-02:
+
+Two nodes with 4 processes per node:
+------------------------------------
+kill 1: python killtest.py 1 2 4
+kill 2: python killtest.py 2 2 4
+------------------------------------
+
+Bebop (intelmpi)::
+
+    kill 1: Fails
+    kill 2: Works
+
+Cooley (intelmpi)::
+
+    kill 1:
+    kill 2:
+
+Theta (intelmpi)::
+
+    kill 1:
+    kill 2:
+
+
+
+Example:
+---------------------------------------------------------------------
+
+Running on Cooley - for my directory setup (maybe should store in project space).
+
+    qsub -I -n 1 -t 30 #get interactive session
+
+In session:
+
+    . ~/.bashrc #Cooley does not run
+
+Make sure got intel/mpi modules loaded. Then run:
+
+    ./build.sh
+    python killtest.py 1 1 4  #observe with top in another shell on that node (see below)
+    python killtest.py 2 1 4  #observe with top in another shell on that node (see below)
+
+If processes don't stop:
+
+    pkill burn_time.x # Kills all processes of given name.
+
+In second shell. Log in to whatever qsub node you got:
+    top
+
+Four burn_time.x processes should appear, then go, then come, then go.
