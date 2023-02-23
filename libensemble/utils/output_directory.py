@@ -1,6 +1,8 @@
 import os
 import re
+import secrets
 import shutil
+from pathlib import Path
 from typing import Optional, Union
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
@@ -29,6 +31,7 @@ class EnsembleDirectory:
 
     Parameters
     ----------
+
     libE_specs: dict
         Parameters/information for libE operations. EnsembleDirectory only extracts
         values specific for ensemble directory operations. Can technically contain
@@ -42,6 +45,7 @@ class EnsembleDirectory:
 
         self.specs = libE_specs
         self.loc_stack = loc_stack
+        self.workflow_dir = str(Path("workflow_" + secrets.token_hex(3)))
 
         if self.specs is not None:
             self.prefix = self.specs.get("ensemble_dir_path", "./ensemble")
@@ -147,7 +151,7 @@ class EnsembleDirectory:
                 os.makedirs(self.prefix, exist_ok=True)
             calc_prefix = self.prefix
 
-        # Register calc dir with adjusted parent dir and source-file location
+        # Register calc dir with adjusted parent dir and sourcefile location
         locs.register_loc(
             calc_dir,
             calc_dir,  # Dir name also label in loc stack dict

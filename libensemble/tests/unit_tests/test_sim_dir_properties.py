@@ -44,7 +44,7 @@ def test_copy_back(tmp_path):
     back their work into a directory created by the manager."""
 
     inputdir = tmp_path / "calc"
-    copybackdir = "./calc"
+    copybackdir = "./calc_back"
     inputfile = tmp_path / "calc/file"
 
     for dir in [inputdir, copybackdir]:
@@ -172,6 +172,38 @@ def test_loc_stack_FileExists_exceptions(tmp_path):
         shutil.rmtree(dir)
 
 
+def test_workflow_dir_copyback(tmp_path):
+    """When workers conclude their work, workers have the option of copying
+    back their work into the workflow directory."""
+
+    inputdir = tmp_path / "calc"
+    inputfile = tmp_path / "calc/file"
+
+    for dire in [inputdir, inputfile]:
+        os.makedirs(dire, exist_ok=True)
+
+    libE_specs = {
+        "sim_dirs_make": True,
+        "ensemble_dir_path": tmp_path,
+        "ensemble_copy_back": True,
+        "use_workflow_dir": True,
+        "workflow_dir": "./fake_workflow",
+    }
+
+    ls = LocationStack()
+    ls.register_loc("test", inputfile)
+    ed = EnsembleDirectory(libE_specs, ls)
+    copybackdir = ed.copybackdir
+
+    assert "./fake_workflow" in copybackdir, "workflow_dir wasn't considered as destination for copyback"
+
+    ed.copy_back()
+    assert "file" in os.listdir(copybackdir), "File not copied back to starting dir"
+
+    for dire in [inputdir, copybackdir]:
+        shutil.rmtree(dire)
+
+
 if __name__ == "__main__":
     test_range_single_element()
     test_range_two_separate_elements()
@@ -180,3 +212,4 @@ if __name__ == "__main__":
     test_copy_back()
     test_worker_dirs_but_no_sim_dirs()
     test_loc_stack_FileExists_exceptions()
+    test_workflow_dir_copyback()
