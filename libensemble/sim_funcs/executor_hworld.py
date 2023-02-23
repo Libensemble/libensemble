@@ -144,7 +144,7 @@ def executor_hworld(H, _, sim_specs):
     # This is just for testing at calling script level - status of each task
     H_o["cstat"] = calc_status
 
-    return H_o, _, calc_status
+    return H_o, calc_status
 
 
 def six_hump_camel_func(x):

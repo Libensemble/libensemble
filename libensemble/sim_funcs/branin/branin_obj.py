@@ -9,7 +9,7 @@ import numpy as np
 from libensemble.sim_funcs.branin.branin import branin
 
 
-def call_branin(H, persis_info, sim_specs):
+def call_branin(H, _, sim_specs):
     """Evaluates the Branin function"""
     batch = len(H["x"])
 

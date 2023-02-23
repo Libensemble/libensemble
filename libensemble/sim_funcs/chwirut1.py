@@ -255,7 +255,7 @@ def EvaluateJacobian(x):
     return j
 
 
-def chwirut_eval(H, persis_info, sim_specs):
+def chwirut_eval(H, _, sim_specs):
     """
     Evaluates the chwirut objective function at a given set of points in
     ``H["x"]``. If ``"obj_component"`` is a field in ``sim_specs["out"]``, only that
