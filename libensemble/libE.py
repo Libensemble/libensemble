@@ -367,6 +367,9 @@ def libE(
 
     Resources.init_resources(libE_specs)
 
+    if libE_specs["use_workflow_dir"]:
+        libE_specs["workflow_dir"].mkdir(parents=True, exist_ok=True)
+
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
@@ -487,7 +490,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     from libensemble.comms.mpi import MainMPIComm
 
     if not libE_specs["disable_log_files"]:
-        exit_logger = manager_logging_config()
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
@@ -576,7 +579,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
         resources.set_resource_manager(libE_specs["nworkers"])
 
     if not libE_specs["disable_log_files"]:
-        exit_logger = manager_logging_config()
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
@@ -684,7 +687,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             _, port = tcp_manager.address
 
         if not libE_specs["disable_log_files"]:
-            exit_logger = manager_logging_config()
+            exit_logger = manager_logging_config(specs=libE_specs)
         else:
             exit_logger = None
 

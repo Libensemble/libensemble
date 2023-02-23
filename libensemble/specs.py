@@ -1,5 +1,7 @@
 import os
 import random
+import secrets
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -331,11 +333,18 @@ class LibeSpecs(BaseModel):
     workers: Optional[List[str]]
     """ TCP Only: A list of worker hostnames """
 
+    use_workflow_dir: Optional[bool] = False
+    """
+    Whether to place *all* log files and ensemble-directories in a separate `workflow`
+    directory. New runs and their workflow directories will be automatically differentiated
+    """
+
     ensemble_copy_back: Optional[bool] = False
     """
     Whether to copy back directories within ``ensemble_dir_path`` back to launch
     location. Useful if ensemble directory placed on node-local storage
     """
+
     ensemble_dir_path: Optional[str] = "./ensemble"
     """
     Path to main ensemble directory containing calculation directories. Can serve
@@ -411,6 +420,14 @@ class LibeSpecs(BaseModel):
                 from mpi4py import MPI
 
                 values["mpi_comm"] = MPI.COMM_WORLD
+        return values
+
+    @root_validator
+    def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if values.get("use_workflow_dir") and not values.get("workflow_dir"):
+            values["workflow_dir"] = Path(
+                "./workflow_" + secrets.token_hex(3)
+            )  # should avoid side-effects. make dir later
         return values
 
 
