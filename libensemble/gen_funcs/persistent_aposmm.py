@@ -600,6 +600,10 @@ def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     return r_k
 
 
+def extract_rk_c(user_specs, n):
+    return user_specs.get("rk_const", ((gamma(1 + (n / 2.0)) * 5.0) ** (1.0 / n)) / sqrt(pi))
+
+
 def initialize_APOSMM(H, user_specs, libE_info):
     """
     Computes common values every time that APOSMM is reinvoked
@@ -609,7 +613,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     """
     n = len(user_specs["ub"])
 
-    rk_c = user_specs.get("rk_const", ((gamma(1 + (n / 2.0)) * 5.0) ** (1.0 / n)) / sqrt(pi))
+    rk_c = extract_rk_c(user_specs, n)
     ld = user_specs.get("lhs_divisions", 0)
     mu = user_specs.get("mu", 1e-4)
     nu = user_specs.get("nu", 0)
