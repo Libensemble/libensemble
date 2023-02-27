@@ -188,10 +188,6 @@ def test_workflow_dir_copyback(tmp_path):
         "workflow_dir": "./fake_workflow",
     }
 
-    import ipdb
-
-    ipdb.set_trace()
-
     ls = LocationStack()
     ls.register_loc("test", inputfile)
     ed = EnsembleDirectory(libE_specs, ls)
