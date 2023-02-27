@@ -22,14 +22,15 @@ class Runners:
         self.gen_f = gen_specs.get("gen_f")
         self.has_funcx_sim = len(sim_specs.get("funcx_endpoint", "")) > 0
         self.has_funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
-        self.funcx_exctr = None
+        self.sim_funcx_exctr = None
+        self.gen_funcx_exctr = None
 
         if any([self.has_funcx_sim, self.has_funcx_gen]):
             try:
-                from funcx import FuncXClient
-                from funcx.sdk.executor import FuncXExecutor
+                from funcx import FuncXExecutor
 
-                self.funcx_exctr = FuncXExecutor(FuncXClient())
+                self.sim_funcx_exctr = FuncXExecutor(sim_specs.get("funcx_endpoint")) if self.has_funcx_sim else None
+                self.gen_funcx_exctr = FuncXExecutor(gen_specs.get("funcx_endpoint")) if self.has_funcx_gen else None
 
             except ModuleNotFoundError:
                 logger.warning("funcX use detected but funcX not importable. Is it installed?")
@@ -62,6 +63,23 @@ class Runners:
             run_gen = []
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
+
+    def doing_funcx_for(self, tag) -> bool:
+        """utility to check if we're submitting to funcX for a given calc type"""
+        if tag == EVAL_SIM_TAG:
+            return self.has_funcx_sim
+        elif tag == EVAL_GEN_TAG:
+            return self.has_funcx_gen
+
+    def any_funcx(self) -> bool:
+        return any([self.has_funcx_sim, self.has_funcx_gen])
+
+    def get_endpoint(self, tag) -> str:
+        """Get funcx endpoint ID for a given calc type"""
+        if tag == EVAL_SIM_TAG:
+            return self.sim_specs["funcx_endpoint"]
+        elif tag == EVAL_GEN_TAG:
+            return self.gen_specs["funcx_endpoint"]
 
     def _normal_result(
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable

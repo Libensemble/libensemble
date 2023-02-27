@@ -3,7 +3,6 @@ libEnsemble manager routines
 ============================
 """
 
-import copy
 import cProfile
 import glob
 import logging
@@ -18,6 +17,7 @@ from typing import Any, Union
 
 import numpy as np
 import numpy.typing as npt
+from numpy.lib.recfunctions import repack_fields
 
 from libensemble.comms.comms import CommFinishedException
 from libensemble.message_numbers import (
@@ -37,11 +37,9 @@ from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
+from libensemble.utils.runners import Runners
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg
-
-if tuple(np.__version__.split(".")) >= ("1", "15"):
-    from numpy.lib.recfunctions import repack_fields
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -116,16 +114,10 @@ def manager_main(
         gen_specs["in"] = []
 
     # Send dtypes to workers
-    if "repack_fields" in globals():
-        dtypes = {
-            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-        }
-    else:
-        dtypes = {
-            EVAL_SIM_TAG: hist.H[sim_specs["in"]].dtype,
-            EVAL_GEN_TAG: hist.H[gen_specs["in"]].dtype,
-        }
+    dtypes = {
+        EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+        EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+    }
 
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
@@ -196,6 +188,8 @@ class Manager:
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
+        self.runners = Runners(sim_specs, gen_specs)
+        self._run_calc = self.runners.make_runners()
         self.exit_criteria = exit_criteria
         self.elapsed = lambda: timer.elapsed
         self.wcomms = wcomms
@@ -343,31 +337,43 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
+    def _packed_H(self, Work: dict, work_rows: npt.NDArray) -> npt.NDArray:
+        new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
+        H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
+        for i, row in enumerate(work_rows):
+            H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
+        return H_to_be_sent
+
+    # def _send_to_funcx(self, tag:int, Work:dict, work_rows:npt.NDArray) -> None:
+
     def _send_work_order(self, Work: dict, w: int) -> None:
-        """Sends an allocation function order to a worker"""
-        logger.debug(f"Manager sending work unit to worker {w}")
+        """Sends an allocation function order to a worker or funcX"""
+        tag = Work["tag"]
+        work_name = calc_type_strings[tag]
+        work_rows = Work["libE_info"]["H_rows"]
 
-        if self.resources:
-            self._set_resources(Work, w)
-
-        self.wcomms[w - 1].send(Work["tag"], Work)
-
-        if Work["tag"] == EVAL_GEN_TAG:
+        if tag == EVAL_GEN_TAG:
             self.W[w - 1]["gen_started_time"] = time.time()
 
-        work_rows = Work["libE_info"]["H_rows"]
-        work_name = calc_type_strings[Work["tag"]]
-        logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
-        if len(work_rows):
-            if "repack_fields" in globals():
-                new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
-                H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
-                for i, row in enumerate(work_rows):
-                    H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
-                # H_to_be_sent = repack_fields(self.hist.H[Work['H_fields']])[work_rows]
-                self.wcomms[w - 1].send(0, H_to_be_sent)
-            else:
-                self.wcomms[w - 1].send(0, self.hist.H[Work["H_fields"]][work_rows])
+        if self.runners.doing_funcx_for(tag):
+            logger.debug(
+                f"Manager sending {work_name} work to funcX"
+                + f"endpoint {self.runners.get_endpoint(tag)}. Rows {extract_H_ranges(Work) or None}"
+            )
+            if len(work_rows):
+                self._send_to_funcx(tag, Work, work_rows)
+        else:
+            logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
+            if self.resources:
+                self._set_resources(Work, w)
+
+            self.wcomms[w - 1].send(tag, Work)
+
+            print(len(work_rows))
+            if len(work_rows):
+                self.wcomms[w - 1].send(0, self._packed_H(Work, work_rows))
+
+        # use funcx runner via out = calc(H_to_be_sent, Work["persis_info"], Work["libE_info"])
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
@@ -580,10 +586,7 @@ class Manager:
         fields before the alloc_f call and ensures they weren't modified
         """
         if self.safe_mode:
-            if "repack_fields" in globals():
-                saveH = repack_fields(H[protected_libE_fields], recurse=True)
-            else:
-                saveH = copy.deepcopy(H[protected_libE_fields])
+            saveH = repack_fields(H[protected_libE_fields], recurse=True)
 
         alloc_f = self.alloc_specs["alloc_f"]
         output = alloc_f(
