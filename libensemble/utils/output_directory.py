@@ -76,7 +76,9 @@ class EnsembleDirectory:
                 else:
                     self.copybackdir = os.path.basename(self.ensemble_dir)  # put copyback dir in current dir
 
-                if self.copybackdir == self.ensemble_dir:  # modify copyback dir if it and ensemble dir in same dir
+                if os.path.basename(self.copybackdir) == os.path.basename(
+                    self.ensemble_dir
+                ):  # modify copyback dir if it and ensemble dir in same dir
                     self.copybackdir += "_back"
 
     def make_copyback_check(self) -> None:
