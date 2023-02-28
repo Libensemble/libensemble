@@ -1,8 +1,6 @@
 import os
 import re
-import secrets
 import shutil
-from pathlib import Path
 from typing import Optional, Union
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
@@ -45,11 +43,12 @@ class EnsembleDirectory:
 
         self.specs = libE_specs
         self.loc_stack = loc_stack
-        self.workflow_dir = str(Path("workflow_" + secrets.token_hex(3)))
 
         if self.specs is not None:
-            self.ensemble_dir = self.specs.get("ensemble_dir_path", "./ensemble")
-            self.workflow_dir = self.specs.get("workflow_dir", "")
+            self.ensemble_dir = self.specs.get("ensemble_dir_path")
+            self.workflow_dir = str(
+                self.specs.get("workflow_dir", "")
+            )  # this is a Path, need to refactor everything else to be Path too...
             self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
             self.sim_input_dir = self.specs.get("sim_input_dir", "")
             self.sim_dirs_make = self.specs.get("sim_dirs_make", False)
@@ -63,12 +62,21 @@ class EnsembleDirectory:
             self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
             self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
 
-            if self.ensemble_copy_back:
-                self.copybackdir = os.path.basename(self.ensemble_dir)
-                if self.workflow_dir:
-                    self.copybackdir = os.path.join(self.workflow_dir, self.copybackdir)
+            if self.workflow_dir and self.ensemble_dir == "ensemble":  # default ensemble dir without adjustment
+                self.ensemble_dir = os.path.join(
+                    self.workflow_dir, self.ensemble_dir
+                )  # place ensemble dir in workflow dir
 
-                elif os.path.relpath(self.ensemble_dir) == os.path.relpath(self.copybackdir):
+            if self.ensemble_copy_back:
+                if self.workflow_dir:
+                    self.copybackdir = os.path.join(
+                        self.workflow_dir, os.path.basename(self.ensemble_dir)
+                    )  # put copyback dir in same dir as workflow dir
+
+                else:
+                    self.copybackdir = os.path.basename(self.ensemble_dir)  # put copyback dir in current dir
+
+                if self.copybackdir == self.ensemble_dir:  # modify copyback dir if it and ensemble dir in same dir
                     self.copybackdir += "_back"
 
     def make_copyback_check(self) -> None:

@@ -345,7 +345,7 @@ class LibeSpecs(BaseModel):
     location. Useful if ensemble directory placed on node-local storage
     """
 
-    ensemble_dir_path: Optional[str] = "./ensemble"
+    ensemble_dir_path: Optional[str] = "ensemble"
     """
     Path to main ensemble directory containing calculation directories. Can serve
     as single working directory for workers, or contain calculation directories

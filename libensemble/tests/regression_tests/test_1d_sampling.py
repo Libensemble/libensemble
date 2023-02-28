@@ -28,7 +28,6 @@ if __name__ == "__main__":
     libE_specs["save_every_k_gens"] = 300
     libE_specs["safe_mode"] = False
     libE_specs["disable_log_files"] = True
-    libE_specs["use_workflow_dir"] = True
 
     sim_specs = {
         "sim_f": sim_f,
