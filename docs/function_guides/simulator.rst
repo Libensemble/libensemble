@@ -14,7 +14,8 @@ In practice, most ``sim_f`` function definitions written by users resemble::
 
 Where :doc:`sim_specs<../data_structures/sim_specs>` is a
 dictionary containing pre-defined parameters for the ``sim_f``, and the other
-parameters serve similar purposes to those in the ``gen_f``.
+parameters serve similar purposes to those in the ``gen_f``. Valid simulator functions
+can accept a subset of the above parameters.
 
 The pattern of setting up a local ``H``, parsing out parameters from
 :class:`sim_specs<libensemble.specs.SimSpecs>`, performing calculations, and returning the local ``H``

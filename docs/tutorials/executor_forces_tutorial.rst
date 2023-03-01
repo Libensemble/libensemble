@@ -209,7 +209,7 @@ for starters:
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
 
-    def run_forces(H, persis_info, sim_specs, libE_info):
+    def run_forces(H, _, sim_specs):
         calc_status = 0
 
         # Parse out num particles, from generator function
@@ -273,7 +273,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
         output["energy"][0] = final_energy
 
         # Return final information to worker, for reporting to manager
-        return output, persis_info, calc_status
+        return output, calc_status
 
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
