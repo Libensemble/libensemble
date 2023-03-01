@@ -28,6 +28,10 @@ def sim_f(In):
     return Out
 
 
+def sim_f_noreturn(In):
+    print(np.linalg.norm(In))
+
+
 if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
@@ -58,3 +62,15 @@ if __name__ == "__main__":
         assert len(H) >= 501
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
+
+    # Test running a sim_f without any returns
+    sim_specs = {
+        "sim_f": sim_f_noreturn,
+        "in": ["x"],
+    }
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+
+    if is_manager:
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
