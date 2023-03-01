@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from pathlib import Path
 from typing import Optional, Union
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
@@ -45,7 +46,7 @@ class EnsembleDirectory:
         self.loc_stack = loc_stack
 
         if self.specs is not None:
-            self.ensemble_dir = self.specs.get("ensemble_dir_path")
+            self.ensemble_dir = self.specs.get("ensemble_dir_path", "ensemble")
             self.workflow_dir = str(
                 self.specs.get("workflow_dir", "")
             )  # this is a Path, need to refactor everything else to be Path too...
@@ -76,13 +77,13 @@ class EnsembleDirectory:
                 else:
                     self.copybackdir = os.path.basename(self.ensemble_dir)  # put copyback dir in current dir
 
-                if os.path.basename(self.copybackdir) == os.path.basename(
-                    self.ensemble_dir
+                if os.path.basename(self.copybackdir) == str(
+                    Path(self.ensemble_dir)
                 ):  # modify copyback dir if it and ensemble dir in same dir
                     self.copybackdir += "_back"
 
     def make_copyback_check(self) -> None:
-        """Check for existing copyback, make copyback if doesn't exist"""
+        """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
         try:
             os.rmdir(self.ensemble_dir)
         except FileNotFoundError:
