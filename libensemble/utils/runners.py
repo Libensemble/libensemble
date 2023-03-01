@@ -26,16 +26,6 @@ class Runners:
         self.sim_funcx_exctr = None
         self.gen_funcx_exctr = None
 
-        if any([self.has_funcx_sim, self.has_funcx_gen]):
-            try:
-                from funcx import FuncXExecutor
-
-                self.sim_funcx_exctr = FuncXExecutor(sim_specs.get("funcx_endpoint")) if self.has_funcx_sim else None
-                self.gen_funcx_exctr = FuncXExecutor(gen_specs.get("funcx_endpoint")) if self.has_funcx_gen else None
-
-            except ModuleNotFoundError:
-                logger.warning("funcX use detected but funcX not importable. Is it installed?")
-
     def make_runners(self) -> Dict[int, Callable]:
         """Creates functions to run a sim or gen. These functions are either
         called directly by the worker or submitted to a funcX endpoint."""
@@ -75,12 +65,21 @@ class Runners:
     def any_funcx(self) -> bool:
         return any([self.has_funcx_sim, self.has_funcx_gen])
 
-    def get_endpoint(self, tag) -> str:
+    def get_endpoint(self, tag: int) -> str:
         """Get funcx endpoint ID for a given calc type"""
         if tag == EVAL_SIM_TAG:
             return self.sim_specs["funcx_endpoint"]
         elif tag == EVAL_GEN_TAG:
             return self.gen_specs["funcx_endpoint"]
+
+    def get_funcx_client(self):
+        try:
+            from funcx import FuncXClient
+        except ModuleNotFoundError:
+            logger.warning("funcX use detected but funcX not importable. Is it installed?")
+            raise
+        else:
+            return FuncXClient()
 
     def _normal_result(
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable

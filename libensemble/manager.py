@@ -19,6 +19,7 @@ import numpy as np
 import numpy.typing as npt
 from numpy.lib.recfunctions import repack_fields
 
+from libensemble.alloc_funcs.funcx_batch import sim_work_first_funcx_batch
 from libensemble.comms.comms import CommFinishedException
 from libensemble.message_numbers import (
     EVAL_GEN_TAG,
@@ -203,6 +204,9 @@ class Manager:
             (1, "gen_max", self.term_test_gen_max),
             (1, "stop_val", self.term_test_stop_val),
         ]
+        self.funcx_client = None
+        self.funcx_simf_id = None
+        self.funcx_gen_id = None
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -221,6 +225,14 @@ class Manager:
                 "Ensemble directory already existed and wasn't empty.",
                 e,
             )
+
+        if self.runners.any_funcx():
+            self.funcx_client = self.runners.get_funcx_client()
+            if self.runners.doing_funcx_for(EVAL_SIM_TAG):
+                self.funcx_simf_id = self.funcx_client.register_function(self.runners.sim_f)
+                self.alloc_specs["alloc_f"] = sim_work_first_funcx_batch
+            if self.runners.doing_funcx_for(EVAL_GEN_TAG):
+                self.funcx_genf_id = self.funcx_client.register_function(self.runners.gen_f)
 
     # --- Termination logic routines
 
@@ -344,9 +356,15 @@ class Manager:
             H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
         return H_to_be_sent
 
-    # def _send_to_funcx(self, tag:int, Work:dict, work_rows:npt.NDArray) -> None:
+    def _prepare_for_funcx(self, tag: int, Work: dict, work_rows: npt.NDArray, nwork: int) -> None:
+        calc_in = self._packed_H(Work, work_rows)
+        libE_info = Work["libE_info"]
+        persis_info = Work["persis_info"]
+        libE_info["comm"] = None
+        user_function = self._run_calc[tag]
+        print(calc_in, persis_info, user_function)
 
-    def _send_work_order(self, Work: dict, w: int) -> None:
+    def _send_work_order(self, Work: dict, w: int, nwork: int) -> None:
         """Sends an allocation function order to a worker or funcX"""
         tag = Work["tag"]
         work_name = calc_type_strings[tag]
@@ -361,7 +379,7 @@ class Manager:
                 + f"endpoint {self.runners.get_endpoint(tag)}. Rows {extract_H_ranges(Work) or None}"
             )
             if len(work_rows):
-                self._send_to_funcx(tag, Work, work_rows)
+                self._prepare_for_funcx(tag, Work, work_rows, nwork)
         else:
             logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
             if self.resources:
@@ -369,7 +387,6 @@ class Manager:
 
             self.wcomms[w - 1].send(tag, Work)
 
-            print(len(work_rows))
             if len(work_rows):
                 self.wcomms[w - 1].send(0, self._packed_H(Work, work_rows))
 
@@ -578,6 +595,8 @@ class Manager:
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
             "use_resource_sets": self.libE_specs.get("num_resource_sets"),
+            "funcx_sim": self.runners.doing_funcx_for(EVAL_SIM_TAG),
+            "funcx_gen": self.runners.doing_funcx_for(EVAL_GEN_TAG),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -630,7 +649,7 @@ class Manager:
                     if self._sim_max_given():
                         break
                     self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
+                    self._send_work_order(Work[w], w, len(Work))  # can batch requests to funcX
                     self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
                     self.W["active"] != 0

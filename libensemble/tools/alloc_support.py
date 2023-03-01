@@ -51,6 +51,7 @@ class AllocSupport:
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
+        self.libE_info = libE_info
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
