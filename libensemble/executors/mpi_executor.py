@@ -14,6 +14,7 @@ import time
 
 import libensemble.utils.launcher as launcher
 from libensemble.resources.mpi_resources import get_MPI_variant, task_partition
+from libensemble.resources.platforms import known_systems, get_mpiexec_platforms
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
 
@@ -86,15 +87,34 @@ class MPIExecutor(Executor):
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
+        self.platform_info = None
+
+        mpi_runner_type = None
+        runner_name = None
+        subgroup_launch = None
+
+        # Apply platform options (can be overridden with custom options
+        if "LIBE_PLATFORM" in os.environ:
+            prov_system = os.environ['LIBE_PLATFORM']
+            if prov_system in known_systems:
+                print("found a known system in mpi executor")
+                self.platform_info = get_mpiexec_platforms(prov_system)
+                mpi_runner_type = self.platform_info.get("mpi_runner", mpi_runner_type)
+                runner_name = self.platform_info.get("runner_name", runner_name)
+                print(f"mpi_runner_type {mpi_runner_type}")
+                print(f"runner_name {runner_name}")
+                #subgroup_launch currently set by runner
+            else:
+                logger.warning(f"System {prov_system} is not recognised")
 
         # Apply custom options
-        mpi_runner_type = custom_info.get("mpi_runner", None)
-        runner_name = custom_info.get("runner_name", None)
-        subgroup_launch = custom_info.get("subgroup_launch", None)
+        mpi_runner_type = custom_info.get("mpi_runner", mpi_runner_type)
+        runner_name = custom_info.get("runner_name", runner_name)
+        subgroup_launch = custom_info.get("subgroup_launch", subgroup_launch)
 
         if not mpi_runner_type:
             mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name)
+        self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name, self.platform_info)
         if subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
         self.resources = None
