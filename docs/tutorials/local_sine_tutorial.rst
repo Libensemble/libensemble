@@ -90,8 +90,7 @@ For now, create a new Python file named ``generator.py``. Write the following:
     import numpy as np
 
 
-    def gen_random_sample(H_in, persis_info, gen_specs, _):
-        # Underscore ignores advanced arguments
+    def gen_random_sample(H_in, persis_info, gen_specs):
 
         # Pull out user parameters
         user_specs = gen_specs["user"]
@@ -165,8 +164,7 @@ Create a new Python file named ``simulator.py``. Write the following:
     import numpy as np
 
 
-    def sim_find_sine(H_in, persis_info, sim_specs, _):
-        # underscore for internal/testing arguments
+    def sim_find_sine(H_in, _, sim_specs):
 
         # Create an output array of a single zero
         out = np.zeros(1, dtype=sim_specs["out"])
@@ -175,7 +173,7 @@ Create a new Python file named ``simulator.py``. Write the following:
         out["y"] = np.sin(H_in["x"])
 
         # Send back our output and persis_info
-        return out, persis_info
+        return out
 
 Our simulator function is called by a worker for every work item produced by
 the generator function. This function calculates the sine of the passed value,
@@ -199,12 +197,12 @@ value, using the ``numpy.cos(x)`` function.
        import numpy as np
 
 
-       def sim_find_cosine(H_in, persis_info, gen_specs, _):
+       def sim_find_cosine(H_in, _, sim_specs):
            out = np.zeros(1, dtype=sim_specs["out"])
 
            out["y"] = np.cos(H_in["x"])
 
-           return out, persis_info
+           return out
 
 Calling Script
 --------------
@@ -240,7 +238,7 @@ being passed to our functions. These dictionaries also describe to libEnsemble
 what inputs and outputs from those functions to expect.
 
 .. code-block:: python
-    :linenos:
+   :linenos:
 
    gen_specs = {
        "gen_f": gen_random_sample,  # Our generator function

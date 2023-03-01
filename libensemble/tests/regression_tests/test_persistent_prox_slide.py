@@ -22,6 +22,7 @@ The number gens will be 4.
 
 import os
 import sys
+import time
 import urllib.request
 
 import numpy as np
@@ -44,6 +45,14 @@ if __name__ == "__main__":
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
     if nworkers < 5:
         sys.exit("This tests requires at least 5 workers (6 MPI processes)...")
+
+    if is_manager:
+        fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
+        urllib.request.urlretrieve(fname, os.path.abspath("./wdbc.data"))
+        os.rename("./wdbc.data", "./wdbc_done.data")
+
+    while not os.path.isfile("./wdbc_done.data"):
+        time.sleep(0.01)
 
     num_gens = 4
     A = spp.diags([2, 3, 3, 2]) - get_k_reach_chain_matrix(num_gens, 2)
@@ -92,13 +101,6 @@ if __name__ == "__main__":
                 persis_info["gen_params"] = {"df_i_eval": df}
 
         if prob_id >= 2:
-            if prob_id == 3:
-                if is_manager:
-                    fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
-                    urllib.request.urlretrieve(fname, os.path.abspath("./wdbc.data"))
-
-            if libE_specs["comms"] == "mpi":
-                libE_specs["mpi_comm"].Barrier()
 
             persis_info["print_progress"] = 0
             sim_f = svm_eval
@@ -108,7 +110,7 @@ if __name__ == "__main__":
                 prob_name += " w/ stoppage"
             err_const = 1e1
             N_const = 1
-            b, X = readin_csv(os.path.abspath("./wdbc.data"))
+            b, X = readin_csv(os.path.abspath("./wdbc_done.data"))
             X = X.T
             c = 0.1
 

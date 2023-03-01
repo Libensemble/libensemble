@@ -6,7 +6,7 @@ Generator Functions
 As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by a
 libEnsemble worker via the following::
 
-    out = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
+    out, persis_info, calc_status = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
 
 In practice, most ``gen_f`` function definitions written by users resemble::
 
@@ -17,7 +17,8 @@ Where ``H`` is a selection of the
 ``alloc_f``, :ref:`persis_info<datastruct-persis-info>` is a dictionary
 containing state information, :ref:`gen_specs<datastruct-gen-specs>` is a
 dictionary containing pre-defined parameters for the ``gen_f``, and ``libE_info``
-is a dictionary containing libEnsemble-specific entries. See the API above for
+is a dictionary containing libEnsemble-specific entries. Valid generator functions
+can accept a subset of the above parameters. See the API above for
 more detailed descriptions of the parameters.
 
 .. note::
@@ -35,7 +36,7 @@ array based on the datatype in ``gen_specs["out"]``, to be returned. For example
 
 This array should be populated by whatever values are generated within
 the function. Finally, this array should be returned to libEnsemble
-alongside ``persis_info``::
+alongside ``persis_info`` if it was passed in::
 
         return local_H_out, persis_info
 

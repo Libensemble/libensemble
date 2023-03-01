@@ -33,7 +33,7 @@ from libensemble.resources.resources import Resources
 from libensemble.tools.persistent_support import PersistentSupport
 
 
-def six_hump_camel(H, persis_info, sim_specs, _):
+def six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel function for a collection of points given in ``H["x"]``.
     Additionally evaluates the gradient if ``"grad"`` is a field in
@@ -59,7 +59,7 @@ def six_hump_camel(H, persis_info, sim_specs, _):
     return H_o, persis_info
 
 
-def six_hump_camel_simple(x, persis_info, sim_specs, _):
+def six_hump_camel_simple(x, _, sim_specs):
     """
     Evaluates the six hump camel function for a single point ``x``.
 
@@ -74,10 +74,10 @@ def six_hump_camel_simple(x, persis_info, sim_specs, _):
     if "pause_time" in sim_specs["user"]:
         time.sleep(sim_specs["user"]["pause_time"])
 
-    return H_o, persis_info
+    return H_o
 
 
-def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info):
+def six_hump_camel_with_variable_resources(H, _, sim_specs):
     """
     Evaluates the six hump camel for a collection of points given in ``H["x"]``
     via the executor, supporting variable sized simulations/resources, as
@@ -135,10 +135,10 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
     elif any(t == "FAILED" for t in task_states):
         calc_status = TASK_FAILED
 
-    return H_o, persis_info, calc_status
+    return H_o, calc_status
 
 
-def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
+def six_hump_camel_CUDA_variable_resources(H, _, sim_specs, libE_info):
     """Launches an app setting GPU resources
 
     The standard test apps do not run on GPU, but demonstrates accessing resource
@@ -183,7 +183,7 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         H_o["f"] = float(f.readline().strip())  # Read just first line
 
     calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
-    return H_o, persis_info, calc_status
+    return H_o, calc_status
 
 
 def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):

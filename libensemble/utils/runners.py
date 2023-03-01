@@ -1,3 +1,4 @@
+import inspect
 import logging
 import logging.handlers
 from typing import Callable, Dict, Optional
@@ -85,7 +86,9 @@ class Runners:
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable
     ) -> (npt.NDArray, dict, Optional[int]):
         """User function called in-place"""
-        return user_f(calc_in, persis_info, specs, libE_info)
+        nparams = len(inspect.signature(user_f).parameters)
+        args = [calc_in, persis_info, specs, libE_info]
+        return user_f(*args[:nparams])
 
     def _funcx_result(
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable

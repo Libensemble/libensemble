@@ -32,7 +32,7 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
     import numpy as np
 
 
-    def six_hump_camel(H, persis_info, sim_specs, _):
+    def six_hump_camel(H, _, sim_specs):
         """Six-Hump Camel sim_f."""
 
         batch = len(H["x"])  # Num evaluations each sim_f call.
@@ -41,7 +41,7 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
         for i, x in enumerate(H["x"]):
             H_o["f"][i] = three_hump_camel_func(x)  # Function evaluations placed into H
 
-        return H_o, persis_info
+        return H_o
 
 
     def six_hump_camel_func(x):

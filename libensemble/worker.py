@@ -253,22 +253,27 @@ class Worker:
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
-            assert isinstance(out, tuple), "Calculation output must be a tuple."
-            assert len(out) >= 2, "Calculation output must be at least two elements."
-
-            if len(out) >= 3:
-                calc_status = out[2]
-            else:
-                calc_status = UNSET_TAG
-
+            calc_status = UNSET_TAG
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
-                if tag in [STOP_TAG, PERSIS_STOP]:
-                    if message is MAN_SIGNAL_FINISH:
-                        calc_status = MAN_SIGNAL_FINISH
+                if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
+                    calc_status = MAN_SIGNAL_FINISH
 
-            return out[0], out[1], calc_status
+            if out:  # better way of doing this logic?
+                if len(out) >= 3:  # Out, persis_info, calc_status
+                    calc_status = out[2]
+                    return out
+                elif len(out) == 2:  # Out, persis_info OR Out, calc_status
+                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                        calc_status = out[1]
+                        return out[0], Work["persis_info"], calc_status
+                    return *out, calc_status  # got Out, persis_info
+                else:
+                    return out, Work["persis_info"], calc_status
+            else:
+                return None, Work["persis_info"], calc_status
+
         except Exception as e:
             logger.debug(f"Re-raising exception from calc {e}")
             calc_status = CALC_EXCEPTION
