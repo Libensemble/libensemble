@@ -13,7 +13,7 @@ import logging
 import time
 
 import libensemble.utils.launcher as launcher
-from libensemble.resources.mpi_resources import get_MPI_variant, task_partition
+from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.resources.platforms import known_systems, get_mpiexec_platforms
 from libensemble.executors.executor import Executor, Task, ExecutorException
 from libensemble.executors.mpi_runner import MPIRunner
@@ -103,7 +103,7 @@ class MPIExecutor(Executor):
                 runner_name = self.platform_info.get("runner_name", runner_name)
                 print(f"mpi_runner_type {mpi_runner_type}")
                 print(f"runner_name {runner_name}")
-                #subgroup_launch currently set by runner
+                # subgroup_launch set by runner
             else:
                 logger.warning(f"System {prov_system} is not recognised")
 

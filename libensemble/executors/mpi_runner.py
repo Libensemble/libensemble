@@ -85,25 +85,25 @@ class MPIRunner:
         return hostlist, machinefile
 
     def _set_gpu_cli_option(self, extra_args, gpu_setting_name, num_slots_per_node):
-            """Update extra args with the GPU setting for the MPI runner"""
-            # print(f'setting name {gpu_setting_name} {num_slots_per_node=}')  #testing
+        """Update extra args with the GPU setting for the MPI runner"""
+        # print(f'setting name {gpu_setting_name} {num_slots_per_node=}')  #testing
 
-            if gpu_setting_name.endswith("="):
-                gpus_opt = gpu_setting_name + str(num_slots_per_node)
-            else:
-                gpus_opt = gpu_setting_name + " " + str(num_slots_per_node)
+        if gpu_setting_name.endswith("="):
+            gpus_opt = gpu_setting_name + str(num_slots_per_node)
+        else:
+            gpus_opt = gpu_setting_name + " " + str(num_slots_per_node)
 
-            if extra_args is None:
-                extra_args = gpus_opt
-            else:
-                extra_args = " ".join((extra_args, gpus_opt))
-            # print(f"platform read: extra_args: {extra_args}") #Testing
-            return extra_args
+        if extra_args is None:
+            extra_args = gpus_opt
+        else:
+            extra_args = " ".join((extra_args, gpus_opt))
+        # print(f"platform read: extra_args: {extra_args}") #Testing
+        return extra_args
 
     #TODO: workerID, procs_per_node only for test print -> remove
     def _local_runner_set_gpus(self, wresources, extra_args, num_slots_per_node, workerID, procs_per_node):
         if self.default_gpu_arg is not None:
-            gpu_setting_name =  self.default_gpu_arg
+            gpu_setting_name = self.default_gpu_arg
             extra_args = self._set_gpu_cli_option(extra_args, gpu_setting_name, num_slots_per_node)
 
         else:
