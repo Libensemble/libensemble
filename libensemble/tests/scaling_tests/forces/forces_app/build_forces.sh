@@ -32,8 +32,12 @@ mpicc -O3 -o forces.x forces.c -lm
 # Building with OpenMP for target device (e.g. GPU)
 # Need to toggle to OpenMP target directive in forces.c.
 
-# xl
-# xlc_r -O3 -qsmp=omp -qoffload -o forces.x forces.c
+# xl (plain and using mpicc on Summit)
+# xlc_r -DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
+# mpicc -DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
+
+# Summit with gcc (Need up to offload capable gcc: module load gcc/12.1.0) - slower than xlc
+# mpicc -DGPU -Ofast -fopenmp -Wl,-rpath=/sw/summit/gcc/12.1.0-0/lib64 -lm -foffload=nvptx-none forces.c -o forces.x
 
 # Nvidia (nvc) compiler with mpicc and on Cray system with target (Perlmutter)
 # mpicc -O3 -fopenmp -mp=gpu -o forces.x forces.c
