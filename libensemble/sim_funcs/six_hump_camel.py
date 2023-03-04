@@ -9,6 +9,7 @@ __all__ = [
     "six_hump_camel",
     "six_hump_camel_simple",
     "six_hump_camel_with_variable_resources",
+    "six_hump_camel_GPU_variable_resources",
     "six_hump_camel_CUDA_variable_resources",
     "persistent_six_hump_camel",
 ]
@@ -22,7 +23,9 @@ from libensemble.message_numbers import UNSET_TAG, WORKER_DONE, TASK_FAILED
 from libensemble.resources.resources import Resources
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG
+from libensemble.tools.test_support import check_gpu_setting
 
+#TODO May remove/move six_hump_camel_with_variable_resources / six_hump_camel_CUDA_variable_resources
 
 def six_hump_camel(H, persis_info, sim_specs, _):
     """
@@ -105,10 +108,13 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
             stderr="err.txt",
             dry_run=dry_run,
         )
-        task.wait()
-        # while(not task.finished):
-        #     time.sleep(0.1)
-        #     task.poll()
+
+        if not dry_run:
+            task.wait()  # Wait for run to complete
+
+            # while(not task.finished):
+            #     time.sleep(0.1)
+            #     task.poll()
 
         task_states.append(task.state)
 
@@ -128,28 +134,79 @@ def six_hump_camel_with_variable_resources(H, persis_info, sim_specs, libE_info)
 
     return H_o, persis_info, calc_status
 
+def six_hump_camel_GPU_variable_resources(H, persis_info, sim_specs, libE_info):
+    """Launches an app and automatically assigns GPU resources.
+
+    The six_hump_camel app does not run on the GPU, but this test demonstrates
+    how to automatically assign the GPUs given to this worker via the MPIExecutor.
+    The method used to assign GPUs will be determined by the MPI runner or other
+    detected system parameters. It may also be explicitly configured (e.g., by
+    setting the LIBE_PLATFORM environment variable).
+
+    See the forces_gpu tutorial for an example with an actual GPU application.
+    See six_hump_camel_CUDA_variable_resources for an example where the sim function
+    interrogates available resources and sets explicitly.
+    """
+    x = H["x"][0]
+    H_o = np.zeros(1, dtype=sim_specs["out"])
+    dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
+    inpt = " ".join(map(str, x)) # Application input
+
+    exctr = Executor.executor  # Get Executor
+
+    # Launch application via system MPI runner, using assigned resources.
+    task = exctr.submit(
+        app_name="six_hump_camel",
+        app_args=inpt,
+        auto_assign_gpus = True,
+        match_procs_to_gpus = True,
+        stdout="out.txt",
+        stderr="err.txt",
+        dry_run = dry_run,
+    )
+
+    if not dry_run:
+        task.wait()  # Wait for run to complete
+
+        # Access app output
+        with open("out.txt") as f:
+            H_o["f"] = float(f.readline().strip())  # Read just first line
+
+    check_gpu_setting(task, print_setting=True)  # Asserts GPU set correctly
+
+    calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
+    return H_o, persis_info, calc_status
+
 
 def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info):
     """Launches an app setting GPU resources
 
     The standard test apps do not run on GPU, but demonstrates accessing resource
     information to set ``CUDA_VISIBLE_DEVICES``, and typical run configuration.
+
+    For an equivalent function that auto-assigns GPUs using platform detection, see
+    six_hump_camel_GPU_variable_resources.
     """
     x = H["x"][0]
     H_o = np.zeros(1, dtype=sim_specs["out"])
+    dry_run = sim_specs["user"].get("dry_run", False)  # dry_run only prints run lines in ensemble.log
 
     # Interrogate resources available to this worker
     resources = Resources.resources.worker_resources
     slots = resources.slots
-    gpus_per_node = resources.gpus_per_node
-    gpus_per_slot = resources.gpus_per_rset
-    print(f"From sim func: {gpus_per_node=}  {gpus_per_slot=}")
 
     assert resources.matching_slots, f"Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {slots}"
 
-    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=gpus_per_slot)
     num_nodes = resources.local_node_count
-    cores_per_node = resources.slot_count * gpus_per_slot  # One CPU per GPU
+
+    # Set to slots
+    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
+    cores_per_node = resources.slot_count
+
+    # Set to detected GPUs
+    # gpus_per_slot = resources.gpus_per_rset
+    # resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=gpus_per_slot)
+    # cores_per_node = resources.slot_count * gpus_per_slot  # One CPU per GPU
 
     print(
         f"Worker {libE_info['workerID']}: CUDA_VISIBLE_DEVICES={os.environ['CUDA_VISIBLE_DEVICES']}"
@@ -168,16 +225,20 @@ def six_hump_camel_CUDA_variable_resources(H, persis_info, sim_specs, libE_info)
         procs_per_node=cores_per_node,
         stdout="out.txt",
         stderr="err.txt",
+        dry_run = dry_run,
+        # extra_args='--gpus-per-task=1'
     )
 
-    task.wait()  # Wait for run to complete
+    if not dry_run:
+        task.wait()  # Wait for run to complete
 
-    # Access app output
-    with open("out.txt") as f:
-        H_o["f"] = float(f.readline().strip())  # Read just first line
+        # Access app output
+        with open("out.txt") as f:
+            H_o["f"] = float(f.readline().strip())  # Read just first line
 
     calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
     return H_o, persis_info, calc_status
+
 
 
 def persistent_six_hump_camel(H, persis_info, sim_specs, libE_info):

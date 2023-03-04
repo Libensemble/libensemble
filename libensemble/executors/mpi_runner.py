@@ -2,7 +2,7 @@ from libensemble.resources import mpi_resources
 from libensemble.executors.executor import jassert
 import argparse
 import logging
-from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI
+from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI, GPU_SET_CLI_GPT
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -38,6 +38,7 @@ class MPIRunner:
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--LIBE_PPN_ARG_EMPTY",)
         self.default_gpu_arg = None
+        self.default_gpu_arg_type = None
         self.platform_info = platform_info
 
     def _get_parser(self, p_args, nprocs, nnodes, ppn):
@@ -84,14 +85,14 @@ class MPIRunner:
         hostlist = mpi_resources.get_hostlist(resources, num_nodes)
         return hostlist, machinefile
 
-    def _set_gpu_cli_option(self, extra_args, gpu_setting_name, num_slots_per_node):
+    def _set_gpu_cli_option(self, wresources, extra_args, gpu_setting_name, gpu_value):
         """Update extra args with the GPU setting for the MPI runner"""
-        # print(f'setting name {gpu_setting_name} {num_slots_per_node=}')  #testing
+        jassert(wresources.even_slots, f"Cannot assign CPUs/GPUs to uneven slots per node {wresources.slots}")
 
         if gpu_setting_name.endswith("="):
-            gpus_opt = gpu_setting_name + str(num_slots_per_node)
+            gpus_opt = gpu_setting_name + str(gpu_value)
         else:
-            gpus_opt = gpu_setting_name + " " + str(num_slots_per_node)
+            gpus_opt = gpu_setting_name + " " + str(gpu_value)
 
         if extra_args is None:
             extra_args = gpus_opt
@@ -100,57 +101,57 @@ class MPIRunner:
         # print(f"platform read: extra_args: {extra_args}") #Testing
         return extra_args
 
-    #TODO: workerID, procs_per_node only for test print -> remove
-    def _local_runner_set_gpus(self, wresources, extra_args, num_slots_per_node, workerID, procs_per_node):
+    def _set_gpu_env_var(self, wresources, task, gpus_env):
+        """Add GPU environment variable setting to tasks environment"""
+        jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
+        task.add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
+
+    #TODO may be unnecesary function - could merge into _assign_to_slots flow with current options
+    def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, num_procs):
         if self.default_gpu_arg is not None:
+            arg_type = self.default_gpu_arg_type
+            gpu_value = gpus_per_node // num_procs if arg_type == GPU_SET_CLI_GPT else gpus_per_node
             gpu_setting_name = self.default_gpu_arg
-            extra_args = self._set_gpu_cli_option(extra_args, gpu_setting_name, num_slots_per_node)
-
+            extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
+            #could be self.default_gpu_arg if allow default_gpu_arg_type to be env but why set by mpi runner
             gpus_env = "CUDA_VISIBLE_DEVICES"
-            wresources.set_env_to_slots(gpus_env, multiplier=wresources.gpus_per_rset)  # to use avail GPUS.
-            import os #testing
-            print(
-                f"Local func: Worker {workerID}: {gpus_env}={os.environ[gpus_env]} ppn {procs_per_node}"
-            ) #testing
-
+            self._set_gpu_env_var(wresources, task, gpus_env)
         return extra_args
 
-    #TODO: workerID only for test print -> remove
-    def _assign_to_slots(self, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus, workerID):
+    #TODO: Need to check if num_procs is not set - use task_partition to see if can get a value
+    #      need for _local_runner_set_gpus and below in GPU_SET_CLI_GPT clause.
+    #      Do this after conversion to num_procs, num_nodes, procs_per_node to dict.
+    def _assign_to_slots(self, task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus):
         """Assign GPU resources to slots
 
         First tries getting method from user settings, otherwise use detection or default.
         """
 
         wresources = resources.worker_resources
-        num_slots_per_node = wresources.slot_count * wresources.gpus_per_rset
-        jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots {wresources.slots}")
+        gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
         gpu_setting_type = GPU_SET_DEF
 
         if match_procs_to_gpus:
             num_nodes = wresources.local_node_count
-            procs_per_node = num_slots_per_node
+            procs_per_node = gpus_per_node
+            num_procs = num_nodes * procs_per_node
             # print(f"num nodes {num_nodes} procs_per_node {procs_per_node}") #Testing
 
         if self.platform_info is not None:
             gpu_setting_type = self.platform_info.get("gpu_setting_type", gpu_setting_type)
 
-        if gpu_setting_type is GPU_SET_DEF:
-            extra_args = self._local_runner_set_gpus(wresources, extra_args, num_slots_per_node, workerID, procs_per_node)
+        if gpu_setting_type == GPU_SET_DEF:
+            extra_args = self._local_runner_set_gpus(task, wresources, extra_args, gpus_per_node, num_procs)
 
-        elif gpu_setting_type == GPU_SET_CLI:
+        elif gpu_setting_type in [GPU_SET_CLI, GPU_SET_CLI_GPT]:
+            gpu_value = gpus_per_node // num_procs if gpu_setting_type == GPU_SET_CLI_GPT else gpus_per_node
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self.default_gpu_arg)
-            extra_args = self._set_gpu_cli_option(extra_args, gpu_setting_name, num_slots_per_node)
+            extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
         elif gpu_setting_type == GPU_SET_ENV:
-
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
-            wresources.set_env_to_slots(gpus_env, multiplier=wresources.gpus_per_rset)  # to use avail GPUS.
-            import os #testing
-            print(
-                f"Assign to slots: Worker {workerID}: {gpus_env}={os.environ[gpus_env]} ppn {procs_per_node}"
-            ) #testing
+            self._set_gpu_env_var(wresources, task, gpus_env)
 
         return num_procs, num_nodes, procs_per_node, extra_args
 
@@ -182,7 +183,7 @@ class MPIRunner:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus, workerID) #worker ID only for test print
+            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus)
 
         hostlist = None
         if machinefile and not self.mfile_support:
@@ -226,6 +227,7 @@ class MPICH_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--ppn",)
         self.default_gpu_arg = None
+        self.default_gpu_arg_type = None
         self.platform_info = platform_info
 
         self.mpi_command = [
@@ -248,6 +250,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-npernode",)
         self.default_gpu_arg = None
+        self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -289,6 +292,7 @@ class APRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-N",)
         self.default_gpu_arg = None
+        self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -309,6 +313,7 @@ class MSMPI_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-cores",)
         self.default_gpu_arg = None
+        self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -328,6 +333,7 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("-N", "--nodes")
         self.arg_ppn = ("--ntasks-per-node",)
         self.default_gpu_arg = "--gpus-per-node="
+        self.default_gpu_arg_type = GPU_SET_CLI
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -350,6 +356,8 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-r",)
         self.default_gpu_arg = "-g"
+        self.default_gpu_arg_type = GPU_SET_CLI_GPT
+
         self.platform_info = platform_info
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
 
@@ -377,7 +385,7 @@ class JSRUN_MPIRunner(MPIRunner):
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus, workerID) #worker ID only for test print
+            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus)
 
         rm_rpn = True if procs_per_node is None and num_nodes is None else False
 

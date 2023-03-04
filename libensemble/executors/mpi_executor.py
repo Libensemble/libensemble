@@ -309,7 +309,8 @@ class MPIExecutor(Executor):
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
             task._set_complete(dry_run=True)
         else:
-            # Launch Task
+            # Set environment variables and launch task
+            task.implement_env()
             self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
             if not task.timer.timing and not task.finished:

@@ -6,9 +6,11 @@
 # If gpu_setting_type is GPU_SET_DEF, do not need gpu_setting_name (uses default method for MPI runner).
 
 # GPU ASSIGNMENT TYPES (user mpi runner default, use environment variable, specify mpi runner option)
-GPU_SET_DEF = 1
-GPU_SET_ENV = 2
-GPU_SET_CLI = 3  #or GPU_SET_MPI_OPT Or GPU_SET_MPI_LINE
+GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set)
+GPU_SET_ENV = 2  # Use an environment variable
+GPU_SET_CLI = 3  # Expresses GPUs per node.
+GPU_SET_CLI_GPT = 4  # Expresses GPUs per task.
+
 
 #Need to have subgroup launch (and kill?)
 #May need something like "gpu_tiles"
@@ -18,7 +20,7 @@ summit = {
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
-    "gpu_setting_type": GPU_SET_CLI,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "gpu_setting_type": GPU_SET_CLI_GPT,  # Can also use GPU_SET_DEF (which is -g for jsrun)
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
 }

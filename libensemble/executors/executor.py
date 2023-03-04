@@ -134,6 +134,7 @@ class Task:
         self.dry_run = dry_run
         self.runline = None
         self.run_attempts = 0
+        self.env = {}
 
     def reset(self):
         # Status attributes
@@ -145,6 +146,10 @@ class Task:
         self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
+
+    def add_to_env(self, key, value):
+        """Add to task environment - overwrites if already set"""
+        self.env[key] = value
 
     def workdir_exists(self):
         """Returns true if the task's workdir exists"""
@@ -189,6 +194,13 @@ class Task:
             self.timer.stop()
             self.runtime = self.timer.elapsed
             self.total_time = self.runtime  # For direct launched tasks
+
+    def implement_env(self):
+        """Set environment variables for this task"""
+        if self.env:
+            logger.debug(f"Task: {self.name}: Setting environment vars {self.env}")
+        for k, v in self.env.items():
+            os.environ[k] = v
 
     def _check_poll(self):
         """Check whether polling this task makes sense."""
@@ -666,7 +678,8 @@ class Executor:
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
         else:
-            # Launch Task
+            # Set environment variables and launch task
+            task.implement_env()
             logger.info(f"Launching task {task.name}: {' '.join(runline)}")
             with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                 task.process = launcher.launch(
