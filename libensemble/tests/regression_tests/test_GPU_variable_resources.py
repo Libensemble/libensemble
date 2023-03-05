@@ -52,7 +52,7 @@ if __name__ == "__main__":
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
 
     libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
+    libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_w" + str(nworkers)
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")

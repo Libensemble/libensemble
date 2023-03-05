@@ -97,7 +97,7 @@ class MPIExecutor(Executor):
         if "LIBE_PLATFORM" in os.environ:
             prov_system = os.environ['LIBE_PLATFORM']
             if prov_system in known_systems:
-                print("found a known system in mpi executor")
+                logger.debug(f"Found a known system in mpi executor (from env): {prov_system}")
                 self.platform_info = get_mpiexec_platforms(prov_system)
                 mpi_runner_type = self.platform_info.get("mpi_runner", mpi_runner_type)
                 runner_name = self.platform_info.get("runner_name", runner_name)
