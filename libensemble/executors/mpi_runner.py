@@ -24,7 +24,7 @@ class MPIRunner:
         }
         mpi_runner = mpi_runners[mpi_runner_type]
         if runner_name is not None:
-            runner = mpi_runner(runner_name=runner_name, platform_info=platform_info)
+            runner = mpi_runner(run_command=runner_name, platform_info=platform_info)
         else:
             runner = mpi_runner(platform_info=platform_info)
         return runner
