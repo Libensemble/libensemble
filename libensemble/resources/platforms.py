@@ -37,20 +37,32 @@ perlmutter_g = {
     "scheduler_match_slots": False,
     }
 
+polaris = {
+    "mpi_runner" : 'mpich',
+    "runner_name" : 'mpiexec',
+    "cores_per_node" : 32,
+    "log_cores_per_node" : 64,
+    "gpus_per_node" : 4,
+    "gpu_setting_type": GPU_SET_DEF,
+    "scheduler_match_slots": True,
+    }
 
+#TODO MAKE ALPHABETICAL
 # Dictionary of known systems (systems or system partitions) by name
 known_systems = {"summit": summit,
                  "perlmutter_g": perlmutter_g,
+                 "polaris": polaris,
                  }
 
 # Dictionary of known systems (systems or system partitions) detectable by domain name
 detect_systems = {"summit.olcf.ornl.gov": summit}
+# hsn.cm.polaris.alcf.anl.gov polaris  #TODO do we want to always detect if can? What about multiple node systems.
 
 
 def get_mpiexec_platforms(system_name):
     system = known_systems[system_name]
     return {"mpi_runner": system["mpi_runner"],
-            "mpi_runner_name" : system.get("mpi_runner_name"),  # only used where distinction needed
+            "runner_name" : system.get("runner_name"),  # only used where distinction needed
             "gpu_setting_type" : system["gpu_setting_type"],
             "gpu_setting_name" : system.get("gpu_setting_name"),  # Not needed with GPU_SET_DEF
             #"" : system[""],
