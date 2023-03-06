@@ -48,7 +48,7 @@ class EnsembleDirectory:
         if self.specs is not None:
             self.ensemble_dir = self.specs.get("ensemble_dir_path", "ensemble")
             self.workflow_dir = str(
-                self.specs.get("workflow_dir", "")
+                self.specs.get("workflow_dir_path", "")
             )  # this is a Path, need to refactor everything else to be Path too...
             self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
             self.sim_input_dir = self.specs.get("sim_input_dir", "")

@@ -335,8 +335,14 @@ class LibeSpecs(BaseModel):
 
     use_workflow_dir: Optional[bool] = False
     """
-    Whether to place *all* log files and ensemble-directories in a separate `workflow`
-    directory. New runs and their workflow directories will be automatically differentiated
+    Whether to place *all* log files and default ensemble-directories in a separate `workflow`
+    directory. New runs and their workflow directories will be automatically differentiated.
+    """
+
+    workflow_dir_path: Optional[str] = ""
+    """
+    Whether to place *all* log files and default ensemble-directories in a separate `workflow`
+    directory. New runs and their workflow directories will be automatically differentiated.
     """
 
     ensemble_copy_back: Optional[bool] = False
@@ -424,10 +430,12 @@ class LibeSpecs(BaseModel):
 
     @root_validator
     def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        if values.get("use_workflow_dir") and not values.get("workflow_dir"):
-            values["workflow_dir"] = Path(
+        if values.get("use_workflow_dir") and not values.get("workflow_dir_path"):
+            values["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
             )  # should avoid side-effects. make dir later
+        elif values.get("workflow_dir_path") and not values.get("use_workflow_dir"):
+            values["use_workflow_dir"] = True
         return values
 
 

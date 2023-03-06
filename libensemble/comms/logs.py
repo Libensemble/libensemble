@@ -166,7 +166,7 @@ def manager_logging_config(specs={}):
     if not logconfig.logger_set:
 
         if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
-            logconfig.set_directory(specs.get("workflow_dir"))
+            logconfig.set_directory(specs.get("workflow_dir_path"))
 
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
