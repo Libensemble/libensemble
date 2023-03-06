@@ -129,13 +129,16 @@ class MPIRunner:
         """
 
         wresources = resources.worker_resources
-        gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
+        # gpus_per_node = wresources.slot_count * wresources.gpus_per_rset  # rounds at one rset
+        gpus_per_node = wresources.slot_count * wresources.gpus_per_node // wresources.rsets_per_node
+
         gpu_setting_type = GPU_SET_DEF
 
         if match_procs_to_gpus:
             num_nodes = wresources.local_node_count
             procs_per_node = gpus_per_node
             num_procs = num_nodes * procs_per_node
+            jassert(num_procs > 0, f"Matching procs to GPUs has resulted in {num_procs} procs")
             # print(f"num nodes {num_nodes} procs_per_node {procs_per_node}") #Testing
 
         if self.platform_info is not None:
