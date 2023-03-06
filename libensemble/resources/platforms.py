@@ -1,19 +1,14 @@
 """Known platforms default configuration"""
 
-# gpu_setting may need two values - one for type and one for name
-# e.g. gpu_setting_type = "env" or gpu_set_type = "arg" (or 1 / 2)
-#      gpu_setting_name = "CUDA_VISIBLE_DEVICES" or gpu_setting_name = "--gpus-per-node="
-# If gpu_setting_type is GPU_SET_DEF, do not need gpu_setting_name (uses default method for MPI runner).
-
-# GPU ASSIGNMENT TYPES (user mpi runner default, use environment variable, specify mpi runner option)
-GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set)
+# GPU ASSIGNMENT TYPES
+GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set). gpu_setting_name not required.
 GPU_SET_ENV = 2  # Use an environment variable
-GPU_SET_CLI = 3  # Expresses GPUs per node.
-GPU_SET_CLI_GPT = 4  # Expresses GPUs per task.
+GPU_SET_CLI = 3  # Expresses GPUs per node on MPI runner command line.
+GPU_SET_CLI_GPT = 4  # Expresses GPUs per task on MPI runner command line.
 
-
-#Need to have subgroup launch (and kill?)
-#May need something like "gpu_tiles"
+# e.g.
+# "gpu_setting_type":  GPU_SET_ENV,
+# "gpu_setting_name": "ROCR_VISIBLE_DEVICES",
 
 summit = {
     "mpi_runner": "jsrun",
@@ -29,7 +24,7 @@ summit = {
 perlmutter_g = {
     "mpi_runner" : 'srun',
     "cores_per_node": 64,
-    "log_cores_per_node": 128,
+    "logical_cores_per_node": 128,
     "gpus_per_node" : 4,
     #"gpu_setting_type": GPU_SET_CLI,
     #"gpu_setting_name": "--gpus-per-node=",
@@ -41,11 +36,12 @@ polaris = {
     "mpi_runner" : 'mpich',
     "runner_name" : 'mpiexec',
     "cores_per_node" : 32,
-    "log_cores_per_node" : 64,
+    "logical_cores_per_node" : 64,
     "gpus_per_node" : 4,
     "gpu_setting_type": GPU_SET_DEF,
     "scheduler_match_slots": True,
     }
+
 
 #TODO MAKE ALPHABETICAL
 # Dictionary of known systems (systems or system partitions) by name
@@ -55,11 +51,26 @@ known_systems = {"summit": summit,
                  }
 
 # Dictionary of known systems (systems or system partitions) detectable by domain name
-detect_systems = {"summit.olcf.ornl.gov": summit}
-# hsn.cm.polaris.alcf.anl.gov polaris  #TODO do we want to always detect if can? What about multiple node systems.
+detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
+                  }
 
+#TODO Review function naming
+def get_platform_num_cores_gpus(system_name):  #act systm dict itself
+    """Return list of number of cores and gpus per node
+
+    system_name is a system dictionary or string (system name)
+
+    Form: [cores, logical_cores, gpus].
+    Any items not present are returned as None.
+    """
+    system = known_systems[system_name] if isinstance("system_name", str) else system_name
+    cores_per_node = system.get("cores_per_node")
+    logical_cores_per_node = system.get("logical_cores_per_node")
+    gpus_per_node = system.get("gpus_per_node")
+    return [cores_per_node, logical_cores_per_node, gpus_per_node]
 
 def get_mpiexec_platforms(system_name):
+    """Return dict of mpi runner info"""
     system = known_systems[system_name]
     return {"mpi_runner": system["mpi_runner"],
             "runner_name" : system.get("runner_name"),  # only used where distinction needed
