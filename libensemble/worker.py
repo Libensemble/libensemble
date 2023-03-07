@@ -247,9 +247,9 @@ class Worker:
                         calc_type,
                     )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
-                        out = calc(calc_in, Work["persis_info"], Work["libE_info"])
+                        out = calc(calc_in, Work)
                 else:
-                    out = calc(calc_in, Work["persis_info"], Work["libE_info"])
+                    out = calc(calc_in, Work)
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 

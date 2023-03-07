@@ -297,6 +297,8 @@ class AllocSupport:
                 q_inds = priorities == np.max(priorities)
             else:
                 q_inds = np.argmax(priorities)
+        elif self.libE_info.get("funcx_sim", False):  # should batch-give all available sim-work to funcX
+            return np.nonzero(points_avail)[0]
         else:
             q_inds = 0
         return np.nonzero(points_avail)[0][q_inds]

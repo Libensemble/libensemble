@@ -29,7 +29,7 @@ if __name__ == "__main__":
     libE_specs["safe_mode"] = False
     libE_specs["disable_log_files"] = True
 
-    sim_specs = {"sim_f": sim_f, "in": ["x"], "out": [("f", float)], "funcx_endpoint": 1234}
+    sim_specs = {"sim_f": sim_f, "in": ["x"], "out": [("f", float)]}
 
     gen_specs = {
         "gen_f": gen_f,

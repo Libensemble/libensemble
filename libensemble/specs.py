@@ -72,6 +72,12 @@ class SimSpecs(BaseModel):
     will submit simulator function instances to this endpoint to be executed, instead of calling them locally
     """
 
+    funcx_batch_size: Optional[int] = 128
+    """
+    The maximum-size of the number of "Work units" a worker should batch together for submitting simultaneously to
+    the funcX service.
+    """
+
     user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
@@ -132,6 +138,12 @@ class GenSpecs(BaseModel):
     """
     A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
     will submit generator function instances to this endpoint to be executed, instead of being called in-place
+    """
+
+    funcx_batch_size: Optional[int] = 1
+    """
+    The maximum-size of the number of "Work units" a worker should batch together for submitting simultaneously to
+    the funcX service.
     """
 
     user: Optional[dict] = {}
