@@ -40,11 +40,11 @@ mpicc -O3 -o forces.x forces.c -lm
 # mpicc -DGPU -Ofast -fopenmp -Wl,-rpath=/sw/summit/gcc/12.1.0-0/lib64 -lm -foffload=nvptx-none forces.c -o forces.x
 
 # Nvidia (nvc) compiler with mpicc and on Cray system with target (Perlmutter)
-# mpicc -O3 -fopenmp -mp=gpu -o forces.x forces.c
-# cc -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
+# mpicc -DGPU -O3 -fopenmp -mp=gpu -o forces.x forces.c
+# cc -DGPU -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
 
 # Spock/Crusher (AMD ROCm compiler)
-# cc -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
+# cc -DGPU -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
 
 # Intel oneAPI (Clang based) Compiler (JIT compiled for device)
-# mpiicx -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
+# mpicc -DGPU -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c
