@@ -49,40 +49,40 @@ class MPIRunner:
         args, _ = parser.parse_known_args(p_args)
         return args
 
-    def _parse_extra_args(self, num_procs, num_nodes, procs_per_node, hyperthreads, extra_args):
+    def _parse_extra_args(self, nprocs, nnodes, ppn, hyperthreads, extra_args):
 
         splt_extra_args = extra_args.split()
         p_args = self._get_parser(splt_extra_args, self.arg_nprocs, self.arg_nnodes, self.arg_ppn)
 
         # Only fill from extra_args if not set by portable options
-        if num_procs is None:
-            num_procs = p_args.num_procs
-        if num_nodes is None:
-            num_nodes = p_args.num_nodes
-        if procs_per_node is None:
-            procs_per_node = p_args.procs_per_node
+        if nprocs is None:
+            nprocs = p_args.num_procs
+        if nnodes is None:
+            nnodes = p_args.num_nodes
+        if ppn is None:
+            ppn = p_args.procs_per_node
 
         extra_args = " ".join(splt_extra_args)
-        return num_procs, num_nodes, procs_per_node, p_args
+        return nprocs, nnodes, ppn, p_args
 
-    def _rm_replicated_args(self, num_procs, num_nodes, procs_per_node, p_args):
+    def _rm_replicated_args(self, nprocs, nnodes, ppn, p_args):
         if p_args is not None:
             if p_args.num_procs is not None:
-                num_procs = None
+                nprocs = None
             if p_args.num_nodes is not None:
-                num_nodes = None
+                nnodes = None
             if p_args.procs_per_node is not None:
-                procs_per_node = None
-        return num_procs, num_nodes, procs_per_node
+                ppn = None
+        return nprocs, nnodes, ppn
 
     def express_spec(
-        self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
+        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
     ):
 
         hostlist = None
         machinefile = None
         # Always use host lists (unless uneven mapping)
-        hostlist = mpi_resources.get_hostlist(resources, num_nodes)
+        hostlist = mpi_resources.get_hostlist(resources, nnodes)
         return hostlist, machinefile
 
     def _set_gpu_cli_option(self, wresources, extra_args, gpu_setting_name, gpu_value):
@@ -107,10 +107,10 @@ class MPIRunner:
         task.add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
 
     #TODO may be unnecesary function - could merge into _assign_to_slots flow with current options
-    def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, num_procs):
+    def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, nprocs):
         if self.default_gpu_arg is not None:
             arg_type = self.default_gpu_arg_type
-            gpu_value = gpus_per_node // num_procs if arg_type == GPU_SET_CLI_GPT else gpus_per_node
+            gpu_value = gpus_per_node // nprocs if arg_type == GPU_SET_CLI_GPT else gpus_per_node
             gpu_setting_name = self.default_gpu_arg
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
@@ -119,10 +119,10 @@ class MPIRunner:
             self._set_gpu_env_var(wresources, task, gpus_env)
         return extra_args
 
-    #TODO: Need to check if num_procs is not set - use task_partition to see if can get a value
+    #TODO: Need to check if nprocs is not set - use task_partition to see if can get a value
     #      need for _local_runner_set_gpus and below in GPU_SET_CLI_GPT clause.
-    #      Do this after conversion to num_procs, num_nodes, procs_per_node to dict.
-    def _assign_to_slots(self, task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus):
+    #      Do this after conversion to nprocs, nnodes, ppn to dict.
+    def _assign_to_slots(self, task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus):
         """Assign GPU resources to slots
 
         First tries getting method from user settings, otherwise use detection or default.
@@ -135,20 +135,20 @@ class MPIRunner:
         gpu_setting_type = GPU_SET_DEF
 
         if match_procs_to_gpus:
-            num_nodes = wresources.local_node_count
-            procs_per_node = gpus_per_node
-            num_procs = num_nodes * procs_per_node
-            jassert(num_procs > 0, f"Matching procs to GPUs has resulted in {num_procs} procs")
-            # print(f"num nodes {num_nodes} procs_per_node {procs_per_node}") #Testing
+            nnodes = wresources.local_node_count
+            ppn = gpus_per_node
+            nprocs = nnodes * ppn
+            jassert(nprocs > 0, f"Matching procs to GPUs has resulted in {nprocs} procs")
+            # print(f"num nodes {nnodes} procs_per_node {ppn}") #Testing
 
         if self.platform_info is not None:
             gpu_setting_type = self.platform_info.get("gpu_setting_type", gpu_setting_type)
 
         if gpu_setting_type == GPU_SET_DEF:
-            extra_args = self._local_runner_set_gpus(task, wresources, extra_args, gpus_per_node, num_procs)
+            extra_args = self._local_runner_set_gpus(task, wresources, extra_args, gpus_per_node, nprocs)
 
         elif gpu_setting_type in [GPU_SET_CLI, GPU_SET_CLI_GPT]:
-            gpu_value = gpus_per_node // num_procs if gpu_setting_type == GPU_SET_CLI_GPT else gpus_per_node
+            gpu_value = gpus_per_node // nprocs if gpu_setting_type == GPU_SET_CLI_GPT else gpus_per_node
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self.default_gpu_arg)
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
@@ -156,14 +156,14 @@ class MPIRunner:
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
             self._set_gpu_env_var(wresources, task, gpus_env)
 
-        return num_procs, num_nodes, procs_per_node, extra_args
+        return nprocs, nnodes, ppn, extra_args
 
 
     #TODO - consider passing resources in when initiaite mpi_runner object
-    #TODO - make num_procs, num_nodes, procs_per_node a dict to reduce arguments
+    #TODO - make nprocs, nnodes, ppn a dict to reduce arguments
     #TODO - fix docstring/s in this module
     def get_mpi_specs(
-        self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args,
+        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args,
         auto_assign_gpus, match_procs_to_gpus, resources, workerID
     ):
         "Form the mpi_specs dictionary."
@@ -172,21 +172,21 @@ class MPIRunner:
 
         # Return auto_resource variables inc. extra_args additions
         if extra_args:
-            num_procs, num_nodes, procs_per_node, p_args = self._parse_extra_args(
-                num_procs, num_nodes, procs_per_node, hyperthreads, extra_args=extra_args
+            nprocs, nnodes, ppn, p_args = self._parse_extra_args(
+                nprocs, nnodes, ppn, hyperthreads, extra_args=extra_args
             )
 
         # If no_config_set and auto_assign_gpus - make match_procs_to_gpus default.
-        no_config_set = not(num_procs or num_nodes or procs_per_node)
+        no_config_set = not(nprocs or nnodes or ppn)
 
         if match_procs_to_gpus:
-            jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with any of num_procs/num_nodes/procs_per_node")
+            jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with any of nprocs/nnodes/ppn")
 
         if auto_assign_gpus:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus)
+            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus)
 
         hostlist = None
         if machinefile and not self.mfile_support:
@@ -194,27 +194,27 @@ class MPIRunner:
             machinefile = None
 
         if machinefile is None and resources is not None:
-            num_procs, num_nodes, procs_per_node = mpi_resources.get_resources(
-                resources, num_procs, num_nodes, procs_per_node, hyperthreads
+            nprocs, nnodes, ppn = mpi_resources.get_resources(
+                resources, nprocs, nnodes, ppn, hyperthreads
             )
             hostlist, machinefile = self.express_spec(
-                task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
+                task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
             )
         else:
-            num_procs, num_nodes, procs_per_node = mpi_resources.task_partition(
-                num_procs, num_nodes, procs_per_node, machinefile
+            nprocs, nnodes, ppn = mpi_resources.task_partition(
+                nprocs, nnodes, ppn, machinefile
             )
 
         # Remove portable variable if in extra_args
         if extra_args:
-            num_procs, num_nodes, procs_per_node = self._rm_replicated_args(
-                num_procs, num_nodes, procs_per_node, p_args
+            nprocs, nnodes, ppn = self._rm_replicated_args(
+                nprocs, nnodes, ppn, p_args
             )
 
         return {
-            "num_procs": num_procs,
-            "num_nodes": num_nodes,
-            "procs_per_node": procs_per_node,
+            "num_procs": nprocs,
+            "num_nodes": nnodes,
+            "procs_per_node": ppn,
             "extra_args": extra_args,
             "machinefile": machinefile,
             "hostlist": hostlist,
@@ -266,7 +266,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         ]
 
     def express_spec(
-        self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args, resources, workerID
+        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
     ):
 
         hostlist = None
@@ -278,8 +278,8 @@ class OPENMPI_MPIRunner(MPIRunner):
         if workerID is not None:
             machinefile += f"_for_worker_{workerID}"
         machinefile += f"_task_{task.id}"
-        mfile_created, num_procs, num_nodes, procs_per_node = mpi_resources.create_machinefile(
-            resources, machinefile, num_procs, num_nodes, procs_per_node, hyperthreads
+        mfile_created, nprocs, nnodes, ppn = mpi_resources.create_machinefile(
+            resources, machinefile, nprocs, nnodes, ppn, hyperthreads
         )
         jassert(mfile_created, "Auto-creation of machinefile failed")
 
@@ -365,7 +365,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
 
     def get_mpi_specs(
-        self, task, num_procs, num_nodes, procs_per_node, machinefile, hyperthreads, extra_args,
+        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args,
         auto_assign_gpus, match_procs_to_gpus, resources, workerID
     ):
 
@@ -374,52 +374,52 @@ class JSRUN_MPIRunner(MPIRunner):
         p_args = None
 
         if extra_args:
-            num_procs, num_nodes, procs_per_node, p_args = self._parse_extra_args(
-                num_procs, num_nodes, procs_per_node, hyperthreads, extra_args=extra_args
+            nprocs, nnodes, ppn, p_args = self._parse_extra_args(
+                nprocs, nnodes, ppn, hyperthreads, extra_args=extra_args
             )
 
         # If no_config_set and auto_assign_gpus - make match_procs_to_gpus default.
-        no_config_set = not(num_procs or num_nodes or procs_per_node)
+        no_config_set = not(nprocs or nnodes or ppn)
 
         if match_procs_to_gpus:
-            jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with any of num_procs/num_nodes/procs_per_node")
+            jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with any of nprocs/nnodes/ppn")
 
         if auto_assign_gpus:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            num_procs, num_nodes, procs_per_node, extra_args = self._assign_to_slots(task, resources, num_procs, num_nodes, procs_per_node, extra_args, match_procs_to_gpus)
+            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus)
 
-        rm_rpn = True if procs_per_node is None and num_nodes is None else False
+        rm_rpn = True if ppn is None and nnodes is None else False
 
         hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
         if machinefile is None and resources is not None:
-            num_procs, num_nodes, procs_per_node = mpi_resources.get_resources(
-                resources, num_procs, num_nodes, procs_per_node, hyperthreads
+            nprocs, nnodes, ppn = mpi_resources.get_resources(
+                resources, nprocs, nnodes, ppn, hyperthreads
             )
 
             # TODO: Create ERF file if mapping worker to resources req.
         else:
-            num_procs, num_nodes, procs_per_node = mpi_resources.task_partition(
-                num_procs, num_nodes, procs_per_node, machinefile
+            nprocs, nnodes, ppn = mpi_resources.task_partition(
+                nprocs, nnodes, ppn, machinefile
             )
 
         # Remove portable variable if in extra_args
         if extra_args:
-            num_procs, num_nodes, procs_per_node = self._rm_replicated_args(
-                num_procs, num_nodes, procs_per_node, p_args
+            nprocs, nnodes, ppn = self._rm_replicated_args(
+                nprocs, nnodes, ppn, p_args
             )
 
         if rm_rpn:
-            procs_per_node = None
+            ppn = None
 
         return {
-            "num_procs": num_procs,
-            "num_nodes": num_nodes,
-            "procs_per_node": procs_per_node,
+            "num_procs": nprocs,
+            "num_nodes": nnodes,
+            "procs_per_node": ppn,
             "extra_args": extra_args,
             "machinefile": machinefile,
             "hostlist": hostlist,
