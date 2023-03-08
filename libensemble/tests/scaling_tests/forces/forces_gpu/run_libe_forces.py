@@ -18,6 +18,9 @@ from libensemble.executors import MPIExecutor
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+# To test on system without GPUs - compile forces without -DGPU and mock GPUs with this line.
+# libE_specs["resource_info"] = {"gpus_on_node": 4}
+
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
 # exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter

@@ -2,13 +2,19 @@ import numpy as np
 
 # To retrieve our MPI Executor and resources instances
 from libensemble.executors.executor import Executor
-from libensemble.resources.resources import Resources
 
 # Optional status codes to display in libE_stats.txt for each gen or sim
 from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
+# Optional - to print GPU settings
+from libensemble.tools.test_support import check_gpu_setting
 
 def run_forces(H, persis_info, sim_specs, libE_info):
+    """Launches the forces MPI app and auto-assigns ranks and GPU resources.
+
+    Assigns one MPI rank to each GPU assigned to the worker.
+    """
+
     calc_status = 0
 
     # Parse out num particles, from generator function
@@ -19,23 +25,20 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     # Retrieve our MPI Executor instance and resources
     exctr = Executor.executor
-    resources = Resources.resources.worker_resources
-
-    resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
-
-    # print(f"SIM Nodes {resources.local_node_count} Slots per node: {resources.slot_count}")
 
     # Submit our forces app for execution. Block until the task starts.
     task = exctr.submit(
         app_name="forces",
         app_args=args,
-        num_nodes=resources.local_node_count,
-        procs_per_node=resources.slot_count,
-        # extra_args="--gpus-per-task=1"  # Let slurm assign GPUs
+        auto_assign_gpus = True,
+        match_procs_to_gpus = True,
     )
 
     # Block until the task finishes
     task.wait()
+
+    # Optional - prints GPU assignment (method and numbers)
+    check_gpu_setting(task, assert_setting=False, print_setting=True)
 
     # Stat file to check for bad runs
     statfile = "forces.stat"
