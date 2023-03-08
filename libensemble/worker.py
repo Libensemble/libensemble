@@ -90,6 +90,10 @@ def worker_main(
 
     # Receive dtypes from manager
     _, dtypes = comm.recv()
+
+    if libE_specs.get("use_workflow_dir"):
+        _, libE_specs["workflow_dir_path"] = comm.recv()
+
     workerID = workerID or comm.rank
 
     # Initialize logging on comms

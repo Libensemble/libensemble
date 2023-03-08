@@ -367,9 +367,6 @@ def libE(
 
     Resources.init_resources(libE_specs)
 
-    if libE_specs["use_workflow_dir"]:
-        libE_specs["workflow_dir_path"].mkdir(parents=True, exist_ok=True)
-
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 

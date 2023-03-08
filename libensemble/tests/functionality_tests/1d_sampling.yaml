@@ -1,6 +1,7 @@
 libE_specs:
     save_every_k_gens: 300
     safe_mode: False
+    use_workflow_dir: True
 
 exit_criteria:
     gen_max: 501

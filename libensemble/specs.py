@@ -20,7 +20,6 @@ from libensemble.utils.specs_checkers import (
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
 _OUT_DTYPE_ERR = "Unable to coerce '{}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
-_IN_MISSING_ERR = "SimSpecs requires specification of input fields"
 _IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
 
@@ -91,8 +90,6 @@ class SimSpecs(BaseModel):
 
     @validator("inputs", "persis_in", pre=True)
     def check_valid_in(cls, v):
-        if not v:
-            raise ValueError(_IN_MISSING_ERR)
         if not all(isinstance(s, str) for s in v):
             raise ValueError(_IN_INVALID_ERR)
         return v
@@ -107,7 +104,7 @@ class GenSpecs(BaseModel):
     gen_f: Optional[Callable] = latin_hypercube_sample
     """
     Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
-    evaluation by a simulator function, and makes decisions based on simulation function output
+    evaluation by a simulator function, and makes decisions based on simulator function output
     """
 
     inputs: Optional[List[str]] = Field([], alias="in")
@@ -339,7 +336,7 @@ class LibeSpecs(BaseModel):
     directory. New runs and their workflow directories will be automatically differentiated.
     """
 
-    workflow_dir_path: Optional[str] = ""
+    workflow_dir_path: Optional[Union[str, Path]] = ""
     """
     Whether to place *all* log files and default ensemble-directories in a separate `workflow`
     directory. New runs and their workflow directories will be automatically differentiated.
@@ -406,7 +403,8 @@ class LibeSpecs(BaseModel):
 
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value: str) -> str:
-        assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
+        if len(value):
+            assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")

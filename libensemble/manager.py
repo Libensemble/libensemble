@@ -130,6 +130,10 @@ def manager_main(
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
 
+    if libE_specs.get("use_workflow_dir"):
+        for wcomm in wcomms:
+            wcomm.send(0, libE_specs.get("workflow_dir_path"))
+
     # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
