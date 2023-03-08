@@ -61,7 +61,8 @@ class Ensemble:
         """
 
         # libE isn't especially instrumented currently to handle "None" exit_criteria values
-        self.exit_criteria = {k: v for k, v in self.exit_criteria.items() if v is not None}
+        if isinstance(self.exit_criteria, dict):
+            self.exit_criteria = {k: v for k, v in self.exit_criteria.items() if v is not None}
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
