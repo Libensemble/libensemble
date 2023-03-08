@@ -285,7 +285,7 @@ class Manager:
     def _save_every_k_sims(self) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            "libE_history_for_run_starting_{}_after_sim_{}.npy",
+            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
         )
@@ -293,7 +293,7 @@ class Manager:
     def _save_every_k_gens(self) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            "libE_history_for_run_starting_{}_after_gen_{}.npy",
+            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
         )
