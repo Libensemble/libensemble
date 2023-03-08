@@ -29,13 +29,14 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     Note that this will only check based on defaults for MPI runner, if the
     user has configured GPU settings, e.g.,~ via LIBE_PLATFORM, then this test
-    may not be correct.
+    may not be correct. As mpi_runner is taken from start of tasks runline, this
+    could also fail if the runner has been renamed.
 
     Parameters
     ----------
 
     assert_setting: boolean, optional
-        Error if setting is not expected (for current MPI runner). Default: True
+        Raise error if setting is not as expected (for current MPI runner). Default: True
 
     print_setting: boolean, optional
         Print GPU setting to stdout. Default: False
