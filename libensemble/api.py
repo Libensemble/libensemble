@@ -60,9 +60,7 @@ class Ensemble:
         Spec checking (and other error handling) occurs within ``libE()``.
         """
 
-        # libE isn't especially instrumented currently to handle "None" exit_criteria values
-        if isinstance(self.exit_criteria, dict):
-            self.exit_criteria = {k: v for k, v in self.exit_criteria.items() if v is not None}
+        self._cleanup()
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
@@ -156,6 +154,14 @@ class Ensemble:
 
         return loaded_spec
 
+    def _cleanup(self):
+        if isinstance(self.libE_specs, dict):
+            self.libE_specs.update(LibeSpecs(**self.libE_specs).dict())
+
+        # libE isn't especially instrumented currently to handle "None" exit_criteria values
+        if isinstance(self.exit_criteria, dict):
+            self.exit_criteria = {k: v for k, v in self.exit_criteria.items() if v is not None}
+
     def _parameterize(self, loaded):
         """Updates and sets attributes from specs loaded from file"""
         for f in loaded:
@@ -165,11 +171,13 @@ class Ensemble:
             if isinstance(old_spec, dict):
                 old_spec.update(loaded_spec)
                 if old_spec.get("in") and old_spec.get("inputs"):
-                    old_spec.pop("inputs")
+                    old_spec.pop("inputs")  # avoid clashes
                 setattr(self, f, ClassType(**old_spec).dict())
             else:
                 ClassType = self.corresponding_classes[f]
                 setattr(self, f, ClassType(**old_spec))
+
+        self._cleanup()
 
     def from_yaml(self, file_path: str):
         """Parameterizes libEnsemble from yaml file"""
