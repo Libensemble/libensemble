@@ -11,11 +11,11 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
+    MPI_Communicator,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
     _check_output_fields,
-    _MPICommValidationModel,
 )
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
@@ -266,7 +266,7 @@ class LibeSpecs(BaseModel):
     If ``False``, the manager avoids this moderate overhead
     """
 
-    mpi_comm: Optional[_MPICommValidationModel] = None  # see utils/specs_checkers.py
+    mpi_comm: Optional[MPI_Communicator] = None  # see utils/specs_checkers.py
     """ libEnsemble communicator. Default: ``MPI.COMM_WORLD`` """
 
     num_resource_sets: Optional[int]
