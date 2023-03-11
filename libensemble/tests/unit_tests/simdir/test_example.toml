@@ -1,5 +1,5 @@
 [libE_specs]
-  use_persis_return = true
+  use_persis_return_sim = true
 
 [exit_criteria]
   sim_max = 10

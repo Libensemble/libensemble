@@ -156,9 +156,9 @@ class MPIExecutor(Executor):
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         stage_inout: Optional[str] = None,
-        hyperthreads: bool = False,
-        dry_run: bool = False,
-        wait_on_start: bool = False,
+        hyperthreads: Optional[bool] = False,
+        dry_run: Optional[bool] = False,
+        wait_on_start: Optional[bool] = False,
         extra_args: Optional[str] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.

@@ -40,6 +40,12 @@ def set_filename(filename: str) -> None:
         logs.filename = filename
 
 
+def set_directory(dirname: str) -> None:
+    """Sets target directory to contain logfiles if loggers not yet created"""
+    logs = LogConfig.config
+    logs.set_directory(dirname)
+
+
 def set_stderr_level(level: int) -> None:
     """Sets logger to mirror certain messages to stderr"""
     logs = LogConfig.config

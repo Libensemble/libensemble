@@ -412,7 +412,9 @@ def manager(
             raise LoggedException(e.args) from None
     except Exception as e:
         exit_flag = 1  # Only exits if no abort/raise
-        _dump_on_abort(hist, persis_info, save_H=libE_specs["save_H_and_persis_on_abort"])
+        _dump_on_abort(
+            hist, persis_info, save_H=libE_specs["save_H_and_persis_on_abort"], path=libE_specs.get("workflow_dir_path")
+        )
         if libE_specs["abort_on_exception"] and on_abort is not None:
             on_cleanup()
             on_abort()
@@ -487,7 +489,7 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     from libensemble.comms.mpi import MainMPIComm
 
     if not libE_specs["disable_log_files"]:
-        exit_logger = manager_logging_config()
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
@@ -576,7 +578,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
         resources.set_resource_manager(libE_specs["nworkers"])
 
     if not libE_specs["disable_log_files"]:
-        exit_logger = manager_logging_config()
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
@@ -684,7 +686,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
             _, port = tcp_manager.address
 
         if not libE_specs["disable_log_files"]:
-            exit_logger = manager_logging_config()
+            exit_logger = manager_logging_config(specs=libE_specs)
         else:
             exit_logger = None
 
@@ -721,12 +723,12 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _dump_on_abort(hist, persis_info, save_H=True):
+def _dump_on_abort(hist, persis_info, save_H=True, path=os.getcwd()):
     """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error(f"Dumping ensemble history with {hist.sim_ended_count} sims evaluated:")
 
     if save_H:
-        np.save("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy", hist.trim_H())
-        with open("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle", "wb") as f:
+        np.save(os.path.join(path, "libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy"), hist.trim_H())
+        with open(os.path.join(path, "libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle"), "wb") as f:
             pickle.dump(persis_info, f)

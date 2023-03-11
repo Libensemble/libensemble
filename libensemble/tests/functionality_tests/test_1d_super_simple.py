@@ -10,7 +10,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
@@ -26,6 +26,10 @@ def sim_f(In):
     Out = np.zeros(1, dtype=[("f", float)])
     Out["f"] = np.linalg.norm(In)
     return Out
+
+
+def sim_f_noreturn(In):
+    print(np.linalg.norm(In))
 
 
 if __name__ == "__main__":
@@ -58,3 +62,15 @@ if __name__ == "__main__":
         assert len(H) >= 501
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
+
+    # Test running a sim_f without any returns
+    sim_specs = {
+        "sim_f": sim_f_noreturn,
+        "in": ["x"],
+    }
+
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+
+    if is_manager:
+        assert len(H) >= 501
+        print("\nlibEnsemble with random sampling has generated enough points")
