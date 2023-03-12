@@ -121,6 +121,10 @@ def manager_main(
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
 
+    if libE_specs.get("use_workflow_dir"):
+        for wcomm in wcomms:
+            wcomm.send(0, libE_specs.get("workflow_dir_path"))
+
     # Set up and run manager
     mgr = Manager(hist, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, wcomms)
     result = mgr.run(persis_info)
@@ -211,7 +215,7 @@ class Manager:
         try:
             temp_EnsembleDirectory.make_copyback_check()
         except OSError as e:  # Ensemble dir exists and isn't empty.
-            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.prefix))
+            logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))
             self._kill_workers()
             raise ManagerException(
                 "Manager errored on initialization",
@@ -272,7 +276,7 @@ class Manager:
     def _save_every_k_sims(self) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            "libE_history_for_run_starting_{}_after_sim_{}.npy",
+            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
         )
@@ -280,7 +284,7 @@ class Manager:
     def _save_every_k_gens(self) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            "libE_history_for_run_starting_{}_after_gen_{}.npy",
+            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
         )

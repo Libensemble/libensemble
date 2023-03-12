@@ -42,6 +42,16 @@ class Ensemble:
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
+        if isinstance(self.libE_specs, dict):
+            self.libE_specs.update(LibeSpecs(**self.libE_specs).dict())
+
+        self.corresponding_classes = {
+            "sim_specs": SimSpecs,
+            "gen_specs": GenSpecs,
+            "alloc_specs": AllocSpecs,
+            "exit_criteria": ExitCriteria,
+            "libE_specs": LibeSpecs,
+        }
 
     def run(self):
         """
@@ -49,6 +59,8 @@ class Ensemble:
         Sets Ensemble instance's output ``H``, final ``persis_info`` state, and ``flag``.
         Spec checking (and other error handling) occurs within ``libE()``.
         """
+
+        self._cleanup()
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
@@ -108,6 +120,14 @@ class Ensemble:
     def _get_normal(loaded):
         return loaded
 
+    def _get_option(self, specs, name):
+        """Gets a specs value, underlying spec is either a dict or a class"""
+        attr = getattr(self, specs)
+        if isinstance(attr, dict):
+            return attr.get(name)
+        else:
+            return getattr(attr, name)
+
     def _parse_spec(self, loaded_spec):
         """Parses and creates traditional libEnsemble dictionary from loaded dict info"""
 
@@ -134,13 +154,30 @@ class Ensemble:
 
         return loaded_spec
 
+    def _cleanup(self):
+        if isinstance(self.libE_specs, dict):
+            self.libE_specs.update(LibeSpecs(**self.libE_specs).dict())
+
+        # libE isn't especially instrumented currently to handle "None" exit_criteria values
+        if isinstance(self.exit_criteria, dict):
+            self.exit_criteria = {k: v for k, v in self.exit_criteria.items() if v is not None}
+
     def _parameterize(self, loaded):
         """Updates and sets attributes from specs loaded from file"""
         for f in loaded:
             loaded_spec = self._parse_spec(loaded[f])
             old_spec = getattr(self, f)
-            old_spec.update(loaded_spec)
-            setattr(self, f, old_spec)
+            ClassType = self.corresponding_classes[f]
+            if isinstance(old_spec, dict):
+                old_spec.update(loaded_spec)
+                if old_spec.get("in") and old_spec.get("inputs"):
+                    old_spec.pop("inputs")  # avoid clashes
+                setattr(self, f, ClassType(**old_spec).dict())
+            else:
+                ClassType = self.corresponding_classes[f]
+                setattr(self, f, ClassType(**old_spec))
+
+        self._cleanup()
 
     def from_yaml(self, file_path: str):
         """Parameterizes libEnsemble from yaml file"""
@@ -174,5 +211,13 @@ class Ensemble:
         return self.persis_info
 
     def save_output(self, file: str):
-        """Class wrapper for ``save_libE_output``"""
-        save_libE_output(self.H, self.persis_info, file, self.nworkers)
+        """
+        Class wrapper for ``save_libE_output``.
+        If using a workflow_dir, will place with specified filename in that directory
+        """
+        if self._get_option("libE_specs", "workflow_dir_path"):
+            save_libE_output(
+                self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.get("workflow_dir_path")
+            )
+        else:
+            save_libE_output(self.H, self.persis_info, file, self.nworkers)

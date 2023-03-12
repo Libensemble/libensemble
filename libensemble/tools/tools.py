@@ -75,7 +75,7 @@ _PERSIS_RETURN_WARNING = (
 # =================== save libE output to pickle and np ========================
 
 
-def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed"):
+def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd(), mess="Run completed"):
     """
     Writes out history array and persis_info to files.
 
@@ -112,13 +112,12 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
         A message to print/log when saving the file.
 
     """
-
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
 
-    h_filename = short_name + "_history_" + prob_str
-    p_filename = short_name + "_persis_info_" + prob_str
+    h_filename = os.path.join(dest_path, short_name + "_history_" + prob_str)
+    p_filename = os.path.join(dest_path, short_name + "_persis_info_" + prob_str)
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")
