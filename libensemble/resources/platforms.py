@@ -42,17 +42,56 @@ polaris = {
     "scheduler_match_slots": True,
     }
 
+spock = {
+    "mpi_runner": "srun",
+    "cores_per_node": 64,
+    "logical_cores_per_node": 128,
+    "gpus_per_node": 4,
+    "gpu_setting_type": GPU_SET_DEF,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "scheduler_match_slots": False,
+}
+
+crusher =  {
+    "mpi_runner" : 'srun',
+    "cores_per_node": 64,
+    "logical_cores_per_node": 128,
+    "gpus_per_node" : 8,
+    "gpu_setting_type": GPU_SET_DEF,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "scheduler_match_slots": False,
+    }
+
+sunspot = {
+    "mpi_runner" : 'mpich',
+    "runner_name" : 'mpiexec',
+    "cores_per_node" : 104,  # finds - check
+    "logical_cores_per_node" : 208,  # finds - check
+    "gpus_per_node" : 6,
+    "gpu_setting_type": GPU_SET_DEF,
+    "scheduler_match_slots": True,
+    }
+
 
 #TODO MAKE ALPHABETICAL
 # Dictionary of known systems (systems or system partitions) by name
 known_systems = {"summit": summit,
                  "perlmutter_g": perlmutter_g,
                  "polaris": polaris,
+                 "spock": spock,
+                 "crusher": crusher,
+                 "sunspot": sunspot,
                  }
 
 # Dictionary of known systems (systems or system partitions) detectable by domain name
 detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
                   }
+
+#TODO Also could detect by hostname but do we want to.
+#detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
+                  #"spock.olcf.ornl.gov": spock,
+                  #"hsn.cm.polaris.alcf.anl.gov": polaris_g,  # What about partitions?
+                  #"crusher.olcf.ornl.gov": crusher,
+                  #}
+
 
 #TODO Review function naming
 def get_platform_num_cores_gpus(system_name):  #act systm dict itself
