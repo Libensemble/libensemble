@@ -244,6 +244,7 @@ import os
 import pickle  # Only used when saving output on error
 import socket
 import traceback
+from pathlib import Path
 from typing import Callable, Dict
 
 import numpy as np
@@ -723,12 +724,12 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _dump_on_abort(hist, persis_info, save_H=True, path=os.getcwd()):
+def _dump_on_abort(hist, persis_info, save_H=True, path=Path.cwd()):
     """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error(f"Dumping ensemble history with {hist.sim_ended_count} sims evaluated:")
 
     if save_H:
-        np.save(os.path.join(path, "libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy"), hist.trim_H())
-        with open(os.path.join(path, "libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle"), "wb") as f:
+        np.save(Path(path / ("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy")), hist.trim_H())
+        with Path(path / ("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle")).open("wb") as f:
             pickle.dump(persis_info, f)
