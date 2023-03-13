@@ -44,10 +44,10 @@ class Runners:
 
         def run_sim(calc_in, Work):
             """Determines how to run sim."""
-            if self.has_funcx_sim and self.funcx_client:
-                result = self._funcx_result
-            else:
-                result = self._normal_result
+            # if self.has_funcx_sim and self.funcx_client:
+            #     result = self._funcx_result
+            # else:
+            result = self._normal_result
 
             return result(calc_in, Work["persis_info"], self.sim_specs, Work["libE_info"], self.sim_f, Work["tag"])
 
@@ -55,10 +55,10 @@ class Runners:
 
             def run_gen(calc_in, Work):
                 """Determines how to run gen."""
-                if self.has_funcx_gen and self.funcx_client:
-                    result = self._funcx_result
-                else:
-                    result = self._normal_result
+                # if self.has_funcx_gen and self.funcx_client:
+                #     result = self._funcx_result
+                # else:
+                result = self._normal_result
 
                 return result(calc_in, Work["persis_info"], self.gen_specs, Work["libE_info"], self.gen_f, Work["tag"])
 
@@ -77,7 +77,7 @@ class Runners:
         else:
             return FuncXClient()
 
-    def _adjust_args(self, calc_in, persis_info, specs, libE_info, user_f):
+    def _truncate_args(self, calc_in, persis_info, specs, libE_info, user_f):
         nparams = len(inspect.signature(user_f).parameters)
         args = [calc_in, persis_info, specs, libE_info]
         return args[:nparams]
@@ -86,7 +86,7 @@ class Runners:
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable, tag: int
     ) -> (npt.NDArray, dict, Optional[int]):
         """User function called in-place"""
-        args = self._adjust_args(calc_in, persis_info, specs, libE_info, user_f)
+        args = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
         return user_f(*args)
 
     def _batch_result(self, batch, endpoint):
@@ -106,7 +106,7 @@ class Runners:
         libE_info["comm"] = None  # 'comm' object not pickle-able
         Worker._set_executor(0, None)  # ditto for executor
 
-        args = self._adjust_args(calc_in, persis_info, specs, libE_info, user_f)
+        args = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
         if tag == EVAL_SIM_TAG:
             if len(self.sim_batch.tasks) < self.sim_batch_size:
                 self.sim_batch.add(self.funcx_simfid, self.sim_specs.get("funcx_endpoint"), args=args)
