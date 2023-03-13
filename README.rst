@@ -76,7 +76,7 @@ Dependencies
 
 **Required dependencies**:
 
-* Python_ 3.7 or above
+* Python_ 3.8 or above
 * NumPy_
 * psutil_
 * setuptools_
@@ -95,9 +95,10 @@ As of v0.9.0, libEnsemble features an updated `Balsam Executor`_
 for workers to schedule and launch applications to *anywhere* with a running
 Balsam site, including to remote machines.
 
-* pyyaml_
+* pyyaml_ or tomli_
 
-libEnsemble is typically configured and parameterized via Python dictionaries. libEnsemble can also be parameterized via yaml.
+libEnsemble is typically configured and parameterized via Python dictionaries.
+libEnsemble can also be parameterized via yaml, json, and toml.
 
 * funcX_
 
@@ -362,6 +363,7 @@ See a complete list of `example user scripts`_.
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
+.. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop

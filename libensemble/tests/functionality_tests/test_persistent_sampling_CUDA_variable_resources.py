@@ -14,20 +14,21 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 
 import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_CUDA_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     # The persistent gen does not need resources
@@ -37,7 +38,8 @@ if __name__ == "__main__":
     # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
 
     libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
+    # libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
+    libE_specs["use_workflow_dir"] = True
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")

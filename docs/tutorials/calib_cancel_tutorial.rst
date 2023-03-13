@@ -124,7 +124,7 @@ by the *PersistentSupport* class.  Each of these helper functions is described
         sim_ids_to_cancel = []
         columns = np.unique(c)
         for c in columns:
-            col_offset = c*n_x
+            col_offset = c * n_x
             for i in range(n_x):
                 sim_id_cancel = obs_offset + col_offset + i
                 if pending[i, c]:
@@ -147,12 +147,14 @@ The allocation function used in this example is the *only_persistent_gens* funct
 
 .. code-block:: python
 
-    alloc_specs = {"alloc_f": alloc_f,
-                   "user": {"init_sample_size": init_sample_size,
-                            "async_return": True,
-                            "active_recv_gen": True
-                            }
-                   }
+    alloc_specs = {
+        "alloc_f": alloc_f,
+        "user": {
+            "init_sample_size": init_sample_size,
+            "async_return": True,
+            "active_recv_gen": True,
+        },
+    }
 
 **async_return** tells the allocation function to return results to the generator as soon
 as they come back from evaluation (once the initial sample is complete).

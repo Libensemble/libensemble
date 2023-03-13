@@ -1,0 +1,31 @@
+[libE_specs]
+  use_persis_return_sim = true
+
+[exit_criteria]
+  sim_max = 10
+
+[sim_specs]
+  sim_f = "numpy.linalg.norm"
+  inputs = ["x_on_cube"]
+  [sim_specs.out]
+    [sim_specs.out.f]
+      type = "float"
+    [sim_specs.out.fvec]
+      type = "float"
+      size = 3
+
+[gen_specs]
+  gen_f = "numpy.random.uniform"
+  [gen_specs.out]
+    [gen_specs.out.priority]
+      type = "float"
+    [gen_specs.out.local_pt]
+      type = "bool"
+    [gen_specs.out.local_min]
+      type = "bool"
+    [gen_specs.out.num_active_runs]
+      type = "int"
+    [gen_specs.out.x_on_cube]
+      type = "float"
+  [gen_specs.user]
+    nu = 0

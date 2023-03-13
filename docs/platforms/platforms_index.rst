@@ -106,14 +106,7 @@ Balsam - Externally managed applications
 Running libEnsemble on the compute nodes while still submitting additional applications
 requires alternative Executors that connect to external services like Balsam_. Balsam
 can take tasks submitted by workers and execute them on the remaining compute nodes,
-or if using Balsam 2, *to entirely different systems*.
-
-    .. figure:: ../images/centralized_new_detailed_balsam.png
-        :alt: central_balsam
-        :scale: 30
-        :align: center
-
-        Single-System: libEnsemble + LegacyBalsamMPIExecutor
+or *to entirely different systems*.
 
     .. figure:: ../images/balsam2.png
         :alt: balsam2
@@ -121,10 +114,6 @@ or if using Balsam 2, *to entirely different systems*.
         :align: center
 
         (New) Multi-System: libEnsemble + BalsamExecutor
-
-As of v0.9.0, libEnsemble supports both "legacy" Balsam via the
-:doc:`LegacyBalsamMPIExecutor<../executor/legacy_balsam_executor>`
-and Balsam 2 via the :doc:`BalsamExecutor<../executor/balsam_2_executor>`.
 
 Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
 the :doc:`examples<example_scripts>`.
@@ -221,6 +210,7 @@ libEnsemble on specific HPC systems.
     bebop
     cori
     perlmutter
+    polaris
     spock/crusher <spock_crusher>
     summit
     theta

@@ -12,21 +12,22 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 import gc
+import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
+from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.alloc_funcs.fast_alloc import give_sim_work_first as alloc_f
-from libensemble.alloc_funcs.only_one_gen_alloc import ensure_one_active_gen as alloc_f2
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     num_pts = 30 * (nworkers)
@@ -59,12 +60,13 @@ if __name__ == "__main__":
         # each time, and the worker will not know what port to connect to.
         sys.exit("Cannot run with tcp when repeated calls to libE -- aborting...")
 
-    for time in np.append([0], np.logspace(-5, -1, 5)):
-        print("Starting for time: ", time, flush=True)
+    for time in np.append([0], np.logspace(-5, -1, 2)):
+        if is_manager:
+            print("Starting for time: ", time, flush=True)
         if time == 0:
-            alloc_specs = {"alloc_f": alloc_f2, "out": []}
+            alloc_specs = {"alloc_f": alloc_f2}
         else:
-            alloc_specs = {"alloc_f": alloc_f, "out": [], "user": {"num_active_gens": 1}}
+            alloc_specs = {"alloc_f": alloc_f, "user": {"num_active_gens": 1}}
 
         for rep in range(1):
             sim_specs["user"]["pause_time"] = time

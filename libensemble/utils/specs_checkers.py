@@ -4,10 +4,11 @@ Reference the models in that file.
 """
 
 import numpy as np
+
 from libensemble.tools.fields_keys import libE_fields
 
 
-def _check_exit_criteria(values):
+def _check_exit_criteria(values: dict) -> dict:
     if "stop_val" in values.get("exit_criteria"):
         stop_name = values.get("exit_criteria").stop_val[0]
         sim_out_names = [e[0] for e in values.get("sim_specs").out]
@@ -16,13 +17,15 @@ def _check_exit_criteria(values):
     return values
 
 
-def _check_output_fields(values):
+def _check_output_fields(values: dict) -> dict:
     out_names = [e[0] for e in libE_fields]
     if values.get("H0") is not None and values.get("H0").dtype.names is not None:
         out_names += list(values.get("H0").dtype.names)
     out_names += [e[0] for e in values.get("sim_specs").out]
     if values.get("gen_specs"):
         out_names += [e[0] for e in values.get("gen_specs").out]
+    if values.get("alloc_specs"):
+        out_names += [e[0] for e in values.get("alloc_specs").out]
 
     if values.get("libE_specs"):
         for name in values.get("libE_specs").final_fields:
@@ -46,7 +49,7 @@ def _check_output_fields(values):
     return values
 
 
-def _check_H0(values):
+def _check_H0(values: dict) -> dict:
     if values.get("H0").size > 0:
         H0 = values.get("H0")
         specs = [values.get("sim_specs"), values.get("gen_specs")]
@@ -77,24 +80,25 @@ def _check_H0(values):
     return values
 
 
-def _check_any_workers_and_disable_rm_if_tcp(values):
+def _check_any_workers_and_disable_rm_if_tcp(values: dict) -> dict:
     comms_type = values.get("comms")
     if comms_type in ["local", "tcp"]:
         if values.get("nworkers"):
             assert values.get("nworkers") >= 1, "Must specify at least one worker"
         else:
-            assert values.get("workers"), "Without nworkers, must specify worker hosts on TCP"
+            if comms_type == "tcp":
+                assert values.get("workers"), "Without nworkers, must specify worker hosts on TCP"
     if comms_type == "tcp":
         values["disable_resource_manager"] = True  # Resource management not supported with TCP
     return values
 
 
-class _MPICommValidationModel:
+class MPI_Communicator:
     @classmethod
     def __get_validators__(cls):
         yield cls.validate
 
-    def validate(cls, comm):
+    def validate(cls, comm: "MPIComm") -> "MPIComm":  # noqa: F821
         from mpi4py import MPI
 
         assert comm != MPI.COMM_NULL, "Provided MPI communicator is invalid, is MPI.COMM_NULL"

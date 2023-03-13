@@ -4,16 +4,15 @@ libensemble helpers for launching subprocesses.
 """
 
 import os
-import sys
 import shlex
 import signal
-import time
 import subprocess
-
+import time
 from itertools import chain
+from typing import List, Optional, Union
 
 
-def form_command(cmd_template, specs):
+def form_command(cmd_template: List[str], specs: dict) -> List[str]:
     "Fill command parts with dict entries from specs; drop any missing."
     specs = {k: v for k, v in specs.items() if v is not None}
 
@@ -27,13 +26,13 @@ def form_command(cmd_template, specs):
     return list(chain.from_iterable(filter(None, map(fill, cmd_template))))
 
 
-def launch(cmd_template, specs=None, **kwargs):
+def launch(cmd_template: List[str], specs: dict = None, **kwargs) -> subprocess.Popen:
     "Launch a new subprocess (with command templating and Python 3 help)."
     cmd = form_command(cmd_template, specs) if specs is not None else cmd_template
     return subprocess.Popen(cmd, **kwargs)
 
 
-def killpg(process):
+def killpg(process: subprocess.Popen) -> bool:
     "Kill the process (and group if it is group leader)."
     try:
         pid = process.pid
@@ -47,7 +46,7 @@ def killpg(process):
         return False
 
 
-def terminatepg(process):
+def terminatepg(process: subprocess.Popen) -> bool:
     "Send termination signal to the process (and group if it is group leader)"
     try:
         pid = process.pid
@@ -71,15 +70,7 @@ def process_is_stopped(process, timeout):
     return process.poll() is not None
 
 
-# Python 3.3 added timeout arguments
-def wait_py32(process, timeout=None):
-    "Wait on a process with timeout."
-    if timeout is None or process_is_stopped(process, timeout):
-        return process.wait()
-    return None
-
-
-def wait_py33(process, timeout=None):
+def wait_py33(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None) -> Optional[int]:
     "Wait on a process with timeout (wait forever if None)."
     try:
         return process.wait(timeout=timeout)
@@ -87,10 +78,10 @@ def wait_py33(process, timeout=None):
         return None
 
 
-wait = wait_py33 if sys.version_info[0:2] > (3, 2) else wait_py32
+wait = wait_py33
 
 
-def wait_and_kill(process, timeout):
+def wait_and_kill(process: subprocess.Popen, timeout: Optional[Union[int, float]]) -> int:
     "Give a grace period for a process to terminate, then kill it."
     rc = wait(process, timeout)
     if rc is not None:
@@ -99,7 +90,7 @@ def wait_and_kill(process, timeout):
     return process.wait()
 
 
-def cancel(process, timeout=0):
+def cancel(process: subprocess.Popen, timeout: Optional[Union[int, float]] = 0) -> int:
     "Send a termination signal, give a grace period, then hard kill if needed."
     if timeout is not None and timeout > 0:
         terminatepg(process)

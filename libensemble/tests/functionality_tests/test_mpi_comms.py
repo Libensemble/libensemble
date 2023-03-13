@@ -8,6 +8,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 from mpi4py import MPI
+
 from libensemble.comms.mpi import MPIComm, Timeout
 from libensemble.tools import parse_args
 
@@ -17,7 +18,6 @@ from libensemble.tools import parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     assert libE_specs["comms"] == "mpi", "This test can only be run with mpi comms -- aborting..."

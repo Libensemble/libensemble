@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 import os
 import sys
+
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
-from libensemble.libE import libE
-from libensemble.gen_funcs.sampling import uniform_random_sample
-from libensemble.tools import parse_args, add_unique_random_streams
 from libensemble.executors import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
 
 if __name__ == "__main__":
-
     # Parse number of workers, comms type, etc. from arguments
     nworkers, is_manager, libE_specs, _ = parse_args()
 

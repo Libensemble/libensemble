@@ -1,17 +1,35 @@
 import os
 import random
-from typing import Any, Callable, List, Optional, Tuple, Union
+import secrets
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
+    MPI_Communicator,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
     _check_output_fields,
-    _MPICommValidationModel,
 )
 
+_UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
+_OUT_DTYPE_ERR = "Unable to coerce '{}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
+_IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
+_UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
+
 BaseConfig.arbitrary_types_allowed = True
+BaseConfig.allow_population_by_field_name = True
+BaseConfig.extra = "forbid"
+BaseConfig.error_msg_templates = {
+    "value_error.extra": _UNRECOGNIZED_ERR,
+    "type_error.callable": _UFUNC_INVALID_ERR,
+}
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
 
@@ -22,7 +40,7 @@ class SimSpecs(BaseModel):
     a ``sim_specs`` dictionary.
     """
 
-    sim_f: Callable
+    sim_f: Callable = one_d_example
     """
     Python function that matches the ``sim_f`` api. e.g. ``libensemble.sim_funcs.borehole``. Evaluates parameters
     produced by a generator function
@@ -55,11 +73,26 @@ class SimSpecs(BaseModel):
     will submit simulator function instances to this endpoint to be executed, instead of calling them locally
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
     the simulator function
     """
+
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(_OUT_DTYPE_ERR.format(v))
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError(_IN_INVALID_ERR)
+        return v
 
 
 class GenSpecs(BaseModel):
@@ -68,10 +101,10 @@ class GenSpecs(BaseModel):
     a ``gen_specs`` dictionary.
     """
 
-    gen_f: Optional[Callable]
+    gen_f: Optional[Callable] = latin_hypercube_sample
     """
     Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
-    evaluation by a simulator function, and makes decisions based on simulation function output
+    evaluation by a simulator function, and makes decisions based on simulator function output
     """
 
     inputs: Optional[List[str]] = Field([], alias="in")
@@ -100,11 +133,26 @@ class GenSpecs(BaseModel):
     will submit generator function instances to this endpoint to be executed, instead of being called in-place
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the generator
     function
     """
+
+    @validator("out", pre=True)
+    def check_valid_out(cls, v):
+        try:
+            _ = np.dtype(v)
+        except TypeError:
+            raise ValueError(_OUT_DTYPE_ERR.format(v))
+        else:
+            return v
+
+    @validator("inputs", "persis_in", pre=True)
+    def check_valid_in(cls, v):
+        if not all(isinstance(s, str) for s in v):
+            raise ValueError(_IN_INVALID_ERR)
+        return v
 
 
 class AllocSpecs(BaseModel):
@@ -113,17 +161,26 @@ class AllocSpecs(BaseModel):
     an ``alloc_specs`` dictionary.
     """
 
-    alloc_f: Callable
+    alloc_f: Callable = give_sim_work_first
     """
     Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`. Decides if and
     when simulator and generator functions should be called, and with what resources and parameters
     """
 
-    user: Optional[dict]
+    user: Optional[dict] = {"num_active_gens": 1}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
     function
     """
+
+    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    """
+    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
+    Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
+    timing information, or determine if parameters should be distributed again, etc.) should list those
+    fields here. Also used to construct the complete dtype for libEnsemble's history array
+    """
+    # end_alloc_tag
 
 
 class ExitCriteria(BaseModel):
@@ -132,14 +189,14 @@ class ExitCriteria(BaseModel):
     ``exit_criteria`` dictionary.
     """
 
-    sim_max: Optional[int] = 100
+    sim_max: Optional[int]
     """ Stop when this many new points have been evaluated by simulation functions"""
 
     gen_max: Optional[int]
     """Stop when this many new points have been generated by generator functions"""
 
     wallclock_max: Optional[float]
-    """Stop when this much time has elapsed since the manager initialized"""
+    """Stop when this much time (in seconds) has elapsed since the manager initialized"""
 
     stop_val: Optional[Tuple[str, float]]
     """Stop when ``H[str] < float`` for the given ``(str, float)`` pair"""
@@ -209,7 +266,7 @@ class LibeSpecs(BaseModel):
     If ``False``, the manager avoids this moderate overhead
     """
 
-    mpi_comm: Optional[_MPICommValidationModel] = None  # see utils/specs_checkers.py
+    mpi_comm: Optional[MPI_Communicator] = None  # see utils/specs_checkers.py
     """ libEnsemble communicator. Default: ``MPI.COMM_WORLD`` """
 
     num_resource_sets: Optional[int]
@@ -273,12 +330,27 @@ class LibeSpecs(BaseModel):
     workers: Optional[List[str]]
     """ TCP Only: A list of worker hostnames """
 
+    use_workflow_dir: Optional[bool] = False
+    """
+    Whether to place *all* log files, dumped arrays, and default ensemble-directories in a
+    separate `workflow` directory. New runs and their workflow directories will be automatically
+    differentiated. If copying back an ensemble directory from a scratch space, the copy is placed
+    in the workflow directory.
+    """
+
+    workflow_dir_path: Optional[Union[str, Path]] = ""
+    """
+    Optional path to the workflow directory. Autogenerated in the current directory if `use_workflow_dir`
+    is specified.
+    """
+
     ensemble_copy_back: Optional[bool] = False
     """
     Whether to copy back directories within ``ensemble_dir_path`` back to launch
     location. Useful if ensemble directory placed on node-local storage
     """
-    ensemble_dir_path: Optional[str] = "./ensemble"
+
+    ensemble_dir_path: Optional[str] = "ensemble"
     """
     Path to main ensemble directory containing calculation directories. Can serve
     as single working directory for workers, or contain calculation directories
@@ -327,32 +399,43 @@ class LibeSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @validator("comms")
-    def check_valid_comms_type(cls, value):
+    def check_valid_comms_type(cls, value: str) -> str:
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
     @validator("sim_input_dir", "gen_input_dir")
-    def check_input_dir_exists(cls, value):
-        assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
+    def check_input_dir_exists(cls, value: str) -> str:
+        if len(value):
+            assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    def check_inputs_exist(cls, value):
+    def check_inputs_exist(cls, value: List[str]) -> List[str]:
         for f in value:
             assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
         return value
 
     @root_validator
-    def check_any_workers_and_disable_rm_if_tcp(cls, values):
+    def check_any_workers_and_disable_rm_if_tcp(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         return _check_any_workers_and_disable_rm_if_tcp(values)
 
     @root_validator
-    def set_defaults_on_mpi(cls, values):
+    def set_defaults_on_mpi(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values.get("comms") == "mpi":
             if not values.get("mpi_comm"):
                 from mpi4py import MPI
 
                 values["mpi_comm"] = MPI.COMM_WORLD
+        return values
+
+    @root_validator
+    def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if values.get("use_workflow_dir") and not values.get("workflow_dir_path"):
+            values["workflow_dir_path"] = Path(
+                "./workflow_" + secrets.token_hex(3)
+            )  # should avoid side-effects. make dir later
+        elif values.get("workflow_dir_path") and not values.get("use_workflow_dir"):
+            values["use_workflow_dir"] = True
         return values
 
 
@@ -387,21 +470,21 @@ class EnsembleSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @root_validator
-    def check_exit_criteria(cls, values):
+    def check_exit_criteria(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         return _check_exit_criteria(values)
 
     @root_validator
-    def check_output_fields(cls, values):
+    def check_output_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         return _check_output_fields(values)
 
     @root_validator
-    def set_ensemble_nworkers(cls, values):
+    def set_ensemble_nworkers(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values.get("libE_specs"):
             values["nworkers"] = values["libE_specs"].nworkers
         return values
 
     @root_validator
-    def check_H0(cls, values):
+    def check_H0(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values.get("H0") is not None:
             return _check_H0(values)
         return values

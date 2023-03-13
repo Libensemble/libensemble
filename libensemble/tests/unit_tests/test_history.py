@@ -1,8 +1,9 @@
+import numpy as np
+from numpy import inf
+
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.tools.fields_keys import libE_fields
-import numpy as np
-from numpy import inf
 
 if tuple(np.__version__.split(".")) >= ("1", "15"):
     from numpy.lib.recfunctions import repack_fields
@@ -503,6 +504,25 @@ def test_repack_fields():
         assert repack_fields(H0[["x", "g"]]).itemsize < 100, "This should not be that large"
 
 
+def test_H0_str_fields_conversion():
+    """Test that string-fields can be parsed out of H0 into the expected numpy dtype"""
+    import secrets
+
+    from libensemble.history import History
+
+    H0 = np.zeros(10, dtype=[("uuid", str, 10), ("sim_id", int), ("sim_started", bool)])
+
+    sim_specs = {
+        "out": [("run_time", float)],
+    }
+
+    H0["uuid"] = [secrets.token_hex(5) for i in range(10)]
+    H0["sim_id"] = range(10)
+
+    hist = History({}, sim_specs, {}, {}, H0)
+    assert all(hist.H["uuid"][:10] == H0["uuid"]), "str field from H0 wasn't converted over into H"
+
+
 if __name__ == "__main__":
     test_hist_init_1()
     test_hist_init_1A_H0()
@@ -516,3 +536,4 @@ if __name__ == "__main__":
     test_update_history_f()
     test_update_history_f_vec()
     test_repack_fields()
+    test_H0_str_fields_conversion()

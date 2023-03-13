@@ -35,7 +35,7 @@ the correct version is installed.
 .. code-block:: bash
 
     $ python --version
-    Python 3.7.0            # This should be >= 3.7
+    Python 3.8.0            # This should be >= 3.8
 
 .. _Python: https://www.python.org/
 
@@ -89,8 +89,8 @@ For now, create a new Python file named ``generator.py``. Write the following:
 
     import numpy as np
 
-    def gen_random_sample(H_in, persis_info, gen_specs, _):
-        # Underscore ignores advanced arguments
+
+    def gen_random_sample(H_in, persis_info, gen_specs):
 
         # Pull out user parameters
         user_specs = gen_specs["user"]
@@ -134,8 +134,8 @@ the ``numpy.random.Generator.integers(low, high, size)`` function.
 
        import numpy as np
 
-       def gen_random_ints(H_in, persis_info, gen_specs, _):
 
+       def gen_random_ints(H_in, persis_info, gen_specs, _):
            user_specs = gen_specs["user"]
            lower = user_specs["lower"]
            upper = user_specs["upper"]
@@ -163,8 +163,8 @@ Create a new Python file named ``simulator.py``. Write the following:
 
     import numpy as np
 
-    def sim_find_sine(H_in, persis_info, sim_specs, _):
-        # underscore for internal/testing arguments
+
+    def sim_find_sine(H_in, _, sim_specs):
 
         # Create an output array of a single zero
         out = np.zeros(1, dtype=sim_specs["out"])
@@ -173,7 +173,7 @@ Create a new Python file named ``simulator.py``. Write the following:
         out["y"] = np.sin(H_in["x"])
 
         # Send back our output and persis_info
-        return out, persis_info
+        return out
 
 Our simulator function is called by a worker for every work item produced by
 the generator function. This function calculates the sine of the passed value,
@@ -196,13 +196,13 @@ value, using the ``numpy.cos(x)`` function.
 
        import numpy as np
 
-       def sim_find_cosine(H_in, persis_info, gen_specs, _):
 
-        out = np.zeros(1, dtype=sim_specs["out"])
+       def sim_find_cosine(H_in, _, sim_specs):
+           out = np.zeros(1, dtype=sim_specs["out"])
 
-        out["y"] = np.cos(H_in["x"])
+           out["y"] = np.cos(H_in["x"])
 
-        return out, persis_info
+           return out
 
 Calling Script
 --------------
@@ -238,20 +238,23 @@ being passed to our functions. These dictionaries also describe to libEnsemble
 what inputs and outputs from those functions to expect.
 
 .. code-block:: python
-    :linenos:
+   :linenos:
 
-    gen_specs = {"gen_f": gen_random_sample,   # Our generator function
-                 "out": [("x", float, (1,))],  # gen_f output (name, type, size)
-                 "user": {
-                    "lower": np.array([-3]),   # lower boundary for random sampling
-                    "upper": np.array([3]),    # upper boundary for random sampling
-                    "gen_batch_size": 5        # number of x's gen_f generates per call
-                    }
-                 }
+   gen_specs = {
+       "gen_f": gen_random_sample,  # Our generator function
+       "out": [("x", float, (1,))],  # gen_f output (name, type, size)
+       "user": {
+           "lower": np.array([-3]),  # lower boundary for random sampling
+           "upper": np.array([3]),  # upper boundary for random sampling
+           "gen_batch_size": 5,  # number of x's gen_f generates per call
+       },
+   }
 
-    sim_specs = {"sim_f": sim_find_sine,       # Our simulator function
-                 "in": ["x"],                  # Input field names. "x" from gen_f output
-                 "out": [("y", float)]}        # sim_f output. "y" = sine("x")
+   sim_specs = {
+       "sim_f": sim_find_sine,  # Our simulator function
+       "in": ["x"],  # Input field names. "x" from gen_f output
+       "out": [("y", float)],  # sim_f output. "y" = sine("x")
+   }
 
 Recall that each worker is assigned an entry in the
 :ref:`persis_info<datastruct-persis-info>`  dictionary that, in this tutorial,
@@ -263,9 +266,9 @@ libEnsemble should stop execution in :ref:`exit_criteria<datastruct-exit-criteri
 .. code-block:: python
     :linenos:
 
-    persis_info = add_unique_random_streams({}, nworkers+1) # Worker numbers start at 1
+    persis_info = add_unique_random_streams({}, nworkers + 1)  # Worker numbers start at 1
 
-    exit_criteria = {"sim_max": 80}           # Stop libEnsemble after 80 simulations
+    exit_criteria = {"sim_max": 80}  # Stop libEnsemble after 80 simulations
 
 Now we"re ready to write our libEnsemble :doc:`libE<../programming_libE>`
 function call. This :ref:`H<funcguides-history>` is the final version of
@@ -274,8 +277,7 @@ the history array. ``flag`` should be zero if no errors occur.
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     print([i for i in H.dtype.fields])  # (optional) to visualize our history array
     print(H)
@@ -323,18 +325,19 @@ script and run ``python calling_script.py`` again
   :linenos:
 
   import matplotlib.pyplot as plt
+
   colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
   for i in range(1, nworkers + 1):
       worker_xy = np.extract(H["sim_worker"] == i, H)
       x = [entry.tolist()[0] for entry in worker_xy["x"]]
       y = [entry for entry in worker_xy["y"]]
-      plt.scatter(x, y, label="Worker {}".format(i), c=colors[i-1])
+      plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
 
   plt.title("Sine calculations for a uniformly sampled random distribution")
   plt.xlabel("x")
   plt.ylabel("sine(x)")
-  plt.legend(loc = "lower right")
+  plt.legend(loc="lower right")
   plt.savefig("tutorial_sines.png")
 
 Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
@@ -367,27 +370,25 @@ Write a Calling Script with the following specifications:
 
        nworkers, is_manager, libE_specs, _ = parse_args()
 
-       gen_specs = {"gen_f": gen_random_ints,
-                    "out": [("x", float, (1,))],
-                    "user": {
-                       "lower": np.array([-6]),
-                       "upper": np.array([6]),
-                       "gen_batch_size": 10
-                     }
-                   }
+       gen_specs = {
+           "gen_f": gen_random_ints,
+           "out": [("x", float, (1,))],
+           "user": {
+               "lower": np.array([-6]),
+               "upper": np.array([6]),
+               "gen_batch_size": 10,
+           },
+       }
 
-       sim_specs = {"sim_f": sim_find_sine,
-                     "in": ["x"],
-                     "out": [("y", float)]}
+       sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-       persis_info = add_unique_random_streams({}, nworkers+1)
+       persis_info = add_unique_random_streams({}, nworkers + 1)
        exit_criteria = {"gen_max": 160}
 
-       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                   libE_specs=libE_specs)
+       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
        if flag != 0:
-          print("Oh no! An error occurred!")
+           print("Oh no! An error occurred!")
 
 Next steps
 ----------
@@ -429,10 +430,10 @@ of the calling script as follows:
     from mpi4py import MPI
 
     # nworkers = 4                                # nworkers will come from MPI
-    libE_specs = {"comms": "mpi"}                 # "nworkers" removed, "comms" now "mpi"
+    libE_specs = {"comms": "mpi"}  # "nworkers" removed, "comms" now "mpi"
 
     nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_manager = (MPI.COMM_WORLD.Get_rank() == 0)  # manager process has MPI rank 0
+    is_manager = MPI.COMM_WORLD.Get_rank() == 0  # manager process has MPI rank 0
 
 So that only one process executes the graphing and printing portion of our code,
 modify the bottom of the calling script like this:
@@ -441,8 +442,7 @@ modify the bottom of the calling script like this:
   :linenos:
   :emphasize-lines: 4
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
     if is_manager:
         # Some (optional) statements to visualize our history array
@@ -450,13 +450,14 @@ modify the bottom of the calling script like this:
         print(H)
 
         import matplotlib.pyplot as plt
+
         colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
         for i in range(1, nworkers + 1):
             worker_xy = np.extract(H["sim_worker"] == i, H)
             x = [entry.tolist()[0] for entry in worker_xy["x"]]
             y = [entry for entry in worker_xy["y"]]
-            plt.scatter(x, y, label="Worker {}".format(i), c=colors[i-1])
+            plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
 
         plt.title("Sine calculations for a uniformly sampled random distribution")
         plt.xlabel("x")

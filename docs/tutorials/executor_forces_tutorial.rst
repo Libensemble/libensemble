@@ -130,9 +130,7 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
   persis_info = add_unique_random_streams({}, nworkers + 1)
 
   # Launch libEnsemble
-  H, persis_info, flag = libE(
-      sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-  )
+  H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 Exercise
 ^^^^^^^^
@@ -183,9 +181,7 @@ Write an alternative Calling Script similar to above, but with the following dif
         ...
 
         # Launch libEnsemble
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs
-        )
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
         if is_manager:
             save_libE_output(H, persis_info, __file__, nworkers)
@@ -212,7 +208,8 @@ for starters:
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
-    def run_forces(H, persis_info, sim_specs, libE_info):
+
+    def run_forces(H, _, sim_specs):
         calc_status = 0
 
         # Parse out num particles, from generator function
@@ -276,7 +273,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
         output["energy"][0] = final_energy
 
         # Return final information to worker, for reporting to manager
-        return output, persis_info, calc_status
+        return output, calc_status
 
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
@@ -370,26 +367,30 @@ These may require additional browsing of the documentation to complete.
        :linenos:
 
         import time
+
         ...
         args = particles + " " + str(10) + " " + particles + " " + str(0.2)
         ...
         statfile = "forces.stat"
-        task = exctr.submit(app_name="forces", app_args=args,
-                            num_procs=4,
-                            stdout="stdout.txt",
-                            stderr="stderr.txt")
+        task = exctr.submit(
+            app_name="forces",
+            app_args=args,
+            num_procs=4,
+            stdout="stdout.txt",
+            stderr="stderr.txt",
+        )
 
         while not task.finished:
-          time.sleep(0.1)
-          task.poll()
+            time.sleep(0.1)
+            task.poll()
 
-          if task.file_exists_in_workdir(statfile):
-            with open(statfile, "r") as f:
-                if "kill\n" in f.readlines():
-                    task.kill()
+            if task.file_exists_in_workdir(statfile):
+                with open(statfile, "r") as f:
+                    if "kill\n" in f.readlines():
+                        task.kill()
 
-          if task.runtime > 60:
-            task.kill()
+            if task.runtime > 60:
+                task.kill()
 
         ...
 

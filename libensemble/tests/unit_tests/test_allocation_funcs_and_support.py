@@ -1,16 +1,17 @@
 import numpy as np
+
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, AllocException
-from libensemble.tools.fields_keys import libE_fields
-from libensemble.tools import add_unique_random_streams
 from libensemble.history import History
-from libensemble.resources.scheduler import ResourceScheduler
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
+from libensemble.resources.scheduler import ResourceScheduler
+from libensemble.tools import add_unique_random_streams
+from libensemble.tools.alloc_support import AllocException, AllocSupport
+from libensemble.tools.fields_keys import libE_fields
 
-al = {"alloc_f": give_sim_work_first, "out": []}
+al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
 H0 = []
 
@@ -44,7 +45,6 @@ def clear_resources():
 
 
 def test_decide_work_and_resources():
-
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     hist = History(al, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -60,7 +60,6 @@ def test_decide_work_and_resources():
 
 
 def test_als_init_normal():
-
     als = AllocSupport(W, True)
     assert als.manage_resources, "AllocSupport instance should be managing resources for sim_work and gen_work."
 
@@ -82,7 +81,6 @@ def test_als_init_withresources():
 
 
 def test_als_assign_resources():
-
     als = AllocSupport(W, True)
     assert not als.assign_resources(4), "AllocSupport instance shouldn't assign resources if not assigned a Scheduler"
 

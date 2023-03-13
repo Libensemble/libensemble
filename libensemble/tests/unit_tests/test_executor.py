@@ -2,12 +2,13 @@
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
 import os
+import platform
 import re
+import socket
 import sys
 import time
+
 import pytest
-import socket
-import platform
 
 if platform.system() != "Windows":
     import mpi4py
@@ -15,12 +16,9 @@ if platform.system() != "Windows":
     mpi4py.rc.initialize = False
     from mpi4py import MPI
 
+from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
 from libensemble.resources.mpi_resources import MPIResourcesException
-from libensemble.executors.executor import Executor, ExecutorException, TimeoutExpired
-from libensemble.executors.executor import NOT_STARTED_STATES
 
-
-USE_BALSAM = False
 NCORES = 1
 build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]
 
@@ -72,14 +70,9 @@ def build_simfuncs():
 # This would typically be in the user calling script
 def setup_executor():
     """Set up an MPI Executor with sim app"""
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
+    from libensemble.executors.mpi_executor import MPIExecutor
 
-        exctr = LegacyBalsamMPIExecutor()
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-
-        exctr = MPIExecutor()
+    exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
@@ -102,23 +95,15 @@ def setup_executor_startups():
 
 def setup_executor_noapp():
     """Set up an MPI Executor but do not register application"""
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
+    from libensemble.executors.mpi_executor import MPIExecutor
 
-        exctr = LegacyBalsamMPIExecutor()
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-
-        exctr = MPIExecutor()
-        if exctr.workerID is not None:
-            sys.exit("Something went wrong in creating Executor")
+    exctr = MPIExecutor()
+    if exctr.workerID is not None:
+        sys.exit("Something went wrong in creating Executor")
 
 
 def setup_executor_fakerunner():
     """Set up an MPI Executor with a non-existent MPI runner"""
-    if USE_BALSAM:
-        print("Balsom does not support this feature - running MPIExecutor")
-
     # Create non-existent MPI runner.
     customizer = {
         "mpi_runner": "custom",
@@ -176,7 +161,6 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
     start = time.time()
 
     while time.time() - start < timeout_sec:
-
         # Test all done - (return list of not-finished tasks and test if empty)
         active_list = [task for task in task_list if not task.finished]
         if not active_list:
@@ -283,7 +267,7 @@ def test_kill_on_file():
     setup_executor()
     exctr = Executor.executor
     cores = NCORES
-    args_for_sim = "sleep 0.1 Error"
+    args_for_sim = "sleep 0.2 Error"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     task = polling_loop(exctr, task)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -595,7 +579,7 @@ def test_kill_task_with_no_submit():
     # Create a task directly with no submit (Not supported for users)
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
-    exp_msg = "Attempting to kill task libe_task_my_simtask.x_.+that has " "no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")
@@ -616,7 +600,7 @@ def test_poll_task_with_no_submit():
     exctr = Executor.executor
 
     # Create a task directly with no submit (Not supported for users)
-    exp_msg = "Polled task libe_task_my_simtask.x_.+ " "has no process ID - check tasks been launched"
+    exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
     task1 = Task(app=myapp, stdout="stdout.txt")

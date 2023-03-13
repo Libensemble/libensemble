@@ -1,8 +1,6 @@
-import sys
-import os
 import argparse
-
-from libensemble.tools.tools import logger
+import os
+import sys
 
 # ==================== Command-line argument parsing ===========================
 
@@ -157,6 +155,7 @@ def parse_args():
     .. code-block:: python
 
         from libensemble.tools import parse_args
+
         nworkers, is_manager, libE_specs, misc_args = parse_args()
 
     From the shell::
@@ -222,7 +221,7 @@ def parse_args():
         :doc:`(example)<data_structures/libE_specs>`
 
     """
-    args, unknown = parser.parse_known_args(sys.argv[1:])
+    args, misc_args = parser.parse_known_args(sys.argv[1:])
     front_ends = {
         "mpi": _mpi_parse_args,
         "local": _local_parse_args,
@@ -233,6 +232,4 @@ def parse_args():
     if args.pwd is not None:
         os.chdir(args.pwd)
     nworkers, is_manager, libE_specs, tester_args = front_ends[args.comms or "mpi"](args)
-    if is_manager and unknown:
-        logger.warning(f"parse_args ignoring unrecognized arguments: {' '.join(unknown)}")
-    return nworkers, is_manager, libE_specs, tester_args
+    return nworkers, is_manager, libE_specs, misc_args

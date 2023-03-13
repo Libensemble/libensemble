@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-def persistent_uniform(H, persis_info, gen_specs, libE_info):
+def persistent_uniform(_, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns
     ``gen_specs["initial_batch_size"]`` uniformly sampled points the first time it
@@ -50,7 +50,7 @@ def persistent_uniform(H, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, libE_info):
+def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
     ``gen_specs["user"]["lb"]``. Also randomly requests a different number of resource
@@ -92,7 +92,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, lib
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
+def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     """
     This generation function is similar in structure to persistent_uniform,
     but uses a count to test exiting on a threshold value. This principle can
@@ -126,7 +126,7 @@ def persistent_request_shutdown(H, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
+def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
     """
     This generation function is designed to test non-blocking receives.
 
@@ -164,7 +164,7 @@ def uniform_nonblocking(H, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def batched_history_matching(H, persis_info, gen_specs, libE_info):
+def batched_history_matching(_, persis_info, gen_specs, libE_info):
     """
     Given
     - sim_f with an input of x with len(x)=n
@@ -210,8 +210,7 @@ def batched_history_matching(H, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
-
+def persistent_uniform_with_cancellations(_, persis_info, gen_specs, libE_info):
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
     n = len(lb)
@@ -225,7 +224,6 @@ def persistent_uniform_with_cancellations(H, persis_info, gen_specs, libE_info):
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         tag, Work, calc_in = ps.send_recv(H_o)

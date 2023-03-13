@@ -17,16 +17,18 @@ persistent generator.
 # TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_EXTRA: true
 
-import sys
 import itertools
+import sys
+from time import time
+
 import numpy as np
+
+from libensemble.gen_funcs.persistent_tasmanian import get_sparse_grid_specs
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
-from libensemble.gen_funcs.persistent_tasmanian import get_sparse_grid_specs
 from libensemble.tools import parse_args
-from time import time
 
 
 # Define some grid initializers.
@@ -52,7 +54,6 @@ def tasmanian_init_localp():
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     # Get node info.
     nworkers, is_manager, libE_specs, _ = parse_args()
     if nworkers < 2:

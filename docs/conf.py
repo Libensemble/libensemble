@@ -44,6 +44,7 @@ MOCK_MODULES = [
     "mpmath",
     "nlopt",
     "numpy",
+    "numpy.typing",
     "numpy.lib",
     "numpy.lib.recfunctions",
     "numpy.linalg",
@@ -79,7 +80,6 @@ sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
 sys.path.append(os.path.abspath("../libensemble/tools"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
-sys.path.append(os.path.abspath("../libensemble/executors/balsam_executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
 # print(sys.path)
 
@@ -117,6 +117,7 @@ autodoc_member_order = "bysource"
 model_show_field_summary = "bysource"
 autodoc_pydantic_model_summary_list_order = "bysource"
 autoclass_content = "class"
+autodoc_typehints = "description"
 
 intersphinx_mapping = {
     "community": ("https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/", None)

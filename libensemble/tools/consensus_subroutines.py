@@ -8,7 +8,8 @@ your neighbors' $x$ values.
 import nlopt
 import numpy as np
 import scipy.sparse as spp
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, EVAL_GEN_TAG
+
+from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 
@@ -309,6 +310,7 @@ def readin_csv(fname):
         label[i] = data[1] == "M"
         datas[i, :] = [float(val) for val in data[2:32]]
         i += 1
+    fp.close()
 
     assert i == n, f"Expected {n} datapoints, recorded {i}"
 

@@ -16,15 +16,14 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
-from libensemble.libE import libE
-from libensemble.tests.regression_tests.support import nan_func as sim_f
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.libE import libE
 from libensemble.manager import LoggedException
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tests.regression_tests.support import nan_func as sim_f
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     n = 2
 

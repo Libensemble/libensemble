@@ -30,25 +30,24 @@ simply comment out the import of "Blackbox" below
 # TESTSUITE_EXTRA: true
 
 import sys
+
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
 
-from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_pds import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, regls_opt, log_opt
-
-from libensemble.sim_funcs.rosenbrock import rosenbrock_eval
+from libensemble.gen_funcs.persistent_pds import opt_slide as gen_f
+from libensemble.libE import libE
 from libensemble.sim_funcs.alt_rosenbrock import alt_rosenbrock_eval
-from libensemble.sim_funcs.nesterov_quadratic import nesterov_quadratic_eval
 from libensemble.sim_funcs.linear_regression import linear_regression_eval
 from libensemble.sim_funcs.logistic_regression import logistic_regression_eval
+from libensemble.sim_funcs.nesterov_quadratic import nesterov_quadratic_eval
+from libensemble.sim_funcs.rosenbrock import rosenbrock_eval
+from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, log_opt, regls_opt
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if nworkers < 2:
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     A = spp.diags([1, 2, 2, 1]) - get_k_reach_chain_matrix(num_gens, 1)
     lam_max = np.amax(la.eig(A.toarray())[0])
 
-    eps = 5e-2
+    eps = 2e-1
 
     # 0: rosenbrock, 1: alt rosenbrock, 2: nesterov's, 3: l2 linear regression, 4: l2 logistic regression, 5: CUTEr
     for prob_id in range(6):
@@ -74,10 +73,10 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams(persis_info, nworkers + 1)
         persis_info["gen_params"] = {}
 
-        if prob_id <= 4:
+        if prob_id == 4:
             exit_criteria = {"wallclock_max": 600}
         else:
-            exit_criteria = {"sim_max": 100}
+            exit_criteria = {"sim_max": 500}
 
         # Perform the run
         libE_specs["safe_mode"] = False

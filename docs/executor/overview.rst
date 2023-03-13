@@ -38,19 +38,14 @@ Once the Executor is retrieved, tasks can be submitted by specifying the ``app_n
 from registration in the calling script alongside other optional parameters
 described in the API.
 
-**Example usage (code runnable with or without a Balsam 0.5.0 backend):**
+**Example usage:**
 
 In calling script::
 
     sim_app = "/path/to/my/exe"
-    USE_BALSAM = False
 
-    if USE_BALSAM:
-        from libensemble.executors.balsam_executors import LegacyBalsamMPIExecutor
-        exctr = LegacyBalsamMPIExecutor()
-    else:
-        from libensemble.executors.mpi_executor import MPIExecutor
-        exctr = MPIExecutor()
+    from libensemble.executors.mpi_executor import MPIExecutor
+    exctr = MPIExecutor()
 
     exctr.register_app(full_path=sim_app, app_name="sim1")
 

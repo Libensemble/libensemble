@@ -1,9 +1,10 @@
 import os
 import socket
+
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.resources import Resources, GlobalResources, ResourcesException
-from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 from libensemble.resources.mpi_resources import create_machinefile
+from libensemble.resources.resources import GlobalResources, Resources, ResourcesException
+from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
 
 def setup_standalone_run():
@@ -21,10 +22,6 @@ def teardown_standalone_run():
 def setup_function(function):
     print(f"setup_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
-    # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
-    #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
-    # if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
-    #     del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -32,10 +29,6 @@ def setup_function(function):
 def teardown_function(function):
     print(f"teardown_function    function:{function.__name__}")
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
-    # if os.environ['LIBE_RESOURCES_TEST_NODE_LIST']:
-    #     del os.environ['LIBE_RESOURCES_TEST_NODE_LIST']
-    # if os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']:
-    #     del os.environ['THIS_ENV_VARIABLE_IS_DEF_NOT_SET']
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -46,6 +39,7 @@ def sname(name):
 
 
 # Tests ========================================================================================
+
 
 # Tests GlobalResources.get_global_nodelist (This requires above tests to work)
 def test_get_global_nodelist_frm_slurm():
@@ -205,25 +199,25 @@ def test_get_global_nodelist_standalone():
     assert global_nodelist == [exp_node], "global_nodelist returned does not match expected"
 
 
-def test_get_global_nodelist_frm_wrklst_file():
+def test_get_global_nodelist_frm_wrklst_file(tmp_path):
     # node_list file should override env variables
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "20-22,137-139,1234"  # Should not be this
     exp_out = ["knl-0019", "knl-0021", "knl-0022", "knl-0137", "knl-0138", "knl-0139", "knl-2345"]  # Should be this
 
-    open("node_list", "w").close()
+    open(tmp_path / "node_list", "w").close()
     try:
-        _ = GlobalResources.get_global_nodelist(rundir=os.getcwd())
+        _ = GlobalResources.get_global_nodelist(rundir=tmp_path)
     except ResourcesException as e:
         assert e.args[0] == "Error. global_nodelist is empty"
     else:
         assert 0
 
-    with open("node_list", "w") as f:
+    with open(tmp_path / "node_list", "w") as f:
         for node in exp_out:
             f.write(node + "\n")
 
     # Do not specify env vars.
-    global_nodelist1 = GlobalResources.get_global_nodelist(rundir=os.getcwd())
+    global_nodelist1 = GlobalResources.get_global_nodelist(rundir=tmp_path)
     assert global_nodelist1 == exp_out, "global_nodelist returned does not match expected"
 
     # Specify env vars - should ignore
@@ -233,9 +227,9 @@ def test_get_global_nodelist_frm_wrklst_file():
         nodelist_env_lsf="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
         nodelist_env_lsf_shortform="THIS_ENV_VARIABLE_IS_DEF_NOT_SET",
     )
-    global_nodelist2 = GlobalResources.get_global_nodelist(rundir=os.getcwd(), env_resources=env_resources)
+    global_nodelist2 = GlobalResources.get_global_nodelist(rundir=tmp_path, env_resources=env_resources)
     assert global_nodelist2 == exp_out, "global_nodelist returned does not match expected"
-    os.remove("node_list")
+    os.remove(tmp_path / "node_list")
 
 
 def test_remove_libE_nodes():
@@ -264,7 +258,6 @@ def _assert_worker_attr(wres, attr, exp):
 
 # These are all 1 worker per rset.
 def _worker_asserts(wres, split_list, exp_slots, wrk, nworkers, nnodes, reps=1):
-
     # Create dictionary of attributes and expected values
     exp_dict = {
         "workerID": wrk + 1,
@@ -417,10 +410,10 @@ def test_get_local_resources_dedicated_mode():
 
 
 # The main tests are same as above - note for when fixtures set up
-def test_get_local_resources_dedicated_mode_remove_libE_proc():
+def test_get_local_resources_dedicated_mode_remove_libE_proc(tmp_path):
     mynode = socket.gethostname()
     nodelist_in = ["knl-0020", "knl-0021", "knl-0022", "knl-0036", "knl-0137", "knl-0138", "knl-0139", "knl-1234"]
-    with open("node_list", "w") as f:
+    with open(tmp_path / "node_list", "w") as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + "\n")
             if i == 3:
@@ -428,7 +421,7 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
 
     libE_specs = {"dedicated_mode": True}
 
-    gresources = GlobalResources(libE_specs)
+    gresources = GlobalResources(libE_specs, top_level_dir=tmp_path)
     gresources.add_comm_info(libE_nodes=[mynode])
 
     # 8 Workers ---------------------------------------------------------------
@@ -553,7 +546,7 @@ def test_get_local_resources_dedicated_mode_remove_libE_proc():
         _worker_asserts(wresources, exp_out, exp_slots, wrk, nworkers, 1, 2)
         del wresources
 
-    os.remove("node_list")
+    os.remove(tmp_path / "node_list")
 
 
 def test_get_local_nodelist_distrib_mode_host_not_in_list():
@@ -573,18 +566,18 @@ def test_get_local_nodelist_distrib_mode_host_not_in_list():
     del wresources
 
 
-def test_get_local_nodelist_distrib_mode():
+def test_get_local_nodelist_distrib_mode(tmp_path):
     mynode = socket.gethostname()
     # nodelist_in = ['knl-0020', 'knl-0021', 'knl-0022', 'knl-0036', 'knl-0137', 'knl-0138', 'knl-0139', 'knl-1234']
     nodelist_in = ["knl-0020", "knl-0021", "knl-0022", "knl-0036", "knl-0137", "knl-0138", "knl-0139"]
-    with open("node_list", "w") as f:
+    with open(tmp_path / "node_list", "w") as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + "\n")
             if i == 3:
                 f.write(mynode + "\n")
 
     libE_specs = {"dedicated_mode": False}
-    gresources = GlobalResources(libE_specs)
+    gresources = GlobalResources(libE_specs, top_level_dir=tmp_path)
     gresources.add_comm_info(libE_nodes=[mynode])
 
     # Spoof current process as each worker and check nodelist.
@@ -643,21 +636,21 @@ def test_get_local_nodelist_distrib_mode():
     assert wresources.local_nodelist == exp_out, "local_nodelist returned does not match expected"
     del wresources
 
-    os.remove("node_list")
+    os.remove(tmp_path / "node_list")
 
 
-def test_get_local_nodelist_distrib_mode_uneven_split():
+def test_get_local_nodelist_distrib_mode_uneven_split(tmp_path):
     mynode = socket.gethostname()
     exp_node = mynode  # sname(mynode)
     nodelist_in = ["knl-0020", "knl-0021", "knl-0022", "knl-0036", "knl-0137", "knl-0138", "knl-0139", "knl-1234"]
-    with open("node_list", "w") as f:
+    with open(tmp_path / "node_list", "w") as f:
         for i, node in enumerate(nodelist_in):
             f.write(node + "\n")
             if i == 4:
                 f.write(mynode + "\n")
 
     libE_specs = {"dedicated_mode": False}
-    gresources = GlobalResources(libE_specs)
+    gresources = GlobalResources(libE_specs, top_level_dir=tmp_path)
     gresources.add_comm_info(libE_nodes=[mynode])
     nworkers = 2
 
@@ -680,7 +673,7 @@ def test_get_local_nodelist_distrib_mode_uneven_split():
     _worker_asserts(wresources, exp_split, exp_slots, workerID - 1, nworkers, 5)
     del wresources
 
-    os.remove("node_list")
+    os.remove(tmp_path / "node_list")
 
 
 def test_map_workerid_to_index():
@@ -785,7 +778,6 @@ def _check_mfile(machinefile, exp_list):
 
 
 def test_machinefile_from_resources():
-
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020-0022,0036,0137-0139,1234]"
     resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST"}
     libE_specs = {

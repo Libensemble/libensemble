@@ -4,7 +4,8 @@ import numpy as np
 from libensemble.executors.executor import Executor
 
 # Optional status codes to display in libE_stats.txt for each gen or sim
-from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
+from libensemble.resources.resources import Resources
 
 # Optional - to print GPU settings
 from libensemble.tools.test_support import check_gpu_setting

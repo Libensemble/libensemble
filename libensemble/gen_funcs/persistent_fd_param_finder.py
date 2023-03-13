@@ -1,13 +1,13 @@
-import numpy as np
-import subprocess
 import os
+import subprocess
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+import numpy as np
+
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 
 def build_H0(x_f_pairs, gen_specs, noise_h_mat):
-
     U = gen_specs["user"]
     x0 = U["x0"]
 

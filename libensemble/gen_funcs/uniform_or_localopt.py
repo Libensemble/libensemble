@@ -6,12 +6,11 @@ single persistent persistent nlopt local optimization run.
 
 __all__ = ["uniform_or_localopt"]
 
+import nlopt
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-
-import nlopt
 
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
@@ -52,7 +51,6 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def nlopt_obj_fun(x, grad):
-
         # Check if we can do an early return
         if np.array_equiv(x, H["x"]):
             if gen_specs["user"]["localopt_method"] in ["LD_MMA"]:

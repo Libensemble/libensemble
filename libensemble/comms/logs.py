@@ -13,6 +13,8 @@ a given log message (manager or worker ID).
 
 import logging
 import sys
+from pathlib import Path
+
 from libensemble.utils.timer import Timer
 
 
@@ -21,7 +23,7 @@ class LogConfig:
 
     config = None
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         """Instantiate a new LogConfig instance."""
         LogConfig.config = self
         self.logger_set = False
@@ -33,7 +35,7 @@ class LogConfig:
         self.fmt = "[%(worker)s]  %(asctime)s %(name)s (%(levelname)s): %(message)s"
         self.stderr_level = logging.MANAGER_WARNING
 
-    def set_level(self, level):
+    def set_level(self, level: int) -> None:
         """Set logger level either before or after creating loggers"""
         numeric_level = getattr(logging, level.upper(), 10)
         self.log_level = numeric_level
@@ -41,10 +43,24 @@ class LogConfig:
             logger = logging.getLogger(self.name)
             logger.setLevel(self.log_level)
 
-    def set_stderr_level(self, level):
+    def set_stderr_level(self, level: int) -> None:
         """Set logger level for copying messages to stderr"""
         numeric_level = getattr(logging, level.upper(), 30)
         self.stderr_level = numeric_level
+
+    def set_directory(self, dirname: str) -> None:
+        """Sets target directory to contain logfiles if loggers not yet created"""
+        dirname = Path(dirname)
+        if not dirname.exists():
+            dirname.mkdir()
+        if self.logger_set:
+            logger = logging.getLogger(self.name)
+            logger.warning("Cannot set directory after loggers initialized")
+        else:
+            baselog = Path(self.filename).name
+            basestat = Path(self.stat_filename).name
+            self.filename = str(dirname / baselog)
+            self.stat_filename = str(dirname / basestat)
 
 
 class CommLogHandler(logging.Handler):
@@ -139,7 +155,7 @@ def worker_logging_config(comm, worker_id=None):
     slogger.addHandler(ch)
 
 
-def manager_logging_config():
+def manager_logging_config(specs={}):
     """Add file-based logging at manager."""
     stat_timer = Timer()
     stat_timer.start()
@@ -148,6 +164,10 @@ def manager_logging_config():
     logconfig = LogConfig.config
 
     if not logconfig.logger_set:
+
+        if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
+            logconfig.set_directory(specs.get("workflow_dir_path"))
+
         formatter = logging.Formatter(logconfig.fmt)
         wfilter = WorkerIDFilter(0)
         fh = logging.FileHandler(logconfig.filename, mode="w")

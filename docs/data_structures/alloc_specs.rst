@@ -4,7 +4,7 @@ Allocation Specs
 ================
 
 Allocation function specifications to be set in the user calling script and passed
-to main ``libE()`` routine. *Optional*.
+to main :meth:`libE()<libensemble.libE.libE>` routine. *Optional*.
 
 Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
 all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
@@ -17,16 +17,18 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
 .. note::
   * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
-  ..  literalinclude:: ../../libensemble/alloc_funcs/defaults.py
-      :end-before: end_alloc_specs_rst_tag
-      :caption: /libensemble/alloc_funcs/defaults.py
+  ..  literalinclude:: ../../libensemble/specs.py
+      :start-at: alloc_f: Callable = give_sim_work_first
+      :end-before: end_alloc_tag
+      :caption: Default settings for alloc_specs
 
   * Users can import and adjust these defaults using:
 
   ..  code-block:: python
 
-      from libensemble.alloc_funcs import defaults
-      alloc_specs = defaults.alloc_specs
+      from libensemble.specs import AllocSpecs
+      my_new_alloc = AllocSpecs()
+      my_new_alloc.alloc_f = another_function
 
 .. seealso::
   - `test_uniform_sampling_one_residual_at_a_time.py`_ specifies fields

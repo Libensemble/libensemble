@@ -30,22 +30,23 @@ in the libEnsemble documentation.
 #   Install Surmise package
 
 import os
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.executor import Executor
+from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.sim_funcs.borehole_kills import borehole as sim_f
 from libensemble.tests.regression_tests.common import build_borehole  # current location
-from libensemble.executors.executor import Executor
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # To get debug logging in ensemble.log
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     n_init_thetas = 15  # Initial batch of thetas

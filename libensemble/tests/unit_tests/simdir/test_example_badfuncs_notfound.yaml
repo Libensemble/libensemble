@@ -1,13 +1,14 @@
 libE_specs:
-    use_persis_return: True
-    exit_criteria:
-        sim_max: 10
+    use_persis_return_sim: True
+
+exit_criteria:
+    sim_max: 10
 
 sim_specs:
-    function: numpy.linalg.norm
+    sim_f: numpy.linalg.norm
     inputs:
         - x_on_cube
-    outputs:
+    out:
         f:
             type: float
         fvec:
@@ -15,8 +16,8 @@ sim_specs:
             size: 3
 
 gen_specs:
-    function: asdf
-    outputs:
+    gen_f: asdf
+    out:
         priority:
             type: float
         local_pt:

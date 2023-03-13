@@ -1,5 +1,6 @@
 import numpy as np
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
@@ -89,7 +90,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
     for wid in avail_workers:
-
         if not np.any(points_to_evaluate):
             break
 
@@ -214,7 +214,6 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False))
     )
     for wid in avail_workers:
-
         if not np.any(points_to_evaluate):
             break
 

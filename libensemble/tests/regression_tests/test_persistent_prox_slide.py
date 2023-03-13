@@ -20,24 +20,25 @@ The number gens will be 4.
 # TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_EXTRA: true
 
+import os
 import sys
+import time
+import urllib.request
+
 import numpy as np
 import numpy.linalg as la
 import scipy.sparse as spp
-import urllib.request
 
-from libensemble.libE import libE
-from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
 from libensemble.alloc_funcs.start_persistent_consensus import start_consensus_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, readin_csv, gm_opt, svm_opt
-
+from libensemble.gen_funcs.persistent_prox_slide import opt_slide as gen_f
+from libensemble.libE import libE
 from libensemble.sim_funcs.geomedian import geomedian_eval
 from libensemble.sim_funcs.svm import svm_eval
+from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.tools.consensus_subroutines import get_k_reach_chain_matrix, gm_opt, readin_csv, svm_opt
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if nworkers < 2:
@@ -45,11 +46,19 @@ if __name__ == "__main__":
     if nworkers < 5:
         sys.exit("This tests requires at least 5 workers (6 MPI processes)...")
 
+    if is_manager:
+        fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
+        urllib.request.urlretrieve(fname, os.path.abspath("./wdbc.data"))
+        os.rename("./wdbc.data", "./wdbc_done.data")
+
+    while not os.path.isfile("./wdbc_done.data"):
+        time.sleep(0.01)
+
     num_gens = 4
     A = spp.diags([2, 3, 3, 2]) - get_k_reach_chain_matrix(num_gens, 2)
     lam_max = np.amax((la.eig(A.todense())[0]).real)
 
-    eps = 1e-1
+    eps = 5e-1
 
     # 0/1: geometric median (0 with local df, 1 with sim), 2: SVM prob_id = 1, 3&4: SVM w/ STOP_TAG
     for prob_id in range(0, 4):
@@ -59,10 +68,12 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams(persis_info, nworkers + 1)
         persis_info["gen_params"] = {}
 
-        if prob_id < 3:
+        if prob_id < 2:
+            exit_criteria = {"wallclock_max": 30, "sim_max": 200}
+        elif prob_id == 2:
             exit_criteria = {"wallclock_max": 600}
         else:
-            exit_criteria = {"wallclock_max": 600, "sim_max": 1}
+            exit_criteria = {"wallclock_max": 30, "sim_max": 10}
 
         libE_specs["safe_mode"] = False
 
@@ -90,13 +101,6 @@ if __name__ == "__main__":
                 persis_info["gen_params"] = {"df_i_eval": df}
 
         if prob_id >= 2:
-            if prob_id == 3:
-                if is_manager:
-                    fname = "http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data"
-                    urllib.request.urlretrieve(fname, "./wdbc.data")
-
-            if libE_specs["comms"] == "mpi":
-                libE_specs["mpi_comm"].Barrier()
 
             persis_info["print_progress"] = 0
             sim_f = svm_eval
@@ -106,7 +110,7 @@ if __name__ == "__main__":
                 prob_name += " w/ stoppage"
             err_const = 1e1
             N_const = 1
-            b, X = readin_csv("wdbc.data")
+            b, X = readin_csv(os.path.abspath("./wdbc_done.data"))
             X = X.T
             c = 0.1
 

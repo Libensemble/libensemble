@@ -1,7 +1,11 @@
+import inspect
 import logging
 import logging.handlers
+from typing import Callable, Dict, Optional
 
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+import numpy.typing as npt
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +16,7 @@ class Runners:
     Currently supported: direct-call and funcX
     """
 
-    def __init__(self, sim_specs, gen_specs):
+    def __init__(self, sim_specs: dict, gen_specs: dict) -> None:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.sim_f = sim_specs["sim_f"]
@@ -31,7 +35,7 @@ class Runners:
             except ModuleNotFoundError:
                 logger.warning("funcX use detected but funcX not importable. Is it installed?")
 
-    def make_runners(self):
+    def make_runners(self) -> Dict[int, Callable]:
         """Creates functions to run a sim or gen. These functions are either
         called directly by the worker or submitted to a funcX endpoint."""
 
@@ -60,11 +64,17 @@ class Runners:
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
-    def _normal_result(self, calc_in, persis_info, specs, libE_info, user_f):
+    def _normal_result(
+        self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable
+    ) -> (npt.NDArray, dict, Optional[int]):
         """User function called in-place"""
-        return user_f(calc_in, persis_info, specs, libE_info)
+        nparams = len(inspect.signature(user_f).parameters)
+        args = [calc_in, persis_info, specs, libE_info]
+        return user_f(*args[:nparams])
 
-    def _funcx_result(self, calc_in, persis_info, specs, libE_info, user_f):
+    def _funcx_result(
+        self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable
+    ) -> (npt.NDArray, dict, Optional[int]):
         """User function submitted to funcX"""
         from libensemble.worker import Worker
 

@@ -5,7 +5,9 @@ Unit test of launcher helpers for libensemble.
 """
 
 import sys
+
 import pytest
+
 import libensemble.utils.launcher as launcher
 
 
@@ -58,15 +60,6 @@ def xtest_submit():
     process = launcher.launch([py_exe, "launch_busy.py", "1"])
     assert not launcher.process_is_stopped(process, 0.5), "Process stopped early."
     launcher.cancel(process, 0)
-
-
-@pytest.mark.extra
-def test_launch32():
-    "If we are in Python > 3.2, still check that 3.2 wait func works"
-    saved_wait = launcher.wait
-    launcher.wait = launcher.wait_py32
-    xtest_submit()
-    launcher.wait = saved_wait
 
 
 @pytest.mark.extra

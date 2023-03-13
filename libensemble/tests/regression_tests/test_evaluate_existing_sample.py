@@ -16,15 +16,16 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
+from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
+
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.borehole import borehole as sim_f, gen_borehole_input
-from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
+from libensemble.sim_funcs.borehole import borehole as sim_f
+from libensemble.sim_funcs.borehole import gen_borehole_input
 from libensemble.tools import parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {

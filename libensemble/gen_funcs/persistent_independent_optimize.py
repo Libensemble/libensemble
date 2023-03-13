@@ -5,8 +5,8 @@
 import numpy as np
 import scipy.optimize as sciopt
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG
-from libensemble.tools.consensus_subroutines import print_final_score, get_grad, get_func
+from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.consensus_subroutines import get_func, get_grad, print_final_score
 
 
 def independent_optimize(H, persis_info, gen_specs, libE_info):

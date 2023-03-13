@@ -1,8 +1,11 @@
-from libensemble.resources import mpi_resources
-from libensemble.executors.executor import jassert
 import argparse
 import logging
 from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI, GPU_SET_CLI_GPT
+#from libensemble.executors.executor import Task, jassert
+from libensemble.executors.executor import jassert
+from libensemble.resources import mpi_resources
+from libensemble.resources.resources import Resources
+#from typing import Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -12,7 +15,6 @@ logger = logging.getLogger(__name__)
 class MPIRunner:
     @staticmethod
     def get_runner(mpi_runner_type, runner_name=None, platform_info=None):
-
         mpi_runners = {
             "mpich": MPICH_MPIRunner,
             "openmpi": OPENMPI_MPIRunner,
@@ -50,7 +52,6 @@ class MPIRunner:
         return args
 
     def _parse_extra_args(self, nprocs, nnodes, ppn, hyperthreads, extra_args):
-
         splt_extra_args = extra_args.split()
         p_args = self._get_parser(splt_extra_args, self.arg_nprocs, self.arg_nnodes, self.arg_ppn)
 
@@ -78,7 +79,6 @@ class MPIRunner:
     def express_spec(
         self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
     ):
-
         hostlist = None
         machinefile = None
         # Always use host lists (unless uneven mapping)
@@ -104,7 +104,7 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_env):
         """Add GPU environment variable setting to tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        task.add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
+        task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
 
     #TODO may be unnecesary function - could merge into _assign_to_slots flow with current options
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, nprocs):
@@ -268,7 +268,6 @@ class OPENMPI_MPIRunner(MPIRunner):
     def express_spec(
         self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
     ):
-
         hostlist = None
         machinefile = None
         # Use machine files for OpenMPI
@@ -368,7 +367,6 @@ class JSRUN_MPIRunner(MPIRunner):
         self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args,
         auto_assign_gpus, match_procs_to_gpus, resources, workerID
     ):
-
         # Return auto_resource variables inc. extra_args additions
 
         p_args = None

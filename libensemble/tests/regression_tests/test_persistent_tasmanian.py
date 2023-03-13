@@ -18,15 +18,17 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 
 import sys
+from time import time
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-from libensemble.gen_funcs.persistent_tasmanian import sparse_grid_batched as gen_f_batched
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from time import time
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 
 def tasmanian_init_global():
@@ -51,7 +53,6 @@ def tasmanian_init_localp():
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if is_manager:
