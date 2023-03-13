@@ -4,6 +4,7 @@ libensemble utility class -- keeps a stack of directory locations.
 
 import os
 import shutil
+from pathlib import Path
 from typing import List, Optional, Union
 
 
@@ -16,17 +17,16 @@ class LocationStack:
         self.stack = []
 
     def copy_or_symlink(
-        self, destdir: str, copy_files: List[str] = [], symlink_files: List[str] = [], ignore_FileExists: bool = False
+        self, destdir: str, copy_files: List[Path] = [], symlink_files: List[Path] = [], ignore_FileExists: bool = False
     ) -> None:
         """Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
         """
         for file_path in copy_files:
-            file_path = os.path.expanduser(os.path.expandvars(file_path))
-            src_base = os.path.basename(file_path)
-            dest_path = os.path.join(destdir, src_base)
+            file_path = Path(file_path).absolute()
+            dest_path = destdir / Path(file_path.name)
             try:
-                if os.path.isdir(file_path):
+                if file_path.is_dir():
                     shutil.copytree(file_path, dest_path)
                 else:
                     shutil.copy(file_path, dest_path)
@@ -37,8 +37,8 @@ class LocationStack:
                     raise
 
         for file_path in symlink_files:
-            src_path = os.path.abspath(os.path.expanduser(os.path.expandvars(file_path)))
-            dest_path = os.path.join(destdir, os.path.basename(file_path))
+            src_path = Path(file_path).absolute()
+            dest_path = destdir / Path(file_path.name)
             try:
                 os.symlink(src_path, dest_path)
             except FileExistsError:
@@ -50,10 +50,10 @@ class LocationStack:
     def register_loc(
         self,
         key: Union[str, int],
-        dirname: str,
-        prefix: Optional[str] = None,
-        copy_files: List[str] = [],
-        symlink_files: List[str] = [],
+        dirname: Path,
+        prefix: Optional[Path] = None,
+        copy_files: List[Path] = [],
+        symlink_files: List[Path] = [],
         ignore_FileExists: bool = False,
     ) -> str:
         """Register a new location in the dictionary.
@@ -64,25 +64,24 @@ class LocationStack:
         key:
             The key used to identify the new location.
 
-        dirname: string:
+        dirname: Path:
             Directory name
 
-        prefix: string:
+        prefix: Path:
             Prefix to be used with the dirname.  If prefix is not None,
             only the base part of the dirname is used.
 
-        copy_files: list:
+        copy_files: list of Paths:
             Copy these files to the destination directory.
 
-        symlink_files: list:
+        symlink_files: list of Paths:
             Symlink these files to the destination directory.
         """
         if prefix is not None:
-            prefix = os.path.expanduser(prefix)
-            dirname = os.path.join(prefix, os.path.basename(dirname))
+            dirname = prefix.absolute() / dirname.stem
 
-        if dirname and not os.path.isdir(dirname):
-            os.makedirs(dirname, exist_ok=True)  # Prevent race-condition when no sim_dirs
+        if dirname and not dirname.is_dir():
+            dirname.mkdir(exist_ok=True)
 
         self.dirs[key] = dirname
         if len(copy_files) or len(symlink_files):
@@ -103,7 +102,7 @@ class LocationStack:
     def push(self, dirname):
         """Push the current location and change directories (if not None)."""
         if dirname is not None:
-            self.stack.append(os.getcwd())
+            self.stack.append(Path.cwd())
             os.chdir(dirname)
         else:
             self.stack.append(None)

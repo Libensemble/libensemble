@@ -1,4 +1,3 @@
-import os
 import random
 import secrets
 from pathlib import Path
@@ -414,16 +413,16 @@ class LibeSpecs(BaseModel):
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value):
         if len(value):
-            assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
-        if isinstance(value, str):
-            return Path(value)
+            if isinstance(value, str):
+                value = Path(value)
+            assert value.exists(), "libE_specs['{}'] does not refer to an existing path.".format(value)
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
     def check_inputs_exist(cls, value):
-        for f in value:
-            assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
         value = [Path(path) for path in value]
+        for f in value:
+            assert f.exists(), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
         return value
 
     @root_validator
