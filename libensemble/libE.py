@@ -730,6 +730,6 @@ def _dump_on_abort(hist, persis_info, save_H=True, path=Path.cwd()):
     logger.error(f"Dumping ensemble history with {hist.sim_ended_count} sims evaluated:")
 
     if save_H:
-        np.save(Path(path / ("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy")), hist.trim_H())
-        with Path(path / ("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle")).open("wb") as f:
+        np.save(Path(path / Path("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy")), hist.trim_H())
+        with Path(path / Path("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle")).open("wb") as f:
             pickle.dump(persis_info, f)

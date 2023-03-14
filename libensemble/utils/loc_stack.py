@@ -81,7 +81,7 @@ class LocationStack:
             dirname = prefix.absolute() / dirname.stem
 
         if dirname and not dirname.is_dir():
-            dirname.mkdir(exist_ok=True)
+            dirname.mkdir(parents=True, exist_ok=True)
 
         self.dirs[key] = dirname
         if len(copy_files) or len(symlink_files):
