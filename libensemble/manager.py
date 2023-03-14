@@ -213,7 +213,7 @@ class Manager:
                     wrk["zero_resource_worker"] = True
 
         try:
-            temp_EnsembleDirectory.make_copyback_check()
+            temp_EnsembleDirectory.make_copyback()
         except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))
             self._kill_workers()
