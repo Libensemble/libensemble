@@ -39,6 +39,7 @@ class MPIRunner:
         self.arg_nprocs = ("--LIBE_NPROCS_ARG_EMPTY",)
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--LIBE_PPN_ARG_EMPTY",)
+        self.default_mpi_options = None
         self.default_gpu_arg = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
@@ -211,6 +212,9 @@ class MPIRunner:
                 nprocs, nnodes, ppn, p_args
             )
 
+        if self.default_mpi_options is not None:
+            extra_args += f" {self.default_mpi_options}"
+
         return {
             "num_procs": nprocs,
             "num_nodes": nnodes,
@@ -229,6 +233,7 @@ class MPICH_MPIRunner(MPIRunner):
         self.arg_nprocs = ("-n", "-np")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--ppn",)
+        self.default_mpi_options = None
         self.default_gpu_arg = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
@@ -252,6 +257,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         self.arg_nprocs = ("-n", "-np", "-c", "--n")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-npernode",)
+        self.default_mpi_options = None
         self.default_gpu_arg = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
@@ -293,6 +299,7 @@ class APRUN_MPIRunner(MPIRunner):
         self.arg_nprocs = ("-n",)
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-N",)
+        self.default_mpi_options = None
         self.default_gpu_arg = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
@@ -314,6 +321,7 @@ class MSMPI_MPIRunner(MPIRunner):
         self.arg_nprocs = ("-n", "-np")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-cores",)
+        self.default_mpi_options = None
         self.default_gpu_arg = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
@@ -334,6 +342,7 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nprocs = ("-n", "--ntasks")
         self.arg_nnodes = ("-N", "--nodes")
         self.arg_ppn = ("--ntasks-per-node",)
+        self.default_mpi_options = "--exact"
         self.default_gpu_arg = "--gpus-per-node="
         self.default_gpu_arg_type = GPU_SET_CLI
         self.platform_info = platform_info
@@ -357,6 +366,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_nprocs = ("--np", "-n")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-r",)
+        self.default_mpi_options = None
         self.default_gpu_arg = "-g"
         self.default_gpu_arg_type = GPU_SET_CLI_GPT
 
@@ -413,6 +423,9 @@ class JSRUN_MPIRunner(MPIRunner):
 
         if rm_rpn:
             ppn = None
+
+        if self.default_mpi_options is not None:
+            extra_args += f" {self.default_mpi_options}"
 
         return {
             "num_procs": nprocs,
