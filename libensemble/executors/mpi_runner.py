@@ -86,6 +86,13 @@ class MPIRunner:
                 ppn = None
         return nprocs, nnodes, ppn
 
+    def _append_to_extra_args(self, extra_args, new_args):
+        """Add a string to extra_args"""
+        if extra_args is None:
+            return new_args
+        extra_args += f" {new_args}"
+        return extra_args
+
     def express_spec(
         self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
     ):
@@ -238,7 +245,7 @@ class MPIRunner:
             )
 
         if self.default_mpi_options is not None:
-            extra_args += f" {self.default_mpi_options}"
+            extra_args = self._append_to_extra_args(extra_args, self.default_mpi_options)
 
         return {
             "num_procs": nprocs,
@@ -468,7 +475,7 @@ class JSRUN_MPIRunner(MPIRunner):
             ppn = None
 
         if self.default_mpi_options is not None:
-            extra_args += f" {self.default_mpi_options}"
+            extra_args = self._append_to_extra_args(extra_args, self.default_mpi_options)
 
         return {
             "num_procs": nprocs,
