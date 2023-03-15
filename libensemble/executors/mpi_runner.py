@@ -345,6 +345,9 @@ class SRUN_MPIRunner(MPIRunner):
         self.default_mpi_options = "--exact"
         self.default_gpu_arg = "--gpus-per-node="
         self.default_gpu_arg_type = GPU_SET_CLI
+        # Alt. gpus per task
+        # self.default_gpu_arg = "--gpus-per-task="
+        # self.default_gpu_arg_type = GPU_SET_CLI_GPN
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,

@@ -24,6 +24,13 @@ def _get_opt_value(option_name, cmd_line):
                 opt_val = word
     return opt_val
 
+def _get_expected_output(name, value):
+    """Return expected gpu runline setting"""
+    if name.endswith("="):
+        return name + str(value)
+    return name + " " + str(value)
+
+
 def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None):
     """Checks GPU run lines
 
@@ -48,23 +55,44 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     mpirunner = task.runline.split(' ', 1)[0]
     gpu_setting = None
     stype = None
+    gpus_per_task = False
+
+    # Configuration is parsed from runline to ensure output is used.
+
+    procs_setting = {
+                    "mpiexec": "-np",
+                    "mpirun": "-np",
+                     "srun": "--ntasks",
+                     "jsrun": "-n",
+                     "aprun": "-n",
+                     }
+
+    num_procs = _get_value(procs_setting[mpirunner], task.runline)
+
 
     # mpirunners that expect a command line option
     if mpirunner in ["srun", "jsrun"]:
         assert resources.even_slots, f"Error: Found uneven slots on nodes {slots}"
 
         if mpirunner == "srun":
-            stype = "runline option: gpus per node"
             expected_setting = "--gpus-per-node="
-            expected_nums = resources.slot_count * resources.gpus_per_rset
-            expected = expected_setting + str(expected_nums)
+            if _get_value(expected_setting, task.runline) is None:
+                # Try gpus per task
+                gpus_per_task = True
+                expected_setting = "--gpus-per-task="
 
         elif mpirunner == "jsrun":
-            stype = "runline option: gpus per task"
+            gpus_per_task = True
             expected_setting = "-g"
-            num_procs = _get_value("-n", task.runline)
+
+        if gpus_per_task:
+            stype = "runline option: gpus per task"
             expected_nums = resources.slot_count * resources.gpus_per_rset // int(num_procs)
-            expected = expected_setting + " " + str(expected_nums)
+        else:
+            stype = "runline option: gpus per node"
+            expected_nums = resources.slot_count * resources.gpus_per_rset
+
+        expected = _get_expected_output(expected_setting, expected_nums)
 
         if expected_setting in task.runline:
             gpu_setting = _get_opt_value(expected_setting, task.runline)
@@ -77,9 +105,14 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         stype = "Env var"
         gpu_setting = task.env
 
+    # If could be a custom runner - we dont have procs info
+    if mpirunner == "mpiexec":
+        addon = ""
+    else:
+        addon = f"(tasks {num_procs})"
 
     if print_setting:
-        print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting}")
+        print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
 
     if assert_setting:
         assert gpu_setting == expected, f"Found GPU setting: {gpu_setting}, Expected: {expected}"
