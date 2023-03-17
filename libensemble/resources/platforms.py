@@ -16,14 +16,14 @@ GPU_SET_CLI_GPT = 4  # Expresses GPUs per task on MPI runner command line.
 
 
 class Platform(BaseModel):
-    mpi_runner: str = "srun"
+    mpi_runner: str
     runner_name: Optional[str]
     cores_per_node: int
     logical_cores_per_node: int
     gpus_per_node: int
     gpu_setting_type: int
     gpu_setting_name: str
-    scheduler_match_slots: bool = False
+    scheduler_match_slots: bool
 
     @validator("gpu_setting_type")
     def check_gpu_setting_type(cls, value):
@@ -53,6 +53,7 @@ class Summit(Platform):
     gpus_per_node: int = 6
     gpu_setting_type: int = GPU_SET_CLI_GPT
     gpu_setting_name: str = "-g"
+    scheduler_match_slots: bool = False
 
 
 class PerlmutterGPU(Platform):
@@ -61,6 +62,7 @@ class PerlmutterGPU(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: int = GPU_SET_DEF
+    scheduler_match_slots: bool = False
 
 
 class Polaris(Platform):
@@ -70,6 +72,7 @@ class Polaris(Platform):
     logical_cores_per_node: int = 64
     gpus_per_node: int = 4
     gpu_setting_type: int = GPU_SET_DEF
+    scheduler_match_slots: bool = True
 
 
 class Spock(Platform):
@@ -78,6 +81,7 @@ class Spock(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: int = GPU_SET_DEF
+    scheduler_match_slots: bool = False
 
 
 class Crusher(Platform):
@@ -86,6 +90,7 @@ class Crusher(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
     gpu_setting_type: int = GPU_SET_DEF
+    scheduler_match_slots: bool = False
 
 
 class Sunspot(Platform):
