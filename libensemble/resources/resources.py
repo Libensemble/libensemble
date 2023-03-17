@@ -51,18 +51,18 @@ class Resources:
     DEFAULT_NODEFILE = "node_list"
 
     @classmethod
-    def init_resources(cls, libE_specs: dict) -> None:
+    def init_resources(cls, libE_specs: dict, platform_info: dict) -> None:
         """Initiate resource management"""
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
+            Resources.resources = Resources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir)
 
-    def __init__(self, libE_specs: dict, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict, top_level_dir: str = None) -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
-        self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
 
@@ -97,7 +97,8 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs: dict, top_level_dir: str = None) -> None:
+    #TODO - FIX DOCSTRING  - maybe same info - but alot comes from libE_specs - make sure platform_info added
+    def __init__(self, libE_specs: dict, platform_info: dict, top_level_dir: str = None) -> None:
 
         """Initializes a new Resources instance
 
@@ -166,10 +167,18 @@ class GlobalResources:
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
-
         resource_info = libE_specs.get("resource_info", {})
-        cores_on_node = resource_info.get("cores_on_node", None)
-        gpus_on_node = resource_info.get("gpus_on_node", None)
+
+        # resource_info overrides platform - could be warning if both set
+        #TODO - change cores_on_node/gpus_on_node  to cores/gpus*_per_node!!! - breaking change! deprecate until 1.0?
+        #TODO - cores_on_node in resource_info is a tuple - (physical, logical) cores. platform_info - separate
+        #       make them the same - choose which one.
+
+        cores_on_node = resource_info.get("cores_on_node")
+        if cores_on_node is None:
+            cores_on_node= (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
+        gpus_on_node = resource_info.get("gpus_on_node") or platform_info.get("gpus_per_node")
+
         node_file = resource_info.get("node_file", None)
         nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)
         nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
@@ -204,18 +213,13 @@ class GlobalResources:
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
-        if not cores_on_node or not gpus_on_node:
-            detected_cores_on_node = node_resources.get_sub_node_resources(
+        if not cores_on_node or not gpus_on_node or None in cores_on_node:
+            detected_config = node_resources.get_sub_node_resources(
                 launcher=self.launcher,
                 remote_mode=remote_detect,
-                env_resources=self.env_resources,
+                env_resources=self.env_resources
             )
-
-        if not cores_on_node:
-            cores_on_node = detected_cores_on_node[0:2]
-
-        if not gpus_on_node:
-            gpus_on_node = detected_cores_on_node[2]
+            cores_on_node, gpus_on_node = _self.add_detected_info(cores_on_node, gpus_on_node, detected_config)
 
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
@@ -241,6 +245,19 @@ class GlobalResources:
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
                     pass
+
+    def _add_detected_info(self, cores_on_node, gpus_on_node, detected_config):
+        """Update missing values in cores/gpus_on_node"""
+        if not cores_on_node:
+             cores_on_node = detected_config[0:2]
+        else:
+            if not cores_on_node[0]:
+                cores_on_node[0] = detected_config[0]
+            if not cores_on_node[1]:
+                cores_on_node[1] = detected_config[1]
+        if not gpus_on_node:
+            gpus_on_node = detected_config[2]
+        return cores_on_node, gpus_on_node
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):

@@ -21,18 +21,7 @@ logger = logging.getLogger(__name__)
 REMOTE_LAUNCH_LIST = ["aprun", "jsrun", "srun"]  # Move to feature of mpi_runner
 
 
-def known_sys_check_env():
-    """Check for system provided by environment"""
-    if "LIBE_PLATFORM" in os.environ:
-        prov_system = os.environ['LIBE_PLATFORM']
-        if prov_system in known_systems:
-            print(f"Found a known system in node_resources (from env): {prov_system}") #tmp
-            return get_platform_num_cores_gpus(prov_system)
-    else:
-        return None
-
-
-def known_sys_check_detect(cmd="hostname -d"):
+def known_sys_detect(cmd="hostname -d"):
     """Detect system domain name and return any CPU / GPU data found as a tuple
 
     If the system is found, will return an int tuple of (cores, logical cores, gpus),
@@ -65,14 +54,6 @@ def known_sys_check_detect(cmd="hostname -d"):
     except Exception:
         print("Known system detection failed")
         return None
-
-
-def known_sys_check(cmd="hostname -d"):
-    """Check for user provided system, and otherwise check for detected system"""
-    cores_info = known_sys_check_env()
-    if cores_info is None:
-        return known_sys_check_detect(cmd=cmd)
-    return cores_info
 
 
 def get_cpu_cores(hyperthreads: bool = False) -> int:
@@ -230,7 +211,7 @@ def get_sub_node_resources(
     cores_info = [None, None, None]
 
     # Check for known system
-    cores_info = known_sys_check() or [None, None, None]
+    cores_info = known_sys_detect() or [None, None, None]
     print("known system info", cores_info)
     if _complete_set(cores_info):
         print("known system provided all info")

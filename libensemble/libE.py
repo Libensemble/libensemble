@@ -254,6 +254,7 @@ from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
+from libensemble.resources.platforms import get_platform_from_specs
 from libensemble.resources.resources import Resources
 from libensemble.specs import AllocSpecs, EnsembleSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools.alloc_support import AllocSupport
@@ -363,12 +364,17 @@ def libE(
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
+    # Extract platform info from settings or environment
+    platform_info = get_platform_from_specs(libE_specs)
 
-    Resources.init_resources(libE_specs)
+    Resources.init_resources(libE_specs, platform_info)
+    if Executor.executor is not None:
+        Executor.executor.add_platform_info(platform_info)
 
     # Reset gen counter.
     AllocSupport.gen_counter = 0
+
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
     return libE_funcs[libE_specs.get("comms", "mpi")](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0

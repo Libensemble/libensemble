@@ -90,37 +90,30 @@ class MPIExecutor(Executor):
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
-        self.platform_info = None
-
-        mpi_runner_type = None
-        runner_name = None
-        subgroup_launch = None
-
-        # Apply platform options (can be overridden with custom options
-        if "LIBE_PLATFORM" in os.environ:
-            prov_system = os.environ['LIBE_PLATFORM']
-            if prov_system in known_systems:
-                logger.debug(f"Found a known system in mpi executor (from env): {prov_system}")
-                self.platform_info = get_mpiexec_platforms(prov_system)
-                mpi_runner_type = self.platform_info.get("mpi_runner", mpi_runner_type)
-                runner_name = self.platform_info.get("runner_name", runner_name)
-                print(f"mpi_runner_type {mpi_runner_type}")
-                print(f"runner_name {runner_name}")
-                # subgroup_launch set by runner
-            else:
-                logger.warning(f"System {prov_system} is not recognised")
+        self.resources = None
 
         # Apply custom options
-        mpi_runner_type = custom_info.get("mpi_runner", mpi_runner_type)
-        runner_name = custom_info.get("runner_name", runner_name)
-        subgroup_launch = custom_info.get("subgroup_launch", subgroup_launch)
+        self.mpi_runner_type = custom_info.get("mpi_runner")
+        self.runner_name = custom_info.get("runner_name")
+        self.subgroup_launch = custom_info.get("subgroup_launch")
 
-        if not mpi_runner_type:
-            mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name, self.platform_info)
-        if subgroup_launch is not None:
+    def add_platform_info(self, platform_info):
+        """Add user supplied platform info to executor"""
+
+        # Apply platform options (does not overwrite custom_info Executor options)
+        if platform_info is not None:
+            self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
+            self.runner_name = self.runner_name or platform_info.get("runner_name")
+        print(f"mpi_runner_type {self.mpi_runner_type}")
+        print(f"runner_name {self.runner_name}")
+
+        # If runner type has not been given, then detect
+        if not self.mpi_runner_type:
+            self.mpi_runner_type = get_MPI_variant()
+        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, platform_info)
+
+        if self.subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = subgroup_launch
-        self.resources = None
 
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources

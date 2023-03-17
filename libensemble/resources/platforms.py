@@ -1,4 +1,8 @@
 """Known platforms default configuration"""
+import os
+
+class PlatformException(Exception):
+    "Platform module exception."
 
 # GPU ASSIGNMENT TYPES
 GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set). gpu_setting_name not required.
@@ -22,7 +26,7 @@ summit = {
 
 # Perlmutter has CPU and GPU nodes
 perlmutter_g = {
-    "mpi_runner" : 'srun',
+    "mpi_runner" : "srun",
     "cores_per_node": 64,
     "logical_cores_per_node": 128,
     "gpus_per_node" : 4,
@@ -33,8 +37,8 @@ perlmutter_g = {
     }
 
 polaris = {
-    "mpi_runner" : 'mpich',
-    "runner_name" : 'mpiexec',
+    "mpi_runner" : "mpich",
+    "runner_name" : "mpiexec",
     "cores_per_node" : 32,
     "logical_cores_per_node" : 64,
     "gpus_per_node" : 4,
@@ -52,7 +56,7 @@ spock = {
 }
 
 crusher =  {
-    "mpi_runner" : 'srun',
+    "mpi_runner" : "srun",
     "cores_per_node": 64,
     "logical_cores_per_node": 128,
     "gpus_per_node" : 8,
@@ -61,8 +65,8 @@ crusher =  {
     }
 
 sunspot = {
-    "mpi_runner" : 'mpich',
-    "runner_name" : 'mpiexec',
+    "mpi_runner" : "mpich",
+    "runner_name" : "mpiexec",
     "cores_per_node" : 104,  # finds - check
     "logical_cores_per_node" : 208,  # finds - check
     "gpus_per_node" : 6,
@@ -92,7 +96,6 @@ detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
                   #"crusher.olcf.ornl.gov": crusher,
                   #}
 
-
 #TODO Review function naming
 def get_platform_num_cores_gpus(system_name):  #act systm dict itself
     """Return list of number of cores and gpus per node
@@ -117,3 +120,16 @@ def get_mpiexec_platforms(system_name):
             "gpu_setting_name" : system.get("gpu_setting_name"),  # Not needed with GPU_SET_DEF
             #"" : system[""],
             }
+
+#TODO - if known plaform and platform_spec - should it combine / overwriting known with spec?
+def get_platform_from_specs(libE_specs):
+    """Return dictionary of platform information"""
+    platform_info = libE_specs.get("platform_spec")
+    if platform_info is None:
+        name = libE_specs["platform"] or os.environ.get("LIBE_PLATFORM")
+        if name is not None:
+            try:
+                platform_info = known_systems[name]
+            except KeyError:
+                raise PlatformException(f"Error. Unknown platform requested {name}")
+    return platform_info
