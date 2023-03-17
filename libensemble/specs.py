@@ -207,7 +207,7 @@ class LibeSpecs(BaseModel):
     Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary.
     """
 
-    comms: str = "mpi"
+    comms: Optional[str] = "mpi"
     """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'`` """
 
     nworkers: Optional[int]
