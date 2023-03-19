@@ -100,7 +100,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     else:
         assert resources.matching_slots, f"Error: Found unmatching slots on nodes {slots}"
         expected_setting = "CUDA_VISIBLE_DEVICES"
-        expected_nums = resources.get_slots_as_string()
+        expected_nums = resources.get_slots_as_string(multiplier=resources.gpus_per_rset)
         expected = {expected_setting:expected_nums}
         stype = "Env var"
         gpu_setting = task.env

@@ -180,7 +180,8 @@ def six_hump_camel_GPU_variable_resources(H, persis_info, sim_specs, libE_info):
         with open("out.txt") as f:
             H_o["f"] = float(f.readline().strip())  # Read just first line
 
-    check_gpu_setting(task, print_setting=True)  # Asserts GPU set correctly
+    # Asserts GPU set correctly (for default MPI settings)
+    check_gpu_setting(task, print_setting=True)
 
     calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
     return H_o, persis_info, calc_status
