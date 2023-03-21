@@ -209,12 +209,6 @@ jobs:
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
 
-        - name: Experiment with running multiple pytest workers
-          run: |
-            pip install pytest-xdist
-            cd libensemble/tests/unit_tests; pytest -n auto --runextra .
-            cd -
-
         - name: Remove ytopt-heffte test on Python 3.11 (easy way)
           if: matrix.python-version == '3.11'
           run: |
