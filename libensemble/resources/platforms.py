@@ -1,8 +1,13 @@
 """Known platforms default configuration"""
-
+import os
 from typing import Optional
 
 from pydantic import BaseModel, root_validator, validator
+
+
+class PlatformException(Exception):
+    "Platform module exception."
+
 
 # GPU ASSIGNMENT TYPES
 GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set). gpu_setting_name not required.
@@ -147,9 +152,23 @@ def get_mpiexec_platforms(system_name):
     """Return dict of mpi runner info"""
     system = known_systems[system_name]
     return {
-        "mpi_runner": system.mpi_runner,
-        "runner_name": system.runner_name,  # only used where distinction needed
-        "gpu_setting_type": system.gpu_setting_type,
-        "gpu_setting_name": system.gpu_setting_name,  # Not needed with GPU_SET_DEF
+        "mpi_runner": system["mpi_runner"],
+        "runner_name": system.get("runner_name"),  # only used where distinction needed
+        "gpu_setting_type": system["gpu_setting_type"],
+        "gpu_setting_name": system.get("gpu_setting_name"),  # Not needed with GPU_SET_DEF
         # "" : system[""],
     }
+
+
+# TODO - if known plaform and platform_spec - should it combine / overwriting known with spec?
+def get_platform_from_specs(libE_specs):
+    """Return dictionary of platform information"""
+    platform_info = libE_specs.get("platform_spec")
+    if platform_info is None:
+        name = libE_specs["platform"] or os.environ.get("LIBE_PLATFORM")
+        if name is not None:
+            try:
+                platform_info = known_systems[name]
+            except KeyError:
+                raise PlatformException(f"Error. Unknown platform requested {name}")
+    return platform_info

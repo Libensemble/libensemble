@@ -463,6 +463,10 @@ class Executor:
         # Does not use resources
         pass
 
+    def add_platform_info(platform_info):
+        # Base executor does not currently use platform info
+        pass
+
     def register_app(
         self,
         full_path: str,

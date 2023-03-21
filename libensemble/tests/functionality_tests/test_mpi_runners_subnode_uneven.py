@@ -100,16 +100,16 @@ if __name__ == "__main__":
     ]
 
     # Example: On 5 workers, runlines should be ...
-    # [w1]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w2]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w3]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w4]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
-    # [w5]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
+    # [w1]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w2]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w3]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w4]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base1
+    # [w5]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base1
 
     srun_p1 = "srun -w "
     srun_p2 = " --ntasks "
     srun_p3 = " --nodes 1 --ntasks-per-node "
-    srun_p4 = " /path/to/fakeapp.x --testid base1"
+    srun_p4 = " --exact /path/to/fakeapp.x --testid base1"
 
     exp_tasks = []
     exp_srun = []
