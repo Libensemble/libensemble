@@ -51,13 +51,13 @@ class EnsembleDirectory:
         self.ensemble_copy_back = self.specs.get("ensemble_copy_back", False)
 
         self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
-        self.sim_input_dir = Path(self.specs.get("sim_input_dir", "")) if self.specs.get("sim_input_dir", "") else ""
+        self.sim_input_dir = Path(self.specs.get("sim_input_dir")) if self.specs.get("sim_input_dir") else ""
         self.sim_dirs_make = self.specs.get("sim_dirs_make", False)
         self.sim_dir_copy_files = self.specs.get("sim_dir_copy_files", [])
         self.sim_dir_symlink_files = self.specs.get("sim_dir_symlink_files", [])
 
         self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
-        self.gen_input_dir = Path(self.specs.get("gen_input_dir", "")) if self.specs.get("gen_input_dir", "") else ""
+        self.gen_input_dir = Path(self.specs.get("gen_input_dir")) if self.specs.get("gen_input_dir") else ""
         self.gen_dirs_make = self.specs.get("gen_dirs_make", False)
         self.gen_dir_copy_files = self.specs.get("gen_dir_copy_files", [])
         self.gen_dir_symlink_files = self.specs.get("gen_dir_symlink_files", [])

@@ -284,7 +284,7 @@ class LibeSpecs(BaseModel):
     List of strings or pathlib.Path objects
     """
 
-    sim_input_dir: Optional[Union[str, Path]] = ""
+    sim_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each simulation-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
@@ -306,7 +306,7 @@ class LibeSpecs(BaseModel):
     List of strings or pathlib.Path objects
     """
 
-    gen_input_dir: Optional[Union[str, Path]] = ""
+    gen_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each generator-instance-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
@@ -413,11 +413,11 @@ class LibeSpecs(BaseModel):
 
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value):
-        if value or len(value):
+        if value:
             if isinstance(value, str):
                 value = Path(value)
             assert value.exists(), "value does not refer to an existing path"
-            assert value != Path("."), "Value can't refer to the current directory."
+            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
