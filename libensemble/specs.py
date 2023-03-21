@@ -413,16 +413,18 @@ class LibeSpecs(BaseModel):
 
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value):
-        if isinstance(value, str):
-            value = Path(value)
-        assert value.exists(), "libE_specs['{}'] does not refer to an existing path.".format(value)
+        if value or len(value):
+            if isinstance(value, str):
+                value = Path(value)
+            assert value.exists(), "value does not refer to an existing path"
+            assert value != Path("."), "Value can't refer to the current directory."
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
     def check_inputs_exist(cls, value):
         value = [Path(path) for path in value]
         for f in value:
-            assert f.exists(), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
         return value
 
     @root_validator
