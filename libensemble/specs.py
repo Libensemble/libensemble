@@ -431,11 +431,11 @@ class LibeSpecs(BaseModel):
 
     @root_validator
     def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        if values.get("use_workflow_dir") and len(values.get("workflow_dir_path")) <= 1:
+        if values.get("use_workflow_dir") and len(str(values.get("workflow_dir_path"))) <= 1:
             values["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
             ).absolute()  # should avoid side-effects. make dir later
-        elif values.get("workflow_dir_path") and not values.get("use_workflow_dir"):
+        elif len(str(values.get("workflow_dir_path"))) > 1 and not values.get("use_workflow_dir"):
             values["use_workflow_dir"] = True
         return values
 
