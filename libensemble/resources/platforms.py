@@ -116,7 +116,7 @@ detect_systems = {"summit.olcf.ornl.gov": summit,  # Needed to detect gpu count 
 
 
 #TODO Review function naming
-def get_platform_num_cores_gpus(system_name):  #act systm dict itself
+def get_platform_num_cores_gpus(system_name):
     """Return list of number of cores and gpus per node
 
     system_name is a system dictionary or string (system name)
@@ -132,13 +132,12 @@ def get_platform_num_cores_gpus(system_name):  #act systm dict itself
 
 
 def get_mpiexec_platforms(system_name):
-    """Return dict of mpi runner info"""
+    """Return dictionary of mpi runner info"""
     system = known_systems[system_name]
     return {"mpi_runner": system["mpi_runner"],
             "runner_name" : system.get("runner_name"),  # only used where distinction needed
             "gpu_setting_type" : system["gpu_setting_type"],
             "gpu_setting_name" : system.get("gpu_setting_name"),  # Not needed with GPU_SET_DEF
-            #"" : system[""],
             }
 
 

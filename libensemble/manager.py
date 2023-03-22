@@ -214,11 +214,15 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
+
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
+        self.scheduler_opts = self.libE_specs.get("scheduler_opts")
         if self.resources is not None:
+            gresource = self.resources.glob_resources
+            self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
             for wrk in self.W:
-                if wrk["worker_id"] in self.resources.glob_resources.zero_resource_workers:
+                if wrk["worker_id"] in gresource.zero_resource_workers:
                     wrk["zero_resource_worker"] = True
 
         try:
@@ -565,13 +569,14 @@ class Manager:
 
     def _get_alloc_libE_info(self) -> dict:
         """Selected statistics useful for alloc_f"""
+
         return {
             "any_idle_workers": any(self.W["active"] == 0),
             "exit_criteria": self.exit_criteria,
             "elapsed_time": self.elapsed(),
             "gen_informed_count": self.hist.gen_informed_count,
             "manager_kill_canceled_sims": self.kill_canceled_sims,
-            "scheduler_opts": self.libE_specs.get("scheduler_opts"),
+            "scheduler_opts": self.scheduler_opts,
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),

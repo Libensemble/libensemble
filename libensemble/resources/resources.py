@@ -223,6 +223,7 @@ class GlobalResources:
 
         print(f"From resources: {cores_on_node=}")  # testing
         print(f"From resources: {gpus_on_node=}")  # testing
+        self.platform_info = platform_info
         self.libE_nodes = None
 
     def add_comm_info(self, libE_nodes):
@@ -241,6 +242,14 @@ class GlobalResources:
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
                     pass
+
+    def update_scheduler_opts(self, scheduler_opts):
+        """Add scheduler options from platform_info, if not present"""
+        if self.platform_info is not None:
+            if "match_slots" not in scheduler_opts:
+                if "scheduler_match_slots" in self.platform_info:
+                    scheduler_opts["match_slots"] = self.platform_info["scheduler_match_slots"]
+        return scheduler_opts
 
     def _add_detected_info(self, cores_on_node, gpus_on_node, detected_config):
         """Update missing values in cores/gpus_on_node"""
