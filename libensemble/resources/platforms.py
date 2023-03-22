@@ -1,4 +1,9 @@
-"""Known platforms default configuration"""
+"""Known platforms default configuration
+
+Any fields not included, libEnsemble will attempt to detect from the system.
+
+"""
+
 import os
 
 class PlatformException(Exception):
@@ -83,10 +88,13 @@ known_systems = {"summit": summit,
                  "spock": spock,
                  "crusher": crusher,
                  "sunspot": sunspot,
+                 "generic_rocm": generic_rocm,
                  }
 
+#TODO - should code below here be separated?
+
 # Dictionary of known systems (systems or system partitions) detectable by domain name
-detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
+detect_systems = {"summit.olcf.ornl.gov": summit,  # Needed to detect gpu count (if not provided)
                   }
 
 #TODO Also could detect by hostname but do we want to.
@@ -95,6 +103,7 @@ detect_systems = {"summit.olcf.ornl.gov": summit,  # Need to detect gpu count
                   #"hsn.cm.polaris.alcf.anl.gov": polaris_g,  # What about partitions?
                   #"crusher.olcf.ornl.gov": crusher,
                   #}
+
 
 #TODO Review function naming
 def get_platform_num_cores_gpus(system_name):  #act systm dict itself
@@ -111,6 +120,7 @@ def get_platform_num_cores_gpus(system_name):  #act systm dict itself
     gpus_per_node = system.get("gpus_per_node")
     return [cores_per_node, logical_cores_per_node, gpus_per_node]
 
+
 def get_mpiexec_platforms(system_name):
     """Return dict of mpi runner info"""
     system = known_systems[system_name]
@@ -121,15 +131,27 @@ def get_mpiexec_platforms(system_name):
             #"" : system[""],
             }
 
-#TODO - if known plaform and platform_spec - should it combine / overwriting known with spec?
+
 def get_platform_from_specs(libE_specs):
-    """Return dictionary of platform information"""
-    platform_info = libE_specs.get("platform_spec")
-    if not platform_info:
-        name = libE_specs["platform"] or os.environ.get("LIBE_PLATFORM")
-        if name:
-            try:
-                platform_info = known_systems[name]
-            except KeyError:
-                raise PlatformException(f"Error. Unknown platform requested {name}")
+    """Return dictionary of platform information
+
+    If both platform and platform_spec fields are present, any fields in
+    platform_specs are added or overwrite fields in the known platform.
+    """
+    platform_info = {}
+    name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
+    if name:
+        try:
+            platform_info = known_systems[name]
+        except KeyError:
+            raise PlatformException(f"Error. Unknown platform requested {name}")
+
+        # Add/overwrite any fields from a platform_spec
+        platform_spec = libE_specs.get("platform_spec")
+        if platform_spec:
+            for k,v in platform_spec.items():
+                platform_info[k] = v
+    else:
+        platform_info = libE_specs.get("platform_spec", {})
+
     return platform_info
