@@ -125,9 +125,9 @@ def get_mpiexec_platforms(system_name):
 def get_platform_from_specs(libE_specs):
     """Return dictionary of platform information"""
     platform_info = libE_specs.get("platform_spec")
-    if platform_info is None:
+    if not platform_info:
         name = libE_specs["platform"] or os.environ.get("LIBE_PLATFORM")
-        if name is not None:
+        if name:
             try:
                 platform_info = known_systems[name]
             except KeyError:

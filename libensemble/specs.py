@@ -398,9 +398,8 @@ class LibeSpecs(BaseModel):
     platform : Optional[str] = ""
     """Name of a known platform defined in the platforms module."""
 
-    platform_spec : Optional[dict] = {}  #TODO dict or pydantic type - default? and where to find list of entries
+    platform_spec : Optional[dict] = {}
     """A dictionary specifying settings for a platform."""
-
 
     class Config:
         arbitrary_types_allowed = True

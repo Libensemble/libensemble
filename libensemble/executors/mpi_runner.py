@@ -157,9 +157,7 @@ class MPIRunner:
         """
 
         wresources = resources.worker_resources
-        # gpus_per_node = wresources.slot_count * wresources.gpus_per_rset  # rounds at one rset
-        gpus_per_node = wresources.slot_count * wresources.gpus_per_node // wresources.rsets_per_node
-
+        gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
         gpu_setting_type = GPU_SET_DEF
 
         if match_procs_to_gpus:

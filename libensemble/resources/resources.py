@@ -169,11 +169,7 @@ class GlobalResources:
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
         resource_info = libE_specs.get("resource_info", {})
 
-        # resource_info overrides platform - could be warning if both set
-        #TODO - change cores_on_node/gpus_on_node  to cores/gpus*_per_node!!! - breaking change! deprecate until 1.0?
-        #TODO - cores_on_node in resource_info is a tuple - (physical, logical) cores. platform_info - separate
-        #       make them the same - choose which one.
-
+        # resource_info overrides platform
         cores_on_node = resource_info.get("cores_on_node")
         if cores_on_node is None:
             cores_on_node= (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
@@ -219,7 +215,7 @@ class GlobalResources:
                 remote_mode=remote_detect,
                 env_resources=self.env_resources
             )
-            cores_on_node, gpus_on_node = _self.add_detected_info(cores_on_node, gpus_on_node, detected_config)
+            cores_on_node, gpus_on_node = self._add_detected_info(cores_on_node, gpus_on_node, detected_config)
 
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
@@ -250,11 +246,13 @@ class GlobalResources:
         """Update missing values in cores/gpus_on_node"""
         if not cores_on_node:
              cores_on_node = detected_config[0:2]
-        else:
+        elif None in cores_on_node:
+            cores_on_node = list(cores_on_node)
             if not cores_on_node[0]:
                 cores_on_node[0] = detected_config[0]
             if not cores_on_node[1]:
                 cores_on_node[1] = detected_config[1]
+            cores_on_node = tuple(cores_on_node)
         if not gpus_on_node:
             gpus_on_node = detected_config[2]
         return cores_on_node, gpus_on_node
