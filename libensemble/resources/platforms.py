@@ -80,6 +80,16 @@ sunspot = {
     }
 
 
+# Example of a ROCM system (note - if uses srun - then usually preferable to have
+#    "gpu_setting_type": GPU_SET_DEF,  # let SLURM assign free GPUs on the node
+#    "scheduler_match_slots": False,   # allows more efficient scheduling when MPI runs cross nodes.
+generic_rocm = {
+    "mpi_runner" : "mpich",
+    "gpu_setting_type": GPU_SET_ENV,
+    "gpu_setting_name": "ROCR_VISIBLE_DEVICES",
+    "scheduler_match_slots": True,
+    }
+
 #TODO MAKE ALPHABETICAL
 # Dictionary of known systems (systems or system partitions) by name
 known_systems = {"summit": summit,
