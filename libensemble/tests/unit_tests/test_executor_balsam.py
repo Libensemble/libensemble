@@ -11,6 +11,23 @@ import pytest
 
 from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
 
+def setup_module(module):
+    try:
+        print(f"setup_module module:{module.__name__}")
+    except AttributeError:
+        print(f"setup_module (direct run) module:{module}")
+    if Executor.executor is not None:
+        del Executor.executor
+        Executor.executor = None
+
+def teardown_module(module):
+    try:
+        print(f"teardown_module module:{module.__name__}")
+    except AttributeError:
+        print(f"teardown_module (direct run) module:{module}")
+    if Executor.executor is not None:
+        del Executor.executor
+        Executor.executor = None
 
 # fake Balsam app
 class TestLibeApp:
@@ -228,6 +245,7 @@ def test_task_kill():
 
 
 if __name__ == "__main__":
+    setup_module(__file__)
     test_register_app()
     test_submit_app_defaults()
     test_submit_app_workdir()
@@ -237,3 +255,4 @@ if __name__ == "__main__":
     test_task_poll()
     test_task_wait()
     test_task_kill()
+    teardown_module(__file__)
