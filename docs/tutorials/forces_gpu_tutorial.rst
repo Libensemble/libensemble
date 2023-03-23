@@ -127,7 +127,6 @@ Alternative environment variables can be simply substituted in ``set_env_to_slot
     On some systems ``CUDA_VISIBLE_DEVICES`` may be overridden by other assignments
     such as ``--gpus-per-task=1``
 
-
 Compiling the Forces application
 --------------------------------
 
@@ -135,7 +134,6 @@ First, compile the forces application under the ``forces_app`` directory.
 
 Compile **forces.x** using one of the GPU build lines in build_forces.sh_
 or similar for your platform.
-
 
 Running the example
 -------------------

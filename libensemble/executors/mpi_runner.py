@@ -305,7 +305,6 @@ def get_runner(
 ) -> Union[
     MPICH_MPIRunner, OPENMPI_MPIRunner, APRUN_MPIRunner, SRUN_MPIRunner, JSRUN_MPIRunner, MSMPI_MPIRunner, MPIRunner
 ]:
-
     mpi_runners = {
         "mpich": MPICH_MPIRunner,
         "openmpi": OPENMPI_MPIRunner,

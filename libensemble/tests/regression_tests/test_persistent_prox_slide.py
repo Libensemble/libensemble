@@ -101,7 +101,6 @@ if __name__ == "__main__":
                 persis_info["gen_params"] = {"df_i_eval": df}
 
         if prob_id >= 2:
-
             persis_info["print_progress"] = 0
             sim_f = svm_eval
             m, n = 30, 15

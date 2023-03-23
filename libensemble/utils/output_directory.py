@@ -41,7 +41,6 @@ class EnsembleDirectory:
     """
 
     def __init__(self, libE_specs: dict, loc_stack: Optional[LocationStack] = None):
-
         self.specs = libE_specs
         self.loc_stack = loc_stack
 
