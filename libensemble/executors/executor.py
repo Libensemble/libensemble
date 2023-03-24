@@ -464,7 +464,10 @@ class Executor:
         pass
 
     def add_platform_info(platform_info):
-        # Base executor does not currently use platform info
+        """Add user supplied platform info to executor
+
+        Base executor does not currently use platform info
+        """
         pass
 
     def register_app(

@@ -44,8 +44,8 @@ def known_sys_detect(cmd="hostname -d"):
                 print("System not in known list", domain_name)
                 return None
 
-            print(f"Detected a known system in node_resources: {prov_system}")  #tmp
-            return get_platform_num_cores_gpus(system)
+            print(f"Detected a known system in node_resources: {system_name}")  #tmp
+            return get_platform_num_cores_gpus(system_name)
 
         else:
             print("Could not get valid domain name")

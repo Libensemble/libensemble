@@ -51,7 +51,7 @@ class Resources:
     DEFAULT_NODEFILE = "node_list"
 
     @classmethod
-    def init_resources(cls, libE_specs: dict, platform_info: dict) -> None:
+    def init_resources(cls, libE_specs: dict, platform_info: dict = {}) -> None:
         """Initiate resource management"""
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
@@ -59,7 +59,7 @@ class Resources:
             top_level_dir = os.getcwd()
             Resources.resources = Resources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir)
 
-    def __init__(self, libE_specs: dict, platform_info: dict, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
@@ -98,7 +98,7 @@ class GlobalResources:
     """
 
     #TODO - FIX DOCSTRING  - maybe same info - but alot comes from libE_specs - make sure platform_info added
-    def __init__(self, libE_specs: dict, platform_info: dict, top_level_dir: str = None) -> None:
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
 
         """Initializes a new Resources instance
 
@@ -245,7 +245,7 @@ class GlobalResources:
 
     def update_scheduler_opts(self, scheduler_opts):
         """Add scheduler options from platform_info, if not present"""
-        if self.platform_info is not None:
+        if self.platform_info and scheduler_opts is not None:
             if "match_slots" not in scheduler_opts:
                 if "scheduler_match_slots" in self.platform_info:
                     scheduler_opts["match_slots"] = self.platform_info["scheduler_match_slots"]
@@ -268,7 +268,7 @@ class GlobalResources:
 
     @staticmethod
     def is_nodelist_shortnames(nodelist):
-        """Returns True if any entry contains a '.', else False"""
+        """Returns False if any entry contains a '.', else True"""
         for item in nodelist:
             if "." in item:
                 return False

@@ -104,7 +104,8 @@ known_systems = {"summit": summit,
 #TODO - should code below here be separated?
 
 # Dictionary of known systems (systems or system partitions) detectable by domain name
-detect_systems = {"summit.olcf.ornl.gov": summit,  # Needed to detect gpu count (if not provided)
+#detect_systems = {"summit.olcf.ornl.gov": summit,  # Needed to detect gpu count (if not provided)
+detect_systems = {"summit.olcf.ornl.gov": "summit",  # Needed to detect gpu count (if not provided)
                   }
 
 #TODO Also could detect by hostname but do we want to.
