@@ -243,6 +243,7 @@ import logging
 import os
 import pickle  # Only used when saving output on error
 import socket
+import sys
 import traceback
 from pathlib import Path
 from typing import Callable, Dict
@@ -363,6 +364,10 @@ def libE(
     exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
+
+    if libE_specs["dry_run"]:
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        sys.exit()
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
