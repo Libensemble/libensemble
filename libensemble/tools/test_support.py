@@ -60,15 +60,27 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     # Configuration is parsed from runline to ensure output is used.
 
     procs_setting = {
-                    "mpiexec": "-np",
-                    "mpirun": "-np",
-                     "srun": "--ntasks",
-                     "jsrun": "-n",
-                     "aprun": "-n",
-                     }
+                "mpiexec": "-np",
+                "mpirun": "-np",
+                "srun": "--ntasks",
+                "jsrun": "-n",
+                "aprun": "-n",
+                }
+
+    ppn_setting = {
+                "mpiexec": ["--ppn", "-npernode"],
+                "mpirun": ["--ppn", "-npernode"],
+                "srun": ["--ntasks-per-node"],
+                "jsrun": ["-r"],
+                "aprun": ["-N"],
+                }
 
     num_procs = _get_value(procs_setting[mpirunner], task.runline)
 
+    for setting in ppn_setting[mpirunner]:
+        ppn = _get_value(setting, task.runline)
+        if ppn is not None:
+            break
 
     # mpirunners that expect a command line option
     if mpirunner in ["srun", "jsrun"]:
@@ -87,7 +99,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            expected_nums = resources.slot_count * resources.gpus_per_rset // int(num_procs)
+            expected_nums = resources.slot_count * resources.gpus_per_rset // int(ppn)
         else:
             stype = "runline option: gpus per node"
             expected_nums = resources.slot_count * resources.gpus_per_rset
@@ -109,7 +121,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     if mpirunner == "mpiexec":
         addon = ""
     else:
-        addon = f"(tasks {num_procs})"
+        addon = f"(procs {num_procs}, per node {ppn})"
 
     if print_setting:
         print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
