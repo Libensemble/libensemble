@@ -101,7 +101,7 @@ class EnvResources:
             env_var = self.nodelists[env]
             logger.debug(f"{env} env found - getting nodelist from {env_var}")
             get_list_func = self.ndlist_funcs[env]
-            global_nodelist = self.shortnames(get_list_func(env_var))
+            global_nodelist = get_list_func(env_var)
             return global_nodelist
         return []
 
@@ -198,7 +198,8 @@ class EnvResources:
             return []
         node_list = [nid.strip("\n") for nid in lines]
         unique_nodelist = list(OrderedDict.fromkeys(node_list))
-        return unique_nodelist
+        unique_nodelist_shortnames = EnvResources.abbrev_nodenames(unique_nodelist)
+        return unique_nodelist_shortnames
 
     @staticmethod
     def get_lsf_nodelist(node_list_env: str) -> List[Union[str, Any]]:
