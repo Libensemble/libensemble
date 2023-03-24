@@ -216,6 +216,9 @@ class LibeSpecs(BaseModel):
     mpi_comm: Optional[MPI_Communicator] = None  # see utils/specs_checkers.py
     """ libEnsemble communicator. Default: ``MPI.COMM_WORLD`` """
 
+    dry_run: Optional[bool] = False
+    """ Whether libEnsemble should immediately exit after validating all inputs """
+
     abort_on_exception: Optional[bool] = True
     """
     In MPI mode, whether to call ``MPI_ABORT`` on an exception.

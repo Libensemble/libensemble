@@ -21,6 +21,8 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
             Number of worker processes to spawn (only in local/tcp modes)
         "mpi_comm" [MPI communicator]:
             libEnsemble communicator if MPI comms are being used. Default: MPI.COMM_WORLD
+        "dry_run" [bool]:
+            Whether libEnsemble should immediately exit after validating all inputs. Default: False
         "abort_on_exception" [bool]:
             In MPI mode, whether to call MPI_ABORT on an exception. Default: True
             If False, an exception will be raised by the manager.
