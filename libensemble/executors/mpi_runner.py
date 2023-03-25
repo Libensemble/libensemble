@@ -159,14 +159,16 @@ class MPIRunner:
         gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
         gpu_setting_type = GPU_SET_DEF
 
+        if nnodes is None:
+            if nprocs:
+                nnodes = min(nprocs, wresources.local_node_count)
+            else:
+                nnodes = wresources.local_node_count
+
         if match_procs_to_gpus:
             ppn = gpus_per_node
             nprocs = nnodes * ppn
             jassert(nprocs > 0, f"Matching procs to GPUs has resulted in {nprocs} procs")
-
-        if nnodes is None:
-            if nprocs:
-                nnodes = min(nprocs, wresources.local_node_count)
 
         if ppn is None:
             ppn = nprocs // nnodes
