@@ -24,7 +24,7 @@ from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
+from libensemble.sim_funcs.var_resources import six_hump_camel_with_variable_resources as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
