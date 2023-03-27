@@ -3,9 +3,13 @@ Save some space in specs.py by moving some validation functions to here.
 Reference the models in that file.
 """
 
+import logging
+
 import numpy as np
 
 from libensemble.tools.fields_keys import libE_fields
+
+logger = logging.getLogger(__name__)
 
 
 def _check_exit_criteria(values: dict) -> dict:
@@ -101,6 +105,9 @@ class MPI_Communicator:
     def validate(cls, comm: "MPIComm") -> "MPIComm":  # noqa: F821
         from mpi4py import MPI
 
-        assert comm != MPI.COMM_NULL, "Provided MPI communicator is invalid, is MPI.COMM_NULL"
+        if comm == MPI.COMM_NULL:
+            logger.manager_warning(
+                f"*WARNING* libEnsemble detected that MPI Rank {comm.Get_rank()} has a NULL communicator"
+            )
         assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
         return comm
