@@ -239,12 +239,12 @@ class MPIExecutor(Executor):
             Auto-assign MPI processors to slots (the number of resource sets on each node).
 
         auto_assign_gpus: bool, optional
-            Auto-assign GPUs to available resources using either the method supplied in configuration or
+            Auto-assign GPUs available to this worker using either the method supplied in configuration or
             determined by detected environment. Default: False
 
         match_procs_to_gpus: bool, optional
-            For use with auto_assign_gpus. Auto-assigns MPI processors to match the assigned GPUs. This
-            Default: False unless auto_assign_gpus is True, and no other CPU configuration is supplied.
+            For use with auto_assign_gpus. Auto-assigns MPI processors to match the assigned GPUs.
+            Default: False unless auto_assign_gpus is True and no other CPU configuration is supplied.
 
 
         Returns
