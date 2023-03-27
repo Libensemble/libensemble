@@ -10,15 +10,15 @@ GPUs are not used for the six_hump_camel function, but these tests check the
 assignment is correct. For an example that runs an actual GPU application, see
 the forces_gpu tutorial under libensemble/tests/scaling_tests/forces/forces_gpu.
 
-See six_hump_camel_CUDA_variable_resources for an example where the sim function
+See CUDA_variable_resources for an example where the sim function
 interrogates available resources and sets explicitly.
 
 """
 
 __all__ = [
-    "six_hump_camel_GPU_variable_resources",
-    "six_hump_camel_with_variable_resources",
-    "six_hump_camel_CUDA_variable_resources",
+    "gpu_variable_resources",
+    "multi_points_with_variable_resources",
+    "CUDA_variable_resources",
 ]
 
 import os
@@ -31,8 +31,7 @@ from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.tools.test_support import check_gpu_setting
 
 
-#TODO - change names? e.g. just GPU_variable_resources
-def six_hump_camel_GPU_variable_resources(H, persis_info, sim_specs, libE_info):
+def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     """Launches an app and automatically assigns GPU resources.
 
     The six_hump_camel app does not run on the GPU, but this test demonstrates
@@ -75,8 +74,7 @@ def six_hump_camel_GPU_variable_resources(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info, calc_status
 
 
-#TODO - change names? e.g. just multiple_points_with_variable_resources
-def six_hump_camel_with_variable_resources(H, _, sim_specs):
+def multi_points_with_variable_resources(H, _, sim_specs):
     """
     Evaluates either helloworld or six hump camel for a collection of points
     given in ``H["x"]`` via the MPI executor, supporting variable sized
@@ -148,15 +146,14 @@ def six_hump_camel_with_variable_resources(H, _, sim_specs):
     return H_o, calc_status
 
 
-#TODO - change names? e.g. just CUDA_variable_resources
-def six_hump_camel_CUDA_variable_resources(H, _, sim_specs, libE_info):
+def CUDA_variable_resources(H, _, sim_specs, libE_info):
     """Launches an app setting GPU resources
 
     The standard test apps do not run on GPU, but demonstrates accessing resource
     information to set ``CUDA_VISIBLE_DEVICES``, and typical run configuration.
 
     For an equivalent function that auto-assigns GPUs using platform detection, see
-    six_hump_camel_GPU_variable_resources.
+    GPU_variable_resources.
     """
     x = H["x"][0]
     H_o = np.zeros(1, dtype=sim_specs["out"])

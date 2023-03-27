@@ -113,11 +113,11 @@ aware of these supplied resources, and if not given any of ``num_nodes``, ``num_
 or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
 cores available.
 
-`six_hump_camel.py`_ has two examples of how resource information for the worker may be
-accessed in the sim function ( *six_hump_camel_with_variable_resources* and
-*six_hump_camel_CUDA_variable_resources*).
+`var_resources.py`_ has two examples of how resource information for the worker may be
+accessed in the sim function (*multi_points_with_variable_resources* and
+*CUDA_variable_resources*).
 
-For example, in *six_hump_camel_CUDA_variable_resources*, the environment variable
+For example, in *CUDA_variable_resources*, the environment variable
 ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
@@ -262,4 +262,4 @@ Also, this can be set on the command line as a convenience.
 
 .. _persistent_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling.py
 
-.. _six_hump_camel.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/six_hump_camel.py
+.. _var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/var_resources.py

@@ -3,13 +3,13 @@ Tests variable resource detection and automatic GPU assignment in libEnsemble
 
 The persistent generator creates simulations with variable resource requirements.
 
-The sim_f (six_hump_camel_GPU_variable_resources) asserts that GPUs assignment
+The sim_f (gpu_variable_resources) asserts that GPUs assignment
 is correct for the default method for the MPI runner. GPUs are not actually
 used for default application. Four GPUs per node is mocked up below (if this line
 is removed, libEnsemble will detect any GPUs available).
 
 A dry_run option is provided. This can be set in the calling script, and will
-just print run-lines and and GPU settings. This may be used for testing run-lines
+just print run-lines and GPU settings. This may be used for testing run-lines
 produced and GPU settings for different MPI runners.
 
 Execute via one of the following commands (e.g. 5 workers):
@@ -31,7 +31,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import six_hump_camel_GPU_variable_resources as sim_f
+from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
 from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams

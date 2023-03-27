@@ -24,7 +24,7 @@ from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import six_hump_camel_CUDA_variable_resources as sim_f
+from libensemble.sim_funcs.var_resources import CUDA_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).

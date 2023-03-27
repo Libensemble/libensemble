@@ -1,7 +1,7 @@
 """
 Tests variable resource detection and automatic GPU assignment in libEnsemble.
 
-This test is like regression test test_GPU_variable_resources.py, but uses
+This test is like the regression test test_GPU_variable_resources.py, but uses
 the dry_run option to test correct GPU settings for different mocked up systems.
 Test assertions are in the sim function via the check_gpu_setting function.
 
@@ -42,7 +42,7 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import six_hump_camel_GPU_variable_resources as sim_f
+from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
 from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
