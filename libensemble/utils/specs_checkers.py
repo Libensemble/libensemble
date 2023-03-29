@@ -106,8 +106,7 @@ class MPI_Communicator:
         from mpi4py import MPI
 
         if comm == MPI.COMM_NULL:
-            logger.manager_warning(
-                f"*WARNING* libEnsemble detected that MPI Rank {comm.Get_rank()} has a NULL communicator"
-            )
-        assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
+            logger.manager_warning("*WARNING* libEnsemble detected a NULL communicator")
+        else:
+            assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
         return comm
