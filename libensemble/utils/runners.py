@@ -26,7 +26,7 @@ class Runners:
         self.has_funcx_gen = len(gen_specs.get("funcx_endpoint", "")) > 0
 
         if any([self.has_funcx_sim, self.has_funcx_gen]):
-            self.funcx_client = self.get_funcx_client()
+            self.funcx_client = self._get_funcx_client()
             self.session_id = self.funcx_client.session_task_group_id
             if self.has_funcx_sim:
                 self.funcx_simfid = self.funcx_client.register_function(self.sim_f)
@@ -44,10 +44,10 @@ class Runners:
 
         def run_sim(calc_in, Work):
             """Determines how to run sim."""
-            # if self.has_funcx_sim and self.funcx_client:
-            #     result = self._funcx_result
-            # else:
-            result = self._normal_result
+            if self.has_funcx_sim and self.funcx_client:
+                result = self._funcx_result
+            else:
+                result = self._normal_result
 
             return result(calc_in, Work["persis_info"], self.sim_specs, Work["libE_info"], self.sim_f, Work["tag"])
 
@@ -55,10 +55,10 @@ class Runners:
 
             def run_gen(calc_in, Work):
                 """Determines how to run gen."""
-                # if self.has_funcx_gen and self.funcx_client:
-                #     result = self._funcx_result
-                # else:
-                result = self._normal_result
+                if self.has_funcx_gen and self.funcx_client:
+                    result = self._funcx_result
+                else:
+                    result = self._normal_result
 
                 return result(calc_in, Work["persis_info"], self.gen_specs, Work["libE_info"], self.gen_f, Work["tag"])
 
@@ -67,7 +67,7 @@ class Runners:
 
         return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
 
-    def get_funcx_client(self):
+    def _get_funcx_client(self):
         try:
             from funcx import FuncXClient
         except ModuleNotFoundError:
@@ -97,6 +97,12 @@ class Runners:
             for f in concurrent.futures.as_completed(futures):
                 return f.result()
 
+    def _get_func_uuid(self, tag):
+        if tag == EVAL_SIM_TAG:
+            return self.funcx_simfid
+        elif tag == EVAL_GEN_TAG:
+            return self.funcx_genfid
+
     def _funcx_result(
         self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable, tag: int
     ) -> (npt.NDArray, dict, Optional[int]):
@@ -107,19 +113,25 @@ class Runners:
         Worker._set_executor(0, None)  # ditto for executor
 
         args = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
-        if tag == EVAL_SIM_TAG:
-            if len(self.sim_batch.tasks) < self.sim_batch_size:
-                self.sim_batch.add(self.funcx_simfid, self.sim_specs.get("funcx_endpoint"), args=args)
-            else:  # but what if the manager isn't sending any more work, and we haven't hit the batch size limit?
-                self.funcx_client.batch_run(self.sim_batch)
-                return self._batch_result(self.sim_batch, self.sim_specs.get("funcx_endpoint"))
 
-        elif tag == EVAL_GEN_TAG:
-            if len(self.gen_batch.tasks) < self.gen_batch_size:
-                self.gen_batch.add(self.funcx_genfid, self.gen_specs.get("funcx_endpoint"), args=args)
-            else:
-                self.funcx_client.batch_run(self.gen_batch)
-                return self._batch_result(self.gen_batch, self.gen_specs.get("funcx_endpoint"))
+        task_id = self.funcx_client.run(
+            *args, endpoint_id=specs["funcx_endpoint"], function_id=self._get_func_uuid(tag)
+        )
+        return self.funcx_client.get_result(task_id)
+
+        # if tag == EVAL_SIM_TAG:
+        #     if len(self.sim_batch.tasks) < self.sim_batch_size:
+        #         self.sim_batch.add(self.funcx_simfid, self.sim_specs.get("funcx_endpoint"), args=args)
+        #     else:  # but what if the manager isn't sending any more work, and we haven't hit the batch size limit?
+        #         self.funcx_client.batch_run(self.sim_batch)
+        #         return self._batch_result(self.sim_batch, self.sim_specs.get("funcx_endpoint"))
+
+        # elif tag == EVAL_GEN_TAG:
+        #     if len(self.gen_batch.tasks) < self.gen_batch_size:
+        #         self.gen_batch.add(self.funcx_genfid, self.gen_specs.get("funcx_endpoint"), args=args)
+        #     else:
+        #         self.funcx_client.batch_run(self.gen_batch)
+        #         return self._batch_result(self.gen_batch, self.gen_specs.get("funcx_endpoint"))
 
         # TODO: But what *can* I return, if anything, to signal that the worker should still be sent work?
         # Is there a fundamental problem with this architecture? Should this worker be "pretending" to be
