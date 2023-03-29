@@ -15,7 +15,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
@@ -41,7 +40,6 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "funcx_endpoint": "d246cca4-9e53-4918-8055-5c39cffe657b",
     }
 
     gen_specs = {
@@ -51,14 +49,6 @@ if __name__ == "__main__":
             "gen_batch_size": 500,
             "lb": np.array([-3]),
             "ub": np.array([3]),
-        },
-    }
-
-    alloc_specs = {
-        "alloc_f": give_sim_work_first,
-        "user": {
-            "batch_mode": True,
-            "num_active_gens": 1,
         },
     }
 

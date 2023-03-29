@@ -51,7 +51,6 @@ class AllocSupport:
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
-        self.libE_info = libE_info
         self.sched = None
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
@@ -297,8 +296,6 @@ class AllocSupport:
                 q_inds = priorities == np.max(priorities)
             else:
                 q_inds = np.argmax(priorities)
-        elif self.libE_info.get("funcx_sim", False):  # should batch-give all available sim-work to funcX
-            return np.nonzero(points_avail)[0]
         else:
             q_inds = 0
         return np.nonzero(points_avail)[0][q_inds]
