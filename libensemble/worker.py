@@ -171,7 +171,8 @@ class Worker:
         self.stats_fmt = libE_specs.get("stats_fmt", {})
 
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self._run_calc = Runners(sim_specs, gen_specs).make_runners()
+        self.runners = Runners(sim_specs, gen_specs)
+        self._run_calc = self.runners.make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
@@ -399,4 +400,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
+            self.runners.shutdown()
             self.EnsembleDirectory.copy_back()
