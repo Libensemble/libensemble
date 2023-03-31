@@ -243,6 +243,7 @@ import logging
 import os
 import pickle  # Only used when saving output on error
 import socket
+import sys
 import traceback
 from typing import Callable, Dict
 
@@ -366,6 +367,12 @@ def libE(
 
     # Extract platform info from settings or environment
     platform_info = get_platform_from_specs(libE_specs)
+
+    if libE_specs["dry_run"]:
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        sys.exit()
+
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:

@@ -30,6 +30,7 @@ from libensemble.message_numbers import (
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
+from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.runners import Runners
@@ -91,6 +92,7 @@ def worker_main(
     # Receive dtypes from manager
     _, dtypes = comm.recv()
 
+    # Receive workflow dir from manager
     if libE_specs.get("use_workflow_dir"):
         _, libE_specs["workflow_dir_path"] = comm.recv()
 
@@ -100,9 +102,13 @@ def worker_main(
     if log_comm:
         worker_logging_config(comm, workerID)
 
+    LS = LocationStack()
+    LS.register_loc("workflow", libE_specs.get("workflow_dir_path"))
+
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
-    worker.run()
+    with LS.loc("workflow"):
+        worker.run()
 
     if libE_specs.get("profile"):
         pr.disable()

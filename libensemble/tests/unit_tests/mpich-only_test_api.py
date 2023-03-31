@@ -72,9 +72,11 @@ def test_full_workflow():
     from libensemble.api import Ensemble
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
+    LS = LibeSpecs(comms="local", nworkers=4)
+
     # parameterizes and validates everything!
     ens = Ensemble(
-        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        libE_specs=LS,
         sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
         gen_specs=GenSpecs(
             out=[("x", float, (1,))],
@@ -90,6 +92,16 @@ def test_full_workflow():
     ens.run()
     if ens.is_manager:
         assert len(ens.H) >= 101
+
+    # test a dry run
+    LS = LibeSpecs(comms="local", nworkers=4, dry_run=True)
+    ens.libE_specs = LS
+    flag = 1
+    try:
+        ens.run()
+    except SystemExit:
+        flag = 0
+    assert not flag, "Ensemble didn't exit after specifying dry_run"
 
 
 if __name__ == "__main__":
