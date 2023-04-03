@@ -428,7 +428,7 @@ class LibeSpecs(BaseModel):
         if values.get("comms") == "mpi":
             from mpi4py import MPI
 
-            if not isinstance(values.get("mpi_comm"), MPI.Intracomm):
+            if values.get("mpi_comm") is None:  # not values.get("mpi_comm") is True ???
                 values["mpi_comm"] = MPI.COMM_WORLD
         return values
 
