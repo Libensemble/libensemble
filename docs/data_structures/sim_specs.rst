@@ -13,7 +13,11 @@ As a Python class:
 
 .. autopydantic_model:: libensemble.specs.SimSpecs
   :model-show-json: False
-  :members:
+  :model-show-config-member: False
+  :model-show-config-summary: False
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+  :field-list-validators: False
 
 .. code-block:: python
     :linenos:

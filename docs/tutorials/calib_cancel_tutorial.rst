@@ -1,6 +1,6 @@
-===========================================================
-Borehole Calibration with Selective Simulation Cancellation
-===========================================================
+==================================================
+Calibration with Selective Simulation Cancellation
+==================================================
 
 Introduction - Calibration with libEnsemble and a Regression Model
 ------------------------------------------------------------------

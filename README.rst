@@ -25,21 +25,18 @@
 
 .. after_badges_rst_tag
 
-============
-Introduction
-============
+========================================================
+A complete toolkit for dynamic ensembles of calculations
+========================================================
 
-libEnsemble is a Python_ toolkit for coordinating workflows of asynchronous and dynamic ensembles of calculations.
+Coordinate adaptive workflows that connect "outer loops" or "deciders" to experiments or simulations.
 
-libEnsemble can *adaptively* manage massively parallel resources to help solve design, decision,
-and inference problems, and is *especially* effective at connecting "outer loops" or "deciders" to experiments or simulations.
-
-• **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
-• **Adaptive Ensembles**: Generate multiple new *parallel tasks* on-the-fly based on previous computations.
-• **Dynamic Resource Management**: Adaptively reassign resource partitions and GPUs to tasks.
-• **Application Monitoring**: Ensemble members can run, poll or kill apps.
-• **Coordinating data-flow between tasks**: libEnsemble can pass data between ensemble members.
-• **Low start-up cost**: Default deployments don't require additional services. ``pip install libensemble`` and go!
+• **Adaptive Ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
+• **Extreme Scaling**: Run on or across laptops, clusters, and leadership-class machines.
+• **Dynamic Resource Management**: Adaptively assign and reassign resources (including GPUs) to tasks.
+• **Application Monitoring**: Ensemble members can run, monitor, and cancel apps.
+• **Coordinated data-flow between tasks**: libEnsemble can pass data between ensemble members.
+• **Low start-up cost**: Default installations don't require additional services. ``pip install libensemble`` and go!
 
 Basic Usage
 ===========
@@ -51,7 +48,7 @@ Select or supply Simulator and Generator functions
 perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy::
 
     from my_simulators import beamline_simulation_function
-    from someones_evaluators import adaptive_calibrator_function
+    from someones_calibrator import adaptive_calibrator_function
 
     from libensemble.api import Ensemble, SimSpecs, GenSpecs, LibeSpecs, ExitCriteria
 
@@ -73,14 +70,14 @@ perform/monitor computations that use those parameters. Coupling them together w
         outer_loop = GenSpecs(
           gen_f = adaptive_calibrator_function,
           inputs = ["f"],
-          out = [("x", float, (1,))]
+          out = [("x", float)]
         )
 
         when_to_stop = ExitCriteria(gen_max = 500)
 
         my_experiment = Ensemble(basic_settings, simulation, outer_loop, when_to_stop)
 
-        Output, persistent_state, flag = my_experiment.run()
+        Output = my_experiment.run()
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
@@ -92,30 +89,27 @@ and cores, and can dynamically assign resources to workers::
     import numpy as np
     from libensemble.executors import MPIExecutor
 
-    def beamline_simulation_function(Input, _, sim_specs):
-        calc_status = 0
+    def beamline_simulation_function(Input):
 
-        particles = str(int(Input["x"][0][0]))
+        particles = str(Input["x"])
         args = "timesteps " + str(10) + " " + particles
 
         exctr = MPIExecutor()
-        exctr.register_app("./path/to/particles.o", app_name="particles")
-        task = exctr.submit(app_name="particles", app_args=args)
+        exctr.register_app("./path/to/particles.app", app_name="particles")
+        task = exctr.submit(app_name="particles", app_args=args, num_procs=64)
 
         task.wait()
 
         try:
             data = np.loadtxt("particles.stat")
             final_energy = data[-1]
-            calc_status = WORKER_DONE
         except Exception:
             final_energy = np.nan
-            calc_status = TASK_FAILED
 
-        output = np.zeros(1, dtype=sim_specs["out"])
+        output = np.zeros(1, dtype=[("f", float)])
         output["energy"] = final_energy
 
-        return output, calc_status
+        return output
 
 See the `user guide`_ for more information.
 
@@ -149,7 +143,7 @@ Dependencies
 ============
 
 libEnsemble performs best on Unix-like systems like Linux and macOS. See the
-:ref:`FAQ<faqwindows>` for more information.
+FAQ_ for more information.
 
 **Required dependencies**:
 
@@ -171,23 +165,23 @@ When using  ``mpi4py`` for libEnsemble communications:
 * funcX_ - Submit simulation or generator function instances to remote funcX endpoints
 * `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
-**Example Generator Dependencies**:
+.. **Example Generator Dependencies**:
 
-* SciPy_
-* mpmath_
-* petsc4py_
-* DEAP_
-* DFO-LS_
-* Tasmanian_
-* NLopt_
-* `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
-* Surmise_
+.. * SciPy_
+.. * mpmath_
+.. * petsc4py_
+.. * DEAP_
+.. * DFO-LS_
+.. * Tasmanian_
+.. * NLopt_
+.. * `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
+.. * Surmise_
 
-PETSc and NLopt must be built with shared libraries enabled and be present in
-``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-should produce a file ``nlopt.py`` if Python is found on the system. See the
-`NLopt documentation` for information about building NLopt with shared
-libraries. NLopt may also require SWIG_ to be installed on certain systems.
+.. PETSc and NLopt must be built with shared libraries enabled and be present in
+.. ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
+.. should produce a file ``nlopt.py`` if Python is found on the system. See the
+.. `NLopt documentation` for information about building NLopt with shared
+.. libraries. NLopt may also require SWIG_ to be installed on certain systems.
 
 Resources
 =========
@@ -201,9 +195,9 @@ Resources
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
+- Browse example `Supported Generators`_.
 - Contributions_ to libEnsemble are welcome.
-- An overview of libEnsemble's structure and capabilities is given in this manuscript_ and poster_.
-- Examples of production user functions and complete workflows can be viewed, downloaded, and contributed to in the libEnsemble `Community Examples repository`_.
+- Examples of production functions and complete workflows can be viewed and submitted in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
 
@@ -233,44 +227,43 @@ Resources
     doi     = {10.1109/tpds.2021.3082815}
   }
 
-**Example Compatible Packages**
+.. **Example Compatible Packages**
 
-.. before_examples_rst_tag
+.. .. before_examples_rst_tag
 
-libEnsemble and the `Community Examples repository`_ include example generator
-functions for the following libraries:
+.. libEnsemble and the `Community Examples repository`_ include example generator
+.. functions for the following libraries:
 
-- APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
+.. - APOSMM_ Asynchronously parallel optimization solver for finding multiple minima. Supported local optimization routines include:
 
-  - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization
-  - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
-  - scipy.optimize_ Open-source solvers for nonlinear problems, linear programming,
-    constrained and nonlinear least-squares, root finding, and curve fitting.
-  - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
+..   - DFO-LS_ Derivative-free solver for (bound constrained) nonlinear least-squares minimization
+..   - NLopt_ Library for nonlinear optimization, providing a common interface for various methods
+..   - scipy.optimize_ Open-source solvers for nonlinear problems, linear programming,
+..     constrained and nonlinear least-squares, root finding, and curve fitting.
+..   - `PETSc/TAO`_ Routines for the scalable (parallel) solution of scientific applications
 
-- DEAP_ Distributed evolutionary algorithms
-- Distributed optimization methods for minimizing sums of convex functions. Methods include:
+.. - DEAP_ Distributed evolutionary algorithms
+.. - Distributed optimization methods for minimizing sums of convex functions. Methods include:
 
-  - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
-  - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
-  - Proximal sliding (https://arxiv.org/abs/1406.0919).
+..   - Primal-dual sliding (https://arxiv.org/pdf/2101.00143).
+..   - Distributed gradient descent with gradient tracking (https://arxiv.org/abs/1908.11444).
+..   - Proximal sliding (https://arxiv.org/abs/1406.0919).
 
-- ECNoise_ Estimating Computational Noise in Numerical Simulations
-- Surmise_ Modular Bayesian calibration/inference framework
-- Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
-- VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization
+.. - ECNoise_ Estimating Computational Noise in Numerical Simulations
+.. - Surmise_ Modular Bayesian calibration/inference framework
+.. - Tasmanian_ Toolkit for Adaptive Stochastic Modeling and Non-Intrusive ApproximatioN
+.. - VTMOP_ Fortran package for large-scale multiobjective multidisciplinary design optimization
 
-libEnsemble has also been used to coordinate many computationally expensive
-simulations. Select examples include:
+.. libEnsemble has also been used to coordinate many computationally expensive
+.. simulations. Select examples include:
 
-- OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
-- WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.)
+.. - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
+.. - WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.)
 
-See a complete list of `example user scripts`_.
+.. See a complete list of `example user scripts`_.
 
 .. after_resources_rst_tag
 
-.. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
@@ -284,6 +277,7 @@ See a complete list of `example user scripts`_.
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
+.. _FAQ: https://libensemble.readthedocs.io/en/main/FAQ.html
 .. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions

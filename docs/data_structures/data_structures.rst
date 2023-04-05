@@ -7,7 +7,7 @@ See the :ref:`libE() Module<libe-module>` docs for more information on combining
 a complete libEnsemble workflow, or using the alternative yaml interface.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: libEnsemble Specifications:
 
    sim_specs

@@ -12,7 +12,7 @@ Common Errors
 **"Manager only - must be at least one worker (2 MPI tasks)" when
 running with multiprocessing and multiple workers specified.**
 
-If your calling script code was recently switched from MPI to multiprocessing,
+If your code was recently switched from MPI to multiprocessing,
 make sure that :class:`libE_specs<libensemble.specs.LibeSpecs>` is populated
 with ``"comms": "local"`` and ``"nworkers": [int]``.
 
@@ -129,11 +129,6 @@ does libEnsemble hang on certain systems when running with MPI?"
 
 For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
 
-**Error in `<PATH>/bin/python": break adjusted to free malloc space: 0x0000010000000000**
-
-This error has been encountered on Cori when running with an incorrect installation of ``mpi4py``.
-Make sure platform specific instructions are followed (e.g.~ :doc:`Cori<platforms/cori>`)
-
 **srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
 You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
@@ -194,14 +189,13 @@ to ``pdb``. How well this works varies by system. ::
 
 **Can I use the MPI Executor when running libEnsemble with multiprocessing?**
 
-Yes. The Executor type determines only how libEnsemble workers
-execute and interact with user applications and is independent of ``comms`` chosen
+**Yes**. The Executor type determines only how libEnsemble workers
+execute and interact with user applications and is *independent* of ``comms`` chosen
 for manager/worker communications.
 
 **How can I disable libEnsemble's output files?**
 
-To disable ``libe_stats.txt`` and ``ensemble.log``, which libEnsemble typically
-always creates, set ``libE_specs["disable_log_files"]`` to ``True``.
+Set ``libE_specs["disable_log_files"]`` to ``True``.
 
 If libEnsemble aborts on an exception, the History array and ``persis_info``
 dictionaries will be dumped. This can be suppressed by
@@ -227,16 +221,12 @@ macOS and Windows Errors
 
 .. _faqwindows:
 
-**Can I run libEnsemble on Windows**
+**Can I run libEnsemble on Windows?**
 
 Although we have run many libEnsemble workflows successfully on Windows using
 both MPI and local comms, Windows is not rigorously supported. We highly
 recommend Unix-like systems. Windows tends to produce more platform-specific
 issues that are difficult to reproduce and troubleshoot.
-
-Feel free to check our `Github Actions`_ page to see what tests we run regularly on Windows.
-
-.. _`Github Actions`: https://github.com/Libensemble/libensemble/actions
 
 **Windows - How can I run libEnsemble with MPI comms?**
 
@@ -244,7 +234,7 @@ We have run Windows workflows with MPI comms. However, as most MPI
 distributions have either dropped Windows support (MPICH and Open MPI) or are
 no longer being maintained (``msmpi``), we cannot guarantee success.
 
-If users wish to try, we recommend experimenting with the many Unix-like
+We recommend experimenting with the many Unix-like
 emulators, containers, virtual machines, and other such systems. The
 `Installing PETSc On Microsoft Windows`_ documentation contains valuable
 information.
@@ -261,7 +251,7 @@ allow libEnsemble to create symlinks, you need to run your current ``cmd`` shell
 **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
 " if __name__ == "__main__": freeze_support() ...**
 
-You need to place your main calling script code underneath an ``if __name__ == "__main__":`` block.
+You need to place your main entrypoint code underneath an ``if __name__ == "__main__":`` block.
 
 Explanation: Python chooses one of three methods to start new processes when using multiprocessing
 (``--comms local`` with libEnsemble). These are ``"fork"``, ``"spawn"``, and ``"forkserver"``. ``"fork"``
@@ -284,8 +274,7 @@ the following near the top of your calling script::
 **"macOS - Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
 
 Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
-Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this
-error.
+Unfortunately, ``127.0.0.1   localhost`` isn't satisfactory for preventing this.
 
 **macOS - How do I stop the Firewall Security popups when running with the Executor?**
 
@@ -297,11 +286,3 @@ attempted for the offending executable. We've had limited success running
 ``sudo codesign --force --deep --sign - /path/to/application.app``
 on our executables, then confirming the next alerts for the executable
 and ``mpiexec.hydra``.
-
-**Frozen PETSc installation following a failed wheel build with** ``pip install petsc petsc4py``
-
-Following a failed wheel build for PETSc, the installation process may freeze when
-attempting to configure PETSc with the local Fortran compiler if it doesn't exist.
-Run the above command again after disabling Fortran configuring with ``export PETSC_CONFIGURE_OPTIONS="--with-fc=0"``.
-The wheel build will still fail, but PETSc and petsc4py should still install
-successfully via ``setup.py`` after some time.

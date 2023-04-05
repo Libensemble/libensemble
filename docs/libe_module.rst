@@ -1,7 +1,7 @@
 .. _libe-module:
 
-Main libE Module - Calling Script
-=================================
+Main libE Module
+================
 
 .. automodule:: libensemble.libE
    :members:

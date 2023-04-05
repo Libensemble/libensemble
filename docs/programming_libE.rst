@@ -14,13 +14,7 @@ We now give greater detail in programming with libEnsemble.
    function_guides/function_guide_index
 
 .. toctree::
-   :caption: History Array
-
-   function_guides/history_array
-
-.. toctree::
    executor/ex_index
-   resource_manager/resources_index
 
 .. toctree::
    utilities

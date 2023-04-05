@@ -10,11 +10,11 @@
    :caption: User Guide:
 
    Quickstart<introduction>
-   advanced_installation
    overview_usecases
    programming_libE
    running_libE
    platforms/platforms_index
+   advanced_installation
 
 .. toctree::
    :maxdepth: 2
@@ -40,6 +40,8 @@
    :caption: Additional References:
 
    FAQ
+   function_guides/history_array
+   resource_manager/resources_index
    known_issues
    release_notes
    contributing

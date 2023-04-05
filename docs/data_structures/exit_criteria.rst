@@ -11,7 +11,11 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
 
 .. autopydantic_model:: libensemble.specs.ExitCriteria
   :model-show-json: False
-  :members:
+  :model-show-config-member: False
+  :model-show-config-summary: False
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+  :field-list-validators: False
 
 .. seealso::
   From `test_persistent_aposmm_dfols.py`_.
