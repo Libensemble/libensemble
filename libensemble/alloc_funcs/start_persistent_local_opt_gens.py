@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.gen_funcs.old_aposmm import decide_where_to_start_localopt, initialize_APOSMM, update_history_dist
+from libensemble.gen_funcs.persistent_aposmm import decide_where_to_start_localopt, extract_rk_c, update_history_dist
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
@@ -57,9 +57,11 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     for wid in support.avail_worker_ids(persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
         if np.any(np.logical_and(~H["local_pt"], H["sim_ended"], ~H["cancel_requested"])):
-            n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
-            update_history_dist(H, n, gen_specs["user"], c_flag=False)
-            starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
+            n = len(H["x"][0])
+            rk_c = extract_rk_c(gen_specs["user"], n)
+            n_s = np.sum(~H["local_pt"])
+            update_history_dist(H, n)
+            starting_inds = decide_where_to_start_localopt(H, n, n_s, rk_c)
         else:
             starting_inds = []
 

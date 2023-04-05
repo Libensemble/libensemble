@@ -2,7 +2,6 @@ import os
 import shutil
 
 import numpy as np
-import pytest
 
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
@@ -47,8 +46,8 @@ def test_copy_back(tmp_path):
     copybackdir = "./calc"
     inputfile = tmp_path / "calc/file"
 
-    for dir in [inputdir, copybackdir]:
-        os.makedirs(dir, exist_ok=True)
+    for dire in [inputdir, copybackdir]:
+        os.makedirs(dire, exist_ok=True)
 
     libE_specs = {"sim_dirs_make": True, "ensemble_dir_path": inputdir, "ensemble_copy_back": True}
 
@@ -56,18 +55,18 @@ def test_copy_back(tmp_path):
     ls.register_loc("test", inputfile)
     ed = EnsembleDirectory(libE_specs, ls)
     ed.copy_back()
-    assert "file" in os.listdir(copybackdir), "File not copied back to starting dir"
+    assert "file" in os.listdir(copybackdir), "File not copied back to starting dire"
 
-    for dir in [inputdir, copybackdir]:
-        shutil.rmtree(dir)
+    for dire in [inputdir, copybackdir]:
+        shutil.rmtree(dire)
 
     # If copyback directory in starting location, test contents copied back to directory suffixed with _back
     inputdir = "./calc"
     copybackdir = "./calc_back"
     inputfile = "./calc/file"
 
-    for dir in [inputdir, copybackdir]:
-        os.makedirs(dir, exist_ok=True)
+    for dire in [inputdir, copybackdir]:
+        os.makedirs(dire, exist_ok=True)
 
     libE_specs = {"sim_dirs_make": True, "ensemble_dir_path": inputdir, "ensemble_copy_back": True}
 
@@ -75,10 +74,10 @@ def test_copy_back(tmp_path):
     ls.register_loc("test", inputfile)
     ed = EnsembleDirectory(libE_specs, ls)
     ed.copy_back()
-    assert "file" in os.listdir(copybackdir), "File not copied back to starting dir"
+    assert "file" in os.listdir(copybackdir), "File not copied back to starting dire"
 
-    for dir in [inputdir, copybackdir]:
-        shutil.rmtree(dir)
+    for dire in [inputdir, copybackdir]:
+        shutil.rmtree(dire)
 
 
 def test_worker_dirs_but_no_sim_dirs(tmp_path):
@@ -87,8 +86,8 @@ def test_worker_dirs_but_no_sim_dirs(tmp_path):
     inputfile = tmp_path / "calc/file"
     ensemble_dir = tmp_path / "test_ens"
 
-    for dir in [inputdir, inputfile, ensemble_dir]:
-        os.makedirs(dir, exist_ok=True)
+    for dire in [inputdir, inputfile, ensemble_dir]:
+        os.makedirs(dire, exist_ok=True)
 
     libE_specs = {"ensemble_dir_path": ensemble_dir, "use_worker_dirs": True, "sim_input_dir": inputdir}
 
@@ -100,19 +99,18 @@ def test_worker_dirs_but_no_sim_dirs(tmp_path):
     assert "worker1" in os.listdir(ensemble_dir)
     assert "file" in os.listdir(os.path.join(ensemble_dir, "worker1"))
 
-    for dir in [inputdir, ensemble_dir]:
-        shutil.rmtree(dir)
+    for dire in [inputdir, ensemble_dir]:
+        shutil.rmtree(dire)
 
 
-@pytest.mark.extra
 def test_loc_stack_FileExists_exceptions(tmp_path):
     inputdir = tmp_path / "calc"
     copyfile = tmp_path / "calc/copy"
     symlinkfile = tmp_path / "calc/symlink"
     ensemble_dir = tmp_path / "test_ens"
 
-    for dir in [inputdir, copyfile, symlinkfile]:
-        os.makedirs(dir, exist_ok=True)
+    for dire in [inputdir, copyfile, symlinkfile]:
+        os.makedirs(dire, exist_ok=True)
 
     # Testing loc_stack continuing on FileExistsError when not using sim_dirs
     libE_specs = {
@@ -168,8 +166,40 @@ def test_loc_stack_FileExists_exceptions(tmp_path):
         flag = 0
     assert flag == 0
 
-    for dir in [inputdir, ensemble_dir]:
-        shutil.rmtree(dir)
+    for dire in [inputdir, ensemble_dir]:
+        shutil.rmtree(dire)
+
+
+def test_workflow_dir_copyback(tmp_path):
+    """When workers conclude their work, workers have the option of copying
+    back their work into the workflow directory."""
+
+    inputdir = tmp_path / "calc"
+    inputfile = tmp_path / "calc/file"
+
+    for dire in [inputdir, inputfile]:
+        os.makedirs(dire, exist_ok=True)
+
+    libE_specs = {
+        "sim_dirs_make": True,
+        "ensemble_dir_path": tmp_path,
+        "ensemble_copy_back": True,
+        "use_workflow_dir": True,
+        "workflow_dir_path": "./fake_workflow",
+    }
+
+    ls = LocationStack()
+    ls.register_loc("test", inputfile)
+    ed = EnsembleDirectory(libE_specs, ls)
+    copybackdir = ed.copybackdir
+
+    assert "./fake_workflow" in copybackdir, "workflow_dir wasn't considered as destination for copyback"
+
+    ed.copy_back()
+    assert "file" in os.listdir(copybackdir), "File not copied back to starting dire"
+
+    for dire in [inputdir, copybackdir]:
+        shutil.rmtree(dire)
 
 
 if __name__ == "__main__":
@@ -180,3 +210,4 @@ if __name__ == "__main__":
     test_copy_back()
     test_worker_dirs_but_no_sim_dirs()
     test_loc_stack_FileExists_exceptions()
+    test_workflow_dir_copyback()

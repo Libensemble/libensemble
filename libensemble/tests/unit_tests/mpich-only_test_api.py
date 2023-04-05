@@ -9,9 +9,10 @@ def test_ensemble_init():
     """testing init attrs"""
     from libensemble.api import Ensemble
 
-    e = Ensemble()
+    e = Ensemble(
+        libE_specs={"comms": "local", "nworkers": 4}
+    )  # without specifying, class assumes MPI since pytest runs without --comms local
     assert "comms" in e.libE_specs, "internal parse_args() didn't populate defaults for class's libE_specs"
-    assert "mpi_comm" in e.libE_specs, "parse_args() didn't populate defaults for class's libE_specs"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
@@ -24,7 +25,7 @@ def test_from_files():
     from libensemble.api import Ensemble
 
     for ft in ["yaml", "json", "toml"]:
-        e = Ensemble()
+        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
         file_path = f"./simdir/test_example.{ft}"
         if ft == "yaml":
             e.from_yaml(file_path)
@@ -35,14 +36,14 @@ def test_from_files():
 
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
-        assert e.exit_criteria == exit_criteria, "exit_criteria wasn't correctly loaded"
-        assert e.sim_specs == sim_specs, "instance's sim_specs isn't equivalent to sample sim_specs"
-
-        # can't specify np arrays in yaml - have to manually update.
         e.gen_specs["user"]["ub"] = np.ones(1)
         e.gen_specs["user"]["lb"] = np.zeros(1)
 
-        assert e.gen_specs == gen_specs, "instance's gen_specs isn't equivalent to sample gen_specs"
+        sim_specs["inputs"] = sim_specs["in"]
+        sim_specs.pop("in")
+        assert all([i in e.sim_specs.items() for i in sim_specs.items()])
+        assert all([i in e.gen_specs.items() for i in gen_specs.items()])
+        assert all([i in e.exit_criteria.items() for i in exit_criteria.items()])
 
 
 @pytest.mark.extra
@@ -56,7 +57,7 @@ def test_bad_func_loads():
     }
 
     for f in yaml_errors:
-        e = Ensemble()
+        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
         flag = 1
         try:
             e.from_yaml(f)
@@ -71,9 +72,11 @@ def test_full_workflow():
     from libensemble.api import Ensemble
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
+    LS = LibeSpecs(comms="local", nworkers=4)
+
     # parameterizes and validates everything!
     ens = Ensemble(
-        libE_specs=LibeSpecs(comms="local", nworkers=4),
+        libE_specs=LS,
         sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
         gen_specs=GenSpecs(
             out=[("x", float, (1,))],
@@ -89,6 +92,16 @@ def test_full_workflow():
     ens.run()
     if ens.is_manager:
         assert len(ens.H) >= 101
+
+    # test a dry run
+    LS = LibeSpecs(comms="local", nworkers=4, dry_run=True)
+    ens.libE_specs = LS
+    flag = 1
+    try:
+        ens.run()
+    except SystemExit:
+        flag = 0
+    assert not flag, "Ensemble didn't exit after specifying dry_run"
 
 
 if __name__ == "__main__":

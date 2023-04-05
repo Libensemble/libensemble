@@ -3,36 +3,28 @@ Executor - Assign GPUs
 ======================
 
 This tutorial shows the most portable way to assign tasks (user applications)
-to the GPU.
+to the GPU. The libEnsemble scripts in this example are available under
+forces_gpu_ in the libEnsemble repository.
+
+This example is based on the
+:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
+a slightly modified simulation function (to assign GPUs) and an increased number
+of particles (allows live GPU usage to be viewed).
 
 In the first example, each worker will be using one GPU. We assume the workers are on a
 cluster with CUDA-capable GPUs. We will assign GPUs by setting the environment
 variable ``CUDA_VISIBLE_DEVICES``. An equivalent approach can be used with other
 devices.
 
-This example is based on the
-:doc:`simple forces tutorial  <../tutorials/executor_forces_tutorial>` with
-a slightly modified simulation function.
-
-To compile the forces application to use the GPU, ensure forces.c_ has the
-``#pragma omp target`` line uncommented and comment out the equivalent
-``#pragma omp parallel`` line. Then compile **forces.x** using one of the
-GPU build lines in build_forces.sh_ or similar for your platform.
-
-The libEnsemble scripts in this example are available under forces_gpu_ in
-the libEnsemble repository.
-
-Note that at the time of writing, the calling script **run_libe_forces.py** is functionally
-the same as that in *forces_simple*, but contains some commented out lines that can
-be used for a variable resources example. The *forces_simf.py* file has slight modifications
-to assign GPUs.
-
-Videos demonstrate running this example on Perlmutter_ and Spock_.
+Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_.
+*The first two videos are from an earlier release - you no longer need to change
+particle count or modify the `forces.c` file).*
 
 Simulation function
 -------------------
 
-The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlighted:
+The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
+to the forces simple example are highlighted:
 
 .. code-block:: python
     :linenos:
@@ -48,7 +40,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
 
-    def run_forces(H, persis_info, sim_specs, libE_info):
+    def run_forces(H, _, sim_specs):
         calc_status = 0
 
         # Parse out num particles, from generator function
@@ -95,7 +87,7 @@ The ``sim_f`` (``forces_simf.py``) becomes as follows. The new lines are highlig
         # Return final information to worker, for reporting to manager
 
 
-    return output, persis_info, calc_status
+    return output, calc_status
 
 The above code can be run on most systems, and will assign a GPU to each worker,
 so long as the number of workers is chosen to fit the resources.
@@ -135,6 +127,16 @@ Alternative environment variables can be simply substituted in ``set_env_to_slot
     On some systems ``CUDA_VISIBLE_DEVICES`` may be overridden by other assignments
     such as ``--gpus-per-task=1``
 
+
+Compiling the Forces application
+--------------------------------
+
+First, compile the forces application under the ``forces_app`` directory.
+
+Compile **forces.x** using one of the GPU build lines in build_forces.sh_
+or similar for your platform.
+
+
 Running the example
 -------------------
 
@@ -144,22 +146,22 @@ eight workers. For example::
     python run_libe_forces.py --comms local --nworkers 8
 
 Note that if you are running one persistent generator that does not require
-resources, then assign nine workers, and fix the number of *resource_sets* in
-you calling script::
+resources, then assign nine workers and fix the number of *resource_sets* in
+your calling script::
 
     libE_specs["num_resource_sets"] = 8
 
 See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
-Changing number of GPUs per worker
-----------------------------------
+Changing the number of GPUs per worker
+--------------------------------------
 
 If you want to have two GPUs per worker on the same system (four GPUs per node),
 you could assign only four workers, and change line 24 to::
 
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=2)
 
-In this case there are two GPUs per worker (and per slot).
+In this case, there are two GPUs per worker (and per slot).
 
 Varying resources
 -----------------
@@ -170,25 +172,29 @@ calling script.
 
 In the generator function, assign the ``resource_sets`` field of
 :ref:`H<funcguides-history>` for each point generated. For example
-if a larger simulation requires two MPI tasks (and two GPUs), set ``resource_sets``
+if a larger simulation requires two MPI tasks (and two GPUs), set the ``resource_sets``
 field to *2* for that sim_id in the generator function.
 
-The calling script run_libe_forces.py_ contains alternative commented out lines for
+The calling script run_libe_forces.py_ contains alternative commented-out lines for
 a variable resource example. Search for "Uncomment for var resources"
 
 In this case, the simulator function will still work, assigning one CPU processor
 and one GPU to each MPI rank. If you want to have one rank with multiple GPUs,
 then change source lines 29/30 accordingly.
 
-Further guidance on varying resource to workers can be found under the
-:doc:`resource manager<../resource_manager/resources_index>`.
+Further guidance on varying the resources assigned to workers can be found under the
+:doc:`resource manager<../resource_manager/resources_index>` section.
 
 Checking GPU usage
 ------------------
 
-You can check you are running forces on the GPUs as expected by using profiling tools and/or by using
-a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is generally available
-and can be run from the command line. To simply run `forces.x` stand-alone you could run::
+The output of `forces.x` will say if it has run on the host or device. When running
+libEnsemble, this can be found under the ``ensemble`` directory.
+
+You can check you are running forces on the GPUs as expected by using profiling tools and/or
+by using a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is
+generally available and can be run from the command line. To simply run `forces.x` stand-alone
+you could run::
 
     nsys profile --stats=true mpirun -n 2 ./forces.x
 
@@ -198,22 +204,17 @@ running (this may entail using *ssh* to get on to the node), and run::
     watch -n 0.1 nvidia-smi
 
 This will update GPU usage information every 0.1 seconds. You would need to ensure the code
-runs for long enough to register on the monitor, so lets try 100,000 particles::
+runs for long enough to register on the monitor, so let's try 100,000 particles::
 
     mpirun -n 2 ./forces.x 100000
 
 It is also recommended that you run without the profiler when using the `nvidia-smi` utility.
 
 This can also be used when running via libEnsemble, so long as you are on the node where the
-forces applications are being run. As the default particles in the forces example is 1000, you
-will need to to increase particles to see clear GPU usage in the live monitor. E.g.,~ in line 14
-to multiply the particles by 10::
+forces applications are being run.
 
-        # Parse out num particles, from generator function
-        particles = str(int(H["x"][0][0]) * 10)
-
-Alternative monitoring devices include ``rocm-smi`` (AMD) and ``intel_gpu_top`` (Intel). The latter
-does not need the *watch* command.
+Alternative monitoring devices include ``rocm-smi`` (AMD) and ``intel_gpu_top`` (Intel).
+The latter does not need the *watch* command.
 
 Example submission script
 -------------------------
@@ -245,4 +246,5 @@ resource conflicts on each node.
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
 .. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
 .. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
+.. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py

@@ -30,6 +30,7 @@ from libensemble.message_numbers import (
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
+from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.runners import Runners
@@ -90,15 +91,24 @@ def worker_main(
 
     # Receive dtypes from manager
     _, dtypes = comm.recv()
+
+    # Receive workflow dir from manager
+    if libE_specs.get("use_workflow_dir"):
+        _, libE_specs["workflow_dir_path"] = comm.recv()
+
     workerID = workerID or comm.rank
 
     # Initialize logging on comms
     if log_comm:
         worker_logging_config(comm, workerID)
 
+    LS = LocationStack()
+    LS.register_loc("workflow", libE_specs.get("workflow_dir_path"))
+
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
-    worker.run()
+    with LS.loc("workflow"):
+        worker.run()
 
     if libE_specs.get("profile"):
         pr.disable()
@@ -253,22 +263,27 @@ class Worker:
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
-            assert isinstance(out, tuple), "Calculation output must be a tuple."
-            assert len(out) >= 2, "Calculation output must be at least two elements."
-
-            if len(out) >= 3:
-                calc_status = out[2]
-            else:
-                calc_status = UNSET_TAG
-
+            calc_status = UNSET_TAG
             # Check for buffered receive
             if self.comm.recv_buffer:
                 tag, message = self.comm.recv()
-                if tag in [STOP_TAG, PERSIS_STOP]:
-                    if message is MAN_SIGNAL_FINISH:
-                        calc_status = MAN_SIGNAL_FINISH
+                if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
+                    calc_status = MAN_SIGNAL_FINISH
 
-            return out[0], out[1], calc_status
+            if out:  # better way of doing this logic?
+                if len(out) >= 3:  # Out, persis_info, calc_status
+                    calc_status = out[2]
+                    return out
+                elif len(out) == 2:  # Out, persis_info OR Out, calc_status
+                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                        calc_status = out[1]
+                        return out[0], Work["persis_info"], calc_status
+                    return *out, calc_status  # got Out, persis_info
+                else:
+                    return out, Work["persis_info"], calc_status
+            else:
+                return None, Work["persis_info"], calc_status
+
         except Exception as e:
             logger.debug(f"Re-raising exception from calc {e}")
             calc_status = CALC_EXCEPTION
@@ -279,7 +294,6 @@ class Worker:
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
 
             logging.getLogger(LogConfig.config.stats_name).info(calc_msg)
-            # logging.getLogger(LogConfig.config.random_name).info(calc_msg)
 
     def _get_calc_msg(self, enum_desc: str, calc_id: int, calc_type: int, timer: Timer, status: str) -> str:
         """Construct line for libE_stats.txt file"""

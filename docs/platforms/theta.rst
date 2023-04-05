@@ -102,7 +102,7 @@ On Theta, libEnsemble can be launched to two locations:
     Balsam Executor interfaces with the Balsam service for dynamic
     user-application submission to the compute nodes.
 
-    .. image:: ../images/centralized_new_detailed_balsam.png
+    .. image:: ../images/balsam2.png
         :alt: central_Balsam
         :scale: 40
         :align: center

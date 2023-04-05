@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-def uniform_random_sample(H, persis_info, gen_specs, _):
+def uniform_random_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
@@ -36,7 +36,7 @@ def uniform_random_sample(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
-def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
+def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
@@ -66,7 +66,7 @@ def uniform_random_sample_with_variable_resources(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
-def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs, _):
+def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_specs):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
     ``gen_specs["user"]["lb"]``. Also, randomly requests a different priority and number of
@@ -103,7 +103,7 @@ def uniform_random_sample_with_var_priorities_and_resources(H, persis_info, gen_
     return H_o, persis_info
 
 
-def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
+def uniform_random_sample_obj_components(H, persis_info, gen_specs):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]``
     and ``gen_specs["user"]["lb"]`` but requests each ``obj_component`` be evaluated
@@ -131,7 +131,7 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
-def uniform_random_sample_cancel(H, persis_info, gen_specs, _):
+def uniform_random_sample_cancel(_, persis_info, gen_specs):
     """
     Similar to uniform_random_sample but with immediate cancellation of
     selected points for testing.
@@ -153,7 +153,7 @@ def uniform_random_sample_cancel(H, persis_info, gen_specs, _):
     return H_o, persis_info
 
 
-def latin_hypercube_sample(H, persis_info, gen_specs, _):
+def latin_hypercube_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin
     hypercube sample over the domain defined by ``gen_specs["user"]["ub"]`` and
