@@ -60,6 +60,7 @@ class ResourceScheduler:
         """
 
         self.resources = user_resources or Resources.resources.resource_manager
+
         self.rsets_free = self.resources.rsets_free
         self.avail_rsets_by_group = None
         self.log_msg = None
@@ -67,8 +68,9 @@ class ResourceScheduler:
         # Process scheduler options
         self.split2fit = sched_opts.get("split2fit", True)
         self.match_slots = sched_opts.get("match_slots", True)
+        self.last_use_gpus = None
 
-    def assign_resources(self, rsets_req):
+    def assign_resources(self, rsets_req, use_gpus=None):
         """Schedule resource sets to a work item if possible.
 
         If the resources required are less than one node, they will be
@@ -83,6 +85,13 @@ class ResourceScheduler:
         InsufficientResourcesError or InsufficientFreeResources).
         """
 
+        if use_gpus is not None:
+            if use_gpus:
+                self.rsets_free = self.resources.gpu_rsets_free
+            else:
+                self.rsets_free = self.resources.nongpu_rsets_free #need to do this
+
+
         if rsets_req == 0:
             return []
 
@@ -95,9 +104,18 @@ class ResourceScheduler:
             raise InsufficientFreeResources
 
         self.log_msg = None  # Log resource messages only when find resources
+
         num_groups = self.resources.num_groups
+
         max_grpsize = self.resources.rsets_per_node  # assumes even
-        avail_rsets_by_group = self.get_avail_rsets_by_group()
+        if use_gpus is not None:
+            if use_gpus:
+                max_grpsize = self.resources.gpu_rsets_per_node
+            else:
+                max_grpsize = self.resources.nongpu_rsets_per_node
+
+        #store last use_gpu value and update when switch
+        avail_rsets_by_group = self.get_avail_rsets_by_group(use_gpus)
         try_split = self.split2fit
 
         # Work out best target fit - if all rsets were free.
@@ -159,6 +177,7 @@ class ResourceScheduler:
         logger.debug(
             f"rset_team found: Req: {rsets_req} rsets. Found: {rset_team} Avail sets {self.avail_rsets_by_group}"
         )
+        #print(f"rset_team found: Req: {rsets_req} rsets. Found: {rset_team} Avail sets {self.avail_rsets_by_group} {use_gpus=}")
 
         return rset_team
 
@@ -210,7 +229,7 @@ class ResourceScheduler:
                 upper_bound = nslots
         return cand_team, cand_group
 
-    def get_avail_rsets_by_group(self):
+    def get_avail_rsets_by_group(self, use_gpus):
         """Return a dictionary of resource set IDs for each group (e.g. node)
 
         If groups are not set they will all be in one group (group 0)
@@ -219,16 +238,28 @@ class ResourceScheduler:
         GROUP  1: [1,2,3,4]
         GROUP  2: [5,6,7,8]
         """
-        if self.avail_rsets_by_group is None:
+
+        def fltr_gpus(rset):
+            if use_gpus is None:
+                return True
+            #cleanup-must be way to do in one line
+            if use_gpus:
+                return rset["gpus"]
+            else:
+                return ~rset["gpus"]
+
+        if self.avail_rsets_by_group is None or use_gpus != self.last_use_gpus:
+            #surely quicker to filter here.
             rsets = self.resources.rsets
             groups = np.unique(rsets["group"])
             self.avail_rsets_by_group = {}
             for g in groups:
                 self.avail_rsets_by_group[g] = []
             for ind, rset in enumerate(rsets):
-                if not rset["assigned"]:
+                if not rset["assigned"] and fltr_gpus(rset):
                     g = rset["group"]
                     self.avail_rsets_by_group[g].append(ind)
+            self.last_use_gpus = use_gpus
         return self.avail_rsets_by_group
 
     @staticmethod

@@ -1,3 +1,4 @@
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,15 @@ class RSetResources:
     :ivar int rsets_per_node: The number of rsets per node (if an rset > 1 node, this will be 1)
     """
 
+    rset_dtype = [
+        ("group", int),  # Group ID this resource set belongs to
+        ("slot", int),  # Slot ID this resource set belongs to
+        ("gpus", bool)  # Does this resource set have GPUs
+        # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
+        ]
+
+
+
     def __init__(self, num_workers, resources):
         """Initializes a new RSetResources instance
 
@@ -43,12 +53,53 @@ class RSetResources:
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
+
+        self.gpus_per_node = resources.gpus_avail_per_node  #TODO change as its global (not this worker)
+
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
+        self.gpu_rsets_per_node = min(self.gpus_per_node, self.rsets_per_node)
+        self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
+
+        #print("gpus per node is", self.gpus_per_node)
+        #print("rsets_per_node", self.rsets_per_node)
+
+        self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
+
+        self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(self.split_list, self.gpus_per_node)
+
+        #print(f"\n{self.all_rsets=}\n")
+
         self.gpus_per_node = resources.gpus_avail_per_node
-        self.gpus_per_rset = self.gpus_per_node // self.rsets_per_node
-        # print("gpus per node is", self.gpus_per_node)
-        # print("rsets_per_node", self.rsets_per_node)
-        print("gpus per rset is", self.gpus_per_rset)
+
+        #TODO will go to count up - but currently cant have a mix - either have gpu rsets or not.
+        self.gpus_per_rset = self.gpus_per_node // self.gpu_rsets_per_node
+        #print("gpus per rset per node is", self.gpus_per_rset)
+
+    @staticmethod
+    def get_group_list(split_list, gpus_per_node):
+        """Return lists of group ids and slot IDs by resource set"""
+        group = 1
+        slot = 0
+        group_list = []
+        slot_list = []
+        gpu_list = []
+        node = split_list[0]
+        for i in range(len(split_list)):
+            if split_list[i] == node:
+                group_list.append(group)
+                slot_list.append(slot)
+            else:
+                node = split_list[i]
+                group += 1
+                group_list.append(group)
+                slot = 0
+                slot_list.append(slot)
+            if slot < gpus_per_node:
+                gpu_list.append(True)
+            else:
+                gpu_list.append(False)
+            slot += 1
+        return group_list, slot_list, gpu_list
 
     @staticmethod
     def best_split(a, n):

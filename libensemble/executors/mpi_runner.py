@@ -125,7 +125,8 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
+        if wresources.doihave_gpus():
+            task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         if self.default_gpu_arg is not None:
@@ -155,8 +156,13 @@ class MPIRunner:
 
         wresources = resources.worker_resources
 
-        # gpus per node per worker.
-        gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
+        # gpus per node for this worker.
+        #print(f"{wresources.doihave_gpus()=}")
+        if wresources.doihave_gpus():
+            gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
+        else:
+            gpus_per_node = 0
+
         gpu_setting_type = GPU_SET_DEF
 
         if nnodes is None:

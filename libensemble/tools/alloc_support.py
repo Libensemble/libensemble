@@ -57,7 +57,7 @@ class AllocSupport:
             scheduler_opts = libE_info.get("scheduler_opts", {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
-    def assign_resources(self, rsets_req):
+    def assign_resources(self, rsets_req, num_gpus=None):
         """Schedule resource sets to a work record if possible.
 
         For default scheduler, if more than one group (node) is required,
@@ -72,7 +72,7 @@ class AllocSupport:
         """
         rset_team = None
         if self.resources is not None:
-            rset_team = self.sched.assign_resources(rsets_req)
+            rset_team = self.sched.assign_resources(rsets_req, num_gpus)
         return rset_team
 
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
@@ -139,14 +139,26 @@ class AllocSupport:
             if self.W[wid - 1]["persis_state"]:
                 return []  # Even if empty list, non-None rset_team stops manager giving default resources
             else:
+                use_gpus = None
                 if H is not None and H_rows is not None:
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     else:
                         num_rsets_req = 1
+                    if "use_gpus" in H.dtype.names:
+                        #print(f'Alloc use_gpus input: {H[H_rows]["use_gpus"]}')
+                        #TODO Cannot set to None so can only specify True/False
+                        if np.any(H[H_rows]["use_gpus"]):
+                            use_gpus = True
+                        else:
+                            use_gpus = False
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
-                return self.assign_resources(num_rsets_req)
+                    #TODO (test/document) equiv for whether gen uses gpus e.g. persis_info['gen_use_gpus']
+                    #TODO Decide should it default to false or default to None
+                    use_gpus = self.persis_info.get("gen_use_gpus", False)
+                #print(f"Alloc {use_gpus=}")
+                return self.assign_resources(num_rsets_req, use_gpus)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.

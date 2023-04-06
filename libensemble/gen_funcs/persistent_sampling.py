@@ -50,6 +50,7 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
+# TODO Testing num_gpus with various values - remove commented lines
 def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
     """
     Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
@@ -63,16 +64,27 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
     lb = gen_specs["user"]["lb"]
     n = len(lb)
     b = gen_specs["user"]["initial_batch_size"]
+    multi_task = gen_specs["user"].get("multi_task", False)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
+    # Give initial batch one resource set each
     H_o = np.zeros(b, dtype=gen_specs["out"])
     for i in range(0, b):
         # x= i*np.ones(n)
         x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
         H_o["x"][i] = x
         H_o["resource_sets"][i] = 1
+
+        if multi_task:
+            H_o["use_gpus"][i] = np.random.choice([True, False], 1)
+            #H_o["use_gpus"][i] = True
+            #H_o["use_gpus"][i] = False
+
         H_o["priority"] = 1
+
     print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
+
+    # Give subsequent runs a random number of resource sets
 
     # Send batches until manager sends stop tag
     tag, Work, calc_in = ps.send_recv(H_o)
@@ -81,6 +93,13 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
         # H_o["x"] = len(H)*np.ones(n)
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
         H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
+
+        if multi_task:
+            H_o["use_gpus"] = np.random.choice([True, False], b)
+            #H_o["use_gpus"] = False
+            #H_o["use_gpus"] = True
+            #print(f'random choice {H_o["use_gpus"]}')
+
         H_o["priority"] = 10 * H_o["resource_sets"]
         print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
 

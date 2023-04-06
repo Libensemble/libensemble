@@ -23,12 +23,8 @@ class ResourceManagerException(Exception):
 class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
-    rset_dtype = [
-        ("assigned", int),  # Holds worker ID assigned to or zero
-        ("group", int),  # Group ID this resource set belongs to
-        ("slot", int)  # Slot ID this resource set belongs to
-        # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
-    ]
+    # Holds the ID of the worker this rset is assigned to or zero
+    man_rset_dtype = np.dtype(RSetResources.rset_dtype + [('assigned', int)])
 
     def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
         """Initializes a new ResourceManager instance
@@ -53,11 +49,28 @@ class ResourceManager(RSetResources):
             resources.zero_resource_workers,
         )
 
-        self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
+        #For now, this is still rsets and global is all_rsets - rename.
+        self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.man_rset_dtype)
+
         self.rsets["assigned"] = 0
-        self.rsets["group"], self.rsets["slot"] = ResourceManager.get_group_list(self.split_list)
+
+        #TODO May not need to copy - diff structures more efficient
+        for field in self.all_rsets.dtype.names:
+            self.rsets[field] = self.all_rsets[field]
+
+        #print(f"\n{self.rsets=}\n")
+
         self.num_groups = self.rsets["group"][-1]
         self.rsets_free = self.total_num_rsets
+        self.gpu_rsets_free = np.count_nonzero(self.rsets["gpus"])
+        self.nongpu_rsets_free = np.count_nonzero(~self.rsets["gpus"])
+
+        #print(f"At start: {self.rsets_free=}")
+        #print(f"At start: {self.gpu_rsets_free=}")
+        #print(f"At start: {self.nongpu_rsets_free=}")
+
+        #for rset in range(len(self.rsets)):
+            #print(f'Node {self.rsets["group"][rset]} {self.rsets["gpus"][rset]}')
 
         # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets["group"], return_counts=True)
@@ -73,6 +86,10 @@ class ResourceManager(RSetResources):
                 if wid == 0:
                     self.rsets["assigned"][rset_team[i]] = worker_id
                     self.rsets_free -= 1
+                    if self.rsets["gpus"][rset_team[i]]:
+                        self.gpu_rsets_free -= 1
+                    else:
+                        self.nongpu_rsets_free -= 1
                 elif wid != worker_id:
                     ResourceManagerException(
                         f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
@@ -87,28 +104,9 @@ class ResourceManager(RSetResources):
             rsets_to_free = np.where(self.rsets["assigned"] == worker)[0]
             self.rsets["assigned"][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
-
-    @staticmethod
-    def get_group_list(split_list: List[List[str]]) -> Tuple[List[int], List[int]]:
-        """Return lists of group ids and slot IDs by resource set"""
-        group = 1
-        slot = 0
-        group_list = []
-        slot_list = []
-        node = split_list[0]
-        for i in range(len(split_list)):
-            if split_list[i] == node:
-                group_list.append(group)
-                slot_list.append(slot)
-                slot += 1
-            else:
-                node = split_list[i]
-                group += 1
-                group_list.append(group)
-                slot = 0
-                slot_list.append(slot)
-                slot += 1
-        return group_list, slot_list
+            self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
+            self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
+            #print(f"freed up {len(rsets_to_free)}  Now free: {self.rsets_free}  gpu rsets free {self.gpu_rsets_free}")
 
     @staticmethod
     def get_index_list(
@@ -257,6 +255,15 @@ class WorkerResources(RSetResources):
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
 
     # libEnsemble functions ---------------------------------------------------
+
+    #TODO rename
+    #TODO should count up to get num rsets - and can use that in place of gpus_per_rset * num_rsets
+    def doihave_gpus(self):
+        if self.rset_team:
+            #for quick version - is first rset in my team got gpus - if so i've got gpus
+            return self.all_rsets["gpus"][self.rset_team[0]]
+        return False
+
 
     def set_rset_team(self, rset_team: List[int]) -> None:
         """Update worker team and local attributes
