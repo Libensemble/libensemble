@@ -72,7 +72,8 @@ class RSetResources:
         self.gpus_per_node = resources.gpus_avail_per_node
 
         #TODO will go to count up - but currently cant have a mix - either have gpu rsets or not.
-        self.gpus_per_rset = self.gpus_per_node // self.gpu_rsets_per_node
+        self.gpus_per_rset = self.gpus_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
+
         #print("gpus per rset per node is", self.gpus_per_rset)
 
     @staticmethod
