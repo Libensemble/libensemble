@@ -437,9 +437,9 @@ class LibeSpecs(BaseModel):
     @root_validator
     def set_defaults_on_mpi(cls, values):
         if values.get("comms") == "mpi":
-            if not values.get("mpi_comm"):
-                from mpi4py import MPI
+            from mpi4py import MPI
 
+            if values.get("mpi_comm") is None:  # not values.get("mpi_comm") is True ???
                 values["mpi_comm"] = MPI.COMM_WORLD
         return values
 

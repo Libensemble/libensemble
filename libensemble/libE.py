@@ -459,8 +459,23 @@ def comms_abort(mpi_comm):
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
+def libE_mpi_defaults(libE_specs):
+    """Fill in default values for MPI-based communicators."""
+    from mpi4py import MPI
+
+    if "mpi_comm" not in libE_specs:
+        libE_specs["mpi_comm"] = MPI.COMM_WORLD  # Will be duplicated immediately
+
+    return libE_specs, MPI.COMM_NULL
+
+
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
+
+    libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
+
+    if libE_specs["mpi_comm"] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in mpi_comm
 
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0

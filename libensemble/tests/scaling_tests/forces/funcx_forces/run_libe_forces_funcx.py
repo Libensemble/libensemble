@@ -18,6 +18,6 @@ if __name__ == "__main__":
         }
     )
 
-    forces.persis_info.add_random_streams()
+    forces.add_random_streams()
 
     forces.run()

@@ -59,11 +59,11 @@ def test_funcx_runner_init():
 
     sim_specs["funcx_endpoint"] = "1234"
 
-    with mock.patch("funcx.FuncXClient"):
+    with mock.patch("funcx.FuncXExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
         assert (
-            runners.funcx_exctr is not None
+            runners.sim_funcx_executor is not None
         ), "FuncXExecutor should have been instantiated when funcx_endpoint found in specs"
 
 
@@ -73,21 +73,22 @@ def test_funcx_runner_pass():
 
     sim_specs["funcx_endpoint"] = "1234"
 
-    with mock.patch("funcx.FuncXClient"):
+    with mock.patch("funcx.FuncXExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock funcXExecutor and funcX future object - no exception
         funcx_mock = mock.Mock()
         funcx_future = mock.Mock()
-        funcx_mock.submit.return_value = funcx_future
+        funcx_mock.submit_to_registered_function.return_value = funcx_future
         funcx_future.exception.return_value = None
         funcx_future.result.return_value = (True, True)
 
-        runners.funcx_exctr = funcx_mock
+        runners.sim_funcx_executor = funcx_mock
         ro = runners.make_runners()
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
-        out, persis_info = ro[1](calc_in, {}, libE_info)
+
+        out, persis_info = ro[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
 
         assert all([out, persis_info]), "funcX runner correctly returned results"
 
@@ -98,22 +99,22 @@ def test_funcx_runner_fail():
 
     gen_specs["funcx_endpoint"] = "4321"
 
-    with mock.patch("funcx.FuncXClient"):
+    with mock.patch("funcx.FuncXExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock funcXExecutor and funcX future object - yes exception
         funcx_mock = mock.Mock()
         funcx_future = mock.Mock()
-        funcx_mock.submit.return_value = funcx_future
+        funcx_mock.submit_to_registered_function.return_value = funcx_future
         funcx_future.exception.return_value = Exception
 
-        runners.funcx_exctr = funcx_mock
+        runners.gen_funcx_executor = funcx_mock
         ro = runners.make_runners()
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
         with pytest.raises(Exception):
-            out, persis_info = ro[2](calc_in, {}, libE_info)
+            out, persis_info = ro[2](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 2})
             pytest.fail("Expected exception")
 
 
