@@ -90,6 +90,10 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
     # Send batches until manager sends stop tag
     tag, Work, calc_in = ps.send_recv(H_o)
     while tag not in [STOP_TAG, PERSIS_STOP]:
+
+        if calc_in is not None:
+            b = len(calc_in)
+
         H_o = np.zeros(b, dtype=gen_specs["out"])
         # H_o["x"] = len(H)*np.ones(n)
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
@@ -105,9 +109,6 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
         print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']} gpus {print_gpus}", flush=True)
 
         tag, Work, calc_in = ps.send_recv(H_o)
-
-        if calc_in is not None:
-            b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
