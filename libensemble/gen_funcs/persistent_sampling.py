@@ -66,6 +66,7 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
     b = gen_specs["user"]["initial_batch_size"]
     multi_task = gen_specs["user"].get("multi_task", False)
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+    print_gpus = ""
 
     # Give initial batch one resource set each
     H_o = np.zeros(b, dtype=gen_specs["out"])
@@ -77,12 +78,12 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
 
         if multi_task:
             H_o["use_gpus"][i] = np.random.choice([True, False], 1)
-            #H_o["use_gpus"][i] = True
-            #H_o["use_gpus"][i] = False
+            print_gpus = f"gpus {H_o['use_gpus']}"
 
-        H_o["priority"] = 1
+        if "priority" in H_o.dtype.names:
+            H_o["priority"] = 1
 
-    print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
+    print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']} {print_gpus}", flush=True)
 
     # Give subsequent runs a random number of resource sets
 
@@ -96,12 +97,12 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, lib
 
         if multi_task:
             H_o["use_gpus"] = np.random.choice([True, False], b)
-            #H_o["use_gpus"] = False
-            #H_o["use_gpus"] = True
-            #print(f'random choice {H_o["use_gpus"]}')
+            print_gpus = f"gpus {H_o['use_gpus']}"
 
-        H_o["priority"] = 10 * H_o["resource_sets"]
-        print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
+        if "priority" in H_o.dtype.names:
+            H_o["priority"] = 10 * H_o["resource_sets"]  # prioritize by resource size
+
+        print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']} gpus {print_gpus}", flush=True)
 
         tag, Work, calc_in = ps.send_recv(H_o)
 
