@@ -1,5 +1,4 @@
 from libensemble.resources.resources import Resources
-from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI, GPU_SET_CLI_GPT
 
 def _get_value(option_name, cmd_line):
     """Return string of option and value found in command line"""
@@ -79,6 +78,8 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
                 "aprun": ["-N"],
                 }
 
+    gpu_settings = ["runner_default", "env", "option_gpus_per_node", "option_gpus_per_task"]
+
     # Get num_procs and procs per node from command line
     num_procs = _get_value(procs_setting[mpirunner], task.runline)
     for setting in ppn_setting[mpirunner]:
@@ -91,16 +92,16 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     if gresources.platform_info:
         setting_type = gresources.platform_info.get("gpu_setting_type")
         if setting_type is not None:
-            assert setting_type in [GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI, GPU_SET_CLI_GPT], f"unknown setting type in  platform_info: {setting_type}"
-            if setting_type is not GPU_SET_DEF:
+            assert setting_type in gpu_settings, f"unknown setting type in  platform_info: {setting_type}"
+            if setting_type is not "runner_default":
                 expected_setting = gresources.platform_info.get("gpu_setting_name")
                 assert expected_setting is not None, f"gpu_setting_type must have a gpu_setting_name"
-                if setting_type in [GPU_SET_CLI, GPU_SET_CLI_GPT]:
+                if setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
                     assert wresources.even_slots, f"Error: Found uneven slots on nodes {slots}"
                     cmd_line = True
-                elif setting_type in [GPU_SET_ENV]:
+                elif setting_type in ["env"]:
                     assert wresources.matching_slots, f"Error: Found unmatching slots on nodes {slots}"
-                if setting_type is GPU_SET_CLI_GPT:
+                if setting_type is "option_gpus_per_task":
                     gpus_per_task = True
 
     # For default MPI runner settings
@@ -110,11 +111,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
             assert wresources.even_slots, f"Error: Found uneven slots on nodes {slots}"
             cmd_line = True
             if mpirunner == "srun":
-                expected_setting = "--gpus-per-node="
+                expected_setting = "--gpus-per-node"
                 if _get_value(expected_setting, task.runline) is None:
                     # Try gpus per task
                     gpus_per_task = True
-                    expected_setting = "--gpus-per-task="
+                    expected_setting = "--gpus-per-task"
             elif mpirunner == "jsrun":
                 gpus_per_task = True
                 expected_setting = "-g"
