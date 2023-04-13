@@ -13,6 +13,9 @@ also provided to access and interrogate files in the ``task``'s working director
 import itertools
 import logging
 import os
+from pathlib import Path
+import shutil
+import stat
 import sys
 import time
 from typing import Any, Optional, Union
@@ -643,6 +646,7 @@ class Executor:
         stderr: Optional[str] = None,
         dry_run: bool = False,
         wait_on_start: bool = False,
+        env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
@@ -676,6 +680,11 @@ class Executor:
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
+        env_script: str, Optional
+            The full path of a shell script to set up the environment for the
+            launched task. This will be run in the subprocess, and not affect
+            the worker environment. The script should start with a shebang.
+
         Returns
         -------
 
@@ -703,11 +712,17 @@ class Executor:
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
         else:
+
+            if env_script is not None:
+                run_cmd = Executor._process_env_script(task, runline, env_script)
+            else:
+                run_cmd = runline
+
             # Launch Task
             logger.info(f"Launching task {task.name}: {' '.join(runline)}")
             with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                 task.process = launcher.launch(
-                    runline,
+                    run_cmd,
                     cwd="./",
                     stdout=out,
                     stderr=err,
@@ -732,3 +747,23 @@ class Executor:
         jassert(isinstance(task, Task), "Invalid task has been provided")
         task.poll()
         task.kill(self.wait_time)
+
+    # TODO should you remove the script OR use tempfile module? Esp. if they don't use sim dirs!
+    @staticmethod
+    def _process_env_script(task, runline, env_script):
+        """Merge users environment script with generated run-line"""
+
+        sout_f = task.name + "_run.sh"
+
+        p = Path(".")  # TODO default_workdir..?
+        shutil.copy(env_script, p / sout_f)
+        st = os.stat(sout_f)
+        os.chmod(sout_f, st.st_mode | stat.S_IEXEC)
+        run_line_str = " ".join(runline)
+
+        with open(sout_f, "a") as sout:
+            sout.write(run_line_str)
+
+        run_str = "./" + sout_f
+        run_cmd = run_str.split()
+        return run_cmd

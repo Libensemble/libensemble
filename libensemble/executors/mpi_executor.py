@@ -104,9 +104,17 @@ class MPIExecutor(Executor):
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
-    def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
+    def _launch_with_retries(
+        self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool, env_script: str
+    ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
+
+        if env_script is not None:
+            run_cmd = Executor._process_env_script(task, runline, env_script)
+        else:
+            run_cmd = runline
+
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
@@ -115,7 +123,7 @@ class MPIExecutor(Executor):
                 task.run_attempts += 1
                 with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
-                        runline,
+                        run_cmd,
                         cwd="./",
                         stdout=out,
                         stderr=err,
@@ -160,6 +168,7 @@ class MPIExecutor(Executor):
         dry_run: Optional[bool] = False,
         wait_on_start: Optional[bool] = False,
         extra_args: Optional[str] = None,
+        env_script: Optional[str] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
@@ -219,6 +228,11 @@ class MPIExecutor(Executor):
             resources determination unless also supplied in the direct
             options.
 
+        env_script: str, Optional
+            The full path of a shell script to set up the environment for the
+            launched task. This will be run in the subprocess, and not affect
+            the worker environment. The script should start with a shebang.
+
         Returns
         -------
 
@@ -275,8 +289,7 @@ class MPIExecutor(Executor):
             task._set_complete(dry_run=True)
         else:
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
-
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start, env_script)
             if not task.timer.timing and not task.finished:
                 task.timer.start()
                 task.submit_time = task.timer.tstart  # Time not date - may not need if using timer.
