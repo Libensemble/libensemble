@@ -137,6 +137,7 @@ jobs:
           if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
           run: |
             pip install scikit-learn==1.1.2
+            pip install pandas==1.5.3
             pip install ConfigSpace
             pip install "ray[default]"
             git clone https://github.com/ytopt-team/scikit-optimize.git
