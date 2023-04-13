@@ -1,11 +1,8 @@
 import argparse
 import logging
-from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_ENV, GPU_SET_CLI, GPU_SET_CLI_GPT
-#from libensemble.executors.executor import Task, jassert
 from libensemble.executors.executor import jassert
 from libensemble.resources import mpi_resources
 from libensemble.resources.resources import Resources
-#from typing import Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -126,12 +123,12 @@ class MPIRunner:
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
         if wresources.doihave_gpus():
-            task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)) # to use avail GPUS.
+            task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset))
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         if self.default_gpu_arg is not None:
             arg_type = self.default_gpu_arg_type
-            gpu_value = gpus_per_node // ppn if arg_type == GPU_SET_CLI_GPT else gpus_per_node
+            gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
             gpu_setting_name = self.default_gpu_arg
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
@@ -163,7 +160,7 @@ class MPIRunner:
         else:
             gpus_per_node = 0
 
-        gpu_setting_type = GPU_SET_DEF
+        gpu_setting_type = "runner_default"
 
         if nnodes is None:
             if nprocs:
@@ -182,15 +179,15 @@ class MPIRunner:
         if self.platform_info is not None:
             gpu_setting_type = self.platform_info.get("gpu_setting_type", gpu_setting_type)
 
-        if gpu_setting_type == GPU_SET_DEF:
+        if gpu_setting_type == "runner_default":
             extra_args = self._local_runner_set_gpus(task, wresources, extra_args, gpus_per_node, ppn)
 
-        elif gpu_setting_type in [GPU_SET_CLI, GPU_SET_CLI_GPT]:
-            gpu_value = gpus_per_node // ppn if gpu_setting_type == GPU_SET_CLI_GPT else gpus_per_node
+        elif gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
+            gpu_value = gpus_per_node // ppn if gpu_setting_type == "option_gpus_per_task" else gpus_per_node
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self.default_gpu_arg)
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
-        elif gpu_setting_type == GPU_SET_ENV:
+        elif gpu_setting_type == "env":
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
             self._set_gpu_env_var(wresources, task, gpus_env)
 
@@ -391,11 +388,8 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("-N", "--nodes")
         self.arg_ppn = ("--ntasks-per-node",)
         self.default_mpi_options = "--exact"
-        self.default_gpu_arg = "--gpus-per-node="
-        self.default_gpu_arg_type = GPU_SET_CLI
-        # Alt. gpus per task
-        # self.default_gpu_arg = "--gpus-per-task="
-        # self.default_gpu_arg_type = GPU_SET_CLI_GPN
+        self.default_gpu_arg = "--gpus-per-node"
+        self.default_gpu_arg_type = "option_gpus_per_node"
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -419,7 +413,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_ppn = ("-r",)
         self.default_mpi_options = None
         self.default_gpu_arg = "-g"
-        self.default_gpu_arg_type = GPU_SET_CLI_GPT
+        self.default_gpu_arg_type = "option_gpus_per_task"
 
         self.platform_info = platform_info
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]

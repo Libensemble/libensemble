@@ -47,7 +47,6 @@ from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_CLI
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -134,7 +133,7 @@ if __name__ == "__main__":
             "cores_per_node": 64,
             "logical_cores_per_node": 128,
             "gpus_per_node" : 8,
-            "gpu_setting_type": GPU_SET_DEF,  # has to be imported (unless use a string?)
+            "gpu_setting_type": "runner_default",
             "scheduler_match_slots": False,
             }
 

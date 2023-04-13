@@ -1,30 +1,43 @@
 """Known platforms default configuration
 
-Any fields not included, libEnsemble will attempt to detect from the system.
+Any fields not included, libEnsemble will attempt to detect from the system or use a default.
+
+Field "gpu_setting_type" has the following string options.
+
+"runner_default"       Use default setting for MPI runner (same as if not set).
+"env"                  Use an environment variable (sets to comma separated list of slots)
+"option_gpus_per_node" Expresses GPUs per node on MPI runner command line.
+"option_gpus_per_task" Expresses GPUs per task on MPI runner command line.
+
+With the exception of "runner_default", the "gpu_setting_name" field is also required.
+
+Examples
+
+"gpu_setting_type": "env",
+"gpu_setting_name": "ROCR_VISIBLE_DEVICES",
+
+If "gpu_setting_type" is not provided (same as "runner_default") and the MPI runner does
+not have a default GPU setting in libEnsemble, and no other information is present,
+then the environment variable ``CUDA_VISIBLE_DEVICES`` is used.
+
+"gpu_setting_type": "option_gpus_per_node",
+"gpu_setting_name": "--gpus-per-node",
 
 """
+
+#TODO list fields (in docstring or somehow). Not just GPU setting.
 
 import os
 
 class PlatformException(Exception):
     "Platform module exception."
 
-# GPU ASSIGNMENT TYPES
-GPU_SET_DEF = 1  # Use default setting for MPI runner (same as if not set). gpu_setting_name not required.
-GPU_SET_ENV = 2  # Use an environment variable
-GPU_SET_CLI = 3  # Expresses GPUs per node on MPI runner command line.
-GPU_SET_CLI_GPT = 4  # Expresses GPUs per task on MPI runner command line.
-
-# e.g.
-# "gpu_setting_type":  GPU_SET_ENV,
-# "gpu_setting_name": "ROCR_VISIBLE_DEVICES",
-
 summit = {
     "mpi_runner": "jsrun",
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
-    "gpu_setting_type": GPU_SET_CLI_GPT,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "gpu_setting_type": "option_gpus_per_task",  # Can also use "runner_default" (which is -g for jsrun)
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
 }
@@ -35,9 +48,9 @@ perlmutter_g = {
     "cores_per_node": 64,
     "logical_cores_per_node": 128,
     "gpus_per_node" : 4,
-    #"gpu_setting_type": GPU_SET_CLI,
-    #"gpu_setting_name": "--gpus-per-node=",
-    "gpu_setting_type": GPU_SET_DEF,
+    #"gpu_setting_type": "option_gpus_per_node",
+    #"gpu_setting_name": "--gpus-per-node",
+    "gpu_setting_type": "runner_default",
     "scheduler_match_slots": False,
     }
 
@@ -47,7 +60,7 @@ polaris = {
     "cores_per_node" : 32,
     "logical_cores_per_node" : 64,
     "gpus_per_node" : 4,
-    "gpu_setting_type": GPU_SET_DEF,
+    "gpu_setting_type": "runner_default",
     "scheduler_match_slots": True,
     }
 
@@ -56,7 +69,7 @@ spock = {
     "cores_per_node": 64,
     "logical_cores_per_node": 128,
     "gpus_per_node": 4,
-    "gpu_setting_type": GPU_SET_DEF,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "gpu_setting_type": "runner_default",
     "scheduler_match_slots": False,
 }
 
@@ -65,7 +78,7 @@ crusher =  {
     "cores_per_node": 64,
     "logical_cores_per_node": 128,
     "gpus_per_node" : 8,
-    "gpu_setting_type": GPU_SET_DEF,  # Can also use GPU_SET_DEF (which is -g for jsrun)
+    "gpu_setting_type": "runner_default",
     "scheduler_match_slots": False,
     }
 
@@ -75,17 +88,17 @@ sunspot = {
     "cores_per_node" : 104,  # finds - check
     "logical_cores_per_node" : 208,  # finds - check
     "gpus_per_node" : 6,
-    "gpu_setting_type": GPU_SET_DEF,
+    "gpu_setting_type": "runner_default",
     "scheduler_match_slots": True,
     }
 
 
 # Example of a ROCM system (note - if uses srun - then usually preferable to have
-#    "gpu_setting_type": GPU_SET_DEF,  # let SLURM assign free GPUs on the node
+#    "gpu_setting_type": "runner_default",  # let SLURM assign free GPUs on the node
 #    "scheduler_match_slots": False,   # allows more efficient scheduling when MPI runs cross nodes.
 generic_rocm = {
     "mpi_runner" : "mpich",
-    "gpu_setting_type": GPU_SET_ENV,
+    "gpu_setting_type": "env",
     "gpu_setting_name": "ROCR_VISIBLE_DEVICES",
     "scheduler_match_slots": True,
     }
@@ -138,7 +151,7 @@ def get_mpiexec_platforms(system_name):
     return {"mpi_runner": system["mpi_runner"],
             "runner_name" : system.get("runner_name"),  # only used where distinction needed
             "gpu_setting_type" : system["gpu_setting_type"],
-            "gpu_setting_name" : system.get("gpu_setting_name"),  # Not needed with GPU_SET_DEF
+            "gpu_setting_name" : system.get("gpu_setting_name"),  # Not needed with "runner_default"
             }
 
 
