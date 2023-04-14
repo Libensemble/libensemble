@@ -21,14 +21,14 @@ GPU_SET_CLI_GPT = 4  # Expresses GPUs per task on MPI runner command line.
 
 
 class Platform(BaseModel):
-    mpi_runner: str
-    runner_name: Optional[str]
-    cores_per_node: int
-    logical_cores_per_node: int
-    gpus_per_node: int
-    gpu_setting_type: int
-    gpu_setting_name: str
-    scheduler_match_slots: bool
+    mpi_runner: str = None
+    runner_name: Optional[str] = None
+    cores_per_node: int = None
+    logical_cores_per_node: int = None
+    gpus_per_node: int = None
+    gpu_setting_type: int = None
+    gpu_setting_name: str = None
+    scheduler_match_slots: bool = None
 
     @validator("gpu_setting_type")
     def check_gpu_setting_type(cls, value):
