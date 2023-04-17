@@ -29,13 +29,13 @@
 A complete toolkit for dynamic ensembles of calculations
 ========================================================
 
-Coordinate adaptive workflows that connect "outer loops" or "deciders" to experiments or simulations.
+Easy construction of *adaptive*, *scalable* workflows that connect "deciders" to experiments or simulations.
 
 • **Adaptive Ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
 • **Extreme Scaling**: Run on or across laptops, clusters, and leadership-class machines.
 • **Dynamic Resource Management**: Adaptively assign and reassign resources (including GPUs) to tasks.
 • **Application Monitoring**: Ensemble members can run, monitor, and cancel apps.
-• **Coordinated data-flow between tasks**: libEnsemble can pass data between ensemble members.
+• **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
 • **Low start-up cost**: Default installations don't require additional services. ``pip install libensemble`` and go!
 
 Basic Usage
@@ -50,7 +50,7 @@ perform/monitor computations that use those parameters. Coupling them together w
     from my_simulators import beamline_simulation_function
     from someones_calibrator import adaptive_calibrator_function
 
-    from libensemble.api import Ensemble, SimSpecs, GenSpecs, LibeSpecs, ExitCriteria
+    from libensemble import Ensemble, SimSpecs, GenSpecs, LibeSpecs, ExitCriteria
 
     if __name__ == "__main__":
 
@@ -83,8 +83,8 @@ Launch and monitor apps on parallel resources
 ---------------------------------------------
 
 libEnsemble includes an Executor interface so application-launching functions are
-portable, resilient, and flexible. It also automatically detects available nodes
-and cores, and can dynamically assign resources to workers::
+portable, resilient, and flexible. It automatically detects available resources and GPUs,
+and can dynamically assign them::
 
     import numpy as np
     from libensemble.executors import MPIExecutor
@@ -96,7 +96,10 @@ and cores, and can dynamically assign resources to workers::
 
         exctr = MPIExecutor()
         exctr.register_app("./path/to/particles.app", app_name="particles")
-        task = exctr.submit(app_name="particles", app_args=args, num_procs=64)
+
+        # GPUs selected by Generator, can autotune or set explicitly
+        task = exctr.submit(app_name="particles", app_args=args,
+                            num_procs=64, auto_assign_gpus=True)
 
         task.wait()
 
