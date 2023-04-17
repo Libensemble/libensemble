@@ -367,6 +367,9 @@ def libE(
     # Extract platform info from settings or environment
     platform_info = get_platform_from_specs(libE_specs)
 
+    # Remove None type values
+    platform_info = {k: v for k, v in platform_info.items() if v is not None}
+
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:
         Executor.executor.add_platform_info(platform_info)

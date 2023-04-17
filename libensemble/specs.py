@@ -9,6 +9,7 @@ from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.resources.platforms import Platform
 from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     MPI_Communicator,
@@ -395,11 +396,11 @@ class LibeSpecs(BaseModel):
     If not using calculation directories, contents are copied to the ensemble directory
     """
 
-    platform : Optional[str] = ""
+    platform: Optional[str] = ""
     """Name of a known platform defined in the platforms module."""
 
-    platform_spec : Optional[dict] = {}
-    """A dictionary specifying settings for a platform."""
+    platform_spec : Optional[Union[Platform, dict]] = {}
+    """A Platform obj or dictionary specifying settings for a platform."""
 
     class Config:
         arbitrary_types_allowed = True
