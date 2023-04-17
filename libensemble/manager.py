@@ -217,7 +217,7 @@ class Manager:
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
-        self.scheduler_opts = self.libE_specs.get("scheduler_opts")
+        self.scheduler_opts = self.libE_specs.get("scheduler_opts", {})
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
