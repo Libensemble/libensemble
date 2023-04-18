@@ -31,6 +31,7 @@ BaseConfig.error_msg_templates = {
     "value_error.extra": _UNRECOGNIZED_ERR,
     "type_error.callable": _UFUNC_INVALID_ERR,
 }
+BaseConfig.validate_assignment = True
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
 

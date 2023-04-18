@@ -30,7 +30,9 @@ then the environment variable ``CUDA_VISIBLE_DEVICES`` is used.
 import os
 from typing import Optional
 
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseConfig, BaseModel, root_validator, validator
+
+BaseConfig.validate_assignment = True
 
 
 class PlatformException(Exception):
@@ -64,9 +66,10 @@ class Platform(BaseModel):
 
     @root_validator
     def check_logical_cores(cls, values):
-        assert (
-            values["logical_cores_per_node"] % values["cores_per_node"] == 0
-        ), "Logical cores doesn't divide evenly into cores"
+        if "cores_per_node" in values and "logical_cores_per_node" in values:
+            assert (
+                values["logical_cores_per_node"] % values["cores_per_node"] == 0
+            ), "Logical cores doesn't divide evenly into cores"
         return values
 
 
@@ -210,4 +213,3 @@ def get_platform_from_specs(libE_specs):
         platform_info = libE_specs.get("platform_spec", {})
 
     return platform_info
-
