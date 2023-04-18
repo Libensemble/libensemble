@@ -66,7 +66,7 @@ class Platform(BaseModel):
 
     @root_validator
     def check_logical_cores(cls, values):
-        if "cores_per_node" in values and "logical_cores_per_node" in values:
+        if values.get("cores_per_node") and values.get("logical_cores_per_node"):
             assert (
                 values["logical_cores_per_node"] % values["cores_per_node"] == 0
             ), "Logical cores doesn't divide evenly into cores"
