@@ -416,6 +416,12 @@ class LibeSpecs(BaseModel):
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
+    @validator("platform_spec")
+    def set_platform_spec_to_class(cls, value: Union[Platform, dict]) -> Platform:
+        if isinstance(value, dict):
+            value = Platform(** value)
+        return value
+
     @validator("sim_input_dir", "gen_input_dir")
     def check_input_dir_exists(cls, value: str) -> str:
         if len(value):
