@@ -204,12 +204,12 @@ def get_platform_from_specs(libE_specs):
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")
 
-        # Add/overwrite any fields from a platform_spec
-        platform_spec = libE_specs.get("platform_spec")
-        if platform_spec:
-            for k,v in platform_spec.items():
+        # Add/overwrite any fields from a platform_specs
+        platform_specs = libE_specs.get("platform_specs")
+        if platform_specs:
+            for k,v in platform_specs.items():
                 platform_info[k] = v
     else:
-        platform_info = libE_specs.get("platform_spec", {})
+        platform_info = libE_specs.get("platform_specs", {})
 
     return platform_info

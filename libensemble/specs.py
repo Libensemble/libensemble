@@ -313,7 +313,7 @@ class LibeSpecs(BaseModel):
     platform: Optional[str] = ""
     """Name of a known platform defined in the platforms module."""
 
-    platform_spec : Optional[Union[Platform, dict]] = {}
+    platform_specs : Optional[Union[Platform, dict]] = {}
     """A Platform obj or dictionary specifying settings for a platform."""
 
     profile: Optional[bool] = False
@@ -416,8 +416,8 @@ class LibeSpecs(BaseModel):
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
-    @validator("platform_spec")
-    def set_platform_spec_to_class(cls, value: Union[Platform, dict]) -> Platform:
+    @validator("platform_specs")
+    def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
         if isinstance(value, dict):
             value = Platform(** value)
         return value

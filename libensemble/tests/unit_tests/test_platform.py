@@ -14,7 +14,7 @@ def test_platform_empy():
     platform_info = get_platform_from_specs(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
-    libE_specs = {"platform_spec": {}}
+    libE_specs = {"platform_specs": {}}
     platform_info = get_platform_from_specs(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
@@ -40,10 +40,10 @@ def test_platform_known():
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
 
-def test_platform_spec():
-    """Test known platform and platform_spec supplied"""
+def test_platform_specs():
+    """Test known platform and platform_specs supplied"""
     exp = my_spec
-    libE_specs = {"platform_spec": my_spec}
+    libE_specs = {"platform_specs": my_spec}
     platform_info = get_platform_from_specs(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
@@ -54,7 +54,7 @@ def test_platform_spec():
         "gpus_per_node": 4,
         "cores_per_node": 32,
         }
-    libE_specs = {"platform": 'generic_rocm', "platform_spec": my_spec}
+    libE_specs = {"platform": 'generic_rocm', "platform_specs": my_spec}
     platform_info = get_platform_from_specs(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
@@ -63,4 +63,4 @@ if __name__ == "__main__":
     test_platform_empy()
     test_unknown_platform()
     test_platform_known()
-    test_platform_spec()
+    test_platform_specs()

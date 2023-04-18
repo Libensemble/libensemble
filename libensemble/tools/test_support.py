@@ -87,7 +87,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         if ppn is not None:
             break
 
-    # For user settings via platform/platform_spec
+    # For user settings via platform/platform_specs
     expected_setting = None
     if gresources.platform_info:
         setting_type = gresources.platform_info.get("gpu_setting_type")
