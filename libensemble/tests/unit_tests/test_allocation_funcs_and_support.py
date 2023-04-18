@@ -423,7 +423,6 @@ def test_als_points_by_priority():
 
 if __name__ == "__main__":
     test_decide_work_and_resources()
-
     test_als_init_normal()
     test_als_init_withresources()
     test_als_assign_resources()

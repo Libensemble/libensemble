@@ -30,10 +30,10 @@ jobs:
                       python-version: "3.10"
                       mpi-version: "mpich"
                       comms-type: t
-                    - os: ubuntu-latest
-                      mpi-version: "openmpi"
-                      python-version: "3.10"
-                      comms-type: l
+                    # - os: ubuntu-latest
+                      # mpi-version: "openmpi"
+                      # python-version: "3.10"
+                      # comms-type: l
                     # - os: windows-latest
                     #   python-version: "3.10"
                     #   comms-type: l
@@ -137,6 +137,7 @@ jobs:
           if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
           run: |
             pip install scikit-learn==1.1.2
+            pip install pandas==1.5.3
             pip install ConfigSpace
             pip install "ray[default]"
             git clone https://github.com/ytopt-team/scikit-optimize.git
@@ -168,7 +169,7 @@ jobs:
 
             # begin heffte build and dependencies
             sudo apt install libfftw3-dev
-            git clone https://bitbucket.org/icl/heffte.git
+            git clone https://github.com/icl-utk-edu/heffte.git
             mkdir heffte/build
             cd heffte/build
             pwd
@@ -208,12 +209,6 @@ jobs:
           if: matrix.mpi-version == 'mpich'
           run: |
             mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
-
-        - name: Experiment with running multiple pytest workers
-          run: |
-            pip install pytest-xdist
-            cd libensemble/tests/unit_tests; pytest -n auto --runextra .
-            cd -
 
         - name: Remove ytopt-heffte test on Python 3.11 (easy way)
           if: matrix.python-version == '3.11'

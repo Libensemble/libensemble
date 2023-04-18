@@ -243,6 +243,7 @@ import logging
 import os
 import pickle  # Only used when saving output on error
 import socket
+import sys
 import traceback
 from typing import Callable, Dict
 
@@ -370,6 +371,12 @@ def libE(
     # Remove None type values
     platform_info = {k: v for k, v in platform_info.items() if v is not None}
 
+    if libE_specs["dry_run"]:
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        sys.exit()
+
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
+
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:
         Executor.executor.add_platform_info(platform_info)
@@ -462,8 +469,23 @@ def comms_abort(mpi_comm):
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
+def libE_mpi_defaults(libE_specs):
+    """Fill in default values for MPI-based communicators."""
+    from mpi4py import MPI
+
+    if "mpi_comm" not in libE_specs:
+        libE_specs["mpi_comm"] = MPI.COMM_WORLD  # Will be duplicated immediately
+
+    return libE_specs, MPI.COMM_NULL
+
+
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
+
+    libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
+
+    if libE_specs["mpi_comm"] == mpi_comm_null:
+        return [], persis_info, 3  # Process not in mpi_comm
 
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0

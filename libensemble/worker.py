@@ -30,6 +30,7 @@ from libensemble.message_numbers import (
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
+from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.runners import Runners
@@ -91,6 +92,7 @@ def worker_main(
     # Receive dtypes from manager
     _, dtypes = comm.recv()
 
+    # Receive workflow dir from manager
     if libE_specs.get("use_workflow_dir"):
         _, libE_specs["workflow_dir_path"] = comm.recv()
 
@@ -100,9 +102,13 @@ def worker_main(
     if log_comm:
         worker_logging_config(comm, workerID)
 
+    LS = LocationStack()
+    LS.register_loc("workflow", libE_specs.get("workflow_dir_path"))
+
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
-    worker.run()
+    with LS.loc("workflow"):
+        worker.run()
 
     if libE_specs.get("profile"):
         pr.disable()
@@ -165,7 +171,8 @@ class Worker:
         self.stats_fmt = libE_specs.get("stats_fmt", {})
 
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self._run_calc = Runners(sim_specs, gen_specs).make_runners()
+        self.runners = Runners(sim_specs, gen_specs)
+        self._run_calc = self.runners.make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
@@ -251,9 +258,9 @@ class Worker:
                         calc_type,
                     )
                     with loc_stack.loc(calc_dir):  # Changes to calculation directory
-                        out = calc(calc_in, Work["persis_info"], Work["libE_info"])
+                        out = calc(calc_in, Work)
                 else:
-                    out = calc(calc_in, Work["persis_info"], Work["libE_info"])
+                    out = calc(calc_in, Work)
 
                 logger.debug(f"Returned from user function for {enum_desc} {calc_id}")
 
@@ -393,4 +400,5 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
+            self.runners.shutdown()
             self.EnsembleDirectory.copy_back()
