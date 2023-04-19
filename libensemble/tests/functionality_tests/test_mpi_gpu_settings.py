@@ -7,7 +7,7 @@ Test assertions are in the sim function via the check_gpu_setting function.
 
 The persistent generator creates simulations with variable resource requirements.
 
-Runs five sets of tests.
+Runs six sets of tests.
 
 Set 1.
 Four GPUs per node is mocked up below (if this line is removed, libEnsemble will
@@ -24,6 +24,9 @@ A known platform is specified for known systems.
 
 Set 5.
 A known platform is specified for known systems via environment variable.
+
+Set 6.
+A known platform is specified for known systems via platforms_specs (imported classes)
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 6 python test_mpi_gpu_settings.py
@@ -82,8 +85,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"dry_run": True
-            },
+        "user": {"dry_run": True},
     }
 
     gen_specs = {
@@ -132,7 +134,6 @@ if __name__ == "__main__":
 
     del libE_specs["resource_info"]  # this would override
 
-
     # Second set - use platform_specs (pydantic class)  setting ------------------------------------
     libE_specs["platform_specs"] = Platform(
         # mpi_runner=run_set,  # fill in for each run
@@ -146,8 +147,7 @@ if __name__ == "__main__":
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
 
         print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
-        #libE_specs["platform_specs"]["mpi_runner"] = run_set
-        libE_specs["platform_specs"].mpi_runner = run_set  # this wont get checked, right!!!!!!
+        libE_specs["platform_specs"].mpi_runner = run_set
 
         print(f'{libE_specs["platform_specs"]=}')
 
@@ -156,11 +156,9 @@ if __name__ == "__main__":
 
         # check having only cores_per_node
         if run_set == "jsrun":
-            #del libE_specs["platform_specs"]["logical_cores_per_node"]
             del libE_specs["platform_specs"].logical_cores_per_node
 
         if run_set == "custom":
-            #del libE_specs["platform_specs"]["cores_per_node"]
             del libE_specs["platform_specs"].cores_per_node
             libE_specs["platform_specs"].logical_cores_per_node = 128
 
@@ -174,16 +172,15 @@ if __name__ == "__main__":
 
     del libE_specs["platform_specs"]
 
-
     # Third set - use platform_specs (dictionary)  setting ------------------------------------
     libE_specs["platform_specs"] = {
-            # "mpi_runner" : run_set,  # fill in for each run
-            "cores_per_node": 64,
-            "logical_cores_per_node": 128,
-            "gpus_per_node" : 8,
-            "gpu_setting_type": "runner_default",
-            "scheduler_match_slots": False,
-            }
+        # "mpi_runner" : run_set,  # fill in for each run
+        "cores_per_node": 64,
+        "logical_cores_per_node": 128,
+        "gpus_per_node": 8,
+        "gpu_setting_type": "runner_default",
+        "scheduler_match_slots": False,
+    }
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
 
@@ -250,5 +247,26 @@ if __name__ == "__main__":
         )
 
         del os.environ["LIBE_PLATFORM"]
+
+
+    # Sixth set - use platform_specs with known systems -------------------------------------------
+    for platform in [Summit, Crusher, PerlmutterGPU, Polaris, Sunspot]:
+
+        print(f"\nRunning GPU setting checks (via known platform - platform_specs) for {platform} ------------------- ")
+        libE_specs["platform_specs"] = platform()
+
+        exctr = MPIExecutor()
+        exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+        # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+
+        # Perform the run
+        H, _, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
+
+        del libE_specs["platform_specs"]
+
 
     # All asserts are in sim func
