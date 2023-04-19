@@ -104,7 +104,8 @@ class Platform(BaseModel):
     the value should match on each node of an MPI run (choose **True**).
 
     When using command-line options just as ``--gpus-per-node``, which allow the systems
-    application level scheduler to manager GPUs, then match_slots can be **False**.
+    application level scheduler to manager GPUs, then match_slots can be **False**
+    (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
     @validator("gpu_setting_type")
@@ -130,15 +131,22 @@ class Platform(BaseModel):
             ), "Logical cores doesn't divide evenly into cores"
         return values
 
-
-class Summit(Platform):
-    mpi_runner: str = "jsrun"
-    cores_per_node: int = 42
-    logical_cores_per_node: int = 168
-    gpus_per_node: int = 6
-    gpu_setting_type: int = "option_gpus_per_task"
-    gpu_setting_name: str = "-g"
+# On SLURM systems, let srun assign free GPUs on the node
+class Crusher(Platform):
+    mpi_runner: str = "srun"
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
+    gpus_per_node: int = 8
+    gpu_setting_type: int = "runner_default"
     scheduler_match_slots: bool = False
+
+
+# Example of a ROCM system
+class Generic_ROCm(Platform):
+    mpi_runner: str = "mpich"
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
+    scheduler_match_slots: bool = True
 
 
 class PerlmutterGPU(Platform):
@@ -169,12 +177,13 @@ class Spock(Platform):
     scheduler_match_slots: bool = False
 
 
-class Crusher(Platform):
-    mpi_runner: str = "srun"
-    cores_per_node: int = 64
-    logical_cores_per_node: int = 128
-    gpus_per_node: int = 8
-    gpu_setting_type: int = "runner_default"
+class Summit(Platform):
+    mpi_runner: str = "jsrun"
+    cores_per_node: int = 42
+    logical_cores_per_node: int = 168
+    gpus_per_node: int = 6
+    gpu_setting_type: int = "option_gpus_per_task"
+    gpu_setting_name: str = "-g"
     scheduler_match_slots: bool = False
 
 
@@ -188,35 +197,23 @@ class Sunspot(Platform):
     scheduler_match_slots: bool = True
 
 
-# Example of a ROCM system (note - if uses srun - then usually preferable to have
-#    "gpu_setting_type": "runner_default",  # let SLURM assign free GPUs on the node
-#    "scheduler_match_slots": False,   # allows more efficient scheduling when MPI runs cross nodes.
-class Generic_ROCm(Platform):
-    mpi_runner: str = "mpich"
-    gpu_setting_type: str = "env"
-    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
-    scheduler_match_slots: bool = True
-
-
-# TODO MAKE ALPHABETICAL
-# Dictionary of known systems (systems or system partitions) by name
+# Dictionary of known systems (or system partitions) by name
 known_systems = {
-    "summit": Summit,
+    "generic_rocm": Generic_ROCm,
+    "crusher": Crusher,
     "perlmutter_g": PerlmutterGPU,
     "polaris": Polaris,
     "spock": Spock,
-    "crusher": Crusher,
+    "summit": Summit,
     "sunspot": Sunspot,
-    "generic_rocm": Generic_ROCm,
 }
 
-
-# Dictionary of known systems (systems or system partitions) detectable by domain name
+# Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
-    "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
-    "spock.olcf.ornl.gov": Spock,
-    "hsn.cm.polaris.alcf.anl.gov": Polaris,
     "crusher.olcf.ornl.gov": Crusher,
+    "hsn.cm.polaris.alcf.anl.gov": Polaris,
+    "spock.olcf.ornl.gov": Spock,
+    "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
 }
 
 def known_system_detect(cmd="hostname -d"):
