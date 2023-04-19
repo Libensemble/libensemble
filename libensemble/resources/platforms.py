@@ -1,28 +1,17 @@
-"""Known platforms default configuration
+"""Module for platform specification
 
-Any fields not included, libEnsemble will attempt to detect from the system or use a default.
+This module defines the Platform class which can be used to determine a platform
+(computing system) attributes. A number of known systems are provided.
 
-Field "gpu_setting_type" has the following string options.
+These can be specified by the libE_specs options ``platform_specs`` (recommended).
+If may also be specified, for known systems, via a string in the ``platform``
+option or the environment variable ``LIBE_PLATFORM``.
 
-"runner_default"       Use default setting for MPI runner (same as if not set).
-"env"                  Use an environment variable (sets to comma separated list of slots)
-"option_gpus_per_node" Expresses GPUs per node on MPI runner command line.
-"option_gpus_per_task" Expresses GPUs per task on MPI runner command line.
+If the platform is not specified, libEnsemble will try to detect if you are on
+a known platform.
 
-With the exception of "runner_default", the "gpu_setting_name" field is also required.
-
-Examples
-
-"gpu_setting_type": "env",
-"gpu_setting_name": "ROCR_VISIBLE_DEVICES",
-
-If "gpu_setting_type" is not provided (same as "runner_default") and the MPI runner does
-not have a default GPU setting in libEnsemble, and no other information is present,
-then the environment variable ``CUDA_VISIBLE_DEVICES`` is used.
-
-"gpu_setting_type": "option_gpus_per_node",
-"gpu_setting_name": "--gpus-per-node",
-
+Any fields not included, libEnsemble will attempt to detect from the system or
+use a default.
 """
 
 #TODO list fields (in docstring or somehow). Not just GPU setting.
@@ -41,14 +30,82 @@ class PlatformException(Exception):
 
 
 class Platform(BaseModel):
+    """
+    Class to define attributes of a target platform.
+
+    All are optional, and any not defined will be determined by libEnsemble's auto-detection.
+    """
     mpi_runner: Optional[str]
+    """MPI runner: One of "mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom" """
     runner_name: Optional[str]
+    """Literal string of MPI runner command. Only needed if different to the default
+
+    Note that "mpich" and "openmpi" runners have the default command "mpirun"
+    """
     cores_per_node: Optional[int]
+    """Number of pysical CPU cores on a compute node of the platform"""
+
     logical_cores_per_node: Optional[int]
+    """Number of logical CPU cores on a compute node of the platform"""
+
     gpus_per_node: Optional[int]
+    """Number of GPU devices on a compute node of the platform"""
+
     gpu_setting_type: Optional[str]
+    """ How GPUs will be assigned.
+
+    Must take one of the following string options.
+
+    - "runner_default":       Use default setting for MPI runner (same as if not set).
+    - "env":                  Use an environment variable (comma separated list of slots)
+    - "option_gpus_per_node": Expresses GPUs per node on MPI runner command line.
+    - "option_gpus_per_task": Expresses GPUs per task on MPI runner command line.
+
+    With the exception of "runner_default", the ``gpu_setting_name`` attribute is
+    also required when this attribute is set.
+
+    If "gpu_setting_type" is not provided (same as ``runner_default``) and the
+    MPI runner does not have a default GPU setting in libEnsemble, and no other
+    information is present, then the environment variable ``CUDA_VISIBLE_DEVICES``
+    is used.
+
+    Examples:
+
+    Use environment variable ROCR_VISIBLE_DEVICES to assign GPUs.
+
+    .. code-block:: python
+
+        "gpu_setting_type" = "env",
+        "gpu_setting_name" = "ROCR_VISIBLE_DEVICES",
+
+    Use command line option ``--gpus-per-node``
+
+    .. code-block:: python
+
+        "gpu_setting_type" = "option_gpus_per_node",
+        "gpu_setting_name" = "--gpus-per-node",
+
+    """
+
     gpu_setting_name: Optional[str]
+    """Name of GPU setting
+
+    See ``gpu_setting_type`` for more details.
+    """
+
     scheduler_match_slots: Optional[bool]
+    """
+    Whether the libEnsemble resource scheduler should only assign matching slots when
+    there are multiple (partial) nodes assigned to a sim function.
+
+    Defaults to True, within libEnsemble.
+
+    Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``, where
+    the value should match on each node of an MPI run (choose True).
+
+    When using command-line options just as ``--gpus-per-node``, which allow the systems
+    application level scheduler to manager GPUs, then match_slots can be false.
+    """
 
     @validator("gpu_setting_type")
     def check_gpu_setting_type(cls, value):

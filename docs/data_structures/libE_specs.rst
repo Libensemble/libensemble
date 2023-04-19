@@ -194,6 +194,8 @@ Platform Options
 .. autopydantic_model:: libensemble.resources.platforms.Platform
   :model-show-validator-members: False
   :model-show-validator-summary: False
+  :field-list-validators: False
+  :member-order:
 
 Scheduler Options
 -----------------
