@@ -28,6 +28,7 @@ then the environment variable ``CUDA_VISIBLE_DEVICES`` is used.
 #TODO list fields (in docstring or somehow). Not just GPU setting.
 
 import os
+import subprocess
 from typing import Optional
 
 from pydantic import BaseConfig, BaseModel, root_validator, validator
@@ -152,51 +153,36 @@ known_systems = {
     "generic_rocm": Generic_ROCm,
 }
 
+
 # Dictionary of known systems (systems or system partitions) detectable by domain name
 detect_systems = {
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
+    "spock.olcf.ornl.gov": Spock,
+    "hsn.cm.polaris.alcf.anl.gov": Polaris,
+    "crusher.olcf.ornl.gov": Crusher,
 }
 
-# TODO Also could detect by hostname but do we want to.
-# detect_systems = {"summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
-# "spock.olcf.ornl.gov": Spock,
-# "hsn.cm.polaris.alcf.anl.gov": Polaris,
-# "crusher.olcf.ornl.gov": Crusher,
-# }
-
-#TODO - should code below here be separated?
-
-# Dictionary of known systems (systems or system partitions) detectable by domain name
-#detect_systems = {"summit.olcf.ornl.gov": summit,  # Needed to detect gpu count (if not provided)
-detect_systems = {"summit.olcf.ornl.gov": "summit",  # Needed to detect gpu count (if not provided)
-                  }
+def known_system_detect(cmd="hostname -d"):
+    run_cmd=cmd.split()
+    try:
+        domain_name = subprocess.check_output(run_cmd).decode().rstrip()
+        platform_info = detect_systems[domain_name]().dict(by_alias=True)
+        # print('Found system via detection', domain_name)
+    except Exception:
+        platform_info = {}
+    return platform_info
 
 
-# TODO Review function naming
-def get_platform_num_cores_gpus(system_name):
-    """Return list of number of cores and gpus per node
-
-    system_name is a system dictionary or string (system name)
-
-    Form: [cores, logical_cores, gpus].
-    Any items not present are returned as None.
-    """
-    system = known_systems[system_name] if isinstance(system_name, str) else system_name
-    cores_per_node = system.cores_per_node
-    logical_cores_per_node = system.logical_cores_per_node
-    gpus_per_node = system.gpus_per_node
-    return [cores_per_node, logical_cores_per_node, gpus_per_node]
-
-
-#TODO rename to just get_platform?
 def get_platform_from_specs(libE_specs):
-    """Return platform from relevant libE_specs option.
+    """Return platform as dictionary from relevant libE_specs option.
 
-    If platform field is set and a platform, return the platform.
-    If it is a string, return the platform from the known_systems.
-    If it does not exist, return None
+    For internal use, return a platform as a dictionary from either
+    platform name or platform_specs.
+
+    If both platform and platform_spec fields are present, any fields in
+    platform_specs are added or overwrite fields in the known platform.
     """
-    platform_info = {}
+
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
@@ -209,7 +195,11 @@ def get_platform_from_specs(libE_specs):
         if platform_specs:
             for k,v in platform_specs.items():
                 platform_info[k] = v
+    elif "platform_specs" in libE_specs:
+        platform_info = libE_specs["platform_specs"]
     else:
-        platform_info = libE_specs.get("platform_specs", {})
+        # See if in detection list
+        platform_info = known_system_detect()
 
+    platform_info = {k: v for k, v in platform_info.items() if v is not None}
     return platform_info

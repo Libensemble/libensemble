@@ -368,9 +368,6 @@ def libE(
     # Extract platform info from settings or environment
     platform_info = get_platform_from_specs(libE_specs)
 
-    # Remove None type values
-    platform_info = {k: v for k, v in platform_info.items() if v is not None}
-
     if libE_specs["dry_run"]:
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
         sys.exit()

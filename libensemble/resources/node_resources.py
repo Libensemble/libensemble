@@ -13,47 +13,11 @@ import logging
 import subprocess
 import collections
 from libensemble.resources.gpu_detect import get_num_gpus, get_gpus_from_env
-from libensemble.resources.platforms import known_systems, detect_systems, get_platform_num_cores_gpus
 from libensemble.resources.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
 
 REMOTE_LAUNCH_LIST = ["aprun", "jsrun", "srun"]  # Move to feature of mpi_runner
-
-
-def known_sys_detect(cmd="hostname -d"):
-    """Detect system domain name and return any CPU / GPU data found as a tuple
-
-    If the system is found, will return an int tuple of (cores, logical cores, gpus),
-    where any missing entry will be None.
-
-    If system is not found in known list, then returns None.
-    """
-
-    run_cmd = cmd.split()
-
-    try:
-        domain_name = subprocess.check_output(run_cmd).decode().rstrip()
-        print("domain", domain_name)
-
-        if isinstance(domain_name, str) and len(domain_name):
-            system_name = detect_systems.get(domain_name)
-
-            print("system", system_name)  #tmp
-            if system_name is None:
-                print("System not in known list", domain_name)
-                return None
-
-            print(f"Detected a known system in node_resources: {system_name}")  #tmp
-            return get_platform_num_cores_gpus(system_name)
-
-        else:
-            print("Could not get valid domain name")
-            return None
-
-    except Exception:
-        print("Known system detection failed")
-        return None
 
 
 def get_cpu_cores(hyperthreads: bool = False) -> int:
@@ -209,13 +173,6 @@ def get_sub_node_resources(
     #          Though will be not overwrite anyway.
 
     cores_info = [None, None, None]
-
-    # Check for known system
-    cores_info = known_sys_detect() or [None, None, None]
-    print("known system info", cores_info)
-    if _complete_set(cores_info):
-        print("known system provided all info")
-        return tuple(cores_info)
 
     # Check environment
     if not _cpu_info_complete(cores_info):
