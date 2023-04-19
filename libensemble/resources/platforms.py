@@ -14,8 +14,6 @@ Any fields not included, libEnsemble will attempt to detect from the system or
 use a default.
 """
 
-#TODO list fields (in docstring or somehow). Not just GPU setting.
-
 import os
 import subprocess
 from typing import Optional
@@ -37,6 +35,7 @@ class Platform(BaseModel):
     """
     mpi_runner: Optional[str]
     """MPI runner: One of "mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom" """
+
     runner_name: Optional[str]
     """Literal string of MPI runner command. Only needed if different to the default
 
