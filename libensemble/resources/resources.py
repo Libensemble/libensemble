@@ -97,7 +97,6 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    #TODO - FIX DOCSTRING  - maybe same info - but alot comes from libE_specs - make sure platform_info added
     def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
 
         """Initializes a new Resources instance

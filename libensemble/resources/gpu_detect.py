@@ -2,15 +2,8 @@ import os
 import ast
 import subprocess
 
-# SH TODO while testing - REMOVE
+# SH TODO while testing - REMOVE eprints
 from libensemble.tools import eprint
-
-# SH TODO - Remove eprints
-# import sys
-# def eprint(*args, **kwargs):
-#    """Prints a user message to standard error"""
-#    print(*args, file=sys.stderr, **kwargs)
-
 
 def pynvml():
     """Detect GPU from pynvml or return None"""

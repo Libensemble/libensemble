@@ -234,9 +234,6 @@ class MPIExecutor(Executor):
             resources determination unless also supplied in the direct
             options.
 
-        assign_procs_to_slots: bool, optional  #TODO or int - also not nec to slots - just a count!
-            Auto-assign MPI processors to slots (the number of resource sets on each node).
-
         auto_assign_gpus: bool, optional
             Auto-assign GPUs available to this worker using either the method supplied in configuration or
             determined by detected environment. Default: False

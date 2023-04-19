@@ -168,10 +168,6 @@ def get_sub_node_resources(
     Any value that is already valid, is not overwritten by successive stages.
 
     """
-
-    # SH TODO: Could receive if cpu/gpu is already set by resource_info so don't need to get.
-    #          Though will be not overwrite anyway.
-
     cores_info = [None, None, None]
 
     # Check environment

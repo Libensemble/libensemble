@@ -400,8 +400,6 @@ class JSRUN_MPIRunner(MPIRunner):
         self.run_command = run_command
         self.subgroup_launch = True
         self.mfile_support = False
-
-        # TODO: Add multiplier to resources checks (for -c/-a)
         self.arg_nprocs = ("--np", "-n")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-r",)
@@ -457,8 +455,6 @@ class JSRUN_MPIRunner(MPIRunner):
             nprocs, nnodes, ppn = mpi_resources.get_resources(
                 resources, nprocs, nnodes, ppn, hyperthreads
             )
-
-            # TODO: Create ERF file if mapping worker to resources req.
         else:
             nprocs, nnodes, ppn = mpi_resources.task_partition(
                 nprocs, nnodes, ppn, machinefile
