@@ -314,7 +314,36 @@ class LibeSpecs(BaseModel):
     """Name of a known platform defined in the platforms module."""
 
     platform_specs : Optional[Union[Platform, dict]] = {}
-    """A Platform obj or dictionary specifying settings for a platform."""
+    """A Platform obj (or dictionary) specifying settings for a platform.
+
+    Examples (add to calling script):
+
+    To use existing platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import PerlmutterGPU
+        libE_specs["platform_specs"] = PerlmutterGPU
+
+    Or define a platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import Platform
+        libE_specs["platform_specs"] = Platform(
+            mpi_runner="srun"
+            cores_per_node=64,
+            logical_cores_per_node=128,
+            gpus_per_node=8,
+            gpu_setting_type="runner_default",
+            scheduler_match_slots=False,
+
+    For list of Platform options see `Platform Options`
+
+    :class:`Platform Options<libensemble.resources.platforms.Platform>`
+
+    See also option `platform`.
+    """
 
     profile: Optional[bool] = False
     """ Profile manager and worker logic using cProfile """

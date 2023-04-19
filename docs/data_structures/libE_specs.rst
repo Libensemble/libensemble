@@ -187,6 +187,14 @@ As a class:
   :model-show-validator-summary: False
   :field-list-validators: False
 
+
+Platform Options
+----------------
+
+.. autopydantic_model:: libensemble.resources.platforms.Platform
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+
 Scheduler Options
 -----------------
 
