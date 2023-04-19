@@ -1,12 +1,12 @@
 """
-Runs libEnsemble with APOSMM+DFOLS on the chwirut least-squares problem.
+Runs libEnsemble with APOSMM+IBCDFO on the chwirut least-squares problem.
 All 214 residual calculations for a given point are performed as a single
 simulation evaluation.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_aposmm_dfols.py
-   python test_persistent_aposmm_dfols.py --nworkers 3 --comms local
-   python test_persistent_aposmm_dfols.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_ibcdfo.py
+   python test_persistent_aposmm_ibcdfo.py --nworkers 3 --comms local
+   python test_persistent_aposmm_ibcdfo.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -29,7 +29,10 @@ import libensemble.gen_funcs
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "dfols"
+sys.path.append("/home/jlarson/research/poptus/IBCDFO/minq/py/minq5")  # Needed for spsolver=2
+sys.path.append("/home/jlarson/research/poptus/IBCDFO/pounders/py")
+
+libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
@@ -71,16 +74,8 @@ if __name__ == "__main__":
         "out": gen_out,
         "user": {
             "initial_sample_size": 100,
-            "localopt_method": "dfols",
+            "localopt_method": "ibcdfo_pounders",
             "components": m,
-            "dfols_kwargs": {
-                "do_logging": False,
-                "rhoend": 1e-5,
-                "user_params": {
-                    "model.abs_tol": 1e-10,
-                    "model.rel_tol": 1e-4,
-                },
-            },
             "lb": (-2 - np.pi / 10) * np.ones(n),
             "ub": 2 * np.ones(n),
         },
@@ -90,12 +85,8 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    # Tell libEnsemble when to stop (stop_val key must be in H)
-    exit_criteria = {
-        "sim_max": 1000,
-        "wallclock_max": 100,
-        "stop_val": ("f", 3000),
-    }
+    # Tell libEnsemble when to stop
+    exit_criteria = {"sim_max": 2000}
     # end_exit_criteria_rst_tag
 
     # Perform the run

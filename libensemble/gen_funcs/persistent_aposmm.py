@@ -714,7 +714,7 @@ def initialize_children(user_specs):
         "nm",
     ]:
         fields_to_pass = ["x_on_cube", "f"]
-    elif user_specs["localopt_method"] in ["pounders", "dfols"]:
+    elif user_specs["localopt_method"] in ["pounders", "ibcdfo_pounders", "dfols"]:
         fields_to_pass = ["x_on_cube", "fvec"]
     else:
         raise NotImplementedError(f"Unknown local optimization method {user_specs['localopt_method']}.")
