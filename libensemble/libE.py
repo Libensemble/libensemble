@@ -307,7 +307,7 @@ def libE(
         Specifications for the allocation function
         :doc:`(example)<data_structures/alloc_specs>`
 
-    libE_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.libESpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`

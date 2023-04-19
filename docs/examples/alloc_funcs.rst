@@ -48,12 +48,6 @@ fast_alloc
       :language: python
       :linenos:
 
-fast_alloc_to_aposmm
---------------------
-.. automodule:: fast_alloc_to_aposmm
-  :members:
-  :undoc-members:
-
 .. _start_only_persistent_label:
 
 start_only_persistent
