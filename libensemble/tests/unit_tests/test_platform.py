@@ -1,5 +1,5 @@
 import pytest
-from libensemble.resources.platforms import Platform, get_platform_from_specs, known_system_detect, PlatformException
+from libensemble.resources.platforms import Platform, get_platform, known_system_detect, PlatformException
 
 my_spec = {
     "mpi_runner": "srun",
@@ -22,11 +22,11 @@ def test_platform_empy():
     """Test no platform options supplied"""
     exp = {}
     libE_specs = {}
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
     libE_specs = {"platform_specs": {}}
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
 
@@ -35,7 +35,7 @@ def test_unknown_platform():
     libE_specs = {"platform": "dontexist"}
 
     with pytest.raises(PlatformException):
-        platform_info = get_platform_from_specs(libE_specs)
+        platform_info = get_platform(libE_specs)
         pytest.fail("Expected PlatformException")
 
 
@@ -48,7 +48,7 @@ def test_platform_known():
         "scheduler_match_slots": True}
 
     libE_specs = {"platform": "generic_rocm"}
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
 
@@ -56,7 +56,7 @@ def test_platform_specs():
     """Test known platform and platform_specs supplied"""
     exp = my_spec
     libE_specs = {"platform_specs": my_spec}
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
     exp = {
@@ -68,7 +68,7 @@ def test_platform_specs():
         "cores_per_node": 32,
         }
     libE_specs = {"platform": "generic_rocm", "platform_specs": my_spec}
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
 
 

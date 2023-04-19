@@ -173,7 +173,7 @@ def known_system_detect(cmd="hostname -d"):
     return platform_info
 
 
-def get_platform_from_specs(libE_specs):
+def get_platform(libE_specs):
     """Return platform as dictionary from relevant libE_specs option.
 
     For internal use, return a platform as a dictionary from either

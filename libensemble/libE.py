@@ -255,7 +255,7 @@ from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
-from libensemble.resources.platforms import get_platform_from_specs
+from libensemble.resources.platforms import get_platform
 from libensemble.resources.resources import Resources
 from libensemble.specs import AllocSpecs, EnsembleSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools.alloc_support import AllocSupport
@@ -366,7 +366,7 @@ def libE(
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
 
     # Extract platform info from settings or environment
-    platform_info = get_platform_from_specs(libE_specs)
+    platform_info = get_platform(libE_specs)
 
     if libE_specs["dry_run"]:
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
