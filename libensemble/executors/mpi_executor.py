@@ -102,8 +102,6 @@ class MPIExecutor(Executor):
         if platform_info:
             self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
             self.runner_name = self.runner_name or platform_info.get("runner_name")
-        print(f"mpi_runner_type {self.mpi_runner_type}")
-        print(f"runner_name {self.runner_name}")
 
         # If runner type has not been given, then detect
         if not self.mpi_runner_type:

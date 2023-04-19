@@ -219,9 +219,6 @@ class GlobalResources:
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.gpus_avail_per_node = gpus_on_node
-
-        print(f"From resources: {cores_on_node=}")  # testing
-        print(f"From resources: {gpus_on_node=}")  # testing
         self.platform_info = platform_info
         self.libE_nodes = None
 

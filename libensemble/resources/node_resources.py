@@ -172,7 +172,6 @@ def get_sub_node_resources(
     if not _gpu_info_complete(cores_info):
         cores_info[2] = get_gpus_from_env(env_resources=env_resources)
     if _complete_set(cores_info):
-        print("known system and/or env provided all info")
         return tuple(cores_info)
 
     # Detection of cpu/gpu resources
@@ -180,11 +179,9 @@ def get_sub_node_resources(
     if remote_mode:
         cores_info_str = _get_remote_resources(launcher=launcher)
         cores_info = _update_from_str(cores_info, cores_info_str)
-        print("called remote detection")
     else:
         cores_info_detected = _get_local_resources()
         cores_info = _update_values(cores_info, cores_info_detected)
-        print("called local detection")
 
     # Convert Nones to zeros and return
     cores_info = [0 if v is None else v for v in cores_info]

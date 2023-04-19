@@ -224,7 +224,6 @@ def known_system_detect(cmd="hostname -d"):
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
         platform_info = detect_systems[domain_name]().dict(by_alias=True)
-        # print('Found system via detection', domain_name)
     except Exception:
         platform_info = {}
     return platform_info
