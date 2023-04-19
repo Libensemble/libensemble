@@ -205,7 +205,6 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         self.scheduler_opts = self.libE_specs.get("scheduler_opts", {})

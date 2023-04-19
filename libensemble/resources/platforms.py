@@ -33,6 +33,7 @@ class Platform(BaseModel):
 
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
+
     mpi_runner: Optional[str]
     """MPI runner: One of "mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom" """
 
@@ -131,6 +132,7 @@ class Platform(BaseModel):
             ), "Logical cores doesn't divide evenly into cores"
         return values
 
+
 # On SLURM systems, let srun assign free GPUs on the node
 class Crusher(Platform):
     mpi_runner: str = "srun"
@@ -216,8 +218,9 @@ detect_systems = {
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
 }
 
+
 def known_system_detect(cmd="hostname -d"):
-    run_cmd=cmd.split()
+    run_cmd = cmd.split()
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
         platform_info = detect_systems[domain_name]().dict(by_alias=True)
@@ -247,7 +250,7 @@ def get_platform(libE_specs):
         # Add/overwrite any fields from a platform_specs
         platform_specs = libE_specs.get("platform_specs")
         if platform_specs:
-            for k,v in platform_specs.items():
+            for k, v in platform_specs.items():
                 platform_info[k] = v
     elif "platform_specs" in libE_specs:
         platform_info = libE_specs["platform_specs"]

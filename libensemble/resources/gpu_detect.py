@@ -5,6 +5,7 @@ import subprocess
 # SH TODO while testing - REMOVE eprints
 from libensemble.tools import eprint
 
+
 def pynvml():
     """Detect GPU from pynvml or return None"""
     try:
@@ -61,8 +62,8 @@ def rocm_smi():
 def zeinfo():
     """Detect GPU from zeinfo or return None"""
     try:
-        ps = subprocess.Popen(('zeinfo'), stderr=subprocess.PIPE)
-        output = subprocess.check_output(('grep', 'Number of devices'), stdin=ps.stderr)
+        ps = subprocess.Popen(("zeinfo"), stderr=subprocess.PIPE)
+        output = subprocess.check_output(("grep", "Number of devices"), stdin=ps.stderr)
         gpu_count = int(output.decode().split()[3])
         eprint("gpu count from zeinfo", gpu_count)
     except Exception:

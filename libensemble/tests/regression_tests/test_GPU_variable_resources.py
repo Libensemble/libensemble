@@ -68,8 +68,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"dry_run": False
-            },
+        "user": {"dry_run": False},
     }
 
     gen_specs = {

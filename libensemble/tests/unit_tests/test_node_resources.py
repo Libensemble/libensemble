@@ -91,6 +91,7 @@ def test_get_cpu_resources_from_env_unknown_env():
     cores_info = node_resources._get_cpu_resources_from_env(env_resources=env_resources)
     assert cores_info is None, "cores_info should be None"
 
+
 def test_complete_set():
     assert not node_resources._complete_set([None, None, None])
     assert not node_resources._complete_set([2, None, 5])
@@ -118,6 +119,7 @@ def test_update_values():
     assert result == [11, 12, 3], f"Unexpected result {result}"
     result = node_resources._update_values([1, 2, None], [11, 12, 13])
     assert result == [1, 2, 13], f"Unexpected result {result}"
+
 
 def test_update_from_str():
     result = node_resources._update_from_str([None, 2, 3], "11 12 13")

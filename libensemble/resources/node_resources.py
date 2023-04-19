@@ -7,11 +7,7 @@ import collections
 import logging
 import os
 from typing import Optional, Tuple
-
 import psutil
-import logging
-import subprocess
-import collections
 from libensemble.resources.gpu_detect import get_num_gpus, get_gpus_from_env
 from libensemble.resources.env_resources import EnvResources
 

@@ -316,7 +316,7 @@ class LibeSpecs(BaseModel):
     See also option :attr:`platform_specs`.
     """
 
-    platform_specs : Optional[Union[Platform, dict]] = {}
+    platform_specs: Optional[Union[Platform, dict]] = {}
     """A Platform obj (or dictionary) specifying settings for a platform.
 
     Examples (add to calling script):
@@ -437,7 +437,6 @@ class LibeSpecs(BaseModel):
     scheduler_opts: Optional[dict] = {}
     """ Options for the resource scheduler. See 'Scheduler Options' for more info """
 
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -449,7 +448,7 @@ class LibeSpecs(BaseModel):
     @validator("platform_specs")
     def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
         if isinstance(value, dict):
-            value = Platform(** value)
+            value = Platform(**value)
         return value
 
     @validator("sim_input_dir", "gen_input_dir")
