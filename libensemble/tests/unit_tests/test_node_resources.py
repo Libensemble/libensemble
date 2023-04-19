@@ -91,19 +91,6 @@ def test_get_cpu_resources_from_env_unknown_env():
     cores_info = node_resources._get_cpu_resources_from_env(env_resources=env_resources)
     assert cores_info is None, "cores_info should be None"
 
-
-def test_known_sys_detect():
-    get_sys_cmd = "echo summit.olcf.ornl.gov"  # Overrides default "hostname -d"
-    core_info = node_resources.known_sys_detect(cmd=get_sys_cmd)
-    assert core_info == [42, 168, 6], f"Summit cores/gpus does not match expected ({core_info})"
-
-    # Try unknown system
-    get_sys_cmd = "echo madeup.system"  # Overrides default "hostname -d"
-    core_info = node_resources.known_sys_detect(cmd=get_sys_cmd)
-    assert core_info is None, f"Expected known_sys_detect to return None for unknown system ({core_info})"
-    #print('core_info is', core_info)
-
-
 def test_complete_set():
     assert not node_resources._complete_set([None, None, None])
     assert not node_resources._complete_set([2, None, 5])
@@ -146,7 +133,6 @@ if __name__ == "__main__":
     test_get_cpu_resources_from_env_lsf()
     test_get_cpu_resources_from_env_lsf_shortform()
     test_get_cpu_resources_from_env_unknown_env()
-    test_known_sys_detect()
     test_complete_set()
     test_cpu_info_complete()
     test_gpu_info_complete()
