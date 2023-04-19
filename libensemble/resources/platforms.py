@@ -135,7 +135,7 @@ class Sunspot(Platform):
 #    "scheduler_match_slots": False,   # allows more efficient scheduling when MPI runs cross nodes.
 class Generic_ROCm(Platform):
     mpi_runner: str = "mpich"
-    gpu_setting_type: str = "env",
+    gpu_setting_type: str = "env"
     gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
 
