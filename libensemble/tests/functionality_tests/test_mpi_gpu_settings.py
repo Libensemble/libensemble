@@ -113,66 +113,66 @@ if __name__ == "__main__":
     if "LIBE_PLATFORM" in os.environ:
         del os.environ["LIBE_PLATFORM"]
 
-    ## First set - use executor setting ------------------------------------------------------------
-    #libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
+    # First set - use executor setting ------------------------------------------------------------
+    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
 
-    #for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
 
-        #print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
-        #exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
-        #exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+        print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
+        exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
+        exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-        ## Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
-        #persis_info = add_unique_random_streams({}, nworkers + 1)
+        # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        ## Perform the run
-        #H, _, flag = libE(
-            #sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-        #)
+        # Perform the run
+        H, _, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
 
-    #del libE_specs["resource_info"]  # this would override
+    del libE_specs["resource_info"]  # this would override
 
 
-    ## Second set - use platform_specs (pydantic class)  setting ------------------------------------
-    #libE_specs["platform_specs"] = Platform(
-        ## mpi_runner=run_set,  # fill in for each run
-        #cores_per_node=64,
-        #logical_cores_per_node=128,
-        #gpus_per_node=8,
-        #gpu_setting_type="runner_default",
-        #scheduler_match_slots=False,
-    #)
+    # Second set - use platform_specs (pydantic class)  setting ------------------------------------
+    libE_specs["platform_specs"] = Platform(
+        # mpi_runner=run_set,  # fill in for each run
+        cores_per_node=64,
+        logical_cores_per_node=128,
+        gpus_per_node=8,
+        gpu_setting_type="runner_default",
+        scheduler_match_slots=False,
+    )
 
-    #for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
 
-        #print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
-        ##libE_specs["platform_specs"]["mpi_runner"] = run_set
-        #libE_specs["platform_specs"].mpi_runner = run_set  # this wont get checked, right!!!!!!
+        print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
+        #libE_specs["platform_specs"]["mpi_runner"] = run_set
+        libE_specs["platform_specs"].mpi_runner = run_set  # this wont get checked, right!!!!!!
 
-        #print(f'{libE_specs["platform_specs"]=}')
+        print(f'{libE_specs["platform_specs"]=}')
 
-        #exctr = MPIExecutor()
-        #exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+        exctr = MPIExecutor()
+        exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-        ## check having only cores_per_node
-        #if run_set == "jsrun":
-            ##del libE_specs["platform_specs"]["logical_cores_per_node"]
-            #del libE_specs["platform_specs"].logical_cores_per_node
+        # check having only cores_per_node
+        if run_set == "jsrun":
+            #del libE_specs["platform_specs"]["logical_cores_per_node"]
+            del libE_specs["platform_specs"].logical_cores_per_node
 
-        #if run_set == "custom":
-            ##del libE_specs["platform_specs"]["cores_per_node"]
-            #del libE_specs["platform_specs"].cores_per_node
-            #libE_specs["platform_specs"].logical_cores_per_node = 128
+        if run_set == "custom":
+            #del libE_specs["platform_specs"]["cores_per_node"]
+            del libE_specs["platform_specs"].cores_per_node
+            libE_specs["platform_specs"].logical_cores_per_node = 128
 
-        ## Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
-        #persis_info = add_unique_random_streams({}, nworkers + 1)
+        # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        ## Perform the run
-        #H, _, flag = libE(
-            #sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-        #)
+        # Perform the run
+        H, _, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
 
-    #del libE_specs["platform_specs"]
+    del libE_specs["platform_specs"]
 
 
     # Third set - use platform_specs (dictionary)  setting ------------------------------------
