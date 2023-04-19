@@ -311,7 +311,10 @@ class LibeSpecs(BaseModel):
     """
 
     platform: Optional[str] = ""
-    """Name of a known platform defined in the platforms module."""
+    """Name of a known platform defined in the platforms module.
+
+    See also option :attr:`platform_specs`.
+    """
 
     platform_specs : Optional[Union[Platform, dict]] = {}
     """A Platform obj (or dictionary) specifying settings for a platform.
@@ -338,11 +341,9 @@ class LibeSpecs(BaseModel):
             gpu_setting_type="runner_default",
             scheduler_match_slots=False,
 
-    For list of Platform options see `Platform Options`
+    For list of Platform options see :class:`Platform Options<libensemble.resources.platforms.Platform>`
 
-    :class:`Platform Options<libensemble.resources.platforms.Platform>`
-
-    See also option `platform`.
+    See also option :attr:`platform`.
     """
 
     profile: Optional[bool] = False

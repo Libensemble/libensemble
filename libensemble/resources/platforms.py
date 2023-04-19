@@ -61,8 +61,8 @@ class Platform(BaseModel):
     - "option_gpus_per_node": Expresses GPUs per node on MPI runner command line.
     - "option_gpus_per_task": Expresses GPUs per task on MPI runner command line.
 
-    With the exception of "runner_default", the ``gpu_setting_name`` attribute is
-    also required when this attribute is set.
+    With the exception of "runner_default", the :attr:`gpu_setting_name`
+    attribute is also required when this attribute is set.
 
     If "gpu_setting_type" is not provided (same as ``runner_default``) and the
     MPI runner does not have a default GPU setting in libEnsemble, and no other
@@ -90,7 +90,8 @@ class Platform(BaseModel):
     gpu_setting_name: Optional[str]
     """Name of GPU setting
 
-    See ``gpu_setting_type`` for more details.
+    See :attr:`gpu_setting_type` for more details.
+
     """
 
     scheduler_match_slots: Optional[bool]
@@ -101,10 +102,10 @@ class Platform(BaseModel):
     Defaults to True, within libEnsemble.
 
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``, where
-    the value should match on each node of an MPI run (choose True).
+    the value should match on each node of an MPI run (choose **True**).
 
     When using command-line options just as ``--gpus-per-node``, which allow the systems
-    application level scheduler to manager GPUs, then match_slots can be false.
+    application level scheduler to manager GPUs, then match_slots can be **False**.
     """
 
     @validator("gpu_setting_type")
