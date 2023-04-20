@@ -111,17 +111,19 @@ class Platform(BaseModel):
 
     @validator("gpu_setting_type")
     def check_gpu_setting_type(cls, value):
-        assert value in [
-            "runner_default",
-            "env",
-            "option_gpus_per_node",
-            "option_gpus_per_task",
-        ], "Invalid label for GPU specification type"
+        if value is not None:
+            assert value in [
+                "runner_default",
+                "env",
+                "option_gpus_per_node",
+                "option_gpus_per_task",
+            ], "Invalid label for GPU specification type"
         return value
 
     @validator("mpi_runner")
     def check_mpi_runner_type(cls, value):
-        assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
+        if value is not None:
+            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
         return value
 
     @root_validator
