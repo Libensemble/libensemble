@@ -463,7 +463,7 @@ class Executor:
         # Does not use resources
         pass
 
-    def add_platform_info(platform_info):
+    def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor
 
         Base executor does not currently use platform info
