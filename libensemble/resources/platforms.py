@@ -145,6 +145,15 @@ class Crusher(Platform):
     scheduler_match_slots: bool = False
 
 
+class Frontier(Platform):
+    mpi_runner: str = "srun"
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
+    gpus_per_node: int = 8
+    gpu_setting_type: int = "runner_default"
+    scheduler_match_slots: bool = False
+
+
 # Example of a ROCM system
 class Generic_ROCm(Platform):
     mpi_runner: str = "mpich"
@@ -205,6 +214,7 @@ class Sunspot(Platform):
 known_systems = {
     "generic_rocm": Generic_ROCm,
     "crusher": Crusher,
+    "frontier": Frontier,
     "perlmutter_g": PerlmutterGPU,
     "polaris": Polaris,
     "spock": Spock,
@@ -215,6 +225,7 @@ known_systems = {
 # Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
     "crusher.olcf.ornl.gov": Crusher,
+    "frontier.olcf.ornl.gov": Frontier,
     "hsn.cm.polaris.alcf.anl.gov": Polaris,
     "spock.olcf.ornl.gov": Spock,
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
@@ -226,6 +237,7 @@ def known_system_detect(cmd="hostname -d"):
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
         platform_info = detect_systems[domain_name]().dict(by_alias=True)
+        # print('Found system via detection', domain_name)
     except Exception:
         platform_info = {}
     return platform_info
@@ -253,7 +265,7 @@ def get_platform(libE_specs):
         if platform_specs:
             for k, v in platform_specs.items():
                 platform_info[k] = v
-    elif "platform_specs" in libE_specs:
+    elif libE_specs.get("platform_specs"):
         platform_info = libE_specs["platform_specs"]
     else:
         # See if in detection list

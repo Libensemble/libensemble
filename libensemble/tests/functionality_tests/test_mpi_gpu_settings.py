@@ -57,7 +57,7 @@ from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.resources.platforms import (
     Platform,
     Summit,
-    Crusher,
+    Frontier,
     PerlmutterGPU,
     Polaris,
     Sunspot,
@@ -249,7 +249,7 @@ if __name__ == "__main__":
         del os.environ["LIBE_PLATFORM"]
 
     # Sixth set - use platform_specs with known systems -------------------------------------------
-    for platform in [Summit, Crusher, PerlmutterGPU, Polaris, Sunspot]:
+    for platform in [Summit, Frontier, PerlmutterGPU, Polaris, Sunspot]:
 
         print(f"\nRunning GPU setting checks (via known platform - platform_specs) for {platform} ------------------- ")
         libE_specs["platform_specs"] = platform()
