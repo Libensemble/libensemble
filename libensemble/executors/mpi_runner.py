@@ -116,10 +116,11 @@ class MPIRunner:
             extra_args = " ".join((extra_args, gpus_opt))
         return extra_args
 
-    def _set_gpu_env_var(self, wresources, task, gpus_env):
+    def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset))
+        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
+        task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         if self.default_gpu_arg is not None:
@@ -129,10 +130,10 @@ class MPIRunner:
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
             gpus_env = "CUDA_VISIBLE_DEVICES"
-            self._set_gpu_env_var(wresources, task, gpus_env)
+            self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
         return extra_args
 
-    def _assign_to_slots(self, task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus):
+    def _assign_to_slots(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
         """Assign GPU resources to slots
 
         GPUs will be assigned using the slot count and GPUs per slot (from resources).
@@ -150,14 +151,24 @@ class MPIRunner:
         wresources = resources.worker_resources
 
         # gpus per node per worker.
-        gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
-        gpu_setting_type = "runner_default"
+        gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset
 
         if nnodes is None:
             if nprocs:
                 nnodes = min(nprocs, wresources.local_node_count)
             else:
                 nnodes = wresources.local_node_count
+
+        # It could be zero
+        if ngpus is not None:
+            gpus_req_per_node = ngpus//nnodes
+            if gpus_req_per_node > gpus_avail_per_node:
+                logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
+            gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
+        else:
+            gpus_per_node = gpus_avail_per_node
+
+        gpu_setting_type = "runner_default"
 
         if match_procs_to_gpus:
             ppn = gpus_per_node
@@ -180,7 +191,7 @@ class MPIRunner:
 
         elif gpu_setting_type == "env":
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
-            self._set_gpu_env_var(wresources, task, gpus_env)
+            self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
 
         return nprocs, nnodes, ppn, extra_args
 
@@ -190,6 +201,7 @@ class MPIRunner:
         nprocs,
         nnodes,
         ppn,
+        ngpus,
         machinefile,
         hyperthreads,
         extra_args,
@@ -223,12 +235,12 @@ class MPIRunner:
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-        if auto_assign_gpus:
+        if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_to_slots(
-                task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
         hostlist = None
@@ -416,6 +428,7 @@ class JSRUN_MPIRunner(MPIRunner):
         nprocs,
         nnodes,
         ppn,
+        ngpus,
         machinefile,
         hyperthreads,
         extra_args,
@@ -449,12 +462,13 @@ class JSRUN_MPIRunner(MPIRunner):
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-        if auto_assign_gpus:
+
+        if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_to_slots(
-                task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
         rm_rpn = True if ppn is None and nnodes is None else False

@@ -161,6 +161,7 @@ class MPIExecutor(Executor):
         num_procs: Optional[int] = None,
         num_nodes: Optional[int] = None,
         procs_per_node: Optional[int] = None,
+        num_gpus: Optional[int] = None,
         machinefile: Optional[str] = None,
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
@@ -188,16 +189,19 @@ class MPIExecutor(Executor):
             The application name. Must be supplied if calc_type is not.
 
         num_procs: int, Optional
-            The total number of MPI tasks on which to submit the task
+            The total number of processes (MPI ranks)
 
         num_nodes: int, Optional
-            The number of nodes on which to submit the task
+            The number of nodes
 
         procs_per_node: int, Optional
-            The processes per node for this task
+            The processes per node
+
+        num_gpus: int, Optional
+            The total number of GPUs
 
         machinefile: str, Optional
-            Name of a machinefile for this task to use
+            Name of a machinefile
 
         app_args: str, Optional
             A string of the application arguments to be added to task
@@ -274,6 +278,7 @@ class MPIExecutor(Executor):
             num_procs,
             num_nodes,
             procs_per_node,
+            num_gpus,
             machinefile,
             hyperthreads,
             extra_args,
