@@ -162,10 +162,13 @@ class Generic_ROCm(Platform):
     scheduler_match_slots: bool = True
 
 
-class PerlmutterGPU(Platform):
+class Perlmutter(Platform):
     mpi_runner: str = "srun"
     cores_per_node: int = 64
     logical_cores_per_node: int = 128
+
+
+class PerlmutterGPU(Perlmutter):
     gpus_per_node: int = 4
     gpu_setting_type: int = "runner_default"
     scheduler_match_slots: bool = False
@@ -234,12 +237,15 @@ detect_systems = {
 
 def known_system_detect(cmd="hostname -d"):
     run_cmd = cmd.split()
+    platform_info = {}
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
         platform_info = detect_systems[domain_name]().dict(by_alias=True)
         # print('Found system via detection', domain_name)
     except Exception:
-        platform_info = {}
+        if "NERSC_HOST" in os.environ:
+            if os.environ.get("perlmutter"):
+                platform_info = Perlmutter().dict(by_alias=True)
     return platform_info
 
 
