@@ -210,7 +210,7 @@ class GlobalResources:
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
-        if not cores_on_node or not gpus_on_node or None in cores_on_node:
+        if cores_on_node is None or gpus_on_node is None or None in cores_on_node:
             detected_config = node_resources.get_sub_node_resources(
                 launcher=self.launcher, remote_mode=remote_detect, env_resources=self.env_resources
             )
