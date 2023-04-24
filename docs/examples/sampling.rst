@@ -8,11 +8,7 @@ sampling
   :members:
   :undoc-members:
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`sampling.py`
+.. dropdown:: :underline:`sampling.py`
 
    .. literalinclude:: ../../libensemble/gen_funcs/sampling.py
       :language: python
@@ -24,11 +20,7 @@ persistent_sampling
   :members:
   :undoc-members:
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`persistent_sampling.py`
+.. dropdown:: :underline:`persistent_sampling.py`
 
    .. literalinclude:: ../../libensemble/gen_funcs/persistent_sampling.py
       :language: python
