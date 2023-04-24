@@ -75,11 +75,8 @@ or ``tomli`` to be installed respectively. The equivalent of above resembles:
 
 The remaining parameters may be found in a ``yaml`` file that resembles:
 
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.yaml**
+.. dropdown::  my_parameters.yaml
+    :color: success
 
     .. code-block:: yaml
         :linenos:
