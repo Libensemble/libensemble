@@ -20,14 +20,9 @@
 import os
 import sys
 from datetime import datetime
+from unittest.mock import MagicMock
 
 exec(open("../libensemble/version.py").read())
-
-
-if sys.version_info >= (3, 3):
-    from unittest.mock import MagicMock
-else:
-    from mock import MagicMock
 
 
 class Mock(MagicMock):
@@ -87,7 +82,7 @@ sys.path.append(os.path.abspath("../libensemble/resources"))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-needs_sphinx = "3.3"
+needs_sphinx = "5.3"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
