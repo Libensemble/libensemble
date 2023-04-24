@@ -106,11 +106,8 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
 
 Or a ``toml`` file that resembles:
 
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.toml**
+.. dropdown:: my_parameters.toml
+    :color: success
 
     .. code-block:: toml
         :linenos:
@@ -139,11 +136,8 @@ Or a ``toml`` file that resembles:
 
 Or a ``json`` file that resembles:
 
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.json**
+.. dropdown:: my_parameters.json
+    :color: success
 
     .. code-block:: json
         :linenos:
