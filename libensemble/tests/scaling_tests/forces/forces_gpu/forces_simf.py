@@ -24,10 +24,10 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # app arguments: num particles, timesteps, also using num particles as seed
     args = particles + " " + str(10) + " " + particles
 
-    # Retrieve our MPI Executor instance and resources
+    # Retrieve our MPI Executor
     exctr = Executor.executor
 
-    # Submit our forces app for execution. Block until the task starts.
+    # Submit our forces app for execution.
     task = exctr.submit(
         app_name="forces",
         app_args=args,
@@ -53,9 +53,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         final_energy = np.nan
         calc_status = TASK_FAILED
 
-    # Define our output array,  populate with energy reading
-    outspecs = sim_specs["out"]
-    output = np.zeros(1, dtype=outspecs)
+    # Define our output array, populate with energy reading
+    output = np.zeros(1, dtype=sim_specs["out"])
     output["energy"] = final_energy
 
     # Return final information to worker, for reporting to manager
