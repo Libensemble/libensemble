@@ -313,13 +313,27 @@ class LibeSpecs(BaseModel):
     platform: Optional[str] = ""
     """Name of a known platform defined in the platforms module.
 
+    Example:
+
+    .. code-block:: python
+
+        libE_specs["platform"] = "perlmutter_g"
+
+    Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+
+    E.g., on command line or batch submission script:
+
+    .. code-block:: shell
+
+        export LIBE_PLATFORM="perlmutter_g"
+
     See also option :attr:`platform_specs`.
     """
 
     platform_specs: Optional[Union[Platform, dict]] = {}
     """A Platform obj (or dictionary) specifying settings for a platform.
 
-    Examples (add to calling script):
+    Example usage in calling script.
 
     To use existing platform:
 
@@ -342,6 +356,8 @@ class LibeSpecs(BaseModel):
             scheduler_match_slots=False,
 
     For list of Platform options see :class:`Platform Options<libensemble.resources.platforms.Platform>`
+
+    Any fields not given, wil be auto-detected by libEnsemble.
 
     See also option :attr:`platform`.
     """
