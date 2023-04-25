@@ -462,7 +462,6 @@ class JSRUN_MPIRunner(MPIRunner):
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-
         if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:

@@ -69,6 +69,7 @@ def zeinfo():
         return None
     return gpu_count
 
+
 METHODS = {
     "pynvml": pynvml,
     "nvidia_smi": nvidia_smi,
