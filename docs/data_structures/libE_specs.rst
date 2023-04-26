@@ -149,14 +149,15 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
             any entries in the "resource_info" option will be ignored.
             Default: False
         "platform" [str]:
-            Name of a known platform defined in the platforms module.
+            Name of a known platform (see "Known Platforms List" below)
             E.g., libE_specs["platform"] = "perlmutter_g"
             Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
             See also option "platform_specs".
         "platform_specs" [Platform|dict]:
             A Platform object (or dictionary) specifying settings for a platform.
-            For list of Platform options see "Platform Options" below.
+            For list of Platform fields see "Platform Fields" below.
             Any fields not given, wil be auto-detected by libEnsemble.
+            Can be set to a known platform object (see "Known Platforms List")
             See also option "platform".
         "num_resource_sets" [int]:
             The total number of resource sets. Resources will be divided into this number.
@@ -196,14 +197,26 @@ As a class:
   :model-show-validator-summary: False
   :field-list-validators: False
 
+Known Platforms List
+--------------------
 
-Platform Options
+.. autopydantic_model:: libensemble.resources.platforms.Known_systems
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+  :field-list-validators: False
+  :field-show-required: False
+  :field-show-default: False
+  :field-show-alias: False
+  :member-order:
+
+Platform Fields
 ----------------
 
 .. autopydantic_model:: libensemble.resources.platforms.Platform
   :model-show-validator-members: False
   :model-show-validator-summary: False
   :field-list-validators: False
+  :field-show-default: False
   :member-order:
 
 Scheduler Options
@@ -215,6 +228,9 @@ See options for :ref:`built-in scheduler<resources-scheduler>`.
 
 Overriding Resource Auto-Detection
 ----------------------------------
+
+Note that "cores_on_node" and "gpus_on_node" are supported for backward
+compatability, but use of ``platform_specs`` is recommended for these settings.
 
 The allowable ``libE_specs["resource_info"]`` fields are::
 

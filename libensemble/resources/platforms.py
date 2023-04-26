@@ -6,12 +6,6 @@ This module defines the Platform class which can be used to determine a platform
 These can be specified by the libE_specs options ``platform_specs`` (recommended).
 If may also be specified, for known systems, via a string in the ``platform``
 option or the environment variable ``LIBE_PLATFORM``.
-
-If the platform is not specified, libEnsemble will try to detect if you are on
-a known platform.
-
-Any fields not included, libEnsemble will attempt to detect from the system or
-use a default.
 """
 
 import os
@@ -217,18 +211,49 @@ class Sunspot(Platform):
     scheduler_match_slots: bool = True
 
 
-# Dictionary of known systems (or system partitions) by name
-known_systems = {
-    "generic_rocm": Generic_ROCm,
-    "crusher": Crusher,
-    "frontier": Frontier,
-    "perlmutter_c": PerlmutterCPU,
-    "perlmutter_g": PerlmutterGPU,
-    "polaris": Polaris,
-    "spock": Spock,
-    "summit": Summit,
-    "sunspot": Sunspot,
-}
+class Known_systems(BaseModel):
+    """A list of platforms with known configurations.
+
+    The *libE_specs* option ``platform_specs`` can be set to these values to
+    configure for a known system. E.g:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import PerlmutterGPU
+        libE_specs["platform_specs"] = PerlmutterGPU()
+
+
+    Alternatively the *libE_specs* ``platform`` option (or the ``LIBE_PLATFORM``
+    environment variable) can be set to the field name as a string. E.g:
+
+    .. code-block:: python
+
+        libE_specs["platform"] = "perlmutter_g"
+
+    Alternatively (on command line or batch submission script):
+
+    .. code-block:: shell
+
+        export LIBE_PLATFORM="perlmutter_g"
+
+
+    If the platform is not specified, libEnsemble will attempt detect known
+    platforms (this is not guaranteed).
+
+    **Note**: libEnsemble should work on any platform, and detects most
+    system configuration correctly. These options are helpful for optimization and
+    where auto-detection encounters ambiguity or an unknown feature.
+    """
+    generic_rocm: Generic_ROCm = Generic_ROCm()
+    crusher: Crusher = Crusher()
+    frontier: Frontier = Frontier()
+    perlmutter_c: PerlmutterCPU = PerlmutterCPU()
+    perlmutter_g: PerlmutterGPU = PerlmutterGPU()
+    polaris: Polaris = Polaris()
+    spock: Spock = Spock()
+    summit: Summit = Summit()
+    sunspot: Sunspot = Sunspot()
+
 
 # Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
@@ -282,7 +307,8 @@ def get_platform(libE_specs):
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
-            platform_info = known_systems[name]().dict(by_alias=True)
+            known_systems = Known_systems().dict()
+            platform_info = known_systems[name]
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")
 
