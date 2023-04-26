@@ -31,10 +31,10 @@ A complete toolkit for dynamic ensembles of calculations
 
 Easy construction of *adaptive*, *scalable* workflows that connect "deciders" to experiments or simulations.
 
-• **Adaptive Ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
-• **Extreme Scaling**: Run on or across laptops, clusters, and leadership-class machines.
-• **Dynamic Resource Management**: Adaptively assign and reassign resources (including GPUs) to tasks.
-• **Application Monitoring**: Ensemble members can run, monitor, and cancel apps.
+• **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
+• **Extreme scaling**: Run on or across laptops, clusters, and leadership-class machines.
+• **Dynamic resource management**: Adaptively assign and reassign resources (including GPUs) to tasks.
+• **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
 • **Low start-up cost**: Default installations don't require additional services. ``pip install libensemble`` and go!
 

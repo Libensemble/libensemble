@@ -2,4 +2,5 @@ sphinx==5.3.0
 sphinxcontrib-bibtex
 ipykernel
 autodoc_pydantic
+sphinx-design
 furo
