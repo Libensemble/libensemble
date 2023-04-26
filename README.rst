@@ -38,8 +38,8 @@ increased parallelism.
 libEnsemble aims for:
 
 • **Extreme scaling**: Run on or across_ laptops, clusters, and leadership-class machines.
-• **Dynamic Ensembles**: Generate new tasks on-the-fly based on previous computations.
-• **Dynamic Resource Management**: Reassign resource partitions of any size for tasks.
+• **Dynamic ensembles**: Generate new tasks on-the-fly based on previous computations.
+• **Dynamic resource management**: Reassign resource partitions of any size for tasks.
 • **Monitoring/killing of applications**: Ensemble members can poll or kill running apps.
 • **Resilience/fault tolerance**: libEnsemble can restart incomplete tasks or entire ensembles.
 • **Portability and flexibility**: Run identical libEnsemble scripts on different machines.
