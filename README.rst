@@ -32,89 +32,13 @@ A complete toolkit for dynamic ensembles of calculations
 Easy construction of *adaptive*, *scalable* workflows that connect "deciders" to experiments or simulations.
 
 • **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
-• **Extreme scaling**: Run on or across laptops, clusters, and leadership-class machines.
-• **Dynamic resource management**: Adaptively assign and reassign resources (including GPUs) to tasks.
-• **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
+• **Portable, extreme scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
+• **Dynamic resource management**: Adaptively assign and reassign resources (including **GPUs**) to tasks.
+• **Application monitoring**: Ensemble members can **run, monitor, and cancel apps**.
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
-• **Low start-up cost**: Default installations don't require additional services. ``pip install libensemble`` and go!
+• **Low start-up cost**: No additional background services or processes required.
 
-Basic Usage
-===========
-
-Select or supply Simulator and Generator functions
---------------------------------------------------
-
-**Generator** and **Simulator** Python functions respectively produce candidate parameters and
-perform/monitor computations that use those parameters. Coupling them together with libEnsemble is easy::
-
-    from my_simulators import beamline_simulation_function
-    from someones_calibrator import adaptive_calibrator_function
-
-    from libensemble import Ensemble, SimSpecs, GenSpecs, LibeSpecs, ExitCriteria
-
-    if __name__ == "__main__":
-
-        basic_settings = LibeSpecs(
-          comms = "local",
-          nworkers = 16,
-          save_every_k_gens = 100,
-          kill_cancelled_sims = True
-        )
-
-        simulation = SimSpecs(
-          sim_f = beamline_simulation_function,
-          inputs = ["x"],
-          out = [("f", float)]
-        )
-
-        outer_loop = GenSpecs(
-          gen_f = adaptive_calibrator_function,
-          inputs = ["f"],
-          out = [("x", float)]
-        )
-
-        when_to_stop = ExitCriteria(gen_max = 500)
-
-        my_experiment = Ensemble(basic_settings, simulation, outer_loop, when_to_stop)
-
-        Output = my_experiment.run()
-
-Launch and monitor apps on parallel resources
----------------------------------------------
-
-libEnsemble includes an Executor interface so application-launching functions are
-portable, resilient, and flexible. It automatically detects available resources and GPUs,
-and can dynamically assign them::
-
-    import numpy as np
-    from libensemble.executors import MPIExecutor
-
-    def beamline_simulation_function(Input):
-
-        particles = str(Input["x"])
-        args = "timesteps " + str(10) + " " + particles
-
-        exctr = MPIExecutor()
-        exctr.register_app("./path/to/particles.app", app_name="particles")
-
-        # GPUs selected by Generator, can autotune or set explicitly
-        task = exctr.submit(app_name="particles", app_args=args,
-                            num_procs=64, auto_assign_gpus=True)
-
-        task.wait()
-
-        try:
-            data = np.loadtxt("particles.stat")
-            final_energy = data[-1]
-        except Exception:
-            final_energy = np.nan
-
-        output = np.zeros(1, dtype=[("f", float)])
-        output["energy"] = final_energy
-
-        return output
-
-See the `user guide`_ for more information.
+libEnsemble is *especially effective* at solving design, decision, and inference problems on massively parallel resources.
 
 .. before_dependencies_rst_tag
 
@@ -135,72 +59,51 @@ Install libEnsemble using the Spack_ distribution::
     spack install py-libensemble
 
 libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_.
-Install the xSDK and load the environment with::
+..  Install the xSDK and load the environment with::
 
-    spack install xsdk
-    spack load -r xsdk
+.. ..     spack install xsdk
+.. ..     spack load -r xsdk
 
-A tarball_ of the most recent release is also available.
+.. Dependencies
+.. ============
 
-Dependencies
-============
+.. libEnsemble performs best on Unix-like systems like Linux and macOS. See the
+.. FAQ_ for more information.
 
-libEnsemble performs best on Unix-like systems like Linux and macOS. See the
-FAQ_ for more information.
+.. **Required dependencies**:
 
-**Required dependencies**:
+.. * Python_ 3.8 or above
+.. * NumPy_
+.. * psutil_
+.. * setuptools_
+.. * pydantic_
 
-* Python_ 3.8 or above
-* NumPy_
-* psutil_
-* setuptools_
-* pydantic_
+.. When using  ``mpi4py`` for libEnsemble communications:
 
-When using  ``mpi4py`` for libEnsemble communications:
+.. * A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
+.. * mpi4py_ v2.0.0 or above
 
-* A functional MPI 1.x/2.x/3.x implementation, such as MPICH_, built with shared/dynamic libraries
-* mpi4py_ v2.0.0 or above
+.. **Optional dependencies**:
 
-**Optional dependencies**:
-
-* Balsam_ - Manage and submit applications to the Balsam service with our BalsamExecutor
-* pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
-* funcX_ - Submit simulation or generator function instances to remote funcX endpoints
-* `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
-
-.. **Example Generator Dependencies**:
-
-.. * SciPy_
-.. * mpmath_
-.. * petsc4py_
-.. * DEAP_
-.. * DFO-LS_
-.. * Tasmanian_
-.. * NLopt_
-.. * `PETSc/TAO`_ - Can optionally be installed by pip along with ``petsc4py``
-.. * Surmise_
-
-.. PETSc and NLopt must be built with shared libraries enabled and be present in
-.. ``sys.path`` (e.g., via setting the ``PYTHONPATH`` environment variable). NLopt
-.. should produce a file ``nlopt.py`` if Python is found on the system. See the
-.. `NLopt documentation` for information about building NLopt with shared
-.. libraries. NLopt may also require SWIG_ to be installed on certain systems.
+.. * Balsam_ - Manage and submit applications to the Balsam service with our BalsamExecutor
+.. * pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
+.. * funcX_ - Submit simulation or generator function instances to remote funcX endpoints
+.. * `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
 Resources
 =========
 
 **Support:**
 
-- Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
 - Open issues or ask questions on GitHub_.
+- Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
-- Browse example `Supported Generators`_.
 - Contributions_ to libEnsemble are welcome.
-- Examples of production functions and complete workflows can be viewed and submitted in the libEnsemble `Community Examples repository`_.
+- Production functions and complete workflows can be viewed and submitted in the libEnsemble `Community Examples repository`_.
 
 **Citation:**
 
@@ -319,7 +222,6 @@ Resources
 .. _Summit: https://www.olcf.ornl.gov/olcf-resources/compute-systems/summit/
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
-.. _tarball: https://github.com/Libensemble/libensemble/releases/latest
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _Theta: https://www.alcf.anl.gov/alcf-resources/theta
 .. _tomli: https://pypi.org/project/tomli/
