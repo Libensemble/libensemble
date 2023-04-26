@@ -386,7 +386,6 @@ class Worker:
                                 _, _, _ = self._recv_H_rows(Work)
                             continue
                 else:
-                    print(mtag, Work)
                     logger.debug(f"mtag: {mtag}; Work: {Work}")
                     raise
 
