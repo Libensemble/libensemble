@@ -244,6 +244,7 @@ class Known_platforms(BaseModel):
     system configuration correctly. These options are helpful for optimization and
     where auto-detection encounters ambiguity or an unknown feature.
     """
+
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()

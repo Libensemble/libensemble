@@ -7,6 +7,7 @@ def pynvml():
     """Detect GPU from pynvml or return None"""
     try:
         import pynvml
+
         pynvml.nvmlInit()
         gpu_count = pynvml.nvmlDeviceGetCount()
         pynvml.nvmlShutdown()
@@ -29,6 +30,7 @@ def pyadl():
     """Detect GPU from pyadl or return None"""
     try:
         from pyadl import ADLManager
+
         devices = ADLManager.getInstance().getDevices()
         gpu_count = len(devices)
     except Exception:

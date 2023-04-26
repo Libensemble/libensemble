@@ -161,7 +161,7 @@ class MPIRunner:
 
         # It could be zero
         if ngpus is not None:
-            gpus_req_per_node = ngpus//nnodes
+            gpus_req_per_node = ngpus // nnodes
             if gpus_req_per_node > gpus_avail_per_node:
                 logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
             gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
