@@ -340,7 +340,7 @@ class LibeSpecs(BaseModel):
     .. code-block:: python
 
         from libensemble.resources.platforms import PerlmutterGPU
-        libE_specs["platform_specs"] = PerlmutterGPU
+        libE_specs["platform_specs"] = PerlmutterGPU()
 
     Or define a platform:
 
@@ -354,6 +354,7 @@ class LibeSpecs(BaseModel):
             gpus_per_node=8,
             gpu_setting_type="runner_default",
             scheduler_match_slots=False,
+        )
 
     For list of Platform options see :class:`Platform Options<libensemble.resources.platforms.Platform>`
 

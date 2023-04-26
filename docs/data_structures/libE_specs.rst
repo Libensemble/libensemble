@@ -148,6 +148,16 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
             and/or assignment of resources to workers is disabled. This also means that
             any entries in the "resource_info" option will be ignored.
             Default: False
+        "platform" [str]:
+            Name of a known platform defined in the platforms module.
+            E.g., libE_specs["platform"] = "perlmutter_g"
+            Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+            See also option "platform_specs".
+        "platform_specs" [Platform|dict]:
+            A Platform object (or dictionary) specifying settings for a platform.
+            For list of Platform options see "Platform Options" below.
+            Any fields not given, wil be auto-detected by libEnsemble.
+            See also option "platform".
         "num_resource_sets" [int]:
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding
@@ -171,8 +181,7 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
         "resource_info" [dict]:
             Provide resource information that will override automatically detected resources.
             The allowable fields are given below in "Overriding Auto-detection"
-            Note that if "disable_resource_manager" is set then
-            this option is ignored.
+            Note that if "disable_resource_manager" is set then this option is ignored.
         "scheduler_opts" [dict]:
             A dictionary of options for the resource scheduler.
             See "Scheduler Options" for more options.
