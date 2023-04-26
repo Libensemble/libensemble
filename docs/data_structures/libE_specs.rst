@@ -200,7 +200,7 @@ As a class:
 Known Platforms List
 --------------------
 
-.. autopydantic_model:: libensemble.resources.platforms.Known_systems
+.. autopydantic_model:: libensemble.resources.platforms.Known_platforms
   :model-show-validator-members: False
   :model-show-validator-summary: False
   :field-list-validators: False

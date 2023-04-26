@@ -313,7 +313,7 @@ class LibeSpecs(BaseModel):
     platform: Optional[str] = ""
     """Name of a known platform defined in the platforms module.
 
-    See :class:`Known Platforms List<libensemble.resources.platforms.Known_systems>`
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
 
     Example:
 
@@ -344,7 +344,7 @@ class LibeSpecs(BaseModel):
         from libensemble.resources.platforms import PerlmutterGPU
         libE_specs["platform_specs"] = PerlmutterGPU()
 
-    See :class:`Known Platforms List<libensemble.resources.platforms.Known_systems>`
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
 
     Or define a platform:
 

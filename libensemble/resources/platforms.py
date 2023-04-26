@@ -211,7 +211,7 @@ class Sunspot(Platform):
     scheduler_match_slots: bool = True
 
 
-class Known_systems(BaseModel):
+class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
     The *libE_specs* option ``platform_specs`` can be set to these values to
@@ -307,8 +307,8 @@ def get_platform(libE_specs):
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
-            known_systems = Known_systems().dict()
-            platform_info = known_systems[name]
+            known_platforms = Known_platforms().dict()
+            platform_info = known_platforms[name]
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")
 
