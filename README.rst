@@ -38,7 +38,7 @@ Easy construction of *adaptive*, *scalable* workflows that connect "deciders" to
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
 
-libEnsemble is *especially effective* at solving design, decision, and inference problems on massively parallel resources.
+libEnsemble is *especially effective* at solving design, decision, and inference problems on parallel resources.
 
 .. before_dependencies_rst_tag
 
@@ -58,11 +58,10 @@ Install libEnsemble using the Spack_ distribution::
 
     spack install py-libensemble
 
-libEnsemble is included in the `xSDK Extreme-scale Scientific Software Development Kit`_.
-..  Install the xSDK and load the environment with::
+libEnsemble is included in the `xSDK`_. Install the xSDK and load the environment with::
 
-.. ..     spack install xsdk
-.. ..     spack load -r xsdk
+     spack install xsdk
+     spack load -r xsdk
 
 .. Dependencies
 .. ============
@@ -110,16 +109,6 @@ Resources
 - Please use the following to cite libEnsemble:
 
 .. code-block:: bibtex
-
-  @techreport{libEnsemble,
-    title   = {{libEnsemble} Users Manual},
-    author  = {Stephen Hudson and Jeffrey Larson and Stefan M. Wild and
-               David Bindel and John-Luke Navarro},
-    institution = {Argonne National Laboratory},
-    number  = {Revision 0.9.3},
-    year    = {2022},
-    url     = {https://buildmedia.readthedocs.org/media/pdf/libensemble/latest/libensemble.pdf}
-  }
 
   @article{Hudson2022,
     title   = {{libEnsemble}: A Library to Coordinate the Concurrent
@@ -230,4 +219,4 @@ Resources
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
-.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
+.. _xSDK: https://xsdk.info
