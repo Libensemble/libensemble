@@ -149,7 +149,7 @@ class Frontier(Platform):
 
 
 # Example of a ROCM system
-class Generic_ROCm(Platform):
+class GenericROCm(Platform):
     mpi_runner: str = "mpich"
     gpu_setting_type: str = "env"
     gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
@@ -244,7 +244,7 @@ class Known_platforms(BaseModel):
     system configuration correctly. These options are helpful for optimization and
     where auto-detection encounters ambiguity or an unknown feature.
     """
-    generic_rocm: Generic_ROCm = Generic_ROCm()
+    generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
     perlmutter_c: PerlmutterCPU = PerlmutterCPU()
