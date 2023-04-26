@@ -20,11 +20,11 @@ jobs:
                 include:
                     - os: macos-latest
                       python-version: 3.9
-                      mpi-version: "mpich"
+                      mpi-version: "mpich=4.0.3"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.9
-                      mpi-version: "mpich"
+                      mpi-version: "mpich=4.0.3"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
