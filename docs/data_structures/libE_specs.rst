@@ -155,8 +155,8 @@ upon passing into :meth:`libE()<libensemble.libE.libE>`.
             See also option "platform_specs".
         "platform_specs" [Platform|dict]:
             A Platform object (or dictionary) specifying settings for a platform.
-            For list of Platform fields see "Platform Fields" below.
-            Any fields not given, wil be auto-detected by libEnsemble.
+            For a list of Platform fields see "Platform Fields" below.
+            Any fields not provided will be auto-detected by libEnsemble.
             Can be set to a known platform object (see "Known Platforms List")
             See also option "platform".
         "num_resource_sets" [int]:

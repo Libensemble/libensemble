@@ -91,11 +91,7 @@ While this is sufficient for many users, note that it is possible to query
 the resources assigned to *this* worker (nodes and partitions of nodes),
 and use this information however you want.
 
-.. container:: toggle
-
-    .. container:: header
-
-       How to query this worker's resources
+.. dropdown:: How to query this worker's resources
 
     The example shown below implements
     a similar, but less portable, version of the above (excluding output lines).

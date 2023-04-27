@@ -11,8 +11,8 @@ Each Frontier compute node contains a 64-core AMD EPYC and 4 AMD MI250X GPUs
 Frontier uses the SLURM scheduler to submit jobs from login nodes to run on the
 compute nodes.
 
-Installation libEnsemble
-------------------------
+Installing libEnsemble
+----------------------
 
 Begin by loading the ``python`` module::
 
@@ -20,12 +20,7 @@ Begin by loading the ``python`` module::
 
 You may wish to create a virtual environment to install packages in (see python_on_frontier_).
 
-.. container:: toggle
-
-   .. container:: header
-
-      Example of using virtual environment
-
+.. dropdown:: Example of using virtual environment
 
    Having created a dir ``/ccs/proj/<project_id>/libensemble``:
 
