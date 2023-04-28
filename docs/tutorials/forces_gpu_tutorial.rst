@@ -25,7 +25,6 @@ Simulation function
 The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
 to the forces simple example are highlighted:
 
-
 .. code-block:: python
     :linenos:
     :emphasize-lines: 29-30, 37
@@ -79,8 +78,8 @@ to the forces simple example are highlighted:
         output = np.zeros(1, dtype=sim_specs["out"])
         output["energy"][0] = final_energy
 
-    return output
 
+    return output
 
 Line 37 simply prints out how the GPUs were assigned. If this is not as desired,
 a :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` *libE_specs*
@@ -148,6 +147,7 @@ and use this information however you want.
             output = np.zeros(1, dtype=sim_specs["out"])
             output["energy"][0] = final_energy
 
+
         return output
 
     The above code will assign a GPU to each worker on CUDA capable systems,
@@ -191,7 +191,6 @@ and use this information however you want.
         On some systems ``CUDA_VISIBLE_DEVICES`` may be overridden by other assignments
         such as ``--gpus-per-task=1``
 
-
 Compiling the Forces application
 --------------------------------
 
@@ -199,7 +198,6 @@ First, compile the forces application under the ``forces_app`` directory.
 
 Compile **forces.x** using one of the GPU build lines in build_forces.sh_
 or similar for your platform.
-
 
 Running the example
 -------------------

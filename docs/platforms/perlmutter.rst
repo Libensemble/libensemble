@@ -106,7 +106,6 @@ To watch video
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
 
-
 Running libEnsemble with mpi4py
 -------------------------------
 
@@ -136,7 +135,6 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
    Having created a dir ``/ccs/proj/<project_id>/libensemble``:
 
    You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
-
 
    This error has been encountered on Perlmutter. It is recommended to add these lines to submission scripts::
 

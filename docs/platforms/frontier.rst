@@ -35,7 +35,6 @@ libEnsemble can be installed via pip::
 
 See :doc:`advanced installation<../advanced_installation>` for other installation options.
 
-
 Example
 -------
 
