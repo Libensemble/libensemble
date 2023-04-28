@@ -3,20 +3,13 @@ Advanced Installation
 
 libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
 
-In view of libEnsemble's compiled dependencies, these approaches
-offer a trade-off between convenience and the ability
-to customize builds, including platform-specific optimizations.
-
 Further recommendations for selected HPC systems are given in the
 :ref:`HPC platform guides<platform-index>`.
 
 pip
 ---
 
-We always recommend installing in a virtual environment such as Conda.
-If not, then use the below approach.
-
-To install the latest pip release::
+To install the latest PyPI_ release::
 
     pip install libensemble
 
@@ -169,6 +162,22 @@ the given system (rather than building from scratch). This may include
 ``Python`` and the packages distributed with it (e.g. ``numpy``), and will
 often include the system MPI library.
 
+Optional dependencies for additional features
+---------------------------------------------
+
+The following packages may be installed separately to enable additional features:
+
+* Balsam_ - Manage and submit applications to the Balsam service with our :ref:`BalsamExecutor<balsam-exctr>`
+* pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
+* funcX_ - Submit simulation or generator function instances to remote funcX endpoints
+* `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
+
+.. _PyPI: https://pypi.org
+.. _pyyaml: https://pyyaml.org/
+.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
+.. _funcX: https://funcx.org/
+.. _tomli: https://pypi.org/project/tomli/
+.. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
@@ -176,3 +185,4 @@ often include the system MPI library.
 .. _`Open MPI`: https://www.open-mpi.org/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
+.. _tqdm: https://tqdm.github.io/

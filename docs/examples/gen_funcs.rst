@@ -1,8 +1,8 @@
 Generation Functions
 ====================
 
-.. include:: ../../README.rst
-    :start-after: before_examples_rst_tag
+.. include:: ../introduction.rst
+    :start-after: example_packages
 
 .. IMPORTANT::
   See the API for generation functions :ref:`here<api_gen_f>`.

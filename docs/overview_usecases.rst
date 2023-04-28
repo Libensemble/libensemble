@@ -38,11 +38,7 @@ Example Use Cases
 Below are some expected libEnsemble use cases that we support (or are working
 to support) and plan to have examples of:
 
-.. container:: toggle
-
-  .. container:: header
-
-    **Click Here for Use-Cases**
+.. dropdown:: **Click Here for Use-Cases**
 
   * A user wants to optimize a simulation calculation. The simulation may
     already be using parallel resources but not a large fraction of some
@@ -91,11 +87,7 @@ Although many of these terms seem straight-forward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
 its capabilities.
 
-.. container:: toggle
-
-  .. container:: header
-
-    **Click Here for Glossary**
+.. dropdown:: **Click Here for Glossary**
 
   * **Manager**: Single libEnsemble process facilitating communication between
     other processes. Within libEnsemble, the *Manager* process configures and

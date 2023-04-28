@@ -82,9 +82,11 @@ setup(
     extras_require={
         "extras": [
             "ax-platform",
+            "balsam",
             "DFO-LS",
             "dragonfly-opt",
             "funcx",
+            "psij-python",
             "mpi4py",
             "mpmath",
             "nlopt",
@@ -92,6 +94,7 @@ setup(
             "petsc4py",
             "pyyaml",
             "scipy",
+            "tomli",
         ],
         "docs": [
             "autodoc_pydantic",

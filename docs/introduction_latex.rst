@@ -82,4 +82,5 @@ We now present further information on running and testing libEnsemble.
 .. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
-.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
+.. _xsdk: https://xsdk.info
+.. _Online Documentation: https://libensemble.readthedocs.io/
