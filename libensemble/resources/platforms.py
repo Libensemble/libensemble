@@ -37,7 +37,7 @@ class Platform(BaseModel):
     Note that "mpich" and "openmpi" runners have the default command "mpirun"
     """
     cores_per_node: Optional[int]
-    """Number of pysical CPU cores on a compute node of the platform"""
+    """Number of physical CPU cores on a compute node of the platform"""
 
     logical_cores_per_node: Optional[int]
     """Number of logical CPU cores on a compute node of the platform"""
@@ -69,15 +69,15 @@ class Platform(BaseModel):
 
     .. code-block:: python
 
-        "gpu_setting_type" = "env",
-        "gpu_setting_name" = "ROCR_VISIBLE_DEVICES",
+        "gpu_setting_type" = "env"
+        "gpu_setting_name" = "ROCR_VISIBLE_DEVICES"
 
     Use command line option ``--gpus-per-node``
 
     .. code-block:: python
 
-        "gpu_setting_type" = "option_gpus_per_node",
-        "gpu_setting_name" = "--gpus-per-node",
+        "gpu_setting_type" = "option_gpus_per_node"
+        "gpu_setting_name" = "--gpus-per-node"
 
     """
 
@@ -220,6 +220,7 @@ class Known_platforms(BaseModel):
     .. code-block:: python
 
         from libensemble.resources.platforms import PerlmutterGPU
+
         libE_specs["platform_specs"] = PerlmutterGPU()
 
 

@@ -1,5 +1,6 @@
 import pytest
-from libensemble.resources.platforms import get_platform, known_system_detect, PlatformException
+
+from libensemble.resources.platforms import PlatformException, get_platform, known_system_detect
 
 my_spec = {
     "mpi_runner": "srun",
@@ -19,7 +20,7 @@ summit_spec = {
 }
 
 
-def test_platform_empy():
+def test_platform_empty():
     """Test no platform options supplied"""
     exp = {}
     libE_specs = {}
@@ -84,11 +85,11 @@ def test_known_sys_detect():
     platform_info = known_system_detect(cmd=get_sys_cmd)
     assert (
         platform_info == {}
-    ), f"Expected known_system_detect to return emptry dict for unknown system ({platform_info})"
+    ), f"Expected known_system_detect to return empty dict for unknown system ({platform_info})"
 
 
 if __name__ == "__main__":
-    test_platform_empy()
+    test_platform_empty()
     test_unknown_platform()
     test_platform_known()
     test_platform_specs()
