@@ -55,7 +55,7 @@ FAILED
 
 
 class ExecutorException(Exception):
-    "Raised for any exception in the Executor"
+    """Raised for any exception in the Executor"""
 
 
 class TimeoutExpired(Exception):

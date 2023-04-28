@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ResourcesException(Exception):
-    "Resources module exception."
+    """Resources module exception"""
 
 
 class Resources:

@@ -18,7 +18,7 @@ BaseConfig.validate_assignment = True
 
 
 class PlatformException(Exception):
-    "Platform module exception."
+    """Platform module exception"""
 
 
 class Platform(BaseModel):

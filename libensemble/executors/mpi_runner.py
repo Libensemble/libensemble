@@ -123,6 +123,7 @@ class MPIRunner:
         task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
+        """Set default GPU setting for MPI runner"""
         if self.default_gpu_arg is not None:
             arg_type = self.default_gpu_arg_type
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
@@ -133,8 +134,8 @@ class MPIRunner:
             self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
         return extra_args
 
-    def _assign_to_slots(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
-        """Assign GPU resources to slots
+    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
+        """Assign GPU resources to slots, limited by ngpus if present.
 
         GPUs will be assigned using the slot count and GPUs per slot (from resources).
         If ``match_procs_to_gpus`` is True, then MPI processor/node configuration will
@@ -239,7 +240,7 @@ class MPIRunner:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(
+            nprocs, nnodes, ppn, extra_args = self._assign_gpus(
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
@@ -466,7 +467,7 @@ class JSRUN_MPIRunner(MPIRunner):
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(
+            nprocs, nnodes, ppn, extra_args = self._assign_gpus(
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 

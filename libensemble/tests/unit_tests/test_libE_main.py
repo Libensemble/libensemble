@@ -13,11 +13,11 @@ from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
 class MPIAbortException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class MPISendException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class Fake_MPI:
