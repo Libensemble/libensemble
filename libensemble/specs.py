@@ -342,6 +342,7 @@ class LibeSpecs(BaseModel):
     .. code-block:: python
 
         from libensemble.resources.platforms import PerlmutterGPU
+
         libE_specs["platform_specs"] = PerlmutterGPU()
 
     See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
@@ -351,8 +352,9 @@ class LibeSpecs(BaseModel):
     .. code-block:: python
 
         from libensemble.resources.platforms import Platform
+
         libE_specs["platform_specs"] = Platform(
-            mpi_runner="srun"
+            mpi_runner="srun",
             cores_per_node=64,
             logical_cores_per_node=128,
             gpus_per_node=8,
@@ -362,7 +364,7 @@ class LibeSpecs(BaseModel):
 
     For list of Platform fields see :class:`Platform Fields<libensemble.resources.platforms.Platform>`
 
-    Any fields not given, wil be auto-detected by libEnsemble.
+    Any fields not given, will be auto-detected by libEnsemble.
 
     See also option :attr:`platform`.
     """

@@ -20,7 +20,7 @@ summit_spec = {
 }
 
 
-def test_platform_empy():
+def test_platform_empty():
     """Test no platform options supplied"""
     exp = {}
     libE_specs = {}
@@ -89,7 +89,7 @@ def test_known_sys_detect():
 
 
 if __name__ == "__main__":
-    test_platform_empy()
+    test_platform_empty()
     test_unknown_platform()
     test_platform_known()
     test_platform_specs()
