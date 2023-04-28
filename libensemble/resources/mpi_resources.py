@@ -45,21 +45,23 @@ def get_MPI_variant() -> str:
         pass
 
     try:
-        try_msmpi = subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, _ = try_msmpi.communicate()
+        with subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_msmpi:
+            stdout, _ = try_msmpi.communicate(timeout=4)
         if "Microsoft" in stdout.decode():
             return "msmpi"
     except Exception:
+        try_msmpi.kill()
         pass
 
     try:
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
-        try_mpich = subprocess.Popen(["mpirun", "-npernode"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, _ = try_mpich.communicate()
+        with subprocess.Popen(["mpirun", "-npernode"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_mpich:
+            stdout, _ = try_mpich.communicate(timeout=4)
         if "unrecognized argument npernode" in stdout.decode():
             return "mpich"
         return "openmpi"
     except Exception:
+        try_mpich.kill()
         pass
 
     try:
