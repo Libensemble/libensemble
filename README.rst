@@ -29,7 +29,7 @@
 A complete toolkit for dynamic ensembles of calculations
 ========================================================
 
-Easily construct *adaptive*, *portable*, and *scalable* software that connects "deciders" to experiments or simulations.
+Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" to experiments or simulations.
 
 • **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
 • **Extreme scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
