@@ -69,15 +69,15 @@ class Platform(BaseModel):
 
     .. code-block:: python
 
-        "gpu_setting_type" = ("env",)
-        "gpu_setting_name" = ("ROCR_VISIBLE_DEVICES",)
+        "gpu_setting_type" = "env"
+        "gpu_setting_name" = "ROCR_VISIBLE_DEVICES"
 
     Use command line option ``--gpus-per-node``
 
     .. code-block:: python
 
-        "gpu_setting_type" = ("option_gpus_per_node",)
-        "gpu_setting_name" = ("--gpus-per-node",)
+        "gpu_setting_type" = "option_gpus_per_node"
+        "gpu_setting_name" = "--gpus-per-node"
 
     """
 
