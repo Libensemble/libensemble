@@ -230,7 +230,7 @@ Overriding Resource Auto-Detection
 ----------------------------------
 
 Note that "cores_on_node" and "gpus_on_node" are supported for backward
-compatability, but use of ``platform_specs`` is recommended for these settings.
+compatibility, but use of ``platform_specs`` is recommended for these settings.
 
 The allowable ``libE_specs["resource_info"]`` fields are::
 
