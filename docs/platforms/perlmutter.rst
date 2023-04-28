@@ -99,9 +99,9 @@ To watch video
 
 .. note::
 
-    The video is made from libEnsemble version 0.9.3, where some adjustments needed to be
-    made to the scripts to run on Perlmutter. These are no longer necessary. libEnsemble
-    correctly detects MPI runner and GPU setting on Perlmutter and the GPU code runs
+    The video uses libEnsemble version 0.9.3, where some adjustments of the
+    scripts are needed to run on Perlmutter. These are no longer necessary. libEnsemble
+    now correctly detects MPI runner and GPU setting on Perlmutter and the GPU code runs
     with many more particles than the CPU version (forces_simple).
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
