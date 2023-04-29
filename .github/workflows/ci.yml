@@ -250,7 +250,7 @@ jobs:
               COVERALLS_PARALLEL: true
           run: |
             mv libensemble/tests/.cov* .
-            coveralls
+            coveralls --service=github-actions
 
     coveralls:
         name: Notify coveralls of all jobs completing
