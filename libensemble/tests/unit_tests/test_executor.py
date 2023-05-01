@@ -73,6 +73,7 @@ def setup_executor():
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor()
+    exctr.add_platform_info()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
@@ -89,6 +90,7 @@ def setup_executor_startups():
     from libensemble.executors.executor import Executor
 
     exctr = Executor()
+    exctr.add_platform_info()
     exctr.register_app(full_path=c_startup, app_name="c_startup")
     exctr.register_app(full_path=py_startup, app_name="py_startup")
 
@@ -98,6 +100,7 @@ def setup_executor_noapp():
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor()
+    exctr.add_platform_info()
     if exctr.workerID is not None:
         sys.exit("Something went wrong in creating Executor")
 
@@ -114,6 +117,7 @@ def setup_executor_fakerunner():
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor(custom_info=customizer)
+    exctr.add_platform_info()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 

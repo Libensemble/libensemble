@@ -1,45 +1,58 @@
 """
-Tests CUDA variable resource detection in libEnsemble
+Tests variable resource detection and automatic GPU assignment in libEnsemble
 
-Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_sampling_CUDA_variable_resources.py
+The persistent generator creates simulations with variable resource requirements.
+
+The sim_f (gpu_variable_resources) asserts that GPUs assignment
+is correct for the default method for the MPI runner. GPUs are not actually
+used for default application. Four GPUs per node is mocked up below (if this line
+is removed, libEnsemble will detect any GPUs available).
+
+A dry_run option is provided. This can be set in the calling script, and will
+just print run-lines and GPU settings. This may be used for testing run-lines
+produced and GPU settings for different MPI runners.
+
+Execute via one of the following commands (e.g. 5 workers):
+   mpiexec -np 6 python test_GPU_variable_resources.py
+   python test_GPU_variable_resources.py --comms local --nworkers 5
 
 When running with the above command, the number of concurrent evaluations of
-the objective function will be 2, as one of the three workers will be the
+the objective function will be 4, as one of the five workers will be the
 persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 4
+# TESTSUITE_NPROCS: 6
 
 import sys
-
 import numpy as np
-
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import CUDA_variable_resources as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
+from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.executors.mpi_executor import MPIExecutor
+
+# from libensemble import logger
+# logger.set_level("DEBUG")  # For testing the test
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
+
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     # The persistent gen does not need resources
 
-    libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
-
-    # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
+    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
 
     libE_specs["sim_dirs_make"] = True
-    # libE_specs["ensemble_dir_path"] = "./ensemble_CUDA_variable_w" + str(nworkers)
-    libE_specs["use_workflow_dir"] = True
+    libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_w" + str(nworkers)
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -47,6 +60,7 @@ if __name__ == "__main__":
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__
     exctr = MPIExecutor()
+    # exctr = MPIExecutor(custom_info={"mpi_runner": "srun"})
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     n = 2
@@ -54,7 +68,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {},
+        "user": {"dry_run": False},
     }
 
     gen_specs = {
@@ -73,11 +87,10 @@ if __name__ == "__main__":
         "alloc_f": alloc_f,
         "user": {
             "give_all_with_same_priority": False,
-            "async_return": True,
+            "async_return": False,  # False batch returns
         },
     }
 
-    libE_specs["scheduler_opts"] = {"match_slots": True}
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 

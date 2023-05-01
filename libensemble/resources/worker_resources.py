@@ -214,11 +214,12 @@ class WorkerResources(RSetResources):
 
     # User convenience functions ----------------------------------------------
 
-    def get_slots_as_string(self, multiplier=1, delimiter=","):
+    def get_slots_as_string(self, multiplier=1, delimiter=",", limit=None):
         """Returns list of slots as a string
 
         :param multiplier: Optional int. Assume this many items per slot.
         :param delimiter: Optional int. Delimiter for output string.
+        :param limit: Optional int. Maximum slots (truncate list after this many slots).
         """
 
         if self.slots_on_node is None:
@@ -227,6 +228,8 @@ class WorkerResources(RSetResources):
 
         n = multiplier
         slot_list = [j for i in self.slots_on_node for j in range(i * n, (i + 1) * n)]
+        if limit is not None:
+            slot_list = slot_list[:limit]
         slots = delimiter.join(map(str, slot_list))
         return slots
 
