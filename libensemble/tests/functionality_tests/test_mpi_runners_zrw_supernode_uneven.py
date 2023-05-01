@@ -98,13 +98,13 @@ if __name__ == "__main__":
     # Example: On 3 workers, runlines should be ...
     # (one workers has 3 nodes, the other 2 - does not split 2.5 nodes each).
     # [w1]: Gen only
-    # [w2]: srun -w node-1,node-2,node-3 --ntasks 48 --nodes 3 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
-    # [w3]: srun -w node-4,node-5 --ntasks 32 --nodes 2 --ntasks-per-node 16 /path/to/fakeapp.x --testid base1
+    # [w2]: srun -w node-1,node-2,node-3 --ntasks 48 --nodes 3 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base1
+    # [w3]: srun -w node-4,node-5 --ntasks 32 --nodes 2 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base1
 
     srun_p1 = "srun -w "
     srun_p2 = " --ntasks "
     srun_p3 = " --nodes "
-    srun_p4 = " --ntasks-per-node 16 /path/to/fakeapp.x --testid base1"
+    srun_p4 = " --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base1"
 
     exp_tasks = []
     exp_srun = []

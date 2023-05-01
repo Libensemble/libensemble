@@ -9,7 +9,7 @@ from typing import Optional, Tuple, Union
 
 
 class MPIResourcesException(Exception):
-    "Resources module exception."
+    """Resources module exception"""
 
 
 def rassert(test: Optional[Union[int, bool]], *args) -> None:

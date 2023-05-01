@@ -15,7 +15,7 @@ from typing import List, Optional
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
-from libensemble.executors.mpi_runner import get_runner
+from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.resources.resources import Resources
 
@@ -88,18 +88,28 @@ class MPIExecutor(Executor):
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
+        self.resources = None
 
         # Apply custom options
-        mpi_runner_type = custom_info.get("mpi_runner", None)
-        runner_name = custom_info.get("runner_name", None)
-        subgroup_launch = custom_info.get("subgroup_launch", None)
+        self.mpi_runner_type = custom_info.get("mpi_runner")
+        self.runner_name = custom_info.get("runner_name")
+        self.subgroup_launch = custom_info.get("subgroup_launch")
 
-        if not mpi_runner_type:
-            mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = get_runner(mpi_runner_type, runner_name)
-        if subgroup_launch is not None:
-            self.mpi_runner.subgroup_launch = subgroup_launch
-        self.resources = None
+    def add_platform_info(self, platform_info={}):
+        """Add user supplied platform info to executor"""
+
+        # Apply platform options (does not overwrite custom_info Executor options)
+        if platform_info:
+            self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
+            self.runner_name = self.runner_name or platform_info.get("runner_name")
+
+        # If runner type has not been given, then detect
+        if not self.mpi_runner_type:
+            self.mpi_runner_type = get_MPI_variant()
+        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, platform_info)
+
+        if self.subgroup_launch is not None:
+            self.mpi_runner.subgroup_launch = self.subgroup_launch
 
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
@@ -151,6 +161,7 @@ class MPIExecutor(Executor):
         num_procs: Optional[int] = None,
         num_nodes: Optional[int] = None,
         procs_per_node: Optional[int] = None,
+        num_gpus: Optional[int] = None,
         machinefile: Optional[str] = None,
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
@@ -160,6 +171,8 @@ class MPIExecutor(Executor):
         dry_run: Optional[bool] = False,
         wait_on_start: Optional[bool] = False,
         extra_args: Optional[str] = None,
+        auto_assign_gpus: Optional[bool] = False,
+        match_procs_to_gpus: Optional[bool] = False,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
@@ -176,16 +189,19 @@ class MPIExecutor(Executor):
             The application name. Must be supplied if calc_type is not.
 
         num_procs: int, Optional
-            The total number of MPI tasks on which to submit the task
+            The total number of processes (MPI ranks)
 
         num_nodes: int, Optional
-            The number of nodes on which to submit the task
+            The number of nodes
 
         procs_per_node: int, Optional
-            The processes per node for this task
+            The processes per node
+
+        num_gpus: int, Optional
+            The total number of GPUs
 
         machinefile: str, Optional
-            Name of a machinefile for this task to use
+            Name of a machinefile
 
         app_args: str, Optional
             A string of the application arguments to be added to task
@@ -218,6 +234,15 @@ class MPIExecutor(Executor):
             (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.
+
+        auto_assign_gpus: bool, optional
+            Auto-assign GPUs available to this worker using either the method supplied in configuration or
+            determined by detected environment. Default: False
+
+        match_procs_to_gpus: bool, optional
+            For use with auto_assign_gpus. Auto-assigns MPI processors to match the assigned GPUs.
+            Default: False unless auto_assign_gpus is True and no other CPU configuration is supplied.
+
 
         Returns
         -------
@@ -253,9 +278,12 @@ class MPIExecutor(Executor):
             num_procs,
             num_nodes,
             procs_per_node,
+            num_gpus,
             machinefile,
             hyperthreads,
             extra_args,
+            auto_assign_gpus,
+            match_procs_to_gpus,
             self.resources,
             self.workerID,
         )
@@ -269,12 +297,14 @@ class MPIExecutor(Executor):
             runline.extend(task.app_args.split())
 
         task.runline = " ".join(runline)  # Allow to be queried
+
         if dry_run:
             task.dry_run = True
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
             task._set_complete(dry_run=True)
         else:
-            # Launch Task
+            # Set environment variables and launch task
+            task._implement_env()
             self._launch_with_retries(task, runline, sglaunch, wait_on_start)
 
             if not task.timer.timing and not task.finished:
