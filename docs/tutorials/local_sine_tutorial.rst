@@ -329,30 +329,33 @@ Write a Calling Script with the following specifications:
        :linenos:
 
        import numpy as np
-       from libensemble.libE import libE
+       from libensemble import Ensemble, LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
        from generator import gen_random_sample
        from simulator import sim_find_sine
 
-       nworkers, is_manager, libE_specs, _ = parse_args()
+       libE_specs = LibeSpecs(nworkers=4, comms="local")
 
-       gen_specs = {
-           "gen_f": gen_random_ints,
-           "out": [("x", float, (1,))],
-           "user": {
-               "lower": np.array([-6]),
-               "upper": np.array([6]),
-               "gen_batch_size": 10,
+       gen_specs = GenSpecs(
+           gen_f=gen_random_sample,  # Our generator function
+           out=[("x", float, (1,))],  # gen_f output (name, type, size)
+           user={
+               "lower": np.array([-6]),  # lower boundary for random sampling
+               "upper": np.array([6]),  # upper boundary for random sampling
+               "gen_batch_size": 10,  # number of x's gen_f generates per call
            },
-       }
+       )
 
-       sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
+       sim_specs = SimSpecs(
+           sim_f=sim_find_sine,  # Our simulator function
+           inputs=["x"],  #  Input field names. "x" from gen_f output
+           out=[("y", float)],  # sim_f output. "y" = sine("x")
+       )
 
-       persis_info = add_unique_random_streams({}, nworkers + 1)
-       exit_criteria = {"gen_max": 160}
+       ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
+       ensemble.add_random_streams()
+       ensemble.run()
 
-       H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
-       if flag != 0:
+       if ensemble.flag != 0:
            print("Oh no! An error occurred!")
 
 Next steps
@@ -363,7 +366,7 @@ libEnsemble with MPI
 
 MPI_ is a standard interface for parallel computing, implemented in libraries
 such as MPICH_ and used at extreme scales. MPI potentially allows libEnsemble's
-manager and workers to be distributed over multiple nodes and works in some
+processes to be distributed over multiple nodes and works in some
 circumstances where Python's multiprocessing does not. In this section, we'll
 explore modifying the above code to use MPI instead of multiprocessing.
 
@@ -380,37 +383,26 @@ Verify that MPI has installed correctly with ``mpirun --version``.
 Modifying the calling script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Only a few changes are necessary to make our code MPI-compatible. Modify the top
-of the calling script as follows:
+Only a few changes are necessary to make our code MPI-compatible. Note the following:
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 5,7,8,10,11
 
-    import numpy as np
-    from libensemble.libE import libE
-    from generator import gen_random_sample
-    from simulator import sim_find_sine
-    from libensemble.tools import add_unique_random_streams
-    from mpi4py import MPI
-
-    # nworkers = 4                                # nworkers will come from MPI
-    libE_specs = {"comms": "mpi"}  # "nworkers" removed, "comms" now "mpi"
-
-    nworkers = MPI.COMM_WORLD.Get_size() - 1
-    is_manager = MPI.COMM_WORLD.Get_rank() == 0  # manager process has MPI rank 0
+    libE_specs = LibeSpecs()  # class will autodetect MPI runtime
 
 So that only one process executes the graphing and printing portion of our code,
 modify the bottom of the calling script like this:
 
 .. code-block:: python
   :linenos:
-  :emphasize-lines: 4
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    ...
+    ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
+    ensemble.add_random_streams()
+    ensemble.run()
 
-    if is_manager:
-        # Some (optional) statements to visualize our history array
+    if ensemble.is_manager:  # only True on rank 0
+        H = ensemble.H
         print([i for i in H.dtype.fields])
         print(H)
 
