@@ -76,7 +76,6 @@ or ``tomli`` to be installed respectively. The equivalent of above resembles:
 The remaining parameters may be found in a ``yaml`` file that resembles:
 
 .. dropdown::  my_parameters.yaml
-    :color: success
 
     .. code-block:: yaml
         :linenos:
@@ -107,7 +106,6 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
 Or a ``toml`` file that resembles:
 
 .. dropdown:: my_parameters.toml
-    :color: success
 
     .. code-block:: toml
         :linenos:
@@ -137,7 +135,6 @@ Or a ``toml`` file that resembles:
 Or a ``json`` file that resembles:
 
 .. dropdown:: my_parameters.json
-    :color: success
 
     .. code-block:: json
         :linenos:
