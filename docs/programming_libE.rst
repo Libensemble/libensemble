@@ -4,17 +4,27 @@ Constructing Workflows
 We now give greater detail in programming with libEnsemble.
 
 .. toctree::
+   :maxdepth: 2
+   :caption: The basics
+
    libe_module
    data_structures/data_structures
    history_output_logging
 
 .. toctree::
-   :caption: libEnsemble User Functions:
+   :caption: Writing User Functions:
+   :maxdepth: 2
 
    function_guides/function_guide_index
 
 .. toctree::
+   :caption: Coordinating apps
+   :maxdepth: 2
+
    executor/ex_index
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Helpful additions
+
    utilities

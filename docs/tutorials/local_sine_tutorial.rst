@@ -2,11 +2,10 @@
 Multiprocessing with a Simple Sine
 ==================================
 
-This introductory tutorial demonstrates the capability to perform ensembles of
-calculations in parallel using :doc:`libEnsemble<../introduction>` with Python"s
-multiprocessing.
+This tutorial demonstrates the capability to perform ensembles of
+calculations in parallel using :doc:`libEnsemble<../introduction>`.
 
-The foundation of writing libEnsemble routines is accounting for at least three components:
+When writing libEnsemble workflows, account for three components:
 
     1. A :ref:`generator function<api_gen_f>`, that produces values for simulations
     2. A :ref:`simulator function<api_sim_f>`, that performs simulations based on values from the generator function

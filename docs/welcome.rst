@@ -1,13 +1,12 @@
-    .. image:: images/libE_logo.png
-     :alt: libEnsemble
+  .. image:: images/libE_logo.png
+    :alt: libEnsemble
 
-.. only::html
-  |
+.. only:: html
 
   .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
     :target: https://pypi.org/project/libensemble
 
-  .. image:: https://github.com/Libensemble/libensemble/workflows/init-libEnsemble-CI/badge.svg?branch=develop
+  .. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
     :target: https://github.com/Libensemble/libensemble/actions
 
   .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge/?maxAge=2592000/?branch=main
@@ -17,13 +16,8 @@
     :target: https://libensemble.readthedocs.org/en/latest/
     :alt: Documentation Status
 
-  |
 
-=======================================
-Welcome to libEnsemble's documentation!
-=======================================
-
-libEnsemble is a Python toolkit for coordinating asynchronous and dynamic ensembles of calculations.
+A complete toolkit for dynamic ensembles of calculations
 
 * New to libEnsemble? Start :doc:`here<introduction>`.
 * Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
