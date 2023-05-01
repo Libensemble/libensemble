@@ -5,11 +5,11 @@ Manager, Workers, and User Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. begin_overview_rst_tag
 
-libEnsemble uses a **manager** process to allocate work to
-multiple **workers**, which perform computations with Python functions we call **user functions**:
+libEnsemble's **manager** allocate's work to **workers**,
+which perform computations via **user functions**:
 
 * :ref:`generator<api_gen_f>`: Generates inputs to the *simulator* (``sim_f``)
-* :ref:`simulator<api_sim_f>`: Evaluates a simulation or other evaluation based on output from  the *generator* (``gen_f``)
+* :ref:`simulator<api_sim_f>`: Performs an evaluation based on parameters from the *generator* (``gen_f``)
 * :ref:`allocator<api_alloc_f>`: Decides whether a simulator or generator should be
   called (and with what inputs/resources) as workers become available
 
@@ -24,19 +24,18 @@ no work to evaluate, that worker is instructed to call the generator.
 
 |
 
-An :doc:`executor<executor/overview>` interface is available for users to execute and monitor
-external applications in their user functions
+An :doc:`executor<executor/overview>` interface is available so user functions
+can execute and monitor external applications.
 
-Internally, libEnsemble's Manager maintains a NumPy structured array known as
-the :ref:`History array<funcguides-history>` to keep a global record of all passed data.
-This array is returned to the user following the workflow.
+libEnsemble's Manager maintains a :ref:`History array<funcguides-history>`,
+containing a global record of all passed data. This is returned to the user following the workflow.
 
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
 .. begin_usecases_rst_tag
 
 Below are some expected libEnsemble use cases that we support (or are working
-to support) and plan to have examples of:
+to support):
 
 .. dropdown:: **Click Here for Use-Cases**
 
