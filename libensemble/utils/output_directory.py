@@ -65,10 +65,7 @@ class EnsembleDirectory:
             self.ensemble_dir = self.workflow_dir / self.ensemble_dir
 
         if self.ensemble_copy_back:
-            if self.workflow_dir:
-                self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
-            else:
-                self.copybackdir = Path(self.ensemble_dir.stem + "_back")
+            self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
 
     def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
