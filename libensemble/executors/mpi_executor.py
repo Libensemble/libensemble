@@ -17,8 +17,6 @@ import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
-from libensemble.executors.executor import Executor, Task, ExecutorException
-from libensemble.resources.platforms import known_systems, get_mpiexec_platforms
 from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
@@ -104,8 +102,6 @@ class MPIExecutor(Executor):
         if platform_info:
             self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
             self.runner_name = self.runner_name or platform_info.get("runner_name")
-        print(f"mpi_runner_type {self.mpi_runner_type}")
-        print(f"runner_name {self.runner_name}")
 
         # If runner type has not been given, then detect
         if not self.mpi_runner_type:
@@ -165,6 +161,7 @@ class MPIExecutor(Executor):
         num_procs: Optional[int] = None,
         num_nodes: Optional[int] = None,
         procs_per_node: Optional[int] = None,
+        num_gpus: Optional[int] = None,
         machinefile: Optional[str] = None,
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
@@ -192,16 +189,19 @@ class MPIExecutor(Executor):
             The application name. Must be supplied if calc_type is not.
 
         num_procs: int, Optional
-            The total number of MPI tasks on which to submit the task
+            The total number of processes (MPI ranks)
 
         num_nodes: int, Optional
-            The number of nodes on which to submit the task
+            The number of nodes
 
         procs_per_node: int, Optional
-            The processes per node for this task
+            The processes per node
+
+        num_gpus: int, Optional
+            The total number of GPUs
 
         machinefile: str, Optional
-            Name of a machinefile for this task to use
+            Name of a machinefile
 
         app_args: str, Optional
             A string of the application arguments to be added to task
@@ -234,9 +234,6 @@ class MPIExecutor(Executor):
             (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.
-
-        assign_procs_to_slots: bool, optional  #TODO or int - also not nec to slots - just a count!
-            Auto-assign MPI processors to slots (the number of resource sets on each node).
 
         auto_assign_gpus: bool, optional
             Auto-assign GPUs available to this worker using either the method supplied in configuration or
@@ -281,6 +278,7 @@ class MPIExecutor(Executor):
             num_procs,
             num_nodes,
             procs_per_node,
+            num_gpus,
             machinefile,
             hyperthreads,
             extra_args,

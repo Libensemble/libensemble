@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ResourcesException(Exception):
-    "Resources module exception."
+    """Resources module exception"""
 
 
 class Resources:
@@ -57,7 +57,9 @@ class Resources:
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            Resources.resources = Resources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir)
+            Resources.resources = Resources(
+                libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir
+            )
 
     def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
         """Initiate a new resources object"""
@@ -97,7 +99,6 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    #TODO - FIX DOCSTRING  - maybe same info - but alot comes from libE_specs - make sure platform_info added
     def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
 
         """Initializes a new Resources instance
@@ -172,7 +173,7 @@ class GlobalResources:
         # resource_info overrides platform
         cores_on_node = resource_info.get("cores_on_node")
         if cores_on_node is None:
-            cores_on_node= (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
+            cores_on_node = (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
         gpus_on_node = resource_info.get("gpus_on_node") or platform_info.get("gpus_per_node")
 
         node_file = resource_info.get("node_file", None)
@@ -209,20 +210,15 @@ class GlobalResources:
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
-        if not cores_on_node or not gpus_on_node or None in cores_on_node:
+        if cores_on_node is None or gpus_on_node is None or None in cores_on_node:
             detected_config = node_resources.get_sub_node_resources(
-                launcher=self.launcher,
-                remote_mode=remote_detect,
-                env_resources=self.env_resources
+                launcher=self.launcher, remote_mode=remote_detect, env_resources=self.env_resources
             )
             cores_on_node, gpus_on_node = self._add_detected_info(cores_on_node, gpus_on_node, detected_config)
 
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
         self.gpus_avail_per_node = gpus_on_node
-
-        print(f"From resources: {cores_on_node=}")  # testing
-        print(f"From resources: {gpus_on_node=}")  # testing
         self.platform_info = platform_info
         self.libE_nodes = None
 
@@ -254,7 +250,7 @@ class GlobalResources:
     def _add_detected_info(self, cores_on_node, gpus_on_node, detected_config):
         """Update missing values in cores/gpus_on_node"""
         if not cores_on_node:
-             cores_on_node = detected_config[0:2]
+            cores_on_node = detected_config[0:2]
         elif None in cores_on_node:
             cores_on_node = list(cores_on_node)
             if not cores_on_node[0]:

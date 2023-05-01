@@ -144,11 +144,7 @@ Write an alternative Calling Script similar to above, but with the following dif
  3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
  4. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
+.. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
        :linenos:
@@ -357,11 +353,7 @@ These may require additional browsing of the documentation to complete.
      then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
 
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
+.. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
        :linenos:

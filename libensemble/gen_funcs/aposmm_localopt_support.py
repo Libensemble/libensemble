@@ -47,7 +47,7 @@ else:
 
 
 class APOSMMException(Exception):
-    "Raised for any exception in APOSMM"
+    """Raised for any exception in APOSMM"""
 
 
 class ConvergedMsg(object):

@@ -62,7 +62,6 @@ if __name__ == "__main__":
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": nworkers * rounds}
 
-    # TODO: May move specs, inputs and expected outputs to a data_set module.
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],

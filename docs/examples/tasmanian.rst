@@ -15,11 +15,7 @@ use either *venv* or *--user* install.
 .. role:: underline
     :class: underline
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`persistent_tasmanian.py`
+.. dropdown:: :underline:`persistent_tasmanian.py`
 
    .. literalinclude:: ../../libensemble/gen_funcs/persistent_tasmanian.py
       :language: python

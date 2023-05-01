@@ -9,14 +9,15 @@ from libensemble.comms.logs import LogConfig
 from libensemble.libE import libE
 from libensemble.manager import LoggedException
 from libensemble.resources.resources import Resources
+from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
 class MPIAbortException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class MPISendException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class Fake_MPI:
@@ -57,6 +58,7 @@ alloc_specs = {"alloc_f": give_sim_work_first}
 hfile_abort = "libE_history_at_abort_0.npy"
 pfile_abort = "libE_persis_info_at_abort_0.pickle"
 
+
 # Run by pytest at end of module
 def teardown_module(module):
     try:
@@ -66,6 +68,7 @@ def teardown_module(module):
     if Resources.resources is not None:
         del Resources.resources
         Resources.resources = None
+
 
 # Run by pytest before each function
 def setup_function(function):
@@ -150,14 +153,14 @@ def test_exception_raising_check_inputs():
         pytest.fail("Expected ValidationError exception")
 
 
-# def test_proc_not_in_communicator():
-#     """Checking proc not in communicator returns exit status of 3"""
-#     libE_specs = {}
-#     libE_specs["mpi_comm"], mpi_comm_null = mpi_comm_excl()
-#     H, _, flag = libE(
-#         {"in": ["x"], "out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs
-#     )
-#     assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
+def test_proc_not_in_communicator():
+    """Checking proc not in communicator returns exit status of 3"""
+    libE_specs = {}
+    libE_specs["mpi_comm"], mpi_comm_null = mpi_comm_excl()
+    H, _, flag = libE(
+        {"in": ["x"], "out": [("f", float)]}, {"out": [("x", float)]}, {"sim_max": 1}, libE_specs=libE_specs
+    )
+    assert flag == 3, "libE return flag should be 3. Returned: " + str(flag)
 
 
 # def test_exception_raising_worker():
@@ -196,5 +199,5 @@ if __name__ == "__main__":
     test_exception_raising_manager_with_abort()
     test_exception_raising_manager_no_abort()
     test_exception_raising_check_inputs()
-    # test_proc_not_in_communicator()
+    test_proc_not_in_communicator()
     test_logging_disabling()

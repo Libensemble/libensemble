@@ -97,7 +97,7 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     how to automatically assign the GPUs given to this worker via the MPIExecutor.
 
     The method used to assign GPUs will be determined by the MPI runner or user
-    provided configuration (e.g., by setting the ``platform`` or ``platform_spec``
+    provided configuration (e.g., by setting the ``platform`` or ``platform_specs``
     options or the LIBE_PLATFORM environment variable).
 
     """

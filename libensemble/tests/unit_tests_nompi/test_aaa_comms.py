@@ -10,9 +10,6 @@ since pytest slurps up everything (including all the modules) in one go.
 
 import signal
 import time
-
-import pytest
-
 import libensemble.comms.comms as comms
 
 

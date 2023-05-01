@@ -11,6 +11,7 @@ import pytest
 
 from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
 
+
 def setup_module(module):
     try:
         print(f"setup_module module:{module.__name__}")
@@ -20,6 +21,7 @@ def setup_module(module):
         del Executor.executor
         Executor.executor = None
 
+
 def teardown_module(module):
     try:
         print(f"teardown_module module:{module.__name__}")
@@ -28,6 +30,7 @@ def teardown_module(module):
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
+
 
 # fake Balsam app
 class TestLibeApp:

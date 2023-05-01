@@ -24,6 +24,7 @@ from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+
 # Uncomment for var resources
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
@@ -66,7 +67,7 @@ gen_specs = {
     ],
     "user": {
         "lb": np.array([50000]),  # fewest particles (changing will change checksum)
-        "ub": np.array([100000]), # max particles (changing will change checksum)
+        "ub": np.array([100000]),  # max particles (changing will change checksum)
         "gen_batch_size": 8,
         # "max_resource_sets": nworkers  # Uncomment for var resources
     },

@@ -2,7 +2,6 @@ import argparse
 import logging
 from libensemble.executors.executor import jassert
 from libensemble.resources import mpi_resources
-from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -90,9 +89,7 @@ class MPIRunner:
         extra_args += f" {new_args}"
         return extra_args
 
-    def express_spec(
-        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
-    ):
+    def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
         """Returns a hostlist or machinefile name
 
         If a machinefile is used, the file will also be created. This function
@@ -119,13 +116,15 @@ class MPIRunner:
             extra_args = " ".join((extra_args, gpus_opt))
         return extra_args
 
-    def _set_gpu_env_var(self, wresources, task, gpus_env):
+    def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
         if wresources.doihave_gpus():
-            task._add_to_env(gpus_env, wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset))
+            slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
+            task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
+        """Set default GPU setting for MPI runner"""
         if self.default_gpu_arg is not None:
             arg_type = self.default_gpu_arg_type
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
@@ -133,11 +132,11 @@ class MPIRunner:
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
             gpus_env = "CUDA_VISIBLE_DEVICES"
-            self._set_gpu_env_var(wresources, task, gpus_env)
+            self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
         return extra_args
 
-    def _assign_to_slots(self, task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus):
-        """Assign GPU resources to slots
+    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
+        """Assign GPU resources to slots, limited by ngpus if present.
 
         GPUs will be assigned using the slot count and GPUs per slot (from resources).
         If ``match_procs_to_gpus`` is True, then MPI processor/node configuration will
@@ -156,17 +155,26 @@ class MPIRunner:
         # gpus per node for this worker.
         #print(f"{wresources.doihave_gpus()=}")
         if wresources.doihave_gpus():
-            gpus_per_node = wresources.slot_count * wresources.gpus_per_rset
+            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset
         else:
-            gpus_per_node = 0
-
-        gpu_setting_type = "runner_default"
+            gpus_avail_per_node = 0
 
         if nnodes is None:
             if nprocs:
                 nnodes = min(nprocs, wresources.local_node_count)
             else:
                 nnodes = wresources.local_node_count
+
+        # It could be zero
+        if ngpus is not None:
+            gpus_req_per_node = ngpus // nnodes
+            if gpus_req_per_node > gpus_avail_per_node:
+                logger.info(f"Asked for more GPUs per node than available - max is {gpus_avail_per_node}")
+            gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
+        else:
+            gpus_per_node = gpus_avail_per_node
+
+        gpu_setting_type = "runner_default"
 
         if match_procs_to_gpus:
             ppn = gpus_per_node
@@ -189,14 +197,24 @@ class MPIRunner:
 
         elif gpu_setting_type == "env":
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
-            self._set_gpu_env_var(wresources, task, gpus_env)
+            self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
 
         return nprocs, nnodes, ppn, extra_args
 
-
     def get_mpi_specs(
-        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args,
-        auto_assign_gpus, match_procs_to_gpus, resources, workerID
+        self,
+        task,
+        nprocs,
+        nnodes,
+        ppn,
+        ngpus,
+        machinefile,
+        hyperthreads,
+        extra_args,
+        auto_assign_gpus,
+        match_procs_to_gpus,
+        resources,
+        workerID,
     ):
         """Returns a dictionary with the MPI specifications for the runline.
 
@@ -218,16 +236,18 @@ class MPIRunner:
             )
 
         # If no_config_set and auto_assign_gpus - make match_procs_to_gpus default.
-        no_config_set = not(nprocs or ppn)
+        no_config_set = not (nprocs or ppn)
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-        if auto_assign_gpus:
+        if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus)
+            nprocs, nnodes, ppn, extra_args = self._assign_gpus(
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+            )
 
         hostlist = None
         if machinefile and not self.mfile_support:
@@ -235,22 +255,16 @@ class MPIRunner:
             machinefile = None
 
         if machinefile is None and resources is not None:
-            nprocs, nnodes, ppn = mpi_resources.get_resources(
-                resources, nprocs, nnodes, ppn, hyperthreads
-            )
+            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads)
             hostlist, machinefile = self.express_spec(
                 task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
             )
         else:
-            nprocs, nnodes, ppn = mpi_resources.task_partition(
-                nprocs, nnodes, ppn, machinefile
-            )
+            nprocs, nnodes, ppn = mpi_resources.task_partition(nprocs, nnodes, ppn, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:
-            nprocs, nnodes, ppn = self._rm_replicated_args(
-                nprocs, nnodes, ppn, p_args
-            )
+            nprocs, nnodes, ppn = self._rm_replicated_args(nprocs, nnodes, ppn, p_args)
 
         if self.default_mpi_options is not None:
             extra_args = self._append_to_extra_args(extra_args, self.default_mpi_options)
@@ -311,9 +325,7 @@ class OPENMPI_MPIRunner(MPIRunner):
             "{extra_args}",
         ]
 
-    def express_spec(
-        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
-    ):
+    def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
         """Returns a hostlist or machinefile name
 
         If a machinefile is used, the file will also be created. This function
@@ -406,8 +418,6 @@ class JSRUN_MPIRunner(MPIRunner):
         self.run_command = run_command
         self.subgroup_launch = True
         self.mfile_support = False
-
-        # TODO: Add multiplier to resources checks (for -c/-a)
         self.arg_nprocs = ("--np", "-n")
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-r",)
@@ -419,8 +429,19 @@ class JSRUN_MPIRunner(MPIRunner):
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
 
     def get_mpi_specs(
-        self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args,
-        auto_assign_gpus, match_procs_to_gpus, resources, workerID
+        self,
+        task,
+        nprocs,
+        nnodes,
+        ppn,
+        ngpus,
+        machinefile,
+        hyperthreads,
+        extra_args,
+        auto_assign_gpus,
+        match_procs_to_gpus,
+        resources,
+        workerID,
     ):
         """Returns a dictionary with the MPI specifications for the runline.
 
@@ -442,16 +463,18 @@ class JSRUN_MPIRunner(MPIRunner):
             )
 
         # If no_config_set and auto_assign_gpus - make match_procs_to_gpus default.
-        no_config_set = not(nprocs or ppn)
+        no_config_set = not (nprocs or ppn)
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-        if auto_assign_gpus:
+        if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
-            nprocs, nnodes, ppn, extra_args = self._assign_to_slots(task, resources, nprocs, nnodes, ppn, extra_args, match_procs_to_gpus)
+            nprocs, nnodes, ppn, extra_args = self._assign_gpus(
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+            )
 
         rm_rpn = True if ppn is None and nnodes is None else False
 
@@ -460,21 +483,13 @@ class JSRUN_MPIRunner(MPIRunner):
             logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
         if machinefile is None and resources is not None:
-            nprocs, nnodes, ppn = mpi_resources.get_resources(
-                resources, nprocs, nnodes, ppn, hyperthreads
-            )
-
-            # TODO: Create ERF file if mapping worker to resources req.
+            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads)
         else:
-            nprocs, nnodes, ppn = mpi_resources.task_partition(
-                nprocs, nnodes, ppn, machinefile
-            )
+            nprocs, nnodes, ppn = mpi_resources.task_partition(nprocs, nnodes, ppn, machinefile)
 
         # Remove portable variable if in extra_args
         if extra_args:
-            nprocs, nnodes, ppn = self._rm_replicated_args(
-                nprocs, nnodes, ppn, p_args
-            )
+            nprocs, nnodes, ppn = self._rm_replicated_args(nprocs, nnodes, ppn, p_args)
 
         if rm_rpn:
             ppn = None

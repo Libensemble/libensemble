@@ -9,6 +9,18 @@ from multiprocessing.managers import BaseManager
 
 from libensemble.comms.comms import QComm
 
+queues = {"shared": Queue()}
+
+
+def get_queue(name):
+    if name not in queues:
+        queues[name] = Queue()
+    return queues[name]
+
+
+class ServerQueueManager(BaseManager):
+    pass
+
 
 class ServerQCommManager:
     """Set up a QComm manager server.
@@ -19,15 +31,6 @@ class ServerQCommManager:
 
     def __init__(self, port, authkey):
         """Initialize the server on localhost at an indicated TCP port and key."""
-        queues = {"shared": Queue()}
-
-        class ServerQueueManager(BaseManager):
-            pass
-
-        def get_queue(name):
-            if name not in queues:
-                queues[name] = Queue()
-            return queues[name]
 
         ServerQueueManager.register("get_queue", callable=get_queue)
         self.manager = ServerQueueManager(address=("", port), authkey=authkey)

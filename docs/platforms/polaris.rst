@@ -7,7 +7,6 @@ National Laboratory. The compute nodes are equipped with a single AMD EPYC Milan
 processor and four A100 NVIDIA GPUs. It uses the PBS scheduler to submit
 jobs from login nodes to run on the compute nodes.
 
-
 Configuring Python and Installation
 -----------------------------------
 
@@ -23,11 +22,7 @@ To install further packages, including updating libEnsemble, you may either crea
 a virtual environment on top of this (if just using ``pip install``) or clone the base
 environment (if you need ``conda install``). More details at `Python for Polaris`_.
 
-.. container:: toggle
-
-   .. container:: header
-
-      Example of Conda + virtual environment
+.. dropdown:: Example of Conda + virtual environmentggle
 
    E.g.,~  to create a virtual environment that allows installation of further packages::
 
@@ -44,7 +39,6 @@ environment (if you need ``conda install``). More details at `Python for Polaris
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble, including using Spack.
 
-
 Ensuring use of mpiexec
 -----------------------
 
@@ -53,7 +47,6 @@ ensure you are using ``mpiexec`` instead of ``aprun``. When setting up the execu
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})
-
 
 Job Submission
 --------------
@@ -99,7 +92,6 @@ Demonstration
 For an example that runs a small ensemble using a C application (offloading work to the
 GPU), see the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A video demonstration_
 of this example is also available.
-
 
 .. _Polaris: https://www.alcf.anl.gov/polaris
 .. _ALCF: https://www.alcf.anl.gov/

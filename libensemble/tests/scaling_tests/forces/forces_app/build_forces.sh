@@ -1,6 +1,8 @@
 #!/bin/bash
 
+# -------------------------------------------------
 # Building flat MPI
+# -------------------------------------------------
 
 # GCC
 mpicc -O3 -o forces.x forces.c -lm
@@ -11,9 +13,9 @@ mpicc -O3 -o forces.x forces.c -lm
 # Cray
 # cc -O3 -o forces.x forces.c
 
-# ----------------------------------------------
-
+# -------------------------------------------------
 # Building with OpenMP for CPU
+# -------------------------------------------------
 
 # GCC
 # mpicc -O3 -fopenmp -o forces.x forces.c -lm
@@ -27,10 +29,9 @@ mpicc -O3 -o forces.x forces.c -lm
 # xl
 # xlc_r -O3 -qsmp=omp -o forces.x forces.c
 
-# ----------------------------------------------
-
+# -------------------------------------------------
 # Building with OpenMP for target device (e.g. GPU)
-# Need to toggle to OpenMP target directive in forces.c.
+# -------------------------------------------------
 
 # xl (plain and using mpicc on Summit)
 # xlc_r -DGPU -O3 -qsmp=omp -qoffload -o forces.x forces.c
