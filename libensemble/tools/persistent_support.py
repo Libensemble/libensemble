@@ -123,5 +123,4 @@ class PersistentSupport:
         H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
         H_o["sim_id"] = sim_ids
         H_o["cancel_requested"] = True
-        print(H_o)
         self.send(H_o, keep_state=True)

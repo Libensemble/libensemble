@@ -44,6 +44,8 @@ class RSetResources:
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
+        self.gpus_per_node = resources.gpus_avail_per_node
+        self.gpus_per_rset = self.gpus_per_node // self.rsets_per_node
 
     @staticmethod
     def best_split(a, n):

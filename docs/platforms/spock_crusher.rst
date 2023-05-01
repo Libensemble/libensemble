@@ -51,36 +51,22 @@ the forces sub-directory is needed::
     git clone https://github.com/Libensemble/libensemble
     cd libensemble/libensemble/tests/scaling_tests/forces/forces_app
 
-To build the forces application to use the GPU, ensure *forces.c* has the
-``#pragma omp target`` line uncommented and comment out the equivalent
-``#pragma omp parallel`` line.
-
 To compile forces (in addition to cray-python module)::
 
     module load rocm
-    module load craype-accel-amd-gfx908
-    cc -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
+    module load craype-accel-amd-gfx90a # (craype-accel-amd-gfx908 on Spock)
+    cc -DGPU -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
 
 Now go to forces_gpu directory::
 
     cd ../forces_gpu
 
-and modify the following lines in *forces_simf.py*. Multiply particles by 10 and change
-``CUDA_VISIBLE_DEVICES`` to ``ROCR_VISIBLE_DEVICES``. So you have these modified lines::
-
-    particles = str(int(H["x"][0][0]) * 10)
-    ...
-    resources.set_env_to_slots("ROCR_VISIBLE_DEVICES")
-
-The first change will make the simulation take long enough to see.
-
 Now grab an interactive session on one node::
 
-    salloc --nodes=1 -A <project_id> --time=00:30:00
+    salloc --nodes=1 -A <project_id> --time=00:10:00
 
 Then in the session run::
 
-    export SLURM_EXACT=1  # Prevents resource conflicts on node
     python run_libe_forces.py --comms local --nworkers 4
 
 To see GPU usage, ssh into the node you are on in another window and run::

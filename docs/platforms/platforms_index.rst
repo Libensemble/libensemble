@@ -209,6 +209,7 @@ libEnsemble on specific HPC systems.
 
     bebop
     cori
+    frontier
     perlmutter
     polaris
     spock/crusher <spock_crusher>

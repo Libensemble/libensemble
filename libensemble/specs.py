@@ -9,6 +9,7 @@ from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.resources.platforms import Platform
 from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     MPI_Communicator,
@@ -30,6 +31,7 @@ BaseConfig.error_msg_templates = {
     "value_error.extra": _UNRECOGNIZED_ERR,
     "type_error.callable": _UFUNC_INVALID_ERR,
 }
+BaseConfig.validate_assignment = True
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
 
@@ -308,6 +310,65 @@ class LibeSpecs(BaseModel):
     If not using calculation directories, contents are copied to the ensemble directory
     """
 
+    platform: Optional[str] = ""
+    """Name of a known platform defined in the platforms module.
+
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+
+    Example:
+
+    .. code-block:: python
+
+        libE_specs["platform"] = "perlmutter_g"
+
+    Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+
+    E.g., on command line or batch submission script:
+
+    .. code-block:: shell
+
+        export LIBE_PLATFORM="perlmutter_g"
+
+    See also option :attr:`platform_specs`.
+    """
+
+    platform_specs: Optional[Union[Platform, dict]] = {}
+    """A Platform obj (or dictionary) specifying settings for a platform.
+
+    Example usage in calling script.
+
+    To use existing platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import PerlmutterGPU
+
+        libE_specs["platform_specs"] = PerlmutterGPU()
+
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+
+    Or define a platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import Platform
+
+        libE_specs["platform_specs"] = Platform(
+            mpi_runner="srun",
+            cores_per_node=64,
+            logical_cores_per_node=128,
+            gpus_per_node=8,
+            gpu_setting_type="runner_default",
+            scheduler_match_slots=False,
+        )
+
+    For list of Platform fields see :class:`Platform Fields<libensemble.resources.platforms.Platform>`
+
+    Any fields not given, will be auto-detected by libEnsemble.
+
+    See also option :attr:`platform`.
+    """
+
     profile: Optional[bool] = False
     """ Profile manager and worker logic using cProfile """
 
@@ -405,6 +466,12 @@ class LibeSpecs(BaseModel):
     @validator("comms")
     def check_valid_comms_type(cls, value: str) -> str:
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
+        return value
+
+    @validator("platform_specs")
+    def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
+        if isinstance(value, dict):
+            value = Platform(**value)
         return value
 
     @validator("sim_input_dir", "gen_input_dir")
