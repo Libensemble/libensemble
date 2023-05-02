@@ -44,7 +44,6 @@ class EnvResources:
         nodelist_env_lsf: Optional[str] = None,
         nodelist_env_lsf_shortform: Optional[str] = None,
     ) -> None:
-
         """Initializes a new EnvResources instance
 
         Determines the environment variables to query for resource

@@ -33,7 +33,6 @@ def sim_f_noreturn(In):
 
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     sim_specs = {
