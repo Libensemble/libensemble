@@ -26,13 +26,13 @@
 .. after_badges_rst_tag
 
 ========================================================
-A complete toolkit for dynamic ensembles of calculations
+libEnsemble: A complete toolkit for dynamic ensembles of calculations
 ========================================================
 
 Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" to experiments or simulations.
 
 • **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
-• **Extreme scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
+• **Extreme portability and scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
 • **Dynamic resource management**: Adaptively assign and reassign resources (including **GPUs**) to tasks.
 • **Application monitoring**: Ensemble members can **run, monitor, and cancel apps**.
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
