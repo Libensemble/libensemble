@@ -1,6 +1,9 @@
 Output Management
 =================
 
+Each of the following described output files and directories can be placed in a run-specific
+directory by setting ``libE_specs["use_workflow_dir"] = True``.
+
 Default Log Files
 ~~~~~~~~~~~~~~~~~
 The history array :ref:`H<funcguides-history>` and
@@ -71,10 +74,10 @@ or in other directories. This is helpful for taking advantage of scratch spaces 
 organizing I/O  by application run.
 
 * ``"sim_dirs_make"``: ``[bool] = False``. Enables per-simulation directories with default
-  settings. Directories are placed in ``./ensemble`` by default.
+  settings. Directories are placed in ``ensemble`` by default.
 
 * ``"gen_dirs_make"``: ``[bool] = False``. Enabled per-generator instance directories with
-  default settings. Directories are placed in ``./ensemble`` by default.
+  default settings. Directories are placed in ``ensemble`` by default.
 
 * ``"ensemble_dir_path"``: ``[str] = "./ensemble"``. Specifies where each worker places its
   calculation directories. If ``"sim_dirs_make"`` or ``"gen_dirs_make"`` are ``False`` respectively,

@@ -7,6 +7,7 @@ Unit test of location stack for libensemble.
 import os
 import shutil
 import tempfile
+from pathlib import Path
 
 from libensemble.utils.loc_stack import LocationStack
 
@@ -19,7 +20,7 @@ def test_location_stack():
 
     try:
         # Record where we started
-        start_dir = os.getcwd()
+        start_dir = Path(os.getcwd())
 
         # Set up directory for clone
         clone_dirname = os.path.join(tmp_dirname, "basedir")
@@ -31,7 +32,7 @@ def test_location_stack():
         s = LocationStack()
 
         # Register a valid location
-        tname = s.register_loc(0, "testdir", prefix=tmp_dirname, copy_files=[test_fname])
+        tname = s.register_loc(0, Path("lstestdir"), prefix=Path(tmp_dirname), copy_files=[Path(test_fname)])
         assert os.path.isdir(tname), f"New directory {tname} was not created."
         assert os.path.isfile(
             os.path.join(tname, "test.txt")
@@ -42,7 +43,7 @@ def test_location_stack():
         assert d is None, "Dir stack not correctly register None at location 1."
 
         # Register a dummy location (del should not work)
-        d = s.register_loc(2, os.path.join(tmp_dirname, "dummy"))
+        d = s.register_loc(2, Path(os.path.join(tmp_dirname, "lsdummy")))
         assert ~os.path.isdir(d), "Directory stack registration of dummy should not create dir."
 
         # Push unregistered location (we should not move)
@@ -56,7 +57,8 @@ def test_location_stack():
 
         # Push registered location (we should move
         s.push_loc(0)
-        assert s.stack == [None, start_dir], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
+        stack = s.stack
+        assert stack == [None, start_dir], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
             start_dir, s.stack
         )
         assert os.path.samefile(
@@ -74,7 +76,8 @@ def test_location_stack():
 
         # Context for moving again
         with s.loc(0):
-            assert s.stack == [None, start_dir], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
+            stack = s.stack
+            assert stack == [None, start_dir], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
                 start_dir, s.stack
             )
             assert os.path.samefile(
@@ -106,3 +109,7 @@ def test_location_stack():
 
     finally:
         shutil.rmtree(tmp_dirname)
+
+
+if __name__ == "__main__":
+    test_location_stack()
