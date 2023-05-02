@@ -38,7 +38,7 @@ Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" 
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
 
-libEnsemble is *especially effective* at solving *design, decision, and inference problems* on parallel resources.
+libEnsemble is especially effective at solving design, decision, and inference problems on parallel resources.
 
 `Online Documentation`_
 
