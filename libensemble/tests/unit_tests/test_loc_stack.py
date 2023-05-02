@@ -58,7 +58,7 @@ def test_location_stack():
         # Push registered location (we should move
         s.push_loc(0)
         stack = s.stack
-        assert stack == [None, Path(start_dir)], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
+        assert stack == [None, start_dir], "Directory stack is incorrect." "Wanted [None, {}], got {}.".format(
             start_dir, s.stack
         )
         assert os.path.samefile(
