@@ -1,26 +1,5 @@
-.. include:: ../README.rst
-    :start-after: after_badges_rst_tag
-    :end-before: before_dependencies_rst_tag
 
-Overview
-========
-.. include:: overview_usecases.rst
-    :start-after: begin_overview_rst_tag
-    :end-before: Example Use Cases
-
-Example Use Cases
-=================
-.. include:: overview_usecases.rst
-    :start-after: begin_usecases_rst_tag
-
-Quickstart Guide
-================
-
-We now present further information on running and testing libEnsemble.
-
-.. include:: ../README.rst
-    :start-after: before_dependencies_rst_tag
-    :end-before: after_resources_rst_tag
+.. include:: introduction.rst
 
 .. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
@@ -49,8 +28,9 @@ We now present further information on running and testing libEnsemble.
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
-.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+.. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
+.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
@@ -79,7 +59,7 @@ We now present further information on running and testing libEnsemble.
 .. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
-.. _VTMOP: https://informs-sim.org/wsc20papers/311.pdf
+.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
 .. _xsdk: https://xsdk.info

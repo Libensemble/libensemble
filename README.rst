@@ -25,24 +25,22 @@
 
 .. after_badges_rst_tag
 
-========================================================
-A complete toolkit for dynamic ensembles of calculations
-========================================================
+=====================================================================
+libEnsemble: A complete toolkit for dynamic ensembles of calculations
+=====================================================================
 
 Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" to experiments or simulations.
 
 • **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
-• **Extreme scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
+• **Extreme portability and scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
 • **Dynamic resource management**: Adaptively assign and reassign resources (including **GPUs**) to tasks.
 • **Application monitoring**: Ensemble members can **run, monitor, and cancel apps**.
 • **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
 
-libEnsemble is *especially effective* at solving *design, decision, and inference problems* on parallel resources.
+libEnsemble is especially effective at solving design, decision, and inference problems on parallel resources.
 
 `Online Documentation`_
-
-.. before_dependencies_rst_tag
 
 Installation
 ============
@@ -89,7 +87,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _Online Documentation: https://libensemble.readthedocs.io/
+.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
