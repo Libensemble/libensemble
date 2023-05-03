@@ -1,9 +1,10 @@
 import importlib
 import json
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Union
+from dataclasses import dataclass
+from typing import Optional
 
+import numpy.typing as npt
 import tomli
 import yaml
 
@@ -27,13 +28,20 @@ class Ensemble:
     potentially populating it via a yaml, json, or toml file.
     """
 
-    sim_specs: Union[SimSpecs, dict] = field(default_factory=dict)
-    gen_specs: Union[GenSpecs, dict] = field(default_factory=dict)
-    alloc_specs: Union[AllocSpecs, dict] = field(default_factory=AllocSpecs)
-    libE_specs: Union[LibeSpecs, dict] = field(default_factory=dict)
-    exit_criteria: Union[ExitCriteria, dict] = field(default_factory=dict)
-    persis_info: dict = field(default_factory=dict)
-    H0: Any = None
+    sim_specs: SimSpecs
+    """ A description of sim_specs """
+
+    gen_specs: GenSpecs
+
+    exit_criteria: ExitCriteria
+
+    libE_specs: Optional[LibeSpecs]
+
+    alloc_specs: Optional[AllocSpecs]
+
+    persis_info: Optional[dict]
+
+    H0: Optional[npt.NDArray] = None
 
     def __post_init__(self):
         self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
