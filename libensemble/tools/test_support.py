@@ -117,8 +117,9 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
                 expected_setting = "--gpus-per-node"
                 if _get_value(expected_setting, task.runline) is None:
                     # Try gpus per task
-                    gpus_per_task = True
-                    expected_setting = "--gpus-per-task"
+                    if _get_value("--gpus-per-task", task.runline) is not None:
+                        gpus_per_task = True
+                        expected_setting = "--gpus-per-task"
             elif mpirunner == "jsrun":
                 gpus_per_task = True
                 expected_setting = "-g"
