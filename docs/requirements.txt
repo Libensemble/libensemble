@@ -3,3 +3,4 @@ sphinxcontrib-bibtex
 ipykernel
 autodoc_pydantic
 sphinx-design
+numpy

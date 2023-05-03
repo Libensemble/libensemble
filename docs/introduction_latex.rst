@@ -30,7 +30,7 @@
 .. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
-.. _Online Documentation: https://libensemble.readthedocs.io/
+.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc

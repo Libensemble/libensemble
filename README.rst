@@ -42,8 +42,6 @@ libEnsemble is especially effective at solving design, decision, and inference p
 
 `Online Documentation`_
 
-.. before_dependencies_rst_tag
-
 Installation
 ============
 
