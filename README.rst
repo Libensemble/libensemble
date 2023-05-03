@@ -89,7 +89,7 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _Online Documentation: https://libensemble.readthedocs.io/
+.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
