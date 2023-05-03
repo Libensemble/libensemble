@@ -25,9 +25,9 @@
 
 .. after_badges_rst_tag
 
-========================================================
+=====================================================================
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
-========================================================
+=====================================================================
 
 Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" to experiments or simulations.
 

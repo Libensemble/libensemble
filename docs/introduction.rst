@@ -5,6 +5,8 @@
 Basic Usage
 ===========
 
+.. basic_usage
+
 Select or supply Simulator and Generator functions
 --------------------------------------------------
 
@@ -31,6 +33,7 @@ perform/monitor computations that use those parameters. Coupling them together w
         my_experiment = Ensemble(basic_settings, simulation, outer_loop, when_to_stop)
 
         Output = my_experiment.run()
+
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
