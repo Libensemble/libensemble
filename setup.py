@@ -95,7 +95,7 @@ setup(
         ],
         "docs": [
             "autodoc_pydantic",
-            "sphinx",
+            "sphinx==5.3.0",
             "sphinx_rtd_theme",
             "sphinxcontrib.bibtex",
         ],

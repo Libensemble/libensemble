@@ -4,3 +4,4 @@ ipykernel
 autodoc_pydantic
 sphinx-design
 numpy
+sphinx_rtd_theme
