@@ -110,18 +110,17 @@ See the `user guide`_ for more information.
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
-
-.. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
-.. _NLopt: https://nlopt.readthedocs.io/en/latest/
-.. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
-.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _DEAP: https://deap.readthedocs.io/en/master/overview.html
+.. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
+.. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
+.. _NLopt: https://nlopt.readthedocs.io/en/latest/
+.. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
+.. _PETSc/TAO: http://www.mcs.anl.gov/petsc
+.. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _Tasmanian: https://tasmanian.ornl.gov/
-.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
-.. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
-.. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
-.. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
+.. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
+.. _WarpX: https://warpx.readthedocs.io/en/latest/
