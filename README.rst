@@ -90,6 +90,6 @@ Resources
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
-.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _PyPI: https://pypi.org
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
