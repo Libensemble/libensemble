@@ -1,4 +1,3 @@
-
 .. include:: introduction.rst
 
 .. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions

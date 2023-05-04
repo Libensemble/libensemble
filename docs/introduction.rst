@@ -1,7 +1,6 @@
 .. include:: ../README.rst
     :start-after: after_badges_rst_tag
 
-
 Basic Usage
 ===========
 
@@ -33,7 +32,6 @@ perform/monitor computations that use those parameters. Coupling them together w
         my_experiment = Ensemble(basic_settings, simulation, outer_loop, when_to_stop)
 
         Output = my_experiment.run()
-
 
 Launch and monitor apps on parallel resources
 ---------------------------------------------
@@ -106,7 +104,6 @@ See the `user guide`_ for more information.
 
   - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
   - WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.)
-
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
