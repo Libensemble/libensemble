@@ -26,7 +26,7 @@
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
-.. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
+.. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
 .. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
