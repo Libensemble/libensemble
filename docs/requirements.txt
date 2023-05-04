@@ -1,6 +1,5 @@
-sphinx==5.3.0
+sphinx
 sphinxcontrib-bibtex
-ipykernel
 autodoc_pydantic
 sphinx-design
 numpy
