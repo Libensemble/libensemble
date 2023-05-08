@@ -1,4 +1,3 @@
-
 .. include:: introduction.rst
 
 .. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
@@ -27,9 +26,10 @@
 .. _mpi4py: https://bitbucket.org/mpi4py/mpi4py
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
-.. _NLopt documentation: http://ab-initio.mit.edu/wiki/index.php/NLopt_Installation#Shared_libraries
+.. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc

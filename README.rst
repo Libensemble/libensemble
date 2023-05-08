@@ -29,18 +29,18 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-Construct *adaptive*, *portable*, and *scalable* software connecting "deciders" to experiments or simulations.
+Adaptive, portable, and scalable software to connect "deciders" to experiments or simulations.
 
-• **Adaptive ensembles**: Generate parallel tasks *on-the-fly* based on previous computations.
-• **Extreme portability and scaling**: Run on or across **laptops**, **clusters**, and **leadership-class machines**.
-• **Dynamic resource management**: Adaptively assign and reassign resources (including **GPUs**) to tasks.
-• **Application monitoring**: Ensemble members can **run, monitor, and cancel apps**.
-• **Coordinated data-flow between tasks**: libEnsemble can pass data between stateful ensemble members.
+• **Adaptive ensembles**: Generate parallel tasks on-the-fly based on previous computations.
+• **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
+• **Dynamic resource management**: Adaptively assign and reassign CPU/GPU resources to tasks.
+• **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
+• **Coordinated data-flow between tasks**: Pass data between ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
 
-libEnsemble is especially effective at solving design, decision, and inference problems on parallel resources.
+libEnsemble is effective at solving design, decision, and inference problems on parallel resources.
 
-`Online Documentation`_
+`Quickstart`_
 
 Installation
 ============
@@ -56,19 +56,17 @@ Resources
 
 **Support:**
 
-- Open issues or ask questions on GitHub_.
-- Email questions or request `libEnsemble Slack page`_ access from ``libEnsemble@lists.mcs.anl.gov``.
+- Ask questions or report issues on GitHub_.
+- Email ``libEnsemble@lists.mcs.anl.gov`` to request `libEnsemble Slack page`_.
 - Join the `libEnsemble mailing list`_ for updates about new releases.
 
 **Further Information:**
 
 - Documentation is provided by ReadtheDocs_.
 - Contributions_ to libEnsemble are welcome.
-- Production functions and workflows can be browsed in the `Community Examples repository`_.
+- Browse production functions and workflows in the `Community Examples repository`_.
 
-**Citation:**
-
-- Please use the following to cite libEnsemble:
+**Cite libEnsemble:**
 
 .. code-block:: bibtex
 
@@ -87,11 +85,11 @@ Resources
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _PyPI: https://pypi.org
 .. _ReadtheDocs: http://libensemble.readthedocs.org/

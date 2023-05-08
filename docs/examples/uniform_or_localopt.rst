@@ -7,4 +7,4 @@ Required: nlopt_
   :members:
   :undoc-members:
 
-.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+.. _nlopt: https://nlopt.readthedocs.io/en/latest/
