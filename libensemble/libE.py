@@ -58,7 +58,7 @@ or ``tomli`` to be installed respectively. The equivalent of above resembles:
     :linenos:
 
     import numpy as np
-    from libensemble.api import Ensemble
+    from libensemble import Ensemble
 
     my_experiment = Ensemble()
 
@@ -76,7 +76,6 @@ or ``tomli`` to be installed respectively. The equivalent of above resembles:
 The remaining parameters may be found in a ``yaml`` file that resembles:
 
 .. dropdown::  my_parameters.yaml
-    :color: success
 
     .. code-block:: yaml
         :linenos:
@@ -107,7 +106,6 @@ The remaining parameters may be found in a ``yaml`` file that resembles:
 Or a ``toml`` file that resembles:
 
 .. dropdown:: my_parameters.toml
-    :color: success
 
     .. code-block:: toml
         :linenos:
@@ -137,7 +135,6 @@ Or a ``toml`` file that resembles:
 Or a ``json`` file that resembles:
 
 .. dropdown:: my_parameters.json
-    :color: success
 
     .. code-block:: json
         :linenos:
@@ -249,7 +246,7 @@ from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
 from libensemble.resources.platforms import get_platform
 from libensemble.resources.resources import Resources
-from libensemble.specs import AllocSpecs, EnsembleSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
@@ -307,8 +304,7 @@ def libE(
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
-        A previous libEnsemble history to be prepended to the history in the
-        current libEnsemble run
+        A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
 
     Returns
@@ -340,7 +336,7 @@ def libE(
         H0 = np.empty([0])
 
     # check *everything*
-    ensemble = EnsembleSpecs(
+    ensemble = _EnsembleSpecs(
         H0=H0,
         libE_specs=libE_specs,
         persis_info=persis_info,
@@ -353,7 +349,7 @@ def libE(
     # get corresponding dictionaries back (casted in libE() def)
     sim_specs = ensemble.sim_specs.dict(by_alias=True)
     gen_specs = ensemble.gen_specs.dict(by_alias=True)
-    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
+    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
 

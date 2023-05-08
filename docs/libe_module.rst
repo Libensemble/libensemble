@@ -1,8 +1,8 @@
 .. _libe-module:
 
-Main libE Module - Calling Script
-=================================
+The Ensemble class
+==================
 
-.. automodule:: libensemble.libE
-   :members:
-   :no-undoc-members:
+.. autoclass:: libensemble.api.Ensemble
+      :members:
+      :no-undoc-members:

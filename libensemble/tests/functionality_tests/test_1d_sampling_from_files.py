@@ -26,7 +26,7 @@ if __name__ == "__main__":
     sampling.from_toml("1d_sampling.toml")
     sampling.from_yaml("1d_sampling.yaml")
 
-    sampling.gen_specs["user"].update(
+    sampling.gen_specs.user.update(
         {
             "lb": np.array([-3]),
             "ub": np.array([3]),
