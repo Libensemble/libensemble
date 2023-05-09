@@ -40,6 +40,7 @@
    :caption: Additional References:
 
    FAQ
+   legacy
    known_issues
    release_notes
    contributing
