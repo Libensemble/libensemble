@@ -35,9 +35,11 @@ class Ensemble:
     and other options from the command-line, validates inputs, configures logging,
     and performs other preparations.
 
+    Call ``.run()`` on the class to start the workflow.
+
     Configure by:
 
-    .. dropdown:: Option 1: Providing attributes on instantiation
+    .. dropdown:: Option 1: Providing parameters on instantiation
 
         .. code-block:: python
             :linenos:
@@ -53,7 +55,7 @@ class Ensemble:
 
             experiment = Ensemble(sim_specs=sim_specs)
 
-    .. dropdown:: Option 2: Assigning attributes to an instance
+    .. dropdown:: Option 2: Assigning parameters to an instance
 
         .. code-block:: python
             :linenos:
@@ -70,7 +72,7 @@ class Ensemble:
             experiment = Ensemble()
             experiment.sim_specs = sim_specs
 
-    .. dropdown:: Option 3: Loading attributes from files
+    .. dropdown:: Option 3: Loading parameters from files
 
         .. code-block:: python
             :linenos:
@@ -184,17 +186,14 @@ class Ensemble:
     sim_specs: :obj:`dict` or :class:`SimSpecs<libensemble.specs.SimSpecs>`
 
         Specifications for the simulation function
-        :doc:`(example)<data_structures/sim_specs>`
 
     gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
 
         Specifications for the generator function
-        :doc:`(example)<data_structures/gen_specs>`
 
     exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
 
         Tell libEnsemble when to stop a run
-        :doc:`(example)<data_structures/exit_criteria>`
 
     persis_info: :obj:`dict`, optional
 
@@ -204,12 +203,10 @@ class Ensemble:
     alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
 
         Specifications for the allocation function
-        :doc:`(example)<data_structures/alloc_specs>`
 
     libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
         Specifications for libEnsemble
-        :doc:`(example)<data_structures/libE_specs>`
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
@@ -392,28 +389,28 @@ class Ensemble:
             setattr(self, f, ClassType(**old_spec))
 
     def from_yaml(self, file_path: str):
-        """Parameterizes libEnsemble from yaml file"""
+        """Parameterizes libEnsemble from ``yaml`` file"""
         with open(file_path, "r") as f:
             loaded = yaml.full_load(f)
 
         self._parameterize(loaded)
 
     def from_toml(self, file_path: str):
-        """Parameterizes libEnsemble from toml file"""
+        """Parameterizes libEnsemble from ``toml`` file"""
         with open(file_path, "rb") as f:
             loaded = tomli.load(f)
 
         self._parameterize(loaded)
 
     def from_json(self, file_path: str):
-        """Parameterizes libEnsemble from json file"""
+        """Parameterizes libEnsemble from ``json`` file"""
         with open(file_path, "rb") as f:
             loaded = json.load(f)
 
         self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """Adds np.random generators for each worker to persis_info"""
+        """Adds ``np.random`` generators for each worker to ``persis_info``"""
         if num_streams:
             nstreams = num_streams
         else:
@@ -424,10 +421,10 @@ class Ensemble:
 
     def save_output(self, file: str):
         """
-        Writes out history array and persis_info to files.
+        Writes out History array and persis_info to files.
         If using a workflow_dir, will place with specified filename in that directory
 
-        Format: <calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>
+        Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
         if self._get_option("libE_specs", "workflow_dir_path"):
             save_libE_output(self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path)
