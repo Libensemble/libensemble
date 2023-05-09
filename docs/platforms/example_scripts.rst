@@ -37,20 +37,6 @@ Bebop - Distributed Mode
     :caption: /examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
     :language: bash
 
-Cori - Central Mode
--------------------
-
-..  literalinclude:: ../../examples/libE_submission_scripts/cori_submit.sh
-    :caption: /examples/libE_submission_scripts/cori_submit.sh
-    :language: bash
-
-Blues (Blue Gene Q) - Distributed Mode
---------------------------------------
-
-..  literalinclude:: ../../examples/libE_submission_scripts/blues_script.pbs
-    :caption: /examples/libE_submission_scripts/blues_script.pbs
-    :language: bash
-
 Theta - On MOM Node with Multiprocessing
 ----------------------------------------
 
