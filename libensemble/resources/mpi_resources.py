@@ -73,9 +73,9 @@ def get_MPI_variant() -> str:
     return None
 
 
-def get_MPI_runner() -> str:
+def get_MPI_runner(mpi_runner=None) -> str:
     """Return whether ``mpirun`` is openmpi or mpich"""
-    var = get_MPI_variant()
+    var = mpi_runner or get_MPI_variant()
     if var in ["mpich", "openmpi"]:
         return "mpirun"
     else:
