@@ -49,6 +49,8 @@ def get_MPI_variant() -> str:
             stdout, _ = try_msmpi.communicate(timeout=4)
         if "Microsoft" in stdout.decode():
             return "msmpi"
+    except FileNotFoundError:
+        pass
     except Exception:
         try_msmpi.kill()
         pass
@@ -60,6 +62,8 @@ def get_MPI_variant() -> str:
         if "unrecognized argument npernode" in stdout.decode():
             return "mpich"
         return "openmpi"
+    except FileNotFoundError:
+        pass
     except Exception:
         try_mpich.kill()
         pass
