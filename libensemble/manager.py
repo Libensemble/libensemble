@@ -196,6 +196,11 @@ class Manager:
         self.wcomms = wcomms
         self.WorkerExc = False
         self.persis_pending = []
+
+        dyn_keys = ("resource_sets", "num_procs", "num_gpus")
+        dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
+        self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
+
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
         self.term_tests = [
@@ -566,7 +571,7 @@ class Manager:
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
-            "use_resource_sets": self.libE_specs.get("num_resource_sets"),
+            "use_resource_sets": self.use_resource_sets,
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
