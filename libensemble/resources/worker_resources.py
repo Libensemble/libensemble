@@ -49,28 +49,19 @@ class ResourceManager(RSetResources):
             resources.zero_resource_workers,
         )
 
-        #For now, this is still rsets and global is all_rsets - rename.
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.man_rset_dtype)
-
         self.rsets["assigned"] = 0
-
-        #TODO May not need to copy - diff structures more efficient
         for field in self.all_rsets.dtype.names:
             self.rsets[field] = self.all_rsets[field]
-
-        #print(f"\n{self.rsets=}\n")
-
         self.num_groups = self.rsets["group"][-1]
+
         self.rsets_free = self.total_num_rsets
-        self.gpu_rsets_free = np.count_nonzero(self.rsets["gpus"])
-        self.nongpu_rsets_free = np.count_nonzero(~self.rsets["gpus"])
+        self.gpu_rsets_free = self.total_num_gpu_rsets
+        self.nongpu_rsets_free = self.total_num_nongpu_rsets
 
-        #print(f"At start: {self.rsets_free=}")
-        #print(f"At start: {self.gpu_rsets_free=}")
-        #print(f"At start: {self.nongpu_rsets_free=}")
-
-        #for rset in range(len(self.rsets)):
-            #print(f'Node {self.rsets["group"][rset]} {self.rsets["gpus"][rset]}')
+        #print(f"\n{self.total_num_rsets=}")
+        #print(f"{self.total_num_gpu_rsets=}")
+        #print(f"{self.total_num_nongpu_rsets=}\n")
 
         # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets["group"], return_counts=True)
@@ -94,19 +85,28 @@ class ResourceManager(RSetResources):
                     ResourceManagerException(
                         f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
                     )
+            #print(f"\nAfter assign: {self.rsets_free=}")
+            #print(f"After assign: {self.gpu_rsets_free=}")
+            #print(f"After assign: {self.nongpu_rsets_free=}\n")
+
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
             self.rsets["assigned"] = 0
             self.rsets_free = self.total_num_rsets
+            self.gpu_rsets_free = self.total_num_gpu_rsets
+            self.nongpu_rsets_free = self.total_num_nongpu_rsets
         else:
             rsets_to_free = np.where(self.rsets["assigned"] == worker)[0]
             self.rsets["assigned"][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
             self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
-            #print(f"freed up {len(rsets_to_free)}  Now free: {self.rsets_free}  gpu rsets free {self.gpu_rsets_free}")
+            #print(f"\nfreed up {len(rsets_to_free)} ")
+        #print(f"---After free: {self.rsets_free=}")
+        #print(f"---After free: {self.gpu_rsets_free=}")
+        #print(f"---After free: {self.nongpu_rsets_free=}\n")
 
     @staticmethod
     def get_index_list(

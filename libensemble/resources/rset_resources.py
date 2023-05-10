@@ -52,6 +52,7 @@ class RSetResources:
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
+
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
 
         self.gpus_per_node = resources.gpus_avail_per_node  #TODO change as its global (not this worker)
@@ -60,19 +61,18 @@ class RSetResources:
         self.gpu_rsets_per_node = min(self.gpus_per_node, self.rsets_per_node)
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
 
-        #print("gpus per node is", self.gpus_per_node)
-        #print("rsets_per_node", self.rsets_per_node)
-
         self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
-
         self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(self.split_list, self.gpus_per_node)
 
-        #print(f"\n{self.all_rsets=}\n")
+        self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
+        self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
 
-        self.gpus_per_node = resources.gpus_avail_per_node
+        self.gpus_per_node = resources.gpus_avail_per_node  #TODO plan to remove gpus_per_node from here
 
         #TODO will go to count up - but currently cant have a mix - either have gpu rsets or not.
         self.gpus_per_rset = self.gpus_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
+        self.cores_per_rset = resources.physical_cores_avail_per_node // self.rsets_per_node
+
 
         #print("gpus per rset per node is", self.gpus_per_rset)
 
