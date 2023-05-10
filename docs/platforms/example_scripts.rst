@@ -44,13 +44,6 @@ Theta - On MOM Node with Multiprocessing
     :caption: /examples/libE_submission_scripts/theta_submit_mproc.sh
     :language: bash
 
-Theta - Central Mode with Balsam
---------------------------------
-
-..  literalinclude:: ../../examples/libE_submission_scripts/theta_submit_balsam.sh
-    :caption: /examples/libE_submission_scripts/theta_submit_balsam.sh
-    :language: bash
-
 Summit - On Launch Nodes with Multiprocessing
 ---------------------------------------------
 

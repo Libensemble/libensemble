@@ -214,28 +214,31 @@ class Sunspot(Platform):
 class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
-    The *libE_specs* option ``platform_specs`` can be set to these values to
-    configure for a known system. E.g:
+    There are three ways to specify a known system:
 
-    .. code-block:: python
+    .. tab-set::
 
-        from libensemble.resources.platforms import PerlmutterGPU
+        .. tab-item:: ["platform_specs"]
 
-        libE_specs["platform_specs"] = PerlmutterGPU()
+            .. code-block:: python
 
+                from libensemble.resources.platforms import PerlmutterGPU
 
-    Alternatively the *libE_specs* ``platform`` option (or the ``LIBE_PLATFORM``
-    environment variable) can be set to the field name as a string. E.g:
+                libE_specs["platform_specs"] = PerlmutterGPU()
 
-    .. code-block:: python
+        .. tab-item:: ["platform"]
 
-        libE_specs["platform"] = "perlmutter_g"
+            .. code-block:: python
 
-    Alternatively (on command line or batch submission script):
+                libE_specs["platform"] = "perlmutter_g"
 
-    .. code-block:: shell
+        .. tab-item:: export LIBE_PLATFORM
 
-        export LIBE_PLATFORM="perlmutter_g"
+            On command-line or batch submission script:
+
+            .. code-block:: shell
+
+                export LIBE_PLATFORM="perlmutter_g"
 
 
     If the platform is not specified, libEnsemble will attempt detect known

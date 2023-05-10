@@ -3,12 +3,10 @@
 Allocation Specs
 ================
 
-Allocation function specifications to be set in the user calling script and passed
-to main :meth:`libE()<libensemble.libE.libE>` routine. *Optional*.
+Allocation function specifications to be set in the user calling script. *Optional*.
 
 Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
-all data is validated immediately on instantiation. When provided as a dictionary, all data is validated
-upon passing into :meth:`libE()<libensemble.libE.libE>`.
+all data is validated immediately on instantiation.
 
 .. autopydantic_model:: libensemble.specs.AllocSpecs
   :model-show-json: False

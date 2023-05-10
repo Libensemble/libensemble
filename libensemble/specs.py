@@ -43,26 +43,28 @@ class SimSpecs(BaseModel):
 
     sim_f: Callable = one_d_example
     """
-    Python function that matches the ``sim_f`` api. e.g. ``libensemble.sim_funcs.borehole``. Evaluates parameters
+    Python function that matches the ``sim_f`` api. Evaluates parameters
     produced by a generator function
     """
 
     inputs: List[str] = Field([], alias="in")
     """
-    List of field names out of the complete history to pass
-    into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword.
+    List of **field names** out of the complete history to pass
+    into the simulation function on initialization. Can use ``in`` or
+    ``inputs`` as keyword.
     """
 
     persis_in: Optional[List[str]] = []
     """
-    List of field names that will be passed to a persistent simulation function
+    List of **field names** that will be passed to a persistent simulation function
     throughout runtime, following initialization
     """
 
     # list of tuples for dtype construction
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
-    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
+    List of tuples corresponding to NumPy dtypes.
+    e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
     ``out = np.zeros(100, dtype=sim_specs["out"])``.
     Also used to construct the complete dtype for libEnsemble's history array
@@ -70,14 +72,15 @@ class SimSpecs(BaseModel):
 
     funcx_endpoint: Optional[str] = ""
     """
-    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
-    will submit simulator function instances to this endpoint to be executed, instead of calling them locally
+    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote
+    system. libEnsemble's workers will submit simulator function instances to this
+    endpoint to be executed, instead of calling them locally
     """
 
     user: Optional[dict] = {}
     """
-    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
-    the simulator function
+    A user-data dictionary to place bounds, constants, settings, or other parameters
+    for customizing the simulator function
     """
 
     @validator("out", pre=True)
@@ -104,14 +107,14 @@ class GenSpecs(BaseModel):
 
     gen_f: Optional[Callable] = latin_hypercube_sample
     """
-    Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
-    evaluation by a simulator function, and makes decisions based on simulator function output
+    Python function that matches the ``gen_f`` api. Produces parameters for evaluation by a
+    simulator function, and makes decisions based on simulator function output
     """
 
     inputs: Optional[List[str]] = Field([], alias="in")
     """
-    List of field names out of the complete history to pass
-    into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword
+    List of **field names** out of the complete history to pass
+    into the generator function upon calling. Can use ``in`` or ``inputs`` as keyword
     """
 
     persis_in: Optional[List[str]] = []
@@ -122,22 +125,23 @@ class GenSpecs(BaseModel):
 
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
-    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
-    Typically used to initialize an output array within the generator function:
-    ``out = np.zeros(100, dtype=gen_specs["out"])``. Also used to construct the complete dtype for libEnsemble's
-    history array
+    List of tuples corresponding to NumPy dtypes.
+    e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
+    output array within the generator function: ``out = np.zeros(100, dtype=gen_specs["out"])``.
+    Also used to construct the complete dtype for libEnsemble's history array
     """
 
     funcx_endpoint: Optional[str] = ""
     """
-    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
-    will submit generator function instances to this endpoint to be executed, instead of being called in-place
+    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system.
+    libEnsemble's workers will submit generator function instances to this endpoint to be executed,
+    instead of being called in-place
     """
 
     user: Optional[dict] = {}
     """
-    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the generator
-    function
+    A user-data dictionary to place bounds, constants, settings, or other parameters for
+    customizing the generator function
     """
 
     @validator("out", pre=True)
@@ -164,14 +168,15 @@ class AllocSpecs(BaseModel):
 
     alloc_f: Callable = give_sim_work_first
     """
-    Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`. Decides if and
-    when simulator and generator functions should be called, and with what resources and parameters
+    Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`.
+    Decides if and when simulator and generator functions should be called, and with what resources
+    and parameters
     """
 
     user: Optional[dict] = {"num_active_gens": 1}
     """
-    A user-data dictionary to place bounds, constants, settings, or other parameters for customizing the allocation
-    function
+    A user-data dictionary to place bounds, constants, settings, or other parameters
+    for customizing the allocation function
     """
 
     out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
