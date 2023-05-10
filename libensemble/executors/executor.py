@@ -470,6 +470,13 @@ class Executor:
         """
         pass
 
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus
+
+        Base executor does not currently use procs and gpus
+        """
+        pass
+
     def register_app(
         self,
         full_path: str,

@@ -53,10 +53,13 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     # Initialize alloc_specs["user"] as user.
     user = alloc_specs.get("user", {})
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+
     active_recv_gen = user.get("active_recv_gen", False)  # Persistent gen can handle irregular communications
     init_sample_size = user.get("init_sample_size", 0)  # Always batch return until this many evals complete
     batch_give = user.get("give_all_with_same_priority", False)
+
+    #TODO - update for all allocs - or do inside support setup
+    manage_resources = any(k in H.dtype.names for k in ("resource_sets", "num_procs", "num_gpus")) or libE_info["use_resource_sets"]
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
@@ -94,6 +97,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
             break
 
         sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
+
         try:
             Work[wid] = support.sim_work(wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid))
         except InsufficientFreeResources:
@@ -119,6 +123,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
                     )
                 except InsufficientFreeResources:
                     break
+
                 persis_info["num_gens_started"] = persis_info.get("num_gens_started", 0) + 1
                 gen_count += 1
 

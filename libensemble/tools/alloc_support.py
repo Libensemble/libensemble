@@ -57,7 +57,7 @@ class AllocSupport:
             scheduler_opts = libE_info.get("scheduler_opts", {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
-    def assign_resources(self, rsets_req, num_gpus=None):
+    def assign_resources(self, rsets_req, use_gpus=None):
         """Schedule resource sets to a work record if possible.
 
         For default scheduler, if more than one group (node) is required,
@@ -68,11 +68,12 @@ class AllocSupport:
         resources do not exist.
 
         :param rsets_req: Int. Number of resource sets to request.
+        :param use_gpus: Bool. Whether to use GPU resource sets.
         :returns: List of Integers. Resource set indices assigned.
         """
         rset_team = None
         if self.resources is not None:
-            rset_team = self.sched.assign_resources(rsets_req, num_gpus)
+            rset_team = self.sched.assign_resources(rsets_req, use_gpus)
         return rset_team
 
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
@@ -137,28 +138,55 @@ class AllocSupport:
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         if self.manage_resources and not libE_info.get("rset_team"):
             if self.W[wid - 1]["persis_state"]:
-                return []  # Even if empty list, non-None rset_team stops manager giving default resources
+                # Even if empty list, non-None rset_team stops manager giving default resources
+                libE_info["rset_team"] = []
+                return
             else:
                 use_gpus = None
+
+                #TODO This is if cores_per_rset or gpus_per_rset >=1 - test works on >1 node.
                 if H is not None and H_rows is not None:
+                    #TODO need pydantic check on H that dont have resource_sets and num_procs/gpus
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
+                    elif "num_procs" in H.dtype.names:
+
+                        procs_per_rset = self.resources.resource_manager.cores_per_rset
+                        max_num_procs = np.max(H[H_rows]["num_procs"])
+                        num_rsets_req = max_num_procs // procs_per_rset + (max_num_procs % procs_per_rset > 0)
+
+                        #TODO if > 1 point to a sim - executor should know num_procs/num_gpus know by sim_id
+                        libE_info["num_procs"] = max_num_procs
+                        #use_gpus = False #TODO should use_gpus default to None or false
                     else:
                         num_rsets_req = 1
+
                     if "use_gpus" in H.dtype.names:
                         #print(f'Alloc use_gpus input: {H[H_rows]["use_gpus"]}')
-                        #TODO Cannot set to None so can only specify True/False
                         if np.any(H[H_rows]["use_gpus"]):
                             use_gpus = True
                         else:
                             use_gpus = False
+
+                    if "num_gpus" in H.dtype.names:
+                        gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+                        max_num_gpus = np.max(H[H_rows]["num_gpus"])
+                        num_rsets_req_for_gpus = max_num_gpus // gpus_per_rset + (max_num_gpus % gpus_per_rset > 0)
+
+                        libE_info["num_gpus"] = max_num_gpus  #todo SET use_gpus=True - but what if not.
+                        if num_rsets_req_for_gpus > 0:
+                            use_gpus = True
+                        #else:
+                            #use_gpus = False
+                        num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
                     #TODO (test/document) equiv for whether gen uses gpus e.g. persis_info['gen_use_gpus']
-                    #TODO Decide should it default to false or default to None
-                    use_gpus = self.persis_info.get("gen_use_gpus", False)
+                    #TODO Should it default to false or default to None
+                    #TODO num_procs / num_gpus for gen
+                    use_gpus = self.persis_info.get("gen_use_gpus", None)
                 #print(f"Alloc {use_gpus=}")
-                return self.assign_resources(num_rsets_req, use_gpus)
+                libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
@@ -181,7 +209,9 @@ class AllocSupport:
 
         """
         # Parse out resource_sets
-        libE_info["rset_team"] = self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
+        self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
+        #print(f"Sim: {libE_info=}")
+
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
 
@@ -215,8 +245,9 @@ class AllocSupport:
         any resource checking has already been done. For example, passing ``rset_team=[]``, would
         ensure that no resources are assigned.
         """
+        self._update_rset_team(libE_info, wid)
 
-        libE_info["rset_team"] = self._update_rset_team(libE_info, wid)
+        #print(f"Gen: {libE_info=}")
 
         if not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
