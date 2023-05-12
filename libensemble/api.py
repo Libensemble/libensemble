@@ -31,6 +31,31 @@ class Ensemble:
     """
     The primary class for a libEnsemble workflow.
 
+    .. dropdown:: Example
+        :open:
+
+        .. code-block:: python
+            :linenos:
+
+            from libensemble import Ensemble, SimSpecs, GenSpecs, ExitCriteria
+            from my_simulator import beamline
+            from someones_optimizer import optimize
+
+            experiment = Ensemble()
+            experiment.sim_specs = SimSpecs(sim_f=beamline, inputs=["x"], out=[("f", float)])
+            experiment.gen_specs = GenSpecs(
+                gen_f=optimize,
+                inputs=["f"],
+                out=[("x", float, (1,))],
+                user={
+                    "lb": np.array([-3]),
+                    "ub": np.array([3]),
+                },
+            )
+
+            experiment.exit_criteria = ExitCriteria(gen_max=101)
+            results = experiment.run()
+
     Parses ``--comms``, ``--nworkers``,
     and other options from the command-line, validates inputs, configures logging,
     and performs other preparations.
