@@ -29,11 +29,11 @@
 libEnsemble: A complete toolkit for dynamic ensembles of calculations
 =====================================================================
 
-Adaptive, portable, and scalable software to connect "deciders" to experiments or simulations.
+Adaptive, portable, and scalable software for connecting "deciders" to experiments or simulations.
 
-• **Adaptive ensembles**: Generate parallel tasks on-the-fly based on previous computations.
+• **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
-• **Dynamic resource management**: Adaptively assign and reassign CPU/GPU resources to tasks.
+• **Heterogeneous computing**: Adaptively assign and reassign Nvidia, AMD, and Intel CPU/GPU resources to tasks.
 • **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
 • **Coordinated data-flow between tasks**: Pass data between ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
