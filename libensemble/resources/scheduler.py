@@ -73,7 +73,7 @@ class ResourceScheduler:
         self.match_slots = sched_opts.get("match_slots", True)
         self.last_use_gpus = None
 
-    def assign_resources(self, rsets_req, use_gpus=None):
+    def assign_resources(self, rsets_req, use_gpus=None, user_params=[]):
         """Schedule resource sets to a work item if possible.
 
         If the resources required are less than one node, they will be
@@ -137,7 +137,7 @@ class ResourceScheduler:
                 while not found_split:
                     # Finds a split with enough slots (not nec. matching slots) if exists.
                     rsets_req, num_groups_req, rsets_req_per_group = self.calc_even_split_uneven_groups(
-                        max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups
+                        max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups, user_params
                     )
                     if self.match_slots:
                         cand_groups, cand_slots = self.get_matching_slots(
@@ -344,9 +344,16 @@ class ResourceScheduler:
             rsets_per_group = rsets_req
         return rsets_req, num_groups_req, rsets_per_group
 
-    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps):
+    def check_params(self, user_params, ngroups):
+        """Retrun True if all user params divide by number of groups, else False"""
+        for param in user_params:
+            if param % ngroups != 0:
+                return False
+        return True
+
+    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, user_params):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
-        while rsets_per_grp * ngroups != rsets_req:
+        while rsets_per_grp * ngroups != rsets_req or not self.check_params(user_params, ngroups):
             if rsets_per_grp * ngroups > rsets_req:
                 rsets_per_grp -= 1
             else:

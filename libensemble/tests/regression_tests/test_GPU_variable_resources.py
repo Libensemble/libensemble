@@ -31,8 +31,8 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
+from libensemble.gen_funcs.persistent_sampling import uniform_sample_with_num_gpus as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -74,7 +74,8 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+        #"out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+        "out": [("priority", float), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
             "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {"sim_max": 40, "wallclock_max": 300}
+    exit_criteria = {"sim_max": 40}
 
     # Perform the run
     H, persis_info, flag = libE(

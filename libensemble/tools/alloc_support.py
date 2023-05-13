@@ -4,7 +4,7 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import InsufficientFreeResources, ResourceScheduler  # noqa: F401
+from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler  # noqa: F401
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class AllocSupport:
             scheduler_opts = libE_info.get("scheduler_opts", {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
-    def assign_resources(self, rsets_req, use_gpus=None):
+    def assign_resources(self, rsets_req, use_gpus=None, user_params=[]):
         """Schedule resource sets to a work record if possible.
 
         For default scheduler, if more than one group (node) is required,
@@ -69,11 +69,19 @@ class AllocSupport:
 
         :param rsets_req: Int. Number of resource sets to request.
         :param use_gpus: Bool. Whether to use GPU resource sets.
+        :param user_params: list of Integers. User parameters num_procs, num_gpus
         :returns: List of Integers. Resource set indices assigned.
         """
         rset_team = None
         if self.resources is not None:
-            rset_team = self.sched.assign_resources(rsets_req, use_gpus)
+            # Try schedule to non-gpu rsets first
+            if use_gpus is None:
+                try:
+                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=False, user_params=user_params)
+                except (InsufficientFreeResources, InsufficientResourcesError):
+                    pass
+
+            rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
 
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
@@ -144,20 +152,22 @@ class AllocSupport:
             else:
                 use_gpus = None
 
+                user_params = []
+
                 #TODO This is if cores_per_rset or gpus_per_rset >=1 - test works on >1 node.
                 if H is not None and H_rows is not None:
                     #TODO need pydantic check on H that dont have resource_sets and num_procs/gpus
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
-
                         procs_per_rset = self.resources.resource_manager.cores_per_rset
                         max_num_procs = np.max(H[H_rows]["num_procs"])
+                        user_params.append(max_num_procs)
                         num_rsets_req = max_num_procs // procs_per_rset + (max_num_procs % procs_per_rset > 0)
 
                         #TODO if > 1 point to a sim - executor should know num_procs/num_gpus know by sim_id
                         libE_info["num_procs"] = max_num_procs
-                        #use_gpus = False #TODO should use_gpus default to None or false
+                        #use_gpus = False  #TODO should use_gpus default to None or false
                     else:
                         num_rsets_req = 1
 
@@ -171,6 +181,7 @@ class AllocSupport:
                     if "num_gpus" in H.dtype.names:
                         gpus_per_rset = self.resources.resource_manager.gpus_per_rset
                         max_num_gpus = np.max(H[H_rows]["num_gpus"])
+                        user_params.append(max_num_gpus)
                         num_rsets_req_for_gpus = max_num_gpus // gpus_per_rset + (max_num_gpus % gpus_per_rset > 0)
 
                         libE_info["num_gpus"] = max_num_gpus  #todo SET use_gpus=True - but what if not.
@@ -186,7 +197,7 @@ class AllocSupport:
                     #TODO num_procs / num_gpus for gen
                     use_gpus = self.persis_info.get("gen_use_gpus", None)
                 #print(f"Alloc {use_gpus=}")
-                libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus)
+                libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.

@@ -47,11 +47,10 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_task_gpu_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.resources.platforms import GPU_SET_DEF, GPU_SET_CLI
 from libensemble.tests.regression_tests.common import create_node_file
 
 
@@ -93,7 +92,8 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        "out": [("priority", float), ("resource_sets", int), ("use_gpus", bool), ("x", float, n)],
+        #"out": [("priority", float), ("resource_sets", int), ("use_gpus", bool), ("x", float, n)],
+        "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
             "max_resource_sets": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
@@ -132,8 +132,8 @@ if __name__ == "__main__":
                                    "node_file": node_file,
                                    "cores_on_node": (32,64)}  # Mock GPU system / uncomment to detect GPUs
 
-    #for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-    for run_set in ["mpich"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    #for run_set in ["mpich"]:
 
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
         exctr = MPIExecutor(custom_info={"mpi_runner": run_set})

@@ -1,3 +1,5 @@
+"""Persistent generator providing points using sampling"""
+
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
@@ -5,12 +7,21 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
     "persistent_uniform",
-    "uniform_random_sample_with_variable_resources",
+    "uniform_sample_with_num_gpus",
     "persistent_request_shutdown",
     "uniform_nonblocking",
     "batched_history_matching",
     "persistent_uniform_with_cancellations",
 ]
+
+
+def _get_user_params(user_specs):
+    """Extract user params"""
+    b = user_specs["initial_batch_size"]
+    ub = user_specs["ub"]
+    lb = user_specs["lb"]
+    n = len(lb)  # dimension
+    return b, n, lb, ub
 
 
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
@@ -25,10 +36,8 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
         `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_async.py>`_ # noqa
     """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
@@ -50,65 +59,27 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-# TODO Testing num_gpus with various values - remove commented lines
-def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
+def uniform_sample_with_num_gpus(_, persis_info, gen_specs, libE_info):
     """
-    Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
-    ``gen_specs["user"]["lb"]``. Also randomly requests a different number of resource
-    sets to be used in the evaluation of the generated points after the initial batch.
+    Randomly requests a different number of processors and gpus to be used in the
+    evaluation of the generated points.
+    """
 
-    .. seealso::
-        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
-    """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
-    multi_task = gen_specs["user"].get("multi_task", False)
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    rng = persis_info["rand_stream"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-    print_gpus = ""
+    tag = None
 
-    # Give initial batch one resource set each
-    H_o = np.zeros(b, dtype=gen_specs["out"])
-    for i in range(0, b):
-        # x= i*np.ones(n)
-        x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
-        H_o["x"][i] = x
-        H_o["resource_sets"][i] = 1
-
-        if multi_task:
-            H_o["use_gpus"][i] = np.random.choice([True, False], 1)
-            print_gpus = f"gpus {H_o['use_gpus']}"
-
-        if "priority" in H_o.dtype.names:
-            H_o["priority"] = 1
-
-    print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']} {print_gpus}", flush=True)
-
-    # Give subsequent runs a random number of resource sets
-
-    # Send batches until manager sends stop tag
-    tag, Work, calc_in = ps.send_recv(H_o)
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
-        if calc_in is not None:
-            b = len(calc_in)
-
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        # H_o["x"] = len(H)*np.ones(n)
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-        H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
-
-        if multi_task:
-            H_o["use_gpus"] = np.random.choice([True, False], b)
-            print_gpus = f"gpus {H_o['use_gpus']}"
-
-        if "priority" in H_o.dtype.names:
-            H_o["priority"] = 10 * H_o["resource_sets"]  # prioritize by resource size
-
-        print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']} gpus {print_gpus}", flush=True)
-
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
+        nprocs = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)  #TODO max_procs ?
+        #H_o["num_procs"] = nprocs  #TODO - is nprocs matched to gpus
+        H_o["num_gpus"] = nprocs
+        print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)
         tag, Work, calc_in = ps.send_recv(H_o)
+        if hasattr(calc_in, "__len__"):
+            b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -123,10 +94,7 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
     """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     shutdown_limit = gen_specs["user"]["shutdown_limit"]
     f_count = 0
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -155,10 +123,7 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
         `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
 
     """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag

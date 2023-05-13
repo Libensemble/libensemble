@@ -161,7 +161,10 @@ class MPIRunner:
 
         if nnodes is None:
             if nprocs:
-                nnodes = min(nprocs, wresources.local_node_count)
+                if ppn:
+                    nnodes = nprocs // ppn
+                else:
+                    nnodes = min(nprocs, wresources.local_node_count)
             else:
                 nnodes = wresources.local_node_count
 
@@ -200,6 +203,37 @@ class MPIRunner:
             self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
 
         return nprocs, nnodes, ppn, extra_args
+
+    #TODO make static
+    def _calc_nodes(self, nprocs, ppn, nnodes, wresources):
+        if nnodes is None:
+            if ppn:
+                nnodes = nprocs // ppn
+            else:
+                nnodes = min(nprocs, wresources.local_node_count)  #what if some lesser no. nodes would work?
+        return nnodes
+
+    #TODO make static function so can unit test.
+    def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
+        """Adjust an invalid config"""
+        wresources = resources.worker_resources
+        if nprocs is not None:
+            nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
+            mod_cpus = nprocs % nnodes
+            if mod_cpus != 0:
+                oldnp = nprocs
+                nprocs = nprocs + mod_cpus
+                logger.info(f"Adjusted nprocs to split evenly across nodes. From {oldnp} to {nprocs}")
+        if ngpus is not None:
+            nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
+            mod_gpus = ngpus % nnodes
+            if mod_gpus != 0:
+                try_gpus = ngpus + mod_gpus
+                if try_gpus <= wresources.slot_count * wresources.gpus_per_rset * nnodes:
+                    oldng = ngpus
+                    ngpus = try_gpus
+                    logger.info(f"Adjusted ngpus to split evenly across nodes. From {oldng} to {ngpus}")
+        return nprocs, ngpus
 
     def get_mpi_specs(
         self,
@@ -240,6 +274,7 @@ class MPIRunner:
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
+        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
 
         if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
@@ -467,6 +502,7 @@ class JSRUN_MPIRunner(MPIRunner):
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
+        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
 
         if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
