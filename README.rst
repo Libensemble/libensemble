@@ -33,7 +33,7 @@ Adaptive, portable, and scalable software for connecting "deciders" to experimen
 
 • **Dynamic ensembles**: Generate parallel tasks on-the-fly based on previous computations.
 • **Extreme portability and scaling**: Run on or across laptops, clusters, and leadership-class machines.
-• **Heterogeneous computing**: Dynamically and portably assign Nvidia, AMD, and Intel CPU/GPU resources to tasks.
+• **Heterogeneous computing**: Dynamically and portably assign Nvidia, AMD, and Intel CPU/GPU resources.
 • **Application monitoring**: Ensemble members can run, monitor, and cancel apps.
 • **Coordinated data-flow between tasks**: Pass data between ensemble members.
 • **Low start-up cost**: No additional background services or processes required.
