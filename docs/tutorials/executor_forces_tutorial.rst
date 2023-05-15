@@ -105,7 +105,7 @@ Our generation function will generate random numbers of particles (between
 the ``"lb"`` and ``"ub"`` bounds) for our simulation function to evaluate via our
 registered application.
 
-The following additional :ref:`libE_specs setting<output_dirs>` instructs libEnsemble's workers
+The following additional ``libE_specs`` setting instructs libEnsemble's workers
 to each create and work within a separate directory each time they call a simulation
 function. This helps organize output and also helps prevents workers from overwriting
 previous results:
@@ -139,7 +139,7 @@ This may take some additional browsing of the docs to complete.
 
 Write an alternative Calling Script similar to above, but with the following differences:
 
- 1. Add an additional :ref:`worker directory setting<output_dirs>` so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
+ 1. Add an additional ``libE_specs`` setting so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
  2. Override the MPIExecutor's detected MPI runner with ``"openmpi"``.
  3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
  4. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
