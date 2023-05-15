@@ -1,7 +1,7 @@
 Output Management
 =================
 
-Each of the following described output files and directories can be placed in a run-specific
+Each of the following described output files can be placed in a run-specific
 directory by setting ``libE_specs["use_workflow_dir"] = True``.
 
 Default Log Files
