@@ -207,10 +207,12 @@ class MPIRunner:
     #TODO make static
     def _calc_nodes(self, nprocs, ppn, nnodes, wresources):
         if nnodes is None:
-            if ppn:
+            if nprocs and ppn:
                 nnodes = nprocs // ppn
+            elif nprocs:
+                nnodes = min(nprocs, wresources.local_node_count)
             else:
-                nnodes = min(nprocs, wresources.local_node_count)  #what if some lesser no. nodes would work?
+                nnodes = wresources.local_node_count
         return nnodes
 
     #TODO make static function so can unit test.
