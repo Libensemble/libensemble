@@ -3,16 +3,21 @@
 Generator Functions
 ===================
 
-As described in the :ref:`API<api_gen_f>`, the ``gen_f`` is called by a
-libEnsemble worker via the following::
+.. code-block:: python
 
-    out, persis_info, calc_status = gen_f(H[gen_specs["in"]][sim_ids_from_allocf], persis_info, gen_specs, libE_info)
+    def my_generator(Input, persis_info, gen_specs):
+
+        Output = numpy.zeros(len(Input), gen_specs["out"])
+        score, persis_info = evaluate_simulation_output(Input, persis_info)
+        Output["next_input"] = generate_next_simulation_inputs(score)
+
+        return Output, persis_info
 
 In practice, most ``gen_f`` function definitions written by users resemble::
 
-    def my_generator(H, persis_info, gen_specs, libE_info):
+    def my_generator(Input, persis_info, gen_specs, libE_info):
 
-Where ``H`` is a selection of the
+Where ``Input`` is a selection of the
 :ref:`History array<funcguides-history>`, determined by sim IDs from the
 ``alloc_f``, :ref:`persis_info<datastruct-persis-info>` is a dictionary
 containing state information, :ref:`gen_specs<datastruct-gen-specs>` is a
