@@ -268,7 +268,7 @@ class Ensemble:
 
     def ready(self) -> bool:
         """Quickly verify that all necessary data has been provided"""
-        return all([i for i in [self.exit_criteria, self.libE_specs]])
+        return all([i for i in [self.exit_criteria, self.libE_specs, self.sim_specs]])
 
     def run(self) -> (npt.NDArray, dict, int):
         """
