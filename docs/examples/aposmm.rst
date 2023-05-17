@@ -42,8 +42,8 @@ LocalOptInterfacer
   :members:
   :undoc-members:
 
-.. _SciPy: https://pypi.org/project/scipy
-.. _mpmath: https://pypi.org/project/mpmath
-.. _nlopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
-.. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
+.. _mpmath: https://pypi.org/project/mpmath
+.. _nlopt: https://nlopt.readthedocs.io/en/latest/
+.. _petsc4py: https://bitbucket.org/petsc/petsc4py
+.. _SciPy: https://pypi.org/project/scipy
