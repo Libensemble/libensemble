@@ -16,4 +16,3 @@ a complete libEnsemble workflow, or using the alternative yaml interface.
    alloc_specs
    persis_info
    exit_criteria
-   ensemble_specs

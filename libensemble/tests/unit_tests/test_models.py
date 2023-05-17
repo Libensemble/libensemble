@@ -6,11 +6,11 @@ from libensemble.specs import (
     _IN_INVALID_ERR,
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
-    EnsembleSpecs,
     ExitCriteria,
     GenSpecs,
     LibeSpecs,
     SimSpecs,
+    _EnsembleSpecs,
 )
 
 
@@ -128,7 +128,7 @@ def test_ensemble_specs():
     H0["sim_id"] = [0, 1, 2, -1, -1]
     H0[["sim_started", "sim_ended"]][0:3] = True
 
-    es = EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
+    es = _EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
     assert es.nworkers == libE_specs["nworkers"], "nworkers not passed through to ensemble specs"
 
 
