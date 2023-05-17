@@ -11,7 +11,7 @@ compatibility.
 
    .. tab-item:: Ensemble Class
 
-      .. autoclass:: libensemble.api.Ensemble()
+      .. autoclass:: libensemble.ensemble.Ensemble()
          :members:
          :no-undoc-members:
 

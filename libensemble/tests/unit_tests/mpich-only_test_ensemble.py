@@ -7,7 +7,7 @@ import libensemble.tests.unit_tests.setup as setup
 @pytest.mark.extra
 def test_ensemble_init():
     """testing init attrs"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     e = Ensemble(
         libE_specs={"comms": "local", "nworkers": 4}
@@ -21,7 +21,7 @@ def test_ensemble_init():
 @pytest.mark.extra
 def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     for ft in ["yaml", "json", "toml"]:
         e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
@@ -48,7 +48,7 @@ def test_from_files():
 @pytest.mark.extra
 def test_bad_func_loads():
     """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     yaml_errors = {
         "./simdir/test_example_badfuncs_attribute.yaml": AttributeError,
@@ -68,7 +68,7 @@ def test_bad_func_loads():
 @pytest.mark.extra
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
