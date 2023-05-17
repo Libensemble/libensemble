@@ -161,13 +161,16 @@ class AllocSupport:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
                         procs_per_rset = self.resources.resource_manager.cores_per_rset
-                        max_num_procs = np.max(H[H_rows]["num_procs"])
+                        max_num_procs = int(np.max(H[H_rows]["num_procs"]))
                         user_params.append(max_num_procs)
-                        num_rsets_req = max_num_procs // procs_per_rset + (max_num_procs % procs_per_rset > 0)
-
+                        try:
+                            num_rsets_req = max_num_procs // procs_per_rset + (max_num_procs % procs_per_rset > 0)
+                        except ZeroDivisionError:
+                            raise InsufficientResourcesError(
+                                f"There are zero processors per resource set (worker). Use fewer workers or more resources"
+                            )
                         #TODO if > 1 point to a sim - executor should know num_procs/num_gpus know by sim_id
                         libE_info["num_procs"] = max_num_procs
-                        #use_gpus = False  #TODO should use_gpus default to None or false
                     else:
                         num_rsets_req = 1
 
@@ -180,15 +183,17 @@ class AllocSupport:
 
                     if "num_gpus" in H.dtype.names:
                         gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        max_num_gpus = np.max(H[H_rows]["num_gpus"])
+                        max_num_gpus = int(np.max(H[H_rows]["num_gpus"]))
                         user_params.append(max_num_gpus)
-                        num_rsets_req_for_gpus = max_num_gpus // gpus_per_rset + (max_num_gpus % gpus_per_rset > 0)
-
+                        try:
+                            num_rsets_req_for_gpus = max_num_gpus // gpus_per_rset + (max_num_gpus % gpus_per_rset > 0)
+                        except ZeroDivisionError:
+                            raise InsufficientResourcesError(
+                                f"There are zero GPUs per resource set (worker). Use fewer workers or more resources"
+                            )
                         libE_info["num_gpus"] = max_num_gpus  #todo SET use_gpus=True - but what if not.
                         if num_rsets_req_for_gpus > 0:
                             use_gpus = True
-                        #else:
-                            #use_gpus = False
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
@@ -196,7 +201,6 @@ class AllocSupport:
                     #TODO Should it default to false or default to None
                     #TODO num_procs / num_gpus for gen
                     use_gpus = self.persis_info.get("gen_use_gpus", None)
-                #print(f"Alloc {use_gpus=}")
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
