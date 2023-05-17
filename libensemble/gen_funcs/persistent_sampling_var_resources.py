@@ -14,16 +14,10 @@ __all__ = [
     "uniform_sample_with_procs_gpus",
     "uniform_sample_with_var_priorities",
     "uniform_sample_diff_simulations",
-    "uniform_sample_diff_simulations_rets",
+    "uniform_sample_diff_simulations_rsets",
 ]
 
 #TODO FOR HERE AND persistent_sampling.py - check examples giving in docstrings - exists and correct location or remove
-
-#print (or log if use logger).
-#thing is not always same for every func!
-def _print_points(b, nprocs):
-    print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)
-
 
 def _get_user_params(user_specs):
     """Extract user params"""
@@ -139,9 +133,9 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        use_gpus = rng.choice([True, False], b)
         H_o["x"] = rng.uniform(lb, ub, (b, n))
         nprocs = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)  #TODO max_procs ?
+        use_gpus = rng.choice([True, False], b)
         H_o["num_procs"] = nprocs
         H_o["num_gpus"] = np.where(use_gpus, nprocs, 0)
         print(f"GEN created {b} sims requiring {nprocs} procs. Use GPUs {use_gpus}", flush=True)
@@ -153,7 +147,8 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def uniform_sample_diff_simulations_rets(_, persis_info, gen_specs, libE_info):
+# This requires setting num_procs/gpus in sim function (usually needs two alternative submits)
+def uniform_sample_diff_simulations_rsets(_, persis_info, gen_specs, libE_info):
     """
     Randomly requests a different number of resource sets for each simulation.
     One simulation type also uses GPUs.
@@ -166,12 +161,11 @@ def uniform_sample_diff_simulations_rets(_, persis_info, gen_specs, libE_info):
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
-        use_gpus = rng.choice([True, False], b)
         H_o["x"] = rng.uniform(lb, ub, (b, n))
+        use_gpus = rng.choice([True, False], b)
         rsets = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
         H_o["resource_sets"] = rsets
-        if use_gpus:
-            H_o["use_gpus"] = True
+        H_o["use_gpus"] = use_gpus
         print(f"GEN created {b} sims requiring {rsets} procs. Use GPUs {use_gpus}", flush=True)
 
         tag, Work, calc_in = ps.send_recv(H_o)
