@@ -221,7 +221,7 @@ jobs:
         - name: Activate API unit test if using mpich
           if: matrix.mpi-version == 'mpich'
           run: |
-            mv libensemble/tests/unit_tests/mpich-only_test_api.py libensemble/tests/unit_tests/test_alt_api.py
+            mv libensemble/tests/unit_tests/mpich-only_test_ensemble.py libensemble/tests/unit_tests/test_ensemble.py
 
         - name: Remove ytopt-heffte test on Python 3.11 (easy way)
           if: matrix.python-version == '3.11'

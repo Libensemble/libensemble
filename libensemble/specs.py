@@ -32,7 +32,7 @@ BaseConfig.error_msg_templates = {
 }
 BaseConfig.validate_assignment = True
 
-__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
+__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
 
 class SimSpecs(BaseModel):
@@ -521,7 +521,7 @@ class LibeSpecs(BaseModel):
         return values
 
 
-class EnsembleSpecs(BaseModel):
+class _EnsembleSpecs(BaseModel):
     """An all-encompasing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
