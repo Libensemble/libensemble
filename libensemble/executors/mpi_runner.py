@@ -153,7 +153,6 @@ class MPIRunner:
         wresources = resources.worker_resources
 
         # gpus per node for this worker.
-        #print(f"{wresources.doihave_gpus()=}")
         if wresources.doihave_gpus():
             gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset
         else:
@@ -168,7 +167,6 @@ class MPIRunner:
             else:
                 nnodes = wresources.local_node_count
 
-        # It could be zero
         if ngpus is not None:
             gpus_req_per_node = ngpus // nnodes
             if gpus_req_per_node > gpus_avail_per_node:
@@ -176,13 +174,18 @@ class MPIRunner:
             gpus_per_node = min(gpus_req_per_node, gpus_avail_per_node)
         else:
             gpus_per_node = gpus_avail_per_node
-
-        gpu_setting_type = "runner_default"
+        task.ngpus_req = gpus_per_node
 
         if match_procs_to_gpus:
             ppn = gpus_per_node
             nprocs = nnodes * ppn
             jassert(nprocs > 0, f"Matching procs to GPUs has resulted in {nprocs} procs")
+
+        if ngpus == 0:
+            # if request zero gpus, return here
+            return nprocs, nnodes, ppn, extra_args
+
+        gpu_setting_type = "runner_default"
 
         if ppn is None:
             ppn = nprocs // nnodes
@@ -215,7 +218,7 @@ class MPIRunner:
                 nnodes = wresources.local_node_count
         return nnodes
 
-    #TODO make static function so can unit test.
+    #TODO make static
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
         wresources = resources.worker_resources

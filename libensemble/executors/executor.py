@@ -152,6 +152,7 @@ class Task:
         self.runline = None
         self.run_attempts = 0
         self.env = {}
+        self.ngpus_req = 0
 
     def reset(self) -> None:
         # Status attributes
@@ -163,6 +164,7 @@ class Task:
         self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
+        self.ngpus_req = 0
 
     def _add_to_env(self, key, value):
         """Add to task environment - overwrites if already set"""
