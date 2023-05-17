@@ -202,8 +202,8 @@ class WorkerResources(RSetResources):
         self.rset_team = None
         self.num_rsets = 0
         self.slots = None
-        self.even_slots = None
-        self.matching_slots = None
+        self.even_slots = True
+        self.matching_slots = True
         self.slot_count = None
         self.slots_on_node = None
         self.zero_resource_workers = resources.zero_resource_workers
