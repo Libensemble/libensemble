@@ -17,9 +17,9 @@ interrogates available resources and sets explicitly.
 
 __all__ = [
     "gpu_variable_resources",
+    "gpu_variable_resources_from_gen",
     "multi_points_with_variable_resources",
     "CUDA_variable_resources",
-    "multi_task_gpu_variable_resources",
 ]
 
 import os
@@ -30,49 +30,6 @@ from libensemble.message_numbers import TASK_FAILED, UNSET_TAG, WORKER_DONE
 from libensemble.resources.resources import Resources
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.tools.test_support import check_gpu_setting
-
-#TODO merge with gpu_variable_resources_from_gen and update docstring.
-#     - using num_procs and/or num_gpus assigned by generator.
-#TODO move to bottom
-def multi_task_gpu_variable_resources(H, persis_info, sim_specs, libE_info):
-    """Use GPUs if GPU resources are available to this worker.
-
-    Used to emulate a multi-task setup where one application type uses
-    GPUs and the other does not.
-
-    """
-    x = H["x"][0]
-    H_o = np.zeros(1, dtype=sim_specs["out"])
-    dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
-    inpt = " ".join(map(str, x))  # Application input
-    exctr = Executor.executor  # Get Executor
-
-    # Launch application via system MPI runner, using assigned resources.
-    task = exctr.submit(
-        app_name="six_hump_camel",
-        app_args=inpt,
-        stdout="out.txt",
-        stderr="err.txt",
-        dry_run=dry_run,
-    )
-
-    if not dry_run:
-        task.wait()  # Wait for run to complete
-
-        # Access app output
-        with open("out.txt") as f:
-            H_o["f"] = float(f.readline().strip())  # Read just first line
-
-    # Asserts GPU set correctly (for known MPI runners)
-    #if use_gpus:
-    #check_gpu_setting(task, print_setting=True)
-
-    #TODO - how to test - works but check_gpu_setting assert does not always match - gpu/non-gpu rsets.
-    #tmp - not asserting - only functional difference to gpu_variable_resources_from_gen
-    check_gpu_setting(task, assert_setting=False, print_setting=True)
-
-    calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
-    return H_o, persis_info, calc_status
 
 
 def gpu_variable_resources(H, persis_info, sim_specs, libE_info):

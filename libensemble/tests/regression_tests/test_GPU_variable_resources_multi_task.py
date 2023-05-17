@@ -3,12 +3,14 @@ Tests multi-task (using GPU and non-GPU tasks using variable resources
 and automatic GPU assignment in libEnsemble.
 
 The persistent generator creates simulations with variable resource requirements
-and some that require GPUs and some do not.
+and some that require GPUs and some do not. The "num_procs" and "num_gpus"
+for each task are set in the generator. These are automatically passed through
+to the executor used by the sim.
 
-The sim_f (multi_task_gpu_variable_resources) asserts that GPUs assignment
+The sim_f (gpu_variable_resources_from_gen) asserts that GPUs assignment
 is correct for the default method for the MPI runner. GPUs are not actually
-used for default application. Four GPUs per node is mocked up below (if this line
-is removed, libEnsemble will detect any GPUs available).
+used for default application. CPUs and GPUs per node are mocked up below
+(if this line is removed, libEnsemble will detect any CPUs/GPUs available).
 
 A dry_run option is provided. This can be set in the calling script, and will
 just print run-lines and GPU settings. This may be used for testing run-lines
@@ -38,8 +40,11 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-from libensemble.sim_funcs.var_resources import multi_task_gpu_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+
+# Using num_procs / num_gpus in gen
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
+from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
+
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -56,7 +61,9 @@ if __name__ == "__main__":
     # The persistent gen does not need resources
 
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
-    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
+
+    # Mock CPU/GPU system / uncomment/modify to detect CPUs/GPUs
+    libE_specs["resource_info"] = {"cores_on_node": (32,64) ,"gpus_on_node": 4}
 
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_multi_task_w" + str(nworkers)
@@ -81,7 +88,7 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        "out": [("priority", float), ("resource_sets", int), ("use_gpus", bool), ("x", float, n)],
+        "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
             "max_resource_sets": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
