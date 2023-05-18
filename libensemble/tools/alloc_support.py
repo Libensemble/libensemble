@@ -198,7 +198,6 @@ class AllocSupport:
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
                     #TODO (test/document) equiv for whether gen uses gpus e.g. persis_info['gen_use_gpus']
-                    #TODO Should it default to false or default to None
                     #TODO num_procs / num_gpus for gen
                     use_gpus = self.persis_info.get("gen_use_gpus", None)
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)

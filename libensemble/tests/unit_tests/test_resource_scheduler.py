@@ -19,11 +19,10 @@ class MyResources:
 
     # Basic layout
     def __init__(self, num_rsets, num_groups, gpus_per_node=0):
-        self.gpus_per_node = gpus_per_node
         self.total_num_rsets = num_rsets
         self.num_groups = num_groups
         self.rsets_per_node = self.total_num_rsets // num_groups
-        self.gpu_rsets_per_node = min(self.gpus_per_node, self.rsets_per_node)
+        self.gpu_rsets_per_node = min(gpus_per_node, self.rsets_per_node)
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
 
         self.even_groups = True
