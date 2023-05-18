@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
-    libE_specs["use_workflow_dir"] = True  # Only a place for Open machinefiles
+    libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
