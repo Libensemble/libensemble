@@ -235,28 +235,37 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
         :model-show-validator-members: False
         :model-show-validator-summary: False
         :field-list-validators: False
+        :model-show-field-summary: False
 
 Known Platforms List
 --------------------
 
-.. autopydantic_model:: libensemble.resources.platforms.Known_platforms
-  :model-show-validator-members: False
-  :model-show-validator-summary: False
-  :field-list-validators: False
-  :field-show-required: False
-  :field-show-default: False
-  :field-show-alias: False
-  :member-order:
+.. dropdown:: ``Known_platforms``
+
+    .. autopydantic_model:: libensemble.resources.platforms.Known_platforms
+        :model-show-validator-members: False
+        :model-show-validator-summary: False
+        :model-show-field-summary: False
+        :field-list-validators: False
+        :field-show-required: False
+        :field-show-default: False
+        :field-show-alias: False
+        :member-order:
+
 
 Platform Fields
 ----------------
 
-.. autopydantic_model:: libensemble.resources.platforms.Platform
-  :model-show-validator-members: False
-  :model-show-validator-summary: False
-  :field-list-validators: False
-  :field-show-default: False
-  :member-order:
+.. dropdown:: ``Platform Fields``
+
+    .. autopydantic_model:: libensemble.resources.platforms.Platform
+        :model-show-validator-members: False
+        :model-show-validator-summary: False
+        :field-list-validators: False
+        :field-show-default: False
+        :member-order:
+        :model-show-field-summary: False
+
 
 Scheduler Options
 -----------------
@@ -268,7 +277,7 @@ See options for :ref:`built-in scheduler<resources-scheduler>`.
 Overriding Resource Auto-Detection
 ----------------------------------
 
-Note that "cores_on_node" and "gpus_on_node" are supported for backward
+Note that ``"cores_on_node"`` and ``"gpus_on_node"`` are supported for backward
 compatibility, but use of ``platform_specs`` is recommended for these settings.
 
 .. dropdown:: Resource Info Fields
@@ -292,7 +301,7 @@ compatibility, but use of ``platform_specs`` is recommended for these settings.
 
         "nodelist_env_cobalt" [str]:
             The environment variable giving a node list in Cobalt format
-            (Default: Uses C``OBALT_PARTNAME``) Queried only
+            (Default: Uses ``COBALT_PARTNAME``) Queried only
             if a ``node_list`` file is not provided and the resource manager
             is enabled.
 

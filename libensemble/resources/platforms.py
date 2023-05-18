@@ -29,12 +29,13 @@ class Platform(BaseModel):
     """
 
     mpi_runner: Optional[str]
-    """MPI runner: One of "mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom" """
+    """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
+    ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
     runner_name: Optional[str]
     """Literal string of MPI runner command. Only needed if different to the default
 
-    Note that "mpich" and "openmpi" runners have the default command "mpirun"
+    Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
     cores_per_node: Optional[int]
     """Number of physical CPU cores on a compute node of the platform"""
@@ -50,10 +51,10 @@ class Platform(BaseModel):
 
     Must take one of the following string options.
 
-    - "runner_default":       Use default setting for MPI runner (same as if not set).
-    - "env":                  Use an environment variable (comma separated list of slots)
-    - "option_gpus_per_node": Expresses GPUs per node on MPI runner command line.
-    - "option_gpus_per_task": Expresses GPUs per task on MPI runner command line.
+    - ``"runner_default"``:       Use default setting for MPI runner (same as if not set).
+    - ``"env"``:                  Use an environment variable (comma separated list of slots)
+    - ``"option_gpus_per_node"``: Expresses GPUs per node on MPI runner command line.
+    - ``"option_gpus_per_task"``: Expresses GPUs per task on MPI runner command line.
 
     With the exception of "runner_default", the :attr:`gpu_setting_name`
     attribute is also required when this attribute is set.
@@ -93,13 +94,13 @@ class Platform(BaseModel):
     Whether the libEnsemble resource scheduler should only assign matching slots when
     there are multiple (partial) nodes assigned to a sim function.
 
-    Defaults to True, within libEnsemble.
+    Defaults to ``True``, within libEnsemble.
 
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``, where
     the value should match on each node of an MPI run (choose **True**).
 
     When using command-line options just as ``--gpus-per-node``, which allow the systems
-    application level scheduler to manager GPUs, then match_slots can be **False**
+    application level scheduler to manager GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
@@ -214,35 +215,38 @@ class Sunspot(Platform):
 class Known_platforms(BaseModel):
     """A list of platforms with known configurations.
 
-    The *libE_specs* option ``platform_specs`` can be set to these values to
-    configure for a known system. E.g:
+    There are three ways to specify a known system:
 
-    .. code-block:: python
+    .. tab-set::
 
-        from libensemble.resources.platforms import PerlmutterGPU
+        .. tab-item:: ["platform_specs"]
 
-        libE_specs["platform_specs"] = PerlmutterGPU()
+            .. code-block:: python
 
+                from libensemble.resources.platforms import PerlmutterGPU
 
-    Alternatively the *libE_specs* ``platform`` option (or the ``LIBE_PLATFORM``
-    environment variable) can be set to the field name as a string. E.g:
+                libE_specs["platform_specs"] = PerlmutterGPU()
 
-    .. code-block:: python
+        .. tab-item:: ["platform"]
 
-        libE_specs["platform"] = "perlmutter_g"
+            .. code-block:: python
 
-    Alternatively (on command line or batch submission script):
+                libE_specs["platform"] = "perlmutter_g"
 
-    .. code-block:: shell
+        .. tab-item:: export LIBE_PLATFORM
 
-        export LIBE_PLATFORM="perlmutter_g"
+            On command-line or batch submission script:
+
+            .. code-block:: shell
+
+                export LIBE_PLATFORM="perlmutter_g"
 
 
     If the platform is not specified, libEnsemble will attempt detect known
     platforms (this is not guaranteed).
 
     **Note**: libEnsemble should work on any platform, and detects most
-    system configuration correctly. These options are helpful for optimization and
+    system configurations correctly. These options are helpful for optimization and
     where auto-detection encounters ambiguity or an unknown feature.
     """
 
