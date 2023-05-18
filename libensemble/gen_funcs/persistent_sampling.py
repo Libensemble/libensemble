@@ -73,8 +73,7 @@ def uniform_sample_with_num_gpus(_, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = rng.uniform(lb, ub, (b, n))
-        nprocs = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)  #TODO max_procs ?
-        #H_o["num_procs"] = nprocs  #TODO - is nprocs matched to gpus
+        nprocs = rng.integers(1, gen_specs["user"]["max_procs"] + 1, b)
         H_o["num_gpus"] = nprocs
         print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)
         tag, Work, calc_in = ps.send_recv(H_o)

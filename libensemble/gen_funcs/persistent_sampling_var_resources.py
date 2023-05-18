@@ -69,8 +69,8 @@ def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = rng.uniform(lb, ub, (b, n))
-        nprocs = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)  #TODO max_procs ?
-        H_o["num_procs"] = nprocs
+        nprocs = rng.integers(1, gen_specs["user"]["max_procs"] + 1, b)
+        H_o["num_procs"] = nprocs  # This would get matched to GPUs anyway, if no other config given
         H_o["num_gpus"] = nprocs  #TODO - COULD HAVE gpus_per_procs also - either constant or given by gen_specs["user"]
         print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)  #TODO maybe an if print (a func?)
 
@@ -134,7 +134,7 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = rng.uniform(lb, ub, (b, n))
-        nprocs = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)  #TODO max_procs ?
+        nprocs = rng.integers(1, gen_specs["user"]["max_procs"] + 1, b)
         use_gpus = rng.choice([True, False], b)
         H_o["num_procs"] = nprocs
         H_o["num_gpus"] = np.where(use_gpus, nprocs, 0)

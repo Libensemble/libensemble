@@ -32,7 +32,7 @@ import numpy as np
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_sample_with_num_gpus as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_procs_gpus as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -46,8 +46,6 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    # The persistent gen does not need resources
-
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
 
@@ -60,7 +58,6 @@ if __name__ == "__main__":
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__
     exctr = MPIExecutor()
-    # exctr = MPIExecutor(custom_info={"mpi_runner": "srun"})
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     n = 2
@@ -74,11 +71,10 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        #"out": [("priority", float), ("resource_sets", int), ("x", float, n)],
-        "out": [("priority", float), ("num_gpus", int), ("x", float, n)],
+        "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
-            "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "max_procs": nworkers - 1,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },

@@ -91,7 +91,7 @@ if __name__ == "__main__":
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
-            "max_resource_sets": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
+            "max_procs": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "multi_task": True,
