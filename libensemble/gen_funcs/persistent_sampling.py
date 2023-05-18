@@ -7,7 +7,6 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
     "persistent_uniform",
-    "uniform_sample_with_num_gpus",
     "persistent_request_shutdown",
     "uniform_nonblocking",
     "batched_history_matching",
@@ -55,30 +54,6 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         # PERSIS_STOP. This history is returned in Work.
         H_o = Work
         H_o["x"] = -1.23
-
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
-
-
-def uniform_sample_with_num_gpus(_, persis_info, gen_specs, libE_info):
-    """
-    Randomly requests a different number of processors and gpus to be used in the
-    evaluation of the generated points.
-    """
-
-    b, n, lb, ub = _get_user_params(gen_specs["user"])
-    rng = persis_info["rand_stream"]
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-    tag = None
-
-    while tag not in [STOP_TAG, PERSIS_STOP]:
-        H_o = np.zeros(b, dtype=gen_specs["out"])
-        H_o["x"] = rng.uniform(lb, ub, (b, n))
-        nprocs = rng.integers(1, gen_specs["user"]["max_procs"] + 1, b)
-        H_o["num_gpus"] = nprocs
-        print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)
-        tag, Work, calc_in = ps.send_recv(H_o)
-        if hasattr(calc_in, "__len__"):
-            b = len(calc_in)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
