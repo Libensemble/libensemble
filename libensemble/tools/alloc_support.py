@@ -154,7 +154,6 @@ class AllocSupport:
                 user_params = []
 
                 if H is not None and H_rows is not None:
-                    #TODO need pydantic check on H that dont have resource_sets and num_procs/gpus
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
@@ -167,7 +166,6 @@ class AllocSupport:
                             raise InsufficientResourcesError(
                                 f"There are zero processors per resource set (worker). Use fewer workers or more resources"
                             )
-                        #TODO if > 1 point to a sim - executor should know num_procs/num_gpus know by sim_id
                         libE_info["num_procs"] = max_num_procs
                     else:
                         num_rsets_req = 1
@@ -195,8 +193,6 @@ class AllocSupport:
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
-                    #TODO (test/document) equiv for whether gen uses gpus e.g. persis_info['gen_use_gpus']
-                    #TODO num_procs / num_gpus for gen
                     use_gpus = self.persis_info.get("gen_use_gpus", None)
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 

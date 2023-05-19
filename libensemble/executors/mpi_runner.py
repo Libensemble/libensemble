@@ -207,7 +207,6 @@ class MPIRunner:
 
         return nprocs, nnodes, ppn, extra_args
 
-    #TODO make static
     def _calc_nodes(self, nprocs, ppn, nnodes, wresources):
         if nnodes is None:
             if nprocs and ppn:
@@ -218,7 +217,6 @@ class MPIRunner:
                 nnodes = wresources.local_node_count
         return nnodes
 
-    #TODO make static
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
         wresources = resources.worker_resources

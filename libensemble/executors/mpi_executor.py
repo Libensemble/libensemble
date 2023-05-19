@@ -282,7 +282,6 @@ class MPIExecutor(Executor):
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
 
-        #TODO - what to do if procs_per_node is set - or procs_per_node and num_nodes
         if not num_procs and not match_procs_to_gpus:
             num_procs = self.gen_nprocs
 

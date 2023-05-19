@@ -259,14 +259,12 @@ class WorkerResources(RSetResources):
 
     # libEnsemble functions ---------------------------------------------------
 
-    #TODO rename
-    #TODO should count up to get num rsets - and can use that in place of gpus_per_rset * num_rsets
     def doihave_gpus(self):
+        """Are this workers current resource sets GPU rsets"""
         if self.rset_team:
-            #for quick version - is first rset in my team got gpus - if so i've got gpus
+            # If first rset in my team got gpus - if so i've got gpus
             return self.all_rsets["gpus"][self.rset_team[0]]
         return False
-
 
     def set_rset_team(self, rset_team: List[int]) -> None:
         """Update worker team and local attributes

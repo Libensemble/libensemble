@@ -182,7 +182,7 @@ class ResourceScheduler:
 
     def find_rsets_any_slots(self, valid_rsets_by_group, max_grpsize, rsets_req, ngroups, rsets_per_group):
         """Find optimal non-matching slots across groups"""
-        tmp_rsets_by_group = copy.deepcopy(valid_rsets_by_group)  #TODO is this copy still needed?
+        tmp_rsets_by_group = copy.deepcopy(valid_rsets_by_group)
         max_upper_bound = max_grpsize + 1
 
         # Now find slots on as many nodes as need
