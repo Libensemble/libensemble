@@ -56,7 +56,6 @@ class RSetResources:
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
 
         gpus_avail_per_node = resources.gpus_avail_per_node
-
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
         self.gpu_rsets_per_node = min(gpus_avail_per_node, self.rsets_per_node)
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
@@ -67,7 +66,6 @@ class RSetResources:
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
         self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
 
-        #TODO will go to count up - but currently cant have a mix - either have gpu rsets or not.
         self.gpus_per_rset = gpus_avail_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
         self.cores_per_rset = resources.physical_cores_avail_per_node // self.rsets_per_node
 

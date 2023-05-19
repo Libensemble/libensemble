@@ -116,7 +116,7 @@ if __name__ == "__main__":
         del os.environ["LIBE_PLATFORM"]
 
     # First set - use executor setting ------------------------------------------------------------
-    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
+    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / remove to detect GPUs
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
 

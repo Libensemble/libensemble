@@ -4,7 +4,7 @@ and automatic GPU assignment in libEnsemble.
 
 This test is based on test_mpi_gpu_settings.py.
 
-The dry_run option to test correct GPU settings for different mocked up systems.
+Uses the dry_run option to test correct GPU settings for different mocked up systems.
 Test assertions are in the sim function via the check_gpu_setting function.
 
 The persistent generator creates simulations with variable resource requirements.
@@ -44,7 +44,8 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    nsim_workers = nworkers - 1
+    libE_specs["num_resource_sets"] = nsim_workers  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     if libE_specs["comms"] == "tcp":
@@ -65,11 +66,10 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        #"out": [("priority", float), ("resource_sets", int), ("use_gpus", bool), ("x", float, n)],
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
-            "initial_batch_size": nworkers - 1,
-            "max_procs": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
+            "initial_batch_size": nsim_workers,
+            "max_procs": nsim_workers // 2,  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "multi_task": True,
@@ -85,25 +85,21 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    #exit_criteria = {"sim_max": 20, "wallclock_max": 300}
-    exit_criteria = {"sim_max": (nworkers-1)*2}
+    exit_criteria = {"sim_max": nsim_workers*2}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
     if "LIBE_PLATFORM" in os.environ:
         del os.environ["LIBE_PLATFORM"]
-
-    # First set - use executor setting ------------------------------------------------------------
-    #libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
-
 
     node_file = "nodelist_mpi_gpu_settings"
 
     if is_manager:
         create_node_file(num_nodes=2, name=node_file)
 
+    # Mock GPU system / remove to detect GPUs, CPUs, and/or nodes
     libE_specs["resource_info"] = {"gpus_on_node": 4,
                                    "node_file": node_file,
-                                   "cores_on_node": (32,64)}  # Mock GPU system / uncomment to detect GPUs
+                                   "cores_on_node": (32,64)}
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
@@ -118,6 +114,6 @@ if __name__ == "__main__":
             sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
         )
 
-    del libE_specs["resource_info"]  # this would override
+    del libE_specs["resource_info"]
 
     # All asserts are in sim func
