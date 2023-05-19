@@ -50,8 +50,6 @@ libE_specs["num_resource_sets"] = nsim_workers  # Persistent gen does not need r
 
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
-# exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter
-# exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})  # Polaris (use mpiexec)
 
 # Register simulation executable with executor
 sim_app1 = os.path.join(os.getcwd(), "../forces_app/forces_cpu.x")

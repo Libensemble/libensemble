@@ -151,10 +151,8 @@ class AllocSupport:
                 return
             else:
                 use_gpus = None
-
                 user_params = []
 
-                #TODO This is if cores_per_rset or gpus_per_rset >=1 - test works on >1 node.
                 if H is not None and H_rows is not None:
                     #TODO need pydantic check on H that dont have resource_sets and num_procs/gpus
                     if "resource_sets" in H.dtype.names:
@@ -191,7 +189,7 @@ class AllocSupport:
                             raise InsufficientResourcesError(
                                 f"There are zero GPUs per resource set (worker). Use fewer workers or more resources"
                             )
-                        libE_info["num_gpus"] = max_num_gpus  #todo SET use_gpus=True - but what if not.
+                        libE_info["num_gpus"] = max_num_gpus
                         if num_rsets_req_for_gpus > 0:
                             use_gpus = True
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)

@@ -55,7 +55,7 @@ class RSetResources:
 
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
 
-        gpus_avail_per_node = resources.gpus_avail_per_node  #TODO change as its global (not this worker)
+        gpus_avail_per_node = resources.gpus_avail_per_node
 
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
         self.gpu_rsets_per_node = min(gpus_avail_per_node, self.rsets_per_node)

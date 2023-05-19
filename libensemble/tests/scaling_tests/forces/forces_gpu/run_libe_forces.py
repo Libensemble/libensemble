@@ -39,8 +39,6 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
-# exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter
-# exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})  # Polaris (use mpiexec)
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")

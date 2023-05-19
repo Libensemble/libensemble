@@ -47,11 +47,6 @@ if __name__ == "__main__":
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
-    #TODO Not essential as no app I/O - only reason nice to have is for openmpi machinefiles to be somewhere
-    #but when workflow dir is ready - just use that.
-    #libE_specs["sim_dirs_make"] = True
-    #libE_specs["ensemble_dir_path"] = "./ensemble_mpi_gpus_settings_w" + str(nworkers)
-
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
 
