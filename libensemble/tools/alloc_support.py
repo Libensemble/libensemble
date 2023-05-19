@@ -152,42 +152,22 @@ class AllocSupport:
             else:
                 use_gpus = None
                 user_params = []
-
                 if H is not None and H_rows is not None:
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
                         procs_per_rset = self.resources.resource_manager.cores_per_rset
-                        max_num_procs = int(np.max(H[H_rows]["num_procs"]))
-                        user_params.append(max_num_procs)
-                        try:
-                            num_rsets_req = max_num_procs // procs_per_rset + (max_num_procs % procs_per_rset > 0)
-                        except ZeroDivisionError:
-                            raise InsufficientResourcesError(
-                                f"There are zero processors per resource set (worker). Use fewer workers or more resources"
-                            )
-                        libE_info["num_procs"] = max_num_procs
+                        num_rsets_req = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, procs_per_rset, "num_procs")
                     else:
                         num_rsets_req = 1
-
                     if "use_gpus" in H.dtype.names:
-                        #print(f'Alloc use_gpus input: {H[H_rows]["use_gpus"]}')
                         if np.any(H[H_rows]["use_gpus"]):
                             use_gpus = True
                         else:
                             use_gpus = False
-
                     if "num_gpus" in H.dtype.names:
                         gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        max_num_gpus = int(np.max(H[H_rows]["num_gpus"]))
-                        user_params.append(max_num_gpus)
-                        try:
-                            num_rsets_req_for_gpus = max_num_gpus // gpus_per_rset + (max_num_gpus % gpus_per_rset > 0)
-                        except ZeroDivisionError:
-                            raise InsufficientResourcesError(
-                                f"There are zero GPUs per resource set (worker). Use fewer workers or more resources"
-                            )
-                        libE_info["num_gpus"] = max_num_gpus
+                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus")
                         if num_rsets_req_for_gpus > 0:
                             use_gpus = True
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
@@ -376,3 +356,17 @@ class AllocSupport:
             H_fields = list(set(H_fields))
             # H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
         return H_fields
+
+    @staticmethod
+    def _convert_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets"""
+        max_num_units = int(np.max(H[H_rows][units_str]))
+        user_params.append(max_num_units)
+        try:
+            num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
+        except ZeroDivisionError:
+            raise InsufficientResourcesError(
+                f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
+            )
+        libE_info[units_str] = max_num_units
+        return num_rsets_req
