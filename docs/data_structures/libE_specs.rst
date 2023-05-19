@@ -185,17 +185,13 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
 
             "platform" [str]:
-                Name of a known platform (see "Known Platforms List" below)
+                Name of a :ref:`known platform<known-platforms>`.
                 E.g., ``libE_specs["platform"] = "perlmutter_g"``
-                Note: the environment variable ``LIBE_PLATFORM`` is an alternative way of setting.
-                See also option ``"platform_specs"``.
+                Alternatively specify by setting the ``LIBE_PLATFORM`` environment variable.
 
             "platform_specs" [Platform|dict]:
-                A ``Platform object`` (or dictionary) specifying settings for a platform.
-                For a list of Platform fields see "Platform Fields" below.
-                Any fields not provided will be auto-detected by libEnsemble.
-                Can be set to a known platform object (see "Known Platforms List")
-                See also option ``"platform"``.
+                A ``Platform`` object (or dictionary) specifying :ref:`settings for a platform.<platform-fields>`.
+                Fields not provided will be auto-detected. Can be set to a :ref:`known platform object<known-platforms>`.
 
             "num_resource_sets" [int]:
                 The total number of resource sets into which resources will be divided.
@@ -237,6 +233,8 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
         :field-list-validators: False
         :model-show-field-summary: False
 
+.. _known-platforms:
+
 Known Platforms List
 --------------------
 
@@ -252,6 +250,7 @@ Known Platforms List
         :field-show-alias: False
         :member-order:
 
+.. _platform-fields:
 
 Platform Fields
 ----------------
