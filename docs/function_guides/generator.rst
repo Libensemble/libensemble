@@ -3,6 +3,8 @@
 Generator Functions
 ===================
 
+Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar interfaces.
+
 .. code-block:: python
 
     def my_generator(Input, persis_info, gen_specs):
