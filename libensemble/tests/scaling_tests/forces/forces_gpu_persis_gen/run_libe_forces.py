@@ -14,7 +14,7 @@ An alternative variable resource generator is available (search 'var resources'
 in this script and uncomment relevant lines).
 """
 
-#TODO will checksum be the same? depends on random number sequence....
+# TODO will checksum be the same? depends on random number sequence....
 
 
 import os
@@ -26,7 +26,7 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
-#from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+# from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Fixed resources (one resource set per worker) - persistent gen
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
@@ -78,7 +78,7 @@ gen_specs = {
     ],
     "user": {
         "lb": np.array([50000]),  # fewest particles (changing will change checksum)
-        "ub": np.array([100000]), # max particles (changing will change checksum)
+        "ub": np.array([100000]),  # max particles (changing will change checksum)
         "initial_batch_size": nsim_workers,
         # "max_resource_sets": nsim_workers  # Uncomment for var resources
     },
@@ -105,10 +105,9 @@ exit_criteria = {"sim_max": 8}  # changing will change checksum
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info=persis_info,
-                            alloc_specs=alloc_specs,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+)
 
 # This is for configuration of this test (inc. lb/ub and sim_max values)
 if is_manager:

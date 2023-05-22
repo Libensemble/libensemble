@@ -4,7 +4,11 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler  # noqa: F401
+from libensemble.resources.scheduler import (
+    InsufficientFreeResources,
+    InsufficientResourcesError,
+    ResourceScheduler,
+)  # noqa: F401
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -158,7 +162,9 @@ class AllocSupport:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
                         procs_per_rset = self.resources.resource_manager.cores_per_rset
-                        num_rsets_req = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, procs_per_rset, "num_procs")
+                        num_rsets_req = AllocSupport._convert_to_rsets(
+                            libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
+                        )
                     else:
                         num_rsets_req = 1
                     if "use_gpus" in H.dtype.names:
@@ -168,7 +174,9 @@ class AllocSupport:
                             use_gpus = False
                     if "num_gpus" in H.dtype.names:
                         gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus")
+                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                            libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
+                        )
                         if num_rsets_req_for_gpus > 0:
                             use_gpus = True
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
@@ -199,7 +207,7 @@ class AllocSupport:
         """
         # Parse out resource_sets
         self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
-        #print(f"Sim: {libE_info=}")
+        # print(f"Sim: {libE_info=}")
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
@@ -236,7 +244,7 @@ class AllocSupport:
         """
         self._update_rset_team(libE_info, wid)
 
-        #print(f"Gen: {libE_info=}")
+        # print(f"Gen: {libE_info=}")
 
         if not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens

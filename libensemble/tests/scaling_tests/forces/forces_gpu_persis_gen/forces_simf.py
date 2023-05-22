@@ -10,6 +10,7 @@ from libensemble.resources.resources import Resources
 # Optional - to print GPU settings
 from libensemble.tools.test_support import check_gpu_setting
 
+
 def run_forces(H, persis_info, sim_specs, libE_info):
     """Launches the forces MPI app and auto-assigns ranks and GPU resources.
 
@@ -31,9 +32,9 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     task = exctr.submit(
         app_name="forces",
         app_args=args,
-        #num_procs = 1,
-        auto_assign_gpus = True,
-        match_procs_to_gpus = True,
+        # num_procs = 1,
+        auto_assign_gpus=True,
+        match_procs_to_gpus=True,
     )
 
     # Block until the task finishes

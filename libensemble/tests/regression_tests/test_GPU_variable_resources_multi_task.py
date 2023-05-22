@@ -63,7 +63,7 @@ if __name__ == "__main__":
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
 
     # Mock CPU/GPU system / uncomment/modify to detect CPUs/GPUs
-    libE_specs["resource_info"] = {"cores_on_node": (32,64) ,"gpus_on_node": 4}
+    libE_specs["resource_info"] = {"cores_on_node": (32, 64), "gpus_on_node": 4}
 
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_multi_task_w" + str(nworkers)
@@ -81,8 +81,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"dry_run": False
-            },
+        "user": {"dry_run": False},
     }
 
     gen_specs = {

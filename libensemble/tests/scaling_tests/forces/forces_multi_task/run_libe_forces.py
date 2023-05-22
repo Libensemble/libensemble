@@ -14,7 +14,7 @@ An alternative variable resource generator is available (search 'var resources'
 in this script and uncomment relevant lines).
 """
 
-#TODO will checksum be the same? depends on random number sequence....
+# TODO will checksum be the same? depends on random number sequence....
 
 
 import os
@@ -26,7 +26,7 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
-#from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+# from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Fixed resources (one resource set per worker) - persistent gen
 from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
@@ -82,7 +82,7 @@ gen_specs = {
     ],
     "user": {
         "lb": np.array([50000]),  # fewest particles (changing will change checksum)
-        "ub": np.array([100000]), # max particles (changing will change checksum)
+        "ub": np.array([100000]),  # max particles (changing will change checksum)
         "initial_batch_size": nsim_workers,
         "max_resource_sets": (nsim_workers) // 2,  # Any sim created can req. 1 worker up to max
         "multi_task": True,
@@ -105,16 +105,15 @@ libE_specs["sim_dirs_make"] = True
 # libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": nsim_workers*2}  # changing will change checksum
+exit_criteria = {"sim_max": nsim_workers * 2}  # changing will change checksum
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria,
-                            persis_info=persis_info,
-                            alloc_specs=alloc_specs,
-                            libE_specs=libE_specs)
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+)
 
 # This is for configuration of this test (inc. lb/ub and sim_max values)
 if is_manager:

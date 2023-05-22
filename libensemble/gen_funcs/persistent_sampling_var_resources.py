@@ -16,7 +16,8 @@ __all__ = [
     "uniform_sample_diff_simulations",
 ]
 
-#TODO FOR HERE AND persistent_sampling.py - check examples giving in docstrings - exists and correct location or remove
+# TODO FOR HERE AND persistent_sampling.py - check examples giving in docstrings - exists and correct location or remove
+
 
 def _get_user_params(user_specs):
     """Extract user params"""

@@ -814,8 +814,7 @@ def _setup_wresources_gpus(ngpus):
     """Set up worker resources with a given number of GPUs"""
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
 
-    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST",
-                     "gpus_on_node": ngpus}
+    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": ngpus}
     libE_specs = {"resource_info": resource_info, "dedicated_mode": False}
     gresources = GlobalResources(libE_specs)
     nworkers = 8
@@ -827,7 +826,7 @@ def _setup_wresources_gpus(ngpus):
 def test_wresources_set_gpus():
     wresources = _setup_wresources_gpus(4)
 
-    rset_teams = [[0,1,4,5], [2,3,6,7], [1,3,5,7]]
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
     exp_out = ["0,1", "2,3", "1,3"]
 
     # Test routines for querying slots and gpus.
@@ -853,7 +852,7 @@ def test_wresources_set_gpus():
 def test_wresources_set_gpus_x2():
     wresources = _setup_wresources_gpus(8)
 
-    rset_teams = [[0,1,4,5], [2,3,6,7], [1,3,5,7]]
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
     exp_out = ["0,1,2,3", "4,5,6,7", "2,3,6,7"]
 
     # Test routines for querying slots and gpus.
@@ -879,7 +878,7 @@ def test_wresources_set_gpus_x2():
 def test_wresources_set_limit_gpus():
     wresources = _setup_wresources_gpus(12)
 
-    rset_teams = [[0,1,4,5], [2,3,6,7], [1,3,5,7]]
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
     # exp_out_0 = ["0,1,2,3,4,5", "6,7,8,9,10,11", "3,4,5,9,10,11"]
     exp_out_1 = ["0,1,2,3", "6,7,8,9", "3,4,5,9"]
     exp_out_2 = ["0", "6", "3"]
@@ -904,7 +903,7 @@ def test_wresources_set_limit_gpus():
 
 def test_wresources_set_no_gpus():
     wresources = _setup_wresources_gpus(0)
-    rset_team = [0,1,4,5]
+    rset_team = [0, 1, 4, 5]
     wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
     assert "LIBE_TEST_GPUS_1" not in os.environ
 

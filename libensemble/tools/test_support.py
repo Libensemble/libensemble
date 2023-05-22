@@ -167,4 +167,6 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
 
     if assert_setting:
-        assert gpu_setting == expected, f"Worker {task.workerID}: Found GPU setting: {gpu_setting}, Expected: {expected}"
+        assert (
+            gpu_setting == expected
+        ), f"Worker {task.workerID}: Found GPU setting: {gpu_setting}, Expected: {expected}"

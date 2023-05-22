@@ -59,8 +59,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"dry_run": True
-            },
+        "user": {"dry_run": True},
     }
 
     gen_specs = {
@@ -85,7 +84,7 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {"sim_max": nsim_workers*2}
+    exit_criteria = {"sim_max": nsim_workers * 2}
 
     # Ensure LIBE_PLATFORM environment variable is not set.
     if "LIBE_PLATFORM" in os.environ:
@@ -97,9 +96,7 @@ if __name__ == "__main__":
         create_node_file(num_nodes=2, name=node_file)
 
     # Mock GPU system / remove to detect GPUs, CPUs, and/or nodes
-    libE_specs["resource_info"] = {"gpus_on_node": 4,
-                                   "node_file": node_file,
-                                   "cores_on_node": (32,64)}
+    libE_specs["resource_info"] = {"gpus_on_node": 4, "node_file": node_file, "cores_on_node": (32, 64)}
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")

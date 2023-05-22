@@ -179,7 +179,7 @@ class Worker:
 
     @staticmethod
     def _set_gen_procs_gpus(libE_info, obj):
-        if any(k in libE_info for k in ("num_procs","num_gpus")):
+        if any(k in libE_info for k in ("num_procs", "num_gpus")):
             obj.set_gen_procs_gpus(libE_info)
 
     @staticmethod

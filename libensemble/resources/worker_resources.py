@@ -24,7 +24,7 @@ class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
     # Holds the ID of the worker this rset is assigned to or zero
-    man_rset_dtype = np.dtype(RSetResources.rset_dtype + [('assigned', int)])
+    man_rset_dtype = np.dtype(RSetResources.rset_dtype + [("assigned", int)])
 
     def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
         """Initializes a new ResourceManager instance
@@ -59,9 +59,9 @@ class ResourceManager(RSetResources):
         self.gpu_rsets_free = self.total_num_gpu_rsets
         self.nongpu_rsets_free = self.total_num_nongpu_rsets
 
-        #print(f"\n{self.total_num_rsets=}")
-        #print(f"{self.total_num_gpu_rsets=}")
-        #print(f"{self.total_num_nongpu_rsets=}\n")
+        # print(f"\n{self.total_num_rsets=}")
+        # print(f"{self.total_num_gpu_rsets=}")
+        # print(f"{self.total_num_nongpu_rsets=}\n")
 
         # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets["group"], return_counts=True)
@@ -85,10 +85,9 @@ class ResourceManager(RSetResources):
                     ResourceManagerException(
                         f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
                     )
-            #print(f"\nAfter assign: {self.rsets_free=}")
-            #print(f"After assign: {self.gpu_rsets_free=}")
-            #print(f"After assign: {self.nongpu_rsets_free=}\n")
-
+            # print(f"\nAfter assign: {self.rsets_free=}")
+            # print(f"After assign: {self.gpu_rsets_free=}")
+            # print(f"After assign: {self.nongpu_rsets_free=}\n")
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -103,10 +102,10 @@ class ResourceManager(RSetResources):
             self.rsets_free += len(rsets_to_free)
             self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
-            #print(f"\nfreed up {len(rsets_to_free)} ")
-        #print(f"---After free: {self.rsets_free=}")
-        #print(f"---After free: {self.gpu_rsets_free=}")
-        #print(f"---After free: {self.nongpu_rsets_free=}\n")
+            # print(f"\nfreed up {len(rsets_to_free)} ")
+        # print(f"---After free: {self.rsets_free=}")
+        # print(f"---After free: {self.gpu_rsets_free=}")
+        # print(f"---After free: {self.nongpu_rsets_free=}\n")
 
     @staticmethod
     def get_index_list(
@@ -255,7 +254,6 @@ class WorkerResources(RSetResources):
 
         """
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
-
 
     def set_env_to_gpus(self, env_var, delimiter=","):
         """Sets the given environment variable to GPUs

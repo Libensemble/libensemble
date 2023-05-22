@@ -27,9 +27,7 @@ class RSetResources:
         ("slot", int),  # Slot ID this resource set belongs to
         ("gpus", bool)  # Does this resource set have GPUs
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
-        ]
-
-
+    ]
 
     def __init__(self, num_workers, resources):
         """Initializes a new RSetResources instance
@@ -61,7 +59,9 @@ class RSetResources:
         self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
 
         self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
-        self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(self.split_list, gpus_avail_per_node)
+        self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(
+            self.split_list, gpus_avail_per_node
+        )
 
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
         self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
