@@ -417,25 +417,28 @@ class ResourceScheduler:
     def check_total_rsets(self, rsets_req, use_gpus):
         """Raise exceptions if rsets requested is more than total that exist or available"""
         if use_gpus is None:
-            if rsets_req > self.resources.total_num_rsets:
+            nrsets = self.resources.total_num_rsets
+            if rsets_req > nrsets:
                 raise InsufficientResourcesError(
-                    f"More resource sets requested {rsets_req} than exist {self.resources.total_num_rsets}"
+                    f"More resource sets requested {rsets_req} than exist {nrsets}"
                 )
         elif use_gpus:
-            if rsets_req > self.resources.total_num_gpu_rsets:
+            nrsets = self.resources.total_num_gpu_rsets
+            if rsets_req > nrsets:
                 raise InsufficientResourcesError(
-                    f"More GPU resource sets requested {rsets_req} than exist {self.resources.total_num_gpu_rsets}"
+                    f"More GPU resource sets requested {rsets_req} than exist {nrsets}"
                 )
         else:
-            if rsets_req > self.resources.total_num_nongpu_rsets:
+            nrsets = self.resources.total_num_nongpu_rsets
+            if rsets_req > nrsets:
                 raise InsufficientResourcesError(
-                    f"More non-GPU resource sets requested {rsets_req} than exist {self.resources.total_num_nongpu_rsets}"
+                    f"More non-GPU resource sets requested {rsets_req} than exist {nrsets}"
                 )
 
         if use_gpus is None:
             if rsets_req > self.rsets_free:
                 raise InsufficientFreeResources
-        elif use_gpus == True:
+        elif use_gpus:
             if rsets_req > self.gpu_rsets_free:
                 raise InsufficientFreeResources
         else:

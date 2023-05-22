@@ -904,6 +904,7 @@ def test_wresources_set_limit_gpus():
 def test_wresources_set_no_gpus():
     wresources = _setup_wresources_gpus(0)
     rset_team = [0, 1, 4, 5]
+    wresources.set_rset_team(rset_team)
     wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
     assert "LIBE_TEST_GPUS_1" not in os.environ
 
