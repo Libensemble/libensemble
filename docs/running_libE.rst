@@ -3,118 +3,102 @@
 Running libEnsemble
 ===================
 
-libEnsemble runs using a Manager/Worker paradigm. In most cases, one manager and multiples workers.
-Each worker may run either a generator or simulator function (both are Python scripts). Generators
-determine the parameters/inputs for simulations. Simulator functions run simulations, which often
-involve running a user application from the Worker (see :doc:`Executor<executor/ex_index>`).
-
-To use libEnsemble, you will need a calling script, which in turn will specify generator and
-simulator functions. Many :doc:`examples<examples/examples_index>` are available.
-
-There are currently three communication options for libEnsemble (determining how the Manager
-and Workers communicate). These are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
+libEnsemble runs using a one-Manager/many-Worker paradigm. How these processes communicate
+is determined by the launch-method and ``comms`` option. The
+three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
 
 .. note::
-    You do not need the ``mpi`` communication mode to use the
-    :doc:`MPI Executor<executor/mpi_executor>` to launch user MPI applications from workers.
-    The communications modes described here only refer to how the libEnsemble manager and
+    You **do not** need ``mpi`` communications to use the
+    :doc:`MPI Executor<executor/mpi_executor>` and launch MPI apps.
+    The modes described here only refer to how libEnsemble's manager and
     workers communicate.
 
-MPI Comms
----------
+.. tab-set::
 
-This option uses ``mpi4py`` for the Manager/Worker communication. It is used automatically if
-you run your libEnsemble calling script with an MPI runner. E.g::
+    .. tab-item:: MPI Comms
 
-    mpirun -np N python myscript.py
+        Requires mpi4py_, and is used automatically if you launch your
+        libEnsemble python script with an MPI runner::
 
-where ``N`` is the number of processors. This will launch one manager and
-``N-1`` workers.
+            mpirun -np N python myscript.py
 
-This option requires ``mpi4py`` to be installed to interface with the MPI on your system.
-It works on a standalone system, and with both
-:doc:`central and distributed modes<platforms/platforms_index>` of running libEnsemble on
-multi-node systems.
+        where ``N`` is the number of processes. This will launch one manager and
+        ``N-1`` workers.
 
-It also potentially scales the best when running with many workers on HPC systems.
+        MPI comms works on standalone and multi-node systems, potentially scales the best, and
+        the distribution of processes is highly customizable.
 
-Limitations of MPI mode
-^^^^^^^^^^^^^^^^^^^^^^^
+        **Limitations of MPI mode**
 
-If you are launching MPI applications from workers, then MPI is being nested. This is not
-supported with Open MPI. This can be overcome by using a proxy launcher
-(see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work, however,
-with MPICH and its derivative MPI implementations.
+        If launching MPI applications from workers, then MPI is nested. **This is not
+        supported with Open MPI**. This can be overcome by using a proxy launcher
+        (see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work
+        with MPICH_ and its derivative MPI implementations.
 
-It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
-systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
+        Don't use this mode when running on the **launch** nodes of three-tier
+        systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
 
-Local Comms
------------
+    .. tab-item:: Local Comms
 
-This option uses Python's built-in multiprocessing module for the manager/worker communications.
-The ``comms`` type ``local`` and number of workers ``nworkers`` may be provided in the
-:ref:`libE_specs<datastruct-libe-specs>` dictionary. Your calling script can then be run::
+        Uses Python's built-in multiprocessing_ module.
+        The ``comms`` type ``local`` and number of workers ``nworkers`` may
+        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
+        Then run::
 
-    python myscript.py
+            python myscript.py
 
-Alternatively, if your calling script uses the :doc:`parse_args()<utilities>` function
-you can specify these on the command line::
+        Or, if the script uses the :doc:`parse_args()<utilities>` function
+        or an :class:`Ensemble<libensemble.api.Ensemble>` object
+        you can specify these on the command line::
 
-    python myscript.py --comms local --nworkers N
+            python myscript.py --comms local --nworkers N
 
-where ``N`` is the number of workers. This will launch one manager and
-``N`` workers.
+        where ``N`` is the number of workers. This will launch one manager and
+        ``N`` workers.
 
-libEnsemble will run on one node in this scenario. If the user wants to dedicate the node
-to just the libEnsemble manager and workers, the ``libE_specs["dedicated_mode"]`` option
-can be set (see :doc:`central mode<platforms/platforms_index>`).
+        libEnsemble will run on **one node** in this scenario. To disallow
+        this node from app-launches, set ``libE_specs["dedicated_mode"] = True``.
 
-This mode is often used to run on a **launch** node of a three-tier
-system (e.g. Theta/Summit), allowing the whole node allocation for
-worker-launched application runs. In this scenario, make sure there are
-no imports of ``mpi4py`` in your Python scripts.
+        This mode is often used to run on a **launch** node of a three-tier
+        system (e.g. Theta/Summit), ensuring the whole compute-node allocation is available for
+        worker-launched application runs. Make sure there are
+        no imports of ``mpi4py`` in your Python scripts.
 
-Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead
-of ``"fork"``; to resolve many related issues, we recommend placing calling script code in
-an ``if __name__ == "__main__":`` block.
+        On macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead
+        of ``"fork"``; to resolve many related issues, place code from ``libE()`` or ``.run()`` onward in
+        an ``if __name__ == "__main__":`` block.
 
-Limitations of local mode
-^^^^^^^^^^^^^^^^^^^^^^^^^
+        **Limitations of local mode**
 
-- You cannot run in :doc:`distributed mode<platforms/platforms_index>` on multi-node systems.
-- In some scenarios, any import of ``mpi4py`` will cause this to break.
-- It does not have the potential scaling of MPI mode, but is sufficient for most users.
+        - You cannot distribute workers across nodes
+        - In some scenarios, any import of ``mpi4py`` will cause this to break.
+        - It does not have the potential scaling of MPI mode, but is sufficient for most users.
 
-TCP Comms
----------
+    .. tab-item:: TCP Comms
 
-The TCP option can be used to run the Manager on one system and launch workers to remote
-systems or nodes over TCP. The necessary configuration options can be provided through
-:class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line if you are using the :doc:`parse_args()<utilities>` function.
+        Run the Manager on one system and launch workers to remote
+        systems or nodes over TCP. Configure through
+        :class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
+        if using an :class:`Ensemble<libensemble.api.Ensemble>` or :doc:`parse_args()<utilities>`.
 
-Reverse-ssh interface
-^^^^^^^^^^^^^^^^^^^^^
+        **Reverse-ssh interface**
 
-By specifying ``--comms ssh`` on the command line, libEnsemble workers can
-be launched to remote ssh-accessible systems without needing to specify ``"port"`` or ``"authkey"``. This allows users
-to colocate workers, simulation, or generator functions, and any applications they submit on the same machine. Such user
-functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
+        By setting ``comms`` to ``ssh``, launch workers to remote ssh-accessible systems. This
+        colocates workers, functions, and any applications. User
+        functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
 
-The working directory and Python to run on the remote system need to be specified. Running a calling script may resemble::
+        The remote working directory and Python need to be specified. This may resemble::
 
-    python myscript.py --comms ssh --workers machine1 machine2 --worker_pwd /home/workers --worker_python /home/.conda/.../python
+            python myscript.py --comms ssh --workers machine1 machine2 --worker_pwd /home/workers --worker_python /home/.conda/.../python
 
-.. note::
-    Setting up public-key authentication on the worker host systems is recommended to avoid entering passwords.
+        .. note::
+            - Setting up public-key authentication on the worker host systems is recommended to avoid entering passwords.
+            - No need to specify ``"port"`` or ``"authkey"``.
+            - This interface assumes that all remote machines share a filesystem. We'll be adjusting this in the future.
 
-.. note::
-    This interface assumes that all remote machines share a filesystem. We'll be adjusting this in the future.
+        **Limitations of TCP mode**
 
-Limitations of TCP mode
-^^^^^^^^^^^^^^^^^^^^^^^
-
-- There cannot be two calls to ``libE`` in the same script.
+        - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
 
 Further command line options
 ----------------------------
@@ -126,133 +110,131 @@ See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for fur
 liberegister / libesubmit
 -------------------------
 
-libEnsemble now features a pair of command-line utilities for preparing and launching libEnsemble workflows onto almost
-any machine and any scheduler, using a `PSI/J`_ Python implementation. This is an alternative approach
-to maintaining system or scheduler-specific batch submission scripts.
+Command-line utilities for preparing and launching libEnsemble workflows onto almost
+any machine and any scheduler, using a `PSI/J`_ Python implementation.
 
-- `liberegister`
+.. tab-set::
 
-Creates an initial, platform-independent PSI/J serialization of a libEnsemble submission. Run this utility on
-a calling script in a familiar manner::
+    .. tab-item:: liberegister
 
-    liberegister my_calling_script.py --comms local --nworkers 4
+        Creates an initial, platform-independent PSI/J serialization of a libEnsemble submission. Run this utility on
+        a script::
 
-This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
+            liberegister my_calling_script.py --comms local --nworkers 4
 
-.. dropdown:: `my_calling_script.json``
-    :color: success
+        This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
 
-    .. code-block:: JSON
+        .. dropdown:: `my_calling_script.json`
 
-        {
-            "version": 0.1,
-            "type": "JobSpec",
-            "data": {
-                "name": "libe-job",
-                "executable": "python",
-                "arguments": [
-                    "my_calling_script.py",
-                    "--comms",
-                    "local",
-                    "--nworkers",
-                    "4"
-                ],
-                "directory": null,
-                "inherit_environment": true,
-                "environment": {
-                    "PYTHONNOUSERSITE": "1"
-                },
-                "stdin_path": null,
-                "stdout_path": null,
-                "stderr_path": null,
-                "resources": {
-                    "node_count": 1,
-                    "process_count": null,
-                    "process_per_node": null,
-                    "cpu_cores_per_process": null,
-                    "gpu_cores_per_process": null,
-                    "exclusive_node_use": true
-                },
-                "attributes": {
-                    "duration": "30",
-                    "queue_name": null,
-                    "project_name": null,
-                    "reservation_id": null,
-                    "custom_attributes": {}
-                },
-                "launcher": null
-            }
-        }
+            .. code-block:: JSON
 
-- `libesubmit`
+                {
+                    "version": 0.1,
+                    "type": "JobSpec",
+                    "data": {
+                        "name": "libe-job",
+                        "executable": "python",
+                        "arguments": [
+                            "my_calling_script.py",
+                            "--comms",
+                            "local",
+                            "--nworkers",
+                            "4"
+                        ],
+                        "directory": null,
+                        "inherit_environment": true,
+                        "environment": {
+                            "PYTHONNOUSERSITE": "1"
+                        },
+                        "stdin_path": null,
+                        "stdout_path": null,
+                        "stderr_path": null,
+                        "resources": {
+                            "node_count": 1,
+                            "process_count": null,
+                            "process_per_node": null,
+                            "cpu_cores_per_process": null,
+                            "gpu_cores_per_process": null,
+                            "exclusive_node_use": true
+                        },
+                        "attributes": {
+                            "duration": "30",
+                            "queue_name": null,
+                            "project_name": null,
+                            "reservation_id": null,
+                            "custom_attributes": {}
+                        },
+                        "launcher": null
+                    }
+                }
 
-Further parameterizes a serialization, and submits a corresponding Job to the specified scheduler.
-Running ``qsub``, ``sbatch``, etc. on some batch submission script is not needed. For instance::
+    .. tab-item:: libesubmit
 
-    libesubmit my_calling_script.json -q debug -A project -s slurm --nnodes 8
+        Further parameterizes a serialization, and submits a corresponding Job to the specified scheduler::
 
-Results in::
+            libesubmit my_calling_script.json -q debug -A project -s slurm --nnodes 8
 
-    *** libEnsemble 0.9.3 ***
-    Imported PSI/J serialization: my_calling_script.json. Preparing submission...
-    Calling script: my_calling_script.py
-    ...found! Proceeding.
-    Submitting Job!: Job[id=ce4ead75-a3a4-42a3-94ff-c44b3b2c7e61, native_id=None, executor=None, status=JobStatus[NEW, time=1658167808.5125017]]
+        Results in::
 
-    $ squeue --long --users=user
-    Mon Jul 18 13:10:15 2022
-             JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
-           2508936    debug  ce4ead75     user  PENDING       0:00     30:00      8 (Priority)
+            *** libEnsemble 0.9.3 ***
+            Imported PSI/J serialization: my_calling_script.json. Preparing submission...
+            Calling script: my_calling_script.py
+            ...found! Proceeding.
+            Submitting Job!: Job[id=ce4ead75-a3a4-42a3-94ff-c44b3b2c7e61, native_id=None, executor=None, status=JobStatus[NEW, time=1658167808.5125017]]
 
-This also produces a Job-specific representation, e.g:
+            $ squeue --long --users=user
+            Mon Jul 18 13:10:15 2022
+                    JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
+                2508936    debug  ce4ead75     user  PENDING       0:00     30:00      8 (Priority)
 
-.. dropdown:: ``8ba9de56.my_calling_script.json``
-    :color: success
+        This also produces a Job-specific representation, e.g:
 
-    .. code-block:: JSON
+        .. dropdown:: 8ba9de56.my_calling_script.json
 
-        {
-            "version": 0.1,
-            "type": "JobSpec",
-            "data": {
-                "name": "libe-job",
-                "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.8",
-                "arguments": [
-                    "my_calling_script.py",
-                    "--comms",
-                    "local",
-                    "--nworkers",
-                    "4"
-                ],
-                "directory": "/home/user/libensemble/scratch",
-                "inherit_environment": true,
-                "environment": {
-                    "PYTHONNOUSERSITE": "1"
-                },
-                "stdin_path": null,
-                "stdout_path": "8ba9de56.my_calling_script.out",
-                "stderr_path": "8ba9de56.my_calling_script.err",
-                "resources": {
-                    "node_count": 8,
-                    "process_count": null,
-                    "process_per_node": null,
-                    "cpu_cores_per_process": null,
-                    "gpu_cores_per_process": null,
-                    "exclusive_node_use": true
-                },
-                "attributes": {
-                    "duration": "30",
-                    "queue_name": "debug",
-                    "project_name": "project",
-                    "reservation_id": null,
-                    "custom_attributes": {}
-                },
-                "launcher": null
-            }
-        }
+            .. code-block:: JSON
 
-If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
-specified calling script, it'll help search for matching candidate scripts.
+                {
+                    "version": 0.1,
+                    "type": "JobSpec",
+                    "data": {
+                        "name": "libe-job",
+                        "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.8",
+                        "arguments": [
+                            "my_calling_script.py",
+                            "--comms",
+                            "local",
+                            "--nworkers",
+                            "4"
+                        ],
+                        "directory": "/home/user/libensemble/scratch",
+                        "inherit_environment": true,
+                        "environment": {
+                            "PYTHONNOUSERSITE": "1"
+                        },
+                        "stdin_path": null,
+                        "stdout_path": "8ba9de56.my_calling_script.out",
+                        "stderr_path": "8ba9de56.my_calling_script.err",
+                        "resources": {
+                            "node_count": 8,
+                            "process_count": null,
+                            "process_per_node": null,
+                            "cpu_cores_per_process": null,
+                            "gpu_cores_per_process": null,
+                            "exclusive_node_use": true
+                        },
+                        "attributes": {
+                            "duration": "30",
+                            "queue_name": "debug",
+                            "project_name": "project",
+                            "reservation_id": null,
+                            "custom_attributes": {}
+                        },
+                        "launcher": null
+                    }
+                }
+
+        If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
+        specified calling script, it'll help search for matching candidate scripts.
 
 .. _PSI/J: https://exaworks.org/psij
 
@@ -260,21 +242,12 @@ Persistent Workers
 ------------------
 .. _persis_worker:
 
-In a regular (non-persistent) worker, the user's generator or simulation function is called whenever the worker
-receives work. A persistent worker is one that continues to run the generator or simulation function between work units,
-maintaining the local data environment.
-
-A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
-that maintains optimization data, while generating new simulation inputs. The persistent generator runs
-on a dedicated worker while in persistent mode. This requires an appropriate
-:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
-
-When running with a persistent generator, it is important to remember that a worker will be dedicated
-to the generator and cannot run simulations. For example, the following run::
+When running with a persistent generator, a worker will be dedicated
+to the generator and cannot run simulations. The following run::
 
     mpirun -np 3 python my_script.py
 
-would run one manager process, one worker with a persistent generator, and one worker running simulations.
+starts one manager, one worker with a persistent generator, and one worker for running simulations.
 
 If this example was run as::
 
@@ -298,3 +271,7 @@ Further run information
 For running on multi-node platforms and supercomputers, there are alternative ways to configure
 libEnsemble to resources. See the :doc:`Running on HPC Systems<platforms/platforms_index>`
 guide for more information, including some examples for specific systems.
+
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _MPICH: https://www.mpich.org/
+.. _multiprocessing: https://docs.python.org/3/library/multiprocessing.html
