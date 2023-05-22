@@ -219,23 +219,24 @@ class MPIRunner:
 
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
-        wresources = resources.worker_resources
-        if nprocs is not None:
-            nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
-            mod_cpus = nprocs % nnodes
-            if mod_cpus != 0:
-                oldnp = nprocs
-                nprocs = nprocs + mod_cpus
-                logger.info(f"Adjusted nprocs to split evenly across nodes. From {oldnp} to {nprocs}")
-        if ngpus is not None:
-            nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
-            mod_gpus = ngpus % nnodes
-            if mod_gpus != 0:
-                try_gpus = ngpus + mod_gpus
-                if try_gpus <= wresources.slot_count * wresources.gpus_per_rset * nnodes:
-                    oldng = ngpus
-                    ngpus = try_gpus
-                    logger.info(f"Adjusted ngpus to split evenly across nodes. From {oldng} to {ngpus}")
+        if resources is not None:
+            wresources = resources.worker_resources
+            if nprocs is not None:
+                nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
+                mod_cpus = nprocs % nnodes
+                if mod_cpus != 0:
+                    oldnp = nprocs
+                    nprocs = nprocs + mod_cpus
+                    logger.info(f"Adjusted nprocs to split evenly across nodes. From {oldnp} to {nprocs}")
+            if ngpus is not None:
+                nnodes = self._calc_nodes(nprocs, ppn, nnodes, wresources)
+                mod_gpus = ngpus % nnodes
+                if mod_gpus != 0:
+                    try_gpus = ngpus + mod_gpus
+                    if try_gpus <= wresources.slot_count * wresources.gpus_per_rset * nnodes:
+                        oldng = ngpus
+                        ngpus = try_gpus
+                        logger.info(f"Adjusted ngpus to split evenly across nodes. From {oldng} to {ngpus}")
         return nprocs, ngpus
 
     def get_mpi_specs(

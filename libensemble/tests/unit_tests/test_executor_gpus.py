@@ -298,6 +298,7 @@ def test_dry_run_ngpus_srun_plat3_2nodes():
     nworkers = 1
     workerID = 1
 
+
     # Note - 8 resource sets, 8 gpus per node - 2 gpus per resource set.
     rset_team = [0, 1, 2, 4, 5, 6]  # this worker has 3 slots on each of 2 nodes.
     exctr = setup_exe_from_platform(rset_team, nworkers, workerID, mpi_runner, platform, nodes)
@@ -336,8 +337,13 @@ def test_dry_run_ngpus_srun_plat3_2nodes():
     exp_cmd = "srun -w node-1,node-2 --ntasks 4 --nodes 2 --ntasks-per-node 2 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=4)
 
-    exp_env = {"TESTING_VISIBLE_DEVICES": "0"}
-    exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
+    # orig
+    # exp_env = {"TESTING_VISIBLE_DEVICES": "0"}
+    # exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
+
+    # with adjust
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1"}  # with adjust
+    exp_cmd = "srun -w node-1,node-2 --ntasks 4 --nodes 2 --ntasks-per-node 2 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=3)
 
 

@@ -70,7 +70,7 @@ class RSetResources:
         self.cores_per_rset = resources.physical_cores_avail_per_node // self.rsets_per_node
 
     @staticmethod
-    def get_group_list(split_list, gpus_per_node):
+    def get_group_list(split_list, gpus_per_node=0):
         """Return lists of group ids and slot IDs by resource set"""
         group = 1
         slot = 0

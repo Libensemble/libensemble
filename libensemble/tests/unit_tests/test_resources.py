@@ -730,7 +730,7 @@ def test_get_group_list():
         ["knl-0139"],
         ["knl-1234"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 2, 3, 4, 5, 6, 7, 8]
     assert slot_list == [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -741,7 +741,7 @@ def test_get_group_list():
         ["knl-0137", "knl-0138"],
         ["knl-0139", "knl-1234"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 2, 3, 4]
     assert slot_list == [0, 0, 0, 0]
 
@@ -756,7 +756,7 @@ def test_get_group_list():
         ["knl-0139"],
         ["knl-0139"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 1, 2, 2, 3, 3, 4, 4]
     assert slot_list == [0, 1, 0, 1, 0, 1, 0, 1]
 
@@ -771,7 +771,7 @@ def test_get_group_list():
         ["knl-0137"],
         ["knl-0139"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 1, 1, 1, 2, 2, 2, 3]
     assert slot_list == [0, 1, 2, 3, 0, 1, 2, 0]
 
