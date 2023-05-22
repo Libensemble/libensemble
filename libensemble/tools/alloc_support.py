@@ -78,6 +78,7 @@ class AllocSupport:
             if use_gpus is None:
                 try:
                     rset_team = self.sched.assign_resources(rsets_req, use_gpus=False, user_params=user_params)
+                    return rset_team
                 except (InsufficientFreeResources, InsufficientResourcesError):
                     pass
 
