@@ -45,33 +45,34 @@ If allocation is to continue, a support class is instantiated and a
 This Work dictionary is populated with integer keys ``wid`` for each worker and
 dictionary values to give to those workers:
 
-.. dropdown:: Example Work
+.. dropdown:: Example ``Work``
 
-::
-    {
-        1: {
-            "H_fields": ["x"],
-            "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 1},
-            "tag": 1,
-            "libE_info": {"H_rows": array([368])}
-        },
+    .. code-block::
 
-        2: {
-            "H_fields": ["x"],
-            "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 2},
-            "tag": 1,
-            "libE_info": {"H_rows": array([369])}
-        },
+        {
+            1: {
+                "H_fields": ["x"],
+                "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 1},
+                "tag": 1,
+                "libE_info": {"H_rows": array([368])}
+            },
 
-        3: {
-            "H_fields": ["x"],
-            "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 3},
-            "tag": 1,
-            "libE_info": {"H_rows": array([370])}
-        },
-        ...
+            2: {
+                "H_fields": ["x"],
+                "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 2},
+                "tag": 1,
+                "libE_info": {"H_rows": array([369])}
+            },
 
-    }
+            3: {
+                "H_fields": ["x"],
+                "persis_info": {"rand_stream": RandomState(...) at ..., "worker_num": 3},
+                "tag": 1,
+                "libE_info": {"H_rows": array([370])}
+            },
+            ...
+
+        }
 
 This Work dictionary instructs each worker to call the ``sim_f`` (``tag: 1``)
 with data from ``"x"`` and a given ``"H_row"`` from the
@@ -85,10 +86,10 @@ available within the ``libensemble.tools.alloc_support`` module:
 
     .. currentmodule:: libensemble.tools.alloc_support
     .. autoclass:: AllocSupport
-    :member-order: bysource
-    :members:
+        :member-order: bysource
+        :members:
 
-    .. automethod:: __init__
+        .. automethod:: __init__
 
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
 is returned as third value, this instructs the ensemble to stop.
@@ -110,7 +111,8 @@ routine can be found in ``libE_info``::
                   "sim_max_given": bool,               # True if `sim_max` simulations have been given out to workers
                   "use_resource_sets": bool}           # True if num_resource_sets has been explicitly set.
 
-Most often, the allocation function will just return once ``sim_max_given``is ``True``, but the user could choose to do something different,
+Most often, the allocation function will just return once ``sim_max_given`` is ``True``,
+but the user could choose to do something different,
 such as cancel points or keep returning completed points to the generator.
 
 Generators that construct models based
