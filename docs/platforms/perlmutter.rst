@@ -41,14 +41,14 @@ by one of the following ways.
 
 .. code-block:: console
 
-    (my_env) user@cori07:~$ pip install libensemble
+    (my_env) user@perlmutter07:~$ pip install libensemble
 
 2. Install via **conda**:
 
 .. code-block:: console
 
-    (my_env) user@cori07:~$ conda config --add channels conda-forge
-    (my_env) user@cori07:~$ conda install -c conda-forge libensemble
+    (my_env) user@perlmutter07:~$ conda config --add channels conda-forge
+    (my_env) user@perlmutter07:~$ conda install -c conda-forge libensemble
 
 See :doc:`advanced installation<../advanced_installation>` for other installation options.
 
