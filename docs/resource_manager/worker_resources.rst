@@ -10,5 +10,5 @@ to obtain the following attributes. The convenience functions below can also be 
 .. autoclass:: WorkerResources
   :show-inheritance:
   :member-order: bysource
-  :members: get_slots_as_string, set_env_to_slots
+  :members: get_slots_as_string, set_env_to_slots, set_env_to_gpus
   :noindex:

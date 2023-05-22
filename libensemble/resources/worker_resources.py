@@ -209,6 +209,8 @@ class WorkerResources(RSetResources):
         self.zero_resource_workers = resources.zero_resource_workers
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
+        self.gen_nprocs = None
+        self.gen_ngpus = None
 
     # User convenience functions ----------------------------------------------
 
@@ -219,11 +221,9 @@ class WorkerResources(RSetResources):
         :param delimiter: Optional int. Delimiter for output string.
         :param limit: Optional int. Maximum slots (truncate list after this many slots).
         """
-
         if self.slots_on_node is None:
             logger.warning("Slots on node is None when requested as a string")
             return None
-
         n = multiplier
         slot_list = [j for i in self.slots_on_node for j in range(i * n, (i + 1) * n)]
         if limit is not None:
@@ -254,8 +254,35 @@ class WorkerResources(RSetResources):
             resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
         """
-
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
+
+
+    def set_env_to_gpus(self, env_var, delimiter=","):
+        """Sets the given environment variable to GPUs
+
+        :param env_var: String. Name of environment variable to set.
+        :param delimiter: Optional int. Delimiter for output string.
+
+        Example usage in a sim function:
+
+        With resources imported:
+
+        .. code-block:: python
+
+            from libensemble.resources.resources import Resources
+
+        Obtain worker resources:
+
+        .. code-block:: python
+
+            resources = Resources.resources.worker_resources
+            resources.set_env_to_gpus("CUDA_VISIBLE_DEVICES")
+
+        """
+        assert self.matching_slots, f"Cannot assign GPUs to non-matching slots per node {self.slots}"
+        if self.doihave_gpus():
+            env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset, limit=self.gen_ngpus)
+            os.environ[env_var] = env_value
 
     # libEnsemble functions ---------------------------------------------------
 
@@ -289,6 +316,11 @@ class WorkerResources(RSetResources):
             )
             self.set_slot_count()
             self.local_node_count = len(self.local_nodelist)
+
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus"""
+        self.gen_nprocs = libE_info.get("num_procs")
+        self.gen_ngpus = libE_info.get("num_gpus")
 
     def set_slot_count(self) -> None:
         """Sets attributes even_slots and matching_slots.

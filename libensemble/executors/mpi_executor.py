@@ -119,7 +119,6 @@ class MPIExecutor(Executor):
         self.gen_nprocs = libE_info.get("num_procs")
         self.gen_ngpus = libE_info.get("num_gpus")
 
-
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
