@@ -287,6 +287,9 @@ class MPIExecutor(Executor):
         if not num_gpus:
             num_gpus = self.gen_ngpus
 
+        if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
+            num_nodes = self.resources.worker_resources.local_node_count
+
         mpi_specs = self.mpi_runner.get_mpi_specs(
             task,
             num_procs,

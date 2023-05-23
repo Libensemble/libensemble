@@ -47,7 +47,9 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
-    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
+
+    # Mock GPU system / uncomment to detect GPUs
+    libE_specs["resource_info"] = {"cores_on_node": (8, 16), "gpus_on_node": 4}
 
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_w" + str(nworkers)
