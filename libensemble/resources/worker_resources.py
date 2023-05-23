@@ -59,10 +59,6 @@ class ResourceManager(RSetResources):
         self.gpu_rsets_free = self.total_num_gpu_rsets
         self.nongpu_rsets_free = self.total_num_nongpu_rsets
 
-        # print(f"\n{self.total_num_rsets=}")
-        # print(f"{self.total_num_gpu_rsets=}")
-        # print(f"{self.total_num_nongpu_rsets=}\n")
-
         # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets["group"], return_counts=True)
         self.group_sizes = dict(zip(unique, counts))
@@ -85,9 +81,6 @@ class ResourceManager(RSetResources):
                     ResourceManagerException(
                         f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
                     )
-            # print(f"\nAfter assign: {self.rsets_free=}")
-            # print(f"After assign: {self.gpu_rsets_free=}")
-            # print(f"After assign: {self.nongpu_rsets_free=}\n")
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -102,10 +95,6 @@ class ResourceManager(RSetResources):
             self.rsets_free += len(rsets_to_free)
             self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
-            # print(f"\nfreed up {len(rsets_to_free)} ")
-        # print(f"---After free: {self.rsets_free=}")
-        # print(f"---After free: {self.gpu_rsets_free=}")
-        # print(f"---After free: {self.nongpu_rsets_free=}\n")
 
     @staticmethod
     def get_index_list(

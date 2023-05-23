@@ -207,7 +207,6 @@ class AllocSupport:
         """
         # Parse out resource_sets
         self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
-        # print(f"Sim: {libE_info=}")
 
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
@@ -243,8 +242,6 @@ class AllocSupport:
         ensure that no resources are assigned.
         """
         self._update_rset_team(libE_info, wid)
-
-        # print(f"Gen: {libE_info=}")
 
         if not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
