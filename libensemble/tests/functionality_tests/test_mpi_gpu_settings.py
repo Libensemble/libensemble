@@ -43,25 +43,19 @@ persistent generator.
 
 import os
 import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.resources.platforms import Frontier, PerlmutterGPU, Platform, Polaris, Summit, Sunspot
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
-
-from libensemble.resources.platforms import (
-    Platform,
-    Summit,
-    Frontier,
-    PerlmutterGPU,
-    Polaris,
-    Sunspot,
-)
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -69,7 +63,6 @@ from libensemble.resources.platforms import (
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
     libE_specs["use_workflow_dir"] = True  # Only a place for Open machinefiles
@@ -119,7 +112,6 @@ if __name__ == "__main__":
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
         exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
         exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
@@ -145,7 +137,6 @@ if __name__ == "__main__":
     )
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-
         print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
         libE_specs["platform_specs"].mpi_runner = run_set
 
@@ -183,7 +174,6 @@ if __name__ == "__main__":
     }
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-
         print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
         libE_specs["platform_specs"]["mpi_runner"] = run_set
 
@@ -212,7 +202,6 @@ if __name__ == "__main__":
 
     # Fourth set - use platform setting ------------------------------------------------------------
     for platform in ["summit", "crusher", "perlmutter_g", "polaris", "sunspot"]:
-
         print(f"\nRunning GPU setting checks (via known platform) for {platform} ------------------- ")
         libE_specs["platform"] = platform
 
@@ -231,7 +220,6 @@ if __name__ == "__main__":
 
     # Fifth set - use platform environment setting -----------------------------------------------
     for platform in ["summit", "crusher", "perlmutter_g", "polaris", "sunspot"]:
-
         print(f"\nRunning GPU setting checks (via known platform env. variable) for {platform} ----- ")
         os.environ["LIBE_PLATFORM"] = platform
 
@@ -250,7 +238,6 @@ if __name__ == "__main__":
 
     # Sixth set - use platform_specs with known systems -------------------------------------------
     for platform in [Summit, Frontier, PerlmutterGPU, Polaris, Sunspot]:
-
         print(f"\nRunning GPU setting checks (via known platform - platform_specs) for {platform} ------------------- ")
         libE_specs["platform_specs"] = platform()
 
