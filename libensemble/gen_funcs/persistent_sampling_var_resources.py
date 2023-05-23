@@ -105,7 +105,6 @@ def uniform_sample_with_var_priorities(_, persis_info, gen_specs, libE_info):
     tag, Work, calc_in = ps.send_recv(H_o)
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)  # no. of points returned
 

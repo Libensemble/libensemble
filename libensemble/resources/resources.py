@@ -100,7 +100,6 @@ class GlobalResources:
     """
 
     def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
-
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including

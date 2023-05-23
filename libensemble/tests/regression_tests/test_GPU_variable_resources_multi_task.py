@@ -35,19 +35,20 @@ to resource all works units. More generally:
 # TESTSUITE_NPROCS: 10
 
 import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+
+# Using num_procs / num_gpus in gen
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
-
-# Using num_procs / num_gpus in gen
-from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -55,7 +56,6 @@ from libensemble.executors.mpi_executor import MPIExecutor
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     # The persistent gen does not need resources

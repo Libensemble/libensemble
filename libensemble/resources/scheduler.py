@@ -419,15 +419,11 @@ class ResourceScheduler:
         if use_gpus is None:
             nrsets = self.resources.total_num_rsets
             if rsets_req > nrsets:
-                raise InsufficientResourcesError(
-                    f"More resource sets requested {rsets_req} than exist {nrsets}"
-                )
+                raise InsufficientResourcesError(f"More resource sets requested {rsets_req} than exist {nrsets}")
         elif use_gpus:
             nrsets = self.resources.total_num_gpu_rsets
             if rsets_req > nrsets:
-                raise InsufficientResourcesError(
-                    f"More GPU resource sets requested {rsets_req} than exist {nrsets}"
-                )
+                raise InsufficientResourcesError(f"More GPU resource sets requested {rsets_req} than exist {nrsets}")
         else:
             nrsets = self.resources.total_num_nongpu_rsets
             if rsets_req > nrsets:
