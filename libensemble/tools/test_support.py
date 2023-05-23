@@ -34,6 +34,14 @@ def _get_expected_output(name, value):
     return name + " " + str(value)
 
 
+def _safe_min(a, b):
+    """Takes min of two values, ignoring if second is None"""
+    if b is not None:
+        return min(a, b)
+    else:
+        return a
+
+
 def _set_gpus(task, wresources):
     return wresources.doihave_gpus() and task.ngpus_req > 0
 
@@ -136,10 +144,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     if cmd_line:
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            expected_nums = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
+            avail_gpus = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
+            expected_nums = _safe_min(avail_gpus, wresources.gen_ngpus)
         else:
             stype = "runline option: gpus per node"
-            expected_nums = wresources.slot_count * wresources.gpus_per_rset
+            expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
         expected_nums = expected_nums if _set_gpus(task, wresources) else None
         if expected_nums is not None:
             expected = _get_expected_output(expected_setting, expected_nums)
@@ -149,7 +158,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
             gpu_setting = _get_opt_value(expected_setting, task.runline)
     else:
         stype = "Env var"
-        expected_nums = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)
+        expected_nums = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=wresources.gen_ngpus)
         expected_nums = expected_nums if _set_gpus(task, wresources) else None
         if expected_nums is not None:
             expected = {expected_setting: expected_nums}
