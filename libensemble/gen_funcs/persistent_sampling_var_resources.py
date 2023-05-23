@@ -32,8 +32,8 @@ def uniform_sample(_, persis_info, gen_specs, libE_info):
     evaluation of the generated points.
 
     .. seealso::
-        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
-    """
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_
+    """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     rng = persis_info["rand_stream"]
@@ -59,8 +59,8 @@ def uniform_sample_with_procs_gpus(_, persis_info, gen_specs, libE_info):
     evaluation of the generated points.
 
     .. seealso::
-        `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_ # noqa
-    """
+        `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
+    """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     rng = persis_info["rand_stream"]
@@ -123,8 +123,8 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
     One simulation type also uses GPUs.
 
     .. seealso::
-        `test_GPU_variable_resources_multi_task.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources_multi_task.py>`_ # noqa
-    """
+        `test_GPU_variable_resources_multi_task.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources_multi_task.py>`_
+    """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     rng = persis_info["rand_stream"]

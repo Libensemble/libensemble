@@ -32,9 +32,9 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     function.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_ # noqa
-        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_async.py>`_ # noqa
-    """
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_async.py>`_
+    """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -66,8 +66,8 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     to shutdown an ensemble when a condition is met.
 
     .. seealso::
-        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
-    """
+        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_
+    """  # noqa
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     shutdown_limit = gen_specs["user"]["shutdown_limit"]
     f_count = 0
@@ -94,9 +94,8 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
     This generation function is designed to test non-blocking receives.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_ # noqa
-
-    """
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+    """  # noqa
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
@@ -142,8 +141,8 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
         Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_ # noqa
-    """
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+    """  # noqa
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)
