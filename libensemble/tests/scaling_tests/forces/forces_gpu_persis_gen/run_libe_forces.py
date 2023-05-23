@@ -14,9 +14,6 @@ An alternative variable resource generator is available (search 'var resources'
 in this script and uncomment relevant lines).
 """
 
-# TODO will checksum be the same? depends on random number sequence....
-
-
 import os
 import sys
 
@@ -32,8 +29,8 @@ from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 
-# Uncomment for var resources
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+# Uncomment for var resources (checksum will change due to rng differences)
+# from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
@@ -49,8 +46,6 @@ libE_specs["num_resource_sets"] = nsim_workers  # Persistent gen does not need r
 
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
-# exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter
-# exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})  # Polaris (use mpiexec)
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")

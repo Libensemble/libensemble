@@ -25,7 +25,7 @@ from libensemble.executors import MPIExecutor
 # Fixed resources (one resource set per worker)
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
-# Uncomment for var resources
+# Uncomment for var resources (checksum will change due to rng differences)
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
 from libensemble.libE import libE
