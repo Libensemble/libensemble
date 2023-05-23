@@ -371,11 +371,14 @@ class AllocSupport:
         """Convert num_procs & num_gpus requirements to resource sets"""
         max_num_units = int(np.max(H[H_rows][units_str]))
         user_params.append(max_num_units)
-        try:
-            num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
-        except ZeroDivisionError:
-            raise InsufficientResourcesError(
-                f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
-            )
+        if max_num_units > 0:
+            try:
+                num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
+            except ZeroDivisionError:
+                raise InsufficientResourcesError(
+                    f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
+                )
+        else:
+            num_rsets_req = 0
         libE_info[units_str] = max_num_units
         return num_rsets_req
