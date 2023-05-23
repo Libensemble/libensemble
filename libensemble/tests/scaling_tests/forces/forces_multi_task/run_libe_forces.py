@@ -14,9 +14,6 @@ An alternative variable resource generator is available (search 'var resources'
 in this script and uncomment relevant lines).
 """
 
-# TODO will checksum be the same? depends on random number sequence....
-
-
 import os
 import sys
 
@@ -28,14 +25,8 @@ from libensemble.executors import MPIExecutor
 # Fixed resources (one resource set per worker)
 # from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
-# Fixed resources (one resource set per worker) - persistent gen
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-
-# Uncomment for var resources
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
-
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -66,7 +57,7 @@ exctr.register_app(full_path=sim_app2, app_name="forces_gpu")
 # State the sim_f, inputs, outputs
 sim_specs = {
     "sim_f": run_forces,  # sim_f, imported above
-    "in": ["x", "use_gpus"],  # Name of input for sim_f
+    "in": ["x"],  # Name of input for sim_f
     "out": [("energy", float)],  # Name, type of output from sim_f
 }
 
@@ -77,14 +68,14 @@ gen_specs = {
     "persis_in": ["sim_id"],  # Just send something back to gen to get number of new points.
     "out": [
         ("x", float, (1,)),  # Name, type and size of data from gen_f
-        ("resource_sets", int),  # Uncomment for var resources
-        ("use_gpus", bool),
+        ("num_procs", int),
+        ("num_gpus", int),
     ],
     "user": {
-        "lb": np.array([50000]),  # fewest particles (changing will change checksum)
-        "ub": np.array([100000]),  # max particles (changing will change checksum)
+        "lb": np.array([5000]),  # fewest particles (changing will change checksum)
+        "ub": np.array([10000]),  # max particles (changing will change checksum)
         "initial_batch_size": nsim_workers,
-        "max_resource_sets": (nsim_workers) // 2,  # Any sim created can req. 1 worker up to max
+        "max_procs": (nsim_workers) // 2,  # Any sim created can req. 1 worker up to max
         "multi_task": True,
         # "max_resource_sets": nworkers  # Uncomment for var resources
     },
@@ -114,12 +105,3 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(
     sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
 )
-
-# This is for configuration of this test (inc. lb/ub and sim_max values)
-if is_manager:
-    if exit_criteria["sim_max"] == 8:
-        chksum = np.sum(H["energy"])
-        assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
-        print("Checksum passed")
-    else:
-        print("Run complete. A checksum has not been provided for the given sim_max")

@@ -21,13 +21,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Parse out num particles, from generator function
     particles = str(int(H["x"][0][0]))
 
-    use_gpus = H["use_gpus"][0]
-    # print(f'{use_gpus=}')
-
-    # use less particles for cpu
-    if not use_gpus:
-        particles = str(int(particles) // 100)
-
     # app arguments: num particles, timesteps, also using num particles as seed
     args = particles + " " + str(10) + " " + particles
 
@@ -35,22 +28,10 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     exctr = Executor.executor
 
     # Submit our forces app for execution. Block until the task starts.
-    if use_gpus:
-        task = exctr.submit(
-            app_name="forces_gpu",
-            app_args=args,
-            auto_assign_gpus=True,
-            match_procs_to_gpus=True,
-        )
-        print(f"gpu run finished {particles}")
-
-    else:
-        task = exctr.submit(
-            app_name="forces_cpu",
-            app_args=args,
-            num_procs=1,  # or procs_per_slot
-        )
-        print(f"cpu run finished {particles}")
+    task = exctr.submit(
+        app_name="forces_gpu",
+        app_args=args,
+    )
 
     # Block until the task finishes
     task.wait()
