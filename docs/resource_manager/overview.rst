@@ -14,7 +14,7 @@ these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and
 CPU cores available to the worker.
 
-Detected resources can be overridden using the libE_specs option
+Detected resources can be overridden using the ``libE_specs`` option
 :ref:`resource_info<resource_info>`.
 
 Variable resource assignment
