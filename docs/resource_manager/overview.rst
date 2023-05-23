@@ -27,7 +27,7 @@ Variable resource assignment
     automatically passed through and used by the executor (if no other run configuration
     is given in the submit line). Furthermore, GPUs will be automatically assigned
     in the correct way for the given system (including nVIDA, AMD and Intel GPUs);
-    you do not need to set CUDA_VISIBLE_DEVICES or equivalent. Example:
+    you do not need to set ``CUDA_VISIBLE_DEVICES`` or equivalent. Example:
     `test_GPU_variable_resources.py`_
 
 In slightly more detail, the resource manager divides resources into **resource sets**.
