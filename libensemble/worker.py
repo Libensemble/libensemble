@@ -9,6 +9,7 @@ import logging.handlers
 import pstats
 import socket
 from itertools import count
+from pathlib import Path
 from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
 
@@ -103,7 +104,7 @@ def worker_main(
         worker_logging_config(comm, workerID)
 
     LS = LocationStack()
-    LS.register_loc("workflow", libE_specs.get("workflow_dir_path"))
+    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
 
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)

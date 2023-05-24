@@ -11,7 +11,7 @@ __credits__ = "Argonne National Laboratory"
 
 from libensemble import logger
 
-# try:
-#     from .api import Ensemble
-# except ModuleNotFoundError:
-#     pass
+try:
+    from .ensemble import Ensemble
+except ModuleNotFoundError:
+    pass

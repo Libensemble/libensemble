@@ -1,8 +1,7 @@
-import os
 import random
 import secrets
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
@@ -33,7 +32,7 @@ BaseConfig.error_msg_templates = {
 }
 BaseConfig.validate_assignment = True
 
-__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
+__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
 
 class SimSpecs(BaseModel):
@@ -259,7 +258,7 @@ class LibeSpecs(BaseModel):
     is specified.
     """
 
-    ensemble_dir_path: Optional[str] = "ensemble"
+    ensemble_dir_path: Optional[Union[str, Path]] = Path("ensemble")
     """
     Path to main ensemble directory containing calculation directories. Can serve
     as single working directory for workers, or contain calculation directories
@@ -280,13 +279,17 @@ class LibeSpecs(BaseModel):
     By default all workers operate within the top-level ensemble directory
     """
 
-    sim_dir_copy_files: Optional[List[str]] = []
-    """ Paths to files or directories to copy into each simulation or ensemble directory """
+    sim_dir_copy_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to copy into each simulation or ensemble directory.
+    List of strings or pathlib.Path objects
+    """
 
-    sim_dir_symlink_files: Optional[List[str]] = []
-    """ Paths to files or directories to symlink into each simulation directory """
+    sim_dir_symlink_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to symlink into each simulation directory.
+    List of strings or pathlib.Path objects
+    """
 
-    sim_input_dir: Optional[str] = ""
+    sim_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each simulation-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
@@ -298,13 +301,17 @@ class LibeSpecs(BaseModel):
     By default all workers operate within the top-level ensemble directory
     """
 
-    gen_dir_copy_files: Optional[List[str]] = []
-    """ Paths to files or directories to copy into each generator or ensemble directory """
+    gen_dir_copy_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to copy into each generator or ensemble directory.
+    List of strings or pathlib.Path objects
+    """
 
-    gen_dir_symlink_files: Optional[List[str]] = []
-    """ Paths to files or directories to symlink into each generator directory """
+    gen_dir_symlink_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to symlink into each generator directory.
+    List of strings or pathlib.Path objects
+    """
 
-    gen_input_dir: Optional[str] = ""
+    gen_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each generator-instance-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
@@ -464,7 +471,7 @@ class LibeSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @validator("comms")
-    def check_valid_comms_type(cls, value: str) -> str:
+    def check_valid_comms_type(cls, value):
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
@@ -475,23 +482,27 @@ class LibeSpecs(BaseModel):
         return value
 
     @validator("sim_input_dir", "gen_input_dir")
-    def check_input_dir_exists(cls, value: str) -> str:
-        if len(value):
-            assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
+    def check_input_dir_exists(cls, value):
+        if value:
+            if isinstance(value, str):
+                value = Path(value)
+            assert value.exists(), "value does not refer to an existing path"
+            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    def check_inputs_exist(cls, value: List[str]) -> List[str]:
+    def check_inputs_exist(cls, value):
+        value = [Path(path) for path in value]
         for f in value:
-            assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
         return value
 
     @root_validator
-    def check_any_workers_and_disable_rm_if_tcp(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
 
     @root_validator
-    def set_defaults_on_mpi(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_defaults_on_mpi(cls, values):
         if values.get("comms") == "mpi":
             from mpi4py import MPI
 
@@ -500,7 +511,7 @@ class LibeSpecs(BaseModel):
         return values
 
     @root_validator
-    def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_workflow_dir(cls, values):
         if values.get("use_workflow_dir") and len(str(values.get("workflow_dir_path"))) <= 1:
             values["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
@@ -510,7 +521,7 @@ class LibeSpecs(BaseModel):
         return values
 
 
-class EnsembleSpecs(BaseModel):
+class _EnsembleSpecs(BaseModel):
     """An all-encompasing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
@@ -541,21 +552,21 @@ class EnsembleSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @root_validator
-    def check_exit_criteria(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_exit_criteria(cls, values):
         return _check_exit_criteria(values)
 
     @root_validator
-    def check_output_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_output_fields(cls, values):
         return _check_output_fields(values)
 
     @root_validator
-    def set_ensemble_nworkers(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_ensemble_nworkers(cls, values):
         if values.get("libE_specs"):
             values["nworkers"] = values["libE_specs"].nworkers
         return values
 
     @root_validator
-    def check_H0(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_H0(cls, values):
         if values.get("H0") is not None:
             return _check_H0(values)
         return values

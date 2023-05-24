@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from libensemble.message_numbers import EVAL_SIM_TAG, calc_type_strings
 from libensemble.tools.fields_keys import libE_spec_calc_dir_misc, libE_spec_gen_dir_keys, libE_spec_sim_dir_keys
@@ -40,68 +40,52 @@ class EnsembleDirectory:
         A LocationStack object from libEnsemble's internal libensemble.utils.loc_stack module.
     """
 
-    def __init__(self, libE_specs: dict = None, loc_stack: Optional[LocationStack] = None) -> None:
+    def __init__(self, libE_specs: dict, loc_stack: Optional[LocationStack] = None):
         self.specs = libE_specs
         self.loc_stack = loc_stack
 
-        if self.specs is not None:
-            self.ensemble_dir = self.specs.get("ensemble_dir_path", "ensemble")
-            self.workflow_dir = str(
-                self.specs.get("workflow_dir_path", "")
-            )  # this is a Path, need to refactor everything else to be Path too...
-            self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
-            self.sim_input_dir = self.specs.get("sim_input_dir", "")
-            self.sim_dirs_make = self.specs.get("sim_dirs_make", False)
-            self.sim_dir_copy_files = self.specs.get("sim_dir_copy_files", [])
-            self.sim_dir_symlink_files = self.specs.get("sim_dir_symlink_files", [])
-            self.gen_input_dir = self.specs.get("gen_input_dir", "")
-            self.gen_dirs_make = self.specs.get("gen_dirs_make", False)
-            self.gen_dir_copy_files = self.specs.get("gen_dir_copy_files", [])
-            self.gen_dir_symlink_files = self.specs.get("gen_dir_symlink_files", [])
-            self.ensemble_copy_back = self.specs.get("ensemble_copy_back", False)
-            self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
-            self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
+        self.ensemble_dir = Path(self.specs.get("ensemble_dir_path", "ensemble"))
+        self.workflow_dir = Path(self.specs.get("workflow_dir_path", ""))
+        self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
+        self.ensemble_copy_back = self.specs.get("ensemble_copy_back", False)
 
-            if self.workflow_dir and self.ensemble_dir == "ensemble":  # default ensemble dir without adjustment
-                self.ensemble_dir = os.path.join(
-                    self.workflow_dir, self.ensemble_dir
-                )  # place ensemble dir in workflow dir
+        self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
+        self.sim_input_dir = Path(self.specs.get("sim_input_dir")) if self.specs.get("sim_input_dir") else ""
+        self.sim_dirs_make = self.specs.get("sim_dirs_make", False)
+        self.sim_dir_copy_files = self.specs.get("sim_dir_copy_files", [])
+        self.sim_dir_symlink_files = self.specs.get("sim_dir_symlink_files", [])
 
-            if self.ensemble_copy_back:
-                if self.workflow_dir:
-                    self.copybackdir = os.path.join(
-                        self.workflow_dir, os.path.basename(self.ensemble_dir)
-                    )  # put copyback dir in same dir as workflow dir
+        self.gen_use = any([self.specs.get(i) for i in libE_spec_gen_dir_keys + libE_spec_calc_dir_misc])
+        self.gen_input_dir = Path(self.specs.get("gen_input_dir")) if self.specs.get("gen_input_dir") else ""
+        self.gen_dirs_make = self.specs.get("gen_dirs_make", False)
+        self.gen_dir_copy_files = self.specs.get("gen_dir_copy_files", [])
+        self.gen_dir_symlink_files = self.specs.get("gen_dir_symlink_files", [])
 
-                else:
-                    self.copybackdir = os.path.basename(self.ensemble_dir)  # put copyback dir in current dir
+        if self.workflow_dir and self.ensemble_dir.stem == "ensemble":  # default ensemble dir without adjustment
+            self.ensemble_dir = self.workflow_dir / self.ensemble_dir
 
-                if os.path.basename(self.copybackdir) == str(
-                    Path(self.ensemble_dir)
-                ):  # modify copyback dir if it and ensemble dir in same dir
-                    self.copybackdir += "_back"
+        if self.ensemble_copy_back:
+            self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
 
-    def make_copyback_check(self) -> None:
+    def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
         try:
-            os.rmdir(self.ensemble_dir)
+            self.ensemble_dir.rmdir()
         except FileNotFoundError:
             pass
         except Exception:
             raise
         if self.ensemble_copy_back:
-            os.makedirs(self.copybackdir)
+            self.copybackdir.mkdir()
 
-    def use_calc_dirs(self, type: int) -> bool:
+    def use_calc_dirs(self, typelabel: int) -> bool:
         """Determines calc_dirs enabling for each calc type"""
-        if type == EVAL_SIM_TAG:
+        if typelabel == EVAL_SIM_TAG:
             return self.sim_use
         else:
             return self.gen_use
 
-    def _make_calc_dir(
-        self, workerID: int, H_rows: Union[str, int], calc_str: str, locs: LocationStack
-    ) -> Union[str, int]:
+    def _make_calc_dir(self, workerID, H_rows, calc_str: str, locs: LocationStack):
         """Create calc dirs and intermediate dirs, copy inputs, based on libE_specs"""
         if calc_str == "sim":
             input_dir = self.sim_input_dir
@@ -120,7 +104,7 @@ class EnsembleDirectory:
 
         # If using input_dir, set of files to copy is contents of provided dir
         if input_dir:
-            copy_files = set(copy_files + [os.path.join(input_dir, i) for i in os.listdir(input_dir)])
+            copy_files = set(copy_files + [i for i in input_dir.iterdir()])
 
         # If identical paths to copy and symlink, remove those paths from symlink_files
         if len(symlink_files):
@@ -130,16 +114,16 @@ class EnsembleDirectory:
         if not do_calc_dirs:
             if self.use_worker_dirs:  # Each worker does work in worker dirs
                 key = workerID
-                dir = "worker" + str(workerID)
+                dirname = "worker" + str(workerID)
                 prefix = self.ensemble_dir
             else:  # Each worker does work in prefix (ensemble_dir)
                 key = self.ensemble_dir
-                dir = self.ensemble_dir
+                dirname = self.ensemble_dir
                 prefix = None
 
             locs.register_loc(
                 key,
-                dir,
+                Path(dirname),
                 prefix=prefix,
                 copy_files=copy_files,
                 symlink_files=symlink_files,
@@ -151,22 +135,22 @@ class EnsembleDirectory:
         # ensemble_dir/worker_dir registered here, set as parent dir for calc dirs
         if self.use_worker_dirs:
             worker_dir = "worker" + str(workerID)
-            worker_path = os.path.abspath(os.path.join(self.ensemble_dir, worker_dir))
+            worker_path = (self.ensemble_dir / Path(worker_dir)).absolute()
             calc_dir = calc_str + str(H_rows)
-            locs.register_loc(workerID, worker_dir, prefix=self.ensemble_dir)
+            locs.register_loc(workerID, Path(worker_dir), prefix=self.ensemble_dir)
             calc_prefix = worker_path
 
         # Otherwise, ensemble_dir set as parent dir for sim dirs
         else:
             calc_dir = f"{calc_str}{H_rows}_worker{workerID}"
-            if not os.path.isdir(self.ensemble_dir):
-                os.makedirs(self.ensemble_dir, exist_ok=True)
+            if not self.ensemble_dir.exists():
+                self.ensemble_dir.mkdir(exist_ok=True)
             calc_prefix = self.ensemble_dir
 
         # Register calc dir with adjusted parent dir and sourcefile location
         locs.register_loc(
             calc_dir,
-            calc_dir,  # Dir name also label in loc stack dict
+            Path(calc_dir),  # Dir name also label in loc stack dict
             prefix=calc_prefix,
             copy_files=copy_files,
             symlink_files=symlink_files,
@@ -192,16 +176,17 @@ class EnsembleDirectory:
 
     def copy_back(self) -> None:
         """Copy back all ensemble dir contents to launch location"""
-        if os.path.isdir(self.ensemble_dir) and self.ensemble_copy_back:
+        if self.ensemble_dir.exists() and self.ensemble_copy_back:
             no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
 
             for dire in self.loc_stack.dirs.values():
-                dest_path = os.path.join(self.copybackdir, os.path.basename(dire))
+                dire = Path(dire)
+                dest_path = self.copybackdir / Path(dire.stem)
                 if dire == self.ensemble_dir:  # occurs when no_calc_dirs is True
                     continue  # otherwise, entire ensemble dir copied into copyback dir
 
                 shutil.copytree(dire, dest_path, symlinks=True, dirs_exist_ok=True)
-                if os.path.basename(dire).startswith("worker"):
+                if dire.stem.startswith("worker"):
                     return  # Worker dir (with all contents) has been copied.
 
             # If not using calc dirs, likely miscellaneous files to copy back
