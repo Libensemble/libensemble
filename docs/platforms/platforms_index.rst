@@ -208,7 +208,6 @@ libEnsemble on specific HPC systems.
     :titlesonly:
 
     bebop
-    cori
     frontier
     perlmutter
     polaris

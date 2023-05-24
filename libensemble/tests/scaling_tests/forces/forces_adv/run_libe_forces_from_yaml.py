@@ -29,14 +29,14 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name="forces")
 
 forces.libE_specs["ensemble_dir_path"] = "./ensemble"
-forces.gen_specs["user"].update(
+forces.gen_specs.user.update(
     {
         "lb": np.array([0]),
         "ub": np.array([32767]),
     }
 )
 
-forces.persis_info.add_random_streams()
+forces.add_random_streams()
 
 forces.run()
 
