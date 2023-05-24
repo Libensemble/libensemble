@@ -9,6 +9,7 @@ import logging.handlers
 import pstats
 import socket
 from itertools import count
+from pathlib import Path
 from traceback import format_exc
 from traceback import format_exception_only as format_exc_msg
 
@@ -103,7 +104,7 @@ def worker_main(
         worker_logging_config(comm, workerID)
 
     LS = LocationStack()
-    LS.register_loc("workflow", libE_specs.get("workflow_dir_path"))
+    LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
 
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
@@ -178,11 +179,24 @@ class Worker:
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
-    def _set_rset_team(rset_team: list) -> bool:
-        """Pass new rset_team to worker resources"""
+    def _set_gen_procs_gpus(libE_info, obj):
+        if any(k in libE_info for k in ("num_procs", "num_gpus")):
+            obj.set_gen_procs_gpus(libE_info)
+
+    @staticmethod
+    def _set_rset_team(libE_info: dict) -> bool:
+        """Pass new rset_team to worker resources
+
+        Also passes gen assigned cpus/gpus to resources and executor
+        """
         resources = Resources.resources
+        exctr = Executor.executor
         if isinstance(resources, Resources):
-            resources.worker_resources.set_rset_team(rset_team)
+            wresources = resources.worker_resources
+            wresources.set_rset_team(libE_info["rset_team"])
+            Worker._set_gen_procs_gpus(libE_info, wresources)
+            if isinstance(exctr, Executor):
+                Worker._set_gen_procs_gpus(libE_info, exctr)
             return True
         else:
             return False
@@ -336,7 +350,7 @@ class Worker:
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])
-        Worker._set_rset_team(libE_info["rset_team"])
+        Worker._set_rset_team(libE_info)
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
@@ -386,7 +400,6 @@ class Worker:
                                 _, _, _ = self._recv_H_rows(Work)
                             continue
                 else:
-                    print(mtag, Work)
                     logger.debug(f"mtag: {mtag}; Work: {Work}")
                     raise
 

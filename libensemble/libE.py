@@ -49,136 +49,6 @@ the command line), and runs on laptops or supercomputers. If an exception is
 encountered by the manager or workers, the history array is dumped to file, and
 MPI abort is called.
 
-An alternative approach to parameterizing and interacting with libEnsemble via
-:class:`Ensemble<libensemble.api.Ensemble>` objects and ``yaml``, ``toml``, or ``json``
-files is available, but the first two require ``pyyaml``
-or ``tomli`` to be installed respectively. The equivalent of above resembles:
-
-.. code-block:: python
-    :linenos:
-
-    import numpy as np
-    from libensemble.api import Ensemble
-
-    my_experiment = Ensemble()
-
-    my_experiment.from_yaml("my_parameters.yaml")
-    # or...
-    my_experiment.from_toml("my_parameters.toml")
-    # or...
-    my_experiment.from_json("my_parameters.json")
-
-    my_experiment.gen_specs["user"]["lower"] = np.array([-3])
-    my_experiment.gen_specs["user"]["upper"] = np.array([3])
-
-    H, persis_info, flag = my_experiment.run()
-
-The remaining parameters may be found in a ``yaml`` file that resembles:
-
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.yaml**
-
-    .. code-block:: yaml
-        :linenos:
-
-        libE_specs:
-            save_every_k_gens: 20
-
-        exit_criteria:
-            sim_max: 80
-
-        gen_specs:
-            gen_f: generator.gen_random_sample
-            outputs:
-                x:
-                    type: float
-                    size: 1
-            user:
-                gen_batch_size: 5
-
-        sim_specs:
-            sim_f: simulator.sim_find_sine
-            inputs:
-                - x
-            outputs:
-                y:
-                    type: float
-
-Or a ``toml`` file that resembles:
-
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.toml**
-
-    .. code-block:: toml
-        :linenos:
-
-        [libE_specs]
-            save_every_k_gens = 300
-
-        [exit_criteria]
-            sim_max = 80
-
-        [gen_specs]
-            gen_f = "generator.gen_random_sample"
-            [gen_specs.out]
-                [gen_specs.out.x]
-                    type = "float"
-                    size = 1
-            [gen_specs.user]
-                gen_batch_size = 5
-
-        [sim_specs]
-            sim_f = "simulator.sim_find_sine"
-            inputs = ["x"]
-            [sim_specs.out]
-                [sim_specs.out.y]
-                    type = "float"
-
-Or a ``json`` file that resembles:
-
-.. container:: toggle
-
-    .. container:: header
-
-        **Click Here for my_parameters.json**
-
-    .. code-block:: json
-        :linenos:
-
-        {
-            "libE_specs": {
-                "save_every_k_gens": 300,
-            },
-            "exit_criteria": {
-                "sim_max": 80
-            },
-            "gen_specs": {
-                "gen_f": "generator.gen_random_sample",
-                "out": {
-                    "x": {
-                        "type": "float",
-                        "size": 1
-                    }
-                },
-                "user": {
-                    "gen_batch_size": 5
-                }
-            },
-            "sim_specs": {
-                "sim_f": "simulator.sim_find_sine",
-                "inputs": ["x"],
-                "out": {
-                    "f": {"type": "float"}
-                }
-            }
-        }
-
 On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``"spawn"``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
 an ``if __name__ == "__main__:"`` block.
@@ -245,6 +115,7 @@ import pickle  # Only used when saving output on error
 import socket
 import sys
 import traceback
+from pathlib import Path
 from typing import Callable, Dict
 
 import numpy as np
@@ -255,8 +126,9 @@ from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
 from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
+from libensemble.resources.platforms import get_platform
 from libensemble.resources.resources import Resources
-from libensemble.specs import AllocSpecs, EnsembleSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
@@ -307,15 +179,14 @@ def libE(
         Specifications for the allocation function
         :doc:`(example)<data_structures/alloc_specs>`
 
-    libE_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.libESpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
-        A previous libEnsemble history to be prepended to the history in the
-        current libEnsemble run
+        A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
 
     Returns
@@ -347,7 +218,7 @@ def libE(
         H0 = np.empty([0])
 
     # check *everything*
-    ensemble = EnsembleSpecs(
+    ensemble = _EnsembleSpecs(
         H0=H0,
         libE_specs=libE_specs,
         persis_info=persis_info,
@@ -360,9 +231,12 @@ def libE(
     # get corresponding dictionaries back (casted in libE() def)
     sim_specs = ensemble.sim_specs.dict(by_alias=True)
     gen_specs = ensemble.gen_specs.dict(by_alias=True)
-    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_unset=True)
+    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
+
+    # Extract platform info from settings or environment
+    platform_info = get_platform(libE_specs)
 
     if libE_specs["dry_run"]:
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
@@ -370,10 +244,14 @@ def libE(
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
-    Resources.init_resources(libE_specs)
+    Resources.init_resources(libE_specs, platform_info)
+    if Executor.executor is not None:
+        Executor.executor.add_platform_info(platform_info)
 
     # Reset gen counter.
     AllocSupport.gen_counter = 0
+
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
     return libE_funcs[libE_specs.get("comms", "mpi")](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
@@ -743,12 +621,12 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _dump_on_abort(hist, persis_info, save_H=True, path=os.getcwd()):
+def _dump_on_abort(hist, persis_info, save_H=True, path=Path.cwd()):
     """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error(f"Dumping ensemble history with {hist.sim_ended_count} sims evaluated:")
 
     if save_H:
-        np.save(os.path.join(path, "libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy"), hist.trim_H())
-        with open(os.path.join(path, "libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle"), "wb") as f:
+        np.save(Path(path / Path("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy")), hist.trim_H())
+        with Path(path / Path("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle")).open("wb") as f:
             pickle.dump(persis_info, f)

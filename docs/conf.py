@@ -20,14 +20,9 @@
 import os
 import sys
 from datetime import datetime
+from unittest.mock import MagicMock
 
 exec(open("../libensemble/version.py").read())
-
-
-if sys.version_info >= (3, 3):
-    from unittest.mock import MagicMock
-else:
-    from mock import MagicMock
 
 
 class Mock(MagicMock):
@@ -43,11 +38,6 @@ MOCK_MODULES = [
     "mpi4py",
     "mpmath",
     "nlopt",
-    "numpy",
-    "numpy.typing",
-    "numpy.lib",
-    "numpy.lib.recfunctions",
-    "numpy.linalg",
     "PETSc",
     "petsc4py",
     "psutil",
@@ -87,8 +77,7 @@ sys.path.append(os.path.abspath("../libensemble/resources"))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-needs_sphinx = "3.3"
-nitpicky = True
+needs_sphinx = "5.3"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -102,6 +91,7 @@ extensions = [
     "sphinx.ext.imgconverter",
     "sphinx.ext.mathjax",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinx_design",
 ]
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
@@ -210,7 +200,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 # html_static_path = []
 
 

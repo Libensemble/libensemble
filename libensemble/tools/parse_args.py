@@ -162,9 +162,7 @@ def parse_args():
 
         $ python calling_script --comms local --nworkers 4
 
-    Usage:
-
-    .. code-block:: bash
+    Usage::
 
         usage: test_... [-h] [--comms [{local, tcp, ssh, client, mpi}]]
                         [--nworkers [NWORKERS]] [--workers WORKERS [WORKERS ...]]

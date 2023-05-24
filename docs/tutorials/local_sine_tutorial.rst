@@ -123,11 +123,7 @@ Exercise
 Write a simple generator function that instead produces random integers, using
 the ``numpy.random.Generator.integers(low, high, size)`` function.
 
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
+.. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
        :linenos:
@@ -185,11 +181,7 @@ Exercise
 Write a simple simulator function that instead calculates the *cosine* of a received
 value, using the ``numpy.cos(x)`` function.
 
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
+.. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
        :linenos:
@@ -353,11 +345,7 @@ Write a Calling Script with the following specifications:
   4. Set libEnsemble to stop execution after 160 *generations* using the ``gen_max`` key
   5. Print an error message if any errors occurred while libEnsemble was running
 
-.. container:: toggle
-
-   .. container:: header
-
-      **Click Here for Solution**
+.. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
        :linenos:

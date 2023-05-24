@@ -68,7 +68,7 @@ Note on Resource Binding
 Note that the use of ``CUDA_VISIBLE_DEVICES`` and other environment variables is often
 a highly portable way of assigning specific GPUs to workers, and has been known to work
 on some systems when other methods do not. See the libEnsemble regression test `test_persistent_sampling_CUDA_variable_resources.py`_ for an example of setting
-CUDA_VISIBLE_DEVICES in the imported simulator function (``six_hump_camel_CUDA_variable_resources``).
+CUDA_VISIBLE_DEVICES in the imported simulator function (``CUDA_variable_resources``).
 
 On other systems, like Perlmutter, using an option such as ``--gpus-per-task=1`` or
 ``-gres=gpu:1`` in ``extra_args`` is sufficient to allow SLURM to find the free GPUs.

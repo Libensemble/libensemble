@@ -24,7 +24,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         return {}, persis_info
 
     user = alloc_specs.get("user", {})
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
 
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
 

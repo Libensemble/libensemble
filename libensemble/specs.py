@@ -1,14 +1,14 @@
-import os
 import random
 import secrets
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
+from libensemble.resources.platforms import Platform
 from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     MPI_Communicator,
@@ -30,8 +30,9 @@ BaseConfig.error_msg_templates = {
     "value_error.extra": _UNRECOGNIZED_ERR,
     "type_error.callable": _UFUNC_INVALID_ERR,
 }
+BaseConfig.validate_assignment = True
 
-__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "EnsembleSpecs"]
+__all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
 
 class SimSpecs(BaseModel):
@@ -257,7 +258,7 @@ class LibeSpecs(BaseModel):
     is specified.
     """
 
-    ensemble_dir_path: Optional[str] = "ensemble"
+    ensemble_dir_path: Optional[Union[str, Path]] = Path("ensemble")
     """
     Path to main ensemble directory containing calculation directories. Can serve
     as single working directory for workers, or contain calculation directories
@@ -278,13 +279,17 @@ class LibeSpecs(BaseModel):
     By default all workers operate within the top-level ensemble directory
     """
 
-    sim_dir_copy_files: Optional[List[str]] = []
-    """ Paths to files or directories to copy into each simulation or ensemble directory """
+    sim_dir_copy_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to copy into each simulation or ensemble directory.
+    List of strings or pathlib.Path objects
+    """
 
-    sim_dir_symlink_files: Optional[List[str]] = []
-    """ Paths to files or directories to symlink into each simulation directory """
+    sim_dir_symlink_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to symlink into each simulation directory.
+    List of strings or pathlib.Path objects
+    """
 
-    sim_input_dir: Optional[str] = ""
+    sim_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each simulation-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
@@ -296,16 +301,79 @@ class LibeSpecs(BaseModel):
     By default all workers operate within the top-level ensemble directory
     """
 
-    gen_dir_copy_files: Optional[List[str]] = []
-    """ Paths to files or directories to copy into each generator or ensemble directory """
+    gen_dir_copy_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to copy into each generator or ensemble directory.
+    List of strings or pathlib.Path objects
+    """
 
-    gen_dir_symlink_files: Optional[List[str]] = []
-    """ Paths to files or directories to symlink into each generator directory """
+    gen_dir_symlink_files: Optional[List[Union[str, Path]]] = []
+    """ Paths to files or directories to symlink into each generator directory.
+    List of strings or pathlib.Path objects
+    """
 
-    gen_input_dir: Optional[str] = ""
+    gen_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory and its contents for each generator-instance-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
+    """
+
+    platform: Optional[str] = ""
+    """Name of a known platform defined in the platforms module.
+
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+
+    Example:
+
+    .. code-block:: python
+
+        libE_specs["platform"] = "perlmutter_g"
+
+    Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+
+    E.g., on command line or batch submission script:
+
+    .. code-block:: shell
+
+        export LIBE_PLATFORM="perlmutter_g"
+
+    See also option :attr:`platform_specs`.
+    """
+
+    platform_specs: Optional[Union[Platform, dict]] = {}
+    """A Platform obj (or dictionary) specifying settings for a platform.
+
+    Example usage in calling script.
+
+    To use existing platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import PerlmutterGPU
+
+        libE_specs["platform_specs"] = PerlmutterGPU()
+
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+
+    Or define a platform:
+
+    .. code-block:: python
+
+        from libensemble.resources.platforms import Platform
+
+        libE_specs["platform_specs"] = Platform(
+            mpi_runner="srun",
+            cores_per_node=64,
+            logical_cores_per_node=128,
+            gpus_per_node=8,
+            gpu_setting_type="runner_default",
+            scheduler_match_slots=False,
+        )
+
+    For list of Platform fields see :class:`Platform Fields<libensemble.resources.platforms.Platform>`
+
+    Any fields not given, will be auto-detected by libEnsemble.
+
+    See also option :attr:`platform`.
     """
 
     profile: Optional[bool] = False
@@ -403,28 +471,38 @@ class LibeSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @validator("comms")
-    def check_valid_comms_type(cls, value: str) -> str:
+    def check_valid_comms_type(cls, value):
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
+    @validator("platform_specs")
+    def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
+        if isinstance(value, dict):
+            value = Platform(**value)
+        return value
+
     @validator("sim_input_dir", "gen_input_dir")
-    def check_input_dir_exists(cls, value: str) -> str:
-        if len(value):
-            assert os.path.exists(value), "libE_specs['{}'] does not refer to an existing path.".format(value)
+    def check_input_dir_exists(cls, value):
+        if value:
+            if isinstance(value, str):
+                value = Path(value)
+            assert value.exists(), "value does not refer to an existing path"
+            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    def check_inputs_exist(cls, value: List[str]) -> List[str]:
+    def check_inputs_exist(cls, value):
+        value = [Path(path) for path in value]
         for f in value:
-            assert os.path.exists(f), "'{}' in libE_specs['{}'] does not refer to an existing path.".format(f, value)
+            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
         return value
 
     @root_validator
-    def check_any_workers_and_disable_rm_if_tcp(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
 
     @root_validator
-    def set_defaults_on_mpi(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_defaults_on_mpi(cls, values):
         if values.get("comms") == "mpi":
             from mpi4py import MPI
 
@@ -433,7 +511,7 @@ class LibeSpecs(BaseModel):
         return values
 
     @root_validator
-    def set_workflow_dir(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_workflow_dir(cls, values):
         if values.get("use_workflow_dir") and len(str(values.get("workflow_dir_path"))) <= 1:
             values["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
@@ -443,7 +521,7 @@ class LibeSpecs(BaseModel):
         return values
 
 
-class EnsembleSpecs(BaseModel):
+class _EnsembleSpecs(BaseModel):
     """An all-encompasing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
@@ -474,21 +552,21 @@ class EnsembleSpecs(BaseModel):
         arbitrary_types_allowed = True
 
     @root_validator
-    def check_exit_criteria(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_exit_criteria(cls, values):
         return _check_exit_criteria(values)
 
     @root_validator
-    def check_output_fields(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_output_fields(cls, values):
         return _check_output_fields(values)
 
     @root_validator
-    def set_ensemble_nworkers(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def set_ensemble_nworkers(cls, values):
         if values.get("libE_specs"):
             values["nworkers"] = values["libE_specs"].nworkers
         return values
 
     @root_validator
-    def check_H0(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_H0(cls, values):
         if values.get("H0") is not None:
             return _check_H0(values)
         return values

@@ -196,6 +196,11 @@ class Manager:
         self.wcomms = wcomms
         self.WorkerExc = False
         self.persis_pending = []
+
+        dyn_keys = ("resource_sets", "num_procs", "num_gpus")
+        dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
+        self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
+
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
         self.term_tests = [
@@ -207,13 +212,16 @@ class Manager:
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
+        self.scheduler_opts = self.libE_specs.get("scheduler_opts", {})
         if self.resources is not None:
+            gresource = self.resources.glob_resources
+            self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
             for wrk in self.W:
-                if wrk["worker_id"] in self.resources.glob_resources.zero_resource_workers:
+                if wrk["worker_id"] in gresource.zero_resource_workers:
                     wrk["zero_resource_worker"] = True
 
         try:
-            temp_EnsembleDirectory.make_copyback_check()
+            temp_EnsembleDirectory.make_copyback()
         except OSError as e:  # Ensemble dir exists and isn't empty.
             logger.manager_warning(_USER_CALC_DIR_WARNING.format(temp_EnsembleDirectory.ensemble_dir))
             self._kill_workers()
@@ -552,17 +560,18 @@ class Manager:
 
     def _get_alloc_libE_info(self) -> dict:
         """Selected statistics useful for alloc_f"""
+
         return {
             "any_idle_workers": any(self.W["active"] == 0),
             "exit_criteria": self.exit_criteria,
             "elapsed_time": self.elapsed(),
             "gen_informed_count": self.hist.gen_informed_count,
             "manager_kill_canceled_sims": self.kill_canceled_sims,
-            "scheduler_opts": self.libE_specs.get("scheduler_opts"),
+            "scheduler_opts": self.scheduler_opts,
             "sim_started_count": self.hist.sim_started_count,
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
-            "use_resource_sets": self.libE_specs.get("num_resource_sets"),
+            "use_resource_sets": self.use_resource_sets,
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:

@@ -139,11 +139,8 @@ a calling script in a familiar manner::
 
 This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
 
-.. container:: toggle
-
-    .. container:: header
-
-       ``my_calling_script.json``
+.. dropdown:: `my_calling_script.json``
+    :color: success
 
     .. code-block:: JSON
 
@@ -209,11 +206,8 @@ Results in::
 
 This also produces a Job-specific representation, e.g:
 
-.. container:: toggle
-
-    .. container:: header
-
-      ``8ba9de56.my_calling_script.json``
+.. dropdown:: ``8ba9de56.my_calling_script.json``
+    :color: success
 
     .. code-block:: JSON
 

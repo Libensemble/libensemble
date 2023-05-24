@@ -58,7 +58,7 @@ FAILED
 
 
 class ExecutorException(Exception):
-    "Raised for any exception in the Executor"
+    """Raised for any exception in the Executor"""
 
 
 class TimeoutExpired(Exception):
@@ -154,6 +154,8 @@ class Task:
         self.dry_run = dry_run
         self.runline = None
         self.run_attempts = 0
+        self.env = {}
+        self.ngpus_req = 0
 
     def reset(self) -> None:
         # Status attributes
@@ -165,6 +167,11 @@ class Task:
         self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
+        self.ngpus_req = 0
+
+    def _add_to_env(self, key, value):
+        """Add to task environment - overwrites if already set"""
+        self.env[key] = value
 
     def workdir_exists(self) -> Optional[bool]:
         """Returns true if the task's workdir exists"""
@@ -209,6 +216,13 @@ class Task:
             self.timer.stop()
             self.runtime = self.timer.elapsed
             self.total_time = self.runtime  # For direct launched tasks
+
+    def _implement_env(self):
+        """Set environment variables for this task"""
+        if self.env:
+            logger.debug(f"Task: {self.name}: Setting environment vars {self.env}")
+        for k, v in self.env.items():
+            os.environ[k] = v
 
     def _check_poll(self) -> bool:
         """Check whether polling this task makes sense."""
@@ -454,6 +468,20 @@ class Executor:
         # Does not use resources
         pass
 
+    def add_platform_info(self, platform_info={}):
+        """Add user supplied platform info to executor
+
+        Base executor does not currently use platform info
+        """
+        pass
+
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus
+
+        Base executor does not currently use procs and gpus
+        """
+        pass
+
     def register_app(
         self,
         full_path: str,
@@ -644,8 +672,8 @@ class Executor:
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
-        dry_run: bool = False,
-        wait_on_start: bool = False,
+        dry_run: Optional[bool] = False,
+        wait_on_start: Optional[bool] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
@@ -712,11 +740,13 @@ class Executor:
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
         else:
-
             if env_script is not None:
                 run_cmd = Executor._process_env_script(task, runline, env_script)
             else:
                 run_cmd = runline
+
+            # Set environment variables and launch task
+            task._implement_env()
 
             # Launch Task
             logger.info(f"Launching task {task.name}: {' '.join(runline)}")
@@ -748,13 +778,10 @@ class Executor:
         task.poll()
         task.kill(self.wait_time)
 
-    # TODO should you remove the script OR use tempfile module? Esp. if they don't use sim dirs!
     @staticmethod
     def _process_env_script(task, runline, env_script):
         """Merge users environment script with generated run-line"""
-
         sout_f = task.name + "_run.sh"
-
         p = Path(".")  # TODO default_workdir..?
         shutil.copy(env_script, p / sout_f)
         st = os.stat(sout_f)

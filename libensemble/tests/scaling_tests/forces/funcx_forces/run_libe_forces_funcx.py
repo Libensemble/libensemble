@@ -3,7 +3,7 @@ import secrets
 
 import numpy as np
 
-from libensemble.api import Ensemble
+from libensemble.ensemble import Ensemble
 
 if __name__ == "__main__":
     forces = Ensemble()

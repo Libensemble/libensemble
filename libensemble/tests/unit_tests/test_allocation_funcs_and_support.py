@@ -6,10 +6,11 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler
+from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesError
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools.alloc_support import AllocException, AllocSupport
 from libensemble.tools.fields_keys import libE_fields
+import pytest
 
 al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
@@ -421,6 +422,38 @@ def test_als_points_by_priority():
     ), "points_by_priority() should've simply returned the next point to evaluate."
 
 
+def test_convert_to_rsets():
+    user_params = []
+    libE_info = {}
+    gen_fields = [("num_procs", int), ("num_gpus", int)]
+    H = np.zeros(5, dtype=libE_fields + gen_fields)
+
+    H_rows = 1
+    H[H_rows]["num_gpus"] = 3
+    units_str = "num_gpus"
+
+    gpus_per_rset = 1
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    gpus_per_rset = 2
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 2, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    gpus_per_rset = 0
+    with pytest.raises(InsufficientResourcesError):
+        num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+
+    H[H_rows]["num_gpus"] = 0
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 0, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 0, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    clear_resources()
+
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
     test_als_init_normal()
@@ -434,3 +467,4 @@ if __name__ == "__main__":
     test_als_all_sim_ended()
     test_als_all_gen_informed()
     test_als_points_by_priority()
+    test_convert_to_rsets()

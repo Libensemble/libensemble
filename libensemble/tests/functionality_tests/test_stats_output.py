@@ -27,7 +27,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_r
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
+from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
