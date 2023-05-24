@@ -332,6 +332,14 @@ class Task:
     def kill(self, wait_time: int = 60) -> None:
         """Kills or cancels the supplied task
 
+        Parameters
+        ----------
+
+        wait_time: int, Optional
+            Time in seconds to wait for termination between sending
+            SIGTERM and a SIGKILL signals.
+
+
         Sends SIGTERM, waits for a period of <wait_time> for graceful
         termination, then sends a hard kill with SIGKILL.  If <wait_time>
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
@@ -375,10 +383,6 @@ class Executor:
 
     :cvar Executor: executor: The executor object is stored here and can be retrieved in user functions.
 
-    **Object Attributes:**
-
-    :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
     executor = None
@@ -411,8 +415,13 @@ class Executor:
     def __init__(self) -> None:
         """Instantiate a new Executor instance.
 
-        A new Executor object is created.
-        This is typically created in the user calling script.
+        Returns
+        -------
+
+        Executor
+            A new Executor object is created.
+            This is typically created in the user calling script.
+
         """
 
         self.manager_signal = None
@@ -678,7 +687,7 @@ class Executor:
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
-        The created task object is returned.
+        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
 
         Parameters
         ----------
@@ -769,11 +778,11 @@ class Executor:
         return task
 
     def poll(self, task: Task) -> None:
-        "Polls a task"
+        """Polls the supplied task"""
         task.poll()
 
     def kill(self, task: Task) -> None:
-        "Kills a task"
+        """Kills the supplied task"""
         jassert(isinstance(task, Task), "Invalid task has been provided")
         task.poll()
         task.kill(self.wait_time)

@@ -4,12 +4,14 @@ MPI Executor - MPI apps
 .. automodule:: mpi_executor
   :no-undoc-members:
 
+See this :doc:`example<overview>` for usage.
+
 .. autoclass:: libensemble.executors.mpi_executor.MPIExecutor
   :show-inheritance:
   :inherited-members:
-  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
+  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing, add_platform_info, set_gen_procs_gpus, kill, poll
 
-  .. automethod:: __init__
+..   .. automethod:: __init__
 
 ..  :member-order: bysource
 ..  :members: __init__, register_app, submit, manager_poll

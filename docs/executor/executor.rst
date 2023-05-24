@@ -24,7 +24,7 @@ class, as shown above.
 
 .. autoclass:: libensemble.executors.executor.Executor
   :members:
-  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
+  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing, add_platform_info, set_gen_procs_gpus, kill, poll
 
   .. automethod:: __init__
 
@@ -40,7 +40,7 @@ functions.
 
 .. autoclass:: libensemble.executors.executor.Task
   :members:
-  :exclude-members: calc_task_timing, check_poll
+  :exclude-members: calc_task_timing, check_poll, __init__
 ..  :member-order: bysource
 ..  :members: poll, kill, workdir_exists, file_exists_in_workdir,
               read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr

@@ -1,11 +1,15 @@
 """
 This module launches and controls the running of MPI applications.
 
-In order to create an MPI executor, the calling script should contain ::
+In order to create an MPI executor, the calling script should contain:
+
+.. code-block:: python
 
     exctr = MPIExecutor()
 
-See the executor API below for Optional arguments.
+The MPIExecutor will use system resource information supplied by the libEsnemble
+resource manager when submitting tasks.
+
 """
 
 import logging
@@ -25,31 +29,18 @@ logger = logging.getLogger(__name__)
 
 
 class MPIExecutor(Executor):
-    """The MPI executor can create, poll and kill runnable MPI tasks
-
-    **Object Attributes:**
-
-    :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
+    The MPI executor can create, poll and kill runnable MPI tasks
 
-    def __init__(self, custom_info: dict = {}) -> None:
-        """Instantiate a new MPIExecutor instance.
+    Parameters
+    ----------
 
-        A new MPIExecutor is created with an application
-        registry and configuration attributes.
+    custom_info: dict, Optional
+        Provide custom overrides to selected variables that are usually
+        auto-detected. See below.
 
-        This is typically created in the user calling script. The
-        MPIExecutor will use system resource information supplied by
-        the libEsnemble resource manager when submitting tasks.
 
-        Parameters
-        ----------
-
-        custom_info: dict, Optional
-            Provide custom overrides to selected variables that are usually
-            auto-detected. See below.
-
+    .. dropdown:: custom_info usage
 
         The MPIExecutor automatically detects MPI runners and launch
         mechanisms. However it is possible to override the detected
@@ -80,7 +71,11 @@ class MPIExecutor(Executor):
             from libensemble.executors.mpi_executor import MPIExecutor
             exctr = MPIExecutor(custom_info=customizer)
 
-        """
+
+    """
+
+    def __init__(self, custom_info: dict = {}) -> None:
+        """Instantiate a new MPIExecutor instance."""
 
         Executor.__init__(self)
 
@@ -193,7 +188,10 @@ class MPIExecutor(Executor):
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
-        The created task object is returned.
+        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
+
+        The user must supply either the app_name or calc_type arguments (app_name
+        is recommended). All other arguments are optional.
 
         Parameters
         ----------
