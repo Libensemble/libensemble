@@ -5,8 +5,8 @@ Overview
 --------
 
 libEnsemble comes with built-in resource management. This entails the
-:ref:`detection of available resources<resource_detection>` (e.g., nodelists and
-core counts), and the allocation of resources to workers.
+:ref:`detection of available resources<resource_detection>` (e.g., nodelists,
+core counts and GPUs), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers.
 libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of
@@ -21,7 +21,7 @@ Variable resource assignment
 ----------------------------
 
 .. note::
-    As of version 0.10.0, the concept of resource sets is not needed. The generator
+    As of **version 0.10.0**, the concept of resource sets is not needed. The generator
     can use special ``gen_specs["out"]`` fields of ``num_procs`` and ``num_gpus`` for each
     simulation generated. These will be used to assign resources and will be
     automatically passed through and used by the executor (if no other run configuration
@@ -120,7 +120,7 @@ Accessing resources from the simulation function
 
 In the user's simulation function, the resources supplied to the worker can be
 :doc:`interrogated directly via the resources class attribute<worker_resources>`.
-libEnsemble's executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are
+libEnsemble's executors (e.g., the :doc:`MPI Executor<../executor/mpi_executor>`) are
 aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
 cores available.
@@ -185,7 +185,7 @@ will not be scheduled unless ``match_slots`` is set to *False*:
 
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-This is only recommended if not enumerating resources to slot IDs (e.g. via ``CUDA_VISIBLE_DEVICES``).
+This is only recommended if not enumerating resources to slot IDs (e.g., via ``CUDA_VISIBLE_DEVICES``).
 
 Note that if six resource sets were requested, then they would be split three per node, even
 if ``split2fit`` is *False*, as this could otherwise never be scheduled.
@@ -273,7 +273,7 @@ Also, this can be set on the command line as a convenience.
 
 .. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
 
-.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
+.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_CUDA_variable_resources.py
 
 .. _persistent_sampling_var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling_var_resources.py
 

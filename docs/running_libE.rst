@@ -24,7 +24,7 @@ MPI Comms
 ---------
 
 This option uses ``mpi4py`` for the Manager/Worker communication. It is used automatically if
-you run your libEnsemble calling script with an MPI runner. E.g::
+you run your libEnsemble calling script with an MPI runner such as::
 
     mpirun -np N python myscript.py
 
@@ -47,7 +47,7 @@ supported with Open MPI. This can be overcome by using a proxy launcher
 with MPICH and its derivative MPI implementations.
 
 It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
-systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
+systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
 
 Local Comms
 -----------
@@ -71,7 +71,7 @@ to just the libEnsemble manager and workers, the ``libE_specs["dedicated_mode"]`
 can be set (see :doc:`central mode<platforms/platforms_index>`).
 
 This mode is often used to run on a **launch** node of a three-tier
-system (e.g. Theta/Summit), allowing the whole node allocation for
+system (e.g., Theta/Summit), allowing the whole node allocation for
 worker-launched application runs. In this scenario, make sure there are
 no imports of ``mpi4py`` in your Python scripts.
 

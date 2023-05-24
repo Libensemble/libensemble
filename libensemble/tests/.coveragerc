@@ -20,6 +20,7 @@ omit =
     */regression_tests/*
     */sim_funcs/helloworld.py
     */sim_funcs/executor_hworld.py
+    */tools/test_support.py
     */forkable_pdb.py
     */parse_args.py
     */gen_funcs/old_aposmm.py

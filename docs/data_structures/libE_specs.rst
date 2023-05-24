@@ -50,7 +50,6 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
             "disable_log_files" [bool] = ``False``:
                 Disable the creation of ``"ensemble.log"`` and ``"libE_stats.txt"``.
 
-
     .. tab-item:: Directories
 
         .. tab-set::
@@ -147,7 +146,6 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
             "stats_fmt" [dict]:
                 A dictionary of options for formatting ``"libE_stats.txt"``.
                 See "Formatting Options for libE_stats File" for more options.
-
 
     .. tab-item:: TCP
 
@@ -264,7 +262,6 @@ Platform Fields
         :field-show-default: False
         :member-order:
         :model-show-field-summary: False
-
 
 Scheduler Options
 -----------------

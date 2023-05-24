@@ -16,7 +16,7 @@ Automatic PR
 Note that once libEnsemble has been released on PYPI a conda-forge bot will
 usually detect the new release and automatically create a pull request with the
 changes below. It may take a few hours for this to happen. If no other changes
-are required (e.g. new dependencies), then you can simply wait for the tests to
+are required (e.g., new dependencies), then you can simply wait for the tests to
 pass and merge.
 
 Manual PR

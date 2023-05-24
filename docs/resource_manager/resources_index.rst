@@ -3,7 +3,9 @@
 Resource Manager
 ================
 
-libEnsemble comes with built-in resource management. This entails the detection of available resources (e.g. nodelists and core counts), and the allocation of resources to workers.
+libEnsemble comes with built-in resource management. This entails the detection
+of available resources (e.g., nodelists, core counts and GPUs), and the allocation
+of resources to workers.
 
 Resource management can be disabled by setting
 ``libE_specs["disable_resource_manager"] = True``. This will prevent libEnsemble

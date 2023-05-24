@@ -87,7 +87,7 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
+        "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
             "max_procs": (nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
