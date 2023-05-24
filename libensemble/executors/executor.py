@@ -782,7 +782,7 @@ class Executor:
     def _process_env_script(task, runline, env_script):
         """Merge users environment script with generated run-line"""
         sout_f = task.name + "_run.sh"
-        p = Path(".")  # TODO default_workdir..?
+        p = Path(".")
         shutil.copy(env_script, p / sout_f)
         st = os.stat(sout_f)
         os.chmod(sout_f, st.st_mode | stat.S_IEXEC)
