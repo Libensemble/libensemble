@@ -5,8 +5,8 @@ Overview
 --------
 
 libEnsemble comes with built-in resource management. This entails the
-:ref:`detection of available resources<resource_detection>` (e.g., nodelists and
-core counts), and the allocation of resources to workers.
+:ref:`detection of available resources<resource_detection>` (e.g. nodelists,
+core counts and GPUs), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers.
 libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of
@@ -21,7 +21,7 @@ Variable resource assignment
 ----------------------------
 
 .. note::
-    As of version 0.10.0, the concept of resource sets is not needed. The generator
+    As of **version 0.10.0**, the concept of resource sets is not needed. The generator
     can use special ``gen_specs["out"]`` fields of ``num_procs`` and ``num_gpus`` for each
     simulation generated. These will be used to assign resources and will be
     automatically passed through and used by the executor (if no other run configuration
