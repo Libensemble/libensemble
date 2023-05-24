@@ -120,13 +120,13 @@ class Task:
 
     def __init__(
         self,
-        app: Optional[Application] = None,
-        app_args: Optional[str] = None,
-        workdir: Optional[str] = None,
-        stdout: Optional[str] = None,
-        stderr: Optional[str] = None,
-        workerid: Optional[int] = None,
-        dry_run: bool = False,
+        app = None,
+        app_args = None,
+        workdir = None,
+        stdout = None,
+        stderr = None,
+        workerid = None,
+        dry_run = False,
     ) -> None:
         """Instantiate a new Task instance.
 
