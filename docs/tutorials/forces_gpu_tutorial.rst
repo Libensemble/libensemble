@@ -86,6 +86,9 @@ a :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` *libE_specs
 option can be provided in the calling script. Alternatively, for known systems,
 the LIBE_PLATFORM environment variable can be set.
 
+The user can also set ``num_procs`` and ``num_gpus`` in the generator as in
+the `test_GPU_variable_resources.py`_ example.
+
 While this is sufficient for many users, note that it is possible to query
 the resources assigned to *this* worker (nodes and partitions of nodes),
 and use this information however you want.
@@ -306,3 +309,4 @@ resource conflicts on each node.
 .. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
 .. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
+.. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py

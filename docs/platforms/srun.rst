@@ -35,8 +35,8 @@ It is recommended to add these to submission scripts to prevent resource conflic
     export SLURM_MEM_PER_NODE=0
 
 Alternatively, the ``--exact`` `option to srun`_, along with other relevant options
-can be given on any ``srun`` lines (including the ``MPIExecutor`` submission lines
-via the ``extra_args`` option).
+can be given on any ``srun`` lines, including the ``MPIExecutor`` submission lines
+via the ``extra_args`` option (from version 0.10.0, these are added automatically).
 
 Secondly, while many configurations are possible, it is recommended to **avoid** using
 ``#SBATCH`` commands that may limit resources to srun job steps such as::
@@ -53,8 +53,7 @@ If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` c
 expect an  option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
 allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
 via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
-option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
-even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
+option to the ``submit`` function (rather than using an ``#SBATCH`` command).
 
 If running the libEnsemble user calling script with ``srun``, then it is recommended that
 ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
@@ -64,6 +63,11 @@ GPU runs will be submitted, instead of in the batch script. For example::
 
 Note on Resource Binding
 ------------------------
+
+.. note::
+    Update: From version version 0.10.0, it is recommended that GPUs are assigned
+    automatically by libEnsemble. See the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>`
+    tutorial as an example.
 
 Note that the use of ``CUDA_VISIBLE_DEVICES`` and other environment variables is often
 a highly portable way of assigning specific GPUs to workers, and has been known to work
@@ -98,4 +102,4 @@ Find SLURM partition configuration for a partition called "gpu"::
     scontrol show partition gpu
 
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
-.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
+.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_CUDA_variable_resources.py
