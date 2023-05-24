@@ -69,7 +69,6 @@ In user simulation function::
     # Wait for task to complete
     task.wait()
 
-
 Advanced Features
 -----------------
 
