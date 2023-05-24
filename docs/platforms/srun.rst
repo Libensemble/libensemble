@@ -9,7 +9,7 @@ default this is done by :ref:`reading an environment variable<resource_detection
 
 Example SLURM submission scripts for various systems are given in the
 :doc:`examples<example_scripts>`. Further examples are given in some of the specific
-platform guides (e.g. :doc:`Perlmutter guide<perlmutter>`)
+platform guides (e.g., :doc:`Perlmutter guide<perlmutter>`)
 
 By default, the :doc:`MPIExecutor<../executor/mpi_executor>` uses ``mpirun``
 as a priority over ``srun`` as it works better in some cases. If ``mpirun`` does
@@ -50,7 +50,7 @@ Instead provide these to sub-tasks via the ``extra_args`` option to the
 **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
 If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
-expect an  option for allocating GPUs (e.g.~ ``--gpus-per-task=1`` would
+expect an  option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
 allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
 via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
 option to the ``submit`` function (rather than using an ``#SBATCH`` command). This is needed
@@ -58,7 +58,7 @@ even when using setting ``CUDA_VISIBLE_DEVICES`` or other options.
 
 If running the libEnsemble user calling script with ``srun``, then it is recommended that
 ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
-GPU runs will be submitted, instead of in the batch script. E.g::
+GPU runs will be submitted, instead of in the batch script. For example::
 
     os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
 

@@ -4,7 +4,7 @@ Resource Manager
 ================
 
 libEnsemble comes with built-in resource management. This entails the detection
-of available resources (e.g. nodelists, core counts and GPUs), and the allocation
+of available resources (e.g., nodelists, core counts and GPUs), and the allocation
 of resources to workers.
 
 Resource management can be disabled by setting

@@ -26,7 +26,7 @@ The **Executor** provides a portable interface for running applications on any s
     ``result()``, and ``exception()`` functions from the standard.
 
     The main ``Executor`` class can subprocess serial applications in place,
-    while the ``MPIExecutor`` is used for running of MPI applications, and the
+    while the ``MPIExecutor`` is used for running MPI applications, and the
     ``BalsamExecutor`` for submitting MPI run requests from a worker running on
     a compute node to the Balsam service. This second approach is suitable for
     systems that don't allow submitting MPI applications from compute nodes.

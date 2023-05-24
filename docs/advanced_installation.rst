@@ -51,7 +51,7 @@ the following line::
 
 will use the ``mpicc`` compiler wrapper on your PATH to identify the MPI library.
 To specify a different compiler wrapper, add the ``MPICC`` option.
-You also may wish to avoid existing binary builds e.g.::
+You also may wish to avoid existing binary builds with::
 
     MPICC=mpiicc pip install mpi4py --no-binary mpi4py
 
@@ -115,7 +115,7 @@ The above command will install the latest release of libEnsemble with
 the required dependencies only. There are other optional
 dependencies that can be specified through variants. The following
 line installs libEnsemble version 0.7.2 with some common variants
-(e.g.~ using :doc:`APOSMM<../examples/aposmm>`):
+(e.g., using :doc:`APOSMM<../examples/aposmm>`):
 
 .. code-block:: bash
 
@@ -127,7 +127,7 @@ The list of variants can be found by running::
 
 On some platforms you may wish to run libEnsemble without ``mpi4py``,
 using a serial PETSc build. This is often preferable if running on
-the launch nodes of a three-tier system (e.g. Theta/Summit)::
+the launch nodes of a three-tier system (e.g., Theta/Summit)::
 
     spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
@@ -174,7 +174,7 @@ for specific systems, see the spack_libe_ repository. In particular, this
 includes some example ``packages.yaml`` files (which go in ``~/.spack/``).
 These files are used to specify dependencies that Spack must obtain from
 the given system (rather than building from scratch). This may include
-``Python`` and the packages distributed with it (e.g. ``numpy``), and will
+``Python`` and the packages distributed with it (e.g., ``numpy``), and will
 often include the system MPI library.
 
 .. _GitHub: https://github.com/Libensemble/libensemble

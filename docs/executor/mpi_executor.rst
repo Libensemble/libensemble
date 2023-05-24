@@ -28,7 +28,7 @@ be implemented in other executors.
 :fail_time: (int or float) *Only if wait_on_start is set.* Maximum run time to failure in
             seconds that results in relaunch. *Default: 2*.
 :retry_delay_incr: (int or float) Delay increment between launch attempts in seconds.
-            *Default: 5*. (E.g. First retry after 5 seconds, then 10 seconds, then 15, etc...)
+            *Default: 5*. (i.e., First retry after 5 seconds, then 10 seconds, then 15, etc...)
 
 Example. To increase resilience against submission failures::
 
