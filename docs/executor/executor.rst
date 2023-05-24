@@ -8,19 +8,19 @@ See this :doc:`example<overview>` for usage.
 
 See the Executor APIs for optional arguments.
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Alternative Executors:
-
-   mpi_executor
-   balsam_2_executor
+.. Commented out as creates duplicate menu on index page.
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: Alternative Executors:
+..
+..    mpi_executor
+..    balsam_2_executor
 
 Executor Class
 ---------------
 
 Only create an object of this class for running local serial-launched applications.
-To run MPI applications and use detected resources, use an alternative Executor
-class, as shown above.
+To run MPI applications and use detected resources, use the :doc:`MPIExecutor<../executor/mpi_executor>`
 
 .. autoclass:: libensemble.executors.executor.Executor
   :members:
@@ -34,13 +34,13 @@ Task Class
 ----------
 
 Tasks are created and returned through the Executor ``submit()`` function. Tasks
-can be polled and killed with the respective poll and kill functions. Task
-information can be queried through the task attributes below and the query
+can be polled, killed, waited on with the respective poll, kill, and wait functions.
+Task information can be queried through the task attributes below and the query
 functions.
 
 .. autoclass:: libensemble.executors.executor.Task
   :members:
-  :exclude-members: calc_task_timing, check_poll, __init__
+  :exclude-members: calc_task_timing, check_poll
 ..  :member-order: bysource
 ..  :members: poll, kill, workdir_exists, file_exists_in_workdir,
               read_file_in_workdir, stdout_exists, read_stdout, stderr_exists, read_stderr
