@@ -204,7 +204,8 @@ class GlobalResources:
             self.local_host = socket.gethostname()
 
         # Note: Launcher used here just to get cores on node etc - independent of whether using MPIExecutor
-        self.launcher = get_MPI_runner()
+        self.launcher = platform_info.get("runner_name") or get_MPI_runner(platform_info.get("mpi_runner"))
+
         remote_detect = False
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True

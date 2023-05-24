@@ -48,7 +48,7 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -65,7 +65,7 @@ from libensemble.tools import add_unique_random_streams, parse_args
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
-    libE_specs["use_workflow_dir"] = True  # Only a place for Open machinefiles
+    libE_specs["use_workflow_dir"] = True  # Only a place for Open MPI machinefiles
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         del os.environ["LIBE_PLATFORM"]
 
     # First set - use executor setting ------------------------------------------------------------
-    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / uncomment to detect GPUs
+    libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / remove to detect GPUs
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")

@@ -19,7 +19,7 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_priorities as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

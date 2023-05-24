@@ -136,7 +136,7 @@ class Crusher(Platform):
     cores_per_node: int = 64
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = False
 
 
@@ -145,7 +145,7 @@ class Frontier(Platform):
     cores_per_node: int = 64
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = False
 
 
@@ -169,7 +169,7 @@ class PerlmutterCPU(Perlmutter):
 
 class PerlmutterGPU(Perlmutter):
     gpus_per_node: int = 4
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = False
 
 
@@ -179,7 +179,7 @@ class Polaris(Platform):
     cores_per_node: int = 32
     logical_cores_per_node: int = 64
     gpus_per_node: int = 4
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = True
 
 
@@ -188,7 +188,7 @@ class Spock(Platform):
     cores_per_node: int = 64
     logical_cores_per_node: int = 128
     gpus_per_node: int = 4
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = False
 
 
@@ -197,7 +197,7 @@ class Summit(Platform):
     cores_per_node: int = 42
     logical_cores_per_node: int = 168
     gpus_per_node: int = 6
-    gpu_setting_type: int = "option_gpus_per_task"
+    gpu_setting_type: str = "option_gpus_per_task"
     gpu_setting_name: str = "-g"
     scheduler_match_slots: bool = False
 
@@ -208,7 +208,7 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: int = "runner_default"
+    gpu_setting_type: str = "runner_default"
     scheduler_match_slots: bool = True
 
 

@@ -1,3 +1,5 @@
+"""Persistent generator providing points using sampling"""
+
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
@@ -5,12 +7,20 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
     "persistent_uniform",
-    "uniform_random_sample_with_variable_resources",
     "persistent_request_shutdown",
     "uniform_nonblocking",
     "batched_history_matching",
     "persistent_uniform_with_cancellations",
 ]
+
+
+def _get_user_params(user_specs):
+    """Extract user params"""
+    b = user_specs["initial_batch_size"]
+    ub = user_specs["ub"]
+    lb = user_specs["lb"]
+    n = len(lb)  # dimension
+    return b, n, lb, ub
 
 
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
@@ -22,13 +32,11 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     function.
 
     .. seealso::
-        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
-        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_async.py>`_ # noqa
-    """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_async.py>`_
+    """  # noqa
+
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
@@ -50,48 +58,6 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs, libE_info):
-    """
-    Generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]`` and
-    ``gen_specs["user"]["lb"]``. Also randomly requests a different number of resource
-    sets to be used in the evaluation of the generated points after the initial batch.
-
-    .. seealso::
-        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
-    """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-
-    H_o = np.zeros(b, dtype=gen_specs["out"])
-    for i in range(0, b):
-        # x= i*np.ones(n)
-        x = persis_info["rand_stream"].uniform(lb, ub, (1, n))
-        H_o["x"][i] = x
-        H_o["resource_sets"][i] = 1
-        H_o["priority"] = 1
-    print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
-
-    # Send batches until manager sends stop tag
-    tag, Work, calc_in = ps.send_recv(H_o)
-    while tag not in [STOP_TAG, PERSIS_STOP]:
-        H_o = np.zeros(b, dtype=gen_specs["out"])
-        # H_o["x"] = len(H)*np.ones(n)
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-        H_o["resource_sets"] = persis_info["rand_stream"].integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
-        H_o["priority"] = 10 * H_o["resource_sets"]
-        print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
-
-        tag, Work, calc_in = ps.send_recv(H_o)
-
-        if calc_in is not None:
-            b = len(calc_in)
-
-    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
-
-
 def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     """
     This generation function is similar in structure to persistent_uniform,
@@ -100,12 +66,9 @@ def persistent_request_shutdown(_, persis_info, gen_specs, libE_info):
     to shutdown an ensemble when a condition is met.
 
     .. seealso::
-        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
-    """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_
+    """  # noqa
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     shutdown_limit = gen_specs["user"]["shutdown_limit"]
     f_count = 0
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -131,13 +94,9 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
     This generation function is designed to test non-blocking receives.
 
     .. seealso::
-        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
-
-    """
-    ub = gen_specs["user"]["ub"]
-    lb = gen_specs["user"]["lb"]
-    n = len(lb)
-    b = gen_specs["user"]["initial_batch_size"]
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+    """  # noqa
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     # Send batches until manager sends stop tag
@@ -182,8 +141,8 @@ def batched_history_matching(_, persis_info, gen_specs, libE_info):
         Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
 
     .. seealso::
-        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
-    """
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
+    """  # noqa
     lb = gen_specs["user"]["lb"]
 
     n = len(lb)

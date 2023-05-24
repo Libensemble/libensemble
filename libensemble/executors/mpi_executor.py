@@ -111,6 +111,14 @@ class MPIExecutor(Executor):
         if self.subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = self.subgroup_launch
 
+        self.gen_nprocs = None
+        self.gen_ngpus = None
+
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus"""
+        self.gen_nprocs = libE_info.get("num_procs")
+        self.gen_ngpus = libE_info.get("num_gpus")
+
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
@@ -272,6 +280,15 @@ class MPIExecutor(Executor):
 
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
+
+        if not num_procs and not match_procs_to_gpus:
+            num_procs = self.gen_nprocs
+
+        if not num_gpus:
+            num_gpus = self.gen_ngpus
+
+        if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
+            num_nodes = self.resources.worker_resources.local_node_count
 
         mpi_specs = self.mpi_runner.get_mpi_specs(
             task,

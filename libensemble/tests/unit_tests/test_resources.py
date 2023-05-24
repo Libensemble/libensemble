@@ -8,27 +8,35 @@ from libensemble.resources.worker_resources import ResourceManager, WorkerResour
 
 
 def setup_standalone_run():
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+    os.environ.pop("LIBE_TEST_SLOTS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_1", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
 
 def teardown_standalone_run():
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+    os.environ.pop("LIBE_TEST_SLOTS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_1", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
 
 def setup_function(function):
     print(f"setup_function    function:{function.__name__}")
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+    os.environ.pop("LIBE_TEST_SLOTS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_1", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
 
 def teardown_function(function):
     print(f"teardown_function    function:{function.__name__}")
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
+    os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
+    os.environ.pop("LIBE_TEST_SLOTS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_1", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -722,7 +730,7 @@ def test_get_group_list():
         ["knl-0139"],
         ["knl-1234"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 2, 3, 4, 5, 6, 7, 8]
     assert slot_list == [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -733,7 +741,7 @@ def test_get_group_list():
         ["knl-0137", "knl-0138"],
         ["knl-0139", "knl-1234"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 2, 3, 4]
     assert slot_list == [0, 0, 0, 0]
 
@@ -748,7 +756,7 @@ def test_get_group_list():
         ["knl-0139"],
         ["knl-0139"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 1, 2, 2, 3, 3, 4, 4]
     assert slot_list == [0, 1, 0, 1, 0, 1, 0, 1]
 
@@ -763,7 +771,7 @@ def test_get_group_list():
         ["knl-0137"],
         ["knl-0139"],
     ]
-    group_list, slot_list = ResourceManager.get_group_list(split_list)
+    group_list, slot_list, _ = ResourceManager.get_group_list(split_list)
     assert group_list == [1, 1, 1, 1, 2, 2, 2, 3]
     assert slot_list == [0, 1, 2, 3, 0, 1, 2, 0]
 
@@ -802,6 +810,105 @@ def test_machinefile_from_resources():
     os.remove("machinefile")
 
 
+def _setup_wresources_gpus(ngpus):
+    """Set up worker resources with a given number of GPUs"""
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+
+    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST", "gpus_on_node": ngpus}
+    libE_specs = {"resource_info": resource_info, "dedicated_mode": False}
+    gresources = GlobalResources(libE_specs)
+    nworkers = 8
+    workerID = 2  # Does not matter as using set_rset_team
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    return wresources
+
+
+def test_wresources_set_gpus():
+    wresources = _setup_wresources_gpus(4)
+
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
+    exp_out = ["0,1", "2,3", "1,3"]
+
+    # Test routines for querying slots and gpus.
+    for i in range(3):
+        wresources.set_rset_team(rset_teams[i])
+
+        slots = wresources.get_slots_as_string()
+        assert slots == exp_out[i], f"Slots {slots} does not match expected {exp_out[i]}"
+
+        wresources.set_env_to_slots("LIBE_TEST_SLOTS_1")
+        eslots = os.environ["LIBE_TEST_SLOTS_1"]
+        assert eslots == exp_out[i], f"Env slots {eslots} does not match expected {exp_out[i]}"
+
+        wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+        egpus = os.environ["LIBE_TEST_GPUS_1"]
+        assert egpus == exp_out[i], f"Env GPUs {egpus} does not match expected {exp_out[i]}"
+
+        del os.environ["LIBE_TEST_SLOTS_1"]
+        del os.environ["LIBE_TEST_GPUS_1"]
+    del wresources
+
+
+def test_wresources_set_gpus_x2():
+    wresources = _setup_wresources_gpus(8)
+
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
+    exp_out = ["0,1,2,3", "4,5,6,7", "2,3,6,7"]
+
+    # Test routines for querying slots and gpus.
+    for i in range(3):
+        wresources.set_rset_team(rset_teams[i])
+
+        slots = wresources.get_slots_as_string(multiplier=2)
+        assert slots == exp_out[i], f"Slots {slots} does not match expected {exp_out[i]}"
+
+        wresources.set_env_to_slots("LIBE_TEST_SLOTS_1", multiplier=2)
+        eslots = os.environ["LIBE_TEST_SLOTS_1"]
+        assert eslots == exp_out[i], f"Env slots {eslots} does not match expected {exp_out[i]}"
+
+        wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+        egpus = os.environ["LIBE_TEST_GPUS_1"]
+        assert egpus == exp_out[i], f"Env GPUs {egpus} does not match expected {exp_out[i]}"
+
+        del os.environ["LIBE_TEST_SLOTS_1"]
+        del os.environ["LIBE_TEST_GPUS_1"]
+    del wresources
+
+
+def test_wresources_set_limit_gpus():
+    wresources = _setup_wresources_gpus(12)
+
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
+    # exp_out_0 = ["0,1,2,3,4,5", "6,7,8,9,10,11", "3,4,5,9,10,11"]
+    exp_out_1 = ["0,1,2,3", "6,7,8,9", "3,4,5,9"]
+    exp_out_2 = ["0", "6", "3"]
+
+    # Test routines for querying slots and gpus.
+    for i in range(3):
+        wresources.set_rset_team(rset_teams[i])
+
+        wresources.gen_ngpus = 4
+        wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+        egpus = os.environ["LIBE_TEST_GPUS_1"]
+        assert egpus == exp_out_1[i], f"Env GPUs {egpus} does not match expected {exp_out_1[i]}"
+
+        wresources.gen_ngpus = 1
+        wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+        egpus = os.environ["LIBE_TEST_GPUS_1"]
+        assert egpus == exp_out_2[i], f"Env GPUs {egpus} does not match expected {exp_out_2[i]}"
+
+        del os.environ["LIBE_TEST_GPUS_1"]
+    del wresources
+
+
+def test_wresources_set_no_gpus():
+    wresources = _setup_wresources_gpus(0)
+    rset_team = [0, 1, 4, 5]
+    wresources.set_rset_team(rset_team)
+    wresources.set_env_to_gpus("LIBE_TEST_GPUS_1")
+    assert "LIBE_TEST_GPUS_1" not in os.environ
+
+
 if __name__ == "__main__":
     setup_standalone_run()
 
@@ -829,5 +936,9 @@ if __name__ == "__main__":
     test_map_workerid_to_index()
     test_get_group_list()
     test_machinefile_from_resources()
+    test_wresources_set_gpus()
+    test_wresources_set_gpus_x2()
+    test_wresources_set_limit_gpus()
+    test_wresources_set_no_gpus()
 
     teardown_standalone_run()

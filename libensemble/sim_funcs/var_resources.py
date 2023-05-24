@@ -17,6 +17,7 @@ interrogates available resources and sets explicitly.
 
 __all__ = [
     "gpu_variable_resources",
+    "gpu_variable_resources_from_gen",
     "multi_points_with_variable_resources",
     "CUDA_variable_resources",
 ]
@@ -55,6 +56,41 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
         app_args=inpt,
         auto_assign_gpus=True,
         match_procs_to_gpus=True,
+        stdout="out.txt",
+        stderr="err.txt",
+        dry_run=dry_run,
+    )
+
+    if not dry_run:
+        task.wait()  # Wait for run to complete
+
+        # Access app output
+        with open("out.txt") as f:
+            H_o["f"] = float(f.readline().strip())  # Read just first line
+
+    # Asserts GPU set correctly (for known MPI runners)
+    check_gpu_setting(task, print_setting=True)
+
+    calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
+    return H_o, persis_info, calc_status
+
+
+def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
+    """Launches an app and assigns CPU and GPU resources as defined by the gen.
+
+    Otherwise similar to gpu_variable_resources.
+    """
+    x = H["x"][0]
+    H_o = np.zeros(1, dtype=sim_specs["out"])
+    dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
+    inpt = " ".join(map(str, x))  # Application input
+
+    exctr = Executor.executor  # Get Executor
+
+    # Launch application via system MPI runner, using assigned resources.
+    task = exctr.submit(
+        app_name="six_hump_camel",
+        app_args=inpt,
         stdout="out.txt",
         stderr="err.txt",
         dry_run=dry_run,

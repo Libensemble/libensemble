@@ -164,6 +164,11 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
 
        os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
 
+.. dropdown:: **warning: /tmp/pgcudafatYDO6wtSva6K2.o: missing .note.GNU-stack section implies executable stack**
+
+   Recently this warning has been encountered when compiling the forces example on Perlmutter. This does not
+   affect the run, but can be supressed by adding ``-Wl,-znoexecstack`` to the build line.
+
 Additional Information
 ----------------------
 

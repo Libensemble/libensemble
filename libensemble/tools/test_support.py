@@ -34,6 +34,18 @@ def _get_expected_output(name, value):
     return name + " " + str(value)
 
 
+def _safe_min(a, b):
+    """Takes min of two values, ignoring if second is None"""
+    if b is not None:
+        return min(a, b)
+    else:
+        return a
+
+
+def _set_gpus(task, wresources):
+    return wresources.doihave_gpus() and task.ngpus_req > 0
+
+
 def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None):
     """Checks GPU run lines
 
@@ -117,8 +129,9 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
                 expected_setting = "--gpus-per-node"
                 if _get_value(expected_setting, task.runline) is None:
                     # Try gpus per task
-                    gpus_per_task = True
-                    expected_setting = "--gpus-per-task"
+                    if _get_value("--gpus-per-task", task.runline) is not None:
+                        gpus_per_task = True
+                        expected_setting = "--gpus-per-task"
             elif mpirunner == "jsrun":
                 gpus_per_task = True
                 expected_setting = "-g"
@@ -131,17 +144,26 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     if cmd_line:
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            expected_nums = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
+            avail_gpus = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
+            expected_nums = _safe_min(avail_gpus, wresources.gen_ngpus)
         else:
             stype = "runline option: gpus per node"
-            expected_nums = wresources.slot_count * wresources.gpus_per_rset
-        expected = _get_expected_output(expected_setting, expected_nums)
+            expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
+        expected_nums = expected_nums if _set_gpus(task, wresources) else None
+        if expected_nums is not None:
+            expected = _get_expected_output(expected_setting, expected_nums)
+        else:
+            expected = None
         if expected_setting in task.runline:
             gpu_setting = _get_opt_value(expected_setting, task.runline)
     else:
         stype = "Env var"
-        expected_nums = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset)
-        expected = {expected_setting: expected_nums}
+        expected_nums = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=wresources.gen_ngpus)
+        expected_nums = expected_nums if _set_gpus(task, wresources) else None
+        if expected_nums is not None:
+            expected = {expected_setting: expected_nums}
+        else:
+            expected = {}
         gpu_setting = task.env
 
     # If it's a custom runner - we may not have procs info (this is just printed info)
@@ -154,4 +176,6 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
 
     if assert_setting:
-        assert gpu_setting == expected, f"Found GPU setting: {gpu_setting}, Expected: {expected}"
+        assert (
+            gpu_setting == expected
+        ), f"Worker {task.workerID}: Found GPU setting: {gpu_setting}, Expected: {expected}"

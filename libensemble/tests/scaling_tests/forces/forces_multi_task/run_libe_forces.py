@@ -23,20 +23,18 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+# from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
-# Uncomment for var resources
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
-
-
-# Uncomment for var resources (checksum will change due to rng differences)
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
-
-
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
+
+nsim_workers = nworkers - 1
+libE_specs["num_resource_sets"] = nsim_workers  # Persistent gen does not need resources
 
 # To test on system without GPUs - compile forces without -DGPU and mock GPUs with this line.
 # libE_specs["resource_info"] = {"gpus_on_node": 4}
@@ -45,12 +43,16 @@ nworkers, is_manager, libE_specs, _ = parse_args()
 exctr = MPIExecutor()
 
 # Register simulation executable with executor
-sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
+sim_app1 = os.path.join(os.getcwd(), "../forces_app/forces_cpu.x")
+sim_app2 = os.path.join(os.getcwd(), "../forces_app/forces_gpu.x")
 
-if not os.path.isfile(sim_app):
-    sys.exit("forces.x not found - please build first in ../forces_app dir")
+if not os.path.isfile(sim_app1):
+    sys.exit(f"{sim_app1} not found - please build first in ../forces_app dir")
+if not os.path.isfile(sim_app2):
+    sys.exit(f"{sim_app2} not found - please build first in ../forces_app dir")
 
-exctr.register_app(full_path=sim_app, app_name="forces")
+exctr.register_app(full_path=sim_app1, app_name="forces_cpu")
+exctr.register_app(full_path=sim_app2, app_name="forces_gpu")
 
 # State the sim_f, inputs, outputs
 sim_specs = {
@@ -63,15 +65,27 @@ sim_specs = {
 gen_specs = {
     "gen_f": gen_f,  # Generator function
     "in": [],  # Generator input
+    "persis_in": ["sim_id"],  # Just send something back to gen to get number of new points.
     "out": [
         ("x", float, (1,)),  # Name, type and size of data from gen_f
-        # ("resource_sets", int)  # Uncomment for var resources
+        ("num_procs", int),
+        ("num_gpus", int),
     ],
     "user": {
-        "lb": np.array([50000]),  # fewest particles (changing will change checksum)
-        "ub": np.array([100000]),  # max particles (changing will change checksum)
-        "gen_batch_size": 8,
+        "lb": np.array([5000]),  # fewest particles (changing will change checksum)
+        "ub": np.array([10000]),  # max particles (changing will change checksum)
+        "initial_batch_size": nsim_workers,
+        "max_procs": (nsim_workers) // 2,  # Any sim created can req. 1 worker up to max
+        "multi_task": True,
         # "max_resource_sets": nworkers  # Uncomment for var resources
+    },
+}
+
+alloc_specs = {
+    "alloc_f": alloc_f,
+    "user": {
+        "give_all_with_same_priority": False,
+        "async_return": False,  # False causes batch returns
     },
 }
 
@@ -82,19 +96,12 @@ libE_specs["sim_dirs_make"] = True
 # libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": 8}  # changing will change checksum
+exit_criteria = {"sim_max": nsim_workers * 2}  # changing will change checksum
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
 
 # Launch libEnsemble
-H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
-
-# This is for configuration of this test (inc. lb/ub and sim_max values)
-if is_manager:
-    if exit_criteria["sim_max"] == 8:
-        chksum = np.sum(H["energy"])
-        assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
-        print("Checksum passed")
-    else:
-        print("Run complete. A checksum has not been provided for the given sim_max")
+H, persis_info, flag = libE(
+    sim_specs, gen_specs, exit_criteria, persis_info=persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+)

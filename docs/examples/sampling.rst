@@ -25,3 +25,9 @@ persistent_sampling
    .. literalinclude:: ../../libensemble/gen_funcs/persistent_sampling.py
       :language: python
       :linenos:
+
+persistent_sampling_var_resources
+---------------------------------
+.. automodule:: persistent_sampling_var_resources
+  :members:
+  :undoc-members:
