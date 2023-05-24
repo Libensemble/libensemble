@@ -454,6 +454,33 @@ def test_convert_to_rsets():
     clear_resources()
 
 
+def test_check_H_rows():
+    exp = np.arange(3)
+    H_rows = AllocSupport._check_H_rows(exp)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+    in_rows_list = [0, 1, 2]
+    H_rows = AllocSupport._check_H_rows(in_rows_list)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+    in_rows_list = range(3)
+    H_rows = AllocSupport._check_H_rows(in_rows_list)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+
+def test_check_H_fields():
+    in_fields = ["x", "num_nodes", "procs_per_node"]
+    H_fields = AllocSupport._check_H_fields(in_fields)
+    assert H_fields == in_fields, f"H_fields {H_fields} did not match expected"
+
+    in_fields = ["x", "num_nodes", "procs_per_node", "x"]
+    H_fields = AllocSupport._check_H_fields(in_fields)
+    assert set(H_fields) == set(in_fields), f"H_fields {H_fields} did not match expected"
+
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
     test_als_init_normal()
@@ -468,3 +495,5 @@ if __name__ == "__main__":
     test_als_all_gen_informed()
     test_als_points_by_priority()
     test_convert_to_rsets()
+    test_check_H_rows()
+    test_check_H_fields()
