@@ -122,9 +122,17 @@ class MPIExecutor(Executor):
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
-    def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
+    def _launch_with_retries(
+        self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool, env_script: str
+    ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
+
+        if env_script is not None:
+            run_cmd = Executor._process_env_script(task, runline, env_script)
+        else:
+            run_cmd = runline
+
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
@@ -133,7 +141,7 @@ class MPIExecutor(Executor):
                 task.run_attempts += 1
                 with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
-                        runline,
+                        run_cmd,
                         cwd="./",
                         stdout=out,
                         stderr=err,
@@ -181,6 +189,7 @@ class MPIExecutor(Executor):
         extra_args: Optional[str] = None,
         auto_assign_gpus: Optional[bool] = False,
         match_procs_to_gpus: Optional[bool] = False,
+        env_script: Optional[str] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
@@ -244,13 +253,19 @@ class MPIExecutor(Executor):
             options.
 
         auto_assign_gpus: bool, optional
-            Auto-assign GPUs available to this worker using either the method supplied in configuration or
-            determined by detected environment. Default: False
+            Auto-assign GPUs available to this worker using either the method
+            supplied in configuration or determined by detected environment.
+            Default: False
 
         match_procs_to_gpus: bool, optional
-            For use with auto_assign_gpus. Auto-assigns MPI processors to match the assigned GPUs.
-            Default: False unless auto_assign_gpus is True and no other CPU configuration is supplied.
+            For use with auto_assign_gpus. Auto-assigns MPI processors to match
+            the assigned GPUs. Default: False unless auto_assign_gpus is True and
+            no other CPU configuration is supplied.
 
+        env_script: str, Optional
+            The full path of a shell script to set up the environment for the
+            launched task. This will be run in the subprocess, and not affect
+            the worker environment. The script should start with a shebang.
 
         Returns
         -------
@@ -322,7 +337,9 @@ class MPIExecutor(Executor):
         else:
             # Set environment variables and launch task
             task._implement_env()
-            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
+
+            # Launch Task
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start, env_script)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
