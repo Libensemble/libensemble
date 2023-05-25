@@ -56,6 +56,16 @@ Tests and Examples:
 * Added ytopt example. And updated heFFTe example. #943
 * Support Python 3.11 #922
 
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems: Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
+* Recent testing was also carried out on Summit (IBM Power9/LSF), but this was not possible at time of release.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10, 3.11.
+
+:Known issues:
+
+* See known issues section in the documentation.
+
 Release 0.9.3
 -------------
 
