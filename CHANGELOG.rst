@@ -8,6 +8,54 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.10.0
+--------------
+
+:Date: May 26, 2023
+
+New capabilities:
+
+* Enhance portability and simplify the assignment of procs/GPUs to worker resources #928 / #983
+ * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
+  * Auto-determination of GPU assignment method by MPI runner or provided platform.
+  * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
+  * Add `set_to_gpus` function (similar to `set_to_slots`).
+  * Allow users to specify known systems via option or environment variable.
+  * Allow users to specify their own system configurations.
+  * These changes remove a number of tweaks that were needed for particular platforms.
+
+*  Resource management supports GPU and non-GPU simulations in the same ensemble. #993
+  * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
+
+* Pydantic models are used for validating major libE input (input can be provided as classes or dictionaries). #878
+* Added option to store output and ensemble directories in a workflow directory. #982
+* Simplify user function interface. Valid user functions can accept <4 parameters and return <3 values. #971
+* New option to parse settings from **TOML**. #745
+* New `dry_run` option to `libE()` that checks scripts are valid and returns. #987
+* Added an option to the executor submit function to pre-execute a script in the task environment. #996
+
+Breaking changes:
+* Removed old Balsam Executor. #921
+* Ensemble class moved from `libensemble.api` to `libensemble.ensemble`. #1003
+* Default to one resource set per simulation in dynamic scheduling mode. #996
+
+Documentation:
+* Added type hints/annotations for major modules/functions. #823
+* Added Polaris Guide. #930
+* Added Frontier Guide. #909
+* Added PBS example scripts. #956 #930
+* Streamlined and improved the readability of docs. #1004
+
+Tests and Examples:
+* Updated forces_gpu tutorial example. #956
+  * Source code edit is not required for the GPU version.
+  * Reports whether running on device or host.
+  * Increases problem size.
+  * Added versions with persistent generator and multi-task (GPU v non-GPU).
+* Moved multiple tests, generators, and simulators to the community repo.
+* Added ytopt example. And updated heFFTe example. #943
+* Support Python 3.11 #922
+
 Release 0.9.3
 -------------
 
