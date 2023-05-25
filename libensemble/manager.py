@@ -550,8 +550,6 @@ class Manager:
         self._kill_workers()
         return persis_info, exit_flag, self.elapsed()
 
-    # --- Main loop
-
     def _sim_max_given(self) -> bool:
         if "sim_max" in self.exit_criteria:
             return self.hist.sim_started_count >= self.exit_criteria["sim_max"] + self.hist.sim_started_offset
@@ -605,6 +603,8 @@ class Manager:
         assert output[2] in [0, 1], "Third alloc_f output must be 0 or 1."
 
         return output
+
+    # --- Main loop
 
     def run(self, persis_info: dict) -> (dict, int, int):
         """Runs the manager"""
