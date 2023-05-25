@@ -35,11 +35,13 @@ New capabilities:
 * Added an option to the executor submit function to pre-execute a script in the task environment. #996
 
 Breaking changes:
+
 * Removed old Balsam Executor. #921
 * Ensemble class moved from `libensemble.api` to `libensemble.ensemble`. #1003
 * Default to one resource set per simulation in dynamic scheduling mode. #996
 
 Documentation:
+
 * Added type hints/annotations for major modules/functions. #823
 * Added Polaris Guide. #930
 * Added Frontier Guide. #909
@@ -47,6 +49,7 @@ Documentation:
 * Streamlined and improved the readability of docs. #1004
 
 Tests and Examples:
+
 * Updated forces_gpu tutorial example. #956
  * Source code edit is not required for the GPU version.
  * Reports whether running on device or host.
