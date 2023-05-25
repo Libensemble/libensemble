@@ -17,15 +17,15 @@ New capabilities:
 
 * Enhance portability and simplify the assignment of procs/GPUs to worker resources #928 / #983
  * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
-  * Auto-determination of GPU assignment method by MPI runner or provided platform.
-  * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
-  * Add `set_to_gpus` function (similar to `set_to_slots`).
-  * Allow users to specify known systems via option or environment variable.
-  * Allow users to specify their own system configurations.
-  * These changes remove a number of tweaks that were needed for particular platforms.
+ * Auto-determination of GPU assignment method by MPI runner or provided platform.
+ * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
+ * Add `set_to_gpus` function (similar to `set_to_slots`).
+ * Allow users to specify known systems via option or environment variable.
+ * Allow users to specify their own system configurations.
+ * These changes remove a number of tweaks that were needed for particular platforms.
 
 *  Resource management supports GPU and non-GPU simulations in the same ensemble. #993
-  * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
+ * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
 
 * Pydantic models are used for validating major libE input (input can be provided as classes or dictionaries). #878
 * Added option to store output and ensemble directories in a workflow directory. #982
@@ -48,10 +48,10 @@ Documentation:
 
 Tests and Examples:
 * Updated forces_gpu tutorial example. #956
-  * Source code edit is not required for the GPU version.
-  * Reports whether running on device or host.
-  * Increases problem size.
-  * Added versions with persistent generator and multi-task (GPU v non-GPU).
+ * Source code edit is not required for the GPU version.
+ * Reports whether running on device or host.
+ * Increases problem size.
+ * Added versions with persistent generator and multi-task (GPU v non-GPU).
 * Moved multiple tests, generators, and simulators to the community repo.
 * Added ytopt example. And updated heFFTe example. #943
 * Support Python 3.11 #922
