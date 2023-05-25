@@ -44,7 +44,7 @@ mpicc -O3 -o forces.x forces.c -lm
 # mpicc -DGPU -O3 -fopenmp -mp=gpu -o forces.x forces.c
 # cc -DGPU -Wl,-znoexecstack -O3 -fopenmp -mp=gpu -target-accel=nvidia80 -o forces.x forces.c
 
-# Spock/Crusher (AMD ROCm compiler)
+# Spock/Crusher/Frontier (AMD ROCm compiler)
 # cc -DGPU -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
 
 # Intel oneAPI (Clang based) Compiler (JIT compiled for device)
