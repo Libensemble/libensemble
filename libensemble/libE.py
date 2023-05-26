@@ -2,20 +2,20 @@
 The libE module is the outer libEnsemble routine.
 
 This module sets up the manager and the team of workers, configured according
-to the contents of the ``libE_specs`` dictionary. The manager/worker
+to the contents of :ref:`libE_specs<datastruct-libe-specs>`. The manager/worker
 communications scheme used in libEnsemble is parsed from the ``comms`` key
 if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
 ``tcp``. MPI is the default; if a communicator is specified, each call to this
 module will initiate manager/worker communications on a duplicate of that
-communicator. Otherwise, a duplicate of COMM_WORLD will be used.
+communicator. Otherwise, a duplicate of ``COMM_WORLD`` will be used.
 
 In the vast majority of cases, programming with libEnsemble involves the creation
 of a *calling script*, a Python file where libEnsemble is parameterized via
 the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
 :ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
-outer libEnsemble routine ``libE()`` is imported and called with such dictionaries to initiate
-libEnsemble. A simple calling script (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`)
-may resemble:
+outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and called with such
+dictionaries to initiate libEnsemble. A simple calling script
+(from :doc:`the first tutorial<tutorials/local_sine_tutorial>`) may resemble:
 
 .. code-block:: python
     :linenos:
@@ -30,77 +30,26 @@ may resemble:
 
     libE_specs["save_every_k_gens"] = 20
 
-    gen_specs = {"gen_f": gen_random_sample,
-                 "out": [("x", float, (1,))],
-                 "user": {
-                    "lower": np.array([-3]),
-                    "upper": np.array([3]),
-                    "gen_batch_size": 5
-                    }
-                 }
+    gen_specs = {
+        "gen_f": gen_random_sample,
+        "out": [("x", float, (1,))],
+        "user": {"lower": np.array([-3]), "upper": np.array([3]), "gen_batch_size": 5},
+    }
 
-    sim_specs = {"sim_f": sim_find_sine,
-                 "in": ["x"],
-                 "out": [("y", float)]}
+    sim_specs = {"sim_f": sim_find_sine, "in": ["x"], "out": [("y", float)]}
 
-    persis_info = add_unique_random_streams({}, nworkers+1)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
 
     exit_criteria = {"sim_max": 80}
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
 This will initiate libEnsemble with a Manager and ``nworkers`` workers (parsed from
 the command line), and runs on laptops or supercomputers. If an exception is
 encountered by the manager or workers, the history array is dumped to file, and
 MPI abort is called.
 
-An alternative approach to parameterizing and interacting with libEnsemble via
-``Ensemble`` objects and ``yaml`` files is available, but requires ``pyyaml``
-to be installed. The equivalent of above resembles:
-
-.. code-block:: python
-    :linenos:
-
-    import numpy as np
-    from libensemble import Ensemble
-
-    my_experiment = Ensemble()
-    my_experiment.from_yaml("my_parameters.yaml")
-
-    my_experiment.gen_specs["user"]["lower"] = np.array([-3])
-    my_experiment.gen_specs["user"]["upper"] = np.array([3])
-
-    H, persis_info, flag = my_experiment.run()
-
-The remaining parameters may be found in a ``yaml`` file that resembles:
-
-.. code-block:: yaml
-    :linenos:
-
-    libE_specs:
-        save_every_k_gens: 20
-        exit_criteria:
-            sim_max: 80
-
-    gen_specs:
-        function: generator.gen_random_sample
-        outputs:
-            x:
-                type: float
-                size: 1
-        user:
-            gen_batch_size: 5
-
-    sim_specs:
-        function: simulator.sim_find_sine
-        inputs:
-            - x
-        outputs:
-            y:
-                type: float
-
-On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``'spawn'``
+On macOS (since Python 3.8) and Windows, the default multiprocessing start method is ``"spawn"``
 and you must place most calling script code (or just ``libE()`` / ``Ensemble().run()`` at a minimum) in
 an ``if __name__ == "__main__:"`` block.
 
@@ -116,89 +65,106 @@ all platforms and comms-types may resemble:
     from simulator import sim_find_sine
     from libensemble.tools import add_unique_random_streams
 
-    if __name__ == "__main__:
+    if __name__ == "__main__":
 
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         libE_specs["save_every_k_gens"] = 20
 
-        gen_specs = {"gen_f": gen_random_sample,
-                    "out": [("x", float, (1,))],
-                    "user": {
-                        "lower": np.array([-3]),
-                        "upper": np.array([3]),
-                        "gen_batch_size": 5
-                        }
-                    }
+        gen_specs = {
+            "gen_f": gen_random_sample,
+            "out": [("x", float, (1,))],
+            "user": {
+                "lower": np.array([-3]),
+                "upper": np.array([3]),
+                "gen_batch_size": 5,
+            },
+        }
 
-        sim_specs = {"sim_f": sim_find_sine,
-                    "in": ["x"],
-                    "out": [("y", float)]}
+        sim_specs = {
+            "sim_f": sim_find_sine,
+            "in": ["x"],
+            "out": [("y", float)],
+        }
 
-        persis_info = add_unique_random_streams({}, nworkers+1)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
         exit_criteria = {"sim_max": 80}
 
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                    libE_specs=libE_specs)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-Alternatively, you may set the multiprocessing start method to ``'fork'`` via the following:
+Alternatively, you may set the multiprocessing start method to ``"fork"`` via the following:
+
+.. code-block:: python
+    :linenos:
 
     from multiprocessing import set_start_method
+
     set_start_method("fork")
 
 But note that this is incompatible with some libraries.
 
-See below for the complete traditional ``libE()`` API.
+See below for the complete traditional API.
 """
 
 __all__ = ["libE"]
 
-import os
 import logging
-import random
-import socket
-import traceback
-import numpy as np
+import os
 import pickle  # Only used when saving output on error
+import socket
+import sys
+import traceback
+from pathlib import Path
+from typing import Callable, Dict
 
-from libensemble.version import __version__
-from libensemble.utils import launcher
-from libensemble.utils.timer import Timer
-from libensemble.history import History
-from libensemble.manager import manager_main, report_worker_exc, WorkerException, LoggedException
-from libensemble.worker import worker_main
-from libensemble.alloc_funcs import defaults as alloc_defaults
+import numpy as np
+
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
-from libensemble.comms.tcp_mgr import ServerQCommManager, ClientQCommManager
+from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.history import History
+from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
+from libensemble.resources.platforms import get_platform
 from libensemble.resources.resources import Resources
-from libensemble.tools.tools import _USER_SIM_ID_WARNING
-from libensemble.tools.check_inputs import check_inputs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.tools.alloc_support import AllocSupport
+from libensemble.tools.tools import _USER_SIM_ID_WARNING
+from libensemble.utils import launcher
+from libensemble.utils.timer import Timer
+from libensemble.version import __version__
+from libensemble.worker import worker_main
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
 # logger.setLevel(logging.DEBUG)
 
 
-def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None, libE_specs=None, H0=None):
+def libE(
+    sim_specs: SimSpecs,
+    gen_specs: GenSpecs,
+    exit_criteria: ExitCriteria,
+    persis_info: Dict = {},
+    alloc_specs: AllocSpecs = AllocSpecs(),
+    libE_specs: LibeSpecs = {},
+    H0=None,
+) -> (np.ndarray, Dict, int):
     """
     Parameters
     ----------
 
-    sim_specs: :obj:`dict`
+    sim_specs: :obj:`dict` or :class:`SimSpecs<libensemble.specs.SimSpecs>`
 
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
 
-    gen_specs: :obj:`dict`
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
 
         Specifications for the generator function
         :doc:`(example)<data_structures/gen_specs>`
 
-    exit_criteria: :obj:`dict`
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
 
         Tell libEnsemble when to stop a run
         :doc:`(example)<data_structures/exit_criteria>`
@@ -208,21 +174,20 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
         Persistent information to be passed between user functions
         :doc:`(example)<data_structures/persis_info>`
 
-    alloc_specs: :obj:`dict`, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
 
         Specifications for the allocation function
         :doc:`(example)<data_structures/alloc_specs>`
 
-    libE_specs: :obj:`dict`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
-        A previous libEnsemble history to be prepended to the history in the
-        current libEnsemble run
-        :doc:`(example)<data_structures/history_array>`
+        A libEnsemble history to be prepended to this run's history
+        :ref:`(example)<funcguides-history>`
 
     Returns
     -------
@@ -230,7 +195,7 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
     H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
 
         History array storing rows for each point.
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<funcguides-history>`
 
     persis_info: :obj:`dict`
 
@@ -249,39 +214,48 @@ def libE(sim_specs, gen_specs, exit_criteria, persis_info=None, alloc_specs=None
             3 = Current process is not in libEnsemble MPI communicator
     """
 
-    # Set default persis_info, alloc_specs, libE_specs, and H0
-    if persis_info is None:
-        persis_info = {}
-
-    if alloc_specs is None:
-        alloc_specs = alloc_defaults.alloc_specs
-
-    if libE_specs is None:
-        libE_specs = {}
-
     if H0 is None:
-        H0 = np.empty(0)
+        H0 = np.empty([0])
 
-    # Set default comms
-    if "comms" not in libE_specs:
-        libE_specs["comms"] = "mpi"
+    # check *everything*
+    ensemble = _EnsembleSpecs(
+        H0=H0,
+        libE_specs=libE_specs,
+        persis_info=persis_info,
+        sim_specs=sim_specs,
+        gen_specs=gen_specs,
+        alloc_specs=alloc_specs,
+        exit_criteria=exit_criteria,
+    )
+
+    # get corresponding dictionaries back (casted in libE() def)
+    sim_specs = ensemble.sim_specs.dict(by_alias=True)
+    gen_specs = ensemble.gen_specs.dict(by_alias=True)
+    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
+    alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
+    libE_specs = ensemble.libE_specs.dict(by_alias=True)
+
+    # Extract platform info from settings or environment
+    platform_info = get_platform(libE_specs)
+
+    if libE_specs["dry_run"]:
+        logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
+        sys.exit()
 
     libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
 
-    comms_type = libE_specs.get("comms")
-
-    assert comms_type in libE_funcs, f"Unknown comms type: {comms_type}"
-
-    # Resource management not supported with TCP
-    if comms_type == "tcp":
-        libE_specs["disable_resource_manager"] = True
-
-    Resources.init_resources(libE_specs)
+    Resources.init_resources(libE_specs, platform_info)
+    if Executor.executor is not None:
+        Executor.executor.add_platform_info(platform_info)
 
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    return libE_funcs[comms_type](sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0)
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
+
+    return libE_funcs[libE_specs.get("comms", "mpi")](
+        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
+    )
 
 
 def manager(
@@ -292,9 +266,9 @@ def manager(
     persis_info,
     alloc_specs,
     libE_specs,
-    hist,
-    on_abort=None,
-    on_cleanup=None,
+    hist: np.ndarray,
+    on_abort: Callable = None,
+    on_cleanup: Callable = None,
 ):
     """Generic manager routine run."""
     logger.info("Logger initializing: [workerID] precedes each line. [0] = Manager")
@@ -303,8 +277,6 @@ def manager(
     if "out" in gen_specs and ("sim_id", int) in gen_specs["out"]:
         if "libensemble.gen_funcs" not in gen_specs["gen_f"].__module__:
             logger.manager_warning(_USER_SIM_ID_WARNING)
-
-    save_H = libE_specs.get("save_H_and_persis_on_abort", True)
 
     try:
         try:
@@ -323,8 +295,10 @@ def manager(
             raise LoggedException(e.args) from None
     except Exception as e:
         exit_flag = 1  # Only exits if no abort/raise
-        _dump_on_abort(hist, persis_info, save_H=save_H)
-        if libE_specs.get("abort_on_exception", True) and on_abort is not None:
+        _dump_on_abort(
+            hist, persis_info, save_H=libE_specs["save_H_and_persis_on_abort"], path=libE_specs.get("workflow_dir_path")
+        )
+        if libE_specs["abort_on_exception"] and on_abort is not None:
             on_cleanup()
             on_abort()
         raise LoggedException(*e.args, "See error details above and in ensemble.log") from None
@@ -374,16 +348,14 @@ def libE_mpi_defaults(libE_specs):
 
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
+
     libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
 
     if libE_specs["mpi_comm"] == mpi_comm_null:
         return [], persis_info, 3  # Process not in mpi_comm
 
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
-        rank = mpi_comm.Get_rank()
-        is_manager = rank == 0
+        is_manager = mpi_comm.Get_rank() == 0
 
         resources = Resources.resources
         if resources is not None:
@@ -407,21 +379,15 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
             )
 
         # Worker returns a subset of MPI output
-        libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs)
-        return [], {}, []
+        return libE_mpi_worker(mpi_comm, sim_specs, gen_specs, libE_specs)
 
 
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Manager routine runs on rank 0."""
     from libensemble.comms.mpi import MainMPIComm
 
-    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
-
-    # Launch worker team
-    wcomms = [MainMPIComm(mpi_comm, w) for w in range(1, mpi_comm.Get_size())]
-
-    if not libE_specs.get("disable_log_files", False):
-        exit_logger = manager_logging_config()
+    if not libE_specs["disable_log_files"]:
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
@@ -437,14 +403,14 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
 
     # Run generic manager
     return manager(
-        wcomms,
+        [MainMPIComm(mpi_comm, w) for w in range(1, mpi_comm.Get_size())],
         sim_specs,
         gen_specs,
         exit_criteria,
         persis_info,
         alloc_specs,
         libE_specs,
-        hist,
+        History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0),
         on_abort=on_abort,
         on_cleanup=cleanup,
     )
@@ -457,6 +423,7 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
     comm = MainMPIComm(libE_comm)
     worker_main(comm, sim_specs, gen_specs, libE_specs, log_comm=True)
     logger.debug(f"Worker {libE_comm.Get_rank()} exiting")
+    return [], {}, []
 
 
 # ==================== Local version ===============================
@@ -488,9 +455,6 @@ def kill_proc_team(wcomms, timeout):
 
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for thread/process launch of libE."""
-    nworkers = libE_specs["nworkers"]
-
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     resources = Resources.resources
     if resources is not None:
@@ -505,21 +469,21 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
     # Launch worker team and set up logger
-    wcomms = start_proc_team(nworkers, sim_specs, gen_specs, libE_specs)
+    wcomms = start_proc_team(libE_specs["nworkers"], sim_specs, gen_specs, libE_specs)
 
     # Set manager resources after the forkpoint.
     if resources is not None:
-        resources.set_resource_manager(nworkers)
+        resources.set_resource_manager(libE_specs["nworkers"])
 
-    if not libE_specs.get("disable_log_files", False):
-        exit_logger = manager_logging_config()
+    if not libE_specs["disable_log_files"]:
+        exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
 
     # Set up cleanup routine to shut down worker team
     def cleanup():
         """Handler to clean up comms team."""
-        kill_proc_team(wcomms, timeout=libE_specs.get("worker_timeout", 1))
+        kill_proc_team(wcomms, timeout=libE_specs["worker_timeout"])
         if exit_logger is not None:
             exit_logger()
 
@@ -540,12 +504,6 @@ def get_ip():
         return "localhost"
 
 
-def libE_tcp_authkey():
-    """Generate an authkey if not assigned by manager."""
-    nonce = random.randrange(99999)
-    return f"libE_auth_{nonce}"
-
-
 def libE_tcp_default_ID():
     """Assign a (we hope unique) worker ID if not assigned by manager."""
     return f"{get_ip()}_pid{os.getpid()}"
@@ -553,9 +511,8 @@ def libE_tcp_default_ID():
 
 def libE_tcp(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Main routine for TCP multiprocessing launch of libE."""
-    check_inputs(libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
 
-    is_worker = True if "workerID" in libE_specs else False
+    is_worker = libE_specs.get("workerID") is not None
 
     exctr = Executor.executor
     if exctr is not None:
@@ -611,24 +568,23 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
     launchf = libE_tcp_worker_launcher(libE_specs)
 
     # Get worker launch parameters and fill in defaults for TCP/IP conn
-    if "nworkers" in libE_specs:
+    if libE_specs.get("nworkers"):
         workers = None
         nworkers = libE_specs["nworkers"]
-    elif "workers" in libE_specs:
+    elif libE_specs.get("workers"):
         workers = libE_specs["workers"]
         nworkers = len(workers)
-    ip = libE_specs.get("ip", None) or get_ip()
-    port = libE_specs.get("port", 0)
-    authkey = libE_specs.get("authkey", libE_tcp_authkey())
+    ip = libE_specs["ip"] or get_ip()
+    port = libE_specs["port"]
+    authkey = libE_specs["authkey"]
 
     with ServerQCommManager(port, authkey.encode("utf-8")) as tcp_manager:
-
         # Get port if needed because of auto-assignment
         if port == 0:
             _, port = tcp_manager.address
 
-        if not libE_specs.get("disable_log_files", False):
-            exit_logger = manager_logging_config()
+        if not libE_specs["disable_log_files"]:
+            exit_logger = manager_logging_config(specs=libE_specs)
         else:
             exit_logger = None
 
@@ -640,7 +596,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
         def cleanup():
             """Handler to clean up launched team."""
             for wp in worker_procs:
-                launcher.cancel(wp, timeout=libE_specs.get("worker_timeout"))
+                launcher.cancel(wp, timeout=libE_specs["worker_timeout"])
             if exit_logger is not None:
                 exit_logger()
 
@@ -657,7 +613,7 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
     authkey = libE_specs["authkey"]
     workerID = libE_specs["workerID"]
 
-    with ClientQCommManager(ip, port, authkey, workerID) as comm:
+    with ClientQCommManager(ip, port, authkey.encode("utf-8"), workerID) as comm:
         worker_main(comm, sim_specs, gen_specs, libE_specs, workerID=workerID, log_comm=True)
         logger.debug(f"Worker {workerID} exiting")
 
@@ -665,12 +621,12 @@ def libE_tcp_worker(sim_specs, gen_specs, libE_specs):
 # ==================== Additional Internal Functions ===========================
 
 
-def _dump_on_abort(hist, persis_info, save_H=True):
+def _dump_on_abort(hist, persis_info, save_H=True, path=Path.cwd()):
     """Dump history and persis_info on abort"""
     logger.error("Manager exception raised .. aborting ensemble:")
     logger.error(f"Dumping ensemble history with {hist.sim_ended_count} sims evaluated:")
 
     if save_H:
-        np.save("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy", hist.trim_H())
-        with open("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle", "wb") as f:
+        np.save(Path(path / Path("libE_history_at_abort_" + str(hist.sim_ended_count) + ".npy")), hist.trim_H())
+        with Path(path / Path("libE_persis_info_at_abort_" + str(hist.sim_ended_count) + ".pickle")).open("wb") as f:
             pickle.dump(persis_info, f)

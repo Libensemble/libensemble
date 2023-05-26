@@ -17,18 +17,19 @@ zero_resource_workers are used, and the static scheduler will fill node one firs
 """
 
 import sys
+
 import numpy as np
 
+from libensemble import logger
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import logger
+from libensemble.tools import add_unique_random_streams, parse_args
 
-# logger.set_level('DEBUG')  # For testing the test
+# logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -37,7 +38,6 @@ logger.set_level("INFO")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     rounds = 1
     sim_app = "/path/to/fakeapp.x"
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f, "out": []}
+    alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"sim_max": (nsim_workers) * rounds}
 
     test_list_base = [
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     srun_p1 = "srun -w "
     srun_p2 = " --ntasks "
     srun_p3 = " --nodes 1 --ntasks-per-node "
-    srun_p4 = " /path/to/fakeapp.x --testid base1"
+    srun_p4 = " --exact /path/to/fakeapp.x --testid base1"
 
     exp_tasks = []
     exp_srun = []
@@ -147,7 +147,6 @@ if __name__ == "__main__":
 
     iterations = 2
     for prob_id in range(iterations):
-
         if prob_id == 0:
             # Uses dynamic scheduler - will find node 2 slots first (as fewer)
             libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen

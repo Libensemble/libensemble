@@ -1,7 +1,8 @@
 import numpy as np
+
+from libensemble.gen_funcs.persistent_aposmm import decide_where_to_start_localopt, extract_rk_c, update_history_dist
 from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
-from libensemble.gen_funcs.old_aposmm import initialize_APOSMM, decide_where_to_start_localopt, update_history_dist
 
 
 def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
@@ -26,7 +27,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_persis_gens()
@@ -56,9 +57,11 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     for wid in support.avail_worker_ids(persistent=False):
         # Find candidates to start local opt runs if a sample has been evaluated
         if np.any(np.logical_and(~H["local_pt"], H["sim_ended"], ~H["cancel_requested"])):
-            n, _, _, _, r_k, mu, nu = initialize_APOSMM(H, gen_specs)
-            update_history_dist(H, n, gen_specs["user"], c_flag=False)
-            starting_inds = decide_where_to_start_localopt(H, r_k, mu, nu)
+            n = len(H["x"][0])
+            rk_c = extract_rk_c(gen_specs["user"], n)
+            n_s = np.sum(~H["local_pt"])
+            update_history_dist(H, n)
+            starting_inds = decide_where_to_start_localopt(H, n, n_s, rk_c)
         else:
             starting_inds = []
 
@@ -76,7 +79,6 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             gen_count += 1
 
         elif np.any(points_to_evaluate):
-
             # Perform sim evaluations from existing runs
             q_inds_logical = np.logical_and(points_to_evaluate, H["local_pt"])
             if not np.any(q_inds_logical):

@@ -1,22 +1,24 @@
 #! /usr/bin/env python
 
-import os
-import sys
-import shutil
 import argparse
+import datetime
+import os
+import shutil
+import sys
 from pathlib import Path
-from libensemble.version import __version__
+
 from libensemble.tools.parse_args import parser as callscript_parser
+from libensemble.version import __version__
 
 try:
     from psij import Job, JobSpec
-    from psij.resource_spec import ResourceSpecV1
     from psij.job_attributes import JobAttributes
+    from psij.resource_spec import ResourceSpecV1
     from psij.serialize import Export
 except ModuleNotFoundError:
     print(f"*** libEnsemble {__version__} ***")
     print("\nThe PSI/J Python interface is not installed. Please install it via the following:\n")
-    print("     git clone https://github.com/ExaWorks/psi-j-python.git")
+    print("     git clone https://github.com/ExaWorks/psij-python.git")
     print("     cd psi-j-python; pip install -e .\n")
 
 if __name__ == "__main__":
@@ -151,7 +153,7 @@ if __name__ == "__main__":
         environment={"PYTHONNOUSERSITE": "1"},
         resources=resources,
         attributes=JobAttributes(
-            duration=jobargs.wallclock,
+            duration=datetime.timedelta(minutes=jobargs.wallclock),
             queue_name=jobargs.queue,
             project_name=jobargs.project,
         ),

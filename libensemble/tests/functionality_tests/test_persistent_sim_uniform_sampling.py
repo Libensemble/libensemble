@@ -18,21 +18,22 @@ persistent generator.
 # TESTSUITE_OS_SKIP: WIN
 
 import sys
+
 import numpy as np
+
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import persistent_six_hump_camel as sim_f
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # from libensemble import logger
-# logger.set_level('DEBUG')
+# logger.set_level("DEBUG")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["num_resource_sets"] = nworkers - 1  # Only matters if sims use resources.
 

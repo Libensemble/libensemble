@@ -1,10 +1,12 @@
+.. _funcguides-sim:
+
 Simulator Functions
 ===================
 
 As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by a
 libEnsemble worker via a similar interface to the ``gen_f``::
 
-    out = sim_f(H[sim_specs['in']][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
+    out = sim_f(H[sim_specs["in"]][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
 
 In practice, most ``sim_f`` function definitions written by users resemble::
 
@@ -12,14 +14,15 @@ In practice, most ``sim_f`` function definitions written by users resemble::
 
 Where :doc:`sim_specs<../data_structures/sim_specs>` is a
 dictionary containing pre-defined parameters for the ``sim_f``, and the other
-parameters serve similar purposes to those in the ``gen_f``.
+parameters serve similar purposes to those in the ``gen_f``. Valid simulator functions
+can accept a subset of the above parameters.
 
 The pattern of setting up a local ``H``, parsing out parameters from
-``sim_specs``, performing calculations, and returning the local ``H``
+:class:`sim_specs<libensemble.specs.SimSpecs>`, performing calculations, and returning the local ``H``
 with ``persis_info`` should be familiar::
 
-    batch_size = sim_specs['user']['batch_size']
-    local_H_out = np.zeros(batch_size, dtype=sim_specs['out'])
+    batch_size = sim_specs["user"]["batch_size"]
+    local_H_out = np.zeros(batch_size, dtype=sim_specs["out"])
 
     ... # Perform simulation calculations
 
@@ -30,7 +33,7 @@ of computation can be performed. Users are encouraged to use the :doc:`executor<
 to submit applications to parallel resources if necessary, or plug in components from
 other libraries to serve their needs.
 
-Simulator functions can also return a :doc:`calc_status<../data_structures/calc_status>`
+Simulator functions can also return a :ref:`calc_status<funcguides-calcstatus>`
 integer attribute from the ``libensemble.message_numbers`` module to be logged.
 
 Descriptions of included simulator functions can be found :doc:`here<../examples/sim_funcs>`.
@@ -42,7 +45,7 @@ with libEnsemble.
 Executor
 --------
 
-libEnsemble's Executor is commonly used within simulator functions to launch
+libEnsemble's Executors are commonly used within simulator functions to launch
 and monitor applications. An excellent overview is already available
 :doc:`here<../executor/overview>`.
 

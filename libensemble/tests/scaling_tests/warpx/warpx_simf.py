@@ -1,11 +1,12 @@
 import os
 import time
-import numpy as np
 
-from libensemble.executors.executor import Executor
-from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+import numpy as np
 from read_sim_output import read_sim_output
 from write_sim_input import write_sim_input
+
+from libensemble.executors.executor import Executor
+from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 """
 This file is part of the suite of scripts to use LibEnsemble on top of WarpX

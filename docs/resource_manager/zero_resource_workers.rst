@@ -5,7 +5,7 @@ Zero-resource workers
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
 are still automatically assigned resources. This can be wasteful if those workers
-only run ``gen_f`` functions in-place (i.e.,~  they do not use the Executor
+only run ``gen_f`` functions in-place (i.e., they do not use the Executor
 to submit applications to allocated nodes). Suppose the user is using the
 :meth:`parse_args()<tools.parse_args>` function and runs::
 
@@ -29,7 +29,7 @@ number of resource sets to the number of workers that will be running simulation
 .. code-block:: python
 
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs['num_resource_sets'] = nworkers - 1
+    libE_specs["num_resource_sets"] = nworkers - 1
 
 When the ``num_resource_sets`` option is used, libEnsemble will use the dynamic
 resource scheduler, and any worker may assign work to any node. This works well
@@ -50,15 +50,15 @@ worker for the persistent generator - a common use-case.
 
 In general, the number of resource sets should be set to enable the maximum
 concurrency desired by the ensemble, taking into account generators and simulators.
-The users can set generator resources by setting ``persis_info['gen_resources']``
+Users can set generator resources by setting ``persis_info["gen_resources"]``
 to an integer value, representing the number of resource sets to give to the
 generator. The default is zero.
 
 The available nodes are always divided by the number of resource sets, and there
 may be multiple nodes or a partition of a node in each resource set. If the split
-is uneven, resource sets are not split between nodes. E.g.~ If there are two nodes
-and five resource sets, one node will have three resource sets, and the other will
-have two.
+is uneven, resource sets are not split between nodes. For example, if there are
+two nodes and five resource sets, one node will have three resource sets, and
+the other will have two.
 
 Placing zero-resource functions on a fixed worker
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -68,7 +68,7 @@ If the generator must must always be on worker one, then instead of using
 
 .. code-block:: python
 
-    libE_specs['zero_resource_workers'] = [1]
+    libE_specs["zero_resource_workers"] = [1]
 
 in the calling script and worker one will not be allocated resources. In general,
 set the parameter ``zero_resource_workers`` to a list of worker IDs that should not

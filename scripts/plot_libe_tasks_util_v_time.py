@@ -14,8 +14,8 @@ finish and so does not include any overhead before or after these times.
 
 """
 
-import pandas as pd
 import matplotlib
+import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

@@ -18,23 +18,23 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
 import multiprocessing
-import numpy as np
+import sys
+from math import ceil, gamma, pi, sqrt
 
-# Import libEnsemble items for this test
-from libensemble.libE import libE
-from math import gamma, pi, sqrt, ceil
-from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
+import numpy as np
 
 import libensemble.gen_funcs
 
-libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+# Import libEnsemble items for this test
+from libensemble.libE import libE
+from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
-from libensemble.gen_funcs.sampling import lhs_sample
+libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+from libensemble.gen_funcs.sampling import lhs_sample
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 
 def combine_component(x):
@@ -43,7 +43,6 @@ def combine_component(x):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()

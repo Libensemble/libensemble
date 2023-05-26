@@ -4,7 +4,7 @@ from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResour
 def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
-    to evaluate in the simulation function. The fields in ``sim_specs['in']``
+    to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If there is no active generator, then one is started.
 
     .. seealso::
@@ -14,7 +14,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
 
     Work = {}
@@ -22,7 +22,6 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     gen_in = gen_specs.get("in", [])
 
     for wid in support.avail_worker_ids():
-
         # Skip any cancelled points
         while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
             persis_info["next_to_give"] += 1
@@ -35,7 +34,6 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
             persis_info["next_to_give"] += 1
 
         elif not support.test_any_gen() and gen_flag:
-
             if not support.all_sim_ended(H):
                 break
 

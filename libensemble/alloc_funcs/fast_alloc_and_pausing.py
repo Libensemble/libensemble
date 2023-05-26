@@ -1,23 +1,24 @@
 import numpy as np
+
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
 def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function gives (in order) entries in ``H`` to idle workers
-    to evaluate in the simulation function. The fields in ``sim_specs['in']``
+    to evaluate in the simulation function. The fields in ``sim_specs["in"]``
     are given. If all entries in `H` have been given a be evaluated, a worker
     is told to call the generator function, provided this wouldn't result in
-    more than ``alloc_specs['user']['num_active_gen']`` active generators. Also allows
-    for a 'batch_mode'.
+    more than ``alloc_specs["user"]["num_active_gen"]`` active generators. Also allows
+    for a "batch_mode".
 
     When there are multiple objective components, this allocation function
     does not evaluate further components for some point in the following
     scenarios:
 
-    alloc_specs['user']['stop_on_NaNs']: True --- after a NaN has been found in returned in some
+    alloc_specs["user"]["stop_on_NaNs"]: True --- after a NaN has been found in returned in some
         objective component
-    alloc_specs['user']['stop_partial_fvec_eval']: True --- after the value returned from
+    alloc_specs["user"]["stop_partial_fvec_eval"]: True --- after the value returned from
         combine_component_func is larger than a known upper bound on the objective.
 
     .. seealso::
@@ -27,7 +28,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_gens()
@@ -45,17 +46,16 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     idle_workers = support.avail_worker_ids()
 
     while len(idle_workers):
-
         pt_ids_to_pause = set()
 
         # Find indices of H that are not yet given out to be evaluated
         if len(persis_info["need_to_give"]):
-            # If 'stop_on_NaN' is true and any f_i is a NaN, then pause
+            # If "stop_on_NaN" is true and any f_i is a NaN, then pause
             # evaluations of other f_i, corresponding to the same pt_id
             if alloc_specs["user"].get("stop_on_NaNs"):
                 pt_ids_to_pause.update(H["pt_id"][np.isnan(H["f_i"])])
 
-            # If 'stop_partial_fvec_eval' is true, pause entries in H if a
+            # If "stop_partial_fvec_eval" is true, pause entries in H if a
             # partial combine_component_func evaluation is # worse than the
             # best, known, complete evaluation (and the point is not a
             # local_pt).
@@ -64,9 +64,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 pt_ids = np.array(list(pt_ids))
                 partial_fvals = np.zeros(len(pt_ids))
 
-                # Mark 'complete' and 'has_nan' pt_ids, compute complete and partial fvals
+                # Mark "complete" and "has_nan" pt_ids, compute complete and partial fvals
                 for j, pt_id in enumerate(pt_ids):
-
                     a1 = persis_info["inds_of_pt_ids"][pt_id]
                     if np.any(np.isnan(H["f_i"][a1])):
                         persis_info["has_nan"].add(pt_id)
@@ -81,11 +80,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                         persis_info["best_complete_val"] = min(persis_info["best_complete_val"], values)
                     else:
                         # Ensure combine_component_func calculates partial fevals correctly
-                        # with H['f_i'] = 0 for non-returned point
+                        # with H["f_i"] = 0 for non-returned point
                         partial_fvals[j] = gen_specs["user"]["combine_component_func"](H["f_i"][a1])
 
                 if len(persis_info["complete"]) and len(pt_ids) > 1:
-
                     worse_flag = np.zeros(len(pt_ids), dtype=bool)
                     for j, pt_id in enumerate((pt_ids)):
                         if (

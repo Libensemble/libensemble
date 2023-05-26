@@ -16,26 +16,25 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_OS_SKIP: WIN
 
 import sys
+
 import numpy as np
+
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if libE_specs["comms"] != "mpi":
         sys.exit("This test only runs with MPI -- aborting...")
-        # After this check will remove libE_specs['comms']
+        # After this check will remove libE_specs["comms"]
     else:
         from mpi4py import MPI
-
-    libE_specs = None  # Let MPI use defaults
 
     # Check independence of default communicator from MPI.COMM_WORLD
     world = MPI.COMM_WORLD
@@ -64,10 +63,10 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 501}
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info)
 
     if is_manager:
-        # assert libE_specs['comms'] == 'mpi', 'MPI default comms should be set'
+        # assert libE_specs["comms"] == "mpi", "MPI default comms should be set"
         # Potential to cause a hang
         worker_ids = []
         exp_worker_ids = list(range(1, nworkers + 1))

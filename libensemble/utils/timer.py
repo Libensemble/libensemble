@@ -6,7 +6,7 @@ import datetime
 
 
 # https://stackoverflow.com/questions/5998245/get-current-time-in-milliseconds-in-python
-def TimestampMillisec64():
+def TimestampMillisec64() -> int:
     return int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds() * 1000)
 
 
@@ -29,7 +29,7 @@ class Timer:
         Indicates whether the timer is currently active.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new timer."""
         self.tcum = 0.0
         self.tstart = 0.0
@@ -53,7 +53,7 @@ class Timer:
         return end_time.strftime("%Y-%m-%d %H:%M:%S") + "." + str(self.tend)[-3:]
 
     @property
-    def elapsed(self):
+    def elapsed(self) -> float:
         """Return time since last start (active) or in most recent interval."""
         etime = self.tend if not self.timing else TimestampMillisec64()
         return (etime - self.tstart) / 1000
@@ -65,12 +65,12 @@ class Timer:
             return self.tcum / 1000 + self.elapsed  # second term divided above
         return self.tcum / 1000
 
-    def start(self):
+    def start(self) -> None:
         """Start the timer."""
         self.tstart = TimestampMillisec64()
         self.timing = True
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the timer."""
         self.tend = TimestampMillisec64()
         self.timing = False

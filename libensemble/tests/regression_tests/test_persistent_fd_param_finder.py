@@ -17,20 +17,22 @@ persistent generator.
 # TESTSUITE_OS_SKIP: OSX
 # TESTSUITE_EXTRA: true
 
-import sys
-import numpy as np
 import shutil  # For ECnoise.m
+import sys
+
+import numpy as np
+
+from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
+from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.noisy_vector_mapping import func_wrapper as sim_f, noisy_function
-from libensemble.gen_funcs.persistent_fd_param_finder import fd_param_finder as gen_f
-from libensemble.alloc_funcs.start_fd_persistent import finite_diff_alloc as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.sim_funcs.noisy_vector_mapping import func_wrapper as sim_f
+from libensemble.sim_funcs.noisy_vector_mapping import noisy_function
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     if nworkers < 2:

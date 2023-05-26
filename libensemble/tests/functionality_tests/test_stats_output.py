@@ -16,26 +16,24 @@ Note: This test contains multiple iterations to test different libE_stats output
 # TESTSUITE_NPROCS: 2 4
 
 import sys
-import numpy as np
 
+import numpy as np
 from check_libE_stats import check_libE_stats
+
+from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-
-from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
 
-from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
-
 
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True
@@ -79,7 +77,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": give_sim_work_first,
-        "out": [],
         "user": {
             "batch_mode": False,
             "give_all_with_same_priority": True,
@@ -97,7 +94,6 @@ if __name__ == "__main__":
 
     # Note that libE_stats.txt output will be appended across libE calls.
     for prob_id in range(iterations):
-
         sim_specs["user"]["app"] = "six_hump_camel"
 
         libE_specs["ensemble_dir_path"] = (

@@ -19,15 +19,15 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
+import warnings
+
 import numpy as np
-from libensemble.libE import libE
+
 from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.tools import save_libE_output, add_unique_random_streams
-from libensemble.tools import parse_args
+from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-
-import warnings
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -59,7 +59,6 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     mt_params = {
@@ -103,7 +102,6 @@ if __name__ == "__main__":
 
     alloc_specs = {
         "alloc_f": only_persistent_gens,
-        "out": [("gen_informed", bool)],
         "user": {"async_return": False},
     }
 

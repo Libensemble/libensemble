@@ -1,8 +1,10 @@
-import os
 import logging
-from collections import Counter
-from collections import OrderedDict
+import os
+from collections import Counter, OrderedDict
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import numpy as np
+
 from libensemble.resources.rset_resources import RSetResources
 
 logger = logging.getLogger(__name__)
@@ -21,14 +23,10 @@ class ResourceManagerException(Exception):
 class ResourceManager(RSetResources):
     """Provides methods for managing the assignment of resource sets to workers."""
 
-    rset_dtype = [
-        ("assigned", int),  # Holds worker ID assigned to or zero
-        ("group", int),  # Group ID this resource set belongs to
-        ("slot", int)  # Slot ID this resource set belongs to
-        # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
-    ]
+    # Holds the ID of the worker this rset is assigned to or zero
+    man_rset_dtype = np.dtype(RSetResources.rset_dtype + [("assigned", int)])
 
-    def __init__(self, num_workers, resources):
+    def __init__(self, num_workers: int, resources: "GlobalResources") -> None:  # noqa: F821
         """Initializes a new ResourceManager instance
 
         Instantiates the numpy structured array that holds information for each
@@ -51,11 +49,15 @@ class ResourceManager(RSetResources):
             resources.zero_resource_workers,
         )
 
-        self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.rset_dtype)
+        self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.man_rset_dtype)
         self.rsets["assigned"] = 0
-        self.rsets["group"], self.rsets["slot"] = ResourceManager.get_group_list(self.split_list)
+        for field in self.all_rsets.dtype.names:
+            self.rsets[field] = self.all_rsets[field]
         self.num_groups = self.rsets["group"][-1]
+
         self.rsets_free = self.total_num_rsets
+        self.gpu_rsets_free = self.total_num_gpu_rsets
+        self.nongpu_rsets_free = self.total_num_nongpu_rsets
 
         # Useful for scheduling tasks with different sized groups (resource sets per node).
         unique, counts = np.unique(self.rsets["group"], return_counts=True)
@@ -71,6 +73,10 @@ class ResourceManager(RSetResources):
                 if wid == 0:
                     self.rsets["assigned"][rset_team[i]] = worker_id
                     self.rsets_free -= 1
+                    if self.rsets["gpus"][rset_team[i]]:
+                        self.gpu_rsets_free -= 1
+                    else:
+                        self.nongpu_rsets_free -= 1
                 elif wid != worker_id:
                     ResourceManagerException(
                         f"Error: Attempting to assign rsets {rset_team}" f" already assigned to workers: {rteam}"
@@ -81,35 +87,19 @@ class ResourceManager(RSetResources):
         if worker is None:
             self.rsets["assigned"] = 0
             self.rsets_free = self.total_num_rsets
+            self.gpu_rsets_free = self.total_num_gpu_rsets
+            self.nongpu_rsets_free = self.total_num_nongpu_rsets
         else:
             rsets_to_free = np.where(self.rsets["assigned"] == worker)[0]
             self.rsets["assigned"][rsets_to_free] = 0
             self.rsets_free += len(rsets_to_free)
+            self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
+            self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
 
     @staticmethod
-    def get_group_list(split_list):
-        """Return lists of group ids and slot IDs by resource set"""
-        group = 1
-        slot = 0
-        group_list = []
-        slot_list = []
-        node = split_list[0]
-        for i in range(len(split_list)):
-            if split_list[i] == node:
-                group_list.append(group)
-                slot_list.append(slot)
-                slot += 1
-            else:
-                node = split_list[i]
-                group += 1
-                group_list.append(group)
-                slot = 0
-                slot_list.append(slot)
-                slot += 1
-        return group_list, slot_list
-
-    @staticmethod
-    def get_index_list(num_workers, num_rsets, zero_resource_list):
+    def get_index_list(
+        num_workers: int, num_rsets: int, zero_resource_list: List[Union[int, Any]]
+    ) -> List[Optional[int]]:
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
@@ -176,7 +166,6 @@ class WorkerResources(RSetResources):
     """
 
     def __init__(self, num_workers, resources, workerID):
-
         """Initializes a new WorkerResources instance
 
         Determines the compute resources available for current worker, including
@@ -201,29 +190,32 @@ class WorkerResources(RSetResources):
         self.rset_team = None
         self.num_rsets = 0
         self.slots = None
-        self.even_slots = None
-        self.matching_slots = None
+        self.even_slots = True
+        self.matching_slots = True
         self.slot_count = None
         self.slots_on_node = None
         self.zero_resource_workers = resources.zero_resource_workers
         self.local_node_count = len(self.local_nodelist)
         self.set_slot_count()
+        self.gen_nprocs = None
+        self.gen_ngpus = None
 
     # User convenience functions ----------------------------------------------
 
-    def get_slots_as_string(self, multiplier=1, delimiter=","):
+    def get_slots_as_string(self, multiplier=1, delimiter=",", limit=None):
         """Returns list of slots as a string
 
         :param multiplier: Optional int. Assume this many items per slot.
         :param delimiter: Optional int. Delimiter for output string.
+        :param limit: Optional int. Maximum slots (truncate list after this many slots).
         """
-
         if self.slots_on_node is None:
             logger.warning("Slots on node is None when requested as a string")
             return None
-
         n = multiplier
         slot_list = [j for i in self.slots_on_node for j in range(i * n, (i + 1) * n)]
+        if limit is not None:
+            slot_list = slot_list[:limit]
         slots = delimiter.join(map(str, slot_list))
         return slots
 
@@ -250,12 +242,45 @@ class WorkerResources(RSetResources):
             resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")
 
         """
-
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
+
+    def set_env_to_gpus(self, env_var, delimiter=","):
+        """Sets the given environment variable to GPUs
+
+        :param env_var: String. Name of environment variable to set.
+        :param delimiter: Optional int. Delimiter for output string.
+
+        Example usage in a sim function:
+
+        With resources imported:
+
+        .. code-block:: python
+
+            from libensemble.resources.resources import Resources
+
+        Obtain worker resources:
+
+        .. code-block:: python
+
+            resources = Resources.resources.worker_resources
+            resources.set_env_to_gpus("CUDA_VISIBLE_DEVICES")
+
+        """
+        assert self.matching_slots, f"Cannot assign GPUs to non-matching slots per node {self.slots}"
+        if self.doihave_gpus():
+            env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset, limit=self.gen_ngpus)
+            os.environ[env_var] = env_value
 
     # libEnsemble functions ---------------------------------------------------
 
-    def set_rset_team(self, rset_team):
+    def doihave_gpus(self):
+        """Are this workers current resource sets GPU rsets"""
+        if self.rset_team:
+            # If first rset in my team got gpus - if so i've got gpus
+            return self.all_rsets["gpus"][self.rset_team[0]]
+        return False
+
+    def set_rset_team(self, rset_team: List[int]) -> None:
         """Update worker team and local attributes
 
         Updates: rset_team
@@ -279,7 +304,12 @@ class WorkerResources(RSetResources):
             self.set_slot_count()
             self.local_node_count = len(self.local_nodelist)
 
-    def set_slot_count(self):
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus"""
+        self.gen_nprocs = libE_info.get("num_procs")
+        self.gen_ngpus = libE_info.get("num_gpus")
+
+    def set_slot_count(self) -> None:
         """Sets attributes even_slots and matching_slots.
 
         Also sets slot_count if even_slots (else None) and
@@ -303,7 +333,9 @@ class WorkerResources(RSetResources):
             self.slot_count = first_len if self.even_slots else None
 
     @staticmethod
-    def get_local_nodelist(workerID, rset_team, split_list, rsets_per_node):
+    def get_local_nodelist(
+        workerID: int, rset_team: List[int], split_list: List[List[str]], rsets_per_node: int
+    ) -> Tuple[List[str], Dict[str, List[int]]]:
         """Returns the list of nodes available to the given worker and the slot dictionary"""
         if workerID is None:
             raise WorkerResourcesException("Worker has no workerID - aborting")

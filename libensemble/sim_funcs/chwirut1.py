@@ -255,12 +255,12 @@ def EvaluateJacobian(x):
     return j
 
 
-def chwirut_eval(H, persis_info, sim_specs, _):
+def chwirut_eval(H, _, sim_specs):
     """
     Evaluates the chwirut objective function at a given set of points in
-    ``H['x']``. If ``'obj_component'`` is a field in ``sim_specs['out']``, only that
+    ``H["x"]``. If ``"obj_component"`` is a field in ``sim_specs["out"]``, only that
     component of the objective will be evaluated. Otherwise, all 214 components
-    are evaluated and returned in the ``'fvec'`` field.
+    are evaluated and returned in the ``"fvec"`` field.
 
     .. seealso::
         `test_old_aposmm_pounders.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_pounders.py>`_
@@ -289,10 +289,10 @@ def chwirut_eval(H, persis_info, sim_specs, _):
             O["fvec"][i] = EvaluateFunction(x)
             O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
 
-    return O, persis_info
+    return O
 
 
-# if __name__ == '__main__':
+# if __name__ == "__main__":
 #     x = np.zeros(3)
 #     x[0] = 0.15;
 #     x[1] = 0.008;

@@ -1,34 +1,15 @@
 # !/usr/bin/env python
 # Integration Test of executor module for libensemble
 # Test does not require running full libensemble
+import datetime
 import os
 import sys
-import mock
-import pytest
-import datetime
 from dataclasses import dataclass
 
-from libensemble.executors.executor import (
-    Executor,
-    Application,
-    ExecutorException,
-    TimeoutExpired,
-)
+import mock
+import pytest
 
-
-# fake Balsam app
-class TestLibeApp:
-    site = "libe-unit-test"
-    command_template = "python simdir/py_startup.py"
-
-    def sync():
-        pass
-
-
-# fake EventLog object
-@dataclass
-class LogEventTest:
-    timestamp: datetime.datetime = None
+from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
 
 
 def setup_module(module):
@@ -51,10 +32,25 @@ def teardown_module(module):
         Executor.executor = None
 
 
+# fake Balsam app
+class TestLibeApp:
+    site = "libe-unit-test"
+    command_template = "python simdir/py_startup.py"
+
+    def sync():
+        pass
+
+
+# fake EventLog object
+@dataclass
+class LogEventTest:
+    timestamp: datetime.datetime = None
+
+
 # This would typically be in the user calling script
 def setup_executor():
     """Set up a Balsam Executor with sim app"""
-    from libensemble.executors.balsam_executors import BalsamExecutor
+    from libensemble.executors import BalsamExecutor
 
     exctr = BalsamExecutor()  # noqa F841
 
@@ -88,8 +84,10 @@ def test_register_app():
 def test_submit_app_defaults():
     """Test of submitting an App"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")
         task = exctr.submit(app_name="test")
 
@@ -106,8 +104,10 @@ def test_submit_app_defaults():
 def test_submit_app_workdir():
     """Test of submitting an App with a workdir"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim", workdir="output", machinefile="nope")
 
     assert task.workdir == os.path.join(exctr.workflow_name, "output"), "workdir not properly defined for new task"
@@ -117,7 +117,9 @@ def test_submit_app_workdir():
 def test_submit_app_dry():
     """Test of dry-run submitting an App"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
     task = exctr.submit(calc_type="sim", dry_run=True)
     task.poll()
 
@@ -128,9 +130,11 @@ def test_submit_app_dry():
 def test_submit_app_wait():
     """Test of exctr.submit blocking until app is running"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
-        with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog") as log:
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job") as job:
+        with mock.patch("libensemble.executors.balsam_executor.EventLog") as log:
             job.return_value.state = "RUNNING"
             log.objects.filter.return_value = [
                 LogEventTest(timestamp=datetime.datetime(2022, 4, 21, 20, 29, 33, 455144))
@@ -147,8 +151,10 @@ def test_submit_app_wait():
 def test_submit_revoke_alloc():
     """Test creating and revoking BatchJob objects through the executor"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.BatchJob"):
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.BatchJob"):
         alloc = exctr.submit_allocation(site_id="libe-unit-test", num_nodes=1, wall_time_min=30)
 
         assert alloc in exctr.allocations, "batchjob object not appended to executor's list of allocations"
@@ -168,9 +174,11 @@ def test_submit_revoke_alloc():
 def test_task_poll():
     """Test of killing (cancelling) a balsam app"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
-        with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job") as job:
+        with mock.patch("libensemble.executors.balsam_executor.EventLog"):
             task = exctr.submit(calc_type="sim")
 
             job.return_value.state = "PREPROCESSED"
@@ -196,11 +204,11 @@ def test_task_poll():
 def test_task_wait():
     """Test of killing (cancelling) a balsam app"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job") as job:
-        with mock.patch(
-            "libensemble.executors.balsam_executors.balsam_executor.EventLog"
-        ):  # need to patch since wait polls
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job") as job:
+        with mock.patch("libensemble.executors.balsam_executor.EventLog"):  # need to patch since wait polls
             task = exctr.submit(calc_type="sim")
 
             job.return_value.state = "RUNNING"
@@ -228,11 +236,13 @@ def test_task_wait():
 def test_task_kill():
     """Test of killing (cancelling) a balsam app"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
     exctr = Executor.executor
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.Job"):
+    exctr.register_app(TestLibeApp, app_name="test", calc_type="sim")
+    with mock.patch("libensemble.executors.balsam_executor.Job"):
         task = exctr.submit(calc_type="sim")
 
-    with mock.patch("libensemble.executors.balsam_executors.balsam_executor.EventLog"):
+    with mock.patch("libensemble.executors.balsam_executor.EventLog"):
         task.kill()
     assert task.finished and task.state == "USER_KILLED", "task not set as killed after kill method"
 

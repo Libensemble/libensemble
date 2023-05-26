@@ -1,13 +1,13 @@
-import numpy as np
-import subprocess
 import os
+import subprocess
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+import numpy as np
+
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 
 def build_H0(x_f_pairs, gen_specs, noise_h_mat):
-
     U = gen_specs["user"]
     x0 = U["x0"]
 
@@ -56,16 +56,16 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     tag = None
 
     # # Request evaluations of the base point x0 at all p f_inds
-    # H0 = np.zeros(p, dtype=gen_specs['out'])
+    # H0 = np.zeros(p, dtype=gen_specs["out"])
     # for j in range(p):
-    #     H0['x'][j] = x0
-    #     H0['x_ind'][j] = -1  # Marking these to know they are the basepoint
-    #     H0['f_ind'][j] = j
-    #     H0['n_ind'][j] = nf/2
+    #     H0["x"][j] = x0
+    #     H0["x_ind"][j] = -1  # Marking these to know they are the basepoint
+    #     H0["f_ind"][j] = j
+    #     H0["n_ind"][j] = nf/2
     # tag, Work, calc_in = sendrecv_mgr_worker_msg(comm, H0)
     for i in range(n):
         for j in range(p):
-            # Fhist0[i, j, nf//2] = calc_in['f_val'][calc_in['f_ind']==j]
+            # Fhist0[i, j, nf//2] = calc_in["f_val"][calc_in["f_ind"]==j]
             Fhist0[i, j, nf // 2] = U["f0"][j]
 
     x_f_pairs = np.array(np.meshgrid(range(n), range(p))).T.reshape(-1, n)

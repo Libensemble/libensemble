@@ -31,24 +31,26 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
 
     import numpy as np
 
-    def six_hump_camel(H, persis_info, sim_specs, _):
+
+    def six_hump_camel(H, _, sim_specs):
         """Six-Hump Camel sim_f."""
 
-        batch = len(H['x'])                            # Num evaluations each sim_f call.
-        H_o = np.zeros(batch, dtype=sim_specs['out'])  # Define output array H
+        batch = len(H["x"])  # Num evaluations each sim_f call.
+        H_o = np.zeros(batch, dtype=sim_specs["out"])  # Define output array H
 
-        for i, x in enumerate(H['x']):
-            H_o['f'][i] = three_hump_camel_func(x)     # Function evaluations placed into H
+        for i, x in enumerate(H["x"]):
+            H_o["f"][i] = three_hump_camel_func(x)  # Function evaluations placed into H
 
-        return H_o, persis_info
+        return H_o
+
 
     def six_hump_camel_func(x):
-        """ Six-Hump Camel function definition """
+        """Six-Hump Camel function definition"""
         x1 = x[0]
         x2 = x[1]
-        term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2
-        term2 = x1*x2
-        term3 = (-4+4*x2**2) * x2**2
+        term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
+        term2 = x1 * x2
+        term3 = (-4 + 4 * x2**2) * x2**2
 
         return term1 + term2 + term3
 
@@ -91,9 +93,9 @@ exhausted, or when a sufficiently "good" simulation output has been observed.
         :align: center
 
 Throughout, generated and evaluated points are appended to the
-:ref:`History<datastruct-history-array>` array, with the field
-``'local_pt'`` being ``True`` if the point is part of a local optimization run,
-and ``'local_min'`` being ``True`` if the point has been ruled a local minimum.
+:ref:`History<funcguides-history>` array, with the field
+``"local_pt"`` being ``True`` if the point is part of a local optimization run,
+and ``"local_min"`` being ``True`` if the point has been ruled a local minimum.
 
 APOSMM Persistence
 ------------------
@@ -139,14 +141,15 @@ This allocation function starts a single Persistent APOSMM routine and provides
 or points from local optimization runs.
 
 APOSMM supports a wide variety of external optimizers. The following statements
-set optimizer settings to ``'scipy'`` to indicate to APOSMM which optimization
+set optimizer settings to ``"scipy"`` to indicate to APOSMM which optimization
 method to use, and help prevent unnecessary imports or package installations:
 
 .. code-block:: python
     :linenos:
 
     import libensemble.gen_funcs
-    libensemble.gen_funcs.rc.aposmm_optimizers = 'scipy'
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
 
 Set up :doc:`parse_args()<../utilities>`,
 our :doc:`sim_specs<../data_structures/sim_specs>`,
@@ -158,52 +161,59 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    sim_specs = {'sim_f': six_hump_camel, # Simulation function
-                 'in': ['x'],             # Accepts 'x' values
-                 'out': [('f', float)]}   # Returns f(x) values
+    sim_specs = {
+        "sim_f": six_hump_camel,  # Simulation function
+        "in": ["x"],  # Accepts "x" values
+        "out": [("f", float)],  # Returns f(x) values
+    }
 
-    gen_out = [('x', float, 2),           # Produces 'x' values
-               ('x_on_cube', float, 2),   # 'x' values scaled to unit cube
-               ('sim_id', int),           # Produces sim_id's for History array indexing
-               ('local_min', bool),       # Is a point a local minimum?
-               ('local_pt', bool)]        # Is a point from a local opt run?
+    gen_out = [
+        ("x", float, 2),  # Produces "x" values
+        ("x_on_cube", float, 2),  # "x" values scaled to unit cube
+        ("sim_id", int),  # Produces sim_id's for History array indexing
+        ("local_min", bool),  # Is a point a local minimum?
+        ("local_pt", bool),  # Is a point from a local opt run?
+    ]
 
-    gen_specs = {'gen_f': aposmm,         # APOSMM generator function
-                 'in': [],
-                 'out': gen_out,          # Output defined like above dict
-                 'user': {'initial_sample_size': 100,  # Random sample 100 points to start
-                          'localopt_method': 'scipy_Nelder-Mead',
-                          'opt_return_codes': [0],   # Status integers specific to localopt_method
-                          'max_active_runs': 6,      # Occur in parallel
-                          'lb': np.array([-2, -1]),  # Lower bound of search domain
-                          'ub': np.array([2, 1])}    # Upper bound of search domain
-                 }
+    gen_specs = {
+        "gen_f": aposmm,  # APOSMM generator function
+        "persis_in": ["f"] + [n[0] for n in gen_out],
+        "out": gen_out,  # Output defined like above dict
+        "user": {
+            "initial_sample_size": 100,  # Random sample 100 points to start
+            "localopt_method": "scipy_Nelder-Mead",
+            "opt_return_codes": [0],  # Status integers specific to localopt_method
+            "max_active_runs": 6,  # Occur in parallel
+            "lb": np.array([-2, -1]),  # Lower bound of search domain
+            "ub": np.array([2, 1]),  # Upper bound of search domain
+        },
+    }
 
-    alloc_specs = {'alloc_f': persistent_aposmm_alloc}
+    alloc_specs = {"alloc_f": persistent_aposmm_alloc}
 
-``gen_specs['user']`` fields above that are required for APOSMM are:
+``gen_specs["user"]`` fields above that are required for APOSMM are:
 
-    * ``'lb'`` - Search domain lower bound
-    * ``'ub'`` - Search domain upper bound
-    * ``'localopt_method'`` - Chosen local optimization method
-    * ``'initial_sample_size'`` - Number of uniformly sampled points generated
+    * ``"lb"`` - Search domain lower bound
+    * ``"ub"`` - Search domain upper bound
+    * ``"localopt_method"`` - Chosen local optimization method
+    * ``"initial_sample_size"`` - Number of uniformly sampled points generated
       before local optimization runs.
-    * ``'opt_return_codes'`` - A list of integers that local optimization
+    * ``"opt_return_codes"`` - A list of integers that local optimization
       methods return when a minimum is detected. SciPy's Nelder-Mead returns 0,
       but other methods (not used in this tutorial) return 1.
 
 Also note the following:
 
-    * ``gen_specs['in']`` is empty. For other ``gen_f``'s this defines what
+    * ``gen_specs["in"]`` is empty. For other ``gen_f``'s this defines what
       fields to give to the ``gen_f`` when called, but here APOSMM's
       ``alloc_f`` defines those fields.
-    * ``'x_on_cube'`` in ``gen_specs['out']``. APOSMM works internally on
-      ``'x'`` values scaled to the unit cube. To avoid back-and-forth scaling
-      issues, both types of ``'x'``'s are communicated back, even though the
-      simulation will likely use ``'x'`` values. (APOSMM performs handshake to
+    * ``"x_on_cube"`` in ``gen_specs["out"]``. APOSMM works internally on
+      ``"x"`` values scaled to the unit cube. To avoid back-and-forth scaling
+      issues, both types of ``"x"``'s are communicated back, even though the
+      simulation will likely use ``"x"`` values. (APOSMM performs handshake to
       ensure that the ``x_on_cube`` that was given to be evaluated is the same
       the one that is given back.)
-    * ``'sim_id'`` in ``gen_specs['out']``. APOSMM produces points in its
+    * ``"sim_id"`` in ``gen_specs["out"]``. APOSMM produces points in its
       local History array that it will need to update later, and can best
       reference those points (and avoid a search) if APOSMM produces the IDs
       itself, instead of libEnsemble.
@@ -218,7 +228,7 @@ random sampling seeding:
 .. code-block:: python
     :linenos:
 
-    exit_criteria = {'sim_max': 2000}
+    exit_criteria = {"sim_max": 2000}
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
 Finally, add statements to :doc:`initiate libEnsemble<../libe_module>`, and quickly
@@ -227,10 +237,9 @@ check calculated minima:
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info,
-                                alloc_specs, libE_specs)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
     if is_manager:
-        print('Minima:', H[np.where(H['local_min'])]['x'])
+        print("Minima:", H[np.where(H["local_min"])]["x"])
 
 Final Setup, Run, and Output
 ----------------------------
@@ -254,7 +263,7 @@ After a couple seconds, the output should resemble the following::
     User generator script will be creating sim_id.
     Take care to do this sequentially.
     Also, any information given back for existing sim_id values will be overwritten!
-    So everything in gen_specs['out'] should be in gen_specs['in']!
+    So everything in gen_specs["out"] should be in gen_specs["in"]!
     *******************************************************************************
 
     Minima: [[ 0.08993295 -0.71265804]

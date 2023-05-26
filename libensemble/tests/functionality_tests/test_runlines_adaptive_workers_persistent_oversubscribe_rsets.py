@@ -17,19 +17,19 @@ requires running a fixed, rather than random number of resource sets for a given
 
 import numpy as np
 
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_priorities as gen_f
+
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_with_variable_resources as sim_f
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tests.regression_tests.common import create_node_file
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     nsim_workers = nworkers - 1
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         "user": {"give_all_with_same_priority": False},
     }
 
-    # comms = libE_specs['disable_resource_manager'] = True # SH TCP testing
+    # comms = libE_specs["disable_resource_manager"] = True # SH TCP testing
 
     comms = libE_specs["comms"]
     node_file = "nodelist_adaptive_workers_persistent_ovsub_rsets_comms_" + str(comms) + "_wrks_" + str(nworkers)

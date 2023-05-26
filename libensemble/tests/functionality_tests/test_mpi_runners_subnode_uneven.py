@@ -10,17 +10,18 @@ Execute via one of the following commands (e.g. 5 workers):
 """
 
 import sys
+
 import numpy as np
 
+from libensemble import logger
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check_by_worker as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import logger
+from libensemble.tools import add_unique_random_streams, parse_args
 
-# logger.set_level('DEBUG')  # For testing the test
+# logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -29,7 +30,6 @@ logger.set_level("INFO")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     rounds = 1
     sim_app = "/path/to/fakeapp.x"
@@ -100,16 +100,16 @@ if __name__ == "__main__":
     ]
 
     # Example: On 5 workers, runlines should be ...
-    # [w1]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w2]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w3]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base1
-    # [w4]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
-    # [w5]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1
+    # [w1]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w2]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w3]: srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base1
+    # [w4]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base1
+    # [w5]: srun -w node-2 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base1
 
     srun_p1 = "srun -w "
     srun_p2 = " --ntasks "
     srun_p3 = " --nodes 1 --ntasks-per-node "
-    srun_p4 = " /path/to/fakeapp.x --testid base1"
+    srun_p4 = " --exact /path/to/fakeapp.x --testid base1"
 
     exp_tasks = []
     exp_srun = []

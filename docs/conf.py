@@ -20,14 +20,9 @@
 import os
 import sys
 from datetime import datetime
+from unittest.mock import MagicMock
 
 exec(open("../libensemble/version.py").read())
-
-
-if sys.version_info >= (3, 3):
-    from unittest.mock import MagicMock
-else:
-    from mock import MagicMock
 
 
 class Mock(MagicMock):
@@ -43,10 +38,6 @@ MOCK_MODULES = [
     "mpi4py",
     "mpmath",
     "nlopt",
-    "numpy",
-    "numpy.lib",
-    "numpy.lib.recfunctions",
-    "numpy.linalg",
     "PETSc",
     "petsc4py",
     "psutil",
@@ -79,7 +70,6 @@ sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
 sys.path.append(os.path.abspath("../libensemble/tools"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
-sys.path.append(os.path.abspath("../libensemble/executors/balsam_executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
 # print(sys.path)
 
@@ -87,7 +77,7 @@ sys.path.append(os.path.abspath("../libensemble/resources"))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-needs_sphinx = "3.3"
+needs_sphinx = "5.3"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -100,6 +90,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.imgconverter",
     "sphinx.ext.mathjax",
+    "sphinxcontrib.autodoc_pydantic",
+    "sphinx_design",
 ]
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
@@ -111,9 +103,17 @@ bibtex_default_style = "unsrt"
 ##breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["libE.py", "test.cpp"] )}
 # breathe_projects_source = {"libEnsemble" : ( "../code/src/", ["test.cpp","test2.cpp"] )}
 
+autodoc_member_order = "bysource"
+model_show_field_summary = "bysource"
+autodoc_pydantic_model_summary_list_order = "bysource"
+autoclass_content = "class"
+autodoc_typehints = "description"
+
 intersphinx_mapping = {
     "community": ("https://libensemble.readthedocs.io/projects/libe-community-examples/en/latest/", None)
 }
+
+autodoc_pydantic_model_show_json = False
 
 autodoc_mock_imports = ["balsam"]
 extlinks = {
@@ -160,7 +160,7 @@ release = __version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

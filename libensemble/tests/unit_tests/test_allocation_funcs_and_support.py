@@ -1,16 +1,18 @@
 import numpy as np
+
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
-from libensemble.tools.alloc_support import AllocSupport, AllocException
-from libensemble.tools.fields_keys import libE_fields
-from libensemble.tools import add_unique_random_streams
 from libensemble.history import History
-from libensemble.resources.scheduler import ResourceScheduler
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
+from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesError
+from libensemble.tools import add_unique_random_streams
+from libensemble.tools.alloc_support import AllocException, AllocSupport
+from libensemble.tools.fields_keys import libE_fields
+import pytest
 
-al = {"alloc_f": give_sim_work_first, "out": []}
+al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
 H0 = []
 
@@ -44,7 +46,6 @@ def clear_resources():
 
 
 def test_decide_work_and_resources():
-
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_1()
     hist = History(al, sim_specs, gen_specs, exit_criteria, H0)
 
@@ -60,7 +61,6 @@ def test_decide_work_and_resources():
 
 
 def test_als_init_normal():
-
     als = AllocSupport(W, True)
     assert als.manage_resources, "AllocSupport instance should be managing resources for sim_work and gen_work."
 
@@ -82,7 +82,6 @@ def test_als_init_withresources():
 
 
 def test_als_assign_resources():
-
     als = AllocSupport(W, True)
     assert not als.assign_resources(4), "AllocSupport instance shouldn't assign resources if not assigned a Scheduler"
 
@@ -423,9 +422,67 @@ def test_als_points_by_priority():
     ), "points_by_priority() should've simply returned the next point to evaluate."
 
 
+def test_convert_to_rsets():
+    user_params = []
+    libE_info = {}
+    gen_fields = [("num_procs", int), ("num_gpus", int)]
+    H = np.zeros(5, dtype=libE_fields + gen_fields)
+
+    H_rows = 1
+    H[H_rows]["num_gpus"] = 3
+    units_str = "num_gpus"
+
+    gpus_per_rset = 1
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    gpus_per_rset = 2
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 2, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    gpus_per_rset = 0
+    with pytest.raises(InsufficientResourcesError):
+        num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+
+    H[H_rows]["num_gpus"] = 0
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    assert num_rsets == 0, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 0, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    clear_resources()
+
+
+def test_check_H_rows():
+    exp = np.arange(3)
+    H_rows = AllocSupport._check_H_rows(exp)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+    in_rows_list = [0, 1, 2]
+    H_rows = AllocSupport._check_H_rows(in_rows_list)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+    in_rows_list = range(3)
+    H_rows = AllocSupport._check_H_rows(in_rows_list)
+    assert isinstance(H_rows, np.ndarray), "_check_H_rows returned unexpected type"
+    assert np.array_equal(H_rows, exp), f"Output {H_rows} is not as expected"
+
+
+def test_check_H_fields():
+    in_fields = ["x", "num_nodes", "procs_per_node"]
+    H_fields = AllocSupport._check_H_fields(in_fields)
+    assert H_fields == in_fields, f"H_fields {H_fields} did not match expected"
+
+    in_fields = ["x", "num_nodes", "procs_per_node", "x"]
+    H_fields = AllocSupport._check_H_fields(in_fields)
+    assert set(H_fields) == set(in_fields), f"H_fields {H_fields} did not match expected"
+
+
 if __name__ == "__main__":
     test_decide_work_and_resources()
-
     test_als_init_normal()
     test_als_init_withresources()
     test_als_assign_resources()
@@ -437,3 +494,6 @@ if __name__ == "__main__":
     test_als_all_sim_ended()
     test_als_all_gen_informed()
     test_als_points_by_priority()
+    test_convert_to_rsets()
+    test_check_H_rows()
+    test_check_H_fields()

@@ -3,13 +3,14 @@ This module detects and returns system resources
 
 """
 
+import logging
 import os
 import socket
-import logging
+
 from libensemble.resources import node_resources
-from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.worker_resources import WorkerResources, ResourceManager
+from libensemble.resources.mpi_resources import get_MPI_runner
+from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
@@ -17,13 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 class ResourcesException(Exception):
-    "Resources module exception."
+    """Resources module exception"""
 
 
 class Resources:
     """Provides system resources to libEnsemble and executor.
 
-    A resources instance is always initialized unless ``libE_specs['disable_resource_manager']`` is ``True``.
+    A resources instance is always initialized unless ``libE_specs["disable_resource_manager"]`` is ``True``.
 
     **Class Attributes:**
 
@@ -50,30 +51,32 @@ class Resources:
     DEFAULT_NODEFILE = "node_list"
 
     @classmethod
-    def init_resources(cls, libE_specs):
+    def init_resources(cls, libE_specs: dict, platform_info: dict = {}) -> None:
         """Initiate resource management"""
         # If disable_resource_manager is True, then Resources.resources will remain None.
         disable_resource_manager = libE_specs.get("disable_resource_manager", False)
         if not disable_resource_manager:
             top_level_dir = os.getcwd()
-            Resources.resources = Resources(libE_specs=libE_specs, top_level_dir=top_level_dir)
+            Resources.resources = Resources(
+                libE_specs=libE_specs, platform_info=platform_info, top_level_dir=top_level_dir
+            )
 
-    def __init__(self, libE_specs, top_level_dir=None):
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
         """Initiate a new resources object"""
         self.top_level_dir = top_level_dir or os.getcwd()
-        self.glob_resources = GlobalResources(libE_specs=libE_specs, top_level_dir=None)
+        self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
         self.resource_manager = None  # For Manager
         self.worker_resources = None  # For Workers
 
-    def set_worker_resources(self, num_workers, workerid):
+    def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
         self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
 
-    def set_resource_manager(self, num_workers):
+    def set_resource_manager(self, num_workers: int) -> None:
         """Initiate the resource manager component of resources"""
         self.resource_manager = ResourceManager(num_workers, self.glob_resources)
 
-    def add_comm_info(self, libE_nodes):
+    def add_comm_info(self, libE_nodes) -> None:
         """Adds comms-specific information to resources
 
         Removes libEnsemble nodes from nodelist if in dedicated_mode.
@@ -96,8 +99,7 @@ class GlobalResources:
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
-    def __init__(self, libE_specs, top_level_dir=None):
-
+    def __init__(self, libE_specs: dict, platform_info: dict = {}, top_level_dir: str = None) -> None:
         """Initializes a new Resources instance
 
         Determines the compute resources available for current allocation, including
@@ -128,6 +130,10 @@ class GlobalResources:
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 
+        gpus_on_node: int, optional
+            If supplied gives number of GPUs for the nodes. If not supplied,
+            this will be auto-detected.
+
         enforce_worker_core_bounds: boolean, optional
             If True, then libEnsemble's executor will raise an exception if it detects that
             a worker has been instructed to launch tasks with the number of requested processes
@@ -136,7 +142,7 @@ class GlobalResources:
 
         node_file: String, optional
             If supplied, give the name of a file in the run directory to use as a node-list
-            for use by libEnsemble. Defaults to a file named 'node_list'. If the file does
+            for use by libEnsemble. Defaults to a file named "node_list". If the file does
             not exist, then the node-list will be auto-detected.
 
         nodelist_env_slurm: String, optional
@@ -161,9 +167,14 @@ class GlobalResources:
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
-
         resource_info = libE_specs.get("resource_info", {})
-        cores_on_node = resource_info.get("cores_on_node", None)
+
+        # resource_info overrides platform
+        cores_on_node = resource_info.get("cores_on_node")
+        if cores_on_node is None:
+            cores_on_node = (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
+        gpus_on_node = resource_info.get("gpus_on_node") or platform_info.get("gpus_per_node")
+
         node_file = resource_info.get("node_file", None)
         nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)
         nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
@@ -193,19 +204,22 @@ class GlobalResources:
             self.local_host = socket.gethostname()
 
         # Note: Launcher used here just to get cores on node etc - independent of whether using MPIExecutor
-        self.launcher = get_MPI_runner()
+        self.launcher = platform_info.get("runner_name") or get_MPI_runner(platform_info.get("mpi_runner"))
+
         remote_detect = False
         if self.local_host not in self.global_nodelist and self.launcher is not None:
             remote_detect = True
 
-        if not cores_on_node:
-            cores_on_node = node_resources.get_sub_node_resources(
-                launcher=self.launcher,
-                remote_mode=remote_detect,
-                env_resources=self.env_resources,
+        if cores_on_node is None or gpus_on_node is None or None in cores_on_node:
+            detected_config = node_resources.get_sub_node_resources(
+                launcher=self.launcher, remote_mode=remote_detect, env_resources=self.env_resources
             )
+            cores_on_node, gpus_on_node = self._add_detected_info(cores_on_node, gpus_on_node, detected_config)
+
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
+        self.gpus_avail_per_node = gpus_on_node
+        self.platform_info = platform_info
         self.libE_nodes = None
 
     def add_comm_info(self, libE_nodes):
@@ -225,9 +239,32 @@ class GlobalResources:
                     logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
                     pass
 
+    def update_scheduler_opts(self, scheduler_opts):
+        """Add scheduler options from platform_info, if not present"""
+        if self.platform_info and scheduler_opts is not None:
+            if "match_slots" not in scheduler_opts:
+                if "scheduler_match_slots" in self.platform_info:
+                    scheduler_opts["match_slots"] = self.platform_info["scheduler_match_slots"]
+        return scheduler_opts
+
+    def _add_detected_info(self, cores_on_node, gpus_on_node, detected_config):
+        """Update missing values in cores/gpus_on_node"""
+        if not cores_on_node:
+            cores_on_node = detected_config[0:2]
+        elif None in cores_on_node:
+            cores_on_node = list(cores_on_node)
+            if not cores_on_node[0]:
+                cores_on_node[0] = detected_config[0]
+            if not cores_on_node[1]:
+                cores_on_node[1] = detected_config[1]
+            cores_on_node = tuple(cores_on_node)
+        if not gpus_on_node:
+            gpus_on_node = detected_config[2]
+        return cores_on_node, gpus_on_node
+
     @staticmethod
     def is_nodelist_shortnames(nodelist):
-        """Returns True if any entry contains a '.', else False"""
+        """Returns False if any entry contains a '.', else True"""
         for item in nodelist:
             if "." in item:
                 return False

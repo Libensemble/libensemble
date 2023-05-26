@@ -3,11 +3,12 @@ The libEnsemble utilities module assists in writing consistent calling scripts
 and user functions.
 """
 
-import os
-import sys
 import logging
-import numpy as np
+import os
 import pickle
+import sys
+
+import numpy as np
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger.propagate = False
 logger.setLevel(logging.INFO)
 
 # Set up format (Alt. Import LogConfig and base on that)
-utils_logformat = "%(name)s: %(message)s"
+utils_logformat = "%(message)s"
 formatter = logging.Formatter(utils_logformat)
 
 # Log to file
@@ -74,7 +75,7 @@ _PERSIS_RETURN_WARNING = (
 # =================== save libE output to pickle and np ========================
 
 
-def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed"):
+def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd(), mess="Run completed"):
     """
     Writes out history array and persis_info to files.
 
@@ -90,7 +91,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
     H: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_
 
         History array storing rows for each point.
-        :doc:`(example)<data_structures/history_array>`
+        :ref:`(example)<funcguides-history>`
 
     persis_info: :obj:`dict`
 
@@ -111,13 +112,12 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
         A message to print/log when saving the file.
 
     """
-
     script_name = os.path.splitext(os.path.basename(calling_file))[0]
     short_name = script_name.split("test_", 1).pop()
     prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
 
-    h_filename = short_name + "_history_" + prob_str
-    p_filename = short_name + "_persis_info_" + prob_str
+    h_filename = os.path.join(dest_path, short_name + "_history_" + prob_str)
+    p_filename = os.path.join(dest_path, short_name + "_persis_info_" + prob_str)
 
     status_mess = " ".join(["------------------", mess, "-------------------"])
     logger.info(f"{status_mess}\nSaving results to file: {h_filename}")
@@ -125,6 +125,8 @@ def save_libE_output(H, persis_info, calling_file, nworkers, mess="Run completed
 
     with open(p_filename + ".pickle", "wb") as f:
         pickle.dump(persis_info, f)
+
+    return h_filename + ".npy"
 
 
 # ===================== per-process numpy random-streams =======================
@@ -148,7 +150,7 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     persis_info: :obj:`dict`
 
         Persistent information dictionary
-        :doc:`(example)<data_structures/persis_info>`
+        :ref:`(example)<datastruct-persis-info>`
 
     nstreams: :obj:`int`
 
@@ -163,7 +165,6 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
     """
 
     for i in range(nstreams):
-
         if isinstance(seed, int) or seed is None:
             random_seed = seed
         else:

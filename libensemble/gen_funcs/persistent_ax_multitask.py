@@ -10,25 +10,26 @@ This `gen_f` is meant to be used with the `alloc_f` function
 """
 import os
 from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
-from libensemble.tools.persistent_support import PersistentSupport
-
 from ax import Metric, Runner
+from ax.core.data import Data
+from ax.core.generator_run import GeneratorRun
+from ax.core.multi_type_experiment import MultiTypeExperiment
+from ax.core.objective import Objective
+from ax.core.observation import ObservationFeatures
+from ax.core.optimization_config import OptimizationConfig
+from ax.core.parameter import ParameterType, RangeParameter
+from ax.core.search_space import SearchSpace
+from ax.modelbridge.factory import get_MTGP, get_sobol
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
 from ax.storage.metric_registry import register_metric
 from ax.storage.runner_registry import register_runner
-from ax.core.data import Data
-from ax.core.generator_run import GeneratorRun
-from ax.core.multi_type_experiment import MultiTypeExperiment
-from ax.core.parameter import RangeParameter, ParameterType
-from ax.core.search_space import SearchSpace
-from ax.core.optimization_config import OptimizationConfig
-from ax.core.objective import Objective
-from ax.modelbridge.factory import get_sobol, get_MTGP
-from ax.core.observation import ObservationFeatures
+
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
@@ -90,14 +91,13 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     exp.add_tracking_metric(metric=lofi_objective, trial_type=lofi_task, canonical_name="hifi_metric")
 
     # TODO: Implement reading past history (by reading saved experiment or
-    # libEnsemble hystory file).
+    # libEnsemble history file).
 
     # Receive information from the manager (or a STOP_TAG)
     tag = None
     model_iteration = 0
     hifi_trials = []
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if model_iteration == 0:
             # Initialize with sobol sample.
             for model, n_gen in zip([hifi_task, lofi_task], [n_init_hifi, n_init_lofi]):

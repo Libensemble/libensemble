@@ -1,6 +1,10 @@
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, UNSET_TAG, EVAL_GEN_TAG, EVAL_SIM_TAG, calc_type_strings
 import logging
+from typing import Any, Dict, List
+
 import numpy as np
+import numpy.typing as npt
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG, PERSIS_STOP, STOP_TAG, UNSET_TAG, calc_type_strings
 
 logger = logging.getLogger(__name__)
 
@@ -8,7 +12,7 @@ logger = logging.getLogger(__name__)
 class PersistentSupport:
     """A helper class to assist with writing persistent user functions."""
 
-    def __init__(self, libE_info, calc_type):
+    def __init__(self, libE_info: Dict[str, Dict[Any, Any]], calc_type: int) -> None:
         """
         Instantiate a new PersistentSupport instance
 
@@ -25,7 +29,7 @@ class PersistentSupport:
         ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output, calc_status=UNSET_TAG, keep_state=False):
+    def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False) -> None:
         """
         Send message from worker to manager.
 
@@ -35,8 +39,6 @@ class PersistentSupport:
             record of the workers state (usually the manager changes the
             worker's state to inactive, indicating the worker is ready to receive
             more work, unless using active receive mode).
-
-        :returns: None
 
         """
         if "comm" in self.libE_info:
@@ -57,7 +59,7 @@ class PersistentSupport:
         logger.debug(f"Persistent {self.calc_str} function sending data message to manager")
         self.comm.send(self.calc_type, D)
 
-    def recv(self, blocking=True):
+    def recv(self, blocking: bool = True) -> (int, dict, npt.NDArray):
         """
         Receive message to worker from manager.
 
@@ -98,7 +100,7 @@ class PersistentSupport:
         logger.debug(f"Persistent {self.calc_str} received work rows from manager")
         return tag, Work, calc_in
 
-    def send_recv(self, output, calc_status=UNSET_TAG):
+    def send_recv(self, output: npt.NDArray, calc_status: int = UNSET_TAG) -> (int, dict, npt.NDArray):
         """
         Send message from worker to manager and receive response.
 
@@ -111,7 +113,7 @@ class PersistentSupport:
         self.send(output, calc_status)
         return self.recv()
 
-    def request_cancel_sim_ids(self, sim_ids):
+    def request_cancel_sim_ids(self, sim_ids: List[int]):
         """Request cancellation of sim_ids
 
         :param sim_ids: A list of sim_ids to cancel
@@ -121,5 +123,4 @@ class PersistentSupport:
         H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
         H_o["sim_id"] = sim_ids
         H_o["cancel_requested"] = True
-        print(H_o)
         self.send(H_o, keep_state=True)

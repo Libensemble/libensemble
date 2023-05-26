@@ -2,10 +2,11 @@
 This module stores environment variables for use in resource detection
 """
 
+import logging
 import os
 import re
-import logging
 from collections import OrderedDict
+from typing import Any, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +38,12 @@ class EnvResources:
 
     def __init__(
         self,
-        nodelist_env_slurm=None,
-        nodelist_env_cobalt=None,
-        nodelist_env_pbs=None,
-        nodelist_env_lsf=None,
-        nodelist_env_lsf_shortform=None,
-    ):
-
+        nodelist_env_slurm: Optional[str] = None,
+        nodelist_env_cobalt: Optional[str] = None,
+        nodelist_env_pbs: Optional[str] = None,
+        nodelist_env_lsf: Optional[str] = None,
+        nodelist_env_lsf_shortform: Optional[str] = None,
+    ) -> None:
         """Initializes a new EnvResources instance
 
         Determines the environment variables to query for resource
@@ -93,7 +93,7 @@ class EnvResources:
                 self.scheduler = env
                 break
 
-    def get_nodelist(self):
+    def get_nodelist(self) -> List[Union[str, Any]]:
         """Returns nodelist from environment or an empty list"""
         if self.scheduler:
             env = self.scheduler
@@ -105,19 +105,19 @@ class EnvResources:
         return []
 
     @staticmethod
-    def abbrev_nodenames(node_list, prefix=None):
+    def abbrev_nodenames(node_list: List[str], prefix: str = None) -> List[str]:
         """Returns nodelist with only string up to first dot"""
         newlist = [s.split(".", 1)[0] for s in node_list]
         return newlist
 
     @staticmethod
-    def cobalt_abbrev_nodenames(node_list, prefix="nid"):
+    def cobalt_abbrev_nodenames(node_list: List[str], prefix: str = "nid") -> List[str]:
         """Returns nodelist with prefix and leading zeros stripped"""
         newlist = [s.lstrip(prefix) for s in node_list]
         newlist = [s.lstrip("0") for s in newlist]
         return newlist
 
-    def shortnames(self, node_list):
+    def shortnames(self, node_list: List[str]) -> List[str]:
         """Returns nodelist with entries in abbreviated form"""
         if self.scheduler == "Cobalt":
             return EnvResources.cobalt_abbrev_nodenames(node_list)
@@ -126,7 +126,7 @@ class EnvResources:
         return node_list
 
     @staticmethod
-    def _range_split(s):
+    def _range_split(s: str) -> Tuple[int, int, int]:
         """Splits ID range string"""
         ab = s.split("-", 1)
         nnum_len = len(ab[0])
@@ -138,7 +138,7 @@ class EnvResources:
         return a, b, nnum_len
 
     @staticmethod
-    def _noderange_append(prefix, nidstr, suffix):
+    def _noderange_append(prefix: str, nidstr: str, suffix: str) -> List[str]:
         """Formats and appends nodes to overall nodelist"""
         nidlst = []
         for nidgroup in nidstr.split(","):
@@ -148,7 +148,7 @@ class EnvResources:
         return nidlst
 
     @staticmethod
-    def get_slurm_nodelist(node_list_env):
+    def get_slurm_nodelist(node_list_env: str) -> List[Union[str, Any]]:
         """Gets global libEnsemble nodelist from the Slurm environment"""
         fullstr = os.environ[node_list_env]
         if not fullstr:
@@ -172,7 +172,7 @@ class EnvResources:
         return sorted(nidlst)
 
     @staticmethod
-    def get_cobalt_nodelist(node_list_env):
+    def get_cobalt_nodelist(node_list_env: str) -> List[Union[str, Any]]:
         """Gets global libEnsemble nodelist from the Cobalt environment"""
         nidlst = []
         nidstr = os.environ[node_list_env]
@@ -185,7 +185,7 @@ class EnvResources:
         return sorted(nidlst, key=int)
 
     @staticmethod
-    def get_pbs_nodelist(node_list_env):
+    def get_pbs_nodelist(node_list_env: str) -> List[Union[str, Any]]:
         """Gets global libEnsemble nodelist path from PBS environment"""
         nidstr_path = os.environ[node_list_env]
         if not nidstr_path:
@@ -197,10 +197,11 @@ class EnvResources:
             return []
         node_list = [nid.strip("\n") for nid in lines]
         unique_nodelist = list(OrderedDict.fromkeys(node_list))
-        return unique_nodelist
+        unique_nodelist_shortnames = EnvResources.abbrev_nodenames(unique_nodelist)
+        return unique_nodelist_shortnames
 
     @staticmethod
-    def get_lsf_nodelist(node_list_env):
+    def get_lsf_nodelist(node_list_env: str) -> List[Union[str, Any]]:
         """Gets global libEnsemble nodelist from the LSF environment"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
@@ -210,7 +211,7 @@ class EnvResources:
         return nodes
 
     @staticmethod
-    def get_lsf_nodelist_frm_shortform(node_list_env):
+    def get_lsf_nodelist_frm_shortform(node_list_env: str) -> List[Union[str, Any]]:
         """Gets global libEnsemble nodelist from the LSF environment from short-form version"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()

@@ -14,5 +14,4 @@ portable interface for running and managing user applications.
    overview
    executor
    mpi_executor
-   legacy_balsam_executor
    balsam_2_executor

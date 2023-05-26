@@ -1,8 +1,14 @@
-import numpy as np
 import logging
-from libensemble.message_numbers import EVAL_SIM_TAG, EVAL_GEN_TAG
+
+import numpy as np
+
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientFreeResources  # noqa: F401
+from libensemble.resources.scheduler import (
+    InsufficientFreeResources,
+    InsufficientResourcesError,
+    ResourceScheduler,
+)  # noqa: F401
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -38,9 +44,9 @@ class AllocSupport:
         By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
         module and the built-in libEnsemble scheduler.
 
-        :param W: A :doc:`Worker array<../data_structures/worker_array>`
+        :param W: A :ref:`Worker array<funcguides-workerarray>`
         :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
-        :param persis_info: Optional, A :doc:`dictionary of persistent information.<../data_structures/libE_specs>`
+        :param persis_info: Optional, A :ref:`dictionary of persistent information.<datastruct-persis-info>`
         :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
         :param user_resources: Optional, A user supplied ``resources`` object.
         :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
@@ -55,7 +61,7 @@ class AllocSupport:
             scheduler_opts = libE_info.get("scheduler_opts", {})
             self.sched = user_scheduler or ResourceScheduler(wrk_resources, scheduler_opts)
 
-    def assign_resources(self, rsets_req):
+    def assign_resources(self, rsets_req, use_gpus=None, user_params=[]):
         """Schedule resource sets to a work record if possible.
 
         For default scheduler, if more than one group (node) is required,
@@ -66,11 +72,21 @@ class AllocSupport:
         resources do not exist.
 
         :param rsets_req: Int. Number of resource sets to request.
+        :param use_gpus: Bool. Whether to use GPU resource sets.
+        :param user_params: list of Integers. User parameters num_procs, num_gpus
         :returns: List of Integers. Resource set indices assigned.
         """
         rset_team = None
         if self.resources is not None:
-            rset_team = self.sched.assign_resources(rsets_req)
+            # Try schedule to non-gpu rsets first
+            if use_gpus is None:
+                try:
+                    rset_team = self.sched.assign_resources(rsets_req, use_gpus=False, user_params=user_params)
+                    return rset_team
+                except (InsufficientFreeResources, InsufficientResourcesError):
+                    pass
+
+            rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
 
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
@@ -135,16 +151,39 @@ class AllocSupport:
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         if self.manage_resources and not libE_info.get("rset_team"):
             if self.W[wid - 1]["persis_state"]:
-                return []  # Even if empty list, non-None rset_team stops manager giving default resources
+                # Even if empty list, non-None rset_team stops manager giving default resources
+                libE_info["rset_team"] = []
+                return
             else:
+                use_gpus = None
+                user_params = []
                 if H is not None and H_rows is not None:
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
+                    elif "num_procs" in H.dtype.names:
+                        procs_per_rset = self.resources.resource_manager.cores_per_rset
+                        num_rsets_req = AllocSupport._convert_to_rsets(
+                            libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
+                        )
                     else:
                         num_rsets_req = 1
+                    if "use_gpus" in H.dtype.names:
+                        if np.any(H[H_rows]["use_gpus"]):
+                            use_gpus = True
+                        else:
+                            use_gpus = False
+                    if "num_gpus" in H.dtype.names:
+                        gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                            libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
+                        )
+                        if num_rsets_req_for_gpus > 0:
+                            use_gpus = True
+                        num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
                 else:
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
-                return self.assign_resources(num_rsets_req)
+                    use_gpus = self.persis_info.get("gen_use_gpus", None)
+                libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
         """Add sim work record to given ``Work`` dictionary.
@@ -153,8 +192,8 @@ class AllocSupport:
          persistent state.
 
         :param wid: Int. Worker ID.
-        :param H: :doc:`History array<../data_structures/history_array>`. For parsing out requested resource sets.
-        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H: :ref:`History array<funcguides-history>`. For parsing out requested resource sets.
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
@@ -167,7 +206,8 @@ class AllocSupport:
 
         """
         # Parse out resource_sets
-        libE_info["rset_team"] = self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
+        self._update_rset_team(libE_info, wid, H=H, H_rows=H_rows)
+
         H_fields = AllocSupport._check_H_fields(H_fields)
         libE_info["H_rows"] = AllocSupport._check_H_rows(H_rows)
 
@@ -187,9 +227,9 @@ class AllocSupport:
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :doc:`Work dictionary<../data_structures/work_dict>`
+        :param Work: :ref:`Work dictionary<funcguides-workdict>`
         :param wid: Worker ID.
-        :param H_fields: Which fields from :ref:`H<datastruct-history-array>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
         :param H_rows: Which rows of ``H`` to send.
         :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
 
@@ -201,8 +241,7 @@ class AllocSupport:
         any resource checking has already been done. For example, passing ``rset_team=[]``, would
         ensure that no resources are assigned.
         """
-
-        libE_info["rset_team"] = self._update_rset_team(libE_info, wid)
+        self._update_rset_team(libE_info, wid)
 
         if not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
@@ -323,3 +362,20 @@ class AllocSupport:
             H_fields = list(set(H_fields))
             # H_fields = list(OrderedDict.fromkeys(H_fields))  # Maintain order
         return H_fields
+
+    @staticmethod
+    def _convert_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets"""
+        max_num_units = int(np.max(H[H_rows][units_str]))
+        user_params.append(max_num_units)
+        if max_num_units > 0:
+            try:
+                num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
+            except ZeroDivisionError:
+                raise InsufficientResourcesError(
+                    f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
+                )
+        else:
+            num_rsets_req = 0
+        libE_info[units_str] = max_num_units
+        return num_rsets_req

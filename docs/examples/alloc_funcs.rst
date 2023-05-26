@@ -1,3 +1,5 @@
+.. _examples-alloc:
+
 Allocation Functions
 ====================
 
@@ -6,7 +8,8 @@ Below are example allocation functions available in libEnsemble.
 .. IMPORTANT::
   See the API for allocation functions :ref:`here<api_alloc_f>`.
 
-.. note:: The default alloc_func is give_sim_work_first.
+.. note::
+   The default allocation function is ``give_sim_work_first``.
 
 .. role:: underline
     :class: underline
@@ -19,11 +22,7 @@ give_sim_work_first
   :members:
   :undoc-members:
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`give_sim_work_first.py`
+.. dropdown:: :underline:`give_sim_work_first.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/give_sim_work_first.py
       :language: python
@@ -35,21 +34,11 @@ fast_alloc
   :members:
   :undoc-members:
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`fast_alloc.py`
+.. dropdown:: :underline:`fast_alloc.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
       :language: python
       :linenos:
-
-fast_alloc_to_aposmm
---------------------
-.. automodule:: fast_alloc_to_aposmm
-  :members:
-  :undoc-members:
 
 .. _start_only_persistent_label:
 
@@ -59,11 +48,7 @@ start_only_persistent
   :members:
   :undoc-members:
 
-.. container:: toggle
-
-   .. container:: header
-
-      :underline:`start_only_persistent.py`
+.. dropdown:: :underline:`start_only_persistent.py`
 
    .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
       :language: python
@@ -71,6 +56,6 @@ start_only_persistent
 
 start_persistent_local_opt_gens
 -------------------------------
-.. automodule:: start_persistent_local_opt_gens
+.. automodule:: libensemble.alloc_funcs.start_persistent_local_opt_gens
   :members:
   :undoc-members:

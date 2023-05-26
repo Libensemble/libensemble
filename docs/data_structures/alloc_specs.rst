@@ -1,45 +1,45 @@
 .. _datastruct-alloc-specs:
 
-alloc_specs
-===========
+Allocation Specs
+================
 
-Allocation function specifications to be set in the user calling script and passed
-to main ``libE()`` routine::
+Allocation function specifications to be set in the user calling script. *Optional*.
 
-    alloc_specs: [dict, optional]:
+Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
+all data is validated immediately on instantiation.
 
-        'alloc_f' [func]:
-            Default: give_sim_work_first
-        'in' [list of strings]:
-            Default: None
-        'out' [list of tuples]:
-            Default: [('allocated',bool)]
-        'user' [dict]:
-            Default: {'batch_mode': True}
+.. autopydantic_model:: libensemble.specs.AllocSpecs
+  :model-show-json: False
+  :model-show-config-member: False
+  :model-show-config-summary: False
+  :model-show-validator-members: False
+  :model-show-validator-summary: False
+  :field-list-validators: False
 
 .. note::
-  * The tuples defined in the 'out' list are entered into the master :ref:`history array<datastruct-history-array>`.
   * libEnsemble uses the following defaults if the user doesn't provide their own ``alloc_specs``:
 
-  ..  literalinclude:: ../../libensemble/alloc_funcs/defaults.py
-      :end-before: end_alloc_specs_rst_tag
-      :caption: /libensemble/alloc_funcs/defaults.py
+  ..  literalinclude:: ../../libensemble/specs.py
+      :start-at: alloc_f: Callable = give_sim_work_first
+      :end-before: end_alloc_tag
+      :caption: Default settings for alloc_specs
 
   * Users can import and adjust these defaults using:
 
   ..  code-block:: python
 
-      from libensemble.alloc_funcs import defaults
-      alloc_specs = defaults.alloc_specs
+      from libensemble.specs import AllocSpecs
+      my_new_alloc = AllocSpecs()
+      my_new_alloc.alloc_f = another_function
 
 .. seealso::
   - `test_uniform_sampling_one_residual_at_a_time.py`_ specifies fields
     to be used by the allocation function ``give_sim_work_first`` from
     fast_alloc_and_pausing.py_.
 
-  ..  literalinclude:: ../../libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py
+  ..  literalinclude:: ../../libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py
       :start-at: alloc_specs
       :end-before: end_alloc_specs_rst_tag
 
-.. _test_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py
+.. _test_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py
 .. _fast_alloc_and_pausing.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/fast_alloc_and_pausing.py

@@ -8,9 +8,8 @@ installs a SIGTERM handler.  Temporarily uninstalled from the test suite,
 since pytest slurps up everything (including all the modules) in one go.
 """
 
-import time
-import pytest
 import signal
+import time
 import libensemble.comms.comms as comms
 
 
@@ -56,7 +55,6 @@ def ignore_handler(signum, frame):
     print("Ignoring SIGTERM")
 
 
-@pytest.mark.extra
 def test_qcomm_proc_terminate3():
     "Test that a QCommProcess ignoring SIGTERM manages."
 

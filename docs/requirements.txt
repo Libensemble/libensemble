@@ -1,3 +1,6 @@
-sphinx==2.4.1
+sphinx
 sphinxcontrib-bibtex
-ipykernel
+autodoc_pydantic
+sphinx-design
+numpy
+sphinx_rtd_theme

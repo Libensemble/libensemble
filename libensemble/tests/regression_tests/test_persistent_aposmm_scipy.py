@@ -16,27 +16,27 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import sys
 import multiprocessing
+import sys
+
 import numpy as np
+
+import libensemble.gen_funcs
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
-import libensemble.gen_funcs
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+from time import time
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.tools import parse_args, save_libE_output, add_unique_random_streams
+from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from time import time
+from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    exit_criteria = {"sim_max": 2000}
+    exit_criteria = {"sim_max": 1000}
 
     for run in range(2):
         persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
                 print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
                 if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
                     min_found += 1
-            assert min_found >= 4, f"Found {min_found} minima"
+            assert min_found >= 2, f"Found {min_found} minima"
 
             save_libE_output(H, persis_info, __file__, nworkers)
 

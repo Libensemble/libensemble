@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import os
 import sys
+
 import numpy as np
 
-from libensemble import Ensemble
+from libensemble.ensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
 
 ####################
@@ -28,14 +29,14 @@ exctr = MPIExecutor()
 exctr.register_app(full_path=sim_app, app_name="forces")
 
 forces.libE_specs["ensemble_dir_path"] = "./ensemble"
-forces.gen_specs["user"].update(
+forces.gen_specs.user.update(
     {
         "lb": np.array([0]),
         "ub": np.array([32767]),
     }
 )
 
-forces.persis_info.add_random_streams()
+forces.add_random_streams()
 
 forces.run()
 

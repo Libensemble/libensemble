@@ -1,24 +1,23 @@
 """
 This module is a persistent generation function that performs a uniform
-random sample when ``libE_info['persistent']`` isn't ``True``, or performs a
+random sample when ``libE_info["persistent"]`` isn't ``True``, or performs a
 single persistent persistent nlopt local optimization run.
 """
 
 __all__ = ["uniform_or_localopt"]
 
+import nlopt
 import numpy as np
 
-from libensemble.message_numbers import STOP_TAG, PERSIS_STOP, FINISHED_PERSISTENT_GEN_TAG, EVAL_GEN_TAG
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-
-import nlopt
 
 
 def uniform_or_localopt(H, persis_info, gen_specs, libE_info):
     """
-    This generation function returns ``gen_specs['user']['gen_batch_size']`` uniformly
+    This generation function returns ``gen_specs["user"]["gen_batch_size"]`` uniformly
     sampled points when called in nonpersistent mode (i.e., when
-    ``libE_info['persistent']`` isn't ``True``).  Otherwise, the generation
+    ``libE_info["persistent"]`` isn't ``True``).  Otherwise, the generation
     function starts a persistent nlopt local optimization run.
 
     .. seealso::
@@ -52,7 +51,6 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
     def nlopt_obj_fun(x, grad):
-
         # Check if we can do an early return
         if np.array_equiv(x, H["x"]):
             if gen_specs["user"]["localopt_method"] in ["LD_MMA"]:
@@ -101,7 +99,7 @@ def try_and_run_nlopt(H, gen_specs, libE_info):
 
     # Run local optimization.  Only send persis_info_updates back so new
     # information added to persis_info since this persistent instance started
-    # (e.g., 'run_order'), is not overwritten
+    # (e.g., "run_order"), is not overwritten
     try:
         x_opt = opt.optimize(x0)
         exit_code = opt.last_optimize_result()

@@ -10,22 +10,22 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 2 4
 # TESTSUITE_EXTRA: true
 
-import numpy as np
 import os
 import time
 
+import numpy as np
+
+from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
-from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["profile"] = True

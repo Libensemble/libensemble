@@ -1,6 +1,8 @@
-import numpy as np
-import time
 import logging
+import time
+
+import numpy as np
+import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
@@ -39,9 +41,9 @@ class History:
 
     """
 
-    # Not currently using libE_specs, persis_info - need to add parameters
-    # def __init__(self, libE_specs, alloc_specs, sim_specs, gen_specs, exit_criteria, H0, persis_info):
-    def __init__(self, alloc_specs, sim_specs, gen_specs, exit_criteria, H0):
+    def __init__(
+        self, alloc_specs: dict, sim_specs: dict, gen_specs: dict, exit_criteria: dict, H0: npt.NDArray
+    ) -> None:
         """
         Forms the numpy structured array that records everything from the
         libEnsemble run
@@ -49,19 +51,39 @@ class History:
         """
         L = exit_criteria.get("sim_max", 100)
 
-        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, or alloc_specs
-        specs = [sim_specs, alloc_specs, gen_specs]
-        dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
-        H = np.zeros(L + len(H0), dtype=dtype_list)  # This may be more history than is needed if H0 has un-given points
+        # Combine all 'out' fields (if they exist) in sim_specs, gen_specs, alloc_specs
+        specs = [sim_specs, gen_specs, alloc_specs]
+        specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
 
         if len(H0):
+            # a whole lot of work to parse numpy dtypes to python types and 2- or 3-tuples
+            # - dtypes aren't iterable, but you can index into them
+            # - must split out actual numpy type if subdtype refers to sub-array
+            # - then convert that type into a python type in the best way known so far...
+            # - we need to make sure the size of string types is preserved
+            # - if sub-array shape, save as 3-tuple
+            H0_fields = []
+            for i in range(len(H0.dtype.names)):
+                dtype = H0.dtype[i]
+                subd = dtype.subdtype[0] if dtype.subdtype else dtype
+                pytype = type(subd.type(0).item())  # kinda redundant innit?
+                size = int(dtype.str.split("<U")[-1]) if "<U" in dtype.str else dtype.shape
+                if size:
+                    H0_fields.append((H0.dtype.names[i], pytype, size))
+                else:
+                    H0_fields.append((H0.dtype.names[i], pytype))
+
+            # remove duplicate fields from specs dtype list if those already in H0 (H0 takes precedence)
+            pruned_specs_dtype_list = [i for i in specs_dtype_list if i[0] not in H0.dtype.names]
+            H_fields = list(set(pruned_specs_dtype_list + H0_fields))
+
+            H = np.zeros(L + len(H0), dtype=H_fields)
+
             # Prepend H with H0
             fields = H0.dtype.names
 
             for field in fields:
                 H[field][: len(H0)] = H0[field]
-                # for ind, val in np.ndenumerate(H0[field]):  # Works if H0[field] has arbitrary dimension but is slow
-                #     H[field][ind] = val
 
             if "sim_started" not in fields:
                 logger.manager_warning("Marking entries in H0 as having been 'sim_started' and 'sim_ended'")
@@ -74,10 +96,15 @@ class History:
             if "sim_id" not in fields:
                 logger.manager_warning("Assigning sim_ids to entries in H0")
                 H["sim_id"][: len(H0)] = np.arange(0, len(H0))
+        else:
+            H = np.zeros(L + len(H0), dtype=specs_dtype_list)
 
         H["sim_id"][-L:] = -1
         H["sim_started_time"][-L:] = np.inf
         H["gen_informed_time"][-L:] = np.inf
+
+        if "resource_sets" in H.dtype.names:
+            H["resource_sets"][-L:] = 1
 
         self.H = H
         self.using_H0 = len(H0) > 0
@@ -93,16 +120,17 @@ class History:
         self.sim_ended_offset = self.sim_ended_count
         self.gen_informed_offset = self.gen_informed_count
 
-    def update_history_f(self, D, safe_mode):
+    def update_history_f(self, D: dict, safe_mode: bool) -> None:
         """
         Updates the history after points have been evaluated
         """
 
         new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
         returned_H = D["calc_out"]
+        fields = returned_H.dtype.names if returned_H is not None else []
 
         for j, ind in enumerate(new_inds):
-            for field in returned_H.dtype.names:
+            for field in fields:
                 if safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]):
@@ -123,7 +151,7 @@ class History:
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
 
-    def update_history_x_out(self, q_inds, sim_worker):
+    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int) -> None:
         """
         Updates the history (in place) when new points have been given out to be evaluated
 
@@ -144,7 +172,7 @@ class History:
 
         self.sim_started_count += len(q_inds)
 
-    def update_history_to_gen(self, q_inds):
+    def update_history_to_gen(self, q_inds: npt.NDArray):
         """Updates the history (in place) when points are given back to the gen"""
         q_inds = np.atleast_1d(q_inds)
         t = time.time()
@@ -166,7 +194,7 @@ class History:
             self.H["gen_informed_time"][q_inds] = t
             self.gen_informed_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker, D, safe_mode, gen_started_time):
+    def update_history_x_in(self, gen_worker: int, D: npt.NDArray, safe_mode: bool, gen_started_time: int) -> None:
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -221,7 +249,7 @@ class History:
         self.H["gen_worker"][first_gen_inds] = gen_worker
         self.index += num_new
 
-    def grow_H(self, k):
+    def grow_H(self, k: int) -> None:
         """
         Adds k rows to H in response to gen_f producing more points than
         available rows in H.
@@ -235,9 +263,11 @@ class History:
         H_1["sim_id"] = -1
         H_1["sim_started_time"] = np.inf
         H_1["gen_informed_time"] = np.inf
+        if "resource_sets" in H_1.dtype.names:
+            H_1["resource_sets"] = 1
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...
-    def trim_H(self):
+    def trim_H(self) -> npt.NDArray:
         """Returns truncated array"""
         return self.H[: self.index]

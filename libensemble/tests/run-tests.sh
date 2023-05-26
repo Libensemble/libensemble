@@ -113,6 +113,7 @@ cleanup() {
   cd $ROOT_DIR/$TESTING_DIR
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
     filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(workflow_*);              [ -e ${filelist[0]} ] && rm -r workflow_*
   for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
   cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy); [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
@@ -144,6 +145,7 @@ cleanup() {
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(ensemble_*);              [ -e ${filelist[0]} ] && rm -r ensemble_*
+    filelist=(workflow_*);              [ -e ${filelist[0]} ] && rm -r workflow_*
     filelist=(sim_*);                   [ -e ${filelist[0]} ] && rm -r sim_*
     filelist=(gen_*);                   [ -e ${filelist[0]} ] && rm -r gen_*
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
@@ -684,7 +686,7 @@ if [ "$root_found" = true ]; then
         if [ "$RTEST_SHOW_OUT_ERR" != "true" ]; then
           echo -e "\n..see error log at $REG_TEST_SUBDIR/log.err"
         fi
-        summ_line="$reg_fail failed, $reg_pass passed in $reg_time seconds"
+        summ_line="$reg_fail failed (possibly due to warning=error), $reg_pass passed in $reg_time seconds"
         tput bold; tput setaf 1;
         print_summary_line $summ_line
         tput sgr 0

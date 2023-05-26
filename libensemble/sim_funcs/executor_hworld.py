@@ -1,14 +1,14 @@
+import numpy as np
+
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (
-    UNSET_TAG,
-    WORKER_KILL_ON_ERR,
     MAN_SIGNAL_FINISH,
-    WORKER_DONE,
     TASK_FAILED,
+    UNSET_TAG,
+    WORKER_DONE,
+    WORKER_KILL_ON_ERR,
     WORKER_KILL_ON_TIMEOUT,
 )
-import numpy as np
-import os
 
 __all__ = ["executor_hworld"]
 
@@ -66,11 +66,10 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     return task, calc_status
 
 
-def executor_hworld(H, persis_info, sim_specs, libE_info):
+def executor_hworld(H, _, sim_specs):
     """Tests launching and polling task and exiting on task finish"""
     exctr = MPIExecutor.executor
     cores = sim_specs["user"]["cores"]
-    USE_BALSAM = "balsam_test" in sim_specs["user"]
     ELAPSED_TIMEOUT = "elapsed_timeout" in sim_specs["user"]
 
     wait = False
@@ -81,7 +80,6 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     H_o = np.zeros(batch, dtype=sim_specs["out"])
 
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
-
         global sim_ended_count
         sim_ended_count += 1
         print("sim_ended_count", sim_ended_count, flush=True)
@@ -108,18 +106,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
             elif sim_ended_count == 5:
                 args_for_sim = "sleep 2 Fail"  # Manager kill - if signal received else completes
 
-        if USE_BALSAM:
-            task = exctr.submit(
-                calc_type="sim",
-                num_procs=cores,
-                app_args=args_for_sim,
-                hyperthreads=True,
-                machinefile="notused",
-                stdout="notused",
-                wait_on_start=True,
-            )
-        else:
-            task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, hyperthreads=True)
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, hyperthreads=True)
 
         if wait:
             task.wait()
@@ -131,34 +118,12 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
                 calc_status = TASK_FAILED
 
         else:
-            if sim_ended_count >= 2 and not USE_BALSAM:
+            if sim_ended_count >= 2:
                 calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
                 if sim_ended_count == 2 and task.stdout_exists() and "Error" in task.read_stdout():
                     calc_status = WORKER_KILL_ON_ERR
             else:
                 task, calc_status = custom_polling_loop(exctr, task, timeout)
-
-        if USE_BALSAM:
-            task.read_file_in_workdir("ensemble.log")
-            try:
-                task.read_stderr()
-            except ValueError:
-                pass
-
-            task = exctr.submit(
-                app_name="sim_hump_camel_dry_run",
-                num_procs=cores,
-                app_args=args_for_sim,
-                hyperthreads=True,
-                machinefile="notused",
-                stdout="notused",
-                wait_on_start=True,
-                dry_run=True,
-                stage_inout=os.getcwd(),
-            )
-
-            task.poll()
-            task.wait()
 
     else:
         launch_shc = True
@@ -179,7 +144,7 @@ def executor_hworld(H, persis_info, sim_specs, libE_info):
     # This is just for testing at calling script level - status of each task
     H_o["cstat"] = calc_status
 
-    return H_o, persis_info, calc_status
+    return H_o, calc_status
 
 
 def six_hump_camel_func(x):

@@ -1,4 +1,5 @@
 import os
+
 from libensemble.resources.env_resources import EnvResources
 
 
@@ -189,7 +190,7 @@ def test_pbs_nodelist_single():
             f.write(line)
 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
-    exp_out = ["edtb-01.mcp.alcf.anl.gov"]
+    exp_out = ["edtb-01"]
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)
@@ -203,7 +204,7 @@ def test_pbs_nodelist_seq():
             f.write(line)
 
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = nodefile
-    exp_out = ["edtb-01.mcp.alcf.anl.gov", "edtb-02.mcp.alcf.anl.gov"]
+    exp_out = ["edtb-01", "edtb-02"]
     nodelist = EnvResources.get_pbs_nodelist(node_list_env="LIBE_RESOURCES_TEST_NODE_LIST")
     assert nodelist == exp_out, "Nodelist returned does not match expected"
     os.remove(nodefile)

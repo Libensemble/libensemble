@@ -2,16 +2,17 @@
 Manages libensemble resources related to MPI tasks launched from nodes.
 """
 
-import os
 import logging
+import os
 import subprocess
+from typing import Optional, Tuple, Union
 
 
 class MPIResourcesException(Exception):
-    "Resources module exception."
+    """Resources module exception"""
 
 
-def rassert(test, *args):
+def rassert(test: Optional[Union[int, bool]], *args) -> None:
     if not test:
         raise MPIResourcesException(*args)
 
@@ -21,16 +22,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def get_MPI_runner():
-    """Return whether ``mpirun`` is openmpi or mpich"""
-    var = get_MPI_variant()
-    if var in ["mpich", "openmpi"]:
-        return "mpirun"
-    else:
-        return var
-
-
-def get_MPI_variant():
+def get_MPI_variant() -> str:
     """Returns MPI base implementation
 
     Returns
@@ -53,21 +45,27 @@ def get_MPI_variant():
         pass
 
     try:
-        try_msmpi = subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, _ = try_msmpi.communicate()
+        with subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_msmpi:
+            stdout, _ = try_msmpi.communicate(timeout=4)
         if "Microsoft" in stdout.decode():
             return "msmpi"
+    except FileNotFoundError:
+        pass
     except Exception:
+        try_msmpi.kill()
         pass
 
     try:
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
-        try_mpich = subprocess.Popen(["mpirun", "-npernode"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, _ = try_mpich.communicate()
+        with subprocess.Popen(["mpirun", "-npernode"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_mpich:
+            stdout, _ = try_mpich.communicate(timeout=4)
         if "unrecognized argument npernode" in stdout.decode():
             return "mpich"
         return "openmpi"
+    except FileNotFoundError:
+        pass
     except Exception:
+        try_mpich.kill()
         pass
 
     try:
@@ -79,7 +77,18 @@ def get_MPI_variant():
     return None
 
 
-def task_partition(num_procs, num_nodes, procs_per_node, machinefile=None):
+def get_MPI_runner(mpi_runner=None) -> str:
+    """Return whether ``mpirun`` is openmpi or mpich"""
+    var = mpi_runner or get_MPI_variant()
+    if var in ["mpich", "openmpi"]:
+        return "mpirun"
+    else:
+        return var
+
+
+def task_partition(
+    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: Optional[str] = None
+) -> Union[Tuple[None, None, None], Tuple[int, int, int]]:
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
     """
@@ -211,8 +220,13 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 
 def create_machinefile(
-    resources, machinefile=None, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False
-):
+    resources: "resources.Resources",  # noqa: F821
+    machinefile: Optional[str] = None,
+    num_procs: int = None,
+    num_nodes: Optional[int] = None,
+    procs_per_node: Optional[int] = None,
+    hyperthreads: bool = False,
+) -> Tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """

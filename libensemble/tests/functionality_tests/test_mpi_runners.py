@@ -10,15 +10,16 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 import numpy as np
+
+from libensemble import logger
+from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.sim_funcs.run_line_check import runline_check as sim_f
-from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-from libensemble.tools import parse_args, add_unique_random_streams
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.tests.regression_tests.common import create_node_file
-from libensemble import logger
+from libensemble.tools import add_unique_random_streams, parse_args
 
-# logger.set_level('DEBUG')  # For testing the test
+# logger.set_level("DEBUG")  # For testing the test
 logger.set_level("INFO")
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -27,7 +28,6 @@ logger.set_level("INFO")
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     nworkers, is_manager, libE_specs, _ = parse_args()
     rounds = 1
     sim_app = "/path/to/fakeapp.x"
@@ -62,7 +62,6 @@ if __name__ == "__main__":
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": nworkers * rounds}
 
-    # TODO: May move specs, inputs and expected outputs to a data_set module.
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],
@@ -175,14 +174,14 @@ if __name__ == "__main__":
     ]
 
     exp_srun = [
-        "srun -w node-1 --ntasks 2 --nodes 1 --ntasks-per-node 2 --xarg 1 /path/to/fakeapp.x --testid base1",
-        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 /path/to/fakeapp.x --testid base2",
-        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --xarg 1 /path/to/fakeapp.x --testid base3",
-        "srun -w node-1,node-2 --ntasks 128 --nodes 2 --ntasks-per-node 64 --xarg 1 /path/to/fakeapp.x --testid base4",
-        "srun -w node-1 --ntasks 16 --nodes 1 --ntasks-per-node 16 --xarg 1 /path/to/fakeapp.x --testid base5",
-        "srun -w node-1,node-2 --ntasks 16 --nodes 2 --ntasks-per-node 8 --xarg 1 /path/to/fakeapp.x --testid base6",
-        "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 /path/to/fakeapp.x --testid sr1",
-        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 /path/to/fakeapp.x --testid sr2",
+        "srun -w node-1 --ntasks 2 --nodes 1 --ntasks-per-node 2 --xarg 1 --exact /path/to/fakeapp.x --testid base1",
+        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base2",
+        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --xarg 1 --exact /path/to/fakeapp.x --testid base3",
+        "srun -w node-1,node-2 --ntasks 128 --nodes 2 --ntasks-per-node 64 --xarg 1 --exact /path/to/fakeapp.x --testid base4",
+        "srun -w node-1 --ntasks 16 --nodes 1 --ntasks-per-node 16 --xarg 1 --exact /path/to/fakeapp.x --testid base5",
+        "srun -w node-1,node-2 --ntasks 16 --nodes 2 --ntasks-per-node 8 --xarg 1 --exact /path/to/fakeapp.x --testid base6",
+        "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid sr1",
+        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr2",
     ]
 
     exp_jsrun = [
@@ -210,7 +209,6 @@ if __name__ == "__main__":
 
     # Loop here for mocking different systems.
     def run_tests(mpi_runner, runner_name, test_list_exargs, exp_list):
-
         mpi_customizer = {
             "mpi_runner": mpi_runner,  # Select runner: mpich, openmpi, aprun, srun, jsrun
             "runner_name": runner_name,  # Runner name: Replaces run command if not None
@@ -233,7 +231,6 @@ if __name__ == "__main__":
 
     # for run_set in ['mpich', 'openmpi', 'aprun', 'srun', 'jsrun', 'rename_mpich', 'custom']:
     for run_set in ["mpich", "aprun", "srun", "jsrun", "rename_mpich", "custom"]:
-
         # Could use classes, pref in separate data_set module
         runner_name = None  # Use default
 
