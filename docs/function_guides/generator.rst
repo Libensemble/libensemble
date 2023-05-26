@@ -138,7 +138,7 @@ receive and send data in a *ping pong* fashion). To have an irregular communicat
 pattern, a worker can be initiated in *active receive* mode by the allocation
 function (see :ref:`start_only_persistent<start_only_persistent_label>`). In this mode,
 the persistent worker will always be considered ready to receive more data
-(e.g.,~ evaluation results). It can also send to the manager at any time.
+(e.g., evaluation results). It can also send to the manager at any time.
 
 The user is responsible for ensuring there are no communication deadlocks
 in this mode. Note that in manager/worker message exchanges, only the worker-side

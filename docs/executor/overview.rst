@@ -53,7 +53,7 @@ In calling script::
     exctr.register_app(full_path="/path/to/my/exe", app_name="sim1")
 
 Note that the Executor in the calling script does **not** have to be passed to
-``libE()``. They can be extracted via *Executor.executor* in the sim function
+``libE()``. They can be extracted via ``Executor.executor`` in the sim function
 (regardless of type).
 
 In user simulation function::

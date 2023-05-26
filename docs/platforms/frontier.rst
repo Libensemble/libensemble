@@ -5,8 +5,8 @@ Frontier
 Frontier_ is an HPE Cray EX exascale system located at Oak Ridge
 Leadership Computing Facility (OLCF).
 
-Each Frontier compute node contains 1 64-core AMD EPYC and 4 AMD MI250X GPUs
-(8 logical GPUs).
+Each Frontier compute node contains one 64-core AMD EPYC and four AMD MI250X GPUs
+(eight logical GPUs).
 
 Frontier uses the SLURM scheduler to submit jobs from login nodes to run on the
 compute nodes.
