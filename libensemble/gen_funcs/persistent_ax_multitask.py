@@ -91,7 +91,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     exp.add_tracking_metric(metric=lofi_objective, trial_type=lofi_task, canonical_name="hifi_metric")
 
     # TODO: Implement reading past history (by reading saved experiment or
-    # libEnsemble hystory file).
+    # libEnsemble history file).
 
     # Receive information from the manager (or a STOP_TAG)
     tag = None

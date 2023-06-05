@@ -9,9 +9,9 @@ if __name__ == "__main__":
     forces = Ensemble()
     forces.from_yaml("funcx_forces.yaml")
 
-    forces.sim_specs["user"]["remote_ensemble_dir"] += secrets.token_hex(nbytes=3)
+    forces.sim_specs.user["remote_ensemble_dir"] += secrets.token_hex(nbytes=3)
 
-    forces.gen_specs["user"].update(
+    forces.gen_specs.user.update(
         {
             "lb": np.array([0]),
             "ub": np.array([32767]),

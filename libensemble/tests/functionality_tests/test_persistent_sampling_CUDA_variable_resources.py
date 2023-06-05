@@ -19,7 +19,7 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling import uniform_random_sample_with_variable_resources as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "sim_id"],
-        "out": [("priority", float), ("resource_sets", int), ("x", float, n)],
+        "out": [("resource_sets", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nworkers - 1,
             "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.

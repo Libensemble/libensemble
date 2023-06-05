@@ -41,14 +41,14 @@ by one of the following ways.
 
 .. code-block:: console
 
-    (my_env) user@cori07:~$ pip install libensemble
+    (my_env) user@perlmutter07:~$ pip install libensemble
 
 2. Install via **conda**:
 
 .. code-block:: console
 
-    (my_env) user@cori07:~$ conda config --add channels conda-forge
-    (my_env) user@cori07:~$ conda install -c conda-forge libensemble
+    (my_env) user@perlmutter07:~$ conda config --add channels conda-forge
+    (my_env) user@perlmutter07:~$ conda install -c conda-forge libensemble
 
 See :doc:`advanced installation<../advanced_installation>` for other installation options.
 
@@ -163,6 +163,11 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
    GPU runs will be submitted, instead of in the batch script. E.g::
 
        os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
+
+.. dropdown:: **warning: /tmp/pgcudafatYDO6wtSva6K2.o: missing .note.GNU-stack section implies executable stack**
+
+   Recently this warning has been encountered when compiling the forces example on Perlmutter. This does not
+   affect the run, but can be supressed by adding ``-Wl,-znoexecstack`` to the build line.
 
 Additional Information
 ----------------------

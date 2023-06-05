@@ -22,7 +22,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         return {}, persis_info
 
     init_sample_size = gen_specs["user"]["initial_sample_size"]
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_persis_gens()
     Work = {}

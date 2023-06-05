@@ -18,7 +18,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     Work = {}
     gen_count = support.count_persis_gens()

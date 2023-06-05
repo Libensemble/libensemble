@@ -179,11 +179,24 @@ class Worker:
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
-    def _set_rset_team(rset_team: list) -> bool:
-        """Pass new rset_team to worker resources"""
+    def _set_gen_procs_gpus(libE_info, obj):
+        if any(k in libE_info for k in ("num_procs", "num_gpus")):
+            obj.set_gen_procs_gpus(libE_info)
+
+    @staticmethod
+    def _set_rset_team(libE_info: dict) -> bool:
+        """Pass new rset_team to worker resources
+
+        Also passes gen assigned cpus/gpus to resources and executor
+        """
         resources = Resources.resources
+        exctr = Executor.executor
         if isinstance(resources, Resources):
-            resources.worker_resources.set_rset_team(rset_team)
+            wresources = resources.worker_resources
+            wresources.set_rset_team(libE_info["rset_team"])
+            Worker._set_gen_procs_gpus(libE_info, wresources)
+            if isinstance(exctr, Executor):
+                Worker._set_gen_procs_gpus(libE_info, exctr)
             return True
         else:
             return False
@@ -337,7 +350,7 @@ class Worker:
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])
-        Worker._set_rset_team(libE_info["rset_team"])
+        Worker._set_rset_team(libE_info)
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 

@@ -448,6 +448,9 @@ class BalsamExecutor(Executor):
         """Initializes and submits a Balsam ``Job`` based on a registered ``ApplicationDefinition``
         and requested resources. A corresponding libEnsemble ``Task`` object is returned.
 
+        Parameters
+        ----------
+
         calc_type: String, optional
             The calculation type: ``'sim'`` or ``'gen'``
             Only used if ``app_name`` is not supplied. Uses default sim or gen application.
@@ -505,6 +508,7 @@ class BalsamExecutor(Executor):
 
         task: obj: Task
             The launched task object
+
 
         Note that since Balsam Jobs are often sent to entirely different machines
         than where libEnsemble is running, how libEnsemble's resource manager

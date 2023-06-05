@@ -177,7 +177,7 @@ and :doc:`alloc_specs<../data_structures/alloc_specs>`:
 
     gen_specs = {
         "gen_f": aposmm,  # APOSMM generator function
-        "in": [],
+        "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,  # Output defined like above dict
         "user": {
             "initial_sample_size": 100,  # Random sample 100 points to start

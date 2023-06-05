@@ -124,7 +124,7 @@ allocation function and detect impending timeouts, then pack up cleanup work req
 or mark points for cancellation.
 
 The remaining values above are useful for efficient filtering of H values
-(e.g. ``sim_ended_count``), saves a filtering an entire column of H.
+(e.g., ``sim_ended_count``), saves a filtering an entire column of H.
 
 Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function is

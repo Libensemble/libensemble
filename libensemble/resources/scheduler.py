@@ -60,15 +60,20 @@ class ResourceScheduler:
         """
 
         self.resources = user_resources or Resources.resources.resource_manager
+
         self.rsets_free = self.resources.rsets_free
+        self.gpu_rsets_free = self.resources.gpu_rsets_free
+        self.nongpu_rsets_free = self.resources.nongpu_rsets_free
+
         self.avail_rsets_by_group = None
         self.log_msg = None
 
         # Process scheduler options
         self.split2fit = sched_opts.get("split2fit", True)
         self.match_slots = sched_opts.get("match_slots", True)
+        self.last_use_gpus = None
 
-    def assign_resources(self, rsets_req):
+    def assign_resources(self, rsets_req, use_gpus=None, user_params=[]):
         """Schedule resource sets to a work item if possible.
 
         If the resources required are less than one node, they will be
@@ -86,18 +91,22 @@ class ResourceScheduler:
         if rsets_req == 0:
             return []
 
-        if rsets_req > self.resources.total_num_rsets:
-            raise InsufficientResourcesError(
-                f"More resource sets requested {rsets_req} than exist {self.resources.total_num_rsets}"
-            )
-
-        if rsets_req > self.rsets_free:
-            raise InsufficientFreeResources
-
+        self.check_total_rsets(rsets_req, use_gpus)
         self.log_msg = None  # Log resource messages only when find resources
         num_groups = self.resources.num_groups
+
         max_grpsize = self.resources.rsets_per_node  # assumes even
+        if use_gpus is not None:
+            if use_gpus:
+                max_grpsize = self.resources.gpu_rsets_per_node
+            else:
+                max_grpsize = self.resources.nongpu_rsets_per_node
+
         avail_rsets_by_group = self.get_avail_rsets_by_group()
+
+        # get rsets by group that are of the required type
+        valid_rsets_by_group = self.filter_for_rset_type(avail_rsets_by_group, use_gpus)
+
         try_split = self.split2fit
 
         # Work out best target fit - if all rsets were free.
@@ -106,14 +115,14 @@ class ResourceScheduler:
         )
 
         # Check enough slots
-        sorted_lengths = ResourceScheduler.get_sorted_lens(avail_rsets_by_group)
+        sorted_lengths = ResourceScheduler.get_sorted_lens(valid_rsets_by_group)
         max_even_grpsize = sorted_lengths[num_groups_req - 1]
         if max_even_grpsize < rsets_req_per_group:
             if not self.split2fit or max_even_grpsize == 0:
                 raise InsufficientFreeResources
 
         if self.match_slots:
-            slots_avail_by_group = self.get_avail_slots_by_group(avail_rsets_by_group)
+            slots_avail_by_group = self.get_avail_slots_by_group(valid_rsets_by_group)
             cand_groups, cand_slots = self.get_matching_slots(slots_avail_by_group, num_groups_req, rsets_req_per_group)
 
             if cand_groups is None:
@@ -128,7 +137,7 @@ class ResourceScheduler:
                 while not found_split:
                     # Finds a split with enough slots (not nec. matching slots) if exists.
                     rsets_req, num_groups_req, rsets_req_per_group = self.calc_even_split_uneven_groups(
-                        max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups
+                        max_even_grpsize, num_groups_req, rsets_req, sorted_lengths, num_groups, user_params
                     )
                     if self.match_slots:
                         cand_groups, cand_slots = self.get_matching_slots(
@@ -150,8 +159,17 @@ class ResourceScheduler:
                 )
         else:
             rset_team = self.find_rsets_any_slots(
-                avail_rsets_by_group, max_grpsize, rsets_req, num_groups_req, rsets_req_per_group
+                valid_rsets_by_group, max_grpsize, rsets_req, num_groups_req, rsets_req_per_group
             )
+
+        # Update persistent attributes
+        self.avail_rsets_by_group = self.filter_out_rset_team(avail_rsets_by_group, rset_team)
+        self.rsets_free -= len(rset_team)
+        if use_gpus is not None:
+            if use_gpus:
+                self.gpu_rsets_free -= len(rset_team)
+            else:
+                self.nongpu_rsets_free -= len(rset_team)
 
         if self.log_msg is not None:
             logger.debug(self.log_msg)
@@ -162,9 +180,9 @@ class ResourceScheduler:
 
         return rset_team
 
-    def find_rsets_any_slots(self, rsets_by_group, max_grpsize, rsets_req, ngroups, rsets_per_group):
+    def find_rsets_any_slots(self, valid_rsets_by_group, max_grpsize, rsets_req, ngroups, rsets_per_group):
         """Find optimal non-matching slots across groups"""
-        tmp_rsets_by_group = copy.deepcopy(rsets_by_group)
+        tmp_rsets_by_group = copy.deepcopy(valid_rsets_by_group)
         max_upper_bound = max_grpsize + 1
 
         # Now find slots on as many nodes as need
@@ -185,7 +203,7 @@ class ResourceScheduler:
 
         if len(accum_team) == rsets_req:
             # A successful team found
-            rset_team = self.assign_team_from_tmp(accum_team, tmp_rsets_by_group)
+            rset_team = sorted(accum_team)
         else:
             raise InsufficientFreeResources
         return rset_team
@@ -219,6 +237,7 @@ class ResourceScheduler:
         GROUP  1: [1,2,3,4]
         GROUP  2: [5,6,7,8]
         """
+
         if self.avail_rsets_by_group is None:
             rsets = self.resources.rsets
             groups = np.unique(rsets["group"])
@@ -231,15 +250,48 @@ class ResourceScheduler:
                     self.avail_rsets_by_group[g].append(ind)
         return self.avail_rsets_by_group
 
+    def filter_for_rset_type(self, avail_rsets_by_group, use_gpus):
+        """Return avail_rsets_by_group filtered by rset type (gpus/non-gpus/all)"""
+
+        def fltr_gpus(rset):
+            """Filter rsets to remove - hence negation"""
+            if use_gpus:
+                return ~rset["gpus"]
+            else:
+                return rset["gpus"]
+
+        if use_gpus is None:
+            return avail_rsets_by_group  # this means will be same object - dont need to update at end!
+
+        valid_rsets_by_group = {}
+        for g, rlist in avail_rsets_by_group.items():
+            valid_rsets = rlist.copy()
+            for rid in rlist:
+                if fltr_gpus(self.resources.rsets[rid]):
+                    valid_rsets.remove(rid)
+            valid_rsets_by_group[g] = valid_rsets
+
+        return valid_rsets_by_group
+
+    def filter_out_rset_team(self, avail_rsets_by_group, rset_team):
+        """Return avail_rsets_by_group filtered by rset type (gpus/non-gpus/all)"""
+        for g, rlist in avail_rsets_by_group.items():
+            valid_rsets = rlist.copy()
+            for rid in rlist:
+                if rid in rset_team:
+                    valid_rsets.remove(rid)
+            avail_rsets_by_group[g] = valid_rsets
+        return avail_rsets_by_group
+
     @staticmethod
     def get_slots_of_len(d, n):
         """Filter dictionary to values >= n"""
         return {k: v for k, v in d.items() if len(v) >= n}
 
-    def get_avail_slots_by_group(self, avail_rsets_by_group):
+    def get_avail_slots_by_group(self, rsets_by_group):
         """Return a dictionary of free slot IDS for each group (e.g. node)"""
         slots_avail_by_group = {}
-        for k, v in avail_rsets_by_group.items():
+        for k, v in rsets_by_group.items():
             slots_avail_by_group[k] = set([self.resources.rsets[i]["slot"] for i in v])
         return slots_avail_by_group
 
@@ -292,9 +344,16 @@ class ResourceScheduler:
             rsets_per_group = rsets_req
         return rsets_req, num_groups_req, rsets_per_group
 
-    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps):
+    def check_params(self, user_params, ngroups):
+        """Retrun True if all user params divide by number of groups, else False"""
+        for param in user_params:
+            if param % ngroups != 0:
+                return False
+        return True
+
+    def calc_even_split_uneven_groups(self, rsets_per_grp, ngroups, rsets_req, sorted_lens, max_grps, user_params):
         """Calculate an even breakdown to best fit rsets_req with uneven groups"""
-        while rsets_per_grp * ngroups != rsets_req:
+        while rsets_per_grp * ngroups != rsets_req or not self.check_params(user_params, ngroups):
             if rsets_per_grp * ngroups > rsets_req:
                 rsets_per_grp -= 1
             else:
@@ -305,6 +364,7 @@ class ResourceScheduler:
         return rsets_req, ngroups, rsets_per_grp
 
     def assign_team_from_slots(self, slots_avail_by_group, cand_groups, cand_slots, rsets_per_group):
+        """Assign resource set team from slots"""
         rset_team = []
         for grp in cand_groups:
             for i, slot in enumerate(cand_slots):
@@ -315,15 +375,7 @@ class ResourceScheduler:
                 slot = self.resources.rsets["slot"] == slot
                 rset = int(np.where(group & slot)[0])
                 rset_team.append(rset)
-                self.avail_rsets_by_group[grp].remove(rset)
-        self.rsets_free -= len(rset_team)
         return sorted(rset_team)
-
-    def assign_team_from_tmp(self, cand_team, tmp_avail_rsets_by_group):
-        rset_team = sorted(cand_team)
-        self.avail_rsets_by_group = tmp_avail_rsets_by_group
-        self.rsets_free -= len(rset_team)
-        return rset_team
 
     @staticmethod
     def get_sorted_lens(avail_rsets):
@@ -361,3 +413,30 @@ class ResourceScheduler:
             return None, None
 
         return cand_groups, cand_slots
+
+    def check_total_rsets(self, rsets_req, use_gpus):
+        """Raise exceptions if rsets requested is more than total that exist or available"""
+        if use_gpus is None:
+            nrsets = self.resources.total_num_rsets
+            if rsets_req > nrsets:
+                raise InsufficientResourcesError(f"More resource sets requested {rsets_req} than exist {nrsets}")
+        elif use_gpus:
+            nrsets = self.resources.total_num_gpu_rsets
+            if rsets_req > nrsets:
+                raise InsufficientResourcesError(f"More GPU resource sets requested {rsets_req} than exist {nrsets}")
+        else:
+            nrsets = self.resources.total_num_nongpu_rsets
+            if rsets_req > nrsets:
+                raise InsufficientResourcesError(
+                    f"More non-GPU resource sets requested {rsets_req} than exist {nrsets}"
+                )
+
+        if use_gpus is None:
+            if rsets_req > self.rsets_free:
+                raise InsufficientFreeResources
+        elif use_gpus:
+            if rsets_req > self.gpu_rsets_free:
+                raise InsufficientFreeResources
+        else:
+            if rsets_req > self.nongpu_rsets_free:
+                raise InsufficientFreeResources

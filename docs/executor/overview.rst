@@ -7,6 +7,42 @@ compute nodes of a supercomputer, cluster, or other compute resource.
 
 libEnsemble's **Executor** interface provides **portable app-launches** represented as **Tasks**:
 
+.. dropdown:: Detailed description
+
+    An **Executor** interface is provided by libEnsemble to remove the burden
+    of system interaction from the user and improve workflow portability. Users
+    first register their applications to Executor instances, which then return
+    corresponding ``Task`` objects upon submission within user functions.
+
+    **Task** attributes and retrieval functions can be queried to determine
+    the status of running application instances. Functions are also provided
+    to access and interrogate files in the task's working directory.
+
+    libEnsemble's Executors and Tasks contain many familiar features and methods
+    to Python's native `concurrent futures`_ interface. Executors feature the
+    ``submit()`` function for launching apps (detailed below),  but currently do
+    not support ``map()`` or ``shutdown()``. Tasks are much like ``futures``.
+    They feature the ``cancel()``, ``cancelled()``, ``running()``, ``done()``,
+    ``result()``, and ``exception()`` functions from the standard.
+
+    The main ``Executor`` class can subprocess serial applications in place,
+    while the ``MPIExecutor`` is used for running MPI applications, and the
+    ``BalsamExecutor`` for submitting MPI run requests from a worker running on
+    a compute node to the Balsam service. This second approach is suitable for
+    systems that don't allow submitting MPI applications from compute nodes.
+
+    Typically, users choose and parameterize their ``Executor`` objects in their
+    calling scripts, where each executable generator or simulation application is
+    registered to it. If an alternative Executor like Balsam is used, then the
+    applications can be registered as in the example below. Once in the user-side
+    worker code (sim/gen func), the Executor can be retrieved without any need to
+    specify the type.
+
+    Once the Executor is retrieved, tasks can be submitted by specifying the
+    ``app_name`` from registration in the calling script alongside other optional
+    parameters described in the API.
+
+
 .. tab-set::
 
     .. tab-item:: Example Setup
@@ -97,7 +133,7 @@ Looping over a task's status isn't required. Some alternatives:
 
 See the :doc:`executor<executor>` interface for the complete API.
 
-For a more realistic example see
+For a complete example use-case see
 the :doc:`Electrostatic Forces example <../tutorials/executor_forces_tutorial>`,
 which launches the ``forces.x`` application as an MPI task.
 
