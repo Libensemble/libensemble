@@ -2,7 +2,7 @@
 Perlmutter
 ==========
 
-Perlmutter_ is an HPE Cray “Shasta” system located at NERSC_. Its compute nodes
+Perlmutter_ is an HPE Cray "Shasta" system located at NERSC_. Its compute nodes
 are equipped with four A100 NVIDIA GPUs.
 
 It uses the SLURM scheduler to submit jobs from login nodes to run on the
@@ -100,16 +100,17 @@ To watch video
 .. note::
 
     The video uses libEnsemble version 0.9.3, where some adjustments of the
-    scripts are needed to run on Perlmutter. These are no longer necessary. libEnsemble
-    now correctly detects MPI runner and GPU setting on Perlmutter and the GPU code runs
-    with many more particles than the CPU version (forces_simple).
+    scripts are needed to run on Perlmutter. These adjustments are no longer
+    necessary. libEnsemble now correctly detects MPI runner and GPU setting on
+    Perlmutter and the GPU code runs with many more particles than the CPU
+    version (forces_simple).
 
 Example submission scripts are also given in the :doc:`examples<example_scripts>`.
 
 Running libEnsemble with mpi4py
 -------------------------------
 
-Running libEnsemble with local comms is usually sufficient on Perlmutter. However, if you need
+Running libEnsemble with ``local`` comms is usually sufficient on Perlmutter. However, if you need
 to use ``mpi4py``, you should install and run as follows::
 
     module load PrgEnv-gnu cudatoolkit
@@ -166,8 +167,9 @@ Some FAQs specific to Perlmutter. See more on the :doc:`FAQ<../FAQ>` page.
 
 .. dropdown:: **warning: /tmp/pgcudafatYDO6wtSva6K2.o: missing .note.GNU-stack section implies executable stack**
 
-   Recently this warning has been encountered when compiling the forces example on Perlmutter. This does not
-   affect the run, but can be supressed by adding ``-Wl,-znoexecstack`` to the build line.
+   This warning has been recently encountered when compiling the forces example
+   on Perlmutter. This does not affect the run, but can be suppressed by adding
+   ``-Wl,-znoexecstack`` to the build line.
 
 Additional Information
 ----------------------

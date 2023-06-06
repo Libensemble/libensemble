@@ -9,11 +9,11 @@ may occur when using libEnsemble.
   of libEnsemble, and is being investigated.
 * When using the Executor: OpenMPI does not work with direct MPI task
   submissions in mpi4py comms mode, since OpenMPI does not support nested MPI
-  executions. Use either local mode or the Balsam Executor instead.
+  executions. Use either ``local`` mode or the Balsam Executor instead.
 * Local comms mode (multiprocessing) may fail if MPI is initialized before
   forking processors. This is thought to be responsible for issues combining
   multiprocessing with PETSc on some platforms.
-* Remote detection of logical cores via LSB_HOSTS (e.g., Summit) returns the
+* Remote detection of logical cores via ``LSB_HOSTS`` (e.g., Summit) returns the
   number of physical cores as SMT info not available.
 * TCP mode does not support
   (1) more than one libEnsemble call in a given script or

@@ -6,7 +6,7 @@ Overview
 
 libEnsemble comes with built-in resource management. This entails the
 :ref:`detection of available resources<resource_detection>` (e.g., nodelists,
-core counts and GPUs), and the allocation of resources to workers.
+core counts, and GPUs), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers.
 libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of
@@ -151,7 +151,7 @@ while worker five would set::
 .. note::
     If the user sets the number of resource sets directly using the ``num_resource_sets``
     :class:`libE_specs<libensemble.specs.LibeSpecs>` option, then the dynamic resource
-    assignment algorithm will always be used. If ``resource_sets`` is not a field in H,
+    assignment algorithm will always be used. If ``resource_sets`` is not a field in ``H``,
     then each worker will use one resource set.
 
 Resource Scheduler Options

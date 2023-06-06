@@ -183,8 +183,7 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
 
             "platform" [str]:
-                Name of a :ref:`known platform<known-platforms>`.
-                E.g., ``libE_specs["platform"] = "perlmutter_g"``
+                Name of a :ref:`known platform<known-platforms>`, e.g., ``libE_specs["platform"] = "perlmutter_g"``
                 Alternatively specify by setting the ``LIBE_PLATFORM`` environment variable.
 
             "platform_specs" [Platform|dict]:

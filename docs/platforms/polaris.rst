@@ -3,7 +3,7 @@ Polaris
 =======
 
 Polaris_ is a 560-node HPE system located in the ALCF_ at Argonne
-National Laboratory. The compute nodes are equipped with a single AMD EPYC Milan
+National Laboratory. The compute nodes are equipped with one AMD EPYC Milan
 processor and four A100 NVIDIA GPUs. It uses the PBS scheduler to submit
 jobs from login nodes to run on the compute nodes.
 
@@ -22,9 +22,9 @@ To install further packages, including updating libEnsemble, you may either crea
 a virtual environment on top of this (if just using ``pip install``) or clone the base
 environment (if you need ``conda install``). More details at `Python for Polaris`_.
 
-.. dropdown:: Example of Conda + virtual environmentggle
+.. dropdown:: Example of Conda + virtual environment
 
-   E.g.,~  to create a virtual environment that allows installation of further packages::
+   To create a virtual environment that allows installation of further packages::
 
        python -m venv /path/to-venv --system-site-packages
        . /path/to-venv/bin/activate
@@ -56,7 +56,7 @@ the compute nodes. libEnsemble runs on the compute nodes using either
 ``multi-processing`` or ``mpi4py``
 
 A simple example batch script for a libEnsemble use case that runs 5 workers
-(e.g.,~ one persistent generator and four for simulations) on one node:
+(e.g., one persistent generator and four for simulations) on one node:
 
 .. code-block:: bash
     :linenos:

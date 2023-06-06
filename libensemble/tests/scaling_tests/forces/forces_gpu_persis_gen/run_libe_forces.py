@@ -22,9 +22,6 @@ from forces_simf import run_forces  # Sim func from current dir
 
 from libensemble.executors import MPIExecutor
 
-# Fixed resources (one resource set per worker)
-# from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
-
 # Fixed resources (one resource set per worker) - persistent gen
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
