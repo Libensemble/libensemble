@@ -37,7 +37,7 @@ subset of these lists. (The manager's history array will update any fields
 returned to it.)
 
 The names of the input fields for ``gen_f`` and ``sim_f`` must exist in the manager's
-history array (i.e.,~ they must be output fields from ``gen_f`` or ``sim_f`` or
+history array (i.e., they must be output fields from ``gen_f`` or ``sim_f`` or
 reserved fields). The input fields must be a simple list, for example::
 
     sim_specs["in"] = ["x", "theta"]

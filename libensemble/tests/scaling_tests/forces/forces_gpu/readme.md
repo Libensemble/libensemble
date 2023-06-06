@@ -4,22 +4,14 @@ This example is explained in the tutorial **Executor - Assign GPUs**.
 
 https://libensemble.readthedocs.io/en/develop/tutorials/forces_gpu_tutorial.html
 
-Note that at time of writing the calling script `run_libe_forces.py` is identical
-to `forces_simple`, and so is provided as a symlink. The `forces_simf` file has slight
-modifications to assign GPUs.
-
 ## QuickStart
 
 Go to `forces_app` directory:
 
     cd ../forces_app
 
-To compile the forces application to use the GPU, ensure **forces.c** has the
-`#pragma omp target` line uncommented and comment out the equivalent
-`#pragma omp parallel` line. Then compile to **forces.x** using one of the GPU build
-lines in build_forces.sh or similar for your platform.
-
-    ./build_forces.sh
+Compile **forces.x** using one of the GPU build lines in `build_forces.sh` or similar
+for your platform (these will include -DGPU)
 
 Then return here and run:
 

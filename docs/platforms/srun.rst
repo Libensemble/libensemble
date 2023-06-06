@@ -65,7 +65,7 @@ Note on Resource Binding
 ------------------------
 
 .. note::
-    Update: From version version 0.10.0, it is recommended that GPUs are assigned
+    Update: From version 0.10.0, it is recommended that GPUs are assigned
     automatically by libEnsemble. See the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>`
     tutorial as an example.
 
