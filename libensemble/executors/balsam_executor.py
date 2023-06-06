@@ -1,6 +1,6 @@
 """
-This module launches and controls the running of tasks with Balsam_, and most
-notably can submit tasks from any machine, to any machine running a Balsam site_.
+This module launches and controls tasks via Balsam_, and
+can submit tasks from any machine, to any machine running a Balsam site_.
 
 .. image:: ../images/balsam2.png
     :alt: central_balsam
@@ -10,49 +10,55 @@ notably can submit tasks from any machine, to any machine running a Balsam site_
 At this time, access to Balsam is limited to those with valid organizational logins
 authenticated through Globus_.
 
-In order to initiate a Balsam executor, the calling script should contain ::
+.. tab-set::
 
-    from libensemble.executors.balsam_executors import BalsamExecutor
-    exctr = BalsamExecutor()
+    .. tab-item:: Initialization
 
-Key differences to consider between this executor and libEnsemble's others is
-Balsam ``ApplicationDefinition`` instances are registered instead of paths and task
-submissions will not run until Balsam reserves compute resources at a site.
+        To initialize a Balsam executor::
 
-This process may resemble::
+            from libensemble.executors.balsam_executors import BalsamExecutor
+            exctr = BalsamExecutor()
 
-    from libensemble.executors.balsam_executors import BalsamExecutor
-    from balsam.api import ApplicationDefinition
+    .. tab-item:: App and Resource registration
 
-    class HelloApp(ApplicationDefinition):
-        site = "my-balsam-site"
-        command_template = "/path/to/hello.app {{ my_name }}"
+        Note that
+        Balsam ``ApplicationDefinition`` instances are registered instead of paths and task
+        submissions will not run until Balsam reserves compute resources at a site::
 
-    exctr = BalsamExecutor()
-    exctr.register_app(HelloApp, app_name="hello")
+            from libensemble.executors.balsam_executors import BalsamExecutor
+            from balsam.api import ApplicationDefinition
 
-    exctr.submit_allocation(
-        site_id=999,  # corresponds to "my-balsam-site", found via ``balsam site ls``
-        num_nodes=4,  # Total number of nodes requested for *all jobs*
-        wall_time_min=30,
-        queue="debug-queue",
-        project="my-project",
-    )
+            class HelloApp(ApplicationDefinition):
+                site = "my-balsam-site"
+                command_template = "/path/to/hello.app {{ my_name }}"
 
-Task submissions of registered apps aren't too different from the other executors,
-except Balsam expects application arguments in dictionary form. Note that these fields
-must match the templating syntax in each ``ApplicationDefinition``'s ``command_template``
-field::
+            exctr = BalsamExecutor()
+            exctr.register_app(HelloApp, app_name="hello")
 
-    args = {"my_name": "World"}
+            exctr.submit_allocation(
+                site_id=999,  # corresponds to "my-balsam-site", found via ``balsam site ls``
+                num_nodes=4,  # Total number of nodes requested for *all jobs*
+                wall_time_min=30,
+                queue="debug-queue",
+                project="my-project",
+            )
 
-    task = exctr.submit(
-        app_name="hello",
-        app_args=args,
-        num_procs=4,
-        num_nodes=1,
-        procs_per_node=4,
-    )
+    .. tab-item:: Task Submission
+
+        Task submissions of registered apps aren't too different from the other executors,
+        except Balsam expects application arguments in dictionary form. Note that these fields
+        must match the templating syntax in each ``ApplicationDefinition``'s ``command_template``
+        field::
+
+            args = {"my_name": "World"}
+
+            task = exctr.submit(
+                app_name="hello",
+                app_args=args,
+                num_procs=4,
+                num_nodes=1,
+                procs_per_node=4,
+            )
 
 Application instances submitted by the executor to the Balsam service will get
 scheduled within the reserved resource allocation. **Each Balsam app can only be
@@ -239,7 +245,7 @@ class BalsamTask(Task):
         self._set_complete()
 
     def kill(self) -> None:
-        """Cancels the supplied task. Killing is unsupported at this time."""
+        """**Cancels** the task. Killing a running task is unsupported by Balsam at this time."""
         self.process.delete()
 
         logger.info(f"Killing task {self.name}")
@@ -249,7 +255,7 @@ class BalsamTask(Task):
 
 
 class BalsamExecutor(Executor):
-    """Inherits from ``Executor`` and wraps the Balsam service. Via this Executor,
+    """Wraps the Balsam service. Via this Executor,
     Balsam ``Jobs`` can be submitted to Balsam sites, either local or on remote machines.
 
     .. note::  Task kills are not configurable in the Balsam executor.

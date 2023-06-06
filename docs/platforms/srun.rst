@@ -25,41 +25,41 @@ Common Errors
 SLURM systems can have various configurations which may affect what is required
 when assigning more than one worker to any given node.
 
-**srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
+.. dropdown:: **srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
-You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
+    You may also see: ``srun: Job ****** step creation still disabled, retrying (Requested nodes are busy)``
 
-It is recommended to add these to submission scripts to prevent resource conflicts::
+    It is recommended to add these to submission scripts to prevent resource conflicts::
 
-    export SLURM_EXACT=1
-    export SLURM_MEM_PER_NODE=0
+        export SLURM_EXACT=1
+        export SLURM_MEM_PER_NODE=0
 
-Alternatively, the ``--exact`` `option to srun`_, along with other relevant options
-can be given on any ``srun`` lines, including the ``MPIExecutor`` submission lines
-via the ``extra_args`` option (from version 0.10.0, these are added automatically).
+    Alternatively, the ``--exact`` `option to srun`_, along with other relevant options
+    can be given on any ``srun`` lines, including the ``MPIExecutor`` submission lines
+    via the ``extra_args`` option (from version 0.10.0, these are added automatically).
 
-Secondly, while many configurations are possible, it is recommended to **avoid** using
-``#SBATCH`` commands that may limit resources to srun job steps such as::
+    Secondly, while many configurations are possible, it is recommended to **avoid** using
+    ``#SBATCH`` commands that may limit resources to srun job steps such as::
 
-    #SBATCH --ntasks-per-node=4
-    #SBATCH --gpus-per-task=1
+        #SBATCH --ntasks-per-node=4
+        #SBATCH --gpus-per-task=1
 
-Instead provide these to sub-tasks via the ``extra_args`` option to the
-:doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
+    Instead provide these to sub-tasks via the ``extra_args`` option to the
+    :doc:`MPIExecutor<../executor/mpi_executor>` ``submit`` function.
 
-**GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
+.. dropdown:: **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
-If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
-expect an  option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
-allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
-via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
-option to the ``submit`` function (rather than using an ``#SBATCH`` command).
+    If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
+    expect an  option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
+    allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
+    via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
+    option to the ``submit`` function (rather than using an ``#SBATCH`` command).
 
-If running the libEnsemble user calling script with ``srun``, then it is recommended that
-``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
-GPU runs will be submitted, instead of in the batch script. For example::
+    If running the libEnsemble user calling script with ``srun``, then it is recommended that
+    ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
+    GPU runs will be submitted, instead of in the batch script. For example::
 
-    os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
+        os.environ["MPICH_GPU_SUPPORT_ENABLED"] = "1"
 
 Note on Resource Binding
 ------------------------
@@ -89,7 +89,7 @@ to how ``CUDA_VISIBLE_DEVICES`` is set in the example.
 Some useful commands
 --------------------
 
-Find slurm version::
+Find SLURM version::
 
     scontrol --version
 

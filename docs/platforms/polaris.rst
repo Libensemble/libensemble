@@ -22,7 +22,7 @@ To install further packages, including updating libEnsemble, you may either crea
 a virtual environment on top of this (if just using ``pip install``) or clone the base
 environment (if you need ``conda install``). More details at `Python for Polaris`_.
 
-.. dropdown:: Example of Conda + virtual environmentggle
+.. dropdown:: Example of Conda + virtual environment
 
    E.g.,~  to create a virtual environment that allows installation of further packages::
 
