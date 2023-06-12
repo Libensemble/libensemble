@@ -485,14 +485,14 @@ class LibeSpecs(BaseModel):
     def check_input_dir_exists(cls, value):
         if value:
             if isinstance(value, str):
-                value = Path(value)
+                value = Path(value).absolute()
             assert value.exists(), "value does not refer to an existing path"
             assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
         return value
 
     @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
     def check_inputs_exist(cls, value):
-        value = [Path(path) for path in value]
+        value = [Path(path).absolute() for path in value]
         for f in value:
             assert f.exists(), f"'{f}' in Value does not refer to an existing path."
         return value
@@ -516,8 +516,10 @@ class LibeSpecs(BaseModel):
             values["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
             ).absolute()  # should avoid side-effects. make dir later
-        elif len(str(values.get("workflow_dir_path"))) > 1 and not values.get("use_workflow_dir"):
-            values["use_workflow_dir"] = True
+        elif len(str(values.get("workflow_dir_path"))) > 1:
+            if not values.get("use_workflow_dir"):
+                values["use_workflow_dir"] = True
+            values["workflow_dir_path"] = Path(values["workflow_dir_path"]).absolute()
         return values
 
 

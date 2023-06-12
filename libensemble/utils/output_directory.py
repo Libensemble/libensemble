@@ -144,7 +144,7 @@ class EnsembleDirectory:
         else:
             calc_dir = f"{calc_str}{H_rows}_worker{workerID}"
             if not self.ensemble_dir.exists():
-                self.ensemble_dir.mkdir(exist_ok=True)
+                self.ensemble_dir.mkdir(exist_ok=True, parents=True)
             calc_prefix = self.ensemble_dir
 
         # Register calc dir with adjusted parent dir and sourcefile location
