@@ -3,17 +3,22 @@
 persis_info
 ===========
 
-Supply persistent information to libEnsemble::
+Optionally supply persistent information to libEnsemble::
 
     persis_info: [dict]:
         Dictionary containing persistent info
 
-Holds data that is passed to and from workers updating some state information. A typical example
-is a random number generator to be used in consecutive calls to a generator. *Optional*.
+Holds data to be passed to and from workers updating some state information.
 
-If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``. This functionality
-can be used to, for example, pass a random stream back to the manager to be included in future work
-from the allocation function.
+When using ``multiprocessing`` manager-worker comms, these objects are passed *by reference*.
+
+If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``.
+
+.. dropdown:: Examples
+
+    1.  Random number generators or other structures for use on consecutive calls
+    2.  Incrementing array row indexes or process counts
+    3.  Sending/receiving updated models from workers
 
 .. seealso::
 
