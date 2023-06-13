@@ -186,7 +186,7 @@ def test_workflow_dir_copyback(tmp_path):
         "ensemble_dir_path": tmp_path,
         "ensemble_copy_back": True,
         "use_workflow_dir": True,
-        "workflow_dir_path": "./fake_workflow",
+        "workflow_dir_path": "./workflow_intermediate_copyback/fake_workflow",
     }
 
     ls = LocationStack()
