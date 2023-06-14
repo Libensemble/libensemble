@@ -124,6 +124,7 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
 from libensemble.resources.platforms import get_platform
@@ -385,6 +386,13 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
 def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """Manager routine runs on rank 0."""
     from libensemble.comms.mpi import MainMPIComm
+
+    if Executor.executor is not None:
+        if isinstance(Executor.executor, MPIExecutor) and libE_specs["comms"] == "mpi":
+            logger.manager_warning(
+                "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
+                + "         Expect complications if not using an `MPICH` MPI distribution.\n"
+            )
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)
