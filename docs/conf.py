@@ -185,7 +185,7 @@ todo_include_todos = False
 # html_theme = 'sphinxdoc'
 html_theme = "furo"
 
-html_logo = "./images/libE_logo_white.png"
+# html_logo = "./images/libE_logo_white.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -194,9 +194,9 @@ html_logo = "./images/libE_logo_white.png"
 html_theme_options = {
     "navigation_depth": 3,
     "collapse_navigation": False,
-    "logo_only": True,
+    "light_logo": "libE_logo.png",
+    "dark_logo": "libE_logo_white.png",
 }
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
