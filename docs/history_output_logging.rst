@@ -12,7 +12,7 @@ by libEnsemble.  If libEnsemble aborts on an exception, these structures are
 dumped automatically to these files:
 
 * ``libE_history_at_abort_<sim_count>.npy``
-* ``libE_history_at_abort_<sim_count>.pickle``
+* ``libE_persis_info_at_abort_<sim_count>.pickle``
 
 To suppress libEnsemble from producing these two files, set ``libE_specs["save_H_and_persis_on_abort"] = False``.
 
