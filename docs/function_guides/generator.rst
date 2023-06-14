@@ -154,7 +154,7 @@ the message tags.
 Active receive mode
 -------------------
 
-By default, a persistent worker is expected to alternately
+By default, a persistent worker is expected to
 receive and send data in a *ping pong* fashion. Alternatively,
 a worker can be initiated in *active receive* mode by the allocation
 function (see :ref:`start_only_persistent<start_only_persistent_label>`).
@@ -166,18 +166,14 @@ receive is blocking by default (a non-blocking option is available).
 Cancelling Simulations
 ----------------------
 
-Previously submitted simulations can be cancelled by sending a message to the manager.
-
-To do this a PersistentSupport helper function is provided.
+Previously submitted simulations can be cancelled by sending a message to the manager:
 
 .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
 .. autofunction:: request_cancel_sim_ids
 
-If a generated point is cancelled by the generator before it has been given to a
-worker for evaluation, then it will never be given. If it has already returned from the
-simulation, then results can be returned, but the ``cancel_requested`` field will remain ``True``.
-However, if the simulation is already running, a kill signal will be sent to the worker.
-This can be caught and acted upon by the simulation function, otherwise it will be ignored.
+- If a generated point is cancelled by the generator **before sending** to another worker for simulation, then it won't be sent.
+- If that point has **already been evaluated** by a simulation, the ``cancel_requested`` field will remain ``True``.
+- If that point is **currently being evaluated**, a kill signal will be sent to the corresponding worker. It must be manually processed in the simulation function
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
 of the capability to cancel pending simulations.
@@ -185,14 +181,9 @@ of the capability to cancel pending simulations.
 Modification of existing points
 -------------------------------
 
-To change existing fields of the History array, the generator can initialize an output
-array where the *dtype* contains the ``sim_id`` and the fields to be modified (in
-place of ``gen_specs["out"]``), and then send this output array to the manager.
-
-This will overwrite the specific fields for the given *sim_ids*, as maintained by the manager.
-If the changes do not correspond with newly generated points,
-then the generator needs to tell the manager that it is not ready
-to receive completed evaluations. Send to the manager with ``keep_state=True``.
+To change existing fields of the History array, create a NumPy array where the ``dtype`` contains
+the ``sim_id`` and the fields to be modified. Send this array with ``keep_state=True`` to the manager.
+This will overwrite the manager's History array.
 
 For example, the cancellation function ``request_cancel_sim_ids`` could be replicated by
 the following (where ``sim_ids_to_cancel`` is a list of integers):
