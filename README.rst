@@ -73,7 +73,7 @@ Resources
   @article{Hudson2022,
     title   = {{libEnsemble}: A Library to Coordinate the Concurrent
                Evaluation of Dynamic Ensembles of Calculations},
-    author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan Wild},
+    author  = {Stephen Hudson and Jeffrey Larson and John-Luke Navarro and Stefan M. Wild},
     journal = {{IEEE} Transactions on Parallel and Distributed Systems},
     volume  = {33},
     number  = {4},
@@ -93,3 +93,4 @@ Resources
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _PyPI: https://pypi.org
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
