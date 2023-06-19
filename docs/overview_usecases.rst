@@ -5,7 +5,7 @@ Manager, Workers, and User Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. begin_overview_rst_tag
 
-libEnsemble's **manager** allocate's work to **workers**,
+libEnsemble's **manager** allocates work to **workers**,
 which perform computations via **user functions**:
 
 * :ref:`generator<api_gen_f>`: Generates inputs to the *simulator* (``sim_f``)
