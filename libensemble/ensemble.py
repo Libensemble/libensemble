@@ -253,7 +253,7 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.libE_specs = libE_specs
+        self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.H0 = H0
@@ -263,12 +263,22 @@ class Ensemble:
         self.logger = logger
         self.logger.set_level("INFO")
 
-        if not self.libE_specs:
-            self.libE_specs = LibeSpecs(**libE_specs_parsed)
+        if not self._libE_specs:
+            self._libE_specs = LibeSpecs(**libE_specs_parsed)
 
     def ready(self) -> bool:
         """Quickly verify that all necessary data has been provided"""
-        return all([i for i in [self.exit_criteria, self.libE_specs, self.sim_specs]])
+        return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
+
+    @property
+    def libE_specs(self):
+        return self._libE_specs
+
+    @libE_specs.setter
+    def libE_specs(self, new_specs):
+        if not isinstance(new_specs, dict):
+            new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+        self._libE_specs.__dict__.update(**new_specs)
 
     def run(self) -> (npt.NDArray, dict, int):
         """
