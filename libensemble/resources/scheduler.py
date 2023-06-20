@@ -373,7 +373,7 @@ class ResourceScheduler:
                     break
                 group = self.resources.rsets["group"] == grp
                 slot = self.resources.rsets["slot"] == slot
-                rset = int(np.where(group & slot)[0])
+                rset = int(np.asarray(group & slot).nonzero()[0])
                 rset_team.append(rset)
         return sorted(rset_team)
 
