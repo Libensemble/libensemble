@@ -16,7 +16,6 @@ all data is validated immediately on instantiation.
         :linenos:
 
         ...
-        import numpy as np
         from libensemble import SimSpecs
         from simulator import sim_find_sine
 
@@ -44,7 +43,6 @@ all data is validated immediately on instantiation.
         :linenos:
 
         ...
-        import numpy as np
         from simulator import six_hump_camel
 
         ...

@@ -46,6 +46,12 @@ all data is validated immediately on instantiation.
     .. code-block:: python
         :linenos:
 
+        ...
+        import numpy as np
+        from generator import gen_random_sample
+
+        ...
+
         gen_specs = {
             "gen_f": gen_random_sample,
             "out": [("x", float, (1,))],

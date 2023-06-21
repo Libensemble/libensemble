@@ -1,6 +1,4 @@
-=======================
-Timing analysis scripts
-=======================
+**Timing analysis scripts**
 
 Note that all plotting scripts produce a file rather than opening a plot
 interactively.
@@ -19,9 +17,7 @@ file. They extract and plot information from that file.
 * ``plot_libe_histogram.py``: Creates histogram showing the number of
   completed/killed/failed user calculations binned by run time.
 
-========================
-Results analysis scripts
-========================
+**Results analysis scripts**
 
 * ``print_npy.py``: Prints to screen from a given ``*.npy`` file containing a
   NumPy structured array. Use ``done`` to print only the lines containing
