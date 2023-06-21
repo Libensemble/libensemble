@@ -19,8 +19,7 @@ The manager maintains a global copy. Each row contains:
   3. :ref:`Reserved fields<reserved_fields>` containing metadata
 
 When the history array is initialized, it creates fields for each
-``gen_specs["out"]`` and ``sim_specs["out"]`` entry. For a simple
-example these entries might be::
+``gen_specs["out"]`` and ``sim_specs["out"]`` entry. These entries may resemble::
 
     gen_specs["out"] = [("x", float, 2), ("theta", int)]
     sim_specs["out"] = [("f", float)]
@@ -29,17 +28,17 @@ example these entries might be::
 .. integer input parameter, and ``f`` is a scalar output of the simulation to be
 .. run with the generated ``x`` and ``theta`` values.
 
-Therefore, the ``gen_f`` and ``sim_f`` are expected to return output as NumPy
-structured arrays for slotting into these fields. Output from either function can be
-the exact elements declared in the ``gen/sim_specs["out"]`` lists, or a subset.
+Therefore, the ``gen_f`` and ``sim_f`` must return output as NumPy
+structured arrays for slotting into these fields. This data must match
+a corresponding set of elements from ``gen/sim_specs["out"]``.
+
 .. (The manager's history array will update any fields
 .. returned to it.)
 
-The names of the input fields for ``gen_f`` and ``sim_f`` must exist in the manager's
-history array (i.e., they must be output fields from ``gen_f`` or ``sim_f`` or
-reserved fields). The input fields must be a simple list, for example::
+Ensure input/output field names for a function match eachother or a :ref:`reserved field<reserved_fields>::
 
-    sim_specs["in"] = ["x", "theta"]
+    gen_specs["out"] = [("x", float, 2), ("theta", int)]  # produces "x" and "theta"
+    sim_specs["in"] = ["x", "theta", "sim_id"]  # accepts "x", "theta" and "sim_id", a reserved field
 
 .. _reserved_fields:
 
