@@ -4,6 +4,7 @@ Manages libensemble resources related to MPI tasks launched from nodes.
 
 import logging
 import os
+import platform
 import subprocess
 from typing import Optional, Tuple, Union
 
@@ -44,16 +45,17 @@ def get_MPI_variant() -> str:
     except Exception:
         pass
 
-    try:
-        with subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_msmpi:
-            stdout, _ = try_msmpi.communicate(timeout=4)
-        if "Microsoft" in stdout.decode():
-            return "msmpi"
-    except FileNotFoundError:
-        pass
-    except Exception:
-        try_msmpi.kill()
-        pass
+    if platform.system() == "Windows":
+        try:
+            with subprocess.Popen(["mpiexec"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as try_msmpi:
+                stdout, _ = try_msmpi.communicate(timeout=4)
+            if "Microsoft" in stdout.decode():
+                return "msmpi"
+        except FileNotFoundError:
+            pass
+        except Exception:
+            try_msmpi.kill()
+            pass
 
     try:
         # Explore mpi4py.MPI.get_vendor() and mpi4py.MPI.Get_library_version() for mpi4py
