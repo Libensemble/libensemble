@@ -50,6 +50,10 @@ Common Errors
     allocation functions). For example, ``support.avail_worker_ids(persistent=EVAL_GEN_TAG)``
     Make sure that the ``EVAL_GEN_TAG`` is specified and not just ``persistent=True``.
 
+.. dropdown:: **libensemble.history (MANAGER_WARNING): Giving entries in H0 back to gen. Marking entries in H0 as 'gen_informed' if 'sim_ended'.**
+
+  This warning is harmless. It's saying that as the provided History array is being "reloaded" into the generator, the copy is being slightly modified.
+
 .. dropdown:: **I keep getting: "Not enough processors per worker to honor arguments." when using the Executor. Can I submit tasks to allocated processors anyway?**
 
   You may have set `enforce_worker_core_bounds` to True when setting
@@ -65,7 +69,8 @@ Common Errors
 
   This can happen when libEnsemble tries to create ensemble or simulation directories
   that already exist from previous runs. To avoid this, ensure the ensemble directory
-  paths are unique by appending some unique value to ``libE_specs["ensemble_dir_path"]``
+  paths are unique by appending some unique value to ``libE_specs["ensemble_dir_path"]``,
+  or automatically instruct runs to operate in unique directories via ``libE_specs["use_workflow_dir"] = True``.
 
 .. dropdown:: **PETSc and MPI errors with "[unset]: write_line error; fd=-1 buf=:cmd=abort exitcode=59"**
 
