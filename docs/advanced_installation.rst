@@ -28,13 +28,6 @@ To install the latest PyPI release::
 
     pip install libensemble
 
-The above comes with required dependencies only. To install with some
-common user function dependencies (as used in the examples and tests)::
-
-    pip install libensemble[extras]
-
-Note that since ``PETSc`` will build from source, this may take a while.
-
 To pip install libEnsemble from the latest develop branch::
 
     python -m pip install --upgrade git+https://github.com/Libensemble/libensemble.git@develop
