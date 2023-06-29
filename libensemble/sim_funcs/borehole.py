@@ -65,7 +65,7 @@ def borehole_func(x):
     denom1 = 2 * L * Tu / (np.log(r / rw) * rw**2 * Kw)
     denom2 = Tu / Tl
 
-    return (numer / (np.log(r / rw) * (1 + denom1 + denom2))).reshape(-1)
+    return ((numer / (np.log(r / rw) * (1 + denom1 + denom2))).reshape(-1))[0]
 
 
 def gen_borehole_input(n):
