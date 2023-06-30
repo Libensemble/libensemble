@@ -29,14 +29,26 @@ import libensemble.gen_funcs
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
-sys.path.append("/home/jlarson/research/poptus/IBCDFO/minq/py/minq5")  # Needed for spsolver=2
-sys.path.append("/home/jlarson/research/poptus/IBCDFO/pounders/py")
-
 libensemble.gen_funcs.rc.aposmm_optimizers = "ibcdfo"
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+
+try:
+    from ibcdfo.pounders import pounders
+
+    print(dir(pounders))
+except ModuleNotFoundError:
+    sys.exit("Please 'pip install ibcdfo'")
+
+try:
+    sys.path.append("./minq/py/minq5/")  # Needed by pounders, but not pip installable
+    from minqsw import minqsw
+
+    print(dir(minqsw))
+except ModuleNotFoundError:
+    sys.exit("Ensure https://github.com/POptUS/minq is in (or symlinked) in the same directory as calling script")
 
 
 def combine_component(x):

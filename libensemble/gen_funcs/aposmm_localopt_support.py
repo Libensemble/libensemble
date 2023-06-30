@@ -47,7 +47,7 @@ else:
     if "dfols" in optimizers:
         import dfols
     if "ibcdfo" in optimizers:
-        from pounders import pounders
+        from ibcdfo import pounders
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt
     if "external" in optimizers:
@@ -451,7 +451,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     printf = 0
     spsolver = 2
 
-    [X, F, flag, xkin] = pounders(
+    [X, F, flag, xkin] = pounders.pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,
