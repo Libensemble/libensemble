@@ -103,10 +103,10 @@ if __name__ == "__main__":
     ]
 
     exp_srun = [
-        "srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base1",
-        "srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 /path/to/fakeapp.x --testid base2",
-        "srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 /path/to/fakeapp.x --testid base3",
-        "srun -w node-1 --ntasks 6 --nodes 1 --ntasks-per-node 6 /path/to/fakeapp.x --testid base4",
+        "srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base1",
+        "srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --exact /path/to/fakeapp.x --testid base2",
+        "srun -w node-1 --ntasks 8 --nodes 1 --ntasks-per-node 8 --exact /path/to/fakeapp.x --testid base3",
+        "srun -w node-1 --ntasks 6 --nodes 1 --ntasks-per-node 6 --exact /path/to/fakeapp.x --testid base4",
     ]
 
     test_list = test_list_base

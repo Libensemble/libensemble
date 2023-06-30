@@ -7,7 +7,7 @@ import libensemble.tests.unit_tests.setup as setup
 @pytest.mark.extra
 def test_ensemble_init():
     """testing init attrs"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     e = Ensemble(
         libE_specs={"comms": "local", "nworkers": 4}
@@ -16,13 +16,12 @@ def test_ensemble_init():
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
-    pass
 
 
 @pytest.mark.extra
 def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     for ft in ["yaml", "json", "toml"]:
         e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
@@ -36,20 +35,20 @@ def test_from_files():
 
         sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
 
-        e.gen_specs["user"]["ub"] = np.ones(1)
-        e.gen_specs["user"]["lb"] = np.zeros(1)
+        e.gen_specs.user["ub"] = np.ones(1)
+        e.gen_specs.user["lb"] = np.zeros(1)
 
         sim_specs["inputs"] = sim_specs["in"]
         sim_specs.pop("in")
-        assert all([i in e.sim_specs.items() for i in sim_specs.items()])
-        assert all([i in e.gen_specs.items() for i in gen_specs.items()])
-        assert all([i in e.exit_criteria.items() for i in exit_criteria.items()])
+        assert all([i in e.sim_specs.__dict__.items() for i in sim_specs.items()])
+        assert all([i in e.gen_specs.__dict__.items() for i in gen_specs.items()])
+        assert all([i in e.exit_criteria.__dict__.items() for i in exit_criteria.items()])
 
 
 @pytest.mark.extra
 def test_bad_func_loads():
     """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
 
     yaml_errors = {
         "./simdir/test_example_badfuncs_attribute.yaml": AttributeError,
@@ -69,7 +68,7 @@ def test_bad_func_loads():
 @pytest.mark.extra
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
-    from libensemble.api import Ensemble
+    from libensemble.ensemble import Ensemble
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)

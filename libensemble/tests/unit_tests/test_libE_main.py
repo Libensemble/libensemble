@@ -13,11 +13,11 @@ from libensemble.tests.regression_tests.common import mpi_comm_excl
 
 
 class MPIAbortException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class MPISendException(Exception):
-    "Raised when mock mpi abort is called"
+    """Raised when mock mpi abort is called"""
 
 
 class Fake_MPI:
@@ -57,6 +57,17 @@ fake_mpi_1p = Fake_MPI_1P()
 alloc_specs = {"alloc_f": give_sim_work_first}
 hfile_abort = "libE_history_at_abort_0.npy"
 pfile_abort = "libE_persis_info_at_abort_0.pickle"
+
+
+# Run by pytest at end of module
+def teardown_module(module):
+    try:
+        print(f"teardown_module module:{module.__name__}")
+    except AttributeError:
+        print(f"teardown_module (direct run) module:{module}")
+    if Resources.resources is not None:
+        del Resources.resources
+        Resources.resources = None
 
 
 # Run by pytest before each function

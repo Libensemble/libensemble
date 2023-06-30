@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, Tuple
+from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -15,7 +15,7 @@ def give_sim_work_first(
     alloc_specs: dict,
     persis_info: dict,
     libE_info: dict,
-) -> Tuple[Dict[Any, Any], Dict[Any, Any]]:
+) -> Tuple[dict]:
     """
     Decide what should be given to workers. This allocation function gives any
     available simulation work first, and only when all simulations are
@@ -38,7 +38,7 @@ def give_sim_work_first(
     tags: alloc, default, batch, priority
 
     .. seealso::
-        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
+        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
 
     user = alloc_specs.get("user", {})
@@ -58,7 +58,7 @@ def give_sim_work_first(
     batch_give = user.get("give_all_with_same_priority", False)
     gen_in = gen_specs.get("in", [])
 
-    manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
+    manage_resources = libE_info["use_resource_sets"]
     support = AllocSupport(W, manage_resources, persis_info, libE_info)
     gen_count = support.count_gens()
     Work = {}

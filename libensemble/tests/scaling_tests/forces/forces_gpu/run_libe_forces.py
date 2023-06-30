@@ -24,19 +24,25 @@ from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker)
 from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
+
 # Uncomment for var resources
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
 
-from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, parse_args
+
+# Uncomment for var resources (checksum will change due to rng differences)
+# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
+
 
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
 
+# To test on system without GPUs - compile forces without -DGPU and mock GPUs with this line.
+# libE_specs["resource_info"] = {"gpus_on_node": 4}
+
 # Initialize MPI Executor instance
 exctr = MPIExecutor()
-# exctr = MPIExecutor(custom_info={'mpi_runner':'srun'})  # force srun - eg. perlmutter
-# exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})  # Polaris (use mpiexec)
 
 # Register simulation executable with executor
 sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
@@ -62,8 +68,8 @@ gen_specs = {
         # ("resource_sets", int)  # Uncomment for var resources
     ],
     "user": {
-        "lb": np.array([50000]),  # User parameters for the gen_f
-        "ub": np.array([100000]),
+        "lb": np.array([50000]),  # fewest particles (changing will change checksum)
+        "ub": np.array([100000]),  # max particles (changing will change checksum)
         "gen_batch_size": 8,
         # "max_resource_sets": nworkers  # Uncomment for var resources
     },
@@ -76,7 +82,7 @@ libE_specs["sim_dirs_make"] = True
 # libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": 8}
+exit_criteria = {"sim_max": 8}  # changing will change checksum
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)
@@ -85,9 +91,10 @@ persis_info = add_unique_random_streams({}, nworkers + 1)
 H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 # This is for configuration of this test (inc. lb/ub and sim_max values)
-if exit_criteria["sim_max"] == 8:
-    chksum = np.sum(H["energy"])
-    assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
-    print("Checksum passed")
-else:
-    print("Run complete. A checksum has not been provided for the given sim_max")
+if is_manager:
+    if exit_criteria["sim_max"] == 8:
+        chksum = np.sum(H["energy"])
+        assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
+        print("Checksum passed")
+    else:
+        print("Run complete. A checksum has not been provided for the given sim_max")

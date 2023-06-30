@@ -16,7 +16,7 @@ Automatic PR
 Note that once libEnsemble has been released on PYPI a conda-forge bot will
 usually detect the new release and automatically create a pull request with the
 changes below. It may take a few hours for this to happen. If no other changes
-are required (e.g. new dependencies), then you can simply wait for the tests to
+are required (e.g., new dependencies), then you can simply wait for the tests to
 pass and merge.
 
 Manual PR
@@ -27,7 +27,7 @@ If necessary, a manual PR can be created as follows.
 Create a fork of the repository (not a branch). In the file ``recipe/meta.yaml``
 bump the ``version number``, set the ``build number`` to zero, and update the
 ``sha256``. The latter can be obtained by running ``sha256sum`` on the github
-tarball. E.g.~ For v0.6.0::
+tarball. For example, for v0.6.0::
 
     sha256sum libensemble-0.6.0.tar.gz
 

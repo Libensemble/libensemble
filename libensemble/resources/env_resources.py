@@ -44,7 +44,6 @@ class EnvResources:
         nodelist_env_lsf: Optional[str] = None,
         nodelist_env_lsf_shortform: Optional[str] = None,
     ) -> None:
-
         """Initializes a new EnvResources instance
 
         Determines the environment variables to query for resource
@@ -198,7 +197,8 @@ class EnvResources:
             return []
         node_list = [nid.strip("\n") for nid in lines]
         unique_nodelist = list(OrderedDict.fromkeys(node_list))
-        return unique_nodelist
+        unique_nodelist_shortnames = EnvResources.abbrev_nodenames(unique_nodelist)
+        return unique_nodelist_shortnames
 
     @staticmethod
     def get_lsf_nodelist(node_list_env: str) -> List[Union[str, Any]]:

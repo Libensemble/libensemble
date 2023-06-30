@@ -9,7 +9,7 @@ from multiprocessing.managers import BaseManager
 
 from libensemble.comms.comms import QComm
 
-queues = {"shared": Queue()}
+queues = {}
 
 
 def get_queue(name):

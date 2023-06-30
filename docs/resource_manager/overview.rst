@@ -5,8 +5,8 @@ Overview
 --------
 
 libEnsemble comes with built-in resource management. This entails the
-:ref:`detection of available resources<resource_detection>` (e.g., nodelists and
-core counts), and the allocation of resources to workers.
+:ref:`detection of available resources<resource_detection>` (e.g., nodelists,
+core counts, and GPUs), and the allocation of resources to workers.
 
 By default, the provisioned resources are divided by the number of workers.
 libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>` is aware of
@@ -14,18 +14,30 @@ these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and
 CPU cores available to the worker.
 
-Detected resources can be overridden using the libE_specs option :ref:`resource_info<resource_info>`.
+Detected resources can be overridden using the ``libE_specs`` option
+:ref:`resource_info<resource_info>`.
 
 Variable resource assignment
 ----------------------------
+
+.. note::
+    As of **version 0.10.0**, the concept of resource sets is not needed. The generator
+    can use special ``gen_specs["out"]`` fields of ``num_procs`` and ``num_gpus`` for each
+    simulation generated. These will be used to assign resources and will be
+    automatically passed through and used by the executor (if no other run configuration
+    is given in the submit line). Furthermore, GPUs will be automatically assigned
+    in the correct way for the given system (including Nvidia, AMD, and Intel GPUs);
+    you do not need to set ``CUDA_VISIBLE_DEVICES`` or equivalent. Example:
+    `test_GPU_variable_resources.py`_
 
 In slightly more detail, the resource manager divides resources into **resource sets**.
 One resource set is the smallest unit of resources that can be assigned (and
 dynamically reassigned) to workers. By default, the provisioned resources are
 divided by the number of workers (excluding any workers given in the
-``zero_resource_workers`` :class:`libE_specs<libensemble.specs.LibeSpecs>` option). However, it can also be set
-directly by the ``num_resource_sets`` :class:`libE_specs<libensemble.specs.LibeSpecs>` option. If the latter is set,
-the dynamic resource assignment algorithm will always be used.
+``zero_resource_workers`` :class:`libE_specs<libensemble.specs.LibeSpecs>` option).
+However, it can also be set directly by the ``num_resource_sets``
+:class:`libE_specs<libensemble.specs.LibeSpecs>` option. If the latter is set, the
+dynamic resource assignment algorithm will always be used.
 
 If there are more resource sets than nodes, then the resource sets on each node
 will be given a slot number, enumerated from zero. For example, if there are three
@@ -83,8 +95,8 @@ and supply zero resources).
         H_o["x"][i] = x[b]
         H_o["resource_sets"][i] = sim_size[b]
 
-For an example generator, see the *uniform_random_sample_with_variable_resources*
-function in `persistent_sampling.py`_
+For an example generator, see the *uniform_sample*
+function in `persistent_sampling_var_resources.py`_
 
 When the allocation function assigns the points to workers for evaluation, it
 will check if the requested number of resource sets are available for each point
@@ -108,16 +120,16 @@ Accessing resources from the simulation function
 
 In the user's simulation function, the resources supplied to the worker can be
 :doc:`interrogated directly via the resources class attribute<worker_resources>`.
-libEnsemble's executors (e.g.~ the :doc:`MPI Executor<../executor/mpi_executor>`) are
+libEnsemble's executors (e.g., the :doc:`MPI Executor<../executor/mpi_executor>`) are
 aware of these supplied resources, and if not given any of ``num_nodes``, ``num_procs``,
 or ``procs_per_node`` in the submit function, it will try to use all nodes and CPU
 cores available.
 
-`six_hump_camel.py`_ has two examples of how resource information for the worker may be
-accessed in the sim function ( *six_hump_camel_with_variable_resources* and
-*six_hump_camel_CUDA_variable_resources*).
+`var_resources.py`_ has two examples of how resource information for the worker may be
+accessed in the sim function (*multi_points_with_variable_resources* and
+*CUDA_variable_resources*).
 
-For example, in *six_hump_camel_CUDA_variable_resources*, the environment variable
+For example, in *CUDA_variable_resources*, the environment variable
 ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
@@ -138,8 +150,9 @@ while worker five would set::
 
 .. note::
     If the user sets the number of resource sets directly using the ``num_resource_sets``
-    :class:`libE_specs<libensemble.specs.LibeSpecs>` option, then the dynamic resource assignment algorithm will always be
-    used. If ``resource_sets`` is not a field in H, then each worker will use one resource set.
+    :class:`libE_specs<libensemble.specs.LibeSpecs>` option, then the dynamic resource
+    assignment algorithm will always be used. If ``resource_sets`` is not a field in ``H``,
+    then each worker will use one resource set.
 
 Resource Scheduler Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -172,7 +185,7 @@ will not be scheduled unless ``match_slots`` is set to *False*:
 
     libE_specs["scheduler_opts"] = {"match_slots": False}
 
-This is only recommended if not enumerating resources to slot IDs (e.g. via ``CUDA_VISIBLE_DEVICES``).
+This is only recommended if not enumerating resources to slot IDs (e.g., via ``CUDA_VISIBLE_DEVICES``).
 
 Note that if six resource sets were requested, then they would be split three per node, even
 if ``split2fit`` is *False*, as this could otherwise never be scheduled.
@@ -258,8 +271,10 @@ Also, this can be set on the command line as a convenience.
 
     python run_ensemble.py --comms local --nworkers 5 --nresource_sets 8
 
-.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_CUDA_variable_resources.py
+.. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
 
-.. _persistent_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling.py
+.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_CUDA_variable_resources.py
 
-.. _six_hump_camel.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/six_hump_camel.py
+.. _persistent_sampling_var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling_var_resources.py
+
+.. _var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/var_resources.py

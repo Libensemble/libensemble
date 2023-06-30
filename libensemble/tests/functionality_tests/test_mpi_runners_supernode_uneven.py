@@ -98,7 +98,7 @@ if __name__ == "__main__":
     srun_p1 = "srun -w "
     srun_p2 = " --ntasks "
     srun_p3 = " --nodes "
-    srun_p4 = " --ntasks-per-node 16 /path/to/fakeapp.x --testid base1"
+    srun_p4 = " --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base1"
 
     exp_tasks = []
     exp_srun = []

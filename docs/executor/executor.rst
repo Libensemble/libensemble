@@ -8,23 +8,23 @@ See this :doc:`example<overview>` for usage.
 
 See the Executor APIs for optional arguments.
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Alternative Executors:
-
-   mpi_executor
-   balsam_2_executor
+.. Commented out as creates duplicate menu on index page.
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: Alternative Executors:
+..
+..    mpi_executor
+..    balsam_2_executor
 
 Executor Class
 ---------------
 
 Only create an object of this class for running local serial-launched applications.
-To run MPI applications and use detected resources, use an alternative Executor
-class, as shown above.
+To run MPI applications and use detected resources, use the :doc:`MPIExecutor<../executor/mpi_executor>`
 
 .. autoclass:: libensemble.executors.executor.Executor
   :members:
-  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing
+  :exclude-members: serial_setup, sim_default_app, gen_default_app, get_app, default_app, set_resources, get_task, set_workerID, set_worker_info, new_tasks_timing, add_platform_info, set_gen_procs_gpus, kill, poll
 
   .. automethod:: __init__
 
@@ -34,8 +34,8 @@ Task Class
 ----------
 
 Tasks are created and returned through the Executor ``submit()`` function. Tasks
-can be polled and killed with the respective poll and kill functions. Task
-information can be queried through the task attributes below and the query
+can be polled, killed, waited on with the respective poll, kill, and wait functions.
+Task information can be queried through the task attributes below and the query
 functions.
 
 .. autoclass:: libensemble.executors.executor.Task

@@ -7,9 +7,8 @@ import collections
 import logging
 import os
 from typing import Optional, Tuple
-
 import psutil
-
+from libensemble.resources.gpu_detect import get_num_gpus, get_gpus_from_env
 from libensemble.resources.env_resources import EnvResources
 
 logger = logging.getLogger(__name__)
@@ -29,20 +28,21 @@ def get_cpu_cores(hyperthreads: bool = False) -> int:
     return psutil.cpu_count(logical=hyperthreads)  # This is ranks available per node
 
 
-def _get_local_cpu_resources() -> Tuple[int, int]:
-    """Returns logical and physical cores on the local node"""
-    logical_cores_avail_per_node = get_cpu_cores(hyperthreads=True)
-    physical_cores_avail_per_node = get_cpu_cores(hyperthreads=False)
-    return (physical_cores_avail_per_node, logical_cores_avail_per_node)
+def _get_local_resources() -> Tuple[int, int, int]:
+    """Returns logical and physical cores and GPUs on the local node"""
+    physical_cores = get_cpu_cores(hyperthreads=False)
+    logical_cores = get_cpu_cores(hyperthreads=True)
+    num_gpus = get_num_gpus()
+    return (physical_cores, logical_cores, num_gpus)
 
 
-def _print_local_cpu_resources():
-    """Prints logical and physical cores on the local node"""
-    cores_info = _get_local_cpu_resources()
-    print(cores_info[0], cores_info[1], flush=True)
+def _print_local_resources():
+    """Prints logical and physical cores and GPUs on the local node"""
+    cores_info = _get_local_resources()
+    print(cores_info[0], cores_info[1], cores_info[2], flush=True)
 
 
-def _get_remote_cpu_resources(launcher):
+def _get_remote_resources(launcher):
     """Launches a probe job to obtain logical and physical cores on remote node"""
     import subprocess
 
@@ -82,27 +82,111 @@ def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) ->
         return None
 
 
-def get_sub_node_resources(
-    launcher: Optional[str] = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
-) -> Tuple[int, int]:
-    """Returns logical and physical cores per node as a tuple"""
-    remote_detection = False
-    if remote_mode:
-        # May be unnecessary condition
-        if launcher in REMOTE_LAUNCH_LIST:
-            cores_info = _get_cpu_resources_from_env(env_resources=env_resources)
-            if cores_info:
-                return cores_info
-            remote_detection = True  # Cannot obtain from environment
+def _cpu_info_complete(cores_info):
+    """Returns true if cpu tuple/list entries have an integer value, else False"""
 
-    if remote_detection:
-        cores_info_str = _get_remote_cpu_resources(launcher=launcher)
-        cores_log, cores_phy, *_ = cores_info_str.split()
-        cores_info = (int(cores_log), int(cores_phy))
-    else:
-        cores_info = _get_local_cpu_resources()
+    if cores_info is None:
+        return False
+
+    for val in cores_info[:2]:
+        if not isinstance(val, int):
+            return False
+    return True
+
+
+def _gpu_info_complete(cores_info):
+    """Returns true if gpu tuple/list entries have an integer value, else False"""
+
+    if cores_info is None:
+        return False
+
+    for val in cores_info[2:]:
+        if not isinstance(val, int):
+            return False
+    return True
+
+
+def _complete_set(cores_info):
+    """Returns True if all tuple/list entries have an integer value, else False"""
+
+    if cores_info is None:
+        return False
+
+    for val in cores_info:
+        if not isinstance(val, int):
+            return False
+    return True
+
+
+def _update_values(cores_info, cores_info_updates):
+    """Update list entries in cores_info that are not set
+
+    Both CPU core entries will get overwritten if one is not set
+    """
+    if not _cpu_info_complete(cores_info):
+        cores_info[:2] = list(cores_info_updates[:2] or [None, None])
+    if not _gpu_info_complete(cores_info):
+        cores_info[2] = cores_info_updates[2]
     return cores_info
 
 
+def _update_from_str(cores_info, cores_info_str):
+    """Update unset entries in cores_info from a string
+
+    Both CPU core entries will get overwritten if one is not set
+    """
+    cores_phy, cores_log, num_gpus, *_ = cores_info_str.split()
+
+    if not _cpu_info_complete(cores_info):
+        try:
+            cores_info[:2] = [int(cores_phy), int(cores_log)]
+        except ValueError:
+            pass
+
+    if not _gpu_info_complete(cores_info):
+        try:
+            cores_info[2] = int(num_gpus)
+        except ValueError:
+            pass
+
+    return cores_info
+
+
+def get_sub_node_resources(
+    launcher: Optional[str] = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
+) -> Tuple[int, int, int]:
+    """Returns logical and physical cores and GPUs per node as a tuple
+
+    First checks for known system values, then for environment values, and finally
+    for detected values. If remote_mode is True, then detection launches a job
+    via the MPI launcher.
+
+    Any value that is already valid, is not overwritten by successive stages.
+
+    """
+    cores_info = [None, None, None]
+
+    # Check environment
+    if not _cpu_info_complete(cores_info):
+        cores_info[:2] = list(_get_cpu_resources_from_env(env_resources=env_resources) or [None, None])
+    if not _gpu_info_complete(cores_info):
+        cores_info[2] = get_gpus_from_env(env_resources=env_resources)
+    if _complete_set(cores_info):
+        return tuple(cores_info)
+
+    # Detection of cpu/gpu resources
+    # If remote then launch probe, else detect locally
+    if remote_mode:
+        cores_info_str = _get_remote_resources(launcher=launcher)
+        cores_info = _update_from_str(cores_info, cores_info_str)
+    else:
+        cores_info_detected = _get_local_resources()
+        cores_info = _update_values(cores_info, cores_info_detected)
+
+    # Convert Nones to zeros and return
+    cores_info = [0 if v is None else v for v in cores_info]
+    return tuple(cores_info)
+
+
 if __name__ == "__main__":
-    _print_local_cpu_resources()
+    _print_local_resources()

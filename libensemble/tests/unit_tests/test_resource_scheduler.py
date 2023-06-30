@@ -14,20 +14,30 @@ class MyResources:
         ("assigned", int),  # Holds worker ID assigned to or zero
         ("group", int),  # Group ID this resource set belongs to
         ("slot", int),  # Slot ID this resource set belongs to
+        ("gpus", bool),  # Does this resource set have GPUs
     ]
 
     # Basic layout
-    def __init__(self, num_rsets, num_groups):
+    def __init__(self, num_rsets, num_groups, gpus_per_node=0):
         self.total_num_rsets = num_rsets
         self.num_groups = num_groups
         self.rsets_per_node = self.total_num_rsets // num_groups
+        self.gpu_rsets_per_node = min(gpus_per_node, self.rsets_per_node)
+        self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
+
         self.even_groups = True
         self.rsets = np.zeros(self.total_num_rsets, dtype=MyResources.rset_dtype)
         self.rsets["assigned"] = 0
         for i in range(self.total_num_rsets):
             self.rsets["group"][i] = i // self.rsets_per_node
             self.rsets["slot"][i] = i % self.rsets_per_node
+            self.rsets["gpus"][i] = self.rsets["slot"][i] < gpus_per_node
         self.rsets_free = self.total_num_rsets
+        self.total_num_gpu_rsets = np.count_nonzero(self.rsets["gpus"])
+        self.total_num_nongpu_rsets = np.count_nonzero(~self.rsets["gpus"])
+
+        self.gpu_rsets_free = self.total_num_gpu_rsets
+        self.nongpu_rsets_free = self.total_num_nongpu_rsets
 
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
@@ -53,9 +63,9 @@ class MyResources:
         self.rsets_free = np.count_nonzero(self.rsets["assigned"] == 0)
 
 
-def _fail_to_resource(sched, rsets):
+def _fail_to_resource(sched, rsets, use_gpus=None):
     with pytest.raises(InsufficientFreeResources):
-        rset_team = sched.assign_resources(rsets_req=rsets)
+        rset_team = sched.assign_resources(rsets_req=rsets, use_gpus=use_gpus)
         pytest.fail(f"Expected InsufficientFreeResources. Found {rset_team}")
 
 
@@ -94,16 +104,12 @@ def test_request_zero_rsets():
     del resources
 
 
-def test_too_many_rsets():
-    """Tests request of more resource sets than exist"""
-    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
-    resources = MyResources(8, 2)
-
+def _fail_too_many_rsets(resources, use_gpus=None):
     # No options
     sched = ResourceScheduler(user_resources=resources)
 
     with pytest.raises(InsufficientResourcesError):
-        rset_team = sched.assign_resources(rsets_req=10)  # noqa F841
+        rset_team = sched.assign_resources(rsets_req=10, use_gpus=use_gpus)  # noqa F841
         pytest.fail("Expected InsufficientResourcesError")
 
     del sched
@@ -115,9 +121,22 @@ def test_too_many_rsets():
             sched_options = {"match_slots": match_slots, "split2fit": split2fit}
             sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
             with pytest.raises(InsufficientResourcesError):
-                rset_team = sched.assign_resources(rsets_req=10)  # noqa F841
+                rset_team = sched.assign_resources(rsets_req=10, use_gpus=use_gpus)  # noqa F841
                 pytest.fail("Expected InsufficientResourcesError")
             del sched
+
+
+def test_too_many_rsets():
+    """Tests request of more resource sets than exist"""
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+
+    resources = MyResources(8, 2)
+    _fail_too_many_rsets(resources)
+    del resources
+
+    resources = MyResources(12, 2, 4)
+    _fail_too_many_rsets(resources, use_gpus=True)
+    _fail_too_many_rsets(resources, use_gpus=False)
     del resources
 
 
@@ -585,6 +604,63 @@ def test_large_match_slots():
     del resources
 
 
+def test_schedule_find_gaps_2nodes_withgpus():
+    """Tests finding gaps on two nodes with equal resource sets"""
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    resources = MyResources(8, 2, 3)  # 3 gpu rsets per node.
+
+    inputs = [2, 2, 2]
+    exp_out = [[0, 1], [4, 5], [2, 6]]
+    exp_rsets_free = [6, 4, 2]
+    exp_gpu_rsets_free = [4, 2, 0]
+    exp_nongpu_rsets_free = [2, 2, 2]
+
+    num_trials = len(inputs)
+
+    for match_slots in [False, True]:
+        for split2fit in [False, True]:
+            sched_options = {"match_slots": match_slots, "split2fit": split2fit}
+            sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
+
+            for i in range(num_trials):
+                if not sched_options["split2fit"] and i == 2:
+                    expect_failure = True
+                else:
+                    expect_failure = False
+
+                if expect_failure:
+                    _fail_to_resource(sched, 2, True)
+                    exp_i = i - 1  # free resource sets should be same as previously
+                else:
+                    rset_team = sched.assign_resources(rsets_req=inputs[i], use_gpus=True)
+                    assert rset_team == exp_out[i], f"Expected {exp_out[i]}, Received rset_team {rset_team}"
+                    exp_i = i
+
+                assert sched.rsets_free == exp_rsets_free[exp_i], f"rsets_free was {sched.rsets_free}"
+                assert sched.gpu_rsets_free == exp_gpu_rsets_free[exp_i], f"gpu_rsets_free was {sched.gpu_rsets_free}"
+                assert (
+                    sched.nongpu_rsets_free == exp_nongpu_rsets_free[exp_i]
+                ), f"nongpu_rsets_free was {sched.nongpu_rsets_free}"
+
+            if expect_failure:
+                # then here expect success
+                rset_team = sched.assign_resources(rsets_req=1, use_gpus=True)
+                assert rset_team == [2], f"Expected 2, Received rset_team {rset_team}"
+            else:
+                _fail_to_resource(sched, 1, True)
+                rset_team = sched.assign_resources(rsets_req=2, use_gpus=False)
+                assert rset_team == [3, 7], f"Expected [3, 7], Received rset_team {rset_team}"
+
+                # All rsets used
+                assert sched.rsets_free == 0, f"rsets_free was {sched.rsets_free}"
+                assert sched.gpu_rsets_free == 0, f"gpu_rsets_free was {sched.gpu_rsets_free}"
+                assert sched.nongpu_rsets_free == 0, f"nongpu_rsets_free was {sched.nongpu_rsets_free}"
+
+            del sched
+            rset_team = None
+    del resources
+
+
 if __name__ == "__main__":
     test_request_zero_rsets()
     test_too_many_rsets()
@@ -603,3 +679,4 @@ if __name__ == "__main__":
     test_split2fit_even_required_various()
     test_try1node_findon_2_or_4nodes()
     test_large_match_slots()
+    test_schedule_find_gaps_2nodes_withgpus()
