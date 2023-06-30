@@ -3,20 +3,12 @@ Runs libEnsemble with APOSMM+IBCDFO on the chwirut least-squares problem.
 All 214 residual calculations for a given point are performed as a single
 simulation evaluation.
 
-Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_aposmm_ibcdfo.py
-   python test_persistent_aposmm_ibcdfo.py --nworkers 3 --comms local
-   python test_persistent_aposmm_ibcdfo.py --nworkers 3 --comms tcp
-
-When running with the above commands, the number of concurrent evaluations of
-the objective function will be 2, as one of the three workers will be the
-persistent generator.
+Execute via one of the following commands:
+   mpiexec -np 3 python test_persistent_aposmm_ibcdfo.py
+   python test_persistent_aposmm_ibcdfo.py --nworkers 2 --comms local
+Both will run with 1 manager, 1 worker running APOSMM+IBCDFO), and 1 worker
+doing the simulation evaluations.
 """
-
-# Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local mpi tcp
-# TESTSUITE_NPROCS: 4
-# TESTSUITE_EXTRA: true
 
 import multiprocessing
 import sys
@@ -24,8 +16,6 @@ import sys
 import numpy as np
 
 import libensemble.gen_funcs
-
-# Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 
