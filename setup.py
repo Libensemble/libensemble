@@ -70,7 +70,7 @@ setup(
         "libensemble.tests.regression_tests",
     ],
     package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
-    install_requires=["numpy", "psutil", "setuptools", "pydantic", "tomli", "pyyaml"],
+    install_requires=["numpy", "psutil", "setuptools", "pydantic<2", "tomli", "pyyaml"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
