@@ -1,6 +1,10 @@
 # https://stackoverflow.com/questions/47559524/pytest-how-to-skip-tests-unless-you-declare-an-option-flag/61193490#61193490
 
+import warnings
+
 import pytest
+
+warnings.simplefilter("ignore", ResourceWarning)
 
 
 def pytest_addoption(parser):

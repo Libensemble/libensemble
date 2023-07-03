@@ -62,7 +62,6 @@ if __name__ == "__main__":
     persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": nworkers * rounds}
 
-    # TODO: May move specs, inputs and expected outputs to a data_set module.
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],
@@ -175,14 +174,14 @@ if __name__ == "__main__":
     ]
 
     exp_srun = [
-        "srun -w node-1 --ntasks 2 --nodes 1 --ntasks-per-node 2 --xarg 1 /path/to/fakeapp.x --testid base1",
-        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 /path/to/fakeapp.x --testid base2",
-        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --xarg 1 /path/to/fakeapp.x --testid base3",
-        "srun -w node-1,node-2 --ntasks 128 --nodes 2 --ntasks-per-node 64 --xarg 1 /path/to/fakeapp.x --testid base4",
-        "srun -w node-1 --ntasks 16 --nodes 1 --ntasks-per-node 16 --xarg 1 /path/to/fakeapp.x --testid base5",
-        "srun -w node-1,node-2 --ntasks 16 --nodes 2 --ntasks-per-node 8 --xarg 1 /path/to/fakeapp.x --testid base6",
-        "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 /path/to/fakeapp.x --testid sr1",
-        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 /path/to/fakeapp.x --testid sr2",
+        "srun -w node-1 --ntasks 2 --nodes 1 --ntasks-per-node 2 --xarg 1 --exact /path/to/fakeapp.x --testid base1",
+        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid base2",
+        "srun -w node-1,node-2 --ntasks 32 --nodes 2 --ntasks-per-node 16 --xarg 1 --exact /path/to/fakeapp.x --testid base3",
+        "srun -w node-1,node-2 --ntasks 128 --nodes 2 --ntasks-per-node 64 --xarg 1 --exact /path/to/fakeapp.x --testid base4",
+        "srun -w node-1 --ntasks 16 --nodes 1 --ntasks-per-node 16 --xarg 1 --exact /path/to/fakeapp.x --testid base5",
+        "srun -w node-1,node-2 --ntasks 16 --nodes 2 --ntasks-per-node 8 --xarg 1 --exact /path/to/fakeapp.x --testid base6",
+        "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid sr1",
+        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr2",
     ]
 
     exp_jsrun = [

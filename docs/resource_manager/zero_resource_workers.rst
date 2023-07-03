@@ -5,7 +5,7 @@ Zero-resource workers
 
 Users with persistent ``gen_f`` functions may notice that the persistent workers
 are still automatically assigned resources. This can be wasteful if those workers
-only run ``gen_f`` functions in-place (i.e.,~  they do not use the Executor
+only run ``gen_f`` functions in-place (i.e., they do not use the Executor
 to submit applications to allocated nodes). Suppose the user is using the
 :meth:`parse_args()<tools.parse_args>` function and runs::
 
@@ -50,15 +50,15 @@ worker for the persistent generator - a common use-case.
 
 In general, the number of resource sets should be set to enable the maximum
 concurrency desired by the ensemble, taking into account generators and simulators.
-The users can set generator resources by setting ``persis_info["gen_resources"]``
+Users can set generator resources by setting ``persis_info["gen_resources"]``
 to an integer value, representing the number of resource sets to give to the
 generator. The default is zero.
 
 The available nodes are always divided by the number of resource sets, and there
 may be multiple nodes or a partition of a node in each resource set. If the split
-is uneven, resource sets are not split between nodes. E.g.~ If there are two nodes
-and five resource sets, one node will have three resource sets, and the other will
-have two.
+is uneven, resource sets are not split between nodes. For example, if there are
+two nodes and five resource sets, one node will have three resource sets, and
+the other will have two.
 
 Placing zero-resource functions on a fixed worker
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

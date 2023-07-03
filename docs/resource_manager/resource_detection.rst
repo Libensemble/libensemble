@@ -15,6 +15,7 @@ Scheduler       Nodelist Env. variable
 SLURM           SLURM_NODELIST
 COBALT          COBALT_PARTNAME
 LSF             LSB_HOSTS/LSB_MCPU_HOSTS
+PBS             PBS_NODEFILE
 ===========  ===========================
 
 These environment variable names can be modified via the  :ref:`resource_info<resource_info>`

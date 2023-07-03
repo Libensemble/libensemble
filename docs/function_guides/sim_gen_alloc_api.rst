@@ -11,7 +11,7 @@ libEnsemble package.
 
 :doc:`See here for more in-depth guides to writing user functions<function_guide_index>`
 
-As of v0.9.3+dev, valid simulator and generator functions
+As of v0.10.0, valid simulator and generator functions
 can *accept and return a smaller subset of the listed parameters and return values*. For instance,
 a ``def my_simulation(one_Input) -> one_Output`` function is now accepted,
 as is ``def my_generator(Input, persis_info) -> Output, persis_info``.

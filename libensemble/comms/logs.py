@@ -52,7 +52,7 @@ class LogConfig:
         """Sets target directory to contain logfiles if loggers not yet created"""
         dirname = Path(dirname)
         if not dirname.exists():
-            dirname.mkdir()
+            dirname.mkdir(parents=True)
         if self.logger_set:
             logger = logging.getLogger(self.name)
             logger.warning("Cannot set directory after loggers initialized")
@@ -164,7 +164,6 @@ def manager_logging_config(specs={}):
     logconfig = LogConfig.config
 
     if not logconfig.logger_set:
-
         if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
             logconfig.set_directory(specs.get("workflow_dir_path"))
 

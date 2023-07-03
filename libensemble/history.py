@@ -103,6 +103,9 @@ class History:
         H["sim_started_time"][-L:] = np.inf
         H["gen_informed_time"][-L:] = np.inf
 
+        if "resource_sets" in H.dtype.names:
+            H["resource_sets"][-L:] = 1
+
         self.H = H
         self.using_H0 = len(H0) > 0
         self.index = len(H0)
@@ -260,6 +263,8 @@ class History:
         H_1["sim_id"] = -1
         H_1["sim_started_time"] = np.inf
         H_1["gen_informed_time"] = np.inf
+        if "resource_sets" in H_1.dtype.names:
+            H_1["resource_sets"] = 1
         self.H = np.append(self.H, H_1)
 
     # Could be arguments here to return different truncations eg. all done, given etc...

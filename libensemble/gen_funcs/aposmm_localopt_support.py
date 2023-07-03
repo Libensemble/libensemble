@@ -54,6 +54,10 @@ else:
         pass
 
 
+class APOSMMException(Exception):
+    """Raised for any exception in APOSMM"""
+
+
 class ConvergedMsg(object):
     """
     Message communicated when a local optimization is converged.

@@ -1,11 +1,15 @@
 """
 This module launches and controls the running of MPI applications.
 
-In order to create an MPI executor, the calling script should contain ::
+In order to create an MPI executor, the calling script should contain:
+
+.. code-block:: python
 
     exctr = MPIExecutor()
 
-See the executor API below for Optional arguments.
+The MPIExecutor will use system resource information supplied by the libEsnemble
+resource manager when submitting tasks.
+
 """
 
 import logging
@@ -15,7 +19,7 @@ from typing import List, Optional
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
-from libensemble.executors.mpi_runner import get_runner
+from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
 from libensemble.resources.resources import Resources
 
@@ -25,31 +29,18 @@ logger = logging.getLogger(__name__)
 
 
 class MPIExecutor(Executor):
-    """The MPI executor can create, poll and kill runnable MPI tasks
-
-    **Object Attributes:**
-
-    :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
+    The MPI executor can create, poll and kill runnable MPI tasks
 
-    def __init__(self, custom_info: dict = {}) -> None:
-        """Instantiate a new MPIExecutor instance.
+    Parameters
+    ----------
 
-        A new MPIExecutor is created with an application
-        registry and configuration attributes.
+    custom_info: dict, Optional
+        Provide custom overrides to selected variables that are usually
+        auto-detected. See below.
 
-        This is typically created in the user calling script. The
-        MPIExecutor will use system resource information supplied by
-        the libEsnemble resource manager when submitting tasks.
 
-        Parameters
-        ----------
-
-        custom_info: dict, Optional
-            Provide custom overrides to selected variables that are usually
-            auto-detected. See below.
-
+    .. dropdown:: custom_info usage
 
         The MPIExecutor automatically detects MPI runners and launch
         mechanisms. However it is possible to override the detected
@@ -80,7 +71,11 @@ class MPIExecutor(Executor):
             from libensemble.executors.mpi_executor import MPIExecutor
             exctr = MPIExecutor(custom_info=customizer)
 
-        """
+
+    """
+
+    def __init__(self, custom_info: dict = {}) -> None:
+        """Instantiate a new MPIExecutor instance."""
 
         Executor.__init__(self)
 
@@ -88,25 +83,51 @@ class MPIExecutor(Executor):
         self.max_launch_attempts = 5
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
+        self.resources = None
 
         # Apply custom options
-        mpi_runner_type = custom_info.get("mpi_runner", None)
-        runner_name = custom_info.get("runner_name", None)
-        subgroup_launch = custom_info.get("subgroup_launch", None)
+        self.mpi_runner_type = custom_info.get("mpi_runner")
+        self.runner_name = custom_info.get("runner_name")
+        self.subgroup_launch = custom_info.get("subgroup_launch")
 
-        if not mpi_runner_type:
-            mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = get_runner(mpi_runner_type, runner_name)
-        if subgroup_launch is not None:
-            self.mpi_runner.subgroup_launch = subgroup_launch
-        self.resources = None
+    def add_platform_info(self, platform_info={}):
+        """Add user supplied platform info to executor"""
+
+        # Apply platform options (does not overwrite custom_info Executor options)
+        if platform_info:
+            self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
+            self.runner_name = self.runner_name or platform_info.get("runner_name")
+
+        # If runner type has not been given, then detect
+        if not self.mpi_runner_type:
+            self.mpi_runner_type = get_MPI_variant()
+        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, platform_info)
+
+        if self.subgroup_launch is not None:
+            self.mpi_runner.subgroup_launch = self.subgroup_launch
+
+        self.gen_nprocs = None
+        self.gen_ngpus = None
+
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus"""
+        self.gen_nprocs = libE_info.get("num_procs")
+        self.gen_ngpus = libE_info.get("num_gpus")
 
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
-    def _launch_with_retries(self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool) -> None:
+    def _launch_with_retries(
+        self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool, env_script: str
+    ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
+
+        if env_script is not None:
+            run_cmd = Executor._process_env_script(task, runline, env_script)
+        else:
+            run_cmd = runline
+
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
@@ -115,7 +136,7 @@ class MPIExecutor(Executor):
                 task.run_attempts += 1
                 with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
-                        runline,
+                        run_cmd,
                         cwd="./",
                         stdout=out,
                         stderr=err,
@@ -151,6 +172,7 @@ class MPIExecutor(Executor):
         num_procs: Optional[int] = None,
         num_nodes: Optional[int] = None,
         procs_per_node: Optional[int] = None,
+        num_gpus: Optional[int] = None,
         machinefile: Optional[str] = None,
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
@@ -160,10 +182,16 @@ class MPIExecutor(Executor):
         dry_run: Optional[bool] = False,
         wait_on_start: Optional[bool] = False,
         extra_args: Optional[str] = None,
+        auto_assign_gpus: Optional[bool] = False,
+        match_procs_to_gpus: Optional[bool] = False,
+        env_script: Optional[str] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
-        The created task object is returned.
+        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
+
+        The user must supply either the app_name or calc_type arguments (app_name
+        is recommended). All other arguments are optional.
 
         Parameters
         ----------
@@ -176,16 +204,19 @@ class MPIExecutor(Executor):
             The application name. Must be supplied if calc_type is not.
 
         num_procs: int, Optional
-            The total number of MPI tasks on which to submit the task
+            The total number of processes (MPI ranks)
 
         num_nodes: int, Optional
-            The number of nodes on which to submit the task
+            The number of nodes
 
         procs_per_node: int, Optional
-            The processes per node for this task
+            The processes per node
+
+        num_gpus: int, Optional
+            The total number of GPUs
 
         machinefile: str, Optional
-            Name of a machinefile for this task to use
+            Name of a machinefile
 
         app_args: str, Optional
             A string of the application arguments to be added to task
@@ -219,6 +250,21 @@ class MPIExecutor(Executor):
             resources determination unless also supplied in the direct
             options.
 
+        auto_assign_gpus: bool, optional
+            Auto-assign GPUs available to this worker using either the method
+            supplied in configuration or determined by detected environment.
+            Default: False
+
+        match_procs_to_gpus: bool, optional
+            For use with auto_assign_gpus. Auto-assigns MPI processors to match
+            the assigned GPUs. Default: False unless auto_assign_gpus is True and
+            no other CPU configuration is supplied.
+
+        env_script: str, Optional
+            The full path of a shell script to set up the environment for the
+            launched task. This will be run in the subprocess, and not affect
+            the worker environment. The script should start with a shebang.
+
         Returns
         -------
 
@@ -248,14 +294,26 @@ class MPIExecutor(Executor):
         if stage_inout is not None:
             logger.warning("stage_inout option ignored in this " "executor - runs in-place")
 
+        if not num_procs and not match_procs_to_gpus:
+            num_procs = self.gen_nprocs
+
+        if not num_gpus:
+            num_gpus = self.gen_ngpus
+
+        if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
+            num_nodes = self.resources.worker_resources.local_node_count
+
         mpi_specs = self.mpi_runner.get_mpi_specs(
             task,
             num_procs,
             num_nodes,
             procs_per_node,
+            num_gpus,
             machinefile,
             hyperthreads,
             extra_args,
+            auto_assign_gpus,
+            match_procs_to_gpus,
             self.resources,
             self.workerID,
         )
@@ -269,13 +327,17 @@ class MPIExecutor(Executor):
             runline.extend(task.app_args.split())
 
         task.runline = " ".join(runline)  # Allow to be queried
+
         if dry_run:
             task.dry_run = True
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
             task._set_complete(dry_run=True)
         else:
+            # Set environment variables and launch task
+            task._implement_env()
+
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_start)
+            self._launch_with_retries(task, runline, sglaunch, wait_on_start, env_script)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()

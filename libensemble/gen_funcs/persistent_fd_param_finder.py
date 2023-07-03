@@ -88,7 +88,7 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
             for k in range(nf + 1):
                 if k != nf / 2:
                     logical_conds = (calc_in["x_ind"] == i, calc_in["f_ind"] == j, calc_in["n_ind"] == k)
-                    Fhist0[i, j, k] = calc_in["f_val"][np.logical_and.reduce(logical_conds)]
+                    Fhist0[i, j, k] = calc_in["f_val"][np.logical_and.reduce(logical_conds)][0]
 
             # Compute noise for (i, j):
             # [Fnoise(i, j), ~, inform(i, j)] = ECnoise(nf-1, Fhist0(i, j, 2:nf));

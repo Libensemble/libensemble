@@ -17,7 +17,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
-from libensemble.api import Ensemble
+from libensemble.ensemble import Ensemble
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     sampling.from_toml("1d_sampling.toml")
     sampling.from_yaml("1d_sampling.yaml")
 
-    sampling.gen_specs["user"].update(
+    sampling.gen_specs.user.update(
         {
             "lb": np.array([-3]),
             "ub": np.array([3]),

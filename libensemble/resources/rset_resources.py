@@ -1,3 +1,4 @@
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,13 @@ class RSetResources:
     :ivar int rsets_per_node: The number of rsets per node (if an rset > 1 node, this will be 1)
     """
 
+    rset_dtype = [
+        ("group", int),  # Group ID this resource set belongs to
+        ("slot", int),  # Slot ID this resource set belongs to
+        ("gpus", bool)  # Does this resource set have GPUs
+        # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
+    ]
+
     def __init__(self, num_workers, resources):
         """Initializes a new RSetResources instance
 
@@ -42,8 +50,50 @@ class RSetResources:
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
+
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
+
+        gpus_avail_per_node = resources.gpus_avail_per_node
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
+        self.gpu_rsets_per_node = min(gpus_avail_per_node, self.rsets_per_node)
+        self.nongpu_rsets_per_node = self.rsets_per_node - self.gpu_rsets_per_node
+
+        self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
+        self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(
+            self.split_list, gpus_avail_per_node
+        )
+
+        self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
+        self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
+
+        self.gpus_per_rset = gpus_avail_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
+        self.cores_per_rset = resources.physical_cores_avail_per_node // self.rsets_per_node
+
+    @staticmethod
+    def get_group_list(split_list, gpus_per_node=0):
+        """Return lists of group ids and slot IDs by resource set"""
+        group = 1
+        slot = 0
+        group_list = []
+        slot_list = []
+        gpu_list = []
+        node = split_list[0]
+        for i in range(len(split_list)):
+            if split_list[i] == node:
+                group_list.append(group)
+                slot_list.append(slot)
+            else:
+                node = split_list[i]
+                group += 1
+                group_list.append(group)
+                slot = 0
+                slot_list.append(slot)
+            if slot < gpus_per_node:
+                gpu_list.append(True)
+            else:
+                gpu_list.append(False)
+            slot += 1
+        return group_list, slot_list, gpu_list
 
     @staticmethod
     def best_split(a, n):

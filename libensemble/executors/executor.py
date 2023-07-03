@@ -13,6 +13,9 @@ also provided to access and interrogate files in the ``task``'s working director
 import itertools
 import logging
 import os
+from pathlib import Path
+import shutil
+import stat
 import sys
 import time
 from typing import Any, Optional, Union
@@ -55,7 +58,7 @@ FAILED
 
 
 class ExecutorException(Exception):
-    "Raised for any exception in the Executor"
+    """Raised for any exception in the Executor"""
 
 
 class TimeoutExpired(Exception):
@@ -117,13 +120,13 @@ class Task:
 
     def __init__(
         self,
-        app: Optional[Application] = None,
-        app_args: Optional[str] = None,
-        workdir: Optional[str] = None,
-        stdout: Optional[str] = None,
-        stderr: Optional[str] = None,
-        workerid: Optional[int] = None,
-        dry_run: bool = False,
+        app=None,
+        app_args=None,
+        workdir=None,
+        stdout=None,
+        stderr=None,
+        workerid=None,
+        dry_run=False,
     ) -> None:
         """Instantiate a new Task instance.
 
@@ -151,6 +154,8 @@ class Task:
         self.dry_run = dry_run
         self.runline = None
         self.run_attempts = 0
+        self.env = {}
+        self.ngpus_req = 0
 
     def reset(self) -> None:
         # Status attributes
@@ -162,6 +167,11 @@ class Task:
         self.submit_time = None
         self.runtime = 0  # Time since task started to latest poll (or finished).
         self.total_time = None  # Time from task submission until polled as finished.
+        self.ngpus_req = 0
+
+    def _add_to_env(self, key, value):
+        """Add to task environment - overwrites if already set"""
+        self.env[key] = value
 
     def workdir_exists(self) -> Optional[bool]:
         """Returns true if the task's workdir exists"""
@@ -206,6 +216,13 @@ class Task:
             self.timer.stop()
             self.runtime = self.timer.elapsed
             self.total_time = self.runtime  # For direct launched tasks
+
+    def _implement_env(self):
+        """Set environment variables for this task"""
+        if self.env:
+            logger.debug(f"Task: {self.name}: Setting environment vars {self.env}")
+        for k, v in self.env.items():
+            os.environ[k] = v
 
     def _check_poll(self) -> bool:
         """Check whether polling this task makes sense."""
@@ -315,6 +332,14 @@ class Task:
     def kill(self, wait_time: int = 60) -> None:
         """Kills or cancels the supplied task
 
+        Parameters
+        ----------
+
+        wait_time: int, Optional
+            Time in seconds to wait for termination between sending
+            SIGTERM and a SIGKILL signals.
+
+
         Sends SIGTERM, waits for a period of <wait_time> for graceful
         termination, then sends a hard kill with SIGKILL.  If <wait_time>
         is 0, we go immediately to SIGKILL; if <wait_time> is none, we
@@ -358,10 +383,6 @@ class Executor:
 
     :cvar Executor: executor: The executor object is stored here and can be retrieved in user functions.
 
-    **Object Attributes:**
-
-    :ivar list list_of_tasks: A list of tasks created in this executor
-    :ivar int manager_signal: The most recent manager signal received since manager_poll() was called.
     """
 
     executor = None
@@ -394,8 +415,13 @@ class Executor:
     def __init__(self) -> None:
         """Instantiate a new Executor instance.
 
-        A new Executor object is created.
-        This is typically created in the user calling script.
+        Returns
+        -------
+
+        Executor
+            A new Executor object is created.
+            This is typically created in the user calling script.
+
         """
 
         self.manager_signal = None
@@ -449,6 +475,20 @@ class Executor:
 
     def set_resources(self, resources: Resources):
         # Does not use resources
+        pass
+
+    def add_platform_info(self, platform_info={}):
+        """Add user supplied platform info to executor
+
+        Base executor does not currently use platform info
+        """
+        pass
+
+    def set_gen_procs_gpus(self, libE_info):
+        """Add gen supplied procs and gpus
+
+        Base executor does not currently use procs and gpus
+        """
         pass
 
     def register_app(
@@ -641,12 +681,13 @@ class Executor:
         app_args: Optional[str] = None,
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
-        dry_run: bool = False,
-        wait_on_start: bool = False,
+        dry_run: Optional[bool] = False,
+        wait_on_start: Optional[bool] = False,
+        env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 
-        The created task object is returned.
+        The created :class:`task<libensemble.executors.executor.Task>` object is returned.
 
         Parameters
         ----------
@@ -676,6 +717,11 @@ class Executor:
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing
 
+        env_script: str, Optional
+            The full path of a shell script to set up the environment for the
+            launched task. This will be run in the subprocess, and not affect
+            the worker environment. The script should start with a shebang.
+
         Returns
         -------
 
@@ -703,11 +749,19 @@ class Executor:
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
         else:
+            if env_script is not None:
+                run_cmd = Executor._process_env_script(task, runline, env_script)
+            else:
+                run_cmd = runline
+
+            # Set environment variables and launch task
+            task._implement_env()
+
             # Launch Task
             logger.info(f"Launching task {task.name}: {' '.join(runline)}")
             with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                 task.process = launcher.launch(
-                    runline,
+                    run_cmd,
                     cwd="./",
                     stdout=out,
                     stderr=err,
@@ -724,11 +778,28 @@ class Executor:
         return task
 
     def poll(self, task: Task) -> None:
-        "Polls a task"
+        """Polls the supplied task"""
         task.poll()
 
     def kill(self, task: Task) -> None:
-        "Kills a task"
+        """Kills the supplied task"""
         jassert(isinstance(task, Task), "Invalid task has been provided")
         task.poll()
         task.kill(self.wait_time)
+
+    @staticmethod
+    def _process_env_script(task, runline, env_script):
+        """Merge users environment script with generated run-line"""
+        sout_f = task.name + "_run.sh"
+        p = Path(".")
+        shutil.copy(env_script, p / sout_f)
+        st = os.stat(sout_f)
+        os.chmod(sout_f, st.st_mode | stat.S_IEXEC)
+        run_line_str = " ".join(runline)
+
+        with open(sout_f, "a") as sout:
+            sout.write(run_line_str)
+
+        run_str = "./" + sout_f
+        run_cmd = run_str.split()
+        return run_cmd

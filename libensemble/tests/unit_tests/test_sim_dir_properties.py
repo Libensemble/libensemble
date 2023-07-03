@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 
 import numpy as np
 
@@ -43,7 +44,7 @@ def test_copy_back(tmp_path):
     back their work into a directory created by the manager."""
 
     inputdir = tmp_path / "calc"
-    copybackdir = "./calc"
+    copybackdir = "./calc_back"
     inputfile = tmp_path / "calc/file"
 
     for dire in [inputdir, copybackdir]:
@@ -71,7 +72,7 @@ def test_copy_back(tmp_path):
     libE_specs = {"sim_dirs_make": True, "ensemble_dir_path": inputdir, "ensemble_copy_back": True}
 
     ls = LocationStack()
-    ls.register_loc("test", inputfile)
+    ls.register_loc("test", Path(inputfile))
     ed = EnsembleDirectory(libE_specs, ls)
     ed.copy_back()
     assert "file" in os.listdir(copybackdir), "File not copied back to starting dire"
@@ -185,7 +186,7 @@ def test_workflow_dir_copyback(tmp_path):
         "ensemble_dir_path": tmp_path,
         "ensemble_copy_back": True,
         "use_workflow_dir": True,
-        "workflow_dir_path": "./fake_workflow",
+        "workflow_dir_path": "./workflow_intermediate_copyback/fake_workflow",
     }
 
     ls = LocationStack()
@@ -193,7 +194,7 @@ def test_workflow_dir_copyback(tmp_path):
     ed = EnsembleDirectory(libE_specs, ls)
     copybackdir = ed.copybackdir
 
-    assert "./fake_workflow" in copybackdir, "workflow_dir wasn't considered as destination for copyback"
+    assert "fake_workflow" in str(copybackdir), "workflow_dir wasn't considered as destination for copyback"
 
     ed.copy_back()
     assert "file" in os.listdir(copybackdir), "File not copied back to starting dire"
