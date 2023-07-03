@@ -38,7 +38,7 @@ try:
 
     print(dir(minqsw))
 except ModuleNotFoundError:
-    sys.exit("Ensure https://github.com/POptUS/minq is in (or symlinked) in the same directory as calling script")
+    sys.exit("Ensure https://github.com/POptUS/minq is located/similinked in the same directory as the calling script")
 
 
 def combine_component(x):
