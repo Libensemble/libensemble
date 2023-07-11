@@ -20,17 +20,17 @@ import sys
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 
 # Fixed resources (one resource set per worker) - persistent gen
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.libE import libE
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Uncomment for var resources (checksum will change due to rng differences)
 # from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
-from libensemble.libE import libE
-from libensemble.tools import add_unique_random_streams, parse_args
 
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()

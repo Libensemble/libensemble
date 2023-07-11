@@ -13,14 +13,10 @@ __all__ = [
 
 import sys
 import time
+
 import numpy as np
 
-from libensemble.message_numbers import (
-    EVAL_SIM_TAG,
-    FINISHED_PERSISTENT_SIM_TAG,
-    PERSIS_STOP,
-    STOP_TAG,
-)
+from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 
