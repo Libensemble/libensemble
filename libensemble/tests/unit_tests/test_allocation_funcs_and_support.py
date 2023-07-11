@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import libensemble.manager as man
 import libensemble.tests.unit_tests.setup as setup
@@ -6,11 +7,10 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.history import History
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import ResourceScheduler, InsufficientResourcesError
+from libensemble.resources.scheduler import InsufficientResourcesError, ResourceScheduler
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools.alloc_support import AllocException, AllocSupport
 from libensemble.tools.fields_keys import libE_fields
-import pytest
 
 al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
