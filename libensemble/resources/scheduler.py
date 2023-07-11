@@ -345,7 +345,7 @@ class ResourceScheduler:
         return rsets_req, num_groups_req, rsets_per_group
 
     def check_params(self, user_params, ngroups):
-        """Retrun True if all user params divide by number of groups, else False"""
+        """Return True if all user params divide by number of groups, else False"""
         for param in user_params:
             if param % ngroups != 0:
                 return False
