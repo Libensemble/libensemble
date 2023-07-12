@@ -392,12 +392,13 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     else:
         exit_logger = None
 
-    if Executor.executor is not None and isinstance(Executor.executor, MPIExecutor):
-        logger.manager_warning(
-            "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
-            + "       Expect complications if using Open MPI."
-            + " An MPICH-derived MPI distribution is recommended instead.\n"
-        )
+    if isinstance(Executor.executor, MPIExecutor):
+        if Executor.executor.mpi_runner_type == "openmpi":
+            logger.manager_warning(
+                "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
+                + "       Expect complications if using Open MPI."
+                + " An MPICH-derived MPI distribution is recommended for nested MPI workflows. \n"
+            )
 
     def cleanup():
         """Process cleanup required on exit"""
