@@ -33,7 +33,7 @@ class LocationStack:
                 shutil.rmtree(dest_path)
             try:
                 if file_path.is_dir():
-                    shutil.copytree(file_path, dest_path, dirs_exist_ok=True)
+                    shutil.copytree(file_path, dest_path, dirs_exist_ok=allow_overwrite)
                 else:
                     shutil.copy(file_path, dest_path)
             except FileExistsError:

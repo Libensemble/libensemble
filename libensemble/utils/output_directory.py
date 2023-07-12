@@ -73,7 +73,7 @@ class EnsembleDirectory:
         try:
             if not self.allow_overwrite:
                 assert not self.ensemble_dir.exists()
-        except FileNotFoundError:
+        except AssertionError:
             pass
         except Exception:
             raise
