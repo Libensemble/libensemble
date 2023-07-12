@@ -278,6 +278,8 @@ class Ensemble:
     def libE_specs(self, new_specs):
         if not isinstance(new_specs, dict):
             new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+        if isinstance(self._libE_specs, dict):
+            self._libE_specs = LibeSpecs(**self._libE_specs)
         self._libE_specs.__dict__.update(**new_specs)
 
     def run(self) -> (npt.NDArray, dict, int):
