@@ -43,6 +43,7 @@ if __name__ == "__main__":
     libE_specs["sim_dir_copy_files"] = [dir_to_copy]
     libE_specs["sim_dir_symlink_files"] = [dir_to_symlink]
     libE_specs["ensemble_copy_back"] = True
+    libE_specs["allow_dir_overwrite"] = True
 
     sim_specs = {
         "sim_f": sim_f,

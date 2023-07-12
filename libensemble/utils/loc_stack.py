@@ -16,8 +16,12 @@ class LocationStack:
         self.dirs = {}
         self.stack = []
 
-    def copy_or_symlink(
-        self, destdir: str, copy_files: List[Path] = [], symlink_files: List[Path] = [], ignore_FileExists: bool = False
+    def copy_file(
+        self,
+        destdir: Path,
+        copy_files: List[Path] = [],
+        ignore_FileExists: bool = False,
+        allow_overwrite: bool = False,
     ) -> None:
         """Inspired by https://stackoverflow.com/a/9793699.
         Determine paths, basenames, and conditions for copying/symlinking
@@ -25,9 +29,11 @@ class LocationStack:
         for file_path in copy_files:
             file_path = Path(file_path).absolute()
             dest_path = destdir / Path(file_path.name)
+            if allow_overwrite and dest_path.exists():
+                shutil.rmtree(dest_path)
             try:
                 if file_path.is_dir():
-                    shutil.copytree(file_path, dest_path)
+                    shutil.copytree(file_path, dest_path, dirs_exist_ok=True)
                 else:
                     shutil.copy(file_path, dest_path)
             except FileExistsError:
@@ -36,9 +42,19 @@ class LocationStack:
                 else:  # Indicates problem with unique sim_dirs
                     raise
 
+    def symlink_file(
+        self,
+        destdir: Path,
+        symlink_files: List[Path] = [],
+        ignore_FileExists: bool = False,
+        allow_overwrite: bool = False,
+    ) -> None:
+
         for file_path in symlink_files:
             src_path = Path(file_path).absolute()
             dest_path = destdir / Path(file_path.name)
+            if allow_overwrite and dest_path.exists():
+                dest_path.unlink(missing_ok=True)
             try:
                 os.symlink(src_path, dest_path)
             except FileExistsError:
@@ -55,6 +71,7 @@ class LocationStack:
         copy_files: List[Path] = [],
         symlink_files: List[Path] = [],
         ignore_FileExists: bool = False,
+        allow_overwrite: bool = False,
     ) -> str:
         """Register a new location in the dictionary.
 
@@ -84,8 +101,11 @@ class LocationStack:
             dirname.mkdir(parents=True, exist_ok=True)
 
         self.dirs[key] = dirname
-        if len(copy_files) or len(symlink_files):
-            self.copy_or_symlink(dirname, copy_files, symlink_files, ignore_FileExists)
+        if len(copy_files):
+            self.copy_file(dirname, copy_files, ignore_FileExists, allow_overwrite)
+
+        if len(symlink_files):
+            self.symlink_file(dirname, symlink_files, ignore_FileExists, allow_overwrite)
 
         return dirname
 
