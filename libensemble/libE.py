@@ -387,17 +387,17 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     """Manager routine runs on rank 0."""
     from libensemble.comms.mpi import MainMPIComm
 
-    if Executor.executor is not None:
-        if isinstance(Executor.executor, MPIExecutor) and libE_specs["comms"] == "mpi":
-            logger.manager_warning(
-                "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
-                + "         Expect complications if not using an `MPICH` MPI distribution.\n"
-            )
-
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
+
+    if Executor.executor is not None and isinstance(Executor.executor, MPIExecutor):
+        logger.manager_warning(
+            "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
+            + "       Expect complications if using Open MPI."
+            + " An MPICH-derived MPI distribution is recommended instead.\n"
+        )
 
     def cleanup():
         """Process cleanup required on exit"""
