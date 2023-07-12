@@ -23,6 +23,7 @@ __all__ = [
 ]
 
 import os
+
 import numpy as np
 
 from libensemble.executors.executor import Executor

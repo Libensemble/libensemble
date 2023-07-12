@@ -13,11 +13,11 @@ also provided to access and interrogate files in the ``task``'s working director
 import itertools
 import logging
 import os
-from pathlib import Path
 import shutil
 import stat
 import sys
 import time
+from pathlib import Path
 from typing import Any, Optional, Union
 
 import libensemble.utils.launcher as launcher

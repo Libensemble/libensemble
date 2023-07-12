@@ -1,5 +1,6 @@
-import numpy as np
 import logging
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
