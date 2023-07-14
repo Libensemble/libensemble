@@ -7,6 +7,14 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
+.. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+   :target: https://anaconda.org/conda-forge/libensemble
+
+.. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
+   :target: https://spack.readthedocs.io/en/latest/package_list.html#py-libensemble
+
+|
+
 .. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
 
