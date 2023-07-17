@@ -252,7 +252,7 @@ class LibeSpecs(BaseModel):
     in the workflow directory.
     """
 
-    allow_dir_overwrite: Optional[bool] = False
+    reuse_ensemble_dir: Optional[bool] = False
     """
     Whether to allow overwrites and access to previous ensemble directories in subsequent runs. ``False``
     by default to protect results.
