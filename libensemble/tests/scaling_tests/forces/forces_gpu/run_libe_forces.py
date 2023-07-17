@@ -27,13 +27,8 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
-# Uncomment for var resources
-# from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
-
-
 # Uncomment for var resources (checksum will change due to rng differences)
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_variable_resources as gen_f
-
 
 # Parse number of workers, comms type, etc. from arguments
 nworkers, is_manager, libE_specs, _ = parse_args()
