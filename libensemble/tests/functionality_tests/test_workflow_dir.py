@@ -62,10 +62,32 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 21}
 
+    ensemble_lens = []
+    stats_lens = []
+
     for i in range(2):
 
-        libE_specs["workflow_dir_path"] = "./test_workflow" + str(i)
+        libE_specs["workflow_dir_path"] = (
+            "./test_workflow" + str(i) + "_nworkers" + str(nworkers) + "_comms-" + libE_specs["comms"]
+        )
 
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-        assert os.path.isdir(libE_specs["workflow_dir_path"])
+        assert os.path.isdir(libE_specs["workflow_dir_path"]), "workflow_dir not created"
+        assert all(
+            [
+                i in os.listdir(libE_specs["workflow_dir_path"])
+                for i in ["ensemble.log", "libE_stats.txt", "ensemble", "ensemble_back"]
+            ]
+        )
+
+        with open(os.path.join(libE_specs["workflow_dir_path"], "ensemble.log"), "r") as f:
+            lines = f.readlines()
+            ensemble_lens.append(len(lines))
+
+        with open(os.path.join(libE_specs["workflow_dir_path"], "libE_stats.txt"), "r") as f:
+            lines = f.readlines()
+            stats_lens.append(len(lines))
+
+    assert ensemble_lens[0] == ensemble_lens[1], "ensemble.log's didn't have same length"
+    assert stats_lens[0] == stats_lens[1], "libE_stats.txt's didn't have same length"
