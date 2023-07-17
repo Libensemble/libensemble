@@ -335,6 +335,8 @@ Each of these example files can be found in the repository in `examples/tutorial
 For further experimentation, we recommend trying out this libEnsemble tutorial
 workflow on a cluster or multi-node system, since libEnsemble can also manage
 those resources and is developed to coordinate computations at huge scales.
+See ref:`HPC platform guides<platform-index>` for more information.
+
 Please feel free to contact us or open an issue on GitHub_ if this tutorial
 workflow doesn't work properly on your cluster or other compute resource.
 
