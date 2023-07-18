@@ -16,6 +16,8 @@ In view of libEnsemble's compiled dependencies, the following installation
 methods each offer a trade-off between convenience and the ability
 to customize builds, including platform-specific optimizations.
 
+We always recommend installing in a virtual environment from Conda or another source.
+
 Further recommendations for selected HPC systems are given in the
 :ref:`HPC platform guides<platform-index>`.
 
@@ -26,13 +28,6 @@ Further recommendations for selected HPC systems are given in the
         To install the latest PyPI_ release::
 
             pip install libensemble
-
-        The above comes with required dependencies only. To install with some
-        common user function dependencies (as used in the examples and tests)::
-
-            pip install libensemble[extras]
-
-        Note that since ``PETSc`` will build from source, this may take a while.
 
         To pip install libEnsemble from the latest develop branch::
 
@@ -110,7 +105,7 @@ Further recommendations for selected HPC systems are given in the
         the required dependencies only. There are other optional
         dependencies that can be specified through variants. The following
         line installs libEnsemble version 0.7.2 with some common variants
-        (e.g.~ using :doc:`APOSMM<../examples/aposmm>`):
+        (e.g., using :doc:`APOSMM<../examples/aposmm>`):
 
         .. code-block:: bash
 
@@ -122,7 +117,7 @@ Further recommendations for selected HPC systems are given in the
 
         On some platforms you may wish to run libEnsemble without ``mpi4py``,
         using a serial PETSc build. This is often preferable if running on
-        the launch nodes of a three-tier system (e.g. Theta/Summit)::
+        the launch nodes of a three-tier system (e.g., Theta/Summit)::
 
             spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 

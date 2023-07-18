@@ -31,7 +31,7 @@ def EvaluateFunction(x, component):
         x2 = x[2 * i + 1]
         f = 100 * (x1**2 - x2) ** 2 + (x1 - 1) ** 2
 
-    return f
+    return f[0]
 
 
 def EvaluateJacobian(x, component, const):

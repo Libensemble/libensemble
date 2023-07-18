@@ -8,6 +8,26 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.10.1
+--------------
+
+:Date: July 10, 2023
+
+Hotfix for breaking changes in Pydantic.
+
+* Pin Pydantic to version < 2.
+* Minor fixes for NumPy 1.25 deprecations.
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF) and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10, 3.11.
+
+:Known issues:
+
+* See known issues section in the documentation.
+
+
 Release 0.10.0
 --------------
 

@@ -14,6 +14,8 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
+import warnings
+
 import numpy as np
 
 from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
@@ -23,6 +25,8 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.borehole import borehole as sim_f
 from libensemble.sim_funcs.borehole import borehole_func, gen_borehole_input
 from libensemble.tools import parse_args, save_libE_output
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

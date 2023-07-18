@@ -124,6 +124,7 @@ from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
+from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
 from libensemble.resources.platforms import get_platform
@@ -390,6 +391,14 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
         exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
+
+    if isinstance(Executor.executor, MPIExecutor):
+        if Executor.executor.mpi_runner_type == "openmpi":
+            logger.manager_warning(
+                "WARNING: Nested MPI-workflow detected. User initialized both an MPI runtime and an MPI Executor.\n"
+                + "       Expect complications if using Open MPI."
+                + " An MPICH-derived MPI distribution is recommended for nested MPI workflows. \n"
+            )
 
     def cleanup():
         """Process cleanup required on exit"""
