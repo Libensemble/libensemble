@@ -165,7 +165,7 @@ def manager_logging_config(specs={}):
 
     formatter = logging.Formatter(logconfig.fmt)
     wfilter = WorkerIDFilter(0)
-    fh = logging.FileHandler(logconfig.filename, mode="w")
+    fh = logging.FileHandler(logconfig.filename, mode="a")
     fh.addFilter(wfilter)
     fh.setFormatter(formatter)
     logger = logging.getLogger(logconfig.name)
@@ -178,7 +178,7 @@ def manager_logging_config(specs={}):
 
     # Stats logging
     # NB: Could add a specialized handler for immediate flushing
-    fhs = logging.FileHandler(logconfig.stat_filename, mode="w")
+    fhs = logging.FileHandler(logconfig.stat_filename, mode="a")
     fhs.addFilter(wfilter)
     fhs.setFormatter(logging.Formatter("%(prefix)s: %(message)s"))
     stat_logger = logging.getLogger(logconfig.stats_name)
