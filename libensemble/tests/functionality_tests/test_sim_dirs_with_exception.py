@@ -31,7 +31,7 @@ if __name__ == "__main__":
     e_ensemble = "./ensemble_ex_w" + str(nworkers) + "_" + libE_specs.get("comms")
 
     if not os.path.isdir(e_ensemble):
-        os.makedirs(os.path.join(e_ensemble, "sim0_worker0"), exist_ok=True)
+        os.makedirs(os.path.join(e_ensemble, "sim0"), exist_ok=True)
 
     libE_specs["sim_dirs_make"] = True
     libE_specs["ensemble_dir_path"] = e_ensemble

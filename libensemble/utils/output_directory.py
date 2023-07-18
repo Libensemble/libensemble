@@ -71,10 +71,10 @@ class EnsembleDirectory:
     def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
         try:
-            if not self.allow_overwrite:
-                assert not self.ensemble_dir.exists()
+            assert not self.ensemble_dir.exists()
         except AssertionError:
-            pass
+            if not self.allow_overwrite:
+                raise
         except Exception:
             raise
         if self.ensemble_copy_back:
