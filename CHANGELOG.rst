@@ -19,6 +19,10 @@ Release 0.10.2
 
 * Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
 
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF), Polaris (ALCF), Perlmutter (NERSC), Theta (ALCF) and Bebop. The major system tests ran heterogeneous workflows.
+
 :Known issues:
 
 * On systems using SLURM 23.02, some issues have been experienced when using ``mpi4py`` comms.
