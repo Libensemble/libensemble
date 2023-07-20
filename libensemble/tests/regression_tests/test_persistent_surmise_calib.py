@@ -25,6 +25,7 @@ in the libEnsemble documentation.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 3 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
 
 # Requires:
 #   Install Surmise package
