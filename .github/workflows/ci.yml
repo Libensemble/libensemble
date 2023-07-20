@@ -131,7 +131,7 @@ jobs:
             conda env update --file install/gen_deps_environment.yml
 
             pip install ax-platform==0.2.8
-            pip install --upgrade git+https://github.com/surmising/surmise.git@develop
+            pip install --upgrade git+https://github.com/surmising/surmise.git
 
         - name: Build ytopt and dependencies
           if: matrix.python-version != '3.11' && matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
