@@ -15,6 +15,7 @@ problems that can benefit from increased parallelism.
 """
 
 from pathlib import Path
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 

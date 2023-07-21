@@ -27,7 +27,7 @@ Assuming MPI and its C compiler ``mpicc`` are available, compile
 
     $ mpicc -O3 -o forces.x forces.c -lm
 
-Alternative build lines for difference platforms can be found in the ``build_forces.sh``
+Alternative build lines for different platforms can be found in the ``build_forces.sh``
 file in the same directory.
 
 Calling Script
@@ -66,7 +66,7 @@ containing:
 On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 
 Registering an application is as easy as providing the full file-path and giving
-it a memorable name. This Executor will later be retrieved within our simulation
+it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
 Next define the :ref:`sim_specs<datastruct-sim-specs>` and
