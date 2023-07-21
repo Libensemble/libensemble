@@ -14,7 +14,7 @@ Release 0.10.2
 :Date: July 20, 2023
 
 * Fixes issues with workflow directories:
-  * Ensure relative paths are interpreted from where calling script is run. #1020
+  * Ensure relative paths are interpreted from where libEnsemble is run. #1020
   * Create intermediate directories for workflow paths. #1017
 
 * Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
