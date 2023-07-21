@@ -47,7 +47,6 @@ Hotfix for breaking changes in Pydantic.
 
 * See known issues section in the documentation.
 
-
 Release 0.10.0
 --------------
 
