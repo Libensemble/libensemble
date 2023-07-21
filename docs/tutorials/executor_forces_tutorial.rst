@@ -6,13 +6,13 @@ This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`.
 
-In this tutorial, our calling script registers a compiled executable that simulates
+This tutorial's calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 if the run was successful.
 
 This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`,
-since it can automatically detect available MPI runners and resources.
+which automatically detects available MPI runners and resources.
 
 Getting Started
 ---------------

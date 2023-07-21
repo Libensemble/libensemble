@@ -13,7 +13,7 @@ Release 0.10.2
 
 :Date: July 20, 2023
 
-* Fix issues with workflow dirs:
+* Fixes issues with workflow directories:
   * Ensure relative paths are interpreted from where calling script is run. #1020
   * Create intermediate directories for workflow paths. #1017
 

@@ -171,9 +171,9 @@ the given system (rather than building from scratch). This may include
 ``Python`` and the packages distributed with it (e.g., ``numpy``), and will
 often include the system MPI library.
 
-.. _GitHub: https://github.com/Libensemble/libensemble
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _GitHub: https://github.com/Libensemble/libensemble
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
 .. _`Open MPI`: https://www.open-mpi.org/
@@ -183,4 +183,4 @@ often include the system MPI library.
 .. _Python: http://www.python.org
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
-.. _ tomli: https://github.com/hukkin/tomli
+.. _tomli: https://github.com/hukkin/tomli
