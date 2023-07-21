@@ -42,11 +42,14 @@ for installing libEnsemble, including using Spack.
 Ensuring use of mpiexec
 -----------------------
 
-If using the :doc:`MPIExecutor<../executor/mpi_executor>` it is recommended to
-ensure you are using ``mpiexec`` instead of ``aprun``. When setting up the executor use::
+Prior to libE v 0.10.0, when using the :doc:`MPIExecutor<../executor/mpi_executor>` it
+is necessary to manually tell libEnsemble to use``mpiexec`` instead of ``aprun``.
+When setting up the executor use::
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})
+
+From version 0.10.0, this is not necessary.
 
 Job Submission
 --------------

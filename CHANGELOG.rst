@@ -8,6 +8,26 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 0.10.2
+--------------
+
+:Date: July 20, 2023
+
+* Fix issues with workflow dirs:
+  * Ensure relative paths are interpreted from where calling script is run. #1020
+  * Create intermediate directories for workflow paths. #1017
+
+* Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF), Polaris (ALCF), Perlmutter (NERSC), Theta (ALCF) and Bebop. The major system tests ran heterogeneous workflows.
+
+:Known issues:
+
+* On systems using SLURM 23.02, some issues have been experienced when using ``mpi4py`` comms.
+* See the known issues section in the documentation for more information (https://libensemble.readthedocs.io/en/main/known_issues.html).
+
 Release 0.10.1
 --------------
 
@@ -36,16 +56,16 @@ Release 0.10.0
 New capabilities:
 
 * Enhance portability and simplify the assignment of procs/GPUs to worker resources #928 / #983
- * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
- * Auto-determination of GPU assignment method by MPI runner or provided platform.
- * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
- * Add `set_to_gpus` function (similar to `set_to_slots`).
- * Allow users to specify known systems via option or environment variable.
- * Allow users to specify their own system configurations.
- * These changes remove a number of tweaks that were needed for particular platforms.
+  * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
+  * Auto-determination of GPU assignment method by MPI runner or provided platform.
+  * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
+  * Add `set_to_gpus` function (similar to `set_to_slots`).
+  * Allow users to specify known systems via option or environment variable.
+  * Allow users to specify their own system configurations.
+  * These changes remove a number of tweaks that were needed for particular platforms.
 
 *  Resource management supports GPU and non-GPU simulations in the same ensemble. #993
- * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
+  * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
 
 * Pydantic models are used for validating major libE input (input can be provided as classes or dictionaries). #878
 * Added option to store output and ensemble directories in a workflow directory. #982
@@ -71,10 +91,10 @@ Documentation:
 Tests and Examples:
 
 * Updated forces_gpu tutorial example. #956
- * Source code edit is not required for the GPU version.
- * Reports whether running on device or host.
- * Increases problem size.
- * Added versions with persistent generator and multi-task (GPU v non-GPU).
+  * Source code edit is not required for the GPU version.
+  * Reports whether running on device or host.
+  * Increases problem size.
+  * Added versions with persistent generator and multi-task (GPU v non-GPU).
 * Moved multiple tests, generators, and simulators to the community repo.
 * Added ytopt example. And updated heFFTe example. #943
 * Support Python 3.11 #922
