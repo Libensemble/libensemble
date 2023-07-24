@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 0.10.2
 --------------
 
-:Date: July 20, 2023
+:Date: July 24, 2023
 
 * Fixes issues with workflow directories:
   * Ensure relative paths are interpreted from where libEnsemble is run. #1020
