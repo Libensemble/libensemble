@@ -52,7 +52,7 @@ class LogConfig:
         """Sets target directory to contain logfiles if loggers not yet created"""
         dirname = Path(dirname)
         if not dirname.exists():
-            dirname.mkdir()
+            dirname.mkdir(parents=True)
         if self.logger_set:
             logger = logging.getLogger(self.name)
             logger.warning("Cannot set directory after loggers initialized")

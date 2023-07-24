@@ -2,31 +2,23 @@
 Executor with Electrostatic Forces
 ==================================
 
-This tutorial highlights libEnsemble's capability to execute
+This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
-functions using the :doc:`executor<../executor/overview>`. In this tutorial,
-our calling script registers a compiled executable that simulates
+functions using the :doc:`executor<../executor/overview>`.
+
+This tutorial's calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 if the run was successful.
 
-It is possible to use ``subprocess`` calls from Python to issue
-commands such as ``jsrun`` or ``aprun`` to run applications. Unfortunately,
-hard-coding such commands within user scripts isn't portable.
-Furthermore, many systems like Argonne's :doc:`Theta<../platforms/theta>` do not
-allow libEnsemble to submit additional tasks from the compute nodes. On these
-systems, a proxy launch mechanism (such as Balsam) is required.
-libEnsemble's Executors were developed to directly address such issues.
-
-In particular, we'll be experimenting with
-libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`, since it can automatically
-detect available MPI runners and resources, and by default divide them equally among workers.
+This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`,
+which automatically detects available MPI runners and resources.
 
 Getting Started
 ---------------
 
 The simulation source code ``forces.c`` can be obtained directly from the
-libEnsemble repository here_.
+libEnsemble repository in the forces_app_ directory.
 
 Assuming MPI and its C compiler ``mpicc`` are available, compile
 ``forces.c`` into an executable (``forces.x``) with:
@@ -35,8 +27,13 @@ Assuming MPI and its C compiler ``mpicc`` are available, compile
 
     $ mpicc -O3 -o forces.x forces.c -lm
 
+Alternative build lines for different platforms can be found in the ``build_forces.sh``
+file in the same directory.
+
 Calling Script
 --------------
+
+Complete scripts for this example can be found in the forces_simple_ directory.
 
 Let's begin by writing our calling script to parameterize our simulation and
 generation functions and call libEnsemble. Create a Python file called `run_libe_forces.py`
@@ -66,13 +63,11 @@ containing:
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
     exctr.register_app(full_path=sim_app, app_name="forces")
 
-On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>` class instance,
-which can optionally be customized by specifying alternative MPI runners. The
-auto-detected default should be sufficient.
+On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 
 Registering an application is as easy as providing the full file-path and giving
-it a memorable name. This Executor instance will later be retrieved within our
-simulation function to launch the registered app.
+it a memorable name. This Executor will later be used within our simulation
+function to launch the registered app.
 
 Next define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>` data structures. Recall that these
@@ -225,12 +220,10 @@ for starters:
 
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
-as a random number seed here. Note a fourth argument can be added to forces
-that gives forces a chance of a "bad run" (a float between 0 and 1), but
-for now that will default to zero.
+as a random number seed here.
 
-We then retrieve our previously instantiated Executor instance from the
-class definition, where it was automatically stored as an attribute.
+We then retrieve our previously instantiated Executor from the class definition,
+where it was automatically stored as an attribute.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
@@ -283,10 +276,10 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
     $ python run_libe_forces.py --comms local --nworkers [nworkers]
 
-This may take up to a minute to complete. Output files---including ``forces.stat``
-and files containing ``stdout`` and ``stderr`` content for each task---should
-appear in the current working directory. Overall workflow information
-should appear in ``libE_stats.txt`` and ``ensemble.log`` as usual.
+Output files---including ``forces.stat`` and files containing ``stdout`` and
+``stderr`` content for each task---should appear in the current working
+directory. Overall workflow information should appear in ``libE_stats.txt``
+and ``ensemble.log`` as usual.
 
 For example, my ``libE_stats.txt`` resembled::
 
@@ -338,6 +331,8 @@ Each of these example files can be found in the repository in `examples/tutorial
 For further experimentation, we recommend trying out this libEnsemble tutorial
 workflow on a cluster or multi-node system, since libEnsemble can also manage
 those resources and is developed to coordinate computations at huge scales.
+See ref:`HPC platform guides<platform-index>` for more information.
+
 Please feel free to contact us or open an issue on GitHub_ if this tutorial
 workflow doesn't work properly on your cluster or other compute resource.
 
@@ -386,6 +381,7 @@ These may require additional browsing of the documentation to complete.
 
         ...
 
-.. _here: https://raw.githubusercontent.com/Libensemble/libensemble/main/libensemble/tests/scaling_tests/forces/forces.c
+.. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
+.. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _GitHub: https://github.com/Libensemble/libensemble/issues

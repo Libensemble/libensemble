@@ -14,10 +14,10 @@ problems that can benefit from increased parallelism.
 
 """
 
+from pathlib import Path
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-
-DOCLINES = (__doc__ or "").split("\n")
 
 exec(open("libensemble/version.py").read())
 
@@ -49,7 +49,7 @@ setup(
     name="libensemble",
     version=__version__,
     description="Library to coordinate the concurrent evaluation of dynamic ensembles of calculations",
-    long_description="\n".join(DOCLINES[2:]),
+    long_description=Path("README.rst").read_text(encoding="utf-8"),
     url="https://github.com/Libensemble/libensemble",
     author="Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro",
     author_email="libensemble@lists.mcs.anl.gov",
@@ -69,8 +69,7 @@ setup(
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
-    package_data={"libensemble.sim_funcs.branin": ["known_minima_and_func_values"]},
-    install_requires=["numpy", "psutil", "setuptools", "pydantic<2", "tomli", "pyyaml"],
+    install_requires=["numpy", "psutil", "pydantic<2", "tomli", "pyyaml"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
@@ -80,19 +79,6 @@ setup(
         "mock",
     ],
     extras_require={
-        "extras": [
-            "ax-platform",
-            "DFO-LS",
-            "dragonfly-opt",
-            "funcx",
-            "mpi4py",
-            "mpmath",
-            "nlopt",
-            "petsc",
-            "petsc4py",
-            "pyyaml",
-            "scipy",
-        ],
         "docs": [
             "autodoc_pydantic",
             "sphinx",
