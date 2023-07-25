@@ -34,8 +34,8 @@ def test_normal_runners():
 
     runners = Runners(sim_specs, gen_specs)
     assert (
-        not runners.has_funcx_sim and not runners.has_funcx_gen
-    ), "funcX use should not be detected without setting endpoint fields"
+        not runners.has_globus_compute_sim and not runners.has_globus_compute_gen
+    ), "Globus Compute use should not be detected without setting endpoint fields"
 
     ro = runners.make_runners()
     assert all(
@@ -54,61 +54,61 @@ def test_normal_no_gen():
 
 
 @pytest.mark.extra
-def test_funcx_runner_init():
+def test_globus_compute_runner_init():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    sim_specs["funcx_endpoint"] = "1234"
+    sim_specs["globus_compute_endpoint"] = "1234"
 
-    with mock.patch("funcx.FuncXExecutor"):
+    with mock.patch("globus_compute.Globus ComputeExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
         assert (
-            runners.sim_funcx_executor is not None
-        ), "FuncXExecutor should have been instantiated when funcx_endpoint found in specs"
+            runners.sim_globus_compute_executor is not None
+        ), "Globus ComputeExecutor should have been instantiated when globus_compute_endpoint found in specs"
 
 
 @pytest.mark.extra
-def test_funcx_runner_pass():
+def test_globus_compute_runner_pass():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    sim_specs["funcx_endpoint"] = "1234"
+    sim_specs["globus_compute_endpoint"] = "1234"
 
-    with mock.patch("funcx.FuncXExecutor"):
+    with mock.patch("globus_compute.Globus ComputeExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
-        #  Creating Mock funcXExecutor and funcX future object - no exception
-        funcx_mock = mock.Mock()
-        funcx_future = mock.Mock()
-        funcx_mock.submit_to_registered_function.return_value = funcx_future
-        funcx_future.exception.return_value = None
-        funcx_future.result.return_value = (True, True)
+        #  Creating Mock Globus ComputeExecutor and Globus Compute future object - no exception
+        globus_compute_mock = mock.Mock()
+        globus_compute_future = mock.Mock()
+        globus_compute_mock.submit_to_registered_function.return_value = globus_compute_future
+        globus_compute_future.exception.return_value = None
+        globus_compute_future.result.return_value = (True, True)
 
-        runners.sim_funcx_executor = funcx_mock
+        runners.sim_globus_compute_executor = globus_compute_mock
         ro = runners.make_runners()
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
         out, persis_info = ro[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
 
-        assert all([out, persis_info]), "funcX runner correctly returned results"
+        assert all([out, persis_info]), "Globus Compute runner correctly returned results"
 
 
 @pytest.mark.extra
-def test_funcx_runner_fail():
+def test_globus_compute_runner_fail():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    gen_specs["funcx_endpoint"] = "4321"
+    gen_specs["globus_compute_endpoint"] = "4321"
 
-    with mock.patch("funcx.FuncXExecutor"):
+    with mock.patch("globus_compute.Globus ComputeExecutor"):
         runners = Runners(sim_specs, gen_specs)
 
-        #  Creating Mock funcXExecutor and funcX future object - yes exception
-        funcx_mock = mock.Mock()
-        funcx_future = mock.Mock()
-        funcx_mock.submit_to_registered_function.return_value = funcx_future
-        funcx_future.exception.return_value = Exception
+        #  Creating Mock Globus ComputeExecutor and Globus Compute future object - yes exception
+        globus_compute_mock = mock.Mock()
+        globus_compute_future = mock.Mock()
+        globus_compute_mock.submit_to_registered_function.return_value = globus_compute_future
+        globus_compute_future.exception.return_value = Exception
 
-        runners.gen_funcx_executor = funcx_mock
+        runners.gen_globus_compute_executor = globus_compute_mock
         ro = runners.make_runners()
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
@@ -121,6 +121,6 @@ def test_funcx_runner_fail():
 if __name__ == "__main__":
     test_normal_runners()
     test_normal_no_gen()
-    test_funcx_runner_init()
-    test_funcx_runner_pass()
-    test_funcx_runner_fail()
+    test_globus_compute_runner_init()
+    test_globus_compute_runner_pass()
+    test_globus_compute_runner_fail()

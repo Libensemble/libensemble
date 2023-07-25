@@ -7,7 +7,7 @@ from libensemble.ensemble import Ensemble
 
 if __name__ == "__main__":
     forces = Ensemble()
-    forces.from_yaml("funcx_forces.yaml")
+    forces.from_yaml("globus_compute_forces.yaml")
 
     forces.sim_specs.user["remote_ensemble_dir"] += secrets.token_hex(nbytes=3)
 
