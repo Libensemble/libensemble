@@ -115,8 +115,9 @@ class Runners:
         libE_info["comm"] = None  # 'comm' object not pickle-able
         Worker._set_executor(0, None)  # ditto for executor
 
-        args = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
+        fargs = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
         exctr = self._get_globus_compute_exctr(tag)
+        func_id = self._get_func_uuid(tag)
 
-        task_fut = exctr.submit_to_registered_function(self._get_func_uuid(tag), *args)
+        task_fut = exctr.submit_to_registered_function(func_id, fargs)
         return task_fut.result()
