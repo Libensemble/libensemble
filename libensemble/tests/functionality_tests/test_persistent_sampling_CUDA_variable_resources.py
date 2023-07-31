@@ -40,6 +40,7 @@ if __name__ == "__main__":
     libE_specs["sim_dirs_make"] = True
     libE_specs["workflow_dir_path"] = "./CUDA_intermediate/workflow" + str(nworkers)
     libE_specs["sim_dir_copy_files"] = [".gitignore"]
+    libE_specs["reuse_output_dir"] = True
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -82,9 +83,11 @@ if __name__ == "__main__":
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+
+    for i in range(2):
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
 
     if is_manager:
         assert flag == 0

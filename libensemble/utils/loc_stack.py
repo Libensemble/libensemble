@@ -30,7 +30,10 @@ class LocationStack:
             file_path = Path(file_path).absolute()
             dest_path = destdir / Path(file_path.name)
             if allow_overwrite and dest_path.exists():
-                shutil.rmtree(dest_path)
+                if dest_path.is_dir():
+                    shutil.rmtree(dest_path)
+                else:
+                    dest_path.unlink()
             try:
                 if file_path.is_dir():
                     shutil.copytree(file_path, dest_path, dirs_exist_ok=allow_overwrite)
