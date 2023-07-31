@@ -48,7 +48,7 @@ class EnsembleDirectory:
         self.workflow_dir = Path(self.specs.get("workflow_dir_path", ""))
         self.use_worker_dirs = self.specs.get("use_worker_dirs", False)
         self.ensemble_copy_back = self.specs.get("ensemble_copy_back", False)
-        self.allow_overwrite = self.specs.get("reuse_ensemble_dir", False)
+        self.allow_overwrite = self.specs.get("reuse_output_dir", False)
 
         self.sim_use = any([self.specs.get(i) for i in libE_spec_sim_dir_keys + libE_spec_calc_dir_misc])
         self.sim_input_dir = Path(self.specs.get("sim_input_dir")) if self.specs.get("sim_input_dir") else ""
