@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
 
     libE_specs["sim_dirs_make"] = True
-    libE_specs["workflow_dir_path"] = "./CUDA_intermediate/workflow" + str(nworkers)
+    libE_specs["workflow_dir_path"] = "./ensemble_CUDA/workflow_" + libE_specs["comms"] + "_w" + str(nworkers) + "_N"
     libE_specs["sim_dir_copy_files"] = [".gitignore"]
     libE_specs["reuse_output_dir"] = True
 
@@ -85,6 +85,8 @@ if __name__ == "__main__":
     # Perform the run
 
     for i in range(2):
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        libE_specs["workflow_dir_path"] = libE_specs["workflow_dir_path"][:-1] + str(i)
         H, persis_info, flag = libE(
             sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
         )
