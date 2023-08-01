@@ -59,7 +59,7 @@ def test_globus_compute_runner_init():
 
     sim_specs["globus_compute_endpoint"] = "1234"
 
-    with mock.patch("globus_compute.Globus ComputeExecutor"):
+    with mock.patch("globus_compute_sdk.Executor"):
         runners = Runners(sim_specs, gen_specs)
 
         assert (
@@ -73,7 +73,7 @@ def test_globus_compute_runner_pass():
 
     sim_specs["globus_compute_endpoint"] = "1234"
 
-    with mock.patch("globus_compute.Globus ComputeExecutor"):
+    with mock.patch("globus_compute_sdk.Executor"):
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - no exception
@@ -99,7 +99,7 @@ def test_globus_compute_runner_fail():
 
     gen_specs["globus_compute_endpoint"] = "4321"
 
-    with mock.patch("globus_compute.Globus ComputeExecutor"):
+    with mock.patch("globus_compute_sdk.Executor"):
         runners = Runners(sim_specs, gen_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - yes exception
