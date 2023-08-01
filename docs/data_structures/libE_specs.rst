@@ -78,8 +78,8 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                     location. Useful if ``ensemble_dir_path`` located on node-local storage.
 
                 "reuse_output_dir" [bool] = ``False``:
-                    Whether to allow overwrites and access to previous ensemble directories in subsequent runs. ``False``
-                    by default to protect results.
+                    Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
+                    ``False`` by default to protect results.
 
                 "use_worker_dirs" [bool] = ``False``:
                     Whether to organize calculation directories under worker-specific directories:

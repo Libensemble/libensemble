@@ -254,8 +254,8 @@ class LibeSpecs(BaseModel):
 
     reuse_output_dir: Optional[bool] = False
     """
-    Whether to allow overwrites and access to previous ensemble directories in subsequent runs. ``False``
-    by default to protect results.
+    Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
+    ``False`` by default to protect results.
     """
 
     workflow_dir_path: Optional[Union[str, Path]] = "."
