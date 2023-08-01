@@ -4,9 +4,15 @@ Known Issues
 The following selection describes known bugs, errors, or other difficulties that
 may occur when using libEnsemble.
 
-* As of 10/13/2022, on Perlmutter there was an issue running concurrent applications
-  on a node, following a recent system update. This also affects previous versions
-  of libEnsemble, and is being investigated.
+* Platforms using SLURM version 23.02 experience a `pickle error`_ when using
+  ``mpi4py`` comms. Disabling matching probes via the environment variable
+  ``export MPI4PY_RC_RECV_MPROBE=0`` or adding ``mpi4py.rc.recv_mprobe = False``
+  at the top of the calling script should resolve this error. If using the MPI
+  executor and multiple workers per node, some users may experience failed
+  applications with the message
+  ``srun: error: CPU binding outside of job step allocation, allocated`` in
+  the application's standard error. This is being investigated. If this happens
+  we recommend using ``local`` comms in place of ``mpi4py``.
 * When using the Executor: OpenMPI does not work with direct MPI task
   submissions in mpi4py comms mode, since OpenMPI does not support nested MPI
   executions. Use either ``local`` mode or the Balsam Executor instead.
@@ -23,3 +29,5 @@ may occur when using libEnsemble.
   :doc:`FAQ<FAQ>` for more information.
 * We currently recommended running in Central mode on Bridges as distributed
   runs are experiencing hangs.
+
+.. _pickle error: https://docs.nersc.gov/development/languages/python/using-python-perlmutter/#missing-support-for-matched-proberecv

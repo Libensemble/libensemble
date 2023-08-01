@@ -9,8 +9,9 @@ automatically installed alongside libEnsemble:
 * Python_ 3.8 or above
 * NumPy_
 * psutil_
-* setuptools_
 * pydantic_
+* pyyaml_
+* tomli_
 
 In view of libEnsemble's compiled dependencies, the following installation
 methods each offer a trade-off between convenience and the ability
@@ -186,13 +187,15 @@ The following packages may be installed separately to enable additional features
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _GitHub: https://github.com/Libensemble/libensemble
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
 .. _`Open MPI`: https://www.open-mpi.org/
 .. _psutil: https://pypi.org/project/psutil/
 .. _pydantic: https://pydantic-docs.helpmanual.io/
+.. _pyyaml: https://github.com/yaml/pyyaml
 .. _Python: http://www.python.org
-.. _setuptools: https://setuptools.pypa.io/en/latest/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
+.. _tomli: https://github.com/hukkin/tomli
 .. _tqdm: https://tqdm.github.io/

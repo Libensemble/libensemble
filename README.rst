@@ -1,4 +1,4 @@
-.. image:: docs/images/libEnsemble_Logo.svg
+.. image:: https://raw.githubusercontent.com/Libensemble/libensemble/main/docs/images/libE_logo.png
    :align: center
    :alt: libEnsemble
 
@@ -6,6 +6,14 @@
 
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
+
+.. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+   :target: https://anaconda.org/conda-forge/libensemble
+
+.. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
+   :target: https://spack.readthedocs.io/en/latest/package_list.html#py-libensemble
+
+|
 
 .. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
@@ -82,6 +90,7 @@ Resources
     doi     = {10.1109/tpds.2021.3082815}
   }
 
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
@@ -90,7 +99,6 @@ Resources
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
-.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _PyPI: https://pypi.org
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
-.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
