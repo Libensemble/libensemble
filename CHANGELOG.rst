@@ -63,7 +63,7 @@ New capabilities:
   * Allow users to specify their own system configurations.
   * These changes remove a number of tweaks that were needed for particular platforms.
 
-*  Resource management supports GPU and non-GPU simulations in the same ensemble. #993
+* Resource management supports GPU and non-GPU simulations in the same ensemble. #993
   * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
 
 * Pydantic models are used for validating major libE input (input can be provided as classes or dictionaries). #878

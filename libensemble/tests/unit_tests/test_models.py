@@ -50,7 +50,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
         "sim_f": "path.to.module",  # sim: _UFUNC_INVALID_ERR, gen: _UNRECOGNIZED_ERR
         "in": [("f", float), ("fvec", float, 3)],  # _IN_INVALID_ERR
         "out": ["x_on_cube"],  # _OUT_DTYPE_ERR
-        "funcx_endpoint": 1234,
+        "globus_compute_endpoint": 1234,
         "user": np.zeros(100),  # 'value is not a valid dict'
     }
 
