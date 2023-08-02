@@ -6,7 +6,6 @@ libEnsemble worker class
 import cProfile
 import logging
 import logging.handlers
-import pstats
 import socket
 from itertools import count
 from pathlib import Path
@@ -114,10 +113,7 @@ def worker_main(
     if libE_specs.get("profile"):
         pr.disable()
         profile_state_fname = "worker_%d.prof" % (workerID)
-
-        with open(profile_state_fname, "w") as f:
-            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
-            ps.print_stats()
+        pr.dump_stats(profile_state_fname)
 
 
 ######################################################################
