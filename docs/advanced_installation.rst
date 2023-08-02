@@ -193,9 +193,7 @@ The following packages may be installed separately to enable additional features
 .. _`Open MPI`: https://www.open-mpi.org/
 .. _psutil: https://pypi.org/project/psutil/
 .. _pydantic: https://pydantic-docs.helpmanual.io/
-.. _pyyaml: https://github.com/yaml/pyyaml
 .. _Python: http://www.python.org
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
-.. _tomli: https://github.com/hukkin/tomli
 .. _tqdm: https://tqdm.github.io/
