@@ -1,4 +1,4 @@
-def run_forces_funcx(H, persis_info, sim_specs, libE_info):
+def run_forces_globus_compute(H, persis_info, sim_specs, libE_info):
     import os
     import secrets
     import time
