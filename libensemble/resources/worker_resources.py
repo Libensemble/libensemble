@@ -276,6 +276,9 @@ class WorkerResources(RSetResources):
                         env_var = self.platform_info.get("gpu_setting_name")
                     else:
                         env_var = self.platform_info.get("gpu_env_fallback") or "CUDA_VISIBLE_DEVICES"
+                else:
+                    env_var = "CUDA_VISIBLE_DEVICES"
+
             os.environ[env_var] = env_value
 
     # libEnsemble functions ---------------------------------------------------
