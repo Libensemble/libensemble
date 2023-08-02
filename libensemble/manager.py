@@ -8,7 +8,6 @@ import glob
 import logging
 import os
 import platform
-import pstats
 import socket
 import sys
 import time
@@ -132,10 +131,7 @@ def manager_main(
     if libE_specs.get("profile"):
         pr.disable()
         profile_stats_fname = "manager.prof"
-
-        with open(profile_stats_fname, "w") as f:
-            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
-            ps.print_stats()
+        pr.dump_stats(profile_stats_fname)
 
     return result
 
