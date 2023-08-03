@@ -199,6 +199,7 @@ class WorkerResources(RSetResources):
         self.set_slot_count()
         self.gen_nprocs = None
         self.gen_ngpus = None
+        self.platform_info = resources.platform_info
 
     # User convenience functions ----------------------------------------------
 
@@ -244,7 +245,7 @@ class WorkerResources(RSetResources):
         """
         os.environ[env_var] = self.get_slots_as_string(multiplier, delimiter)
 
-    def set_env_to_gpus(self, env_var, delimiter=","):
+    def set_env_to_gpus(self, env_var=None, delimiter=","):
         """Sets the given environment variable to GPUs
 
         :param env_var: String. Name of environment variable to set.
@@ -269,6 +270,15 @@ class WorkerResources(RSetResources):
         assert self.matching_slots, f"Cannot assign GPUs to non-matching slots per node {self.slots}"
         if self.doihave_gpus():
             env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset, limit=self.gen_ngpus)
+            if env_var is None:
+                if self.platform_info is not None:
+                    if self.platform_info.get("gpu_setting_type") == "env":
+                        env_var = self.platform_info.get("gpu_setting_name")
+                    else:
+                        env_var = self.platform_info.get("gpu_env_fallback") or "CUDA_VISIBLE_DEVICES"
+                else:
+                    env_var = "CUDA_VISIBLE_DEVICES"
+
             os.environ[env_var] = env_value
 
     # libEnsemble functions ---------------------------------------------------

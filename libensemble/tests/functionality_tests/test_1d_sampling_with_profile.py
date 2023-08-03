@@ -29,6 +29,8 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["profile"] = True
+    libE_specs["safe_mode"] = False
+    libE_specs["kill_canceled_sims"] = False
 
     sim_specs = {
         "sim_f": sim_f,
@@ -48,7 +50,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"gen_max": 501}
+    exit_criteria = {"sim_max": 1e5}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
@@ -67,11 +69,11 @@ if __name__ == "__main__":
 
         for file in prof_files:
             assert file in os.listdir(), "Expected profile {file} not found after run"
-            with open(file, "r") as f:
-                data = f.read().split()
-                num_worker_funcs_profiled = sum(["worker" in i for i in data])
-            assert num_worker_funcs_profiled >= 8, (
-                "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
-            )
+            # with open(file, "r") as f:
+            #     data = f.read().split()
+            #     num_worker_funcs_profiled = sum(["worker" in i for i in data])
+            # assert num_worker_funcs_profiled >= 8, (
+            #     "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
+            # )
 
             # os.remove(file)

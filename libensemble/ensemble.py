@@ -394,7 +394,7 @@ class Ensemble:
             "inputs": self._get_normal,
             "persis_in": self._get_normal,
             "out": self._get_outputs,
-            "funcx_endpoint": self._get_normal,
+            "globus_compute_endpoint": self._get_normal,
             "user": self._get_normal,
         }
 

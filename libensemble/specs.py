@@ -68,10 +68,11 @@ class SimSpecs(BaseModel):
     Also used to construct the complete dtype for libEnsemble's history array
     """
 
-    funcx_endpoint: Optional[str] = ""
+    globus_compute_endpoint: Optional[str] = ""
     """
-    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
-    will submit simulator function instances to this endpoint to be executed, instead of calling them locally
+    A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
+    libEnsemble's workers will submit simulator function instances to this endpoint to be executed, instead of
+    calling them locally
     """
 
     user: Optional[dict] = {}
@@ -128,10 +129,11 @@ class GenSpecs(BaseModel):
     history array
     """
 
-    funcx_endpoint: Optional[str] = ""
+    globus_compute_endpoint: Optional[str] = ""
     """
-    A funcX (https://funcx.org/) ID corresponding to an active endpoint on a remote system. libEnsemble's workers
-    will submit generator function instances to this endpoint to be executed, instead of being called in-place
+    A Globus Compute (https://globus_compute.org/) ID corresponding to an active endpoint on a remote system.
+    libEnsemble's workers will submit generator function instances to this endpoint to be executed, instead of
+    calling them locally
     """
 
     user: Optional[dict] = {}
@@ -250,6 +252,12 @@ class LibeSpecs(BaseModel):
     separate `workflow` directory. New runs and their workflow directories will be automatically
     differentiated. If copying back an ensemble directory from a scratch space, the copy is placed
     in the workflow directory.
+    """
+
+    reuse_output_dir: Optional[bool] = False
+    """
+    Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
+    ``False`` by default to protect results.
     """
 
     workflow_dir_path: Optional[Union[str, Path]] = "."

@@ -29,7 +29,6 @@
 .. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
-.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
@@ -44,6 +43,7 @@
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _pyyaml: https://pyyaml.org/
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
