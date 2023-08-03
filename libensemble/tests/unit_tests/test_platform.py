@@ -17,6 +17,7 @@ summit_spec = {
     "gpu_setting_type": "option_gpus_per_task",
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
+    "gpu_env_fallback": None,
 }
 
 
