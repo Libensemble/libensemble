@@ -53,14 +53,11 @@ class LogConfig:
         dirname = Path(dirname)
         if not dirname.exists():
             dirname.mkdir(parents=True)
-        if self.logger_set:
-            logger = logging.getLogger(self.name)
-            logger.warning("Cannot set directory after loggers initialized")
-        else:
-            baselog = Path(self.filename).name
-            basestat = Path(self.stat_filename).name
-            self.filename = str(dirname / baselog)
-            self.stat_filename = str(dirname / basestat)
+
+        baselog = Path(self.filename).name
+        basestat = Path(self.stat_filename).name
+        self.filename = str(dirname / baselog)
+        self.stat_filename = str(dirname / basestat)
 
 
 class CommLogHandler(logging.Handler):
@@ -163,40 +160,43 @@ def manager_logging_config(specs={}):
     # Regular logging
     logconfig = LogConfig.config
 
-    if not logconfig.logger_set:
-        if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
-            logconfig.set_directory(specs.get("workflow_dir_path"))
+    if specs.get("use_workflow_dir"):  # placing logfiles in separate directory
+        logconfig.set_directory(specs.get("workflow_dir_path"))
 
-        formatter = logging.Formatter(logconfig.fmt)
-        wfilter = WorkerIDFilter(0)
-        fh = logging.FileHandler(logconfig.filename, mode="w")
-        fh.addFilter(wfilter)
-        fh.setFormatter(formatter)
-        logger = logging.getLogger(logconfig.name)
-        logger.propagate = False
-        logger.setLevel(logconfig.log_level)  # Formatter filters on top of this
-        logger.addHandler(fh)
-        logconfig.logger_set = True
+    formatter = logging.Formatter(logconfig.fmt)
+    wfilter = WorkerIDFilter(0)
+    fh = logging.FileHandler(logconfig.filename, mode="a")
+    fh.addFilter(wfilter)
+    fh.setFormatter(formatter)
+    logger = logging.getLogger(logconfig.name)
+    if logconfig.logger_set:
+        remove_handlers(logger)
+    logger.propagate = False
+    logger.setLevel(logconfig.log_level)  # Formatter filters on top of this
+    logger.addHandler(fh)
+    logconfig.logger_set = True
 
-        # Stats logging
-        # NB: Could add a specialized handler for immediate flushing
-        fhs = logging.FileHandler(logconfig.stat_filename, mode="w")
-        fhs.addFilter(wfilter)
-        fhs.setFormatter(logging.Formatter("%(prefix)s: %(message)s"))
-        stat_logger = logging.getLogger(logconfig.stats_name)
-        stat_logger.propagate = False
-        stat_logger.setLevel(logging.DEBUG)
-        stat_logger.addHandler(fhs)
+    # Stats logging
+    # NB: Could add a specialized handler for immediate flushing
+    fhs = logging.FileHandler(logconfig.stat_filename, mode="a")
+    fhs.addFilter(wfilter)
+    fhs.setFormatter(logging.Formatter("%(prefix)s: %(message)s"))
+    stat_logger = logging.getLogger(logconfig.stats_name)
+    if logconfig.logger_set:
+        remove_handlers(stat_logger)
+    stat_logger.propagate = False
+    stat_logger.setLevel(logging.DEBUG)
+    stat_logger.addHandler(fhs)
 
-        # Mirror error-logging to stderr of user-specified level
-        fhe = logging.StreamHandler(stream=sys.stderr)
-        fhe.addFilter(wfilter)
-        efilter = ErrorFilter(logconfig.stderr_level)
-        fhe.addFilter(efilter)
-        fhe.setFormatter(formatter)
-        logger.addHandler(fhe)
-    else:
-        stat_logger = logging.getLogger(logconfig.stats_name)
+    # Mirror error-logging to stderr of user-specified level
+    fhe = logging.StreamHandler(stream=sys.stderr)
+    fhe.addFilter(wfilter)
+    efilter = ErrorFilter(logconfig.stderr_level)
+    fhe.addFilter(efilter)
+    fhe.setFormatter(formatter)
+    logger.addHandler(fhe)
+    # else:
+    # stat_logger = logging.getLogger(logconfig.stats_name)
 
     stat_logger.info(f"Starting ensemble at: {stat_timer.date_start}")
 
