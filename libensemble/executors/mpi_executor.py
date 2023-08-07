@@ -90,6 +90,9 @@ class MPIExecutor(Executor):
         self.runner_name = custom_info.get("runner_name")
         self.subgroup_launch = custom_info.get("subgroup_launch")
 
+        self.gen_nprocs = None
+        self.gen_ngpus = None
+
     def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor"""
 
@@ -105,9 +108,6 @@ class MPIExecutor(Executor):
 
         if self.subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = self.subgroup_launch
-
-        self.gen_nprocs = None
-        self.gen_ngpus = None
 
     def set_gen_procs_gpus(self, libE_info):
         """Add gen supplied procs and gpus"""
