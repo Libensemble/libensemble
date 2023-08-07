@@ -67,6 +67,10 @@ class EnsembleDirectory:
         if self.ensemble_copy_back:
             self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
 
+        ec = self.specs.get("_exit_criteria")
+        self.pad = len(str(ec.get("sim_max"))) or len(str(ec.get("gen_max"))) or 0
+        print(self.pad)
+
     def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
         try:
