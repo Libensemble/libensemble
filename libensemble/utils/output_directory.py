@@ -69,7 +69,7 @@ class EnsembleDirectory:
             self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
 
         ec = self.specs.get("_exit_criteria")
-        self.pad = len(str(ec.get("sim_max"))) or len(str(ec.get("gen_max"))) or 0
+        self.pad = len(str(ec.get("sim_max", ""))) or len(str(ec.get("gen_max", "")))
         print(self.pad)
 
     def make_copyback(self) -> None:
@@ -158,7 +158,7 @@ class EnsembleDirectory:
                 self.ensemble_dir.mkdir(exist_ok=True, parents=True)
             calc_prefix = self.ensemble_dir
 
-        calc_dir = calc_str + str(H_rows)
+        calc_dir = calc_str + str(H_rows).rjust(self.pad, str(0))
         # Register calc dir with adjusted parent dir and sourcefile location
         locs.register_loc(
             calc_dir,
