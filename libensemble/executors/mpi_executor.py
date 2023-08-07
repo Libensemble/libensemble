@@ -131,22 +131,15 @@ class MPIExecutor(Executor):
     def set_resources(self, resources: Resources) -> None:
         self.resources = resources
 
-    def _launch_with_retries(
-        self, task: Task, runline: List[str], subgroup_launch: bool, wait_on_start: bool, env_script: str
-    ) -> None:
+    def _launch_with_retries(self, task: Task, subgroup_launch: bool, wait_on_start: bool, run_cmd: List[str]) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
-
-        if env_script is not None:
-            run_cmd = Executor._process_env_script(task, runline, env_script)
-        else:
-            run_cmd = runline
 
         while retry_count < self.max_launch_attempts:
             retry = False
             try:
                 retry_string = f" (Retry {retry_count})" if retry_count > 0 else ""
-                logger.info(f"Launching task {task.name}{retry_string}: {' '.join(runline)}")
+                logger.info(f"Launching task {task.name}{retry_string}: {' '.join(run_cmd)}")
                 task.run_attempts += 1
                 with open(task.stdout, "w") as out, open(task.stderr, "w") as err:
                     task.process = launcher.launch(
@@ -349,8 +342,8 @@ class MPIExecutor(Executor):
             self.workerID,
         )
 
-        mpi_command = self.mpi_runner.mpi_command
-        sglaunch = self.mpi_runner.subgroup_launch
+        mpi_command = mpi_runner.mpi_command
+        sglaunch = mpi_runner.subgroup_launch
         runline = launcher.form_command(mpi_command, mpi_specs)
 
         runline.extend(task.app.app_cmd.split())
@@ -359,16 +352,21 @@ class MPIExecutor(Executor):
 
         task.runline = " ".join(runline)  # Allow to be queried
 
+        if env_script is not None:
+            run_cmd = Executor._process_env_script(task, runline, env_script)
+        else:
+            run_cmd = runline
+
         if dry_run:
             task.dry_run = True
-            logger.info(f"Test (No submit) Runline: {' '.join(runline)}")
+            logger.info(f"Test (No submit) Runline: {' '.join(run_cmd)}")
             task._set_complete(dry_run=True)
         else:
             # Set environment variables and launch task
             task._implement_env()
 
             # Launch Task
-            self._launch_with_retries(task, runline, sglaunch, wait_on_start, env_script)
+            self._launch_with_retries(task, sglaunch, wait_on_start, run_cmd)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
