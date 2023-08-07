@@ -15,7 +15,7 @@ resource manager when submitting tasks.
 import logging
 import os
 import time
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
@@ -84,6 +84,7 @@ class MPIExecutor(Executor):
         self.fail_time = 2
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
         self.resources = None
+        self.platform_info = None
 
         # Apply custom options
         self.mpi_runner_type = custom_info.get("mpi_runner")
@@ -92,6 +93,17 @@ class MPIExecutor(Executor):
 
         self.gen_nprocs = None
         self.gen_ngpus = None
+
+    def _create_mpi_runner(self, custom_info: dict = {}) -> MPIRunner:
+        """Return an mpi_runner object from given info"""
+
+        mpi_runner_type = custom_info.get("mpi_runner")
+        runner_name = custom_info.get("runner_name")
+        subgroup_launch = custom_info.get("subgroup_launch")
+        mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name, self.platform_info)
+        if subgroup_launch is not None:
+            mpi_runner.subgroup_launch = subgroup_launch
+        return mpi_runner
 
     def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor"""
@@ -104,7 +116,9 @@ class MPIExecutor(Executor):
         # If runner type has not been given, then detect
         if not self.mpi_runner_type:
             self.mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, platform_info)
+
+        self.platform_info = platform_info
+        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
 
         if self.subgroup_launch is not None:
             self.mpi_runner.subgroup_launch = self.subgroup_launch
@@ -185,6 +199,7 @@ class MPIExecutor(Executor):
         auto_assign_gpus: Optional[bool] = False,
         match_procs_to_gpus: Optional[bool] = False,
         env_script: Optional[str] = None,
+        mpi_runner_type: Optional[Union[str, dict]] = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
@@ -250,12 +265,12 @@ class MPIExecutor(Executor):
             resources determination unless also supplied in the direct
             options.
 
-        auto_assign_gpus: bool, optional
+        auto_assign_gpus: bool, Optional
             Auto-assign GPUs available to this worker using either the method
             supplied in configuration or determined by detected environment.
             Default: False
 
-        match_procs_to_gpus: bool, optional
+        match_procs_to_gpus: bool, Optional
             For use with auto_assign_gpus. Auto-assigns MPI processors to match
             the assigned GPUs. Default: False unless auto_assign_gpus is True and
             no other CPU configuration is supplied.
@@ -264,6 +279,13 @@ class MPIExecutor(Executor):
             The full path of a shell script to set up the environment for the
             launched task. This will be run in the subprocess, and not affect
             the worker environment. The script should start with a shebang.
+
+        mpi_runner_type: (str|dict), Optional
+            An MPI runner to be used for this submit only. Supply either a string
+            for the MPI runner type or a dictionary for detailed configuration
+            (see custom_info on MPIExecutor constructor). This will not change
+            the default MPI runner for the executor.
+            Example string inputs are "mpich", "openmpi", "srun", "jsrun", "aprun".
 
         Returns
         -------
@@ -303,7 +325,16 @@ class MPIExecutor(Executor):
         if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
             num_nodes = self.resources.worker_resources.local_node_count
 
-        mpi_specs = self.mpi_runner.get_mpi_specs(
+        if mpi_runner_type is not None:
+            if isinstance(mpi_runner_type, str):
+                custom_info = {"mpi_runner": mpi_runner_type}
+            else:
+                custom_info = mpi_runner_type
+            mpi_runner = self._create_mpi_runner(custom_info)
+        else:
+            mpi_runner = self.mpi_runner
+
+        mpi_specs = mpi_runner.get_mpi_specs(
             task,
             num_procs,
             num_nodes,
