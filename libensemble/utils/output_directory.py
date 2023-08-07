@@ -70,7 +70,6 @@ class EnsembleDirectory:
 
         ec = self.specs.get("_exit_criteria")
         self.pad = len(str(ec.get("sim_max", ""))) or len(str(ec.get("gen_max", "")))
-        print(self.pad)
 
     def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
