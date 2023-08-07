@@ -89,6 +89,23 @@ class Platform(BaseModel):
 
     """
 
+    gpu_env_fallback: Optional[str]
+    """GPU fallback environment setting if not using an MPI runner.
+
+    For example:
+
+    .. code-block:: python
+
+        "gpu_setting_type" = "runner_default"
+        "gpu_env_fallback" = "ROCR_VISIBLE_DEVICES"
+
+    This example will use the MPI runner default settings when using an MPI runner, but
+    will otherwise use ROCR_VISIBLE_DEVICES (e.g. if setting via function set_env_to_gpus).
+
+    If this is not set, the default is "CUDA_VISIBLE_DEVICES"
+
+    """
+
     scheduler_match_slots: Optional[bool]
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
@@ -137,6 +154,7 @@ class Crusher(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -146,6 +164,7 @@ class Frontier(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -170,6 +189,7 @@ class PerlmutterCPU(Perlmutter):
 class PerlmutterGPU(Perlmutter):
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -180,6 +200,7 @@ class Polaris(Platform):
     logical_cores_per_node: int = 64
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
 
 
@@ -189,6 +210,7 @@ class Spock(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
