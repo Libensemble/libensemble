@@ -92,7 +92,6 @@ if __name__ == "__main__":
     if "LIBE_PLATFORM" in os.environ:
         del os.environ["LIBE_PLATFORM"]
 
-    # First set - use executor setting ------------------------------------------------------------
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / remove to detect GPUs
 
     exctr = MPIExecutor(custom_info={"mpi_runner": "mpich"})
