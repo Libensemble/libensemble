@@ -240,7 +240,7 @@ class LibeSpecs(BaseModel):
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated """
 
-    kill_canceled_sims: Optional[bool] = True
+    kill_canceled_sims: Optional[bool] = False
     """
     Instructs libEnsemble to send kill signals to sims with their ``cancel_requested`` field set.
     If ``False``, the manager avoids this moderate overhead
@@ -390,7 +390,7 @@ class LibeSpecs(BaseModel):
     disable_log_files: Optional[bool] = False
     """ Disable the creation of ``ensemble.log`` and ``libE_stats.txt`` log files """
 
-    safe_mode: Optional[bool] = True
+    safe_mode: Optional[bool] = False
     """ Prevents user functions from overwriting protected History fields, but requires moderate overhead """
 
     stats_fmt: Optional[dict] = {}
