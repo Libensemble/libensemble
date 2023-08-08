@@ -85,14 +85,14 @@ class MPIExecutor(Executor):
         self.retry_delay_incr = 5  # Incremented wait after each launch attempt
         self.resources = None
         self.platform_info = None
+        self.gen_nprocs = None
+        self.gen_ngpus = None
 
         # Apply custom options
         self.mpi_runner_type = custom_info.get("mpi_runner")
         self.runner_name = custom_info.get("runner_name")
         self.subgroup_launch = custom_info.get("subgroup_launch")
-
-        self.gen_nprocs = None
-        self.gen_ngpus = None
+        self._set_mpi_runner()  # For standalone - else overidden by add_platform_info
 
     def _create_mpi_runner(self, custom_info: dict = {}) -> MPIRunner:
         """Return an mpi_runner object from given info"""
@@ -105,6 +105,15 @@ class MPIExecutor(Executor):
             mpi_runner.subgroup_launch = subgroup_launch
         return mpi_runner
 
+    def _set_mpi_runner(self):
+        """Set self.mpi_runner based on existing attributes"""
+        # If runner type has not been given, then detect
+        if not self.mpi_runner_type:
+            self.mpi_runner_type = get_MPI_variant()
+        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
+        if self.subgroup_launch is not None:
+            self.mpi_runner.subgroup_launch = self.subgroup_launch
+
     def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor"""
 
@@ -112,16 +121,10 @@ class MPIExecutor(Executor):
         if platform_info:
             self.mpi_runner_type = self.mpi_runner_type or platform_info.get("mpi_runner")
             self.runner_name = self.runner_name or platform_info.get("runner_name")
+        self.platform_info = platform_info
 
         # If runner type has not been given, then detect
-        if not self.mpi_runner_type:
-            self.mpi_runner_type = get_MPI_variant()
-
-        self.platform_info = platform_info
-        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
-
-        if self.subgroup_launch is not None:
-            self.mpi_runner.subgroup_launch = self.subgroup_launch
+        self._set_mpi_runner()
 
     def set_gen_procs_gpus(self, libE_info):
         """Add gen supplied procs and gpus"""
