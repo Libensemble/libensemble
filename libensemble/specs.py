@@ -240,7 +240,7 @@ class LibeSpecs(BaseModel):
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated """
 
-    kill_canceled_sims: Optional[bool] = False
+    kill_canceled_sims: Optional[bool] = True
     """
     Instructs libEnsemble to send kill signals to sims with their ``cancel_requested`` field set.
     If ``False``, the manager avoids this moderate overhead
