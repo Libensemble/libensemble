@@ -235,7 +235,6 @@ def libE(
     exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
     alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
     libE_specs = ensemble.libE_specs.dict(by_alias=True)
-    libE_specs["_exit_criteria"] = exit_criteria  # otherwise the workers don't have exit_criteria
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

@@ -56,7 +56,7 @@ class SimSpecs(BaseModel):
     persis_in: Optional[List[str]] = []
     """
     List of field names that will be passed to a persistent simulation function
-    throughout runtime, following initialization
+    throughout runtime, following initialization.
     """
 
     # list of tuples for dtype construction
@@ -65,20 +65,20 @@ class SimSpecs(BaseModel):
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
     ``out = np.zeros(100, dtype=sim_specs["out"])``.
-    Also used to construct the complete dtype for libEnsemble's history array
+    Also necessary to construct the complete dtype for libEnsemble's history array.
     """
 
     globus_compute_endpoint: Optional[str] = ""
     """
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit simulator function instances to this endpoint to be executed, instead of
-    calling them locally
+    calling them locally.
     """
 
     user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
-    the simulator function
+    the simulator function.
     """
 
     @validator("out", pre=True)
@@ -323,6 +323,12 @@ class LibeSpecs(BaseModel):
     """
     Copy this directory and its contents for each generator-instance-specific directory.
     If not using calculation directories, contents are copied to the ensemble directory
+    """
+
+    calc_dir_id_width: Optional[int] = 4
+    """
+    The width of the ID component of a calculation directory name. Up to this many additional
+    zeros are padded to the sim/gen ID.
     """
 
     platform: Optional[str] = ""

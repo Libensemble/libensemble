@@ -81,6 +81,10 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                     Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
                     ``False`` by default to protect results.
 
+                "calc_dir_id_width" [int] = ``4``:
+                    The width of the ID component of a calculation directory name. Up to this many additional
+                    zeros are padded to the sim/gen ID.
+
                 "use_worker_dirs" [bool] = ``False``:
                     Whether to organize calculation directories under worker-specific directories:
 
