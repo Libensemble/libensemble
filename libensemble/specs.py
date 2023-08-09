@@ -390,7 +390,7 @@ class LibeSpecs(BaseModel):
     disable_log_files: Optional[bool] = False
     """ Disable the creation of ``ensemble.log`` and ``libE_stats.txt`` log files """
 
-    safe_mode: Optional[bool] = True
+    safe_mode: Optional[bool] = False
     """ Prevents user functions from overwriting protected History fields, but requires moderate overhead """
 
     stats_fmt: Optional[dict] = {}
