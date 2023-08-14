@@ -16,34 +16,7 @@ from multiprocessing import Event, Process, Queue
 import numpy as np
 import psutil
 
-import libensemble.gen_funcs
 from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to simulate receiving from manager
-
-optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "external"]
-optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
-
-if optimizers is None:
-    import dfols
-    import nlopt
-    from petsc4py import PETSc
-    from scipy import optimize as sp_opt
-else:
-    if not isinstance(optimizers, list):
-        optimizers = [optimizers]
-    unrec = set(optimizers) - set(optimizer_list)
-    if unrec:
-        print(f"APOSMM Warning: unrecognized optimizers {unrec}")
-
-    if "petsc" in optimizers:
-        from petsc4py import PETSc
-    if "nlopt" in optimizers:
-        import nlopt
-    if "dfols" in optimizers:
-        import dfols
-    if "scipy" in optimizers:
-        from scipy import optimize as sp_opt
-    if "external" in optimizers:
-        pass
 
 
 class APOSMMException(Exception):
@@ -202,6 +175,8 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs an NLopt local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    import nlopt
+
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(user_specs["ub"])
 
@@ -273,6 +248,8 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    from scipy import optimize as sp_opt
+
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
@@ -373,6 +350,8 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    import dfols
+
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
     ub = np.ones(len(x0))
@@ -417,6 +396,8 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    from petsc4py import PETSc
+
     assert isinstance(x0, np.ndarray)
 
     tao_comm = PETSc.COMM_SELF
