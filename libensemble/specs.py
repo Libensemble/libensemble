@@ -325,9 +325,9 @@ class LibeSpecs(BaseModel):
     If not using calculation directories, contents are copied to the ensemble directory
     """
 
-    calc_dir_id_width: Optional[int] = 4
+    calc_dir_id_width: Optional[int] = 0
     """
-    The width of the ID component of a calculation directory name. Up to this many additional
+    The width of the numerical ID component of a calculation directory name. Leading
     zeros are padded to the sim/gen ID.
     """
 
