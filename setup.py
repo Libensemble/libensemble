@@ -69,7 +69,7 @@ setup(
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
-    install_requires=["numpy", "psutil", "pydantic<2", "tomli", "pyyaml"],
+    install_requires=["numpy>=1.21", "psutil", "pydantic<2", "tomli", "pyyaml"],
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",

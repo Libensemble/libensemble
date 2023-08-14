@@ -30,18 +30,6 @@ jobs:
                       python-version: "3.10"
                       mpi-version: "mpich"
                       comms-type: t
-                    # - os: ubuntu-latest
-                      # mpi-version: "openmpi"
-                      # python-version: "3.10"
-                      # comms-type: l
-                    # - os: windows-latest
-                    #   python-version: "3.10"
-                    #   comms-type: l
-                    #   mpi-version: "msmpi"
-                    # - os: windows-latest
-                    #   python-version: "3.10"
-                    #   comms-type: m
-                    #   mpi-version: "msmpi"
 
         env:
             HYDRA_LAUNCHER: "fork"
