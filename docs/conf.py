@@ -193,8 +193,6 @@ html_theme = "furo"
 # documentation.
 #
 html_theme_options = {
-    "navigation_depth": 3,
-    "collapse_navigation": False,
     "light_logo": "libE_logo.png",
     "dark_logo": "libE_logo_white.png",
 }

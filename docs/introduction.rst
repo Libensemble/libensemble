@@ -6,7 +6,41 @@ Basic Usage
 
 .. basic_usage
 
-See the :doc:`tutorial<tutorials/local_sine_tutorial>` to try out libEnsemble.
+Create an ``Ensemble``, then customize with general settings, simulation and generator parameters,
+and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
+
+.. code-block:: python
+  :linenos:
+
+  import numpy as np
+
+  from libensemble import Ensemble
+  from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
+  from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
+  from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+
+  if __name__ == "__main__":
+
+      sampling = Ensemble()
+      sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
+      sampling.gen_specs = GenSpecs(
+          gen_f=gen_f,
+          out=[("x", float, (1,))],
+          user={
+              "gen_batch_size": 500,
+              "lb": np.array([-3]),
+              "ub": np.array([3]),
+          },
+      )
+
+      sampling.add_random_streams()
+      sampling.exit_criteria = ExitCriteria(gen_max=501)
+
+      sampling.run()
+      if sampling.is_manager:
+          sampling.save_output(__file__)
+
+See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
 
 See the `user guide`_ for more information.
 
