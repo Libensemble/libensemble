@@ -31,9 +31,7 @@ if generator_type == "random":
     from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first as alloc_f
     from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 elif generator_type == "aposmm":
-    import libensemble.gen_funcs
 
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
     from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
     from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 else:

@@ -3,10 +3,6 @@ import platform
 
 import pytest
 
-import libensemble.gen_funcs
-
-libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
 if platform.system() in ["Linux", "Darwin"]:
     multiprocessing.set_start_method("fork", force=True)
     from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
@@ -65,12 +61,9 @@ def combined_func(x):
 def test_standalone_persistent_aposmm():
     from math import gamma, pi, sqrt
 
-    import libensemble.gen_funcs
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
@@ -122,11 +115,8 @@ def test_standalone_persistent_aposmm():
 def test_standalone_persistent_aposmm_combined_func():
     from math import gamma, pi, sqrt
 
-    import libensemble.gen_funcs
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-
-    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 

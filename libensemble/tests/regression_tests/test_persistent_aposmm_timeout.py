@@ -22,10 +22,6 @@ import sys
 
 import numpy as np
 
-import libensemble.gen_funcs
-
-libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 

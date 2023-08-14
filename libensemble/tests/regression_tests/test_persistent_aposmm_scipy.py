@@ -18,20 +18,16 @@ persistent generator.
 
 import multiprocessing
 import sys
+from time import time
 
 import numpy as np
 
-import libensemble.gen_funcs
+from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
+from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
-
-libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
-from time import time
-
-from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 

@@ -21,10 +21,6 @@ import sys
 
 import numpy as np
 
-import libensemble.gen_funcs
-
-libensemble.gen_funcs.rc.aposmm_optimizers = "scipy"
-
 from libensemble.alloc_funcs.start_persistent_local_opt_gens import start_persistent_local_opt_gens as alloc_f
 from libensemble.gen_funcs.uniform_or_localopt import uniform_or_localopt as gen_f
 
