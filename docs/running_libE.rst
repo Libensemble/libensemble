@@ -3,7 +3,7 @@
 Running libEnsemble
 ===================
 
-libEnsemble runs using a one-Manager/many-Worker paradigm. How these processes communicate
+libEnsemble runs with one and many workers. How these processes communicate
 is determined by the launch-method and ``comms`` option. The
 three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
 

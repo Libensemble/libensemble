@@ -6,3 +6,4 @@ numpy
 sphinx_rtd_theme
 furo
 ipykernel
+sphinx-copybutton

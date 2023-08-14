@@ -92,6 +92,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
+    "sphinx_copybutton",
 ]
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"

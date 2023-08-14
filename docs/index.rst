@@ -6,7 +6,7 @@
 .. include:: welcome.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: User Guide:
 
    Quickstart<introduction>
@@ -17,7 +17,7 @@
    advanced_installation
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Tutorials:
 
    tutorials/local_sine_tutorial
@@ -27,7 +27,7 @@
    tutorials/calib_cancel_tutorial
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Examples:
 
    examples/gen_funcs
@@ -36,7 +36,7 @@
    examples/calling_scripts
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Additional References:
 
    FAQ
@@ -48,7 +48,7 @@
    posters
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Developer Guide:
 
    dev_guide/release_management/release_index
