@@ -57,4 +57,4 @@ if __name__ == "__main__":
         assert np.all(study.H["sim_ended"]), "Every point should have been marked as ended"
         assert len(np.unique(study.H["RUN_TIME"])) >= len(study.H) / 2, "Most of the RUN_TIMEs should be unique"
         print("\nlibEnsemble correctly didn't add anything to initial sample")
-        study.save_output()
+        study.save_output(__file__)
