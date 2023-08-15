@@ -21,16 +21,16 @@ from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to s
 
 class _GlobalConfig:
     def __init__(self):
-        self._global_opt_method = None
+        self._global_petsc_init = False
 
     @property
-    def global_opt_method(self):
-        return self._global_opt_method
+    def global_petsc_init(self):
+        return self._global_petsc_init
 
-    @global_opt_method.setter
-    def global_opt_method(self, value):
-        self._global_opt_method = value
-        if self._global_opt_method == "petsc":
+    @global_petsc_init.setter
+    def global_petsc_init(self, value):
+        self._global_petsc_init = value
+        if self._global_petsc_init:
             from petsc4py import PETSc
 
             globals()["PETSc"] = PETSc

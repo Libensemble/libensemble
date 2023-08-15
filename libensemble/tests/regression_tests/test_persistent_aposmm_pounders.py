@@ -34,7 +34,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.chwirut1 import chwirut_eval as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
-config.global_opt_method = "petsc"  # only needed for petsc now!
+config.global_petsc_init = True  # only needed for petsc now!
 
 
 def combine_component(x):

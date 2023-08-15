@@ -23,6 +23,9 @@ from time import time
 
 import numpy as np
 
+from libensemble.gen_funcs.aposmm_localopt_support import config
+
+config.global_petsc_init = True
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 
