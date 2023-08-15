@@ -19,6 +19,26 @@ import psutil
 from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to simulate receiving from manager
 
 
+class _GlobalConfig:
+    def __init__(self):
+        self._global_opt_method = None
+
+    @property
+    def global_opt_method(self):
+        return self._global_opt_method
+
+    @global_opt_method.setter
+    def global_opt_method(self, value):
+        self._global_opt_method = value
+        if self._global_opt_method == "petsc":
+            from petsc4py import PETSc
+
+            globals()["PETSc"] = PETSc
+
+
+config = _GlobalConfig()
+
+
 class APOSMMException(Exception):
     """Raised for any exception in APOSMM"""
 
@@ -396,11 +416,10 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-    from petsc4py import PETSc
 
     assert isinstance(x0, np.ndarray)
 
-    tao_comm = PETSc.COMM_SELF
+    tao_comm = PETSc.COMM_SELF  # noqa: F821
     (n,) = x0.shape
     if f0.shape == ():
         m = 1
@@ -408,7 +427,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         (m,) = f0.shape
 
     # Create starting point, bounds, and tao object
-    x = PETSc.Vec().create(tao_comm)
+    x = PETSc.Vec().create(tao_comm)  # noqa: F821
     x.setSizes(n)
     x.setFromOptions()
     x.array = x0
@@ -416,11 +435,11 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     ub = x.duplicate()
     lb.array = 0 * np.ones(n)
     ub.array = 1 * np.ones(n)
-    tao = PETSc.TAO().create(tao_comm)
+    tao = PETSc.TAO().create(tao_comm)  # noqa: F821
     tao.setType(user_specs["localopt_method"])
 
     if user_specs["localopt_method"] == "pounders":
-        f = PETSc.Vec().create(tao_comm)
+        f = PETSc.Vec().create(tao_comm)  # noqa: F821
         f.setSizes(m)
         f.setFromOptions()
 
@@ -441,7 +460,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         delta_0 = user_specs["dist_to_bound_multiple"] * np.min(
             [np.min(ub.array - x.array), np.min(x.array - lb.array)]
         )
-        PETSc.Options().setValue("-tao_pounders_delta", str(delta_0))
+        PETSc.Options().setValue("-tao_pounders_delta", str(delta_0))  # noqa: F821
 
     elif user_specs["localopt_method"] == "nm":
         tao.setObjective(
@@ -449,7 +468,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         )
 
     elif user_specs["localopt_method"] == "blmvm":
-        g = PETSc.Vec().create(tao_comm)
+        g = PETSc.Vec().create(tao_comm)  # noqa: F821
         g.setSizes(n)
         g.setFromOptions()
         tao.setObjectiveGradient(
@@ -458,7 +477,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
         )
 
     # Set everything for tao before solving
-    PETSc.Options().setValue("-tao_max_funcs", str(user_specs.get("run_max_eval", 1000 * n)))
+    PETSc.Options().setValue("-tao_max_funcs", str(user_specs.get("run_max_eval", 1000 * n)))  # noqa: F821
     tao.setFromOptions()
     tao.setVariableBounds((lb, ub))
 
