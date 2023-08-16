@@ -100,9 +100,9 @@ if __name__ == "__main__":
             "lb": np.array([0, 0]),
             # Upper bound for the n parameters.
             "ub": np.array([15, 15]),
-            **mt_params,
         },
     )
+    experiment.gen_specs.user.update(**mt_params)
 
     experiment.run()
     experiment.save_output(__file__)
