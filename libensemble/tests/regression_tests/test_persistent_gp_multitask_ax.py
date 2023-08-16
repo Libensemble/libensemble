@@ -23,11 +23,10 @@ import warnings
 
 import numpy as np
 
-from libensemble import logger
+from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
-from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -59,7 +58,6 @@ def run_simulation(H, persis_info, sim_specs, libE_info):
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
 
     mt_params = {
         "name_hifi": "expensive_model",
@@ -70,53 +68,41 @@ if __name__ == "__main__":
         "n_opt_lofi": 4,
     }
 
-    sim_specs = {
-        "sim_f": run_simulation,
-        "in": ["x", "task"],
-        "out": [("f", float)],
-    }
+    experiment = Ensemble(
+        sim_specs=SimSpecs(
+            sim_f=run_simulation,
+            inputs=["x", "task"],
+            out=[("f", float)],
+        ),
+        alloc_specs=AllocSpecs(
+            alloc_f=only_persistent_gens,
+            user={"async_return": False},
+        ),
+        exit_criteria=ExitCriteria(sim_max=20),
+    )
 
-    gen_specs = {
-        # Generator function. Will randomly generate new sim inputs 'x'.
-        "gen_f": persistent_gp_mt_ax_gen_f,
-        # Generator input. This is a RNG, no need for inputs.
-        "in": ["sim_id", "x", "f", "task"],
-        "persis_in": ["sim_id", "x", "f", "task"],
-        "out": [
+    experiment.add_random_streams()
+    experiment.gen_specs = GenSpecs(
+        gen_f=persistent_gp_mt_ax_gen_f,
+        inputs=["sim_id", "x", "f", "task"],
+        persis_in=["sim_id", "x", "f", "task"],
+        out=[
             # parameters to input into the simulation.
             ("x", float, (2,)),
             ("task", str, max([len(mt_params["name_hifi"]), len(mt_params["name_lofi"])])),
             ("resource_sets", int),
         ],
-        "user": {
+        user={
             "range": [1, 8],
             # Total max number of sims running concurrently.
-            "gen_batch_size": nworkers - 1,
+            "gen_batch_size": experiment.nworkers - 1,
             # Lower bound for the n parameters.
             "lb": np.array([0, 0]),
             # Upper bound for the n parameters.
             "ub": np.array([15, 15]),
+            **mt_params,
         },
-    }
-    gen_specs["user"] = {**gen_specs["user"], **mt_params}
+    )
 
-    alloc_specs = {
-        "alloc_f": only_persistent_gens,
-        "user": {"async_return": False},
-    }
-
-    # libE logger
-    logger.set_level("INFO")
-
-    # Exit criteria
-    exit_criteria = {"sim_max": 20}  # Exit after running sim_max simulations
-
-    # Create a different random number stream for each worker and the manager
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
-    # Run LibEnsemble, and store results in history array H
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
-
-    # Save results to numpy file
-    if is_manager:
-        save_libE_output(H, persis_info, __file__, nworkers)
+    experiment.run()
+    experiment.save_output(__file__)
