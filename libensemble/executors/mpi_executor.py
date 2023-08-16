@@ -92,7 +92,7 @@ class MPIExecutor(Executor):
         self.mpi_runner_type = custom_info.get("mpi_runner")
         self.runner_name = custom_info.get("runner_name")
         self.subgroup_launch = custom_info.get("subgroup_launch")
-        self._set_mpi_runner()  # For standalone - else overidden by add_platform_info
+        self.mpi_runner = None  # Do not set here or will override platform
 
     def _create_mpi_runner(self, custom_info: dict = {}) -> MPIRunner:
         """Return an mpi_runner object from given info"""
@@ -328,7 +328,7 @@ class MPIExecutor(Executor):
                 custom_info = mpi_runner_type
             mpi_runner = self._create_mpi_runner(custom_info)
         else:
-            mpi_runner = self.mpi_runner
+            mpi_runner = self.mpi_runner or self._set_mpi_runner()
 
         mpi_specs = mpi_runner.get_mpi_specs(
             task,
