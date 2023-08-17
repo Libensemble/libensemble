@@ -112,6 +112,26 @@ if __name__ == "__main__":
             sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
         )
 
+    # Oversubscribe procs
+    libE_specs["resource_info"] = {
+        "gpus_on_node": 4,
+        "node_file": node_file,
+        "cores_on_node": (nsim_workers // 2, nsim_workers),
+    }
+
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+        print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
+        exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
+        exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+        # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+
+        # Perform the run
+        H, _, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
+
     del libE_specs["resource_info"]
 
     # All asserts are in sim func
