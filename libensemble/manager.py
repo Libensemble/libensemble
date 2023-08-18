@@ -486,18 +486,20 @@ class Manager:
     def _kill_cancelled_sims(self) -> None:
         """Send kill signals to any sims marked as cancel_requested"""
         if self.kill_canceled_sims:
+            inds_to_check = np.arange(self.hist.last_ended + 1, self.hist.last_started + 1)
             kill_sim = (
-                self.hist.H["sim_started"]
-                & self.hist.H["cancel_requested"]
-                & ~self.hist.H["sim_ended"]
-                & ~self.hist.H["kill_sent"]
+                self.hist.H["sim_started"][inds_to_check]
+                & self.hist.H["cancel_requested"][inds_to_check]
+                & ~self.hist.H["sim_ended"][inds_to_check]
+                & ~self.hist.H["kill_sent"][inds_to_check]
             )
+            kill_sim_rows = inds_to_check[kill_sim]
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
-                logger.debug(f"Manager sending kill signals to H indices {np.where(kill_sim)}")
-                kill_ids = self.hist.H["sim_id"][kill_sim]
-                kill_on_workers = self.hist.H["sim_worker"][kill_sim]
+                logger.debug(f"Manager sending kill signals to H indices {kill_sim_rows}")
+                kill_ids = self.hist.H["sim_id"][kill_sim_rows]
+                kill_on_workers = self.hist.H["sim_worker"][kill_sim_rows]
                 for w in kill_on_workers:
                     self.wcomms[w - 1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H["kill_sent"][kill_ids] = True
