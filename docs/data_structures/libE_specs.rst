@@ -44,7 +44,7 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 When libEnsemble concludes and attempts to close down workers,
                 the number of seconds until workers are considered timed out. Worker
                 processes are then terminated.
-            "kill_canceled_sims" [bool] = ``True``:
+            "kill_canceled_sims" [bool] = ``False``:
                 Try to kill sims with ``"cancel_requested"`` set ``True``.
                 If ``False``, the manager avoids this moderate overhead.
             "disable_log_files" [bool] = ``False``:
