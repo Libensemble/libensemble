@@ -377,7 +377,7 @@ class Manager:
 
         work_rows = Work["libE_info"]["H_rows"]
         if Work["tag"] == EVAL_SIM_TAG:
-            self.hist.update_history_x_out(work_rows, w)
+            self.hist.update_history_x_out(work_rows, w, self.kill_canceled_sims)
         elif Work["tag"] == EVAL_GEN_TAG:
             self.hist.update_history_to_gen(work_rows)
 
@@ -433,7 +433,7 @@ class Manager:
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
                     self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w - 1]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
-                    self.hist.update_history_f(D_recv, self.safe_mode)
+                    self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w - 1]["persis_state"] = 0
@@ -446,7 +446,7 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.safe_mode)
+                self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.W[w - 1]["gen_started_time"])
                 assert (
@@ -485,8 +485,10 @@ class Manager:
 
     def _kill_cancelled_sims(self) -> None:
         """Send kill signals to any sims marked as cancel_requested"""
+
         if self.kill_canceled_sims:
             inds_to_check = np.arange(self.hist.last_ended + 1, self.hist.last_started + 1)
+
             kill_sim = (
                 self.hist.H["sim_started"][inds_to_check]
                 & self.hist.H["cancel_requested"][inds_to_check]
