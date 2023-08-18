@@ -144,8 +144,9 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     if cmd_line:
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            avail_gpus = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
-            expected_nums = _safe_min(avail_gpus, wresources.gen_ngpus)
+            avail_gpus_per_node = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
+            req_gpus_per_node = wresources.gen_ngpus // int(ppn)
+            expected_nums = _safe_min(avail_gpus_per_node, req_gpus_per_node)
         else:
             stype = "runline option: gpus per node"
             expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
