@@ -403,6 +403,7 @@ class Manager:
         communticate. If any output is received, all other workers are
         looped back over.
         """
+        time.sleep(0.0001)  # Critical for multiprocessing performance
         new_stuff = True
         while new_stuff:
             new_stuff = False
