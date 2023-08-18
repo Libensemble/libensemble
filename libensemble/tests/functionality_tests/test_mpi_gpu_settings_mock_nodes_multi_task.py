@@ -69,7 +69,7 @@ if __name__ == "__main__":
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nsim_workers,
-            "max_procs": nsim_workers // 2,  # Any sim created can req. 1 worker up to max
+            "max_procs": max(nsim_workers // 2, 1),  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "multi_task": True,
@@ -113,10 +113,15 @@ if __name__ == "__main__":
         )
 
     # Oversubscribe procs
+    if nsim_workers >= 4:
+        cores_per_node = nsim_workers // 4
+    else:
+        cores_per_node = 1
+
     libE_specs["resource_info"] = {
         "gpus_on_node": 4,
         "node_file": node_file,
-        "cores_on_node": (nsim_workers // 2, nsim_workers),
+        "cores_on_node": (cores_per_node, cores_per_node),
     }
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
