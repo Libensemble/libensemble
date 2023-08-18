@@ -142,14 +142,12 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     # Get expected numbers
     if cmd_line:
+        expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            avail_gpus_per_node = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
-            req_gpus_per_node = wresources.gen_ngpus // int(ppn)
-            expected_nums = _safe_min(avail_gpus_per_node, req_gpus_per_node)
+            expected_nums //= int(ppn)
         else:
             stype = "runline option: gpus per node"
-            expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
         expected_nums = expected_nums if _set_gpus(task, wresources) else None
         if expected_nums is not None:
             expected = _get_expected_output(expected_setting, expected_nums)
