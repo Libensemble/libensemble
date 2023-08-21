@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 
@@ -9,10 +11,12 @@ def test_ensemble_init():
     """testing init attrs"""
     from libensemble.ensemble import Ensemble
 
-    e = Ensemble(
-        libE_specs={"comms": "local", "nworkers": 4}
-    )  # without specifying, class assumes MPI since pytest runs without --comms local
-    assert "comms" in e.libE_specs, "internal parse_args() didn't populate defaults for class's libE_specs"
+    sys.argv = ["", "--comms", "local", "--nworkers", "4"]
+    e = Ensemble()
+    import ipdb
+
+    ipdb.set_trace()
+    assert e.libE_specs.comms, "internal parse_args() didn't populate defaults for class's libE_specs"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
@@ -23,8 +27,9 @@ def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
     from libensemble.ensemble import Ensemble
 
+    sys.argv = ["", "--comms", "local", "--nworkers", "4"]
     for ft in ["yaml", "json", "toml"]:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+        e = Ensemble()
         file_path = f"./simdir/test_example.{ft}"
         if ft == "yaml":
             e.from_yaml(file_path)
@@ -50,13 +55,14 @@ def test_bad_func_loads():
     """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
     from libensemble.ensemble import Ensemble
 
+    sys.argv = ["", "--comms", "local", "--nworkers", "4"]
     yaml_errors = {
         "./simdir/test_example_badfuncs_attribute.yaml": AttributeError,
         "./simdir/test_example_badfuncs_notfound.yaml": ModuleNotFoundError,
     }
 
     for f in yaml_errors:
-        e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+        e = Ensemble()
         flag = 1
         try:
             e.from_yaml(f)
