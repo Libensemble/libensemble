@@ -463,7 +463,10 @@ class Ensemble:
 
         Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
-        if self._get_option("libE_specs", "workflow_dir_path"):
-            save_libE_output(self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path)
-        else:
-            save_libE_output(self.H, self.persis_info, file, self.nworkers)
+        if self.is_manager:
+            if self._get_option("libE_specs", "workflow_dir_path"):
+                save_libE_output(
+                    self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path
+                )
+            else:
+                save_libE_output(self.H, self.persis_info, file, self.nworkers)

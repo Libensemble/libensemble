@@ -39,6 +39,4 @@ forces.gen_specs.user.update(
 forces.add_random_streams()
 
 forces.run()
-
-if forces.is_manager:
-    forces.save_output(__file__)
+forces.save_output(__file__)

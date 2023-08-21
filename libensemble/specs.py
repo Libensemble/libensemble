@@ -10,6 +10,7 @@ from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.resources.platforms import Platform
 from libensemble.sim_funcs.one_d_func import one_d_example
+from libensemble.tools import parse_args
 from libensemble.utils.specs_checkers import (
     MPI_Communicator,
     _check_any_workers_and_disable_rm_if_tcp,
@@ -480,6 +481,8 @@ class LibeSpecs(BaseModel):
 
     @validator("comms")
     def check_valid_comms_type(cls, value):
+        _, _, specs, _ = parse_args()  # authority for comms type
+        value = specs["comms"]
         assert value in ["mpi", "local", "tcp"], "Invalid comms type"
         return value
 
@@ -511,6 +514,8 @@ class LibeSpecs(BaseModel):
 
     @root_validator
     def set_defaults_on_mpi(cls, values):
+        _, _, specs, _ = parse_args()
+        values["comms"] = specs["comms"]
         if values.get("comms") == "mpi":
             from mpi4py import MPI
 
