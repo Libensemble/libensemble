@@ -22,23 +22,24 @@ from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to s
 optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
-if not isinstance(optimizers, list):
-    optimizers = [optimizers]
-unrec = set(optimizers) - set(optimizer_list)
-if unrec:
-    print(f"APOSMM Warning: unrecognized optimizers {unrec}")
+if optimizers is not None:
+    if not isinstance(optimizers, list):
+        optimizers = [optimizers]
+    unrec = set(optimizers) - set(optimizer_list)
+    if unrec:
+        print(f"APOSMM Warning: unrecognized optimizers {unrec}")
 
-# Preferable to import globally in most cases
-if "petsc" in optimizers:
-    from petsc4py import PETSc  # noqa: F401
-if "nlopt" in optimizers:
-    import nlopt  # noqa: F401
-if "dfols" in optimizers:
-    import dfols  # noqa: F401
-if "scipy" in optimizers:
-    from scipy import optimize as sp_opt  # noqa: F401
-if "external" in optimizers:
-    pass
+    # Preferable to import globally in most cases
+    if "petsc" in optimizers:
+        from petsc4py import PETSc  # noqa: F401
+    if "nlopt" in optimizers:
+        import nlopt  # noqa: F401
+    if "dfols" in optimizers:
+        import dfols  # noqa: F401
+    if "scipy" in optimizers:
+        from scipy import optimize as sp_opt  # noqa: F401
+    if "external" in optimizers:
+        pass
 
 
 class APOSMMException(Exception):
