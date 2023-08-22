@@ -20,7 +20,6 @@ persistent generator.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
-import os
 import sys
 import multiprocessing
 import numpy as np
@@ -45,11 +44,7 @@ if __name__ == "__main__":
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
-
-    #sim_app = os.path.join(os.getcwd(), "../scaling_tests/forces/forces_app/forces.x")
-
     exctr = MPIExecutor()
-    #exctr.register_app(full_path=sim_app, app_name="forces")
     six_hump_camel_app = six_hump_camel.__file__
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
     libE_specs["sim_dirs_make"] = True
