@@ -68,6 +68,8 @@ class EnsembleDirectory:
         if self.ensemble_copy_back:
             self.copybackdir = self.workflow_dir / Path(self.ensemble_dir.stem + "_back")
 
+        self.pad = self.specs.get("calc_dir_id_width", 4)
+
     def make_copyback(self) -> None:
         """Check for existing ensemble dir and copybackdir, make copyback if doesn't exist"""
         try:
@@ -154,7 +156,7 @@ class EnsembleDirectory:
                 self.ensemble_dir.mkdir(exist_ok=True, parents=True)
             calc_prefix = self.ensemble_dir
 
-        calc_dir = calc_str + str(H_rows)
+        calc_dir = calc_str + str(H_rows).rjust(self.pad, str(0))
         # Register calc dir with adjusted parent dir and sourcefile location
         locs.register_loc(
             calc_dir,
