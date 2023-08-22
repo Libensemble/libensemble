@@ -23,22 +23,22 @@ optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if not isinstance(optimizers, list):
-   optimizers = [optimizers]
+    optimizers = [optimizers]
 unrec = set(optimizers) - set(optimizer_list)
 if unrec:
-   print(f"APOSMM Warning: unrecognized optimizers {unrec}")
+    print(f"APOSMM Warning: unrecognized optimizers {unrec}")
 
 # Preferable to import globally in most cases
 if "petsc" in optimizers:
-   from petsc4py import PETSc
+    from petsc4py import PETSc  # noqa: F401
 if "nlopt" in optimizers:
-   import nlopt
+    import nlopt  # noqa: F401
 if "dfols" in optimizers:
-   import dfols
+    import dfols  # noqa: F401
 if "scipy" in optimizers:
-   from scipy import optimize as sp_opt
+    from scipy import optimize as sp_opt  # noqa: F401
 if "external" in optimizers:
-   pass
+    pass
 
 
 class APOSMMException(Exception):
@@ -196,7 +196,8 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs an NLopt local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-    import nlopt
+
+    import nlopt  # noqa: F811
 
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(user_specs["ub"])
@@ -269,7 +270,7 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-    from scipy import optimize as sp_opt
+    from scipy import optimize as sp_opt  # noqa: F811
 
     # Construct the bounds in the form of constraints
     cons = []
@@ -371,7 +372,7 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
-    import dfols
+    import dfols  # noqa: F811
 
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
@@ -418,7 +419,7 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     parameters in ``user_specs``.
     """
 
-    from petsc4py import PETSc
+    from petsc4py import PETSc  # noqa: F811
 
     assert isinstance(x0, np.ndarray)
 
