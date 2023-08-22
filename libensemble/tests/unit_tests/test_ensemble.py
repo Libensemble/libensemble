@@ -13,9 +13,6 @@ def test_ensemble_init():
 
     sys.argv = ["", "--comms", "local", "--nworkers", "4"]
     e = Ensemble()
-    import ipdb
-
-    ipdb.set_trace()
     assert e.libE_specs.comms, "internal parse_args() didn't populate defaults for class's libE_specs"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
