@@ -157,7 +157,7 @@ class AllocSupport:
                     if "resource_sets" in H.dtype.names:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
-                        procs_per_rset = self.resources.resource_manager.cores_per_rset
+                        procs_per_rset = self.resources.resource_manager.procs_per_rset
                         num_rsets_req = AllocSupport._convert_to_rsets(
                             libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
                         )

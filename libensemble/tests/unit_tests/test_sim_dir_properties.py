@@ -203,6 +203,25 @@ def test_workflow_dir_copyback(tmp_path):
         shutil.rmtree(dire)
 
 
+def test_calc_dir_pad(tmp_path):
+    """Test calculation directory numerical-ID component padding with zeros"""
+    ensemble_dir = tmp_path / "test_ens"
+
+    os.makedirs(ensemble_dir, exist_ok=True)
+
+    libE_specs = {"ensemble_dir_path": ensemble_dir, "calc_dir_id_width": 4, "sim_dirs_make": True}
+
+    ls = LocationStack()
+    ed = EnsembleDirectory(libE_specs, ls)
+    EnsembleDirectory._make_calc_dir(ed, 1, 1, "sim", ls)
+
+    test = len([i for i in os.listdir(ensemble_dir)[0] if i == "0"]) == libE_specs["calc_dir_id_width"] - 1
+
+    assert test, "additional zeros were not padded to the calculation directory to match the calc_dir_id_width setting"
+
+    shutil.rmtree(ensemble_dir)
+
+
 if __name__ == "__main__":
     test_range_single_element()
     test_range_two_separate_elements()
@@ -212,3 +231,4 @@ if __name__ == "__main__":
     test_worker_dirs_but_no_sim_dirs()
     test_loc_stack_FileExists_exceptions()
     test_workflow_dir_copyback()
+    test_calc_dir_pad()

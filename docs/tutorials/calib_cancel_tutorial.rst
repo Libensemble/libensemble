@@ -139,13 +139,15 @@ be processed. The manager will send kill signals to workers that are already pro
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
 
-Allocation function
--------------------
+Allocation function and Cancellation configuration
+--------------------------------------------------
 
 The allocation function used in this example is the *only_persistent_gens* function in the
-*start_only_persistent* module. The calling script passes the following specification:
+*start_only_persistent* module. The calling script passes the following specifications:
 
 .. code-block:: python
+
+    libE_specs["kill_canceled_sims"] = True
 
     alloc_specs = {
         "alloc_f": alloc_f,

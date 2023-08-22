@@ -120,7 +120,10 @@ class History:
         self.sim_ended_offset = self.sim_ended_count
         self.gen_informed_offset = self.gen_informed_count
 
-    def update_history_f(self, D: dict, safe_mode: bool) -> None:
+        self.last_started = -1
+        self.last_ended = -1
+
+    def update_history_f(self, D: dict, safe_mode: bool, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history after points have been evaluated
         """
@@ -151,7 +154,14 @@ class History:
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
 
-    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int) -> None:
+        if kill_canceled_sims:
+            for j in range(self.last_ended + 1, np.max(new_inds) + 1):
+                if self.H["sim_ended"][j]:
+                    self.last_ended += 1
+                else:
+                    break
+
+    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history (in place) when new points have been given out to be evaluated
 
@@ -171,6 +181,8 @@ class History:
         self.H["sim_worker"][q_inds] = sim_worker
 
         self.sim_started_count += len(q_inds)
+        if kill_canceled_sims:
+            self.last_started = np.max(q_inds)
 
     def update_history_to_gen(self, q_inds: npt.NDArray):
         """Updates the history (in place) when points are given back to the gen"""

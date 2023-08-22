@@ -377,7 +377,7 @@ class Manager:
 
         work_rows = Work["libE_info"]["H_rows"]
         if Work["tag"] == EVAL_SIM_TAG:
-            self.hist.update_history_x_out(work_rows, w)
+            self.hist.update_history_x_out(work_rows, w, self.kill_canceled_sims)
         elif Work["tag"] == EVAL_GEN_TAG:
             self.hist.update_history_to_gen(work_rows)
 
@@ -403,6 +403,7 @@ class Manager:
         communticate. If any output is received, all other workers are
         looped back over.
         """
+        time.sleep(0.0001)  # Critical for multiprocessing performance
         new_stuff = True
         while new_stuff:
             new_stuff = False
@@ -433,7 +434,7 @@ class Manager:
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
                     self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w - 1]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
-                    self.hist.update_history_f(D_recv, self.safe_mode)
+                    self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w - 1]["persis_state"] = 0
@@ -446,7 +447,7 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.safe_mode)
+                self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.W[w - 1]["gen_started_time"])
                 assert (
@@ -485,19 +486,23 @@ class Manager:
 
     def _kill_cancelled_sims(self) -> None:
         """Send kill signals to any sims marked as cancel_requested"""
+
         if self.kill_canceled_sims:
+            inds_to_check = np.arange(self.hist.last_ended + 1, self.hist.last_started + 1)
+
             kill_sim = (
-                self.hist.H["sim_started"]
-                & self.hist.H["cancel_requested"]
-                & ~self.hist.H["sim_ended"]
-                & ~self.hist.H["kill_sent"]
+                self.hist.H["sim_started"][inds_to_check]
+                & self.hist.H["cancel_requested"][inds_to_check]
+                & ~self.hist.H["sim_ended"][inds_to_check]
+                & ~self.hist.H["kill_sent"][inds_to_check]
             )
+            kill_sim_rows = inds_to_check[kill_sim]
 
             # Note that a return is still expected when running sims are killed
             if np.any(kill_sim):
-                logger.debug(f"Manager sending kill signals to H indices {np.where(kill_sim)}")
-                kill_ids = self.hist.H["sim_id"][kill_sim]
-                kill_on_workers = self.hist.H["sim_worker"][kill_sim]
+                logger.debug(f"Manager sending kill signals to H indices {kill_sim_rows}")
+                kill_ids = self.hist.H["sim_id"][kill_sim_rows]
+                kill_on_workers = self.hist.H["sim_worker"][kill_sim_rows]
                 for w in kill_on_workers:
                     self.wcomms[w - 1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H["kill_sent"][kill_ids] = True
