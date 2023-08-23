@@ -28,8 +28,8 @@ import numpy as np
 from libensemble.libE import libE
 
 # For OpenMPI must not have these lines, allowing PETSc to import in function.
-import libensemble.gen_funcs
-libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
+# import libensemble.gen_funcs
+# libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
