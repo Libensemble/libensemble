@@ -517,11 +517,15 @@ class LibeSpecs(BaseModel):
 
     @root_validator(pre=True)
     def set_defaults_on_mpi(cls, values):
+        """if MPI is set, make sure we have a comm. If we have a comm but MPI is not set, then set it"""
         if values.get("comms") == "mpi":
             from mpi4py import MPI
 
             if values.get("mpi_comm") is None:  # not values.get("mpi_comm") is True ???
                 values["mpi_comm"] = MPI.COMM_WORLD
+        else:
+            if values.get("mpi_comm") is not None:  # set comms to mpi on providing an mpi communicator
+                values["comms"] = "mpi"
         return values
 
     @root_validator
