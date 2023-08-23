@@ -44,7 +44,7 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 When libEnsemble concludes and attempts to close down workers,
                 the number of seconds until workers are considered timed out. Worker
                 processes are then terminated.
-            "kill_canceled_sims" [bool] = ``True``:
+            "kill_canceled_sims" [bool] = ``False``:
                 Try to kill sims with ``"cancel_requested"`` set ``True``.
                 If ``False``, the manager avoids this moderate overhead.
             "disable_log_files" [bool] = ``False``:
@@ -80,6 +80,10 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 "reuse_output_dir" [bool] = ``False``:
                     Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
                     ``False`` by default to protect results.
+
+                "calc_dir_id_width" [int] = ``0``:
+                    The width of the numerical ID component of a calculation directory name. Leading
+                    zeros are padded to the sim/gen ID.
 
                 "use_worker_dirs" [bool] = ``False``:
                     Whether to organize calculation directories under worker-specific directories:
