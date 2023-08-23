@@ -210,7 +210,7 @@ class LibeSpecs(BaseModel):
     Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary.
     """
 
-    comms: Optional[str] = "mpi"
+    comms: Optional[str] = "local"
     """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'`` """
 
     nworkers: Optional[int]
@@ -517,7 +517,7 @@ class LibeSpecs(BaseModel):
 
     @root_validator(pre=True)
     def set_defaults_on_mpi(cls, values):
-        if values.get("comms", "mpi") == "mpi":
+        if values.get("comms") == "mpi":
             from mpi4py import MPI
 
             if values.get("mpi_comm") is None:  # not values.get("mpi_comm") is True ???

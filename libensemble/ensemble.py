@@ -10,7 +10,9 @@ import yaml
 from libensemble import logger
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams
+from libensemble.tools import parse_args as parse_args_f
+from libensemble.tools import save_libE_output
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
 ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
@@ -238,6 +240,10 @@ class Ensemble:
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
 
+    parse_args: bool, optional
+
+        Read nworkers, comms, and other arguments from the command-line
+
     """
 
     def __init__(
@@ -249,6 +255,7 @@ class Ensemble:
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
         H0: Optional[npt.NDArray] = None,
+        parse_args: Optional[bool] = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
@@ -258,29 +265,59 @@ class Ensemble:
         self.persis_info = persis_info
         self.H0 = H0
 
-        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
 
+        self.nworkers = 0
+        self.is_manager = False
+        self.parsed = False
+
+        if parse_args:
+            self.parse_args()
+            self.parsed = True
+
+    def parse_args(self) -> (int, bool, LibeSpecs):
+        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args_f()
+
         if not self._libE_specs:
             self._libE_specs = LibeSpecs(**libE_specs_parsed)
+        else:
+            self._libE_specs.__dict__.update(**libE_specs_parsed)
+
+        return self.nworkers, self.is_manager, self._libE_specs
 
     def ready(self) -> bool:
         """Quickly verify that all necessary data has been provided"""
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
 
     @property
-    def libE_specs(self):
+    def libE_specs(self) -> LibeSpecs:
         return self._libE_specs
 
     @libE_specs.setter
     def libE_specs(self, new_specs):
-        if not isinstance(new_specs, dict):
-            new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+        # We need to deal with libE_specs being specified as dict or class, and
+        #   "not" overwrite the internal libE_specs["comms"], but *only* if parse_args
+        #   was called. Otherwise we can respect the complete set of provided options.
+
+        # Convert our libE_specs from dict to class, if its a dict
         if isinstance(self._libE_specs, dict):
             self._libE_specs = LibeSpecs(**self._libE_specs)
-        self._libE_specs.__dict__.update(**new_specs)
+
+        # Cast new libE_specs temporarily to dict
+        if not isinstance(new_specs, dict):
+            new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+
+        # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
+        if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
+            new_specs.pop("comms")
+
+        # Now finally set attribute if we don't have a libE_specs, otherwise update the internal
+        if not self._libE_specs:
+            self._libE_specs = new_specs
+        else:
+            self._libE_specs.__dict__.update(**new_specs)
 
     def run(self) -> (npt.NDArray, dict, int):
         """
