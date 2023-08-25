@@ -424,30 +424,39 @@ def test_als_points_by_priority():
 
 def test_convert_to_rsets():
     user_params = []
-    libE_info = {}
     gen_fields = [("num_procs", int), ("num_gpus", int)]
     H = np.zeros(5, dtype=libE_fields + gen_fields)
 
     H_rows = 1
-    H[H_rows]["num_gpus"] = 3
+    num_gpus = 3
+    H[H_rows]["num_gpus"] = num_gpus
     units_str = "num_gpus"
 
     gpus_per_rset = 1
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, gpus_per_rset, num_gpus, units_str)
+    assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 
     gpus_per_rset = 2
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 2, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 
     gpus_per_rset = 0
+    libE_info, num_rsets = {}, None  # Reset
     with pytest.raises(InsufficientResourcesError):
-        num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+        num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
 
     H[H_rows]["num_gpus"] = 0
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 0, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 0, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 

@@ -146,6 +146,7 @@ class AllocSupport:
 
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
         if self.manage_resources and not libE_info.get("rset_team"):
+            num_rsets_req = 0
             if self.W[wid - 1]["persis_state"]:
                 # Even if empty list, non-None rset_team stops manager giving default resources
                 libE_info["rset_team"] = []
@@ -158,7 +159,7 @@ class AllocSupport:
                         num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
                     elif "num_procs" in H.dtype.names:
                         procs_per_rset = self.resources.resource_manager.procs_per_rset
-                        num_rsets_req = AllocSupport._convert_to_rsets(
+                        num_rsets_req = AllocSupport._convert_rows_to_rsets(
                             libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
                         )
                     else:
@@ -170,15 +171,43 @@ class AllocSupport:
                             use_gpus = False
                     if "num_gpus" in H.dtype.names:
                         gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                        num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
                             libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
                         )
                         if num_rsets_req_for_gpus > 0:
                             use_gpus = True
                         num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
                 else:
+
+                    # TODO - reduce code length
+
+                    # We could have libE_specs defaults (gen_num_procs, gen_num_gpus) - passed by libE_info
+                    # persis_info values would override.
+
                     num_rsets_req = self.persis_info.get("gen_resources", 0)
-                    use_gpus = self.persis_info.get("gen_use_gpus", None)
+                    use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
+
+                    if not num_rsets_req:
+                        gen_nprocs = self.persis_info.get("gen_nun_procs", 0)
+                        if gen_nprocs:
+                            procs_per_rset = self.resources.resource_manager.procs_per_rset
+
+                            num_rsets_req = AllocSupport._convert_to_rsets(
+                                libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
+                            )
+
+                        gen_ngpus = self.persis_info.get("gen_nun_gpus", 0)
+                        if gen_ngpus:
+                            gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+
+                            num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                                libE_info, user_params, gpus_per_rset, gen_ngpus, "num_procs"
+                            )
+
+                            if num_rsets_req_for_gpus > 0:
+                                use_gpus = True
+                            num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
@@ -360,18 +389,24 @@ class AllocSupport:
         return H_fields
 
     @staticmethod
-    def _convert_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
-        """Convert num_procs & num_gpus requirements to resource sets"""
+    def _convert_rows_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets for sim functions"""
         max_num_units = int(np.max(H[H_rows][units_str]))
-        user_params.append(max_num_units)
-        if max_num_units > 0:
+        num_rsets_req = AllocSupport._convert_to_rsets(libE_info, user_params, units_per_rset, max_num_units, units_str)
+        return num_rsets_req
+
+    @staticmethod
+    def _convert_to_rsets(libE_info, user_params, units_per_rset, num_units, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets"""
+        user_params.append(num_units)
+        if num_units > 0:
             try:
-                num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
+                num_rsets_req = num_units // units_per_rset + (num_units % units_per_rset > 0)
             except ZeroDivisionError:
                 raise InsufficientResourcesError(
                     f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
                 )
         else:
             num_rsets_req = 0
-        libE_info[units_str] = max_num_units
+        libE_info[units_str] = num_units
         return num_rsets_req
