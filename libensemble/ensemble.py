@@ -43,7 +43,7 @@ class Ensemble:
             from my_simulator import beamline
             from someones_optimizer import optimize
 
-            experiment = Ensemble()
+            experiment = Ensemble(parse_args=True)
             experiment.sim_specs = SimSpecs(sim_f=beamline, inputs=["x"], out=[("f", float)])
             experiment.gen_specs = GenSpecs(
                 gen_f=optimize,
@@ -457,9 +457,12 @@ class Ensemble:
                 old_spec.update(loaded_spec)
                 if old_spec.get("in") and old_spec.get("inputs"):
                     old_spec.pop("inputs")  # avoid clashes
-            else:
+            elif isinstance(old_spec, ClassType):
                 old_spec.__dict__.update(**loaded_spec)
                 old_spec = old_spec.dict(by_alias=True)
+            else:  # None. attribute not set yet
+                setattr(self, f, ClassType(**loaded_spec))
+                return
             setattr(self, f, ClassType(**old_spec))
 
     def from_yaml(self, file_path: str):

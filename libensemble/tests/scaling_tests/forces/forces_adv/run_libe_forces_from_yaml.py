@@ -17,7 +17,7 @@ if not os.path.isfile(sim_app):
 
 ####################
 
-forces = Ensemble()
+forces = Ensemble(parse_args=True)
 forces.from_yaml("forces.yaml")
 
 forces.logger.set_level("INFO")

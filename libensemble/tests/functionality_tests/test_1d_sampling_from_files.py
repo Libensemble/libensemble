@@ -21,7 +21,7 @@ from libensemble.ensemble import Ensemble
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    sampling = Ensemble()
+    sampling = Ensemble(parse_args=True)
     sampling.from_json("1d_sampling.json")
     sampling.from_toml("1d_sampling.toml")
     sampling.from_yaml("1d_sampling.yaml")
