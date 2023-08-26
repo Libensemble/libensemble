@@ -37,7 +37,10 @@ H["sim_started_time"] = np.inf
 
 
 def initialize_resources():
-    Resources.init_resources({"comms": "local", "nworkers": 4, "num_resource_sets": 4})
+    platform_info = {"cores_per_node": 8, "gpus_per_node": 4}
+    # import pdb;pdb.set_trace()
+    libE_specs = {"comms": "local", "nworkers": 4, "num_resource_sets": 4}
+    Resources.init_resources(libE_specs=libE_specs, platform_info=platform_info)
     Resources.resources.set_resource_manager(4)
 
 
@@ -218,8 +221,20 @@ def test_als_gen_work():
     als = AllocSupport(W, True, persis_info=persis_info)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1])
+    assert Work[1]["libE_info"]["rset_team"] == [0], "Resource set should be assigned in libE_info"
+    del persis_info["gen_resources"]
 
-    assert len(Work[1]["libE_info"]["rset_team"]), "Resource set should be assigned in libE_info"
+    persis_info["gen_num_procs"] = 2
+    Work[2] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[2])
+    assert Work[2]["libE_info"]["rset_team"] == [1], "Resource set should be assigned in libE_info"
+    assert Work[2]["libE_info"]["num_procs"] == 2, "num_procs set should be assigned in libE_info"
+
+    persis_info["gen_num_procs"] = 2
+    persis_info["gen_num_gpus"] = 2
+    Work[3] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[3])
+    assert Work[3]["libE_info"]["rset_team"] == [2, 3], "Resource set should be assigned in libE_info"
+    assert Work[3]["libE_info"]["num_procs"] == 2, "num_procs set should be assigned in libE_info"
+    assert Work[3]["libE_info"]["num_gpus"] == 2, "num_procs set should be assigned in libE_info"
 
     clear_resources()
 
