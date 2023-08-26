@@ -188,20 +188,19 @@ class AllocSupport:
                     use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
 
                     if not num_rsets_req:
-                        gen_nprocs = self.persis_info.get("gen_nun_procs", 0)
+                        gen_nprocs = self.persis_info.get("gen_num_procs", 0)
                         if gen_nprocs:
                             procs_per_rset = self.resources.resource_manager.procs_per_rset
-
                             num_rsets_req = AllocSupport._convert_to_rsets(
                                 libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
                             )
 
-                        gen_ngpus = self.persis_info.get("gen_nun_gpus", 0)
+                        gen_ngpus = self.persis_info.get("gen_num_gpus", 0)
                         if gen_ngpus:
                             gpus_per_rset = self.resources.resource_manager.gpus_per_rset
 
                             num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
-                                libE_info, user_params, gpus_per_rset, gen_ngpus, "num_procs"
+                                libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
                             )
 
                             if num_rsets_req_for_gpus > 0:
