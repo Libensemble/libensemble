@@ -337,28 +337,18 @@ def comms_abort(mpi_comm):
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
-def validate_mpi_comm(libE_specs):
-    """Fill in and validate default values for MPI-based communicators."""
+def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
+    """MPI version of the libE main routine"""
     from mpi4py import MPI
+
+    if libE_specs.get("mpi_comm") is None:
+        libE_specs["mpi_comm"] = MPI.COMM_WORLD  # Will be duplicated immediately
 
     if libE_specs["mpi_comm"] == MPI.COMM_NULL:
         logger.manager_warning("*WARNING* libEnsemble detected a NULL communicator")
-    else:
-        assert libE_specs["mpi_comm"].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
-
-    if "mpi_comm" not in libE_specs:
-        libE_specs["mpi_comm"] = MPI.COMM_WORLD  # Will be duplicated immediately
-
-    return libE_specs, MPI.COMM_NULL
-
-
-def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
-    """MPI version of the libE main routine"""
-
-    libE_specs, mpi_comm_null = validate_mpi_comm(libE_specs)
-
-    if libE_specs["mpi_comm"] == mpi_comm_null:
         return [], persis_info, 3  # Process not in mpi_comm
+
+    assert libE_specs["mpi_comm"].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
     with DupComm(libE_specs["mpi_comm"]) as mpi_comm:
         is_manager = mpi_comm.Get_rank() == 0

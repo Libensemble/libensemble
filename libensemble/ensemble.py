@@ -242,7 +242,8 @@ class Ensemble:
 
     parse_args: bool, optional
 
-        Read nworkers, comms, and other arguments from the command-line
+        Read nworkers, comms, and other arguments from the command-line. For MPI, calculate nworkers
+        and set the is_manager flag from the runtime.
 
     """
 
