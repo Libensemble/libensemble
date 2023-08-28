@@ -337,9 +337,14 @@ def comms_abort(mpi_comm):
     mpi_comm.Abort(1)  # Exit code 1 to represent an abort
 
 
-def libE_mpi_defaults(libE_specs):
-    """Fill in default values for MPI-based communicators."""
+def validate_mpi_comm(libE_specs):
+    """Fill in and validate default values for MPI-based communicators."""
     from mpi4py import MPI
+
+    if libE_specs["mpi_comm"] == MPI.COMM_NULL:
+        logger.manager_warning("*WARNING* libEnsemble detected a NULL communicator")
+    else:
+        assert libE_specs["mpi_comm"].Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
 
     if "mpi_comm" not in libE_specs:
         libE_specs["mpi_comm"] = MPI.COMM_WORLD  # Will be duplicated immediately
@@ -350,7 +355,7 @@ def libE_mpi_defaults(libE_specs):
 def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
     """MPI version of the libE main routine"""
 
-    libE_specs, mpi_comm_null = libE_mpi_defaults(libE_specs)
+    libE_specs, mpi_comm_null = validate_mpi_comm(libE_specs)
 
     if libE_specs["mpi_comm"] == mpi_comm_null:
         return [], persis_info, 3  # Process not in mpi_comm

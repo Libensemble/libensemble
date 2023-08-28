@@ -11,7 +11,6 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.resources.platforms import Platform
 from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
-    MPI_Communicator,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
@@ -216,8 +215,8 @@ class LibeSpecs(BaseModel):
     nworkers: Optional[int]
     """ Number of worker processes to spawn (only in local/tcp modes) """
 
-    mpi_comm: Optional[MPI_Communicator] = None  # see utils/specs_checkers.py
-    """ libEnsemble communicator. Default: ``MPI.COMM_WORLD`` """
+    mpi_comm: Optional[Any] = None
+    """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD`` """
 
     dry_run: Optional[bool] = False
     """ Whether libEnsemble should immediately exit after validating all inputs """
