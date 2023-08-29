@@ -58,10 +58,6 @@ class Ensemble:
             experiment.exit_criteria = ExitCriteria(gen_max=101)
             results = experiment.run()
 
-    Parses ``--comms``, ``--nworkers``,
-    and other options from the command-line, validates inputs, configures logging,
-    and performs other preparations.
-
     Call ``.run()`` on the class to start the workflow.
 
     Configure by:
@@ -204,9 +200,6 @@ class Ensemble:
                         }
                     }
 
-    After calling ``.run()``, the final states of ``H``, ``persis_info``,
-    and a flag are made available.
-
     Parameters
     ----------
 
@@ -224,7 +217,7 @@ class Ensemble:
 
     persis_info: :obj:`dict`, optional
 
-        Persistent information to be passed between user functions
+        Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
     alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
@@ -242,8 +235,8 @@ class Ensemble:
 
     parse_args: bool, optional
 
-        Read nworkers, comms, and other arguments from the command-line. For MPI, calculate nworkers
-        and set the is_manager flag from the runtime.
+        Read ``nworkers``, ``comms``, and other arguments from the command-line. For MPI, calculate ``nworkers``
+        and set the ``is_manager`` boolean attribute on MPI rank 0
 
     """
 
