@@ -144,7 +144,59 @@ class AllocSupport:
         """Return the number of active persistent generators."""
         return sum(self.W["persis_state"] == EVAL_GEN_TAG)
 
+    def _req_resources_sim(self, libE_info, user_params, H, H_rows):
+        """Determine required resources for a sim work unit"""
+        use_gpus = None
+        if "resource_sets" in H.dtype.names:
+            num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
+        elif "num_procs" in H.dtype.names:
+            procs_per_rset = self.resources.resource_manager.procs_per_rset
+            num_rsets_req = AllocSupport._convert_rows_to_rsets(
+                libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
+            )
+        else:
+            num_rsets_req = 1
+        if "use_gpus" in H.dtype.names:
+            if np.any(H[H_rows]["use_gpus"]):
+                use_gpus = True
+            else:
+                use_gpus = False
+        if "num_gpus" in H.dtype.names:
+            gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+            num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
+                libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
+            )
+            if num_rsets_req_for_gpus > 0:
+                use_gpus = True
+            num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+        return num_rsets_req, use_gpus
+
+    def _req_resources_gen(self, libE_info, user_params):
+        """Determine required resources for a gen work unit"""
+        # We could also have libE_specs defaults (gen_num_procs, gen_num_gpus) - passed by libE_info
+        use_gpus = None
+        num_rsets_req = self.persis_info.get("gen_resources", 0)
+        use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
+        if not num_rsets_req:
+            gen_nprocs = self.persis_info.get("gen_num_procs", 0)
+            if gen_nprocs:
+                procs_per_rset = self.resources.resource_manager.procs_per_rset
+                num_rsets_req = AllocSupport._convert_to_rsets(
+                    libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
+                )
+            gen_ngpus = self.persis_info.get("gen_num_gpus", 0)
+            if gen_ngpus:
+                gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+                num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                    libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
+                )
+                if num_rsets_req_for_gpus > 0:
+                    use_gpus = True
+                num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+        return num_rsets_req, use_gpus
+
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
+        """Add rset_team to libE_info."""
         if self.manage_resources and not libE_info.get("rset_team"):
             num_rsets_req = 0
             if self.W[wid - 1]["persis_state"]:
@@ -152,61 +204,12 @@ class AllocSupport:
                 libE_info["rset_team"] = []
                 return
             else:
-                use_gpus = None
                 user_params = []
+                #TODO - can't a gen have these (e.g. if have H0) - or if non-persistent
                 if H is not None and H_rows is not None:
-                    if "resource_sets" in H.dtype.names:
-                        num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
-                    elif "num_procs" in H.dtype.names:
-                        procs_per_rset = self.resources.resource_manager.procs_per_rset
-                        num_rsets_req = AllocSupport._convert_rows_to_rsets(
-                            libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
-                        )
-                    else:
-                        num_rsets_req = 1
-                    if "use_gpus" in H.dtype.names:
-                        if np.any(H[H_rows]["use_gpus"]):
-                            use_gpus = True
-                        else:
-                            use_gpus = False
-                    if "num_gpus" in H.dtype.names:
-                        gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
-                            libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
-                        )
-                        if num_rsets_req_for_gpus > 0:
-                            use_gpus = True
-                        num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+                    num_rsets_req, use_gpus = self._req_resources_sim(libE_info, user_params, H, H_rows)
                 else:
-
-                    # TODO - reduce code length
-
-                    # We could have libE_specs defaults (gen_num_procs, gen_num_gpus) - passed by libE_info
-                    # persis_info values would override.
-
-                    num_rsets_req = self.persis_info.get("gen_resources", 0)
-                    use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
-
-                    if not num_rsets_req:
-                        gen_nprocs = self.persis_info.get("gen_num_procs", 0)
-                        if gen_nprocs:
-                            procs_per_rset = self.resources.resource_manager.procs_per_rset
-                            num_rsets_req = AllocSupport._convert_to_rsets(
-                                libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
-                            )
-
-                        gen_ngpus = self.persis_info.get("gen_num_gpus", 0)
-                        if gen_ngpus:
-                            gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-
-                            num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
-                                libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
-                            )
-
-                            if num_rsets_req_for_gpus > 0:
-                                use_gpus = True
-                            num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
-
+                    num_rsets_req, use_gpus = self._req_resources_gen(libE_info, user_params)
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
