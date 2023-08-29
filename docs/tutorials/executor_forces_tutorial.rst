@@ -124,8 +124,9 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
   # Seed random streams for each worker, particularly for gen_f
   persis_info = add_unique_random_streams({}, nworkers + 1)
 
-  # Launch libEnsemble
-  H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+  if __name__ == "__main__":  # required by multiprocessing on macOS and windows
+      # Launch libEnsemble
+      H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 Exercise
 ^^^^^^^^

@@ -261,10 +261,11 @@ Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module
 function call has returned, it's a simple enough process to view the History rows
 that were marked as cancelled::
 
-    H, persis_info, flag = libE(sim_specs, gen_specs,
-                                exit_criteria, persis_info,
-                                alloc_specs=alloc_specs,
-                                libE_specs=libE_specs)
+    if __name__ == "__main__":  # required by multiprocessing on macOS and windows
+        H, persis_info, flag = libE(sim_specs, gen_specs,
+                                    exit_criteria, persis_info,
+                                    alloc_specs=alloc_specs,
+                                    libE_specs=libE_specs)
 
     if is_manager:
         print("Cancelled sims", H["cancel_requested"])

@@ -242,7 +242,9 @@ need to write a new allocation function.
 
             ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
             ensemble.add_random_streams()  # setup the random streams unique to each worker
-            ensemble.run()  # start the ensemble. Blocks until completion.
+
+            if __name__ == "__main__":  # Python-quirk required on macOS and windows
+                ensemble.run()  # start the ensemble. Blocks until completion.
 
             history = ensemble.H  # start visualizing our results
 
