@@ -52,6 +52,8 @@ class AllocSupport:
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
         self.sched = None
+        self.def_gen_num_procs = libE_info["gen_num_procs"]
+        self.def_gen_num_gpus = libE_info["gen_num_gpus"]
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
             scheduler_opts = libE_info.get("scheduler_opts", {})
@@ -178,13 +180,13 @@ class AllocSupport:
         num_rsets_req = self.persis_info.get("gen_resources", 0)
         use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
         if not num_rsets_req:
-            gen_nprocs = self.persis_info.get("gen_num_procs", 0)
+            gen_nprocs = self.persis_info.get("gen_num_procs", self.def_gen_num_procs)
             if gen_nprocs:
                 procs_per_rset = self.resources.resource_manager.procs_per_rset
                 num_rsets_req = AllocSupport._convert_to_rsets(
                     libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
                 )
-            gen_ngpus = self.persis_info.get("gen_num_gpus", 0)
+            gen_ngpus = self.persis_info.get("gen_num_gpus", self.def_gen_num_gpus)
             if gen_ngpus:
                 gpus_per_rset = self.resources.resource_manager.gpus_per_rset
                 num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(

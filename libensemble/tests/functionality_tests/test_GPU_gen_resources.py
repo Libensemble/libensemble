@@ -40,7 +40,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -97,23 +97,34 @@ if __name__ == "__main__":
     }
 
     exit_criteria = {"sim_max": 20}
-    libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4)}
+    libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4), "gpus_on_node": nworkers}
 
-    for run in range(3):
-        libE_specs["resource_info"]["gpus_on_node"] = nworkers
+    base_libE_specs = libE_specs.copy()
+    for run in range(5):
+
+        # reset
+        libE_specs = base_libE_specs.copy()
         persis_info = add_unique_random_streams({}, nworkers + 1)
-        persis_info["gen_num_gpus"] = 1
 
-        if run == 1:
+        if run == 0:
+            libE_specs["gen_num_procs"] = 2
+        elif run == 1:
+            libE_specs["gen_num_gpus"] = 1
+        elif run == 2:
+            persis_info["gen_num_gpus"] = 1
+        elif run == 3:
             # Two GPUs per resource set
             libE_specs["resource_info"]["gpus_on_node"] = nworkers * 2
-        if run == 3:
+            persis_info["gen_num_gpus"] = 1
+        elif run == 4:
             # Two GPUs requested for gen
             persis_info["gen_num_procs"] = 2
             persis_info["gen_num_gpus"] = 2
-            gen_specs["user"]["max_procs"] = nworkers - 2
+            gen_specs["user"]["max_procs"] = max(nworkers - 2, 1)
 
         # Perform the run
         H, persis_info, flag = libE(
             sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
         )
+
+# All asserts are in gen and sim funcs

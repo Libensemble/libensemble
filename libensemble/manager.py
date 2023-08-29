@@ -196,6 +196,8 @@ class Manager:
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
         dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
         self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
+        self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
+        self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
 
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
@@ -571,6 +573,8 @@ class Manager:
             "sim_ended_count": self.hist.sim_ended_count,
             "sim_max_given": self._sim_max_given(),
             "use_resource_sets": self.use_resource_sets,
+            "gen_num_procs": self.gen_num_procs,
+            "gen_num_gpus": self.gen_num_gpus,
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
