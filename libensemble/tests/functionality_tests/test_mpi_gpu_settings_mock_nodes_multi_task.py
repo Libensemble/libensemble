@@ -69,7 +69,7 @@ if __name__ == "__main__":
         "out": [("priority", float), ("num_procs", int), ("num_gpus", int), ("x", float, n)],
         "user": {
             "initial_batch_size": nsim_workers,
-            "max_procs": nsim_workers // 2,  # Any sim created can req. 1 worker up to max
+            "max_procs": max(nsim_workers // 2, 1),  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
             "multi_task": True,
@@ -98,6 +98,31 @@ if __name__ == "__main__":
 
     # Mock GPU system / remove to detect GPUs, CPUs, and/or nodes
     libE_specs["resource_info"] = {"gpus_on_node": 4, "node_file": node_file, "cores_on_node": (32, 64)}
+
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+        print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
+        exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
+        exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+        # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+
+        # Perform the run
+        H, _, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
+
+    # Oversubscribe procs
+    if nsim_workers >= 4:
+        cores_per_node = nsim_workers // 4
+    else:
+        cores_per_node = 1
+
+    libE_specs["resource_info"] = {
+        "gpus_on_node": 4,
+        "node_file": node_file,
+        "cores_on_node": (cores_per_node, cores_per_node),
+    }
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
