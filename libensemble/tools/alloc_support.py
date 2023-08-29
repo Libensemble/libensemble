@@ -52,8 +52,8 @@ class AllocSupport:
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
         self.sched = None
-        self.def_gen_num_procs = libE_info["gen_num_procs"]
-        self.def_gen_num_gpus = libE_info["gen_num_gpus"]
+        self.def_gen_num_procs = libE_info.get("gen_num_procs", 0)
+        self.def_gen_num_gpus = libE_info.get("gen_num_gpus", 0)
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
             scheduler_opts = libE_info.get("scheduler_opts", {})
