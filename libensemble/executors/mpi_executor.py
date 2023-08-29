@@ -58,7 +58,7 @@ class MPIExecutor(Executor):
                 Runner name: Replaces run command if present. All runners have a default
                 except for 'custom'.
             'subgroup_launch' [bool]:
-                Whether MPI runs should be initiatied in a new process group. This needs
+                Whether MPI runs should be initiated in a new process group. This needs
                 to be correct for kills to work correctly. Use the standalone test at
                 libensemble/tests/standalone_tests/kill_test to determine correct value
                 for a system.
