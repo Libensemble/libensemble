@@ -97,7 +97,7 @@ if __name__ == "__main__":
     }
 
     exit_criteria = {"sim_max": 20}
-    libE_specs["resource_info"] = {"cores_on_node": (nworkers*2, nworkers*4)}
+    libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4)}
 
     for run in range(3):
         libE_specs["resource_info"]["gpus_on_node"] = nworkers
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
         if run == 1:
             # Two GPUs per resource set
-            libE_specs["resource_info"]["gpus_on_node"] = nworkers*2
+            libE_specs["resource_info"]["gpus_on_node"] = nworkers * 2
         if run == 3:
             # Two GPUs requested for gen
             persis_info["gen_num_procs"] = 2

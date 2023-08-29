@@ -38,7 +38,6 @@ H["sim_started_time"] = np.inf
 
 def initialize_resources():
     platform_info = {"cores_per_node": 8, "gpus_per_node": 4}
-    # import pdb;pdb.set_trace()
     libE_specs = {"comms": "local", "nworkers": 4, "num_resource_sets": 4}
     Resources.init_resources(libE_specs=libE_specs, platform_info=platform_info)
     Resources.resources.set_resource_manager(4)

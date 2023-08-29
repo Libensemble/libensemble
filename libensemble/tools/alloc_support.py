@@ -205,7 +205,7 @@ class AllocSupport:
                 return
             else:
                 user_params = []
-                #TODO - can't a gen have these (e.g. if have H0) - or if non-persistent
+                # TODO - can't a gen have these (e.g. if have H0) - or if non-persistent
                 if H is not None and H_rows is not None:
                     num_rsets_req, use_gpus = self._req_resources_sim(libE_info, user_params, H, H_rows)
                 else:

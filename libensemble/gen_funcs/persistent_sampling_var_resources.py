@@ -164,9 +164,6 @@ def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     tag = None
 
-    # Use to compare with resources assigned by libE_specs or persis_info
-    #gen_gpus = gen_specs["user"]["gen_gpus"]
-
     dry_run = gen_specs["user"].get("dry_run", False)  # logs run lines instead of running
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
