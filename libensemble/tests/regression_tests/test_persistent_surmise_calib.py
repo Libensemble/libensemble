@@ -32,20 +32,16 @@ in the libEnsemble documentation.
 
 import numpy as np
 
+from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_f
 
 # Import libEnsemble items for this test
-from libensemble.libE import libE
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
-
-# from libensemble import logger
-# logger.set_level("DEBUG")  # To get debug logging in ensemble.log
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
 
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 25  # No. of x values
@@ -62,13 +58,6 @@ if __name__ == "__main__":
     # Stop after max_emul_runs runs of the emulator
     max_evals = init_sample_size + max_add_thetas * n_x
 
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x", "thetas"],
-        "out": [("f", float)],
-        "user": {"num_obs": n_x},
-    }
-
     gen_out = [
         ("x", float, ndims),
         ("thetas", float, nparams),
@@ -77,47 +66,48 @@ if __name__ == "__main__":
         ("obsvar", float, n_x),
     ]
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": [o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
-        "out": gen_out,
-        "user": {
-            "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
-            "num_x_vals": n_x,  # Num x points to create
-            "step_add_theta": step_add_theta,  # No. of thetas to generate per step
-            "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
-            "obsvar": obsvar,  # Variance for generating noise in obs
-            "init_sample_size": init_sample_size,  # Initial batch size inc. observations
-            "priorloc": 1,  # Prior location in the unit cube
-            "priorscale": 0.5,  # Standard deviation of prior
-        },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "init_sample_size": init_sample_size,
-            "async_return": True,  # True = Return results to gen as they come in (after sample)
-            "active_recv_gen": True,  # Persistent gen can handle irregular communications
-        },
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-
-    # Currently just allow gen to exit if mse goes below threshold value
-    # exit_criteria = {'sim_max': max_evals, 'stop_val': ('mse', mse_exit)}
-
-    exit_criteria = {"sim_max": max_evals}  # Now just a set number of sims.
-
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs=alloc_specs, libE_specs=libE_specs
+    test = Ensemble(
+        sim_specs=SimSpecs(
+            sim_f=sim_f,
+            inputs=["x", "thetas"],
+            out=[("f", float)],
+            user={"num_obs": n_x},
+        ),
+        gen_specs=GenSpecs(
+            gen_f=gen_f,
+            persis_in=[o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
+            out=gen_out,
+            user={
+                "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
+                "num_x_vals": n_x,  # Num x points to create
+                "step_add_theta": step_add_theta,  # No. of thetas to generate per step
+                "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
+                "obsvar": obsvar,  # Variance for generating noise in obs
+                "init_sample_size": init_sample_size,  # Initial batch size inc. observations
+                "priorloc": 1,  # Prior location in the unit cube
+                "priorscale": 0.5,  # Standard deviation of prior
+            },
+        ),
+        alloc_specs=AllocSpecs(
+            alloc_f=alloc_f,
+            user={
+                "init_sample_size": init_sample_size,
+                "async_return": True,  # True = Return results to gen as they come in (after sample)
+                "active_recv_gen": True,  # Persistent gen can handle irregular communications
+            },
+        ),
+        exit_criteria=ExitCriteria(sim_max=max_evals),
     )
 
-    if is_manager:
+    test.add_random_streams()
+
+    # Perform the run
+    H, _, _ = test.run()
+
+    if test.is_manager:
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
         sims_done = np.count_nonzero(H["sim_ended"])
-        save_libE_output(H, persis_info, __file__, nworkers)
+        test.save_output(__file__)
         assert sims_done == max_evals, f"Num of completed simulations should be {max_evals}. Is {sims_done}"
 
         # The following line is only to cover parts of tstd2theta
