@@ -39,7 +39,6 @@ where ``optimizers`` is a string (or list of strings) from the available options
     in nested MPI (which is not supported by Open MPI). When the above line is
     not used, an import local to the optimization function will happen.
 
-
 To see the optimization algorithms supported, see `LocalOptInterfacer`_.
 
 .. seealso::
