@@ -6,14 +6,17 @@ and ``gen_specs["user"]["lb"]``.
 
 import numpy as np
 
+from libensemble.executors.executor import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+from libensemble.tools.test_support import check_gpu_setting
 
 __all__ = [
     "uniform_sample",
     "uniform_sample_with_procs_gpus",
     "uniform_sample_with_var_priorities",
     "uniform_sample_diff_simulations",
+    "uniform_sample_with_sim_gen_resources",
 ]
 
 
@@ -139,6 +142,57 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
         H_o["num_procs"] = nprocs
         H_o["num_gpus"] = np.where(use_gpus, nprocs, 0)
         print(f"GEN created {b} sims requiring {nprocs} procs. Use GPUs {use_gpus}", flush=True)
+
+        tag, Work, calc_in = ps.send_recv(H_o)
+        if hasattr(calc_in, "__len__"):
+            b = len(calc_in)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def uniform_sample_with_sim_gen_resources(_, persis_info, gen_specs, libE_info):
+    """
+    Randomly requests a different number of processors and gpus to be used in the
+    evaluation of the generated points.
+
+    .. seealso::
+        `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
+    """  # noqa
+
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    rng = persis_info["rand_stream"]
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+    tag = None
+
+    # Use to compare with resources assigned by libE_specs or persis_info
+    #gen_gpus = gen_specs["user"]["gen_gpus"]
+
+    dry_run = gen_specs["user"].get("dry_run", False)  # logs run lines instead of running
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o["x"] = rng.uniform(lb, ub, (b, n))
+
+        # Run an app using resources given by libE_specs or persis_info (test purposes only)
+        task = Executor.executor.submit(
+            app_name="six_hump_camel",
+            app_args="-0.99 -0.19",
+            stdout="out.txt",
+            stderr="err.txt",
+            dry_run=dry_run,
+        )
+
+        if not dry_run:
+            task.wait()  # Wait for run to complete
+
+        # Asserts GPU set correctly (for known MPI runners)
+        check_gpu_setting(task, print_setting=True)
+
+        # Set resources for sims
+        nprocs = rng.integers(1, gen_specs["user"]["max_procs"] + 1, b)
+        H_o["num_procs"] = nprocs  # This would get matched to GPUs anyway, if no other config given
+        H_o["num_gpus"] = nprocs
+        print(f"GEN created {b} sims requiring {nprocs} procs. One GPU per proc", flush=True)
 
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):

@@ -1,7 +1,10 @@
 """
-Tests variable resource detection and automatic GPU assignment in libEnsemble
+Tests variable resource detection and automatic GPU assignment in both
+generator and simulators.
 
-The persistent generator creates simulations with variable resource requirements.
+The persistent generator creates simulations with variable resource requirements,
+while also requiring resources itself. The resources required by a sim must
+not be larger than what remains once the generator resources are assigned.
 
 The sim_f (gpu_variable_resources_from_gen) asserts that GPUs assignment
 is correct for the default method for the MPI runner. GPUs are not actually
@@ -12,9 +15,9 @@ A dry_run option is provided. This can be set in the calling script, and will
 just print run-lines and GPU settings. This may be used for testing run-lines
 produced and GPU settings for different MPI runners.
 
-Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 6 python test_GPU_variable_resources.py
-   python test_GPU_variable_resources.py --comms local --nworkers 5
+Execute via one of the following commands (e.g. 4 workers):
+   mpiexec -np 5 python test_GPU_gen_resources.py
+   python test_GPU_gen_resources.py --comms local --nworkers 4
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 4, as one of the five workers will be the
@@ -23,7 +26,7 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 6
+# TESTSUITE_NPROCS: 5
 
 import sys
 
@@ -31,7 +34,7 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_procs_gpus as gen_f
+from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_sim_gen_resources as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -47,13 +50,14 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
+    libE_specs["num_resource_sets"] = nworkers  # Persistent gen DOES need resources
 
     # Mock GPU system / uncomment to detect GPUs
-    libE_specs["resource_info"] = {"cores_on_node": (8, 16), "gpus_on_node": 4}
-
-    libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_w" + str(nworkers)
+    libE_specs["sim_dirs_make"] = True  # Will only contain files if dry_run is False
+    libE_specs["gen_dirs_make"] = True  # Will only contain files if dry_run is False
+    libE_specs["ensemble_dir_path"] = "./ensemble_GPU_gen_resources_w" + str(nworkers)
+    libE_specs["reuse_output_dir"] = True
+    dry_run = True
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -68,7 +72,7 @@ if __name__ == "__main__":
         "sim_f": sim_f,
         "in": ["x"],
         "out": [("f", float)],
-        "user": {"dry_run": False},
+        "user": {"dry_run": dry_run},
     }
 
     gen_specs = {
@@ -80,6 +84,7 @@ if __name__ == "__main__":
             "max_procs": nworkers - 1,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
+            "dry_run": dry_run,
         },
     }
 
@@ -91,14 +96,24 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {"sim_max": 40}
+    exit_criteria = {"sim_max": 20}
+    libE_specs["resource_info"] = {"cores_on_node": (nworkers*2, nworkers*4)}
 
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-    )
+    for run in range(3):
+        libE_specs["resource_info"]["gpus_on_node"] = nworkers
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info["gen_num_gpus"] = 1
 
-    if is_manager:
-        assert flag == 0
-        save_libE_output(H, persis_info, __file__, nworkers)
+        if run == 1:
+            # Two GPUs per resource set
+            libE_specs["resource_info"]["gpus_on_node"] = nworkers*2
+        if run == 3:
+            # Two GPUs requested for gen
+            persis_info["gen_num_procs"] = 2
+            persis_info["gen_num_gpus"] = 2
+            gen_specs["user"]["max_procs"] = nworkers - 2
+
+        # Perform the run
+        H, persis_info, flag = libE(
+            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+        )
