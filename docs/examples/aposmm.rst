@@ -12,14 +12,15 @@ Optional (see below): petsc4py_, nlopt_, DFO-LS_
 Configuring APOSMM
 ^^^^^^^^^^^^^^^^^^
 
-APOSMM works with a choice of optimizers which require external packages.
-To import the optimization packages you are using at a global level (recommended),
-add the following lines in the calling script, before importing APOSMM::
+APOSMM works with a choice of optimizers, some requiring external packages. To
+import the optimization packages (and their dependencies) at a global level
+(recommended), add the following lines in the calling script, before importing
+APOSMM::
 
     import libensemble.gen_funcs
     libensemble.gen_funcs.rc.aposmm_optimizers = <optimizers>
 
-Where ``optimizers`` is a string (or list of strings) from the available options:
+where ``optimizers`` is a string (or list of strings) from the available options:
 
 ``"petsc"``, ``"nlopt"``, ``"dfols"``, ``"scipy"``, ``"external"``
 
@@ -35,7 +36,7 @@ Where ``optimizers`` is a string (or list of strings) from the available options
     - Must **NOT** include the *rc* line above
 
     This is because PETSc imports MPI, and a global import of PETSc would result
-    in nested MPI (which is not  supported by Open MPI). When the above line is
+    in nested MPI (which is not supported by Open MPI). When the above line is
     not used, an import local to the optimization function will happen.
 
 
