@@ -2,7 +2,7 @@
 #Change this path!
 #Author: Xingfu Wu
 # MCS, ANL
-# plopper.pl: process the file plopper.py to change tne proper app_timeout
+# plopper.pl: process the file plopper.py to change the proper app_timeout
 #
 
 $A_FILE = "timeoutfile.txt";

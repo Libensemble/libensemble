@@ -95,18 +95,3 @@ def _check_any_workers_and_disable_rm_if_tcp(values: dict) -> dict:
     if comms_type == "tcp":
         values["disable_resource_manager"] = True  # Resource management not supported with TCP
     return values
-
-
-class MPI_Communicator:
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    def validate(cls, comm: "MPIComm") -> "MPIComm":  # noqa: F821
-        from mpi4py import MPI
-
-        if comm == MPI.COMM_NULL:
-            logger.manager_warning("*WARNING* libEnsemble detected a NULL communicator")
-        else:
-            assert comm.Get_size() > 1, "Manager only - must be at least one worker (2 MPI tasks)"
-        return comm
