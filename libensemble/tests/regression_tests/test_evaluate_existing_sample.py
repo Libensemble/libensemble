@@ -33,7 +33,7 @@ if __name__ == "__main__":
     H0["sim_id"] = range(n_samp)
     H0["sim_started"] = False
 
-    sampling = Ensemble()
+    sampling = Ensemble(parse_args=True)
     sampling.H0 = H0
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
     sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)

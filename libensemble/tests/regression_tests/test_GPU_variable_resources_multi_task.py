@@ -54,7 +54,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    gpu_test = Ensemble()
+    gpu_test = Ensemble(parse_args=True)
     nworkers = gpu_test.nworkers
     gpu_test.libE_specs = LibeSpecs(
         num_resource_sets=gpu_test.nworkers - 1,

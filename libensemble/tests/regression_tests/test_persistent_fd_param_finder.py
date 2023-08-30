@@ -39,6 +39,7 @@ if __name__ == "__main__":
     p = len(f0)
 
     fd_test = Ensemble(
+        parse_args=True,
         sim_specs=SimSpecs(
             sim_f=sim_f,
             inputs=["x", "f_ind"],
