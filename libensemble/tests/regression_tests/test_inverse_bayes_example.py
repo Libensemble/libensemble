@@ -30,6 +30,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 if __name__ == "__main__":
     # Parse args for test code
     bayes_test = Ensemble(
+        parse_args=True,
         sim_specs=SimSpecs(
             sim_f=sim_f,
             inputs=["x"],

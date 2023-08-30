@@ -67,6 +67,7 @@ if __name__ == "__main__":
     ]
 
     test = Ensemble(
+        parse_args=True,
         sim_specs=SimSpecs(
             sim_f=sim_f,
             inputs=["x", "thetas"],
