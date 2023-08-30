@@ -7,9 +7,7 @@ import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.resources.platforms import Platform
-from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
@@ -40,13 +38,13 @@ class SimSpecs(BaseModel):
     a ``sim_specs`` dictionary.
     """
 
-    sim_f: Callable = one_d_example
+    sim_f: Callable = None
     """
     Python function that matches the ``sim_f`` api. e.g. ``libensemble.sim_funcs.borehole``. Evaluates parameters
     produced by a generator function
     """
 
-    inputs: List[str] = Field([], alias="in")
+    inputs: Optional[List[str]] = Field([], alias="in")
     """
     List of field names out of the complete history to pass
     into the simulation function on initialization. Can use ``in`` or ``inputs`` as keyword.
@@ -59,7 +57,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    out: Optional[List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]] = []
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
@@ -95,6 +93,18 @@ class SimSpecs(BaseModel):
             raise ValueError(_IN_INVALID_ERR)
         return v
 
+    @root_validator
+    def set_in_out_from_attrs(cls, values):
+        if not values.get("sim_f"):
+            from libensemble.sim_funcs.one_d_func import one_d_example
+
+            values["sim_f"] = one_d_example
+        if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
+            values["inputs"] = values.get("sim_f").inputs
+        if hasattr(values.get("sim_f"), "outputs") and not values.get("out"):
+            values["out"] = values.get("sim_f").outputs
+        return values
+
 
 class GenSpecs(BaseModel):
     """
@@ -102,7 +112,7 @@ class GenSpecs(BaseModel):
     a ``gen_specs`` dictionary.
     """
 
-    gen_f: Optional[Callable] = latin_hypercube_sample
+    gen_f: Optional[Callable] = None
     """
     Python function that matches the gen_f api. e.g. `libensemble.gen_funcs.sampling`. Produces parameters for
     evaluation by a simulator function, and makes decisions based on simulator function output
@@ -155,6 +165,18 @@ class GenSpecs(BaseModel):
         if not all(isinstance(s, str) for s in v):
             raise ValueError(_IN_INVALID_ERR)
         return v
+
+    @root_validator
+    def set_in_out_from_attrs(cls, values):
+        if not values.get("gen_f"):
+            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+
+            values["gen_f"] = latin_hypercube_sample
+        if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
+            values["inputs"] = values.get("gen_f").inputs
+        if hasattr(values.get("gen_f"), "outputs") and not values.get("out"):
+            values["out"] = values.get("gen_f").outputs
+        return values
 
 
 class AllocSpecs(BaseModel):
@@ -576,3 +598,19 @@ class _EnsembleSpecs(BaseModel):
         if values.get("H0") is not None:
             return _check_H0(values)
         return values
+
+
+def input_fields(fields: List[str]):
+    def decorator(func):
+        setattr(func, "inputs", fields)
+        return func
+
+    return decorator
+
+
+def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]):
+    def decorator(func):
+        setattr(func, "outputs", fields)
+        return func
+
+    return decorator
