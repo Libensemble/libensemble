@@ -15,30 +15,28 @@ and an exit condition. Run the following via ``python this_file.py --comms local
   import numpy as np
 
   from libensemble import Ensemble
-  from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
-  from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
+  from libensemble.gen_funcs.sampling import latin_hypercube_sample
+  from libensemble.sim_funcs.one_d_func import one_d_example
   from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
+  sampling = Ensemble(parse_args=True)
+  sampling.sim_specs = SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)])
+  sampling.gen_specs = GenSpecs(
+      gen_f=latin_hypercube_sample,
+      out=[("x", float, (1,))],
+      user={
+          "gen_batch_size": 500,
+          "lb": np.array([-3]),
+          "ub": np.array([3]),
+      },
+  )
+
+  sampling.add_random_streams()
+  sampling.exit_criteria = ExitCriteria(gen_max=501)
+
   if __name__ == "__main__":
-
-      sampling = Ensemble()
-      sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
-      sampling.gen_specs = GenSpecs(
-          gen_f=gen_f,
-          out=[("x", float, (1,))],
-          user={
-              "gen_batch_size": 500,
-              "lb": np.array([-3]),
-              "ub": np.array([3]),
-          },
-      )
-
-      sampling.add_random_streams()
-      sampling.exit_criteria = ExitCriteria(gen_max=501)
-
       sampling.run()
-      if sampling.is_manager:
-          sampling.save_output(__file__)
+      sampling.save_output(__file__)
 
 See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
 
