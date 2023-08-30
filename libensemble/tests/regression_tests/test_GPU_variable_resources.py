@@ -49,7 +49,7 @@ if __name__ == "__main__":
     exctr = MPIExecutor()
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-    gpu_test = Ensemble()
+    gpu_test = Ensemble(parse_args=True)
     gpu_test.libE_specs = LibeSpecs(
         num_resource_sets=gpu_test.nworkers - 1,
         resource_info={"cores_on_node": (8, 16), "gpus_on_node": 4},

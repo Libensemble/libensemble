@@ -44,7 +44,7 @@ if __name__ == "__main__":
     H0["sim_started"][:500] = True
     H0["sim_ended"][:500] = True
 
-    sampling = Ensemble()
+    sampling = Ensemble(parse_args=True)
     sampling.H0 = H0
     sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
     sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)

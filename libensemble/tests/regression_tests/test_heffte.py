@@ -35,7 +35,7 @@ if __name__ == "__main__":
     full_list = list(map(" ".join, part_list))
     max_len = max([len(item) for item in full_list])
 
-    study = Ensemble()
+    study = Ensemble(parse_args=True)
     study.sim_specs = SimSpecs(
         sim_f=sim_f,
         inputs=["exec_and_args"],
