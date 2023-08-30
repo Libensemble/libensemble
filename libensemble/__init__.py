@@ -11,12 +11,4 @@ __credits__ = "Argonne National Laboratory"
 
 from libensemble import logger
 
-try:
-    from .ensemble import Ensemble
-except ModuleNotFoundError:
-    pass
-
-try:
-    from .specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-except ModuleNotFoundError:
-    pass
+from .ensemble import Ensemble

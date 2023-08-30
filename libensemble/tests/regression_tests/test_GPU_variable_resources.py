@@ -25,19 +25,17 @@ persistent generator.
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 6
 
-import sys
-
 import numpy as np
 
+from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_procs_gpus as gen_f
 
 # Import libEnsemble items for this test
-from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -45,60 +43,50 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
-
-    libE_specs["num_resource_sets"] = nworkers - 1  # Persistent gen does not need resources
-
-    # Mock GPU system / uncomment to detect GPUs
-    libE_specs["resource_info"] = {"cores_on_node": (8, 16), "gpus_on_node": 4}
-
-    libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_GPU_variable_w" + str(nworkers)
-
-    if libE_specs["comms"] == "tcp":
-        sys.exit("This test only runs with MPI or local -- aborting...")
 
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__
     exctr = MPIExecutor()
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-    n = 2
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-        "user": {"dry_run": False},
-    }
+    gpu_test = Ensemble(parse_args=True)
+    gpu_test.libE_specs = LibeSpecs(
+        num_resource_sets=gpu_test.nworkers - 1,
+        resource_info={"cores_on_node": (8, 16), "gpus_on_node": 4},
+        sim_dirs_make=True,
+        ensemble_dir_path="./ensemble_GPU_variable_w" + str(gpu_test.nworkers),
+    )
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": ["f", "x", "sim_id"],
-        "out": [("num_procs", int), ("num_gpus", int), ("x", float, n)],
-        "user": {
-            "initial_batch_size": nworkers - 1,
-            "max_procs": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+    gpu_test.sim_specs = SimSpecs(
+        sim_f=sim_f,
+        inputs=["x"],
+        out=[("f", float)],
+        user={"dry_run": False},
+    )
+    gpu_test.gen_specs = GenSpecs(
+        gen_f=gen_f,
+        persis_in=["f", "x", "sim_id"],
+        out=[("num_procs", int), ("num_gpus", int), ("x", float, 2)],
+        user={
+            "initial_batch_size": gpu_test.nworkers - 1,
+            "max_procs": (gpu_test.nworkers - 1) // 2,  # Any sim created can req. 1 worker up to max
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
-    }
-
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "give_all_with_same_priority": False,
-            "async_return": False,  # False batch returns
-        },
-    }
-
-    persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {"sim_max": 40}
-
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
     )
 
-    if is_manager:
-        assert flag == 0
-        save_libE_output(H, persis_info, __file__, nworkers)
+    gpu_test.alloc_specs = AllocSpecs(
+        alloc_f=alloc_f,
+        user={
+            "give_all_with_same_priority": False,
+            "async_return": False,  # False causes batch returns
+        },
+    )
+
+    gpu_test.add_random_streams()
+    gpu_test.exit_criteria = ExitCriteria(sim_max=40)
+    gpu_test.run()
+
+    if gpu_test.is_manager:
+        assert gpu_test.flag == 0
+        gpu_test.save_output(__file__)

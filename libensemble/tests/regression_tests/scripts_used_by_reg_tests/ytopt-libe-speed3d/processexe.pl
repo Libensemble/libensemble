@@ -2,7 +2,7 @@
 #Change this path!
 #Author: Xingfu Wu
 # MCS, ANL
-# processexe.pl: process the file exe.pl to change tne proper number of nodes
+# processexe.pl: process the file exe.pl to change the proper number of nodes
 #
 
 $A_FILE = "tmpfile.txt";
