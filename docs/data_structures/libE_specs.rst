@@ -8,14 +8,15 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
 
 .. code-block:: python
 
-    libE_specs = {
-        "comm": MPI.COMM_WORLD,
-        "comms": "mpi",
-        "save_every_k_gens": 1000,
-        "sim_dirs_make": True,
-        "ensemble_dir_path": "/scratch/ensemble",
-        "profile_worker": False,
-    }
+    from libensemble.specs import LibeSpecs
+
+    specs = LibeSpecs(
+        comm=MPI.COMM_WORLD,
+        comms="mpi",
+        save_every_k_gens=1000,
+        sim_dirs_make=True,
+        ensemble_dir_path="/scratch/ensemble",
+    )
 
 .. dropdown:: Settings by Category
     :open:

@@ -3,7 +3,7 @@
 Running libEnsemble
 ===================
 
-libEnsemble runs with one and many workers. How these processes communicate
+libEnsemble runs with one manager and many workers. How these processes communicate
 is determined by the launch-method and ``comms`` option. The
 three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
 
@@ -17,15 +17,14 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
 
     .. tab-item:: MPI Comms
 
-        Requires mpi4py_, and is used automatically if you launch your
-        libEnsemble python script with an MPI runner::
+        Requires mpi4py_ and an MPI runtime via launching your script with an MPI runner::
 
             mpirun -np N python myscript.py
 
         where ``N`` is the number of processes. This will launch one manager and
         ``N-1`` workers.
 
-        MPI comms works on standalone and multi-node systems, potentially scales the best, and
+        MPI works on standalone and multi-node systems, potentially scales the best, and
         the distribution of processes is highly customizable.
 
         **Limitations of MPI mode**
@@ -35,7 +34,7 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         (see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work
         with MPICH_ and its derivative MPI implementations.
 
-        Don't use this mode when running on the **launch** nodes of three-tier
+        Don't use MPI comms when running on the **launch** nodes of three-tier
         systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
 
     .. tab-item:: Local Comms
@@ -48,62 +47,51 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
             python myscript.py
 
         Or, if the script uses the :doc:`parse_args()<utilities>` function
-        or an :class:`Ensemble<libensemble.api.Ensemble>` object
+        or an :class:`Ensemble<libensemble.api.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
             python myscript.py --comms local --nworkers N
 
-        where ``N`` is the number of workers. This will launch one manager and
-        ``N`` workers.
+        This will launch one manager and ``N`` workers.
 
         libEnsemble will run on **one node** in this scenario. To disallow
-        this node from app-launches, set ``libE_specs["dedicated_mode"] = True``.
+        this node from app-launches (if running libEnsemble on a compute node),
+        set ``libE_specs["dedicated_mode"] = True``.
 
         This mode is often used to run on a **launch** node of a three-tier
         system (e.g. Theta/Summit), ensuring the whole compute-node allocation is available for
-        worker-launched application runs. Make sure there are
-        no imports of ``mpi4py`` in your Python scripts.
+        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
-        On macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead
+        On macOS and Windows, Python's default multiprocessing method is ``"spawn"`` instead
         of ``"fork"``; to resolve many related issues, place code from ``libE()`` or ``.run()`` onward in
         an ``if __name__ == "__main__":`` block.
 
         **Limitations of local mode**
 
-        - You cannot distribute workers across nodes
+        - Workers cannot be distributed across nodes
         - In some scenarios, any import of ``mpi4py`` will cause this to break.
-        - It does not have the potential scaling of MPI mode, but is sufficient for most users.
+        - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
     .. tab-item:: TCP Comms
 
         Run the Manager on one system and launch workers to remote
         systems or nodes over TCP. Configure through
         :class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
-        if using an :class:`Ensemble<libensemble.api.Ensemble>` or :doc:`parse_args()<utilities>`.
+        if using an :class:`Ensemble<libensemble.api.Ensemble>` object with ``Ensemble(parse_args=True)``,
 
         **Reverse-ssh interface**
 
-        By setting ``comms`` to ``ssh``, launch workers to remote ssh-accessible systems. This
+        Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
         colocates workers, functions, and any applications. User
-        functions can also be persistent, unlike when launching remote functions via :ref:`funcX<funcx_ref>`.
+        functions can also be persistent, unlike when launching remote functions via :ref:`Globus Compute<funcx_ref>`.
 
         The remote working directory and Python need to be specified. This may resemble::
 
             python myscript.py --comms ssh --workers machine1 machine2 --worker_pwd /home/workers --worker_python /home/.conda/.../python
 
-        .. note::
-            - Setting up public-key authentication on the worker host systems is recommended to avoid entering passwords.
-            - No need to specify ``"port"`` or ``"authkey"``.
-            - This interface assumes that all remote machines share a filesystem. We'll be adjusting this in the future.
-
         **Limitations of TCP mode**
 
         - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
-
-Further command line options
-----------------------------
-
-See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for further command line options.
 
 .. _liberegister:
 

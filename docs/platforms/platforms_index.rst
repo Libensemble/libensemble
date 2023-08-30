@@ -144,7 +144,7 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
- .. _funcx_ref:
+.. _funcx_ref:
 
 Globus Compute - Remote User functions
 --------------------------------------

@@ -3,9 +3,8 @@
 Starting an Ensemble
 ====================
 
-libEnsemble features two approaches to run an ensemble. We recommend the newer Class
-approach, but will continue to support the classic ``libE()`` approach for backward
-compatibility.
+libEnsemble features two approaches to run an ensemble. We recommend the newer ``Ensemble`` class,
+but will continue to support ``libE()`` for backward compatibility.
 
 .. tab-set::
 

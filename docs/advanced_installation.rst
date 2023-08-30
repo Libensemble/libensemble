@@ -9,7 +9,7 @@ automatically installed alongside libEnsemble:
 * Python_ 3.8 or above
 * NumPy_
 * psutil_
-* pydantic_
+* `pydantic v1.10`_
 * pyyaml_
 * tomli_
 
@@ -192,7 +192,7 @@ The following packages may be installed separately to enable additional features
 .. _NumPy: http://www.numpy.org
 .. _`Open MPI`: https://www.open-mpi.org/
 .. _psutil: https://pypi.org/project/psutil/
-.. _pydantic: https://pydantic-docs.helpmanual.io/
+.. _`pydantic v1.10`: https://docs.pydantic.dev/1.10/
 .. _Python: http://www.python.org
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
