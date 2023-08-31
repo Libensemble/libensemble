@@ -87,6 +87,7 @@ with keeping confusion to a minimum when communicating about libEnsemble and
 its capabilities.
 
 .. dropdown:: **Click Here for Glossary**
+  :open:
 
   * **Manager**: Single libEnsemble process facilitating communication between
     other processes. Within libEnsemble, the *Manager* process configures and
