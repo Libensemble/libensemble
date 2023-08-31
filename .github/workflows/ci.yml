@@ -86,11 +86,9 @@ jobs:
           run: conda install gcc_linux-64
 
         # Roundabout solution on macos for proper linking with mpicc
-        - name: Install macOS compilers and older SDK
+        - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
-            wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.15.sdk.tar.xz
-            mkdir ../sdk; tar xf MacOSX10.15.sdk.tar.xz -C ../sdk
             conda install clang_osx-64
 
         # - name: Setup MPI (${{ matrix.mpi-version }})
