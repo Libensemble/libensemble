@@ -25,6 +25,7 @@ def worker_main_sleeping(comm):
 
 def worker_main_waiting(comm):
     signal.signal(signal.SIGTERM, ignore_handler)
+    print("\nSIGTERM handler has been set")
     while not comm.mail_flag():
         pass
 
