@@ -92,27 +92,33 @@ class MPIExecutor(Executor):
         self.mpi_runner_type = custom_info.get("mpi_runner")
         self.runner_name = custom_info.get("runner_name")
         self.subgroup_launch = custom_info.get("subgroup_launch")
-        self.mpi_runner = None  # Do not set here or will override platform
+        self.mpi_runner_obj = None  # Do not set here or will override platform
 
-    def _create_mpi_runner(self, custom_info: dict = {}) -> MPIRunner:
+    def _create_mpi_runner_obj(self, mpi_runner_type, runner_name, subgroup_launch) -> MPIRunner:
+        mpi_runner_obj = MPIRunner.get_runner(mpi_runner_type, runner_name, self.platform_info)
+        if subgroup_launch is not None:
+            mpi_runner_obj.subgroup_launch = subgroup_launch
+        return mpi_runner_obj
+
+    def _create_mpi_runner_from_config(self, mpi_config: dict = {}) -> MPIRunner:
         """Return an mpi_runner object from given info"""
 
-        mpi_runner_type = custom_info.get("mpi_runner")
-        runner_name = custom_info.get("runner_name")
-        subgroup_launch = custom_info.get("subgroup_launch")
-        mpi_runner = MPIRunner.get_runner(mpi_runner_type, runner_name, self.platform_info)
-        if subgroup_launch is not None:
-            mpi_runner.subgroup_launch = subgroup_launch
-        return mpi_runner
+        mpi_runner_type = mpi_config.get("mpi_runner")
+        runner_name = mpi_config.get("runner_name")
+        subgroup_launch = mpi_config.get("subgroup_launch")
+        return self._create_mpi_runner_obj(mpi_runner_type, runner_name, subgroup_launch)
 
-    def _set_mpi_runner(self):
-        """Set self.mpi_runner based on existing attributes"""
-        # If runner type has not been given, then detect
+    def _create_mpi_runner_from_attr(self) -> MPIRunner:
+        """Create mpi_runner_obj based on existing attributes
+
+        If runner type has not been given, then detect
+        """
         if not self.mpi_runner_type:
             self.mpi_runner_type = get_MPI_variant()
-        self.mpi_runner = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
+        mpi_runner_obj = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
         if self.subgroup_launch is not None:
-            self.mpi_runner.subgroup_launch = self.subgroup_launch
+            mpi_runner_obj.subgroup_launch = self.subgroup_launch
+        return mpi_runner_obj
 
     def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor"""
@@ -124,7 +130,7 @@ class MPIExecutor(Executor):
         self.platform_info = platform_info
 
         # If runner type has not been given, then detect
-        self._set_mpi_runner()
+        self.mpi_runner_obj = self._create_mpi_runner_from_attr()
 
     def set_gen_procs_gpus(self, libE_info):
         """Add gen supplied procs and gpus"""
@@ -323,14 +329,14 @@ class MPIExecutor(Executor):
 
         if mpi_runner_type is not None:
             if isinstance(mpi_runner_type, str):
-                custom_info = {"mpi_runner": mpi_runner_type}
+                mpi_config = {"mpi_runner": mpi_runner_type}
             else:
-                custom_info = mpi_runner_type
-            mpi_runner = self._create_mpi_runner(custom_info)
+                mpi_config = mpi_runner_type
+            mpi_runner_obj = self._create_mpi_runner_from_config(mpi_config)
         else:
-            mpi_runner = self.mpi_runner or self._set_mpi_runner()
+            mpi_runner_obj = self.mpi_runner_obj or self._create_mpi_runner_from_attr()
 
-        mpi_specs = mpi_runner.get_mpi_specs(
+        mpi_specs = mpi_runner_obj.get_mpi_specs(
             task,
             num_procs,
             num_nodes,
@@ -345,8 +351,8 @@ class MPIExecutor(Executor):
             self.workerID,
         )
 
-        mpi_command = mpi_runner.mpi_command
-        sglaunch = mpi_runner.subgroup_launch
+        mpi_command = mpi_runner_obj.mpi_command
+        sglaunch = mpi_runner_obj.subgroup_launch
         runline = launcher.form_command(mpi_command, mpi_specs)
 
         runline.extend(task.app.app_cmd.split())
