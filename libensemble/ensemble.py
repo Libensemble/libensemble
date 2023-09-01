@@ -31,7 +31,8 @@ CORRESPONDING_CLASSES = {
 
 class Ensemble:
     """
-    The primary class for a libEnsemble workflow.
+    The primary object for a libEnsemble workflow.
+    Parses and validates settings, sets up logging, maintains output.
 
     .. dropdown:: Example
         :open:
@@ -69,7 +70,8 @@ class Ensemble:
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py --comms local --nworkers 4``.
+    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` argument
+    instructs the Ensemble class to read command-line arguments.
 
     Configure by:
 
