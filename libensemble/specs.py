@@ -65,13 +65,13 @@ class SimSpecs(BaseModel):
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
     ``out = np.zeros(100, dtype=sim_specs["out"])``.
-    Also necessary to construct the complete dtype for libEnsemble's history array.
+    Also necessary to construct libEnsemble's history array.
     """
 
     globus_compute_endpoint: Optional[str] = ""
     """
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
-    libEnsemble's workers will submit simulator function instances to this endpoint to be executed, instead of
+    libEnsemble's workers will submit simulator function instances to this endpoint instead of
     calling them locally.
     """
 
@@ -125,13 +125,13 @@ class GenSpecs(BaseModel):
     List of tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
     output array within the generator function: ``out = np.zeros(100, dtype=gen_specs["out"])``.
-    Also used to construct the complete dtype for libEnsemble's history array
+    Also used to construct libEnsemble's history array
     """
 
     globus_compute_endpoint: Optional[str] = ""
     """
     A Globus Compute (https://globus_compute.org/) ID corresponding to an active endpoint on a remote system.
-    libEnsemble's workers will submit generator function instances to this endpoint to be executed, instead of
+    libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally
     """
 
@@ -180,7 +180,7 @@ class AllocSpecs(BaseModel):
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
     timing information, or determine if parameters should be distributed again, etc.) should list those
-    fields here. Also used to construct the complete dtype for libEnsemble's history array
+    fields here. Also used to construct libEnsemble's history array
     """
     # end_alloc_tag
 
