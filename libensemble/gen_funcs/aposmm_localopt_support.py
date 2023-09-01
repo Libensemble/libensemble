@@ -22,26 +22,22 @@ from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to s
 optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
-if optimizers is None:
-    import dfols
-    import nlopt
-    from petsc4py import PETSc
-    from scipy import optimize as sp_opt
-else:
+if optimizers is not None:
     if not isinstance(optimizers, list):
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
         print(f"APOSMM Warning: unrecognized optimizers {unrec}")
 
+    # Preferable to import globally in most cases
     if "petsc" in optimizers:
-        from petsc4py import PETSc
+        from petsc4py import PETSc  # noqa: F401
     if "nlopt" in optimizers:
-        import nlopt
+        import nlopt  # noqa: F401
     if "dfols" in optimizers:
-        import dfols
+        import dfols  # noqa: F401
     if "scipy" in optimizers:
-        from scipy import optimize as sp_opt
+        from scipy import optimize as sp_opt  # noqa: F401
     if "external" in optimizers:
         pass
 
@@ -94,7 +90,6 @@ class LocalOptInterfacer(object):
             immediately after creating the class.
 
         """
-
         self.parent_can_read = Event()
         self.comm_queue = Queue()
         self.child_can_read = Event()
@@ -202,6 +197,9 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs an NLopt local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+
+    import nlopt  # noqa: F811
+
     # print('[Child]: Started local opt at {}.'.format(x0), flush=True)
     n = len(user_specs["ub"])
 
@@ -273,6 +271,8 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
     Runs a SciPy local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    from scipy import optimize as sp_opt  # noqa: F811
+
     # Construct the bounds in the form of constraints
     cons = []
     for factor in range(len(x0)):
@@ -373,6 +373,8 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
     Runs a DFOLS local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+    import dfols  # noqa: F811
+
     # Define bound constraints (lower <= x <= upper)
     lb = np.zeros(len(x0))
     ub = np.ones(len(x0))
@@ -417,6 +419,9 @@ def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_rea
     Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
     parameters in ``user_specs``.
     """
+
+    from petsc4py import PETSc  # noqa: F811
+
     assert isinstance(x0, np.ndarray)
 
     tao_comm = PETSc.COMM_SELF
