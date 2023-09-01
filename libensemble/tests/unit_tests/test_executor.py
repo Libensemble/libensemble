@@ -77,6 +77,14 @@ def setup_executor():
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
+def setup_executor_no_platform():
+    """Set up an MPI Executor with sim app"""
+    from libensemble.executors.mpi_executor import MPIExecutor
+
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=sim_app, calc_type="sim")
+
+
 def setup_serial_executor():
     """Set up serial Executor"""
     from libensemble.executors.executor import Executor
@@ -215,6 +223,26 @@ def test_launch_and_wait():
     """Test of launching and waiting on task"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+    task.wait()  # Already complete
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+
+
+@pytest.mark.extra
+def test_launch_and_wait_no_platform():
+    """Test of launching and waiting on task with no platform setup
+
+    The MPI runner should be set on first call to executor.
+    """
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor_no_platform()
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = "sleep 1"
@@ -639,7 +667,7 @@ def test_retries_launch_fail():
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     assert task.state == "CREATED", "task.state should be CREATED. Returned " + str(task.state)
-    assert exctr.mpi_runner.subgroup_launch, "subgroup_launch should be True"
+    assert exctr.mpi_runner_obj.subgroup_launch, "subgroup_launch should be True"
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
@@ -824,6 +852,7 @@ if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
     test_launch_and_wait()
+    test_launch_and_wait_no_platform()
     test_launch_and_wait_timeout()
     test_launch_wait_on_start()
     test_kill_on_file()

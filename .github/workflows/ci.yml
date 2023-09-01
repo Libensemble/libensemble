@@ -30,7 +30,10 @@ jobs:
                       python-version: "3.10"
                       mpi-version: "mpich"
                       comms-type: t
-
+                    - os: ubuntu-latest
+                      mpi-version: "openmpi"
+                      python-version: "3.10"
+                      comms-type: l
         env:
             HYDRA_LAUNCHER: "fork"
             TERM: xterm-256color
@@ -101,13 +104,12 @@ jobs:
         #   run: pip install mpi4py
 
         - name: Install mpi4py and MPI from conda
-          if: matrix.python-version != '3.10' && matrix.os != 'windows-latest'
+          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
           run: |
-            conda install ${{ matrix.mpi-version }}
-            conda install mpi4py
+            conda install mpi4py ${{ matrix.mpi-version }}
 
         - name: Install mpi4py from pip, MPI from conda
-          if: matrix.python-version == '3.10' && matrix.os != 'windows-latest'
+          if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
           run: |
             conda install ${{ matrix.mpi-version }}
             pip install mpi4py
