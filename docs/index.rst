@@ -7,55 +7,31 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: User Guide:
 
-   Quickstart<introduction>
-   overview_usecases
-   programming_libE
-   running_libE
-   platforms/platforms_index
-   advanced_installation
+   user_guide
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorials:
 
-   tutorials/local_sine_tutorial
-   tutorials/executor_forces_tutorial
-   tutorials/forces_gpu_tutorial
-   tutorials/aposmm_tutorial
-   tutorials/calib_cancel_tutorial
+   tutorials
 
 .. toctree::
    :maxdepth: 1
-   :caption: Examples:
 
-   examples/gen_funcs
-   examples/sim_funcs
-   examples/alloc_funcs
-   examples/calling_scripts
+   examples
 
 .. toctree::
    :maxdepth: 1
-   :caption: Additional References:
 
-   FAQ
-   function_guides/history_array
-   resource_manager/resources_index
-   known_issues
-   release_notes
-   contributing
-   posters
+   appendix
 
 .. toctree::
    :maxdepth: 1
-   :caption: Developer Guide:
 
-   dev_guide/release_management/release_index
-   dev_guide/dev_API/developer_API
+   developer_guide
 
-Indices and tables
-==================
+.. Indices and tables
+.. ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
+.. * :ref:`genindex`
+.. * :ref:`modindex`
