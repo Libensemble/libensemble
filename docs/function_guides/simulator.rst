@@ -21,7 +21,7 @@ Most ``sim_f`` function definitions written by users resemble::
 
     def my_simulation(Input, persis_info, sim_specs, libE_info):
 
-Where:
+where:
 
     * ``Input`` is a selection of the :ref:`History array<funcguides-history>`
     * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information

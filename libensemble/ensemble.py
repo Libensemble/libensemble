@@ -39,26 +39,37 @@ class Ensemble:
         .. code-block:: python
             :linenos:
 
-            from libensemble import Ensemble, SimSpecs, GenSpecs, ExitCriteria
-            from my_simulator import beamline
-            from someones_optimizer import optimize
+            import numpy as np
 
-            experiment = Ensemble(parse_args=True)
-            experiment.sim_specs = SimSpecs(sim_f=beamline, inputs=["x"], out=[("f", float)])
-            experiment.gen_specs = GenSpecs(
-                gen_f=optimize,
-                inputs=["f"],
+            from libensemble import Ensemble
+            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+
+            sampling = Ensemble(parse_args=True)
+            sampling.sim_specs = SimSpecs(
+                sim_f=one_d_example,
+                inputs=["x"],
+                out=[("f", float)],
+            )
+            sampling.gen_specs = GenSpecs(
+                gen_f=latin_hypercube_sample,
                 out=[("x", float, (1,))],
                 user={
+                    "gen_batch_size": 500,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
             )
 
-            experiment.exit_criteria = ExitCriteria(gen_max=101)
-            results = experiment.run()
+            sampling.add_random_streams()
+            sampling.exit_criteria = ExitCriteria(sim_max=101)
 
-    Call ``.run()`` on the class to start the workflow.
+            if __name__ == "__main__":
+                sampling.run()
+                sampling.save_output(__file__)
+
+    Run the above example via ``python this_file.py --comms local --nworkers 4``.
 
     Configure by:
 

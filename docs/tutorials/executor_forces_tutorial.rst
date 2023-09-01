@@ -294,7 +294,7 @@ For example, my ``libE_stats.txt`` resembled::
   Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
   Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
-Where ``status`` is set based on the simulation function's returned ``calc_status``.
+where ``status`` is set based on the simulation function's returned ``calc_status``.
 
 My ``ensemble.log`` (on a ten-core laptop) resembled::
 
@@ -405,7 +405,7 @@ For example, my ``libE_stats.txt`` resembled::
     Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
     Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
-Where ``status`` is set based on the simulation function's returned ``calc_status``.
+where ``status`` is set based on the simulation function's returned ``calc_status``.
 
 My ``ensemble.log`` (on a ten-core laptop) resembled::
 

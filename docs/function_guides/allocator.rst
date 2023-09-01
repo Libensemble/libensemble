@@ -24,7 +24,7 @@ Most ``alloc_f`` function definitions written by users resemble::
 
     def my_allocator(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
 
-Where:
+where:
 
     * :ref:`W<funcguides-workerarray>` is an array containing worker state info,
     * :ref:`H<funcguides-history>` is the *trimmed* History array, containing rows from the generator

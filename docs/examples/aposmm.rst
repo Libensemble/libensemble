@@ -19,7 +19,7 @@ add the following lines in that calling script, before importing APOSMM::
     import libensemble.gen_funcs
     libensemble.gen_funcs.rc.aposmm_optimizers = <optimizers>
 
-Where ``optimizers`` is a string (or list of strings) from the available options:
+where ``optimizers`` is a string (or list of strings) from the available options:
 
 ``"petsc"``, ``"nlopt"``, ``"dfols"``, ``"scipy"``, ``"external"``
 

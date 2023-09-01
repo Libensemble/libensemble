@@ -20,7 +20,11 @@ and an exit condition. Run the following via ``python this_file.py --comms local
   from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
   sampling = Ensemble(parse_args=True)
-  sampling.sim_specs = SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)])
+  sampling.sim_specs = SimSpecs(
+      sim_f=one_d_example,
+      inputs=["x"],
+      out=[("f", float)],
+  )
   sampling.gen_specs = GenSpecs(
       gen_f=latin_hypercube_sample,
       out=[("x", float, (1,))],
@@ -32,7 +36,7 @@ and an exit condition. Run the following via ``python this_file.py --comms local
   )
 
   sampling.add_random_streams()
-  sampling.exit_criteria = ExitCriteria(gen_max=501)
+  sampling.exit_criteria = ExitCriteria(sim_max=101)
 
   if __name__ == "__main__":
       sampling.run()
