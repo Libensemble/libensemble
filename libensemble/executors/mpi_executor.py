@@ -115,10 +115,7 @@ class MPIExecutor(Executor):
         """
         if not self.mpi_runner_type:
             self.mpi_runner_type = get_MPI_variant()
-        mpi_runner_obj = MPIRunner.get_runner(self.mpi_runner_type, self.runner_name, self.platform_info)
-        if self.subgroup_launch is not None:
-            mpi_runner_obj.subgroup_launch = self.subgroup_launch
-        return mpi_runner_obj
+        return self._create_mpi_runner_obj(self.mpi_runner_type, self.runner_name, self.subgroup_launch)
 
     def add_platform_info(self, platform_info={}):
         """Add user supplied platform info to executor"""
