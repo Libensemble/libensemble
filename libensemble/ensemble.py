@@ -70,7 +70,7 @@ class Ensemble:
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` argument
+    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
     instructs the Ensemble class to read command-line arguments.
 
     Configure by:

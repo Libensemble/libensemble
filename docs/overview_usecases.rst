@@ -15,7 +15,7 @@ which perform computations via **user functions**:
 
 The default allocator (``alloc_f``) instructs workers to run the simulator on the
 highest priority work from the generator. If a worker is idle and there is
-no work to evaluate, that worker is instructed to call the generator.
+no work, that worker is instructed to call the generator.
 
 .. figure:: images/diagram_with_persis.png
  :alt: libE component diagram

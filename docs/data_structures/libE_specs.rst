@@ -3,8 +3,7 @@
 General Specs
 =============
 
-libEnsemble is primarily customized by setting options within a ``libE_specs`` dictionary or using
-the ``LibeSpecs`` class. When provided as a Python class, options are validated immediately on instantiation.
+libEnsemble is primarily customized by setting options within a ``LibeSpecs`` class or dictionary.
 
 .. code-block:: python
 

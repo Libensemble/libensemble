@@ -5,8 +5,7 @@ Generator Specs
 
 Used to specify the generator function, its inputs and outputs, and user data.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
-all data is validated immediately on instantiation.
+Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
 .. tab-set::
 

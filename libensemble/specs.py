@@ -36,8 +36,7 @@ __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_
 
 class SimSpecs(BaseModel):
     """
-    Specifications for configuring a Simulation Function. Equivalent to
-    a ``sim_specs`` dictionary.
+    Specifications for configuring a Simulation Function.
     """
 
     sim_f: Callable = one_d_example
@@ -100,8 +99,7 @@ class SimSpecs(BaseModel):
 
 class GenSpecs(BaseModel):
     """
-    Specifications for configuring a Generator Function. Equivalent to
-    a ``gen_specs`` dictionary.
+    Specifications for configuring a Generator Function.
     """
 
     gen_f: Optional[Callable] = latin_hypercube_sample
@@ -161,8 +159,7 @@ class GenSpecs(BaseModel):
 
 class AllocSpecs(BaseModel):
     """
-    Specifications for configuring an Allocation Function. Equivalent to
-    an ``alloc_specs`` dictionary.
+    Specifications for configuring an Allocation Function.
     """
 
     alloc_f: Callable = give_sim_work_first
@@ -190,8 +187,7 @@ class AllocSpecs(BaseModel):
 
 class ExitCriteria(BaseModel):
     """
-    Specifications for configuring when libEnsemble should stop a given run. Equivalent to an
-    ``exit_criteria`` dictionary.
+    Specifications for configuring when libEnsemble should stop a given run.
     """
 
     sim_max: Optional[int]
@@ -209,7 +205,7 @@ class ExitCriteria(BaseModel):
 
 class LibeSpecs(BaseModel):
     """
-    Specifications for configuring libEnsemble's runtime behavior. Equivalent to a ``libE_specs`` dictionary.
+    Specifications for configuring libEnsemble's runtime behavior.
     """
 
     comms: Optional[str] = "mpi"
