@@ -146,8 +146,6 @@ def multi_points_with_variable_resources(H, _, sim_specs):
         if app == "six_hump_camel":
             inpt = " ".join(map(str, H["x"][i]))
 
-        print(f"{nprocs=}")
-
         task = exctr.submit(
             app_name=app,
             app_args=inpt,
