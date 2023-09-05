@@ -617,6 +617,7 @@ class _EnsembleSpecs(BaseModel):
 def input_fields(fields: List[str]):
     def decorator(func):
         setattr(func, "inputs", fields)
+        func.__doc__ = f"\n    Input Fields: ``{func.inputs}``\n" + func.__doc__
         return func
 
     return decorator
@@ -625,6 +626,7 @@ def input_fields(fields: List[str]):
 def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]):
     def decorator(func):
         setattr(func, "outputs", fields)
+        func.__doc__ = f"\n    Output Datatypes: ``{func.outputs}``\n" + func.__doc__
         return func
 
     return decorator
