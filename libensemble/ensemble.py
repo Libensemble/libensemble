@@ -8,6 +8,7 @@ import tomli
 import yaml
 
 from libensemble import logger
+from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
@@ -215,18 +216,23 @@ class Ensemble:
 
         Tell libEnsemble when to stop a run
 
-    persis_info: :obj:`dict`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
-        Persistent information to be passed between user function instances
-        :doc:`(example)<data_structures/persis_info>`
+        Specifications for libEnsemble
 
     alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
 
         Specifications for the allocation function
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
-        Specifications for libEnsemble
+    persis_info: :obj:`dict`, optional
+
+        Persistent information to be passed between user function instances
+        :doc:`(example)<data_structures/persis_info>`
+
+    executor: :class:`Executor<libensemble.executors.executor.executor>`, optional
+
+        libEnsemble Executor instance for use within simulation or generator functions
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
@@ -248,6 +254,7 @@ class Ensemble:
         libE_specs: Optional[LibeSpecs] = None,
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
+        executor: Optional[Executor] = None,
         H0: Optional[npt.NDArray] = None,
         parse_args: Optional[bool] = False,
     ):
@@ -257,6 +264,7 @@ class Ensemble:
         self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
+        self.executor = executor
         self.H0 = H0
 
         self._util_logger = logging.getLogger(__name__)
