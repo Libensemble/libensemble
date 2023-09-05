@@ -372,7 +372,7 @@ These may require additional browsing of the documentation to complete.
             time.sleep(0.1)
             task.poll()
 
-            if task.file_exists_ins_workdir(statfile):
+            if task.file_exists_in_workdir(statfile):
                 with open(statfile, "r") as f:
                     if "kill\n" in f.readlines():
                         task.kill()
