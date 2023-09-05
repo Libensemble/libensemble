@@ -481,13 +481,29 @@ class Ensemble:
         self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """Adds ``np.random`` generators for each worker to ``persis_info``"""
+        """
+
+        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
+
+        Parameters
+        ----------
+
+        num_streams: int, optional
+
+            Number of matching worker ID and random stream entries to create. Defaults to
+            ``self.nworkers``.
+
+        seed: str, optional
+
+            Seed for NumPy's RNG
+
+        """
         if num_streams:
             nstreams = num_streams
         else:
             nstreams = self._nworkers()
 
-        self.persis_info = add_unique_random_streams({}, nstreams + 1, seed=seed)
+        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
     def save_output(self, file: str):
