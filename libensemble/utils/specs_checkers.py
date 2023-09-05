@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 def _check_exit_criteria(values: dict) -> dict:
     if "stop_val" in values.get("exit_criteria"):
         stop_name = values.get("exit_criteria").stop_val[0]
-        sim_out_names = [e[0] for e in values.get("sim_specs").out]
-        gen_out_names = [e[0] for e in values.get("gen_specs").out]
+        sim_out_names = [e[0] for e in values.get("sim_specs").outputs]
+        gen_out_names = [e[0] for e in values.get("gen_specs").outputs]
         assert stop_name in sim_out_names + gen_out_names, f"Can't stop on {stop_name} if it's not in a sim/gen output"
     return values
 
@@ -25,11 +25,11 @@ def _check_output_fields(values: dict) -> dict:
     out_names = [e[0] for e in libE_fields]
     if values.get("H0") is not None and values.get("H0").dtype.names is not None:
         out_names += list(values.get("H0").dtype.names)
-    out_names += [e[0] for e in values.get("sim_specs").out]
+    out_names += [e[0] for e in values.get("sim_specs").outputs]
     if values.get("gen_specs"):
-        out_names += [e[0] for e in values.get("gen_specs").out]
+        out_names += [e[0] for e in values.get("gen_specs").outputs]
     if values.get("alloc_specs"):
-        out_names += [e[0] for e in values.get("alloc_specs").out]
+        out_names += [e[0] for e in values.get("alloc_specs").outputs]
 
     if values.get("libE_specs"):
         for name in values.get("libE_specs").final_fields:
@@ -57,7 +57,7 @@ def _check_H0(values: dict) -> dict:
     if values.get("H0").size > 0:
         H0 = values.get("H0")
         specs = [values.get("sim_specs"), values.get("gen_specs")]
-        specs_dtype_list = list(set(libE_fields + sum([k.out or [] for k in specs if k], [])))
+        specs_dtype_list = list(set(libE_fields + sum([k.outputs or [] for k in specs if k], [])))
         specs_dtype_fields = [i[0] for i in specs_dtype_list]
         specs_inputs_list = list(set(sum([k.inputs + k.persis_in or [] for k in specs if k], [])))
         Dummy_H = np.zeros(1 + len(H0), dtype=specs_dtype_list)

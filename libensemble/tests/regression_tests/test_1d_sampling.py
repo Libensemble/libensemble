@@ -27,10 +27,10 @@ if __name__ == "__main__":
 
     sampling = Ensemble(parse_args=True)
     sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
-    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
+    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
-        out=[("x", float, (1,))],
+        outputs=[("x", float, (1,))],
         user={
             "gen_batch_size": 500,
             "lb": np.array([-3]),
