@@ -50,9 +50,17 @@ worker for the persistent generator - a common use-case.
 
 In general, the number of resource sets should be set to enable the maximum
 concurrency desired by the ensemble, taking into account generators and simulators.
-Users can set generator resources by setting ``persis_info["gen_resources"]``
-to an integer value, representing the number of resource sets to give to the
-generator. The default is zero.
+
+Users can set generator resources using the *libE_specs* options
+``gen_num_procs`` and/or ``gen_num_gpus``, which take an integer values.
+If only  ``gen_num_gpus`` is set, then number of processors will match.
+
+To vary generator resources, ``persis_info`` settings can be used in allocation
+functions before calling the ``gen_work`` support function. This takes the
+same options (``gen_num_procs`` and ``gen_num_gpus``).
+
+Alternatively, the setting ``persis_info["gen_resources"]`` can also be set to
+a number of resource sets.
 
 The available nodes are always divided by the number of resource sets, and there
 may be multiple nodes or a partition of a node in each resource set. If the split

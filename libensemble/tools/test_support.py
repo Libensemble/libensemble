@@ -46,6 +46,44 @@ def _set_gpus(task, wresources):
     return wresources.doihave_gpus() and task.ngpus_req > 0
 
 
+def check_mpi_runner(task, exp, print_setting=False):
+    """Checks the given MPI runner is used in runline"""
+
+    # This can be extended - includes values currently tested
+    mpi_runners = {
+        "mpich": {"mpirunner": "mpirun", "ppn": "--ppn"},
+        "openmpi": {"mpirunner": "mpirun", "ppn": "-npernode"},
+        "srun": {"mpirunner": "srun", "ppn": "--ntasks-per-node"},
+        "special_mpi": {"mpirunner": "special_mpi", "ppn": "-npernode"},
+    }
+
+    ppn_setting = {
+        "mpiexec": ["--ppn", "-npernode"],
+        "mpirun": ["--ppn", "-npernode"],
+        "srun": ["--ntasks-per-node"],
+        "jsrun": ["-r"],
+        "aprun": ["-N"],
+        "special_mpi": ["-npernode"],
+    }
+
+    runner_info = mpi_runners[exp]
+
+    mpirunner = task.runline.split(" ", 1)[0]
+    if print_setting:
+        print(f'Expected runner: {runner_info["mpirunner"]} -- Found: {mpirunner}')
+    assert mpirunner == runner_info["mpirunner"]
+
+    for setting in ppn_setting[mpirunner]:
+        ppn_opt_value = _get_opt_value(setting, task.runline)
+        if ppn_opt_value is not None:
+            break
+
+    ppn_option = ppn_opt_value.split(" ", 1)[0]
+    if print_setting:
+        print(f'Expected ppn option: {runner_info["ppn"]} -- Found: {ppn_option}')
+    assert ppn_option == runner_info["ppn"]
+
+
 def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None):
     """Checks GPU run lines
 
@@ -70,6 +108,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     slots = wresources.slots
     mpirunner = task.runline.split(" ", 1)[0]
+
+    # This is a special case for environment testing
+    if mpirunner == "special_mpi":
+        return
+
     stype = None
     gpu_setting = None
     gpus_per_task = False

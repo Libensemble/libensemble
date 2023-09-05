@@ -193,10 +193,17 @@ if ``split2fit`` is *False*, as this could otherwise never be scheduled.
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For all supporting allocation functions, setting the ``persis_info["gen_resources"]``
-to an integer value will provide resource sets to generators when they are started,
-with the default to provide no resources. This could be set in the calling script
-or inside the allocation function.
+By default, generators are not allocated resources in dynamic mode. Fixed resources
+for the generator can be set using the *libE_specs* options
+``gen_num_procs`` and ``gen_num_gpus``, which takes an integer value.
+If only  ``gen_num_gpus`` is set, then number of processors will match.
+
+To vary generator resources, ``persis_info`` settings can be used in allocation
+functions before calling the ``gen_work`` support function. This takes the
+same options (``gen_num_procs`` and ``gen_num_gpus``)
+
+Alternatively, the setting ``persis_info["gen_resources"]`` can also be set to
+a number of resource sets.
 
 Note that persistent workers maintain their resources until coming out of a
 persistent state.

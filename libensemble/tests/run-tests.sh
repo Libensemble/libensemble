@@ -27,8 +27,10 @@ export CODE_DIR=libensemble
 export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
+export UNIT_TEST_MPI_SUBDIR=$TESTING_DIR/unit_tests_mpi_import
 export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
 export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
+export UNIT_TEST_DIRS="$UNIT_TEST_SUBDIR $UNIT_TEST_MPI_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR"
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 export FUNC_TEST_SUBDIR=$TESTING_DIR/functionality_tests
 
@@ -114,7 +116,7 @@ cleanup() {
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
     filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
     filelist=(workflow_*);              [ -e ${filelist[0]} ] && rm -r workflow_*
-  for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
+  for DIR in $UNIT_TEST_DIRS ; do
   cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy); [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                   [ -e ${filelist[0]} ] && rm *.out
@@ -128,6 +130,7 @@ cleanup() {
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(H_test.npy);              [ -e ${filelist[0]} ] && rm H_test.npy
+    filelist=(workflow_intermediate*);  [ -e ${filelist[0]} ] && rm -r workflow_intermediate*
   done
   for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR; do
   cd $ROOT_DIR/$DIR
@@ -397,7 +400,7 @@ if [ "$root_found" = true ]; then
         EXTRA_UNIT_ARG="--runextra"
     fi
 
-    for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
+    for DIR in $UNIT_TEST_DIRS ; do
     cd $ROOT_DIR/$DIR
 
     # unit test subdirs dont contain pytest's conftest.py that defines extra arg
