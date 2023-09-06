@@ -33,9 +33,9 @@ class PersistentSupport:
         """
         Send message from worker to manager.
 
-        :param output: Output array to be sent to manager
-        :param calc_status: Optional, Provides a task status
-        :param keep_state: Optional, If True the manager will not modify its
+        :param output: Output array to be sent to manager.
+        :param calc_status: (Optional) Provides a task status.
+        :param keep_state: (Optional) If True the manager will not modify its
             record of the workers state (usually the manager changes the
             worker's state to inactive, indicating the worker is ready to receive
             more work, unless using active receive mode).
@@ -63,7 +63,7 @@ class PersistentSupport:
         """
         Receive message to worker from manager.
 
-        :param blocking: Optional, If True (default), will block until a message is received.
+        :param blocking: (Optional) If True (default), will block until a message is received.
 
         :returns: message tag, Work dictionary, calc_in array
 
@@ -89,7 +89,7 @@ class PersistentSupport:
 
         data_tag, calc_in = self.comm.recv()  # Receive work rows
 
-        # Check for unexpected STOP (e.g. error between sending Work info and rows)
+        # Check for unexpected STOP (e.g., error between sending Work info and rows)
         if data_tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug(
                 f"Persistent {self.calc_str} received signal {tag} " + "from manager while expecting work rows"
@@ -104,8 +104,8 @@ class PersistentSupport:
         """
         Send message from worker to manager and receive response.
 
-        :param output: Output array to be sent to manager
-        :param calc_status: Optional, Provides a task status
+        :param output: Output array to be sent to manager.
+        :param calc_status: (Optional) Provides a task status.
 
         :returns: message tag, Work dictionary, calc_in array
 
@@ -114,11 +114,11 @@ class PersistentSupport:
         return self.recv()
 
     def request_cancel_sim_ids(self, sim_ids: List[int]):
-        """Request cancellation of sim_ids
+        """Request cancellation of sim_ids.
 
-        :param sim_ids: A list of sim_ids to cancel
+        :param sim_ids: A list of sim_ids to cancel.
 
-        A message is sent to the manager to mark requested sim_ids as cancel_requested
+        A message is sent to the manager to mark requested sim_ids as cancel_requested.
         """
         H_o = np.zeros(len(sim_ids), dtype=[("sim_id", int), ("cancel_requested", bool)])
         H_o["sim_id"] = sim_ids
