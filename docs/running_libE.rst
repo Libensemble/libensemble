@@ -35,7 +35,7 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         with MPICH_ and its derivative MPI implementations.
 
         Don't use MPI comms when running on the **launch** nodes of three-tier
-        systems (e.g. Theta/Summit). In that case ``local`` mode is recommended.
+        systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
 
     .. tab-item:: Local Comms
 
@@ -59,7 +59,7 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         set ``libE_specs["dedicated_mode"] = True``.
 
         This mode is often used to run on a **launch** node of a three-tier
-        system (e.g. Theta/Summit), ensuring the whole compute-node allocation is available for
+        system (e.g., Theta/Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
         On macOS and Windows, Python's default multiprocessing method is ``"spawn"`` instead
@@ -253,7 +253,7 @@ For example::
 
 set in your simulation script before the Executor submit command will export the setting to your run.
 
-Further run information
+Further Run Information
 -----------------------
 
 For running on multi-node platforms and supercomputers, there are alternative ways to configure
