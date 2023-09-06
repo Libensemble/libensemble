@@ -23,7 +23,7 @@ Convenience Tools and Functions
 
    .. tab-item:: Allocation Helpers
 
-      These routines are used within custom allocation functions to help prepare Work
+      These routines are used within custom allocation functions to help prepare ``Work``
       structures for workers. See the routines within ``libensemble/alloc_funcs/`` for
       examples.
 
