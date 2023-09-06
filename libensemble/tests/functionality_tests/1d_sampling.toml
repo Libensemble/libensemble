@@ -8,14 +8,14 @@
 [sim_specs]
   sim_f = "libensemble.sim_funcs.one_d_func.one_d_example"
   inputs = ["x"]
-  [sim_specs.out]
-    [sim_specs.out.f]
+  [sim_specs.outputs]
+    [sim_specs.outputs.f]
       type = "float"
 
 [gen_specs]
   gen_f = "libensemble.gen_funcs.sampling.latin_hypercube_sample"
-  [gen_specs.out]
-    [gen_specs.out.x]
+  [gen_specs.outputs]
+    [gen_specs.outputs.x]
       type = "float"
       size = 1
   [gen_specs.user]
