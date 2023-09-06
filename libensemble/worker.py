@@ -357,6 +357,9 @@ class Worker:
         if "comm" in libE_info:
             del libE_info["comm"]
 
+        if "executor" in libE_info:
+            del libE_info["executor"]
+
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
             return None
