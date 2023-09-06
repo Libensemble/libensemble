@@ -2,6 +2,10 @@
 
 Each function generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]``
 and ``gen_specs["user"]["lb"]``.
+
+Most functions use a random request of resources over a range, setting num_procs, num_gpus or
+resource sets. The function ``uniform_sample_with_var_gpus`` uses the ``x`` value to determine
+the number of GPUs requested.
 """
 
 import numpy as np
@@ -48,6 +52,47 @@ def uniform_sample(_, persis_info, gen_specs, libE_info):
         H_o["x"] = rng.uniform(lb, ub, (b, n))
         H_o["resource_sets"] = rng.integers(1, gen_specs["user"]["max_resource_sets"] + 1, b)
         print(f"GEN created {b} sims, with resource sets req. of size(s) {H_o['resource_sets']}", flush=True)
+
+        tag, Work, calc_in = ps.send_recv(H_o)
+        if hasattr(calc_in, "__len__"):
+            b = len(calc_in)
+
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
+    """
+    Requests a number of GPUs based on the ``x`` value to be used in the evaluation
+    of the generated points. By default, simulations will assign one MPI processor
+    per GPU.
+
+    Note that the ``num_gpus`` gen_specs["out"] option (similar to ``num_procs``) does
+    not need to be passed as a sim_specs["in"]. It will automatically be passed to
+    simulation functions and used by any MPI Executor unless overridden in the
+    ``executor.submit`` function.
+
+    .. seealso::
+        `test_GPU_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py>`_
+    """  # noqa
+
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    rng = persis_info["rand_stream"]
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+    tag = None
+    max_gpus = gen_specs["user"]["max_gpus"]
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        x = rng.uniform(lb, ub, (b, n))
+        bucket_size = (ub[0] - lb[0]) / max_gpus
+
+        # Determine number of GPUs based on linear split over x range (first dimension).
+        ngpus = [int((num - lb[0]) / bucket_size) + 1 for num in x[:, 0]]
+
+        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o["x"] = x
+        H_o["num_gpus"] = ngpus
+
+        print(f"GEN created {b} sims requiring {ngpus} GPUs", flush=True)
 
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
