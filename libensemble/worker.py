@@ -346,6 +346,7 @@ class Worker:
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])
+        libE_info["executor"] = Executor.executor
         Worker._set_rset_team(libE_info)
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)

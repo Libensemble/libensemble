@@ -321,6 +321,9 @@ class Ensemble:
         else:
             self._libE_specs.__dict__.update(**new_specs)
 
+    def _refresh_executor(self):
+        Executor.executor = self.executor or Executor.executor
+
     def run(self) -> (npt.NDArray, dict, int):
         """
         Initializes libEnsemble.
@@ -359,6 +362,8 @@ class Ensemble:
                 2 = Manager timed out and ended simulation
                 3 = Current process is not in libEnsemble MPI communicator
         """
+
+        self._refresh_executor()
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
