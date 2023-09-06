@@ -34,8 +34,8 @@ class AllocSupport:
     ):
         """Instantiate a new AllocSupport instance
 
-        ``W`` is. They are referenced by the various methods,
-        but are never modified.
+        ``W`` is passed in for convenience on init; it is referenced by the various methods,
+        but never modified.
 
         By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
         module and the built-in libEnsemble scheduler.
