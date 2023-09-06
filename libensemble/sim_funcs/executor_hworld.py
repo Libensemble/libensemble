@@ -1,6 +1,5 @@
 import numpy as np
 
-from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (
     MAN_SIGNAL_FINISH,
     TASK_FAILED,
@@ -66,9 +65,9 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     return task, calc_status
 
 
-def executor_hworld(H, _, sim_specs):
+def executor_hworld(H, _, sim_specs, info):
     """Tests launching and polling task and exiting on task finish"""
-    exctr = MPIExecutor.executor
+    exctr = info["executor"]
     cores = sim_specs["user"]["cores"]
     ELAPSED_TIMEOUT = "elapsed_timeout" in sim_specs["user"]
 
