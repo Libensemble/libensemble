@@ -32,6 +32,7 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 # Ax uses a deprecated warn command.
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
