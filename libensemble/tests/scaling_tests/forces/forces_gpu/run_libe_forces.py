@@ -27,14 +27,9 @@ from forces_simf import run_forces  # Sim func from current dir
 from libensemble import Ensemble
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
-from libensemble.tools import add_unique_random_streams, parse_args
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-# Fixed resources (one resource set per worker) - persistent gen
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-
-# Uncomment for var resources (checksum will change due to rng differences)
-# from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
 
 if __name__ == "__main__":
 
@@ -56,7 +51,6 @@ if __name__ == "__main__":
         num_resource_sets=nsim_workers,
         sim_dirs_make=True,
         # resource_info = {"gpus_on_node": 4}  # for mocking GPUs
-        # stats_fmt = {"show_resource_sets": True}  # see resource sets in libE_stats.txt
     )
 
     ensemble.sim_specs = SimSpecs(
@@ -69,14 +63,11 @@ if __name__ == "__main__":
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        out=[("x", float, (1,)),
-            # ("resource_sets", int)  # Uncomment for var resources
-             ],
+        out=[("x", float, (1,))],
         user={
             "initial_batch_size": nsim_workers,
             "lb": np.array([50000]),  # min particles
             "ub": np.array([100000]),  # max particles
-            # "max_resource_sets": nsim_workers  # Uncomment for var resources
         },
     )
 
