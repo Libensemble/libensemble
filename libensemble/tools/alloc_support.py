@@ -41,11 +41,11 @@ class AllocSupport:
         module and the built-in libEnsemble scheduler.
 
         :param W: A :ref:`Worker array<funcguides-workerarray>`
-        :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
-        :param persis_info: Optional, A :ref:`dictionary of persistent information.<datastruct-persis-info>`
-        :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
-        :param user_resources: Optional, A user supplied ``resources`` object.
-        :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
+        :param manage_resources: (Optional) Boolean for if to assign resource sets when creating work units.
+        :param persis_info: (Optional) A :ref:`dictionary of persistent information.<datastruct-persis-info>`.
+        :param scheduler_opts: (Optional) A dictionary of options to pass to the resource scheduler.
+        :param user_resources: (Optional) A user supplied ``resources`` object.
+        :param user_scheduler: (Optional) A user supplied ``user_scheduler`` object.
         """
         self.W = W
         self.persis_info = persis_info
@@ -69,7 +69,7 @@ class AllocSupport:
 
         :param rsets_req: Int. Number of resource sets to request.
         :param use_gpus: Bool. Whether to use GPU resource sets.
-        :param user_params: list of Integers. User parameters num_procs, num_gpus
+        :param user_params: List of Integers. User parameters num_procs, num_gpus.
         :returns: List of Integers. Resource set indices assigned.
         """
         rset_team = None
@@ -88,10 +88,10 @@ class AllocSupport:
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
         """Returns available workers as a list of IDs, filtered by the given options.
 
-        :param persistent: Optional int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
-        :param active_recv: Optional boolean. Only return workers with given active_recv state.
-        :param zero_resource_workers: Optional boolean. Only return workers that require no resources
-        :returns: List of worker IDs
+        :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
+        :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
+        :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
+        :returns: List of worker IDs.
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
@@ -124,7 +124,7 @@ class AllocSupport:
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
-        # If there are no zero resource workers - then ignore zrw (i.e. use only if they exist)
+        # If there are no zero resource workers - then ignore zrw (i.e., use only if they exist)
         no_zrw = not any(self.W["zero_resource_worker"])
         wrks = []
         for wrk in self.W:
@@ -189,11 +189,11 @@ class AllocSupport:
 
         :param wid: Int. Worker ID.
         :param H: :ref:`History array<funcguides-history>`. For parsing out requested resource sets.
-        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send.
         :param H_rows: Which rows of ``H`` to send.
-        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
+        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary.
 
-        :returns: a Work entry
+        :returns: a Work entry.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -223,13 +223,13 @@ class AllocSupport:
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :ref:`Work dictionary<funcguides-workdict>`
+        :param Work: :ref:`Work dictionary<funcguides-workdict>`.
         :param wid: Worker ID.
-        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send.
         :param H_rows: Which rows of ``H`` to send.
-        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
+        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary.
 
-        :returns: A Work entry
+        :returns: A Work entry.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -259,8 +259,8 @@ class AllocSupport:
     def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
         """
         # Faster not to slice when whole array
         if low_bound is not None:
@@ -278,49 +278,49 @@ class AllocSupport:
         return H, pfilter
 
     def all_sim_started(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have started their sim
+        """Returns ``True`` if all expected points have started their sim.
 
         Excludes cancelled points.
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have started their sim
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if all expected points have started their sim.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"]
         return np.all(H["sim_started"][pfilter & ~excluded_points])
 
     def all_sim_ended(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have had their sim_end
+        """Returns ``True`` if all expected points have had their sim_end.
 
         Excludes cancelled points that were not already sim_started.
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have had their sim_end
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if all expected points have had their sim_end.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"] & ~H["sim_started"]
         return np.all(H["sim_ended"][pfilter & ~excluded_points])
 
     def all_gen_informed(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if gen has been informed of all expected points
+        """Returns ``True`` if gen has been informed of all expected points.
 
         Excludes cancelled points that were not already given out.
 
-        :param pt_filter: Optional boolean array filtering expected sim_end points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if gen have been informed of all expected points
+        :param pt_filter: (Optional) Boolean array filtering expected sim_end points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if gen have been informed of all expected points.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"] & ~H["sim_started"]
         return np.all(H["gen_informed"][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):
-        """Returns indices of points to give by priority
+        """Returns indices of points to give by priority.
 
-        :param points_avail: Indices of points that are available to give
-        :param batch: Optional boolean. Should batches of points with the same priority be given simultaneously.
+        :param points_avail: Indices of points that are available to give.
+        :param batch: (Optional) Boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
         if "priority" in H.dtype.fields:
