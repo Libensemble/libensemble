@@ -41,10 +41,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Optional - prints GPU assignment (method and numbers)
     check_gpu_setting(task, assert_setting=False, print_setting=True)
 
-    # Stat file to check for bad runs
-    statfile = "forces.stat"
-
     # Try loading final energy reading, set the sim's status
+    statfile = "forces.stat"
     try:
         data = np.loadtxt(statfile)
         final_energy = data[-1]

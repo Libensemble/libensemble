@@ -10,9 +10,6 @@ The forces.c application should be built by setting the GPU preprocessor conditi
 in ../forces_app/build_forces.sh. We recommend running forces.x standalone first
 and confirm it is running on the GPU (this is given clearly in the output).
 
-An alternative variable resource generator is available (search 'var resources'
-in this script and uncomment relevant lines).
-
 To mock on a non-GPU system, uncomment the resource_info line in libE_specs. You
 will compile forces without -DGPU option. It is recommended that the lb/ub for
 particle counts are reduced for CPU performance.

@@ -25,10 +25,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Block until the task finishes
     task.wait()
 
-    # Stat file to check for bad runs
-    statfile = "forces.stat"
-
     # Try loading final energy reading, set the sim's status
+    statfile = "forces.stat"
     try:
         data = np.loadtxt(statfile)
         final_energy = data[-1]
@@ -37,7 +35,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         final_energy = np.nan
         calc_status = TASK_FAILED
 
-    # Define our output array,  populate with energy reading
+    # Define our output array, populate with energy reading
     output = np.zeros(1, dtype=sim_specs["out"])
     output["energy"] = final_energy
 
