@@ -47,6 +47,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -95,7 +96,7 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.add_random_streams()
+    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
     gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
 
     if gpu_test.ready():
