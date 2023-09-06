@@ -45,7 +45,7 @@ Further recommendations for selected HPC systems are given in the
 
         will use the ``mpicc`` compiler wrapper on your PATH to identify the MPI library.
         To specify a different compiler wrapper, add the ``MPICC`` option.
-        You also may wish to avoid existing binary builds e.g.::
+        You also may wish to avoid existing binary builds; for example,::
 
             MPICC=mpiicc pip install mpi4py --no-binary mpi4py
 
@@ -165,10 +165,10 @@ Further recommendations for selected HPC systems are given in the
         includes some example ``packages.yaml`` files (which go in ``~/.spack/``).
         These files are used to specify dependencies that Spack must obtain from
         the given system (rather than building from scratch). This may include
-        ``Python`` and the packages distributed with it (e.g. ``numpy``), and will
+        ``Python`` and the packages distributed with it (e.g., ``numpy``), and will
         often include the system MPI library.
 
-Optional dependencies for additional features
+Optional Dependencies for Additional Features
 ---------------------------------------------
 
 The following packages may be installed separately to enable additional features:
