@@ -206,6 +206,16 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     By default resources will be divided by workers (excluding
                     ``zero_resource_workers``).
 
+                "gen_num_procs" [int] = ``0``:
+                    The default number of processors (MPI ranks) required by generators. Unless
+                    overridden by equivalent `persis_info` settings, generators will be allocated
+                    this many processors for applications launched via the MPIExecutor.
+
+                "gen_num_gpus" [int] = ``0``:
+                    The default number of GPUs required by generators. Unless overridden by
+                    the equivalent `persis_info` settings, generators will be allocated this
+                    many GPUs.
+
                 "enforce_worker_core_bounds" [bool] = ``False``:
                     Permit submission of tasks with a
                     higher processor count than the CPUs available to the worker.

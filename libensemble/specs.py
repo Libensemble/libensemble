@@ -447,6 +447,20 @@ class LibeSpecs(BaseModel):
     If not set, resources will be divided evenly (excluding zero_resource_workers).
     """
 
+    gen_num_procs: Optional[int]
+    """
+    The default number of processors (MPI ranks) required by generators. Unless
+    overridden by the equivalent `persis_info` settings, generators will be
+    allocated this many processors for applications launched via the MPIExecutor.
+    """
+
+    gen_num_gpus: Optional[int]
+    """
+    The default number of GPUs required by generators. Unless overridden by
+    the equivalent `persis_info` settings, generators will be allocated this
+    many GPUs.
+    """
+
     enforce_worker_core_bounds: Optional[bool] = False
     """
     If ``False``, the Executor will permit submission of tasks with a

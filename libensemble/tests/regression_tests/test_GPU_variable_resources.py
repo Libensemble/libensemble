@@ -3,7 +3,7 @@ Tests variable resource detection and automatic GPU assignment in libEnsemble
 
 The persistent generator creates simulations with variable resource requirements.
 
-The sim_f (gpu_variable_resources) asserts that GPUs assignment
+The sim_f (gpu_variable_resources_from_gen) asserts that GPUs assignment
 is correct for the default method for the MPI runner. GPUs are not actually
 used for default application. Four GPUs per node is mocked up below (if this line
 is removed, libEnsemble will detect any GPUs available).

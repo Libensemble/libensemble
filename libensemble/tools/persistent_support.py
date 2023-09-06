@@ -45,6 +45,7 @@ class PersistentSupport:
             # Need to make copy before remove comm as original could be reused
             libE_info = dict(self.libE_info)
             libE_info.pop("comm")
+            libE_info.pop("executor")
         else:
             libE_info = self.libE_info
 

@@ -27,7 +27,6 @@ import os
 
 import numpy as np
 
-from libensemble.executors.executor import Executor
 from libensemble.message_numbers import TASK_FAILED, UNSET_TAG, WORKER_DONE
 from libensemble.resources.resources import Resources
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
@@ -50,7 +49,7 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
     inpt = " ".join(map(str, x))  # Application input
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
@@ -87,7 +86,7 @@ def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
     dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
     inpt = " ".join(map(str, x))  # Application input
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
@@ -147,7 +146,7 @@ def gpu_variable_resources_subenv(H, persis_info, sim_specs, libE_info):
     env_script_path = sim_specs["user"]["env_script"]  # Script to run in subprocess
     inpt = " ".join(map(str, x))  # Application input
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
 
     # Launch application via given MPI runner, using assigned resources.
     _launch_with_env_and_mpi(exctr, inpt, dry_run, env_script_path, "openmpi")
@@ -181,7 +180,7 @@ def gpu_variable_resources_subenv(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info, calc_status
 
 
-def multi_points_with_variable_resources(H, _, sim_specs):
+def multi_points_with_variable_resources(H, _, sim_specs, libE_info):
     """
     Evaluates either helloworld or six hump camel for a collection of points
     given in ``H["x"]`` via the MPI executor, supporting variable sized
@@ -204,7 +203,7 @@ def multi_points_with_variable_resources(H, _, sim_specs):
     set_cores_by_rsets = True  # If True use rset count to set num procs, else use all available to this worker.
     core_multiplier = 1  # Only used with set_cores_by_rsets as a multiplier.
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
     task_states = []
     for i, x in enumerate(H["x"]):
         nprocs = None  # Will be as if argument is not present
@@ -288,7 +287,7 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
 
     # Create application input file
     inpt = " ".join(map(str, x))
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
