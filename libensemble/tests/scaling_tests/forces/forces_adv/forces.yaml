@@ -10,7 +10,7 @@ sim_specs:
     sim_f: forces_simf.run_forces
     inputs:
         - x
-    out:
+    outputs:
         energy:
             type: float
 
@@ -28,7 +28,7 @@ sim_specs:
 
 gen_specs:
     gen_f: libensemble.gen_funcs.sampling.uniform_random_sample
-    out:
+    outputs:
         x:
             type: float
             size: 1
@@ -37,7 +37,7 @@ gen_specs:
 
 alloc_specs:
     alloc_f: libensemble.alloc_funcs.give_sim_work_first.give_sim_work_first
-    out:
+    outputs:
         allocated:
             type: bool
     user:
