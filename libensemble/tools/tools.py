@@ -96,7 +96,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
 
     persis_info: :obj:`dict`
 
-        Persistent information dictionary
+        Persistent information dictionary.
         :doc:`(example)<data_structures/persis_info>`
 
     calling_file  : :obj:`string`
@@ -150,12 +150,12 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
 
     persis_info: :obj:`dict`
 
-        Persistent information dictionary
+        Persistent information dictionary.
         :ref:`(example)<datastruct-persis-info>`
 
     nstreams: :obj:`int`
 
-        Number of independent random number streams to produce
+        Number of independent random number streams to produce.
 
     seed: :obj:`int`
 
