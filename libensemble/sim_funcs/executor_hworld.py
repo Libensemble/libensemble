@@ -1,6 +1,5 @@
 import numpy as np
 
-# from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import (
     MAN_SIGNAL_FINISH,
     TASK_FAILED,
