@@ -165,12 +165,12 @@ Write an alternative Calling Script similar to above, but with the following dif
         # Initialize MPI Executor instance
         exctr = MPIExecutor(custom_info={"mpi_runner": "openmpi"})
 
-        # ...
+        ...
 
         # Instruct workers to operate somewhere else on the filesystem
         libE_specs["ensemble_dir_path"] = "/scratch/ensemble"
 
-        # ...
+        ...
 
         # Launch libEnsemble
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
@@ -356,9 +356,9 @@ These may require additional browsing of the documentation to complete.
 
         import time
 
-        # ...
+        ...
         args = particles + " " + str(10) + " " + particles + " " + str(0.2)
-        # ...
+        ...
         statfile = "forces.stat"
         task = exctr.submit(
             app_name="forces",
@@ -377,7 +377,7 @@ These may require additional browsing of the documentation to complete.
                     if "kill\n" in f.readlines():
                         task.kill()
 
-                # ...
+                ...
 
 Results
 -------

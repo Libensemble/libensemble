@@ -62,4 +62,3 @@
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
 .. _xsdk: https://xsdk.info
-.. _Online Documentation: https://libensemble.readthedocs.io/en/main/introduction.html

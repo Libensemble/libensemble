@@ -185,10 +185,10 @@ The following packages may be installed separately to enable additional features
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
-.. _`Open MPI`: https://www.open-mpi.org/
+.. _Open MPI: https://www.open-mpi.org/
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
-.. _`pydantic v1.10`: https://docs.pydantic.dev/1.10/
+.. _pydantic v1.10: https://docs.pydantic.dev/1.10/
 .. _PyPI: https://pypi.org
 .. _Python: http://www.python.org
 .. _pyyaml: https://pyyaml.org/
