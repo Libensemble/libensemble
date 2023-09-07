@@ -255,7 +255,7 @@ class Ensemble:
     parse_args: bool, optional
 
         Read ``nworkers``, ``comms``, and other arguments from the command-line. For MPI, calculate ``nworkers``
-        and set the ``is_manager`` boolean attribute on MPI rank 0. See the :meth:`parse_args<tools.parse_args>`
+        and set the ``is_manager`` Boolean attribute on MPI rank 0. See the :meth:`parse_args<tools.parse_args>`
         docs for more information.
 
     """

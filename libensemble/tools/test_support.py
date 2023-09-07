@@ -94,10 +94,10 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     Parameters
     ----------
 
-    assert_setting: boolean, optional
+    assert_setting: Boolean, optional
         Raise error if setting is not as expected (for current MPI runner). Default: True
 
-    print_setting: boolean, optional
+    print_setting: Boolean, optional
         Print GPU setting to stdout. Default: False
 
     """

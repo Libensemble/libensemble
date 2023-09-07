@@ -95,7 +95,7 @@ class GlobalResources:
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
     :ivar int physical_cores_avail_per_node: Physical cores available on a node
     :ivar list zero_resource_workers: List of workerIDs to have no resources.
-    :ivar boolean dedicated_mode: Whether to remove libE nodes from global nodelist.
+    :ivar Boolean dedicated_mode: Whether to remove libE nodes from global nodelist.
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
@@ -113,7 +113,7 @@ class GlobalResources:
         top_level_dir: string, optional
             Directory libEnsemble runs in (default is current working directory)
 
-        dedicated_mode: boolean, optional
+        dedicated_mode: Boolean, optional
             If true, then dedicate nodes to running libEnsemble.
             Dedicated mode means that any nodes running libE processes (manager and workers),
             will not be available to worker launched tasks (user applications). They will
@@ -134,7 +134,7 @@ class GlobalResources:
             If supplied gives number of GPUs for the nodes. If not supplied,
             this will be auto-detected.
 
-        enforce_worker_core_bounds: boolean, optional
+        enforce_worker_core_bounds: Boolean, optional
             If True, then libEnsemble's executor will raise an exception if it detects that
             a worker has been instructed to launch tasks with the number of requested processes
             being excessive to the number of cores allocated to that worker, or not enough

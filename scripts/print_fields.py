@@ -11,7 +11,7 @@ example = """examples:
 
  If no fields are supplied the whole array is printed.
 
- You can filter by using conditions, but only boolean are supported currently e.g:
+ You can filter by using conditions, but only Boolean are supported currently e.g:
  ./print_fields.py out1.npy -f sim_id x f -c given ~returned
 
  would show lines where given is True and returned is False.

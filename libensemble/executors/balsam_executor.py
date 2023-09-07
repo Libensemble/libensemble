@@ -495,11 +495,11 @@ class BalsamExecutor(Executor):
             Specifies as name for the Job's output directory within the Balsam site's
             data directory. Default: ``libe_workflow``
 
-        dry_run: boolean, optional
+        dry_run: Boolean, optional
             Whether this is a dry run - no task will be launched; instead
             runline is printed to logger (at ``INFO`` level)
 
-        wait_on_start: boolean, optional
+        wait_on_start: Boolean, optional
             Whether to block, and wait for task to be polled as ``RUNNING`` (or other
             active/end state) before continuing
 
