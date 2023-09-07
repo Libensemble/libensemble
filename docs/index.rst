@@ -15,6 +15,8 @@
    running_libE
    platforms/platforms_index
    advanced_installation
+   function_guides/history_array
+   resource_manager/resources_index
 
 .. toctree::
    :maxdepth: 1
@@ -40,8 +42,6 @@
    :caption: Additional References:
 
    FAQ
-   function_guides/history_array
-   resource_manager/resources_index
    known_issues
    release_notes
    contributing
@@ -53,9 +53,3 @@
 
    dev_guide/release_management/release_index
    dev_guide/dev_API/developer_API
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`

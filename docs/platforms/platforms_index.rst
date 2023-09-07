@@ -4,7 +4,7 @@ Running on HPC Systems
 ======================
 
 Central vs. Distributed
----------------------
+-----------------------
 
 libEnsemble has been developed, supported, and tested on systems of highly varying
 scales, from laptops to thousands of compute nodes. On multi-node systems, there are
