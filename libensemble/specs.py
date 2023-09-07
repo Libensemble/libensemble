@@ -101,8 +101,10 @@ class SimSpecs(BaseModel):
             values["sim_f"] = one_d_example
         if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("sim_f").inputs
-        if hasattr(values.get("sim_f"), "outputs") and not values.get("out"):
+        if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
             values["out"] = values.get("sim_f").outputs
+        if hasattr(values.get("sim_f"), "persis_in") and not values.get("persis_in"):
+            values["persis_in"] = values.get("sim_f").persis_in
         return values
 
 
@@ -174,8 +176,10 @@ class GenSpecs(BaseModel):
             values["gen_f"] = latin_hypercube_sample
         if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("gen_f").inputs
-        if hasattr(values.get("gen_f"), "outputs") and not values.get("out"):
+        if hasattr(values.get("gen_f"), "outputs") and not values.get("outputs"):
             values["out"] = values.get("gen_f").outputs
+        if hasattr(values.get("gen_f"), "persis_in") and not values.get("persis_in"):
+            values["persis_in"] = values.get("gen_f").persis_in
         return values
 
 
@@ -618,6 +622,15 @@ def input_fields(fields: List[str]):
     def decorator(func):
         setattr(func, "inputs", fields)
         func.__doc__ = f"\n    **Input Fields:** ``{func.inputs}``\n" + func.__doc__
+        return func
+
+    return decorator
+
+
+def persistent_input_fields(fields: List[str]):
+    def decorator(func):
+        setattr(func, "persis_in", fields)
+        func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_inputs}``\n" + func.__doc__
         return func
 
     return decorator
