@@ -437,7 +437,7 @@ class Ensemble:
             "alloc_f": self._get_func,
             "inputs": self._get_normal,
             "persis_in": self._get_normal,
-            "out": self._get_outputs,
+            "outputs": self._get_outputs,
             "globus_compute_endpoint": self._get_normal,
             "user": self._get_normal,
         }
@@ -449,6 +449,9 @@ class Ensemble:
                 if f == "inputs":
                     loaded_spec["in"] = field_f[f](loaded_spec[f])
                     loaded_spec.pop("inputs")
+                elif f == "outputs":
+                    loaded_spec["out"] = field_f[f](loaded_spec[f])
+                    loaded_spec.pop("outputs")
                 else:
                     loaded_spec[f] = field_f[f](loaded_spec[f])
 
@@ -463,6 +466,8 @@ class Ensemble:
             if isinstance(old_spec, dict):
                 old_spec.update(loaded_spec)
                 if old_spec.get("in") and old_spec.get("inputs"):
+                    old_spec.pop("inputs")  # avoid clashes
+                elif old_spec.get("out") and old_spec.get("outputs"):
                     old_spec.pop("inputs")  # avoid clashes
             elif isinstance(old_spec, ClassType):
                 old_spec.__dict__.update(**loaded_spec)
@@ -494,13 +499,29 @@ class Ensemble:
         self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """Adds ``np.random`` generators for each worker to ``persis_info``"""
+        """
+
+        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
+
+        Parameters
+        ----------
+
+        num_streams: int, optional
+
+            Number of matching worker ID and random stream entries to create. Defaults to
+            ``self.nworkers``.
+
+        seed: str, optional
+
+            Seed for NumPy's RNG
+
+        """
         if num_streams:
             nstreams = num_streams
         else:
             nstreams = self._nworkers()
 
-        self.persis_info = add_unique_random_streams({}, nstreams + 1, seed=seed)
+        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
     def save_output(self, file: str):

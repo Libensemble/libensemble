@@ -57,7 +57,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    out: Optional[List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]] = []
+    outputs: Optional[List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]] = Field([], alias="out")
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
@@ -78,7 +78,7 @@ class SimSpecs(BaseModel):
     the simulator function.
     """
 
-    @validator("out", pre=True)
+    @validator("outputs", pre=True)
     def check_valid_out(cls, v):
         try:
             _ = np.dtype(v)
@@ -130,7 +130,7 @@ class GenSpecs(BaseModel):
     throughout runtime, following initialization
     """
 
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    outputs: Optional[List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]] = Field([], alias="out")
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the generator function:
@@ -151,7 +151,7 @@ class GenSpecs(BaseModel):
     function
     """
 
-    @validator("out", pre=True)
+    @validator("outputs", pre=True)
     def check_valid_out(cls, v):
         try:
             _ = np.dtype(v)
@@ -197,7 +197,7 @@ class AllocSpecs(BaseModel):
     function
     """
 
-    out: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
     """
     List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
