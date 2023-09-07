@@ -185,11 +185,11 @@ todo_include_todos = False
 # html_theme = 'graphite'
 # html_theme = 'sphinxdoc'
 # html_theme = "furo"
-# html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme"
 # html_theme = 'pydata_sphinx_theme'
 # html_theme = "press"
 # html_theme = "sphinx_book_theme"
-html_theme = "furo"
+# html_theme = "furo"
 
 # html_logo = "./images/libE_logo_white.png"
 
