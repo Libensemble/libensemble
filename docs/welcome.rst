@@ -16,7 +16,6 @@
     :target: https://libensemble.readthedocs.org/en/latest/
     :alt: Documentation Status
 
-
 A complete toolkit for dynamic ensembles of calculations
 
 * New to libEnsemble? Start :doc:`here<introduction>`.

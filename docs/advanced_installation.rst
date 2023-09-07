@@ -178,22 +178,21 @@ The following packages may be installed separately to enable additional features
 * funcX_ - Submit simulation or generator function instances to remote funcX endpoints
 * `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
-.. _PyPI: https://pypi.org
-.. _pyyaml: https://pyyaml.org/
-.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
-.. _funcX: https://funcx.org/
-.. _tomli: https://pypi.org/project/tomli/
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
-.. _GitHub: https://github.com/Libensemble/libensemble
-.. _Conda: https://docs.conda.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
+.. _Conda: https://docs.conda.io/en/latest/
+.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
 .. _`Open MPI`: https://www.open-mpi.org/
+.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
 .. _`pydantic v1.10`: https://docs.pydantic.dev/1.10/
+.. _PyPI: https://pypi.org
 .. _Python: http://www.python.org
+.. _pyyaml: https://pyyaml.org/
 .. _Spack: https://spack.readthedocs.io/en/latest
 .. _spack_libe: https://github.com/Libensemble/spack_libe
+.. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/

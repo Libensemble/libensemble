@@ -42,7 +42,6 @@ libEnsemble's **Executor** interface provides **portable app-launches** represen
     ``app_name`` from registration in the calling script alongside other optional
     parameters described in the API.
 
-
 .. tab-set::
 
     .. tab-item:: Example Setup

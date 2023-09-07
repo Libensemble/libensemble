@@ -1,5 +1,5 @@
 """
-Tests options to run an an applcation in a bash specified environment, without
+Tests options to run an an application in a bash specified environment, without
 affecting the parent environment.
 
 This is based on the variable resource detection and automatic GPU assignment test.

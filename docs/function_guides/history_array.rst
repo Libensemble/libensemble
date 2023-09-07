@@ -35,7 +35,7 @@ structured arrays for slotting into these fields.
 .. (The manager's history array will update any fields
 .. returned to it.)
 
-Ensure input/output field names for a function match eachother or a :ref:`reserved field<reserved_fields>`::
+Ensure input/output field names for a function match each other or a :ref:`reserved field<reserved_fields>`::
 
     gen_specs["out"] = [("x", float, 2), ("theta", int)]  # produces "x" and "theta"
     sim_specs["in"] = ["x", "theta", "sim_id"]  # accepts "x", "theta" and "sim_id", a reserved field
