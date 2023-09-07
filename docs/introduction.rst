@@ -18,6 +18,7 @@ and an exit condition. Run the following via ``python this_file.py --comms local
   from libensemble.gen_funcs.sampling import latin_hypercube_sample
   from libensemble.sim_funcs.one_d_func import one_d_example
   from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+  from libensemble.tools import add_unique_random_streams
 
   sampling = Ensemble(parse_args=True)
   sampling.sim_specs = SimSpecs(
@@ -35,12 +36,13 @@ and an exit condition. Run the following via ``python this_file.py --comms local
       },
   )
 
-  sampling.add_random_streams()
+  sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
   sampling.exit_criteria = ExitCriteria(sim_max=101)
 
   if __name__ == "__main__":
       sampling.run()
       sampling.save_output(__file__)
+  print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
 See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
 
