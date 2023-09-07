@@ -11,7 +11,7 @@
     "inputs": [
       "x"
     ],
-    "out": {
+    "outputs": {
       "f": {
         "type": "float"
       }
@@ -19,7 +19,7 @@
   },
   "gen_specs": {
     "gen_f": "libensemble.gen_funcs.sampling.latin_hypercube_sample",
-    "out": {
+    "outputs": {
       "x": {
         "type": "float",
         "size": 1
