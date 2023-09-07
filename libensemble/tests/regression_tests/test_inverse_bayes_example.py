@@ -25,6 +25,7 @@ from libensemble.alloc_funcs.inverse_bayes_allocf import only_persistent_gens_fo
 from libensemble.gen_funcs.persistent_inverse_bayes import persistent_updater_after_likelihood as gen_f
 from libensemble.sim_funcs.inverse_bayes import likelihood_calculator as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         alloc_specs=AllocSpecs(alloc_f=alloc_f),
     )
 
-    bayes_test.add_random_streams()
+    bayes_test.persis_info = add_unique_random_streams({}, bayes_test.nworkers + 1)
     gen_user = bayes_test.gen_specs.user
     val = gen_user["subbatch_size"] * gen_user["num_subbatches"] * gen_user["num_batches"]
     bayes_test.exit_criteria = ExitCriteria(sim_max=val, wallclock_max=300)
