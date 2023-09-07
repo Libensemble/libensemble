@@ -41,7 +41,11 @@ def test_from_files():
         e.gen_specs.user["lb"] = np.zeros(1)
 
         sim_specs["inputs"] = sim_specs["in"]
+        sim_specs["outputs"] = sim_specs["out"]
+        gen_specs["outputs"] = gen_specs["out"]
         sim_specs.pop("in")
+        sim_specs.pop("out")
+        gen_specs.pop("out")
         assert all([i in e.sim_specs.__dict__.items() for i in sim_specs.items()])
         assert all([i in e.gen_specs.__dict__.items() for i in gen_specs.items()])
         assert all([i in e.exit_criteria.__dict__.items() for i in exit_criteria.items()])

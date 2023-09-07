@@ -7,25 +7,25 @@
 [sim_specs]
   sim_f = "numpy.linalg.norm"
   inputs = ["x_on_cube"]
-  [sim_specs.out]
-    [sim_specs.out.f]
+  [sim_specs.outputs]
+    [sim_specs.outputs.f]
       type = "float"
-    [sim_specs.out.fvec]
+    [sim_specs.outputs.fvec]
       type = "float"
       size = 3
 
 [gen_specs]
   gen_f = "numpy.random.uniform"
-  [gen_specs.out]
-    [gen_specs.out.priority]
+  [gen_specs.outputs]
+    [gen_specs.outputs.priority]
       type = "float"
-    [gen_specs.out.local_pt]
+    [gen_specs.outputs.local_pt]
       type = "bool"
-    [gen_specs.out.local_min]
+    [gen_specs.outputs.local_min]
       type = "bool"
-    [gen_specs.out.num_active_runs]
+    [gen_specs.outputs.num_active_runs]
       type = "int"
-    [gen_specs.out.x_on_cube]
+    [gen_specs.outputs.x_on_cube]
       type = "float"
   [gen_specs.user]
     nu = 0
