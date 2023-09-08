@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
 """
-This example is based on the simple forces test. The default number of
-particles is increased considerably to give perceptible time on the GPUs when
-live-checking GPU usage.
+This example runs two difference applications, one that uses only CPUs and one
+that uses GPUs. Both uses a variable number of processors. The GPU application
+uses one GPU per processor. As the generator creates simulations, it randomly
+assigns between one and max_proc processors to each simulation, and also randomly
+assigns which application is to be run.
 
-The forces.c application should be built by setting the GPU preprocessor condition
-in addition to openMP GPU flags for the given system. See examples in
-../forces_app/build_forces.sh. We recommend running forces.x standalone first
-and confirm it is running on the GPU (this is given clearly in the output).
+The forces.c application should be compiled for the CPU to `forces_cpu.x`, and
+for the GPU (setting the GPU preprocessor condition) to `forces_gpu.x`.
 
-An alternative variable resource generator is available (search 'var resources'
-in this script and uncomment relevant lines).
+For compile lines, see examples in ../forces_app/build_forces.sh.
 """
 
 import os
@@ -25,9 +24,6 @@ from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_diff_simulations as gen_f
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
-
-# Fixed resources (one resource set per worker)
-# from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 
 # Parse number of workers, comms type, etc. from arguments
@@ -43,21 +39,21 @@ libE_specs["num_resource_sets"] = nsim_workers  # Persistent gen does not need r
 exctr = MPIExecutor()
 
 # Register simulation executable with executor
-sim_app1 = os.path.join(os.getcwd(), "../forces_app/forces_cpu.x")
-sim_app2 = os.path.join(os.getcwd(), "../forces_app/forces_gpu.x")
+cpu_app = os.path.join(os.getcwd(), "../forces_app/forces_cpu.x")
+gpu_app = os.path.join(os.getcwd(), "../forces_app/forces_gpu.x")
 
-if not os.path.isfile(sim_app1):
-    sys.exit(f"{sim_app1} not found - please build first in ../forces_app dir")
-if not os.path.isfile(sim_app2):
-    sys.exit(f"{sim_app2} not found - please build first in ../forces_app dir")
+if not os.path.isfile(cpu_app):
+    sys.exit(f"{cpu_app} not found - please build first in ../forces_app dir")
+if not os.path.isfile(gpu_app):
+    sys.exit(f"{gpu_app} not found - please build first in ../forces_app dir")
 
-exctr.register_app(full_path=sim_app1, app_name="forces_cpu")
-exctr.register_app(full_path=sim_app2, app_name="forces_gpu")
+exctr.register_app(full_path=cpu_app, app_name="cpu_app")
+exctr.register_app(full_path=gpu_app, app_name="gpu_app")
 
 # State the sim_f, inputs, outputs
 sim_specs = {
     "sim_f": run_forces,  # sim_f, imported above
-    "in": ["x"],  # Name of input for sim_f
+    "in": ["x", "app_type"],  # Name of input for sim_f
     "out": [("energy", float)],  # Name, type of output from sim_f
 }
 
@@ -70,6 +66,7 @@ gen_specs = {
         ("x", float, (1,)),  # Name, type and size of data from gen_f
         ("num_procs", int),
         ("num_gpus", int),
+        ("app_type", 'S10'),
     ],
     "user": {
         "lb": np.array([5000]),  # fewest particles (changing will change checksum)
@@ -77,7 +74,6 @@ gen_specs = {
         "initial_batch_size": nsim_workers,
         "max_procs": (nsim_workers) // 2,  # Any sim created can req. 1 worker up to max
         "multi_task": True,
-        # "max_resource_sets": nworkers  # Uncomment for var resources
     },
 }
 
@@ -92,11 +88,11 @@ alloc_specs = {
 # Create and work inside separate per-simulation directories
 libE_specs["sim_dirs_make"] = True
 
-# Uncomment to see resource sets in libE_stats.txt - useful with var resources
+# Uncomment to see resource sets in libE_stats.txt
 # libE_specs["stats_fmt"] = {"show_resource_sets": True}
 
 # Instruct libEnsemble to exit after this many simulations
-exit_criteria = {"sim_max": nsim_workers * 2}  # changing will change checksum
+exit_criteria = {"sim_max": nsim_workers * 2}
 
 # Seed random streams for each worker, particularly for gen_f
 persis_info = add_unique_random_streams({}, nworkers + 1)

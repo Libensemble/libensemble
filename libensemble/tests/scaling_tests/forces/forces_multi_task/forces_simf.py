@@ -27,9 +27,11 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Retrieve our MPI Executor instance and resources
     exctr = Executor.executor
 
-    # Submit our forces app for execution. Block until the task starts.
+    app_type = H["app_type"][0].decode()
+
+    # Submit our forces app for execution.
     task = exctr.submit(
-        app_name="forces_gpu",
+        app_name=app_type,
         app_args=args,
     )
 
@@ -37,7 +39,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     task.wait()
 
     # Optional - prints GPU assignment (method and numbers)
-    check_gpu_setting(task, assert_setting=False, print_setting=True)
+    check_gpu_setting(task, assert_setting=False, print_setting=True, desc=app_type)
 
     # Stat file to check for bad runs
     statfile = "forces.stat"
