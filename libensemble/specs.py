@@ -41,27 +41,26 @@ class SimSpecs(BaseModel):
 
     sim_f: Callable = one_d_example
     """
-    Python function that matches the ``sim_f`` api. Evaluates parameters
-    produced by a generator function
+    Python function matching the ``sim_f`` interface. Evaluates parameters
+    produced by a generator function.
     """
 
     inputs: List[str] = Field([], alias="in")
     """
     List of **field names** out of the complete history to pass
-    into the simulation function on initialization. Can use ``in`` or
-    ``inputs`` as keyword.
+    into the simulation function upon calling.
     """
 
     persis_in: Optional[List[str]] = []
     """
-    List of **field names** that will be passed to a persistent simulation function
-    throughout runtime, following initialization
+    List of **field names** to send to a persistent simulation function
+    throughout runtime, following initialization.
     """
 
     # list of tuples for dtype construction
     outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
     """
-    List of tuples corresponding to NumPy dtypes.
+    List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Typically used to initialize an output array within the simulation function:
     ``out = np.zeros(100, dtype=sim_specs["out"])``.
@@ -104,35 +103,35 @@ class GenSpecs(BaseModel):
 
     gen_f: Optional[Callable] = latin_hypercube_sample
     """
-    Python function that matches the ``gen_f`` api. Produces parameters for evaluation by a
-    simulator function, and makes decisions based on simulator function output
+    Python function matching the ``gen_f`` interface. Produces parameters for evaluation by a
+    simulator function, and makes decisions based on simulator function output.
     """
 
     inputs: Optional[List[str]] = Field([], alias="in")
     """
     List of **field names** out of the complete history to pass
-    into the generator function upon calling. Can use ``in`` or ``inputs`` as keyword
+    into the generator function upon calling.
     """
 
     persis_in: Optional[List[str]] = []
     """
-    List of field names that will be passed to a persistent generator function
-    throughout runtime, following initialization
+    List of **field names** to send to a persistent generator function
+    throughout runtime, following initialization.
     """
 
     outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
     """
-    List of tuples corresponding to NumPy dtypes.
+    List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
-    output array within the generator function: ``out = np.zeros(100, dtype=gen_specs["out"])``.
-    Also used to construct libEnsemble's history array
+    output array within the generator: ``out = np.zeros(100, dtype=gen_specs["out"])``.
+    Also used to construct libEnsemble's history array.
     """
 
     globus_compute_endpoint: Optional[str] = ""
     """
     A Globus Compute (https://globus_compute.org/) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
-    calling them locally
+    calling them locally.
     """
 
     user: Optional[dict] = {}
@@ -164,23 +163,21 @@ class AllocSpecs(BaseModel):
 
     alloc_f: Callable = give_sim_work_first
     """
-    Python function that matches the alloc_f api. e.g. `libensemble.alloc_funcs.give_sim_work_first`.
-    Decides if and when simulator and generator functions should be called, and with what resources
-    and parameters
+    Python function matching the ``alloc_f`` interface. Decides when simulator and generator functions
+    should be called, and with what resources and parameters.
     """
 
     user: Optional[dict] = {"num_active_gens": 1}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters
-    for customizing the allocation function
+    for customizing the allocation function.
     """
 
     outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
     """
-    List of tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
-    Allocation functions that modify libEnsemble's History array with additional fields (e.g. to mark
-    timing information, or determine if parameters should be distributed again, etc.) should list those
-    fields here. Also used to construct libEnsemble's history array
+    List of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
+    Allocation functions that modify libEnsemble's History array with additional fields should list those
+    fields here. Also used to construct libEnsemble's history array.
     """
     # end_alloc_tag
 
@@ -191,16 +188,16 @@ class ExitCriteria(BaseModel):
     """
 
     sim_max: Optional[int]
-    """ Stop when this many new points have been evaluated by simulation functions"""
+    """Stop when this many new points have been evaluated by simulation functions."""
 
     gen_max: Optional[int]
-    """Stop when this many new points have been generated by generator functions"""
+    """Stop when this many new points have been generated by generator functions."""
 
     wallclock_max: Optional[float]
-    """Stop when this much time (in seconds) has elapsed since the manager initialized"""
+    """Stop when this many seconds has elapsed since the manager initialized."""
 
     stop_val: Optional[Tuple[str, float]]
-    """Stop when ``H[str] < float`` for the given ``(str, float)`` pair"""
+    """Stop when ``H[str] < float`` for the given ``(str, float)`` pair."""
 
 
 class LibeSpecs(BaseModel):
@@ -212,44 +209,43 @@ class LibeSpecs(BaseModel):
     """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'`` """
 
     nworkers: Optional[int]
-    """ Number of worker processes to spawn (only in local/tcp modes) """
+    """ Number of worker processes in ``"local"`` or ``"tcp"``."""
 
     mpi_comm: Optional[Any] = None
-    """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD`` """
+    """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
 
     dry_run: Optional[bool] = False
-    """ Whether libEnsemble should immediately exit after validating all inputs """
+    """ Whether libEnsemble should immediately exit after validating all inputs. """
 
     abort_on_exception: Optional[bool] = True
     """
     In MPI mode, whether to call ``MPI_ABORT`` on an exception.
-    If False, an exception will be raised by the manager
+    If ``False``, an exception will be raised by the manager.
     """
 
     save_every_k_sims: Optional[int] = 0
-    """ Save history array to file after every k evaluated points """
+    """ Save history array to file after every k evaluated points. """
 
     save_every_k_gens: Optional[int] = 0
-    """  Save history array to file after every k generated points """
+    """ Save history array to file after every k generated points. """
 
     save_H_and_persis_on_abort: Optional[bool] = True
-    """ Save states of ``H`` and ``persis_info`` on aborting after an exception"""
+    """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
 
     worker_timeout: Optional[int] = 1
-    """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated """
+    """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
 
     kill_canceled_sims: Optional[bool] = False
     """
-    Instructs libEnsemble to send kill signals to sims with their ``cancel_requested`` field set.
-    If ``False``, the manager avoids this moderate overhead
+    Try to kill sims with ``"cancel_requested"`` set ``True``.
+    If ``False``, the manager avoids this moderate overhead.
     """
 
     use_workflow_dir: Optional[bool] = False
     """
-    Whether to place *all* log files, dumped arrays, and default ensemble-directories in a
-    separate `workflow` directory. New runs and their workflow directories will be automatically
-    differentiated. If copying back an ensemble directory from a scratch space, the copy is placed
-    in the workflow directory.
+    Whether to place *all* log files, dumped arrays, and default output directories in a
+    separate `workflow` directory. Each run will be suffixed with a hash.
+    If copying back an ensemble directory from a scratch space, the copy is placed here.
     """
 
     reuse_output_dir: Optional[bool] = False
@@ -260,67 +256,66 @@ class LibeSpecs(BaseModel):
 
     workflow_dir_path: Optional[Union[str, Path]] = "."
     """
-    Optional path to the workflow directory. Autogenerated in the current directory if `use_workflow_dir`
-    is specified.
+    Optional path to the workflow directory.
     """
 
     ensemble_dir_path: Optional[Union[str, Path]] = Path("ensemble")
     """
-    Path to main ensemble directory containing calculation directories. Can serve
+    Path to main ensemble directory. Can serve
     as single working directory for workers, or contain calculation directories
     """
 
     ensemble_copy_back: Optional[bool] = False
     """
-    Whether to copy back directories within ``ensemble_dir_path`` back to launch
-    location. Useful if ensemble directory placed on node-local storage
+    Whether to copy back contents of ``ensemble_dir_path`` to launch
+    location. Useful if ``ensemble_dir_path`` located on node-local storage.
     """
 
     use_worker_dirs: Optional[bool] = False
-    """ Whether to organize calculation directories under worker-specific directories """
+    """ Whether to organize calculation directories under worker-specific directories. """
 
     sim_dirs_make: Optional[bool] = False
     """
-    Whether to make simulation-specific calculation directories for each simulation function call.
-    By default all workers operate within the top-level ensemble directory
+    Whether to make calculation directories for each simulation function call.
     """
 
     sim_dir_copy_files: Optional[List[Union[str, Path]]] = []
-    """ Paths to files or directories to copy into each simulation or ensemble directory.
-    List of strings or pathlib.Path objects
+    """
+    Paths to copy into the working directory upon calling the simulation function.
+    List of strings or ``pathlib.Path`` objects.
     """
 
     sim_dir_symlink_files: Optional[List[Union[str, Path]]] = []
-    """ Paths to files or directories to symlink into each simulation directory.
-    List of strings or pathlib.Path objects
+    """
+    Paths to symlink into the working directory upon calling the simulation function.
+    List of strings or ``pathlib.Path`` objects.
     """
 
     sim_input_dir: Optional[Union[str, Path]] = None
     """
-    Copy this directory and its contents for each simulation-specific directory.
-    If not using calculation directories, contents are copied to the ensemble directory
+    Copy this directory's contents into the working directory upon calling the simulation function.
     """
 
     gen_dirs_make: Optional[bool] = False
     """
     Whether to make generator-specific calculation directories for each generator function call.
-    By default all workers operate within the top-level ensemble directory
     """
 
     gen_dir_copy_files: Optional[List[Union[str, Path]]] = []
-    """ Paths to files or directories to copy into each generator or ensemble directory.
-    List of strings or pathlib.Path objects
+    """
+    Paths to copy into the working directory upon calling the generator function.
+    List of strings or ``pathlib.Path`` objects
     """
 
     gen_dir_symlink_files: Optional[List[Union[str, Path]]] = []
-    """ Paths to files or directories to symlink into each generator directory.
-    List of strings or pathlib.Path objects
+    """
+    Paths to symlink into the working directory upon calling the generator function.
+    List of strings or ``pathlib.Path`` objects.
     """
 
     gen_input_dir: Optional[Union[str, Path]] = None
     """
-    Copy this directory and its contents for each generator-instance-specific directory.
-    If not using calculation directories, contents are copied to the ensemble directory
+    Copy this directory's contents into the working directory upon calling the generator function.
     """
 
     calc_dir_id_width: Optional[int] = 4
@@ -332,7 +327,7 @@ class LibeSpecs(BaseModel):
     platform: Optional[str] = ""
     """Name of a known platform defined in the platforms module.
 
-    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`.
 
     Example:
 
@@ -340,9 +335,7 @@ class LibeSpecs(BaseModel):
 
         libE_specs["platform"] = "perlmutter_g"
 
-    Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
-
-    E.g., on command line or batch submission script:
+    Alternatively set the environment variable ``LIBE_PLATFORM``:
 
     .. code-block:: shell
 
@@ -352,9 +345,7 @@ class LibeSpecs(BaseModel):
     """
 
     platform_specs: Optional[Union[Platform, dict]] = {}
-    """A Platform obj (or dictionary) specifying settings for a platform.
-
-    Example usage in calling script.
+    """A Platform object or dictionary specifying settings for a platform.
 
     To use existing platform:
 
@@ -364,7 +355,7 @@ class LibeSpecs(BaseModel):
 
         libE_specs["platform_specs"] = PerlmutterGPU()
 
-    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`
+    See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`.
 
     Or define a platform:
 
@@ -381,64 +372,63 @@ class LibeSpecs(BaseModel):
             scheduler_match_slots=False,
         )
 
-    For list of Platform fields see :class:`Platform Fields<libensemble.resources.platforms.Platform>`
+    For list of Platform fields see :class:`Platform Fields<libensemble.resources.platforms.Platform>`.
 
-    Any fields not given, will be auto-detected by libEnsemble.
+    Any fields not given will be auto-detected by libEnsemble.
 
     See also option :attr:`platform`.
     """
 
     profile: Optional[bool] = False
-    """ Profile manager and worker logic using cProfile """
+    """ Profile manager and worker logic using ``cProfile``. """
 
     disable_log_files: Optional[bool] = False
-    """ Disable the creation of ``ensemble.log`` and ``libE_stats.txt`` log files """
+    """ Disable ``ensemble.log`` and ``libE_stats.txt`` log files. """
 
     safe_mode: Optional[bool] = False
-    """ Prevents user functions from overwriting protected History fields, but requires moderate overhead """
+    """ Prevents user functions from overwriting protected History fields, but requires moderate overhead. """
 
     stats_fmt: Optional[dict] = {}
-    """ Options for formatting 'libE_stats.txt'. See 'Formatting Options for libE_stats File' for more info """
+    """ Options for formatting ``'libE_stats.txt'``. See 'Formatting libE_stats.txt'. """
 
     workers: Optional[List[str]]
-    """ TCP Only: A list of worker hostnames """
+    """ TCP Only: A list of worker hostnames. """
 
     ip: Optional[str] = None
-    """ TCP Only: IP address for Manager's system """
+    """ TCP Only: IP address for Manager's system. """
 
     port: Optional[int] = 0
-    """ TCP Only: Port number for Manager's system """
+    """ TCP Only: Port number for Manager's system. """
 
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
-    """ TCP Only: Authkey for Manager's system"""
+    """ TCP Only: Authkey for Manager's system."""
 
     workerID: Optional[int]
-    """ TCP Only: Worker ID number assigned to the new process """
+    """ TCP Only: Worker ID number assigned to the new process. """
 
     worker_cmd: Optional[List[str]]
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
-    a local Python path, calling script, and manager/server format-fields for manager_ip,
-    manager_port, authkey, and workerID. nworkers is specified normally
+    a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
+    ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
     """
 
     use_persis_return_gen: Optional[bool] = False
-    """ Adds persistent generator output fields to the History array on return """
+    """ Adds persistent generator output fields to the History array on return. """
 
     use_persis_return_sim: Optional[bool] = False
-    """ Adds persistent simulator output fields to the History array on return """
+    """ Adds persistent simulator output fields to the History array on return. """
 
     final_fields: Optional[List[str]] = []
     """
-    List of fields in ``H`` that the manager will return to persistent
-    workers along with the ``PERSIS_STOP`` tag at the end of a run
+    List of fields in ``H`` that the manager will send to persistent
+    workers along with the ``PERSIS_STOP`` tag at the end of a run.
     """
 
     disable_resource_manager: Optional[bool] = False
     """
-    Disable the built-in resource manager. If ``True``, automatic resource detection
-    and/or assignment of resources to workers is disabled. ``resource_info`` will
-    also be ignored
+    Disable the built-in resource manager, including automatic resource detection
+    and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
     """
 
     num_resource_sets: Optional[int]
@@ -473,21 +463,21 @@ class LibeSpecs(BaseModel):
     dedicated_mode: Optional[bool] = False
     """
     Instructs libEnsemble to not run applications on resources where libEnsemble
-    processes (manager and workers) are running
+    processes (manager and workers) are running.
     """
 
     zero_resource_workers: Optional[List[int]] = []
     """
     List of workers that require no resources. For when a fixed mapping of workers
-    to resources is required. Otherwise, use ``num_resource_sets``
-    For use with supported allocation functions
+    to resources is required. Otherwise, use ``num_resource_sets``.
+    For use with supported allocation functions.
     """
 
     resource_info: Optional[dict] = {}
     """
     Resource information to override automatically detected resources.
-    Allowed fields are given below in 'Overriding Auto-detection'
-    Note that if ``disable_resource_manager`` is set then this option is ignored
+    Allowed fields are given below in 'Overriding Resource Auto-detection'.
+    Note that if ``disable_resource_manager`` is set then this option is ignored.
     """
 
     scheduler_opts: Optional[dict] = {}
@@ -544,28 +534,28 @@ class _EnsembleSpecs(BaseModel):
     """An all-encompasing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
-    """ A previous or preformatted libEnsemble History array to prepend """
+    """ A previous or preformatted libEnsemble History array to prepend. """
 
     libE_specs: LibeSpecs
-    """ Specifications and options for libEnsemble """
+    """ Specifications and options for libEnsemble. """
 
     sim_specs: SimSpecs
-    """ Specifications for the simulation function """
+    """ Specifications for the simulation function. """
 
     gen_specs: Optional[GenSpecs]
-    """ Specifications for the generator function """
+    """ Specifications for the generator function. """
 
     exit_criteria: ExitCriteria
-    """ Configurations for when to exit a workflow """
+    """ Configurations for when to exit a workflow. """
 
     persis_info: Optional[dict]
-    """ Per-worker information and structures to be passed between user function instances """
+    """ Per-worker information and structures to be passed between user function instances. """
 
     alloc_specs: Optional[AllocSpecs]
-    """ Specifications for the allocation function """
+    """ Specifications for the allocation function. """
 
     nworkers: Optional[int]
-    """ Number of worker processes to spawn (only in local/tcp modes) """
+    """ Number of worker processes to spawn (only in local/tcp modes). """
 
     class Config:
         arbitrary_types_allowed = True
