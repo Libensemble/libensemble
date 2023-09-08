@@ -5,7 +5,7 @@ We now give greater detail in programming with libEnsemble.
 
 .. toctree::
    :maxdepth: 2
-   :caption: The basics
+   :caption: The Basics
 
    libe_module
    data_structures/data_structures

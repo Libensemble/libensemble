@@ -52,11 +52,11 @@ class Ensemble:
             sampling.sim_specs = SimSpecs(
                 sim_f=one_d_example,
                 inputs=["x"],
-                out=[("f", float)],
+                outputs=[("f", float)],
             )
             sampling.gen_specs = GenSpecs(
                 gen_f=latin_hypercube_sample,
-                out=[("x", float, (1,))],
+                outputs=[("x", float, (1,))],
                 user={
                     "gen_batch_size": 500,
                     "lb": np.array([-3]),
@@ -103,7 +103,7 @@ class Ensemble:
             sim_specs = SimSpecs(
                 sim_f=sim_find_energy,
                 inputs=["x"],
-                out=[("y", float)],
+                outputs=[("y", float)],
             )
 
             experiment = Ensemble()
@@ -167,8 +167,8 @@ class Ensemble:
 
                     [gen_specs]
                         gen_f = "generator.gen_random_sample"
-                        [gen_specs.out]
-                            [gen_specs.out.x]
+                        [gen_specs.outputs]
+                            [gen_specs.outputs.x]
                                 type = "float"
                                 size = 1
                         [gen_specs.user]
@@ -177,8 +177,8 @@ class Ensemble:
                     [sim_specs]
                         sim_f = "simulator.sim_find_sine"
                         inputs = ["x"]
-                        [sim_specs.out]
-                            [sim_specs.out.y]
+                        [sim_specs.outputs]
+                            [sim_specs.outputs.y]
                                 type = "float"
 
             .. tab-item:: my_parameters.json
@@ -195,7 +195,7 @@ class Ensemble:
                         },
                         "gen_specs": {
                             "gen_f": "generator.gen_random_sample",
-                            "out": {
+                            "outputs": {
                                 "x": {
                                     "type": "float",
                                     "size": 1
@@ -208,7 +208,7 @@ class Ensemble:
                         "sim_specs": {
                             "sim_f": "simulator.sim_find_sine",
                             "inputs": ["x"],
-                            "out": {
+                            "outputs": {
                                 "f": {"type": "float"}
                             }
                         }
@@ -221,38 +221,37 @@ class Ensemble:
 
         Specifications for the simulation function
 
-    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
 
         Specifications for the generator function
 
-    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
 
         Tell libEnsemble when to stop a run
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, Optional
 
         Specifications for libEnsemble
 
-    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
 
         Specifications for the allocation function
 
-
-    persis_info: :obj:`dict`, optional
+    persis_info: :obj:`dict`, Optional
 
         Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
-    executor: :class:`Executor<libensemble.executors.executor.executor>`, optional
+    executor: :class:`Executor<libensemble.executors.executor.executor>`, Optional
 
         libEnsemble Executor instance for use within simulation or generator functions
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
+    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
 
-    parse_args: bool, optional
+    parse_args: bool, Optional
 
         Read ``nworkers``, ``comms``, and other arguments from the command-line. For MPI, calculate ``nworkers``
         and set the ``is_manager`` Boolean attribute on MPI rank 0. See the :meth:`parse_args<tools.parse_args>`
@@ -520,12 +519,12 @@ class Ensemble:
         Parameters
         ----------
 
-        num_streams: int, optional
+        num_streams: int, Optional
 
             Number of matching worker ID and random stream entries to create. Defaults to
             ``self.nworkers``.
 
-        seed: str, optional
+        seed: str, Optional
 
             Seed for NumPy's RNG
 
