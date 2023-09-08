@@ -11,6 +11,15 @@ The forces.c application should be compiled for the CPU to `forces_cpu.x`, and
 for the GPU (setting the GPU preprocessor condition) to `forces_gpu.x`.
 
 For compile lines, see examples in ../forces_app/build_forces.sh.
+
+It is recommended to run this test such that:
+    ((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_procs]
+
+E.g, if running on one node with four GPUs, then use:
+    python run_libE_forces.py --comms local --nworkers 9
+
+E.g, if running on one node with eight GPUs, then use:
+    python run_libE_forces.py --comms local --nworkers 17
 """
 
 import os
@@ -69,7 +78,7 @@ if __name__ == "__main__":
             ("x", float, (1,)),
             ("num_procs", int),  # num_procs auto given to sim when use MPIExecutor
             ("num_gpus", int),  # num_gpus auto given to sim when use MPIExecutor
-            ("app_type", 'S10'), # select app type (cpu_app or gpu_app)
+            ("app_type", "S10"),  # select app type (cpu_app or gpu_app)
         ],
         user={
             "initial_batch_size": nsim_workers,
@@ -98,10 +107,14 @@ if __name__ == "__main__":
 
     if ensemble.is_manager:
         # Note, this will change if change sim_max, nworkers, lb/ub etc...
-        if ensemble.exit_criteria.sim_max == 16:
-            chksum = np.sum(ensemble.H["energy"])
-            assert np.isclose(chksum, -21935405.696289998), f"energy check sum is {chksum}"
+        chksum = np.sum(ensemble.H["energy"])
+        print(f"Final energy checksum: {chksum}")
+
+        exp_chksums = {16: -21935405.696289998, 32: -26563930.6356}
+        exp_chksum = exp_chksums.get(ensemble.exit_criteria.sim_max)
+
+        if exp_chksum is not None:
+            assert np.isclose(chksum, exp_chksum), f"energy check sum is {chksum}"
             print("Checksum passed")
         else:
-            print("Run complete. A checksum has not been provided for the given sim_max")
-
+            print("Run complete. An expected checksum has not been provided for the given sim_max")

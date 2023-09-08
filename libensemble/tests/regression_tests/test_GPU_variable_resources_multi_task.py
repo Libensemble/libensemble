@@ -26,7 +26,7 @@ persistent generator.
 
 This test must be run with 9 or more workers (8 sim workers), in order
 to resource all works units. More generally:
-((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_resource_sets]
+    ((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_procs]
 
 """
 

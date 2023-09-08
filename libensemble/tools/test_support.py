@@ -218,7 +218,7 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         desc += " "
 
     if print_setting:
-        print(f"Worker {task.workerID}: {desc}GPU setting ({stype}): {gpu_setting} {addon}")
+        print(f"Worker {task.workerID}: {desc}GPU setting ({stype}): {gpu_setting} {addon}", flush=True)
 
     if assert_setting:
         assert (
