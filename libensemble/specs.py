@@ -619,6 +619,23 @@ class _EnsembleSpecs(BaseModel):
 
 
 def input_fields(fields: List[str]):
+    """Decorates a user-function with a list of field names to pass in on initialization.
+
+    Decorated functions don't need those fields specified in ``SimSpecs.inputs`` or ``GenSpecs.inputs``.
+
+    .. code-block:: python
+
+        from libensemble.specs import input_fields, output_data
+
+
+        @input_fields(["x"])
+        @output_data([("f", float)])
+        def one_d_example(x, persis_info, sim_specs):
+            H_o = np.zeros(1, dtype=sim_specs["out"])
+            H_o["f"] = np.linalg.norm(x)
+            return H_o, persis_info
+    """
+
     def decorator(func):
         setattr(func, "inputs", fields)
         func.__doc__ = f"\n    **Input Fields:** ``{func.inputs}``\n" + func.__doc__
@@ -628,6 +645,33 @@ def input_fields(fields: List[str]):
 
 
 def persistent_input_fields(fields: List[str]):
+    """Decorates a *persistent* user-function with a list of field names to send in throughout runtime.
+
+    Decorated functions don't need those fields specified in ``SimSpecs.persis_in`` or ``GenSpecs.persis_in``.
+
+    .. code-block:: python
+
+        from libensemble.specs import persistent_input_fields, output_data
+
+
+        @persistent_input_fields(["f"])
+        @output_data(["x", float])
+        def persistent_uniform(_, persis_info, gen_specs, libE_info):
+
+            b, n, lb, ub = _get_user_params(gen_specs["user"])
+            ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+            tag = None
+            while tag not in [STOP_TAG, PERSIS_STOP]:
+                H_o = np.zeros(b, dtype=gen_specs["out"])
+                H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+                tag, Work, calc_in = ps.send_recv(H_o)
+                if hasattr(calc_in, "__len__"):
+                    b = len(calc_in)
+
+            return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+    """
+
     def decorator(func):
         setattr(func, "persis_in", fields)
         func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_inputs}``\n" + func.__doc__
@@ -637,6 +681,23 @@ def persistent_input_fields(fields: List[str]):
 
 
 def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]]):
+    """Decorates a user-function with a list of tuples corresponding to NumPy dtypes for the function's output data.
+
+    Decorated functions don't need those fields specified in ``SimSpecs.outputs`` or ``GenSpecs.outputs``.
+
+    .. code-block:: python
+
+        from libensemble.specs import input_fields, output_data
+
+
+        @input_fields(["x"])
+        @output_data([("f", float)])
+        def one_d_example(x, persis_info, sim_specs):
+            H_o = np.zeros(1, dtype=sim_specs["out"])
+            H_o["f"] = np.linalg.norm(x)
+            return H_o, persis_info
+    """
+
     def decorator(func):
         setattr(func, "outputs", fields)
         func.__doc__ = f"\n    **Output Datatypes:** ``{func.outputs}``\n" + func.__doc__
