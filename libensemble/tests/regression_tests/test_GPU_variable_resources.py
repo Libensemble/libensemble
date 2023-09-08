@@ -37,6 +37,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     exctr = MPIExecutor()
     exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
-    gpu_test = Ensemble(parse_args=True)
+    gpu_test = Ensemble(parse_args=True, executor=exctr)
     gpu_test.libE_specs = LibeSpecs(
         num_resource_sets=gpu_test.nworkers - 1,
         resource_info={"cores_on_node": (8, 16), "gpus_on_node": 4},
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     )
 
     # Run with random num_procs/num_gpus for each simulation
-    gpu_test.add_random_streams()
+    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
     gpu_test.exit_criteria = ExitCriteria(sim_max=20)
 
     gpu_test.run()
@@ -96,7 +97,8 @@ if __name__ == "__main__":
     # Run with num_gpus based on x[0] for each simulation
     gpu_test.gen_specs.gen_f = gen_f2
     gpu_test.gen_specs.user["max_gpus"] = gpu_test.nworkers - 1
-    gpu_test.add_random_streams()
+    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
+    gpu_test.exit_criteria = ExitCriteria(sim_max=20)
     gpu_test.run()
 
     if gpu_test.is_manager:

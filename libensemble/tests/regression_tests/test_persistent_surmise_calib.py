@@ -40,6 +40,7 @@ from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib as gen_
 from libensemble.sim_funcs.surmise_test_function import borehole as sim_f
 from libensemble.sim_funcs.surmise_test_function import tstd2theta
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 if __name__ == "__main__":
 
@@ -100,7 +101,7 @@ if __name__ == "__main__":
         exit_criteria=ExitCriteria(sim_max=max_evals),
     )
 
-    test.add_random_streams()
+    test.persis_info = add_unique_random_streams({}, test.nworkers + 1)
 
     # Perform the run
     H, _, _ = test.run()

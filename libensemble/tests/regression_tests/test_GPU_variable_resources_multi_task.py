@@ -47,6 +47,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
@@ -54,7 +55,13 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    gpu_test = Ensemble(parse_args=True)
+
+    # Get paths for applications to run
+    six_hump_camel_app = six_hump_camel.__file__
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+    gpu_test = Ensemble(parse_args=True, executor=exctr)
     nworkers = gpu_test.nworkers
     gpu_test.libE_specs = LibeSpecs(
         num_resource_sets=gpu_test.nworkers - 1,
@@ -62,11 +69,6 @@ if __name__ == "__main__":
         sim_dirs_make=True,
         ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers),
     )
-
-    # Get paths for applications to run
-    six_hump_camel_app = six_hump_camel.__file__
-    exctr = MPIExecutor()
-    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     gpu_test.sim_specs = SimSpecs(
         sim_f=sim_f,
@@ -95,7 +97,7 @@ if __name__ == "__main__":
         },
     )
 
-    gpu_test.add_random_streams()
+    gpu_test.persis_info = add_unique_random_streams({}, gpu_test.nworkers + 1)
     gpu_test.exit_criteria = ExitCriteria(sim_max=40, wallclock_max=300)
 
     if gpu_test.ready():

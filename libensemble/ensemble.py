@@ -8,6 +8,7 @@ import tomli
 import yaml
 
 from libensemble import logger
+from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
@@ -215,18 +216,23 @@ class Ensemble:
 
         Tell libEnsemble when to stop a run
 
-    persis_info: :obj:`dict`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
-        Persistent information to be passed between user function instances
-        :doc:`(example)<data_structures/persis_info>`
+        Specifications for libEnsemble
 
     alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
 
         Specifications for the allocation function
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
 
-        Specifications for libEnsemble
+    persis_info: :obj:`dict`, optional
+
+        Persistent information to be passed between user function instances
+        :doc:`(example)<data_structures/persis_info>`
+
+    executor: :class:`Executor<libensemble.executors.executor.executor>`, optional
+
+        libEnsemble Executor instance for use within simulation or generator functions
 
     H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
 
@@ -248,6 +254,7 @@ class Ensemble:
         libE_specs: Optional[LibeSpecs] = None,
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
+        executor: Optional[Executor] = None,
         H0: Optional[npt.NDArray] = None,
         parse_args: Optional[bool] = False,
     ):
@@ -257,6 +264,7 @@ class Ensemble:
         self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
+        self.executor = executor
         self.H0 = H0
 
         self._util_logger = logging.getLogger(__name__)
@@ -313,6 +321,9 @@ class Ensemble:
         else:
             self._libE_specs.__dict__.update(**new_specs)
 
+    def _refresh_executor(self):
+        Executor.executor = self.executor or Executor.executor
+
     def run(self) -> (npt.NDArray, dict, int):
         """
         Initializes libEnsemble.
@@ -351,6 +362,8 @@ class Ensemble:
                 2 = Manager timed out and ended simulation
                 3 = Current process is not in libEnsemble MPI communicator
         """
+
+        self._refresh_executor()
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
@@ -424,7 +437,7 @@ class Ensemble:
             "alloc_f": self._get_func,
             "inputs": self._get_normal,
             "persis_in": self._get_normal,
-            "out": self._get_outputs,
+            "outputs": self._get_outputs,
             "globus_compute_endpoint": self._get_normal,
             "user": self._get_normal,
         }
@@ -436,6 +449,9 @@ class Ensemble:
                 if f == "inputs":
                     loaded_spec["in"] = field_f[f](loaded_spec[f])
                     loaded_spec.pop("inputs")
+                elif f == "outputs":
+                    loaded_spec["out"] = field_f[f](loaded_spec[f])
+                    loaded_spec.pop("outputs")
                 else:
                     loaded_spec[f] = field_f[f](loaded_spec[f])
 
@@ -450,6 +466,8 @@ class Ensemble:
             if isinstance(old_spec, dict):
                 old_spec.update(loaded_spec)
                 if old_spec.get("in") and old_spec.get("inputs"):
+                    old_spec.pop("inputs")  # avoid clashes
+                elif old_spec.get("out") and old_spec.get("outputs"):
                     old_spec.pop("inputs")  # avoid clashes
             elif isinstance(old_spec, ClassType):
                 old_spec.__dict__.update(**loaded_spec)
@@ -481,13 +499,29 @@ class Ensemble:
         self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """Adds ``np.random`` generators for each worker to ``persis_info``"""
+        """
+
+        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
+
+        Parameters
+        ----------
+
+        num_streams: int, optional
+
+            Number of matching worker ID and random stream entries to create. Defaults to
+            ``self.nworkers``.
+
+        seed: str, optional
+
+            Seed for NumPy's RNG
+
+        """
         if num_streams:
             nstreams = num_streams
         else:
             nstreams = self._nworkers()
 
-        self.persis_info = add_unique_random_streams({}, nstreams + 1, seed=seed)
+        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
     def save_output(self, file: str):

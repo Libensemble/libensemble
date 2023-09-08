@@ -6,6 +6,7 @@ import numpy as np
 
 from libensemble.ensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import add_unique_random_streams
 
 ####################
 
@@ -36,7 +37,7 @@ forces.gen_specs.user.update(
     }
 )
 
-forces.add_random_streams()
+forces.persis_info = add_unique_random_streams({}, forces.nworkers + 1)
 
 forces.run()
 forces.save_output(__file__)
