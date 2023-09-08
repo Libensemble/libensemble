@@ -15,6 +15,8 @@ if __name__ == "__main__":
 
     # Initialize MPI Executor
     exctr = MPIExecutor()
+
+    # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
     if not os.path.isfile(sim_app):
