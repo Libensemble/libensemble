@@ -187,7 +187,8 @@ def uniform_sample_diff_simulations(_, persis_info, gen_specs, libE_info):
         use_gpus = rng.choice([True, False], b)
         H_o["num_procs"] = nprocs
         H_o["num_gpus"] = np.where(use_gpus, nprocs, 0)
-        H_o["app_type"] = np.where(use_gpus, "gpu_app", "cpu_app")
+        if "app_type" in H_o.dtype.names:
+            H_o["app_type"] = np.where(use_gpus, "gpu_app", "cpu_app")
 
         print(f"\nGEN created {b} sims requiring {nprocs} procs. Use GPUs {use_gpus}", flush=True)
 
