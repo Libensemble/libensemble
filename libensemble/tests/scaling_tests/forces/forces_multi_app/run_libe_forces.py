@@ -53,7 +53,7 @@ if __name__ == "__main__":
     exctr.register_app(full_path=gpu_app, app_name="gpu_app")
 
     # Parse number of workers, comms type, etc. from arguments
-    ensemble = Ensemble(parse_args=True)
+    ensemble = Ensemble(parse_args=True, executor=exctr)
     nsim_workers = ensemble.nworkers - 1  # One worker is for persistent generator
 
     # Persistent gen does not need resources

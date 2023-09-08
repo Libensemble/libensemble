@@ -1,8 +1,5 @@
 import numpy as np
 
-# To retrieve our MPI Executor and resources instances
-from libensemble.executors.executor import Executor
-
 # Optional status codes to display in libE_stats.txt for each gen or sim
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
@@ -24,8 +21,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # app arguments: num particles, timesteps, also using num particles as seed
     args = particles + " " + str(10) + " " + particles
 
-    # Retrieve our MPI Executor instance and resources
-    exctr = Executor.executor
+    # Retrieve our MPI Executor
+    exctr = libE_info["executor"]
 
     app_type = H["app_type"][0].decode()
 
