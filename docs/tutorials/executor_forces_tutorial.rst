@@ -14,6 +14,9 @@ if the run was successful.
 This tutorial uses libEnsemble's :doc:`MPI Executor<../executor/mpi_executor>`,
 which automatically detects available MPI runners and resources.
 
+This example also uses a persistent generator. This generator runs on a
+worker throughout the ensemble, producing new simulation parameters as requested.
+
 Getting Started
 ---------------
 
@@ -35,9 +38,9 @@ Calling Script
 
 Complete scripts for this example can be found in the forces_simple_ directory.
 
-Let's begin by writing our calling script to parameterize our simulation and
-generation functions and call libEnsemble. Create a Python file called `run_libe_forces.py`
-containing:
+Let's begin by writing our calling script to specify our simulation and
+generation functions and call libEnsemble. Create a Python file called
+`run_libe_forces.py` containing:
 
 .. code-block:: python
     :linenos:
@@ -70,9 +73,11 @@ it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
 Next define the :ref:`sim_specs<datastruct-sim-specs>` and
-:ref:`gen_specs<datastruct-gen-specs>` data structures. Recall that these
-are used to specify to libEnsemble what user functions and input/output fields to
+:ref:`gen_specs<datastruct-gen-specs>`. Recall that these are used to specify
+to libEnsemble what user functions and input/output fields to
 expect, and also to parameterize function instances without hard-coding:
+
+****************************update to add alloc - import function / parameterize and explain breifly as possible what it means.
 
 .. code-block:: python
     :linenos:
@@ -100,10 +105,9 @@ Our generation function will generate random numbers of particles (between
 the ``"lb"`` and ``"ub"`` bounds) for our simulation function to evaluate via our
 registered application.
 
-The following additional instructs libEnsemble's workers
-to each create and work within a separate directory each time they call a simulation
-function. This helps organize output and also helps prevents workers from overwriting
-previous results:
+The following line instructs libEnsemble's workers to each create and work within
+a separate directory each time they call a simulation function. This helps
+organize output and also helps prevents workers from overwriting previous results:
 
 .. code-block:: python
     :linenos:
