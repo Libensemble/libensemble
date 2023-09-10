@@ -210,7 +210,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 "gen_num_gpus" [int] = ``0``:
                     The default number of GPUs required by generators. Unless overridden by
-                    the equivalent ``persis_info``settings, generators will be allocated this
+                    the equivalent ``persis_info`` settings, generators will be allocated this
                     many GPUs.
 
                 "enforce_worker_core_bounds" [bool] = ``False``:
