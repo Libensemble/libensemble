@@ -116,7 +116,7 @@ import socket
 import sys
 import traceback
 from pathlib import Path
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 
 import numpy as np
 
@@ -129,7 +129,7 @@ from libensemble.history import History
 from libensemble.manager import LoggedException, WorkerException, manager_main, report_worker_exc
 from libensemble.resources.platforms import get_platform
 from libensemble.resources.resources import Resources
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, SimSpecsV2, _EnsembleSpecs
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
@@ -143,7 +143,7 @@ logger = logging.getLogger(__name__)
 
 
 def libE(
-    sim_specs: SimSpecs,
+    sim_specs: Union[SimSpecs, SimSpecsV2],
     gen_specs: GenSpecs,
     exit_criteria: ExitCriteria,
     persis_info: Dict = {},

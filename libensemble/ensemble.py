@@ -1,7 +1,7 @@
 import importlib
 import json
 import logging
-from typing import Optional
+from typing import Optional, Union
 
 import numpy.typing as npt
 import tomli
@@ -10,7 +10,7 @@ import yaml
 from libensemble import logger
 from libensemble.executors import Executor
 from libensemble.libE import libE
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, SimSpecsV2
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
@@ -248,7 +248,7 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: Optional[SimSpecs] = SimSpecs(),
+        sim_specs: Optional[Union[SimSpecs, SimSpecsV2]] = SimSpecs(),
         gen_specs: Optional[GenSpecs] = GenSpecs(),
         exit_criteria: Optional[ExitCriteria] = {},
         libE_specs: Optional[LibeSpecs] = None,
@@ -292,6 +292,22 @@ class Ensemble:
     def ready(self) -> bool:
         """Quickly verify that all necessary data has been provided"""
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def submit(
+        self, fn, *args, outputs=[], globus_compute_endpoint="", **kwargs
+    ):  # presumably a "simulation" function?
+        assert len(outputs), "Please provide the expected output datatype for the function before calling `submit()`."
+        self.sim_specs = SimSpecsV2(fn=fn, args=args, kwargs=kwargs, outputs=outputs, globus_compute_endpoint="")
+        pass
+
+    def map(self, *iterables, timeout=None, chunksize=1):
+        pass
 
     @property
     def libE_specs(self) -> LibeSpecs:
