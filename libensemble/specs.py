@@ -96,15 +96,6 @@ class SimSpecs(BaseModel):
         return v
 
 
-class SimSpecsV2(BaseModel):
-
-    fn: Callable
-    args: list
-    kwargs: Optional[dict]
-    outputs: list = []
-    globus_compute_endpoint: Optional[str] = ""
-
-
 class GenSpecs(BaseModel):
     """
     Specifications for configuring a Generator Function. Equivalent to
@@ -559,7 +550,7 @@ class _EnsembleSpecs(BaseModel):
     libE_specs: LibeSpecs
     """ Specifications and options for libEnsemble """
 
-    sim_specs: Union[SimSpecs, SimSpecsV2]
+    sim_specs: SimSpecs
     """ Specifications for the simulation function """
 
     gen_specs: Optional[GenSpecs]

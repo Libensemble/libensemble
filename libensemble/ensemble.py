@@ -1,7 +1,7 @@
 import importlib
 import json
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 import numpy.typing as npt
 import tomli
@@ -10,7 +10,7 @@ import yaml
 from libensemble import logger
 from libensemble.executors import Executor
 from libensemble.libE import libE
-from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, SimSpecsV2
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
@@ -248,7 +248,7 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: Optional[Union[SimSpecs, SimSpecsV2]] = SimSpecs(),
+        sim_specs: Optional[SimSpecs] = SimSpecs(),
         gen_specs: Optional[GenSpecs] = GenSpecs(),
         exit_criteria: Optional[ExitCriteria] = {},
         libE_specs: Optional[LibeSpecs] = None,
