@@ -13,7 +13,7 @@ number of particles (allows live GPU usage to be viewed).
 
 In the first example, each worker will be using one GPU. The code will assign the
 GPUs available to each worker, using the appropriate method. This works on systems
-using **Nvidia**, **AMD** and **Intel** GPUs without modifiying the scripts.
+using **Nvidia**, **AMD**, and **Intel** GPUs without modifying the scripts.
 
 Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_.
 *The first two videos are from an earlier release - you no longer need to change
@@ -24,7 +24,7 @@ Simulation function
 -------------------
 
 The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
-to the forces simple example are highlighted:
+to the simple forces example are highlighted:
 
 .. code-block:: python
     :linenos:
@@ -163,7 +163,7 @@ and use this information however you want.
 
         return output
 
-    The above code will assign a GPU to each worker on CUDA capable systems,
+    The above code will assign a GPU to each worker on CUDA-capable systems,
     so long as the number of workers is chosen to fit the resources.
 
     If you want to have one rank with multiple GPUs, then change source lines 30/31
@@ -316,5 +316,4 @@ where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 .. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
 .. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
-.. _forces_multi_app: //github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
-.. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
+.. _forces_multi_app: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
