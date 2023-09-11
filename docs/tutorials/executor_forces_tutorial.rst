@@ -243,10 +243,12 @@ for starters:
     import numpy as np
 
     # Optional status codes to display in libE_stats.txt for each gen or sim
-    from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+    from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
     def run_forces(H, persis_info, sim_specs, libE_info):
+        """Runs the forces MPI application"""
+
         calc_status = 0
 
         # Parse out num particles, from generator function
@@ -289,8 +291,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
 .. code-block:: python
     :linenos:
-    :lineno-start: 25
-
+    :lineno-start: 27
 
         # Try loading final energy reading, set the sim's status
         statfile = "forces.stat"

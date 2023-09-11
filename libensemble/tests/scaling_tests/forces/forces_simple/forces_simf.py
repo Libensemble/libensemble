@@ -5,6 +5,8 @@ from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def run_forces(H, persis_info, sim_specs, libE_info):
+    """Runs the forces MPI application"""
+
     calc_status = 0
 
     # Parse out num particles, from generator function
