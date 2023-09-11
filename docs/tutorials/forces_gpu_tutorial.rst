@@ -245,6 +245,14 @@ simulation (they do not need to be passed as a ``sim_specs["in"]``).
 Further guidance on varying the resources assigned to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>` section.
 
+Multiple Applications
+---------------------
+
+Another variant of this example, forces_multi_app_, has two applications, one that
+uses GPUs, and another that only uses CPUs. The dynamic resource management can
+manage both types of resources and assign these to the same nodes concurrently, for
+maximum efficiency.
+
 Checking GPU usage
 ------------------
 
@@ -308,3 +316,5 @@ where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 .. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
 .. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
+.. _forces_multi_app: //github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
+.. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
