@@ -1,5 +1,5 @@
 ======================
-Executor - Assign GPUs
+3. Assign GPUs to Apps
 ======================
 
 This tutorial shows the most portable way to assign tasks (user applications)

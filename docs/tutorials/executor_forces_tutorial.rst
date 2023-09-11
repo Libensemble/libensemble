@@ -1,6 +1,6 @@
-==================================
-Executor with Electrostatic Forces
-==================================
+==============================
+2. Launch an Electrostatic App
+==============================
 
 This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator

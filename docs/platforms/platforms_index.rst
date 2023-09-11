@@ -213,7 +213,7 @@ libEnsemble on specific HPC systems.
     frontier
     perlmutter
     polaris
-    spock/crusher <spock_crusher>
+    Spock/Crusher <spock_crusher>
     summit
     theta
     srun

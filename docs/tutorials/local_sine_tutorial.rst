@@ -1,6 +1,6 @@
-==================================
-Multiprocessing with a Simple Sine
-==================================
+======================
+1. Simple Introduction
+======================
 
 This tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>`.
