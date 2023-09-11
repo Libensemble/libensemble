@@ -130,7 +130,7 @@ expect, and also to parameterize user functions:
         },
     )
 
-We also configure an allocation function, which starts the one persistent
+Next, configure an allocation function, which starts the one persistent
 generator and farms out the simulations. We also tell it to wait for all
 simulations to return their results, before generating more parameters.
 
@@ -242,37 +242,34 @@ for starters:
 
     import numpy as np
 
-    # To retrieve our MPI Executor instance
-    from libensemble.executors.executor import Executor
-
     # Optional status codes to display in libE_stats.txt for each gen or sim
     from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
 
 
-    def run_forces(H, _, sim_specs):
+    def run_forces(H, persis_info, sim_specs, libE_info):
         calc_status = 0
 
         # Parse out num particles, from generator function
         particles = str(int(H["x"][0][0]))
 
-        # num particles, timesteps, also using num particles as seed
+        # app arguments: num particles, timesteps, also using num particles as seed
         args = particles + " " + str(10) + " " + particles
 
-        # Retrieve our MPI Executor instance
-        exctr = Executor.executor
+        # Retrieve our MPI Executor
+        exctr = libE_info["executor"]
 
-        # Submit our forces app for execution
+        # Submit our forces app for execution.
         task = exctr.submit(app_name="forces", app_args=args)
 
         # Block until the task finishes
         task.wait()
 
+
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
 as a random number seed here.
 
-We then retrieve our previously instantiated Executor from the class definition,
-where it was automatically stored as an attribute.
+We then retrieve our previously instantiated Executor.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
@@ -292,11 +289,11 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
 .. code-block:: python
     :linenos:
+    :lineno-start: 25
 
-        # Stat file to check for bad runs
-        statfile = "forces.stat"
 
         # Try loading final energy reading, set the sim's status
+        statfile = "forces.stat"
         try:
             data = np.loadtxt(statfile)
             final_energy = data[-1]
@@ -305,13 +302,12 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
             final_energy = np.nan
             calc_status = TASK_FAILED
 
-        # Define our output array,  populate with energy reading
-        outspecs = sim_specs["out"]
-        output = np.zeros(1, dtype=outspecs)
-        output["energy"][0] = final_energy
+        # Define our output array, populate with energy reading
+        output = np.zeros(1, dtype=sim_specs["out"])
+        output["energy"] = final_energy
 
         # Return final information to worker, for reporting to manager
-        return output, calc_status
+        return output, persis_info, calc_status
 
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
@@ -319,14 +315,19 @@ That's it! As can be seen, with libEnsemble, it's relatively easy to get started
 with launching applications. Behind the scenes, libEnsemble evaluates default
 MPI runners and available resources and divides them among the workers.
 
+Running the example
+-------------------
+
 This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
     $ python run_libe_forces.py --comms local --nworkers [nworkers]
 
-Output files---including ``forces.stat`` and files containing ``stdout`` and
-``stderr`` content for each task---should appear in the current working
+where ``nworkers`` is one more than the number of concurrent simulations.
+
+Output files (including ``forces.stat`` and files containing ``stdout`` and
+``stderr`` content for each task) should appear in the current working
 directory. Overall workflow information should appear in ``libE_stats.txt``
 and ``ensemble.log`` as usual.
 
@@ -342,7 +343,7 @@ For example, my ``libE_stats.txt`` resembled::
   Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
   Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
-Where ``status`` is set based on the simulation function's returned ``calc_status``.
+where ``status`` is set based on the simulation function's returned ``calc_status``.
 
 My ``ensemble.log`` (on a ten-core laptop) resembled::
 
@@ -374,13 +375,18 @@ My ``ensemble.log`` (on a ten-core laptop) resembled::
 
 Note again that the ten cores were divided equally among two workers.
 
-That concludes this tutorial.
-Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
+That concludes this tutorial. Each of these example files can be found in the
+repository in `examples/tutorials/forces_with_executor`_.
 
 For further experimentation, we recommend trying out this libEnsemble tutorial
 workflow on a cluster or multi-node system, since libEnsemble can also manage
 those resources and is developed to coordinate computations at huge scales.
-See ref:`HPC platform guides<platform-index>` for more information.
+See :ref:`HPC platform guides<platform-index>` for more information.
+
+See the :doc:`forces_gpu tutorial<forces_gpu_tutorial>` for a similar workflow
+including GPUs.
+
+.. and another,which shows how to dynamically assign resources to each simulation.
 
 Please feel free to contact us or open an issue on GitHub_ if this tutorial
 workflow doesn't work properly on your cluster or other compute resource.
@@ -399,8 +405,10 @@ These may require additional browsing of the documentation to complete.
 
 .. dropdown:: **Click Here for Solution**
 
+
+   Showing updated sections only (``---`` refers to snips where code is unchanged).
+
    .. code-block:: python
-       :linenos:
 
         import time
 
