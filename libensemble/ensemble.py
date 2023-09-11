@@ -229,7 +229,7 @@ class Ensemble:
         Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
-    executor: :class:`Executor<libensemble.executors.executor.executor>`, optional
+    executor: :class:`Executor<libensemble.executors.executor.Executor>`, optional
 
         libEnsemble Executor instance for use within simulation or generator functions
 
