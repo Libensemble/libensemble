@@ -1,6 +1,6 @@
-==============================
-2. Launch an Electrostatic App
-==============================
+==================================
+Executor with Electrostatic Forces
+==================================
 
 This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
@@ -124,9 +124,8 @@ by calling the primary :doc:`libE()<../libe_module>` routine:
   # Seed random streams for each worker, particularly for gen_f
   persis_info = add_unique_random_streams({}, nworkers + 1)
 
-  if __name__ == "__main__":  # required by multiprocessing on macOS and windows
-      # Launch libEnsemble
-      H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
+  # Launch libEnsemble
+  H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info=persis_info, libE_specs=libE_specs)
 
 Exercise
 ^^^^^^^^
@@ -294,7 +293,7 @@ For example, my ``libE_stats.txt`` resembled::
   Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
   Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
-where ``status`` is set based on the simulation function's returned ``calc_status``.
+Where ``status`` is set based on the simulation function's returned ``calc_status``.
 
 My ``ensemble.log`` (on a ten-core laptop) resembled::
 
@@ -352,7 +351,7 @@ These may require additional browsing of the documentation to complete.
 .. dropdown:: **Click Here for Solution**
 
    .. code-block:: python
-        :linenos:
+       :linenos:
 
         import time
 
@@ -377,74 +376,10 @@ These may require additional browsing of the documentation to complete.
                     if "kill\n" in f.readlines():
                         task.kill()
 
-                ...
+            if task.runtime > 60:
+                task.kill()
 
-Results
--------
-
-This completes our calling script and simulation function. Run libEnsemble with:
-
-.. code-block:: bash
-
-    $ python run_libe_forces.py --comms local --nworkers [nworkers]
-
-This may take up to a minute to complete. Output files---including ``forces.stat``
-and files containing ``stdout`` and ``stderr`` content for each task---should
-appear in the current working directory. Overall workflow information
-should appear in ``libE_stats.txt`` and ``ensemble.log`` as usual.
-
-For example, my ``libE_stats.txt`` resembled::
-
-    Worker     1: Gen no     1: gen Time: 0.001 Start: ... End: ... Status: Not set
-    Worker     1: sim_id     0: sim Time: 0.227 Start: ... End: ... Status: Completed
-    Worker     2: sim_id     1: sim Time: 0.426 Start: ... End: ... Status: Completed
-    Worker     1: sim_id     2: sim Time: 0.627 Start: ... End: ... Status: Completed
-    Worker     2: sim_id     3: sim Time: 0.225 Start: ... End: ... Status: Completed
-    Worker     1: sim_id     4: sim Time: 0.224 Start: ... End: ... Status: Completed
-    Worker     2: sim_id     5: sim Time: 0.625 Start: ... End: ... Status: Completed
-    Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
-    Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
-
-where ``status`` is set based on the simulation function's returned ``calc_status``.
-
-My ``ensemble.log`` (on a ten-core laptop) resembled::
-
-    [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
-    [0]  ... libensemble.libE (INFO): libE version v0.9.0
-    [0]  ... libensemble.manager (INFO): Manager initiated on node my_laptop
-    [0]  ... libensemble.manager (INFO): Manager exit_criteria: {"sim_max": 8}
-    [1]  ... libensemble.worker (INFO): Worker 1 initiated on node my_laptop
-    [2]  ... libensemble.worker (INFO): Worker 2 initiated on node my_laptop
-    [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2023 10 2023
-    [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2900 10 2900
-    [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_0 finished with errcode 0 (FINISHED)
-    [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1288 10 1288
-    [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_0 finished with errcode 0 (FINISHED)
-    [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2897 10 2897
-    [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_1 finished with errcode 0 (FINISHED)
-    [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1623 10 1623
-    [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_1 finished with errcode 0 (FINISHED)
-    [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1846 10 1846
-    [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_2 finished with errcode 0 (FINISHED)
-    [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2655 10 2655
-    [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_2 finished with errcode 0 (FINISHED)
-    [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1818 10 1818
-    [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_3 finished with errcode 0 (FINISHED)
-    [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_3 finished with errcode 0 (FINISHED)
-    [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
-    [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
-    [0]  ... libensemble.libE (INFO): Manager total time: 3.939
-
-Note again that the ten cores were divided equally among two workers.
-
-That concludes this tutorial.
-Each of these example files can be found in the repository in `examples/tutorials/forces_with_executor`_.
-
-For further experimentation, we recommend trying out this libEnsemble tutorial
-workflow on a cluster or multi-node system, since libEnsemble can also manage
-those resources and is developed to coordinate computations at huge scales.
-Please feel free to contact us or open an issue on GitHub_ if this tutorial
-workflow doesn't work properly on your cluster or other compute resource.
+        ...
 
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
