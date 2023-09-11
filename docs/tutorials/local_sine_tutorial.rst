@@ -1,6 +1,6 @@
-======================
-1. Simple Introduction
-======================
+===================
+Simple Introduction
+===================
 
 This tutorial demonstrates the capability to perform ensembles of
 calculations in parallel using :doc:`libEnsemble<../introduction>`.

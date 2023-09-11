@@ -1,6 +1,6 @@
-===========================================
-5. Calibration with Simulation Cancellation
-===========================================
+========================================
+Calibration with Simulation Cancellation
+========================================
 
 Introduction - Calibration with libEnsemble and a Regression Model
 ------------------------------------------------------------------

@@ -1,6 +1,6 @@
-===========================
-4. Optimization with APOSMM
-===========================
+========================
+Optimization with APOSMM
+========================
 
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
