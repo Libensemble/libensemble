@@ -293,7 +293,7 @@ class Ensemble:
             self.parsed = True
 
     def parse_args(self) -> (int, bool, LibeSpecs):
-        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args_f()
+        self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
         if not self._libE_specs:
             self._libE_specs = LibeSpecs(**libE_specs_parsed)
