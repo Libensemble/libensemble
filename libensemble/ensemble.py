@@ -216,7 +216,7 @@ class Ensemble:
 
         Tell libEnsemble when to stop a run
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, optional
 
         Specifications for libEnsemble
 
