@@ -299,15 +299,13 @@ class Ensemble:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def submit(
-        self, fn, *args, outputs=[], globus_compute_endpoint="", **kwargs
-    ):  # presumably a "simulation" function?
-        assert len(outputs), "Please provide the expected output datatype for the function before calling `submit()`."
-        self.sim_specs = SimSpecsV2(fn=fn, args=args, kwargs=kwargs, outputs=outputs, globus_compute_endpoint="")
-        pass
+    def submit(self, fn, outputs: list, *args, **kwargs):  # presumably a "simulation" function?
+        self.sim_specs = SimSpecs(sim_f=fn, inputs=args, outputs=outputs, user=kwargs)
+        assert self.ready(), "Please provide ExitCriteria and LibeSpecs to the Ensemble instance"
+        return self.run()
 
-    def map(self, *iterables, timeout=None, chunksize=1):
-        pass
+    # def map(self, *iterables, timeout=None, chunksize=1):
+    #     pass
 
     @property
     def libE_specs(self) -> LibeSpecs:
