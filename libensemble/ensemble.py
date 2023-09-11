@@ -224,7 +224,6 @@ class Ensemble:
 
         Specifications for the allocation function
 
-
     persis_info: :obj:`dict`, optional
 
         Persistent information to be passed between user function instances
