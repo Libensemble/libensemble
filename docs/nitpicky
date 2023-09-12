@@ -1,0 +1,34 @@
+# numpy inherited docstrings
+py:obj dtype
+py:obj a
+py:obj a.size == 1
+py:obj n
+py:obj ndarray
+py:obj args
+
+# Pending on python docs links issue #11975
+py:class list
+py:obj list.append
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove
+py:class classmethod
+py:class pathlib.Path
+py:class string
+py:class String
+py:class optional
+
+# Internal paths that should be detectable but aren't
+py:class libensemble.resources.platforms.GenericROCm
+py:class libensemble.resources.platforms.Crusher
+py:class libensemble.resources.platforms.Frontier
+py:class libensemble.resources.platforms.PerlmutterCPU
+py:class libensemble.resources.platforms.PerlmutterGPU
+py:class libensemble.resources.platforms.Polaris
+py:class libensemble.resources.platforms.Spock
+py:class libensemble.resources.platforms.Summit
+py:class libensemble.resources.platforms.Sunspot

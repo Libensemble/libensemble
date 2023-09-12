@@ -212,7 +212,7 @@ class History:
 
         Parameters
         ----------
-        gen_worker: integer
+        gen_worker: int
             The worker who generated these points
         D: numpy array
             Output from gen_func
@@ -268,7 +268,7 @@ class History:
 
         Parameters
         ----------
-        k: integer
+        k: int
             Number of rows to add to H
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)
