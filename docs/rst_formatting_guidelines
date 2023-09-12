@@ -2,7 +2,7 @@ Put variables (e.g., gen_f or H) in between double ticks ``stuff here`` (no quot
 
 Code or monospaced values that contain quotes should only use double-quotes ("stuff_here")
 
-Documented classes and functions should be linked to using :class: and :meth: respectively.
+Documented classes and functions should be linked to using :class: and :meth: respectively. Ensure the entire module path is used.
 
 Links to other pages should *preferably* use :ref:, so references persist even when files are moved.
 
@@ -19,3 +19,19 @@ Put breakout code snippets into a box using two colons ::
 No italics on text of links
 
 Use italics for emphasis
+
+Ensure parameter types, return types, and contents of :obj:`label` structures, are "resolvable" (importable/parsable by Python). If not, append to "nitpicky"
+
+Ensure global types in docstrings match their builtin/typing class or name; "string" should be "str", "optional" should be "Optional"
+
+"list of object" should be "List[object]"
+
+Docstrings for parameters or fields should end with periods
+
+Subsections should be Title Cased
+
+"where" should be lowercased when describing variables in a formula or code sample
+
+Use tabs to compare multiple approaches or categorize content
+
+Use dropdowns for multiple long-content sections on the same page.
