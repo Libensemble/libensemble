@@ -75,7 +75,7 @@ def worker_main(
     workerID: int
         Manager assigned worker ID (if None, default is comm.rank)
 
-    log_comm: boolean
+    log_comm: bool
         Whether to send logging over comm
     """
 

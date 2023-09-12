@@ -5,6 +5,8 @@ py:obj a.size == 1
 py:obj n
 py:obj ndarray
 py:obj args
+py:class numpy.ndarray
+py:class numpy.dtype
 
 # Pending on python docs links issue #11975
 py:class list
@@ -21,6 +23,8 @@ py:class pathlib.Path
 py:class string
 py:class String
 py:class optional
+py:class dict
+py:class int
 
 # Internal paths that should be detectable but aren't
 py:class libensemble.resources.platforms.GenericROCm
@@ -32,3 +36,4 @@ py:class libensemble.resources.platforms.Polaris
 py:class libensemble.resources.platforms.Spock
 py:class libensemble.resources.platforms.Summit
 py:class libensemble.resources.platforms.Sunspot
+py:class libensemble.resources.rset_resources.RSetResources
