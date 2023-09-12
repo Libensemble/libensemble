@@ -175,13 +175,13 @@ The following packages may be installed separately to enable additional features
 
 * Balsam_ - Manage and submit applications to the Balsam service with our :ref:`BalsamExecutor<balsam-exctr>`
 * pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
-* funcX_ - Submit simulation or generator function instances to remote funcX endpoints
+* `Globus Compute`_ - Submit simulation or generator function instances to remote Globus Compute endpoints
 * `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
 .. _Conda: https://docs.conda.io/en/latest/
-.. _funcX: https://funcx.org/
+.. _Globus Compute: https://funcx.readthedocs.io/en/latest/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
