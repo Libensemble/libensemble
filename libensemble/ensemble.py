@@ -229,7 +229,7 @@ class Ensemble:
 
         Tell libEnsemble when to stop a run
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, Optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
 
@@ -242,7 +242,7 @@ class Ensemble:
         Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
-    executor: :class:`Executor<libensemble.executors.executor.executor>`, Optional
+    executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
 
         libEnsemble Executor instance for use within simulation or generator functions
 
