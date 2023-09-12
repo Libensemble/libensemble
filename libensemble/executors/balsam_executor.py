@@ -506,7 +506,7 @@ class BalsamExecutor(Executor):
         Returns
         -------
 
-        task: obj: Task
+        task: BalsamTask
             The launched task object
 
 

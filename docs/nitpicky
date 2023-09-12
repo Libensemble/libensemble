@@ -39,3 +39,6 @@ py:class libensemble.resources.platforms.Spock
 py:class libensemble.resources.platforms.Summit
 py:class libensemble.resources.platforms.Sunspot
 py:class libensemble.resources.rset_resources.RSetResources
+py:class libensemble.resources.env_resources.EnvResources
+py:class libensemble.resources.resources.Resources
+py:meth libensemble.tools.tools.save_libE_output
