@@ -206,7 +206,7 @@ Write an alternative Calling Script similar to above, but with the following dif
    .. code-block:: python
        :linenos:
        :lineno-start: 56
-       :emphasize-lines: 60
+       :emphasize-lines: 5
 
         # Starts one persistent generator. Simulated values are returned in batch.
         ensemble.alloc_specs = AllocSpecs(
@@ -332,49 +332,62 @@ Output files (including ``forces.stat`` and files containing ``stdout`` and
 directory. Overall workflow information should appear in ``libE_stats.txt``
 and ``ensemble.log`` as usual.
 
-For example, my ``libE_stats.txt`` resembled::
+.. dropdown:: **Example run / output**
 
-  Worker     1: Gen no     1: gen Time: 0.001 Start: ... End: ... Status: Not set
-  Worker     1: sim_id     0: sim Time: 0.227 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     1: sim Time: 0.426 Start: ... End: ... Status: Completed
-  Worker     1: sim_id     2: sim Time: 0.627 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     3: sim Time: 0.225 Start: ... End: ... Status: Completed
-  Worker     1: sim_id     4: sim Time: 0.224 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     5: sim Time: 0.625 Start: ... End: ... Status: Completed
-  Worker     1: sim_id     6: sim Time: 0.225 Start: ... End: ... Status: Completed
-  Worker     2: sim_id     7: sim Time: 0.626 Start: ... End: ... Status: Completed
 
-where ``status`` is set based on the simulation function's returned ``calc_status``.
+   For example, after running:
 
-My ``ensemble.log`` (on a ten-core laptop) resembled::
+   .. code-block:: bash
 
-  [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
-  [0]  ... libensemble.libE (INFO): libE version v0.9.0
-  [0]  ... libensemble.manager (INFO): Manager initiated on node my_laptop
-  [0]  ... libensemble.manager (INFO): Manager exit_criteria: {"sim_max": 8}
-  [1]  ... libensemble.worker (INFO): Worker 1 initiated on node my_laptop
-  [2]  ... libensemble.worker (INFO): Worker 2 initiated on node my_laptop
-  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2023 10 2023
-  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_0: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2900 10 2900
-  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_0 finished with errcode 0 (FINISHED)
-  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1288 10 1288
-  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_0 finished with errcode 0 (FINISHED)
-  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_1: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2897 10 2897
-  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_1 finished with errcode 0 (FINISHED)
-  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1623 10 1623
-  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_1 finished with errcode 0 (FINISHED)
-  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_2: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1846 10 1846
-  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_2 finished with errcode 0 (FINISHED)
-  [1]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker1_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 2655 10 2655
-  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_2 finished with errcode 0 (FINISHED)
-  [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_3: mpirun -hosts my_laptop -np 5 --ppn 5 /Users/.../forces.x 1818 10 1818
-  [1]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker1_3 finished with errcode 0 (FINISHED)
-  [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_3 finished with errcode 0 (FINISHED)
-  [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
-  [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
-  [0]  ... libensemble.libE (INFO): Manager total time: 3.939
+       $ python run_libe_forces.py --comms local --nworkers 3
 
-Note again that the ten cores were divided equally among two workers.
+   my ``libE_stats.txt`` resembled::
+
+     Manager     : Starting ensemble at: 2023-09-12 18:12:08.517
+     Worker     2: sim_id     0: sim Time: 0.205 Start: ... End: ... Status: Completed
+     Worker     3: sim_id     1: sim Time: 0.284 Start: ... End: ... Status: Completed
+     Worker     2: sim_id     2: sim Time: 0.117 Start: ... End: ... Status: Completed
+     Worker     3: sim_id     3: sim Time: 0.294 Start: ... End: ... Status: Completed
+     Worker     2: sim_id     4: sim Time: 0.124 Start: ... End: ... Status: Completed
+     Worker     3: sim_id     5: sim Time: 0.174 Start: ... End: ... Status: Completed
+     Worker     3: sim_id     7: sim Time: 0.135 Start: ... End: ... Status: Completed
+     Worker     2: sim_id     6: sim Time: 0.275 Start: ... End: ... Status: Completed
+     Worker     1: Gen no     1: gen Time: 1.038 Start: ... End: ... Status: Persis gen finished
+     Manager     : Exiting ensemble at: 2023-09-12 18:12:09.565 Time Taken: 1.048
+
+
+   where ``status`` is set based on the simulation function's returned ``calc_status``.
+
+   My ``ensemble.log`` (on a four-core laptop) resembled::
+
+     [0]  ... libensemble.libE (INFO): Logger initializing: [workerID] precedes each line. [0] = Manager
+     [0]  ... libensemble.libE (INFO): libE version v0.10.2+dev
+     [0]  ... libensemble.manager (INFO): Manager initiated on node shuds
+     [0]  ... libensemble.manager (INFO): Manager exit_criteria: {'sim_max': 8}
+     [2]  ... libensemble.worker (INFO): Worker 2 initiated on node shuds
+     [3]  ... libensemble.worker (INFO): Worker 3 initiated on node shuds
+     [1]  ... libensemble.worker (INFO): Worker 1 initiated on node shuds
+     [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_0: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 2023 10 2023
+     [3]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker3_0: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 2900 10 2900
+     [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_0 finished with errcode 0 (FINISHED)
+     [3]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker3_0 finished with errcode 0 (FINISHED)
+     [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_1: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 1288 10 1288
+     [3]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker3_1: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 2897 10 2897
+     [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_1 finished with errcode 0 (FINISHED)
+     [3]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker3_1 finished with errcode 0 (FINISHED)
+     [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_2: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 1623 10 1623
+     [3]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker3_2: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 1846 10 1846
+     [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_2 finished with errcode 0 (FINISHED)
+     [3]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker3_2 finished with errcode 0 (FINISHED)
+     [2]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker2_3: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 2655 10 2655
+     [3]  ... libensemble.executors.mpi_executor (INFO): Launching task libe_task_forces_worker3_3: mpirun -hosts shuds -np 2 --ppn 2 /home/.../forces_app/forces.x 1818 10 1818
+     [3]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker3_3 finished with errcode 0 (FINISHED)
+     [2]  ... libensemble.executors.executor (INFO): Task libe_task_forces_worker2_3 finished with errcode 0 (FINISHED)
+     [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
+     [0]  ... libensemble.manager (INFO): Term test tripped: sim_max
+     [0]  ... libensemble.libE (INFO): Manager total time: 1.043
+
+   Note again that the four cores were divided equally among two workers that run simulations.
 
 That concludes this tutorial. Each of these example files can be found in the
 repository in `examples/tutorials/forces_with_executor`_.
@@ -397,7 +410,7 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch with four processes.
+  1. Adjust :meth:`submit()<executors.mpi_executor.MPIExecutor.submit>` to launch with four processes.
   2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
   3. Add a fourth argument to the args line to make 20% of simulations go bad.
   4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<executor.Task.poll>`,
