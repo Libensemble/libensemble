@@ -137,7 +137,7 @@ Write an alternative Calling Script similar to above, but with the following dif
  1. Add an additional worker directory so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
  2. Override the MPIExecutor's detected MPI runner with ``"openmpi"``.
  3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
- 4. Use the :meth:`save_libE_output()<tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
+ 4. Use the :meth:`save_libE_output()<libensemble.tools.tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
 .. dropdown:: **Click Here for Solution**
 
@@ -341,11 +341,11 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Adjust :meth:`submit()<mpi_executor.MPIExecutor.submit>` to launch with four processes.
+  1. Adjust :meth:`submit()<libensemble.executors.mpi_executor.MPIExecutor.submit>` to launch with four processes.
   2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
   3. Add a fourth argument to the args line to make 20% of simulations go bad.
-  4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<executor.Task.poll>`,
-     then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
+  4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<libensemble.executors.executor.Task.poll>`,
+     then reads the output ``.stat`` file, and calls :meth:`task.kill()<libensemble.executors.executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
 
 .. dropdown:: **Click Here for Solution**

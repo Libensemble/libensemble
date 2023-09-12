@@ -25,6 +25,8 @@ py:class String
 py:class optional
 py:class dict
 py:class int
+py:class <class 'dict'>
+py:class <class 'int'>
 
 # Internal paths that should be detectable but aren't
 py:class libensemble.resources.platforms.GenericROCm
