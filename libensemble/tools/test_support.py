@@ -84,7 +84,7 @@ def check_mpi_runner(task, exp, print_setting=False):
     assert ppn_option == runner_info["ppn"]
 
 
-def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None):
+def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None, desc=""):
     """Checks GPU run lines
 
     Note that this will check based platform_info or defaults for the MPI runner
@@ -214,8 +214,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     else:
         addon = f"(procs {num_procs}, per node {ppn})"
 
+    if desc:
+        desc += " "
+
     if print_setting:
-        print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
+        print(f"Worker {task.workerID}: {desc}GPU setting ({stype}): {gpu_setting} {addon}", flush=True)
 
     if assert_setting:
         assert (

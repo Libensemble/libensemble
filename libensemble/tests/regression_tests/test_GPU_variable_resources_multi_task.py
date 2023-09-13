@@ -26,7 +26,7 @@ persistent generator.
 
 This test must be run with 9 or more workers (8 sim workers), in order
 to resource all works units. More generally:
-((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_resource_sets]
+    ((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_procs]
 
 """
 
@@ -55,7 +55,13 @@ from libensemble.tools import add_unique_random_streams
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    gpu_test = Ensemble(parse_args=True)
+
+    # Get paths for applications to run
+    six_hump_camel_app = six_hump_camel.__file__
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+    gpu_test = Ensemble(parse_args=True, executor=exctr)
     nworkers = gpu_test.nworkers
     gpu_test.libE_specs = LibeSpecs(
         num_resource_sets=gpu_test.nworkers - 1,
@@ -63,11 +69,6 @@ if __name__ == "__main__":
         sim_dirs_make=True,
         ensemble_dir_path="./ensemble_GPU_variable_multi_task_w" + str(nworkers),
     )
-
-    # Get paths for applications to run
-    six_hump_camel_app = six_hump_camel.__file__
-    exctr = MPIExecutor()
-    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
 
     gpu_test.sim_specs = SimSpecs(
         sim_f=sim_f,
