@@ -137,7 +137,7 @@ Write an alternative Calling Script similar to above, but with the following dif
  1. Add an additional worker directory so workers operate in ``/scratch/ensemble`` instead of the default current working directory.
  2. Override the MPIExecutor's detected MPI runner with ``"openmpi"``.
  3. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
- 4. Use the :meth:`save_libE_output()<libensemble.tools.tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
+ 4. Use the :meth:`save_libE_output()<libensemble.tools.save_libE_output>` function to save the History array and ``persis_info`` to files after libEnsemble completes.
 
 .. dropdown:: **Click Here for Solution**
 

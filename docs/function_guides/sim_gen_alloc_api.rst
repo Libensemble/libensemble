@@ -27,7 +27,7 @@ The simulator function will be called by libEnsemble's workers with *up to* the 
 Parameters:
 ***********
 
-  **H**: :obj:`numpy structured array`
+  **H**: :obj:`numpy.ndarray`
   :ref:`(example)<funcguides-history>`
 
   **persis_info**: :obj:`dict`
@@ -42,7 +42,7 @@ Parameters:
 Returns:
 ********
 
-  **H**: :obj:`numpy structured array`
+  **H**: :obj:`numpy.ndarray`
   with keys/value-sizes matching those in sim_specs["out"]
   :ref:`(example)<funcguides-history>`
 
@@ -64,7 +64,7 @@ The generator function will be called by libEnsemble's workers with *up to* the 
 Parameters:
 ***********
 
-  **H**: :obj:`numpy structured array`
+  **H**: :obj:`numpy.ndarray`
   :ref:`(example)<funcguides-history>`
 
   **persis_info**: :obj:`dict`
@@ -79,7 +79,7 @@ Parameters:
 Returns:
 ********
 
-  **H**: :obj:`numpy structured array`
+  **H**: :obj:`numpy.ndarray`
   with keys/value-sizes matching those in gen_specs["out"]
   :ref:`(example)<funcguides-history>`
 
@@ -101,10 +101,10 @@ The allocation function will be called by libEnsemble's manager with the followi
 Parameters:
 ***********
 
-  **W**: :obj:`numpy structured array`
+  **W**: :obj:`numpy.ndarray`
   :doc:`(example)<worker_array>`
 
-  **H**: :obj:`numpy structured array`
+  **H**: :obj:`numpy.ndarray`
   :ref:`(example)<funcguides-history>`
 
   **sim_specs**: :obj:`dict`
