@@ -205,6 +205,8 @@ html_theme_options = {
 html_static_path = ["_static"]
 # html_static_path = []
 
+html_css_files = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"]
+
 
 def setup(app):
     app.add_css_file("my_theme.css")

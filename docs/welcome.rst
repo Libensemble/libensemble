@@ -25,6 +25,6 @@ A complete toolkit for dynamic ensembles of calculations
   - Try out libEnsemble with a :doc:`tutorial<tutorials/local_sine_tutorial>`.
   - Go in depth by reading the :doc:`Overview<overview_usecases>`.
   - See the :doc:`FAQ<FAQ>` for common questions and answers, errors, and resolutions.
-  - Check us out on `GitHub`_.
+  - Check us out on `GitHub`_. :fab:`github`
 
 .. _GitHub: https://github.com/Libensemble/libensemble
