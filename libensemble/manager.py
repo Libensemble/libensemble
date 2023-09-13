@@ -226,6 +226,7 @@ class Manager:
             raise ManagerException(
                 "Manager errored on initialization",
                 "Ensemble directory already existed and wasn't empty.",
+                "To reuse ensemble dir, set libE_specs['reuse_output_dir'] = True",
                 e,
             )
 
