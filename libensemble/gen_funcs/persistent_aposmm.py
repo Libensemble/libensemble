@@ -485,7 +485,7 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     Parameters
     ----------
     H: numpy.ndarray
-        History array storing rows for each point.
+        History array storing rows for each point. Numpy structured array.
     n: int
         Problem dimension
     n_s: int
@@ -496,9 +496,9 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
         Number of Latin hypercube sampling divisions (0 or 1 means uniform
         random sampling over the domain)
     mu: float
-        Distance from the boundary that all starting points must satisfy
+        Nonnegative distance from the boundary that all starting points must satisfy
     nu: float
-        Distance from identified minima that all starting points must satisfy
+        Nonnegative distance from identified minima that all starting points must satisfy
 
     Returns
     ----------

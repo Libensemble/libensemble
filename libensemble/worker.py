@@ -231,7 +231,7 @@ class Worker:
         Work: :obj:`dict`
             :ref:`(example)<datastruct-work-dict>`
 
-        calc_in: obj: numpy structured array
+        calc_in: ``numpy structured array``
             Rows from the :ref:`history array<funcguides-history>`
             for processing
         """

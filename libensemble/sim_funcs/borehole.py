@@ -49,7 +49,7 @@ def borehole_func(x: npt.NDArray):
     Returns
     -------
 
-    f: numpy.typing.NDArray
+    f: numpy.ndarray
         vector of dimension (n, 1): flow rate through the Borehole (m^3/year)
 
     """

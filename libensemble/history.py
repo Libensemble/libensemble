@@ -20,9 +20,9 @@ class History:
 
     These are set on initialization.
 
-    :ivar numpy.typing.NDArray H:
+    :ivar numpy.ndarray H:
         History array storing rows for each point. Field names are in
-        libensemble/tools/fields_keys.py
+        libensemble/tools/fields_keys.py. Numpy structured array.
 
     :ivar int offset:
         Starting index for this ensemble (after H0 read in)
