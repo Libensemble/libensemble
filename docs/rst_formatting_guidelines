@@ -20,7 +20,7 @@ No italics on text of links
 
 Use italics for emphasis
 
-Ensure parameter types, return types, and contents of :obj:`label` structures, are "resolvable" (importable/parsable by Python). If not, append to "nitpicky"
+Ensure parameter types, return types, and contents of :obj:`label`, :class:`label`, and other instances are "resolvable" (importable/parsable by Python) to the best of your ability. If not, append to "nitpicky"
 
 Ensure global types in docstrings match their builtin/typing class or name; "string" should be "str", "optional" should be "Optional"
 
