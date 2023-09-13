@@ -81,15 +81,14 @@ Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
-On line 22, we initialize the ensemble. The :meth:`parse_args()<tools.parse_args>`
-is used to read `comms` and `nworkers` from the command line. This sets
+On line 22, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
+parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 
-Next we add basic configuration for the ensemble. As one worker will run a persistent
-generator that will not need additinal computing resources, we calculate the number
-of workers that need resources to run simulations. We also set `sim_dirs_make`
-so that a directory is created for each simulation.  This helps organize output and
-also helps prevents workers from overwriting previous results.
+Next, we add basic configuration for the ensemble. As one worker will run a persistent
+generator, we calculate the number of workers that need resources to run simulations.
+We also set `sim_dirs_make` so that a directory is created for each simulation. This
+helps organize output and also helps prevent workers from overwriting previous results.
 
 .. code-block:: python
   :linenos:
@@ -115,14 +114,14 @@ expect, and also to parameterize user functions:
     ensemble.sim_specs = SimSpecs(
         sim_f=run_forces,
         inputs=["x"],
-        out=[("energy", float)],
+        outputs=[("energy", float)],
     )
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        out=[("x", float, (1,))],
+        outputs=[("x", float, (1,))],
         user={
             "initial_batch_size": nsim_workers,
             "lb": np.array([1000]),  # min particles
@@ -177,8 +176,8 @@ Write an alternative Calling Script similar to above, but with the following dif
 
  1. Set :ref:`libEnsemble's logger<logger_config>` to print debug messages.
  2. Override the MPIExecutor's detected MPI runner with ``"openmpi"``.
- 3. Tell the allocation function to return results to the generator asychronously.
- 4. Use the ensemble function :meth:`save_output()<ensemble.Ensemble.save_output>` to save the History array and ``persis_info`` to files after libEnsemble completes.
+ 3. Tell the allocation function to return results to the generator asynchronously.
+ 4. Use the ensemble function :meth:`save_output()<libensemble.ensemble.Ensemble.save_output>` to save the History array and ``persis_info`` to files after libEnsemble completes.
 
 .. dropdown:: **Click Here for Solutions**
 
@@ -191,8 +190,7 @@ Write an alternative Calling Script similar to above, but with the following dif
        from libensemble import logger
        logger.set_level("DEBUG")
 
-   **Soln 2.** This can also be specified via :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` option (see
-   libE_specs options, under Resources).
+   **Soln 2.** This can also be specified via :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` option.
 
    .. code-block:: python
        :linenos:
@@ -271,7 +269,10 @@ We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
 as a random number seed here.
 
-We then retrieve our previously instantiated Executor.
+We then retrieve our previously instantiated Executor. libEnsemble will use
+the MPI runner detected (or provided by platform options).
+As `num_procs` (or similar) is not specified, libEnsemble will assign the processors
+available to this worker.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
@@ -281,7 +282,7 @@ for the task to complete via ``task.wait()``.
 
 We can assume that afterward, any results are now available to parse. Our application
 produces a ``forces.stat`` file that contains either energy
-computations for every time-step or a "kill" message if particles were lost, which
+computations for every timestep or a "kill" message if particles were lost, which
 indicates a bad run - this can be ignored for now.
 
 To complete our simulation function, parse the last energy value from the output file into
@@ -313,8 +314,7 @@ to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
 That's it! As can be seen, with libEnsemble, it's relatively easy to get started
-with launching applications. Behind the scenes, libEnsemble evaluates default
-MPI runners and available resources and divides them among the workers.
+with launching applications.
 
 Running the example
 -------------------
@@ -398,9 +398,8 @@ those resources and is developed to coordinate computations at huge scales.
 See :ref:`HPC platform guides<platform-index>` for more information.
 
 See the :doc:`forces_gpu tutorial<forces_gpu_tutorial>` for a similar workflow
-including GPUs.
-
-.. and another,which shows how to dynamically assign resources to each simulation.
+including GPUs. That tutorial also shows how to dynamically assign resources to
+each simulation.
 
 Please feel free to contact us or open an issue on GitHub_ if this tutorial
 workflow doesn't work properly on your cluster or other compute resource.

@@ -67,14 +67,14 @@ if __name__ == "__main__":
     ensemble.sim_specs = SimSpecs(
         sim_f=run_forces,
         inputs=["x", "app_type"],
-        out=[("energy", float)],
+        outputs=[("energy", float)],
     )
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
         inputs=[],  # No input when start persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        out=[
+        outputs=[
             ("x", float, (1,)),
             ("num_procs", int),  # num_procs auto given to sim when use MPIExecutor
             ("num_gpus", int),  # num_gpus auto given to sim when use MPIExecutor
