@@ -190,7 +190,7 @@ Write an alternative Calling Script similar to above, but with the following dif
        from libensemble import logger
        logger.set_level("DEBUG")
 
-   **Soln 2.** This can also be specified via :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` option.
+   **Soln 2.** This can also be specified via :ref:`platform_specs<datastruct-platform-specs>` option.
 
    .. code-block:: python
        :linenos:
