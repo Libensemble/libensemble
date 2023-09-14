@@ -27,8 +27,9 @@ no work, that worker is instructed to call the generator.
 An :doc:`executor<executor/overview>` interface is available so user functions
 can execute and monitor external applications.
 
-libEnsemble's Manager maintains a :ref:`History array<funcguides-history>`,
-containing a global record of all passed data. This is returned to the user following the workflow.
+libEnsemble uses a NumPy structured array known as the :ref:`history array<funcguides-history>`
+to keep a record of all simulations. The global history array is stored on the
+manager, while selected rows and fields of this array are passed to and from user functions.
 
 Example Use Cases
 ~~~~~~~~~~~~~~~~~
