@@ -12,5 +12,6 @@ See :ref:`here<libe-module>` for instruction on constructing a complete workflow
    gen_specs
    libE_specs
    alloc_specs
+   platform_specs
    persis_info
    exit_criteria

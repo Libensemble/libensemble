@@ -191,7 +191,7 @@ Write an alternative Calling Script similar to above, but with the following dif
 
        logger.set_level("DEBUG")
 
-   **Soln 2.** This can also be specified via :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` option.
+   **Soln 2.** This can also be specified via :ref:`platform_specs<datastruct-platform-specs>` option.
 
    .. code-block:: python
        :linenos:
@@ -271,7 +271,7 @@ an argument string for our launched application. The particle count doubles up
 as a random number seed here.
 
 We then retrieve our previously instantiated Executor. libEnsemble will use
-the MPI runner detected (or provided by platform options).
+the MPI runner detected (or provided by :ref:`platform options<datastruct-platform-specs>`).
 As `num_procs` (or similar) is not specified, libEnsemble will assign the processors
 available to this worker.
 
