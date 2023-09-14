@@ -1,7 +1,7 @@
 .. _libe-module:
 
-Starting an Ensemble
-====================
+Running an Ensemble
+===================
 
 libEnsemble features two approaches to run an ensemble. We recommend the newer ``Ensemble`` class,
 but will continue to support ``libE()`` for backward compatibility.

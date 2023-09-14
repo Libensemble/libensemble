@@ -18,13 +18,15 @@ We now give greater detail in programming with libEnsemble.
    function_guides/function_guide_index
 
 .. toctree::
-   :caption: Coordinating apps
+   :caption: Coordinating Apps
    :maxdepth: 2
 
    executor/ex_index
 
 .. toctree::
    :maxdepth: 2
-   :caption: Helpful additions
+   :caption: Helpful Additions
 
+   function_guides/history_array
+   resource_manager/resources_index
    utilities

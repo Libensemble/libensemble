@@ -6,12 +6,12 @@ libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
 
-* Python_ 3.8 or above
-* NumPy_
-* psutil_
-* `pydantic v1.10`_
-* pyyaml_
-* tomli_
+* Python_       ``>= 3.8``
+* NumPy_        ``>= 1.21``
+* psutil_       ``>= 5.9.4``
+* `pydantic`_   ``<= 1.10.12``
+* pyyaml_       ``>= v6.0``
+* tomli_        ``>= 1.2.1``
 
 In view of libEnsemble's compiled dependencies, the following installation
 methods each offer a trade-off between convenience and the ability
@@ -188,7 +188,7 @@ The following packages may be installed separately to enable additional features
 .. _Open MPI: https://www.open-mpi.org/
 .. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
-.. _pydantic v1.10: https://docs.pydantic.dev/1.10/
+.. _pydantic: https://docs.pydantic.dev/1.10/
 .. _PyPI: https://pypi.org
 .. _Python: http://www.python.org
 .. _pyyaml: https://pyyaml.org/

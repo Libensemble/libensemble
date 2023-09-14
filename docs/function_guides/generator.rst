@@ -7,7 +7,7 @@ Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar
 
 .. code-block:: python
 
-    def my_generator(Input, persis_info, gen_specs):
+    def my_generator(Input, persis_info, gen_specs, libE_info):
 
         batch_size = gen_specs["user"]["batch_size"]
 

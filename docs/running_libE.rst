@@ -47,7 +47,7 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
             python myscript.py
 
         Or, if the script uses the :doc:`parse_args()<utilities>` function
-        or an :class:`Ensemble<libensemble.api.Ensemble>` object with ``Ensemble(parse_args=True)``,
+        or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
             python myscript.py --comms local --nworkers N
@@ -77,7 +77,7 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         Run the Manager on one system and launch workers to remote
         systems or nodes over TCP. Configure through
         :class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
-        if using an :class:`Ensemble<libensemble.api.Ensemble>` object with ``Ensemble(parse_args=True)``,
+        if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
 
         **Reverse-ssh interface**
 
