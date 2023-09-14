@@ -270,7 +270,7 @@ an argument string for our launched application. The particle count doubles up
 as a random number seed here.
 
 We then retrieve our previously instantiated Executor. libEnsemble will use
-the MPI runner detected (or provided by platform options).
+the MPI runner detected (or provided by :ref:`platform options<datastruct-platform-specs>`).
 As `num_procs` (or similar) is not specified, libEnsemble will assign the processors
 available to this worker.
 
