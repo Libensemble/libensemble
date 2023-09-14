@@ -95,9 +95,7 @@ The user can also set ``num_procs`` and ``num_gpus`` in the generator as in
 the `forces_gpu_var_resources`_ example, and skip lines 31-32.
 
 Line 37 simply prints out how the GPUs were assigned. If this is not as expected,
-a :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` *libE_specs*
-option can be provided in the calling script. Alternatively, for known systems,
-the LIBE_PLATFORM environment variable can be set.
+:ref:`platform configuration<datastruct-platform-specs>` can be provided.
 
 While this is sufficient for many/most users, note that it is possible to query
 the resources assigned to *this* worker (nodes and partitions of nodes),
