@@ -188,6 +188,7 @@ Write an alternative Calling Script similar to above, but with the following dif
        :lineno-start: 13
 
        from libensemble import logger
+
        logger.set_level("DEBUG")
 
    **Soln 2.** This can also be specified via :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` option.
@@ -409,11 +410,11 @@ Exercises
 
 These may require additional browsing of the documentation to complete.
 
-  1. Adjust :meth:`submit()<executors.mpi_executor.MPIExecutor.submit>` to launch with four processes.
+  1. Adjust :meth:`submit()<libensemble.executors.mpi_executor.MPIExecutor.submit>` to launch with four processes.
   2. Adjust ``submit()`` again so the app's ``stdout`` and ``stderr`` are written to ``stdout.txt`` and ``stderr.txt`` respectively.
   3. Add a fourth argument to the args line to make 20% of simulations go bad.
-  4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<executor.Task.poll>`,
-     then reads the output ``.stat`` file, and calls :meth:`task.kill()<executor.Task.kill>` if the output file contains ``"kill\n"``
+  4. Construct a ``while not task.finished:`` loop that periodically sleeps for a tenth of a second, calls :meth:`task.poll()<libensemble.executors.executor.Task.poll>`,
+     then reads the output ``.stat`` file, and calls :meth:`task.kill()<libensemble.executors.executor.Task.kill>` if the output file contains ``"kill\n"``
      or if ``task.runtime`` exceeds sixty seconds.
 
 .. dropdown:: **Click Here for Solution**

@@ -173,6 +173,15 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# Evaluate most references and links for correctness - but many are incorrect
+nitpicky = True
+nitpick_ignore = []
+for line in open("nitpicky"):
+    if line.strip() == "" or line.startswith("#"):
+        continue
+    dtype, target = line.split(None, 1)
+    target = target.strip()
+    nitpick_ignore.append((dtype, target))
 
 # -- Options for HTML output ----------------------------------------------
 

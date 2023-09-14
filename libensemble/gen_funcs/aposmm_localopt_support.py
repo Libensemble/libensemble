@@ -139,8 +139,8 @@ class LocalOptInterfacer(object):
 
     def iterate(self, data):
         """
-        Returns an instance of either :class:`numpy.ndarray` corresponding to the next
-        iterative guess or :class:`ConvergedMsg` when the solver has completed its run.
+        Returns an instance of either ``numpy.ndarray`` corresponding to the next
+        iterative guess or ``ConvergedMsg`` when the solver has completed its run.
 
         :param x_on_cube: A numpy array of the point being evaluated (for a handshake)
         :param f: A numpy array of the function evaluation.

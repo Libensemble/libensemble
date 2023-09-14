@@ -80,7 +80,7 @@ def manager_main(
     Parameters
     ----------
 
-    hist: :obj:`History`
+    hist: :obj:`libensemble.history.History`
         A libEnsemble history type object.
 
     libE_specs: :obj:`dict`
@@ -101,7 +101,7 @@ def manager_main(
     persis_info: :obj:`dict`
         Persistent information to be passed between user functions
 
-    wcomms: :obj:`list`, optional
+    wcomms: :obj:`list`, Optional
         A list of comm type objects for each worker. Default is an empty list.
     """
     if libE_specs.get("profile"):
