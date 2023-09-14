@@ -3,22 +3,32 @@
 persis_info
 ===========
 
-Optionally supply persistent information to libEnsemble::
+Holds persistent information that can be updated during the ensemble.
 
-    persis_info: [dict]:
-        Dictionary containing persistent info
+An initialized ``persis_info`` dictionary can be provided to the ``libE()`` call
+or as an attribute of the ``Ensemble`` class.
 
-Holds data to be passed to and from workers updating some state information.
+Dictionary keys that have an integer value contain entries that are passed to
+and from the corresponding workers. These are received in the ``persis_info``
+argument of user functions, and returned as the optional second return value.
 
-When using ``multiprocessing`` manager-worker comms, these objects are passed *by reference*.
+A typical example is a random number generator stream to be used in consecutive
+calls to a generator (see function
+:meth:`add_unique_random_streams()<tools.add_unique_random_streams>`)
 
-If worker ``i`` sends back ``persis_info``, it is stored in ``persis_info[i]``.
+All other entries persist on the manager and can be updated in the calling script
+between ensemble invocations, or in the allocation function.
 
-.. dropdown:: Examples
+Examples:
 
-    1.  Random number generators or other structures for use on consecutive calls
-    2.  Incrementing array row indexes or process counts
-    3.  Sending/receiving updated models from workers
+- Random number generators or other structures for use on consecutive calls
+- Incrementing array row indexes or process counts
+- Sending/receiving updated models from workers
+- Keeping track of the number of generators started in an allocation function
+- Triggering the shutdown of the ensemble (from the allocation function).
+
+Hint: When there are repeated calls to ``libE()`` or ``ensemble.run()``, users may
+need to modify or reset the contents of persis_info in some cases.
 
 .. seealso::
 
