@@ -4,7 +4,4 @@ autodoc_pydantic
 sphinx-design
 numpy
 sphinx_rtd_theme
-furo
-ipykernel
 sphinx-copybutton
-sphinx-book-theme

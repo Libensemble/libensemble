@@ -84,10 +84,11 @@ setup(
     extras_require={
         "docs": [
             "autodoc_pydantic",
-            "sphinx",
+            "sphinx<7",
             "sphinx_design",
             "sphinx_rtd_theme",
-            "sphinxcontrib.bibtex",
+            "sphinxcontrib-bibtex",
+            "sphinx-copybutton",
         ],
     },
     scripts=[
