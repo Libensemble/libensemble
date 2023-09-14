@@ -15,8 +15,6 @@
    running_libE
    platforms/platforms_index
    advanced_installation
-   function_guides/history_array
-   resource_manager/resources_index
 
 .. toctree::
    :maxdepth: 1
