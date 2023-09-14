@@ -211,7 +211,7 @@ class BalsamTask(Task):
         Parameters
         ----------
 
-        timeout: int or float,  optional
+        timeout: int or float,  Optional
             Time in seconds after which a TimeoutExpired exception is raised.
             If not set, then simply waits until completion.
             Note that the task is not automatically killed on timeout.
@@ -295,14 +295,14 @@ class BalsamExecutor(Executor):
         BalsamApp: ``ApplicationDefinition`` object
             A Balsam ``ApplicationDefinition`` instance.
 
-        app_name: String, optional
+        app_name: str, Optional
             Name to identify this application.
 
-        calc_type: String, optional
+        calc_type: str, Optional
             Calculation type: Set this application as the default ``'sim'``
             or ``'gen'`` function.
 
-        desc: String, optional
+        desc: str, Optional
             Description of this application
 
         """
@@ -352,22 +352,22 @@ class BalsamExecutor(Executor):
         wall_time_min: int
             The number of walltime minutes to request for the ``BatchJob`` allocation
 
-        job_mode: String, optional
+        job_mode: str, Optional
             Either ``"serial"`` or ``"mpi"``. Default: ``"mpi"``
 
-        queue: String, optional
+        queue: str, Optional
             Specifies the queue from which the ``BatchJob`` should request nodes. Default: ``"local"``
 
-        project: String, optional
+        project: str, Optional
             Specifies the project that should be charged for the requested machine time. Default: ``"local"``
 
-        optional_params: dict, optional
+        optional_params: dict, Optional
             Additional system-specific parameters to set, based on fields in Balsam's ``job-template.sh``
 
-        filter_tags: dict, optional
+        filter_tags: dict, Optional
             Directs the resultant ``BatchJob`` to only run Jobs with matching tags.
 
-        partitions: list of dicts, optional
+        partitions: List[dict], Optional
             Divides the allocation into multiple launcher partitions, with differing
             ``job_mode``, ``num_nodes``. ``filter_tags``, etc. See the Balsam docs.
 
@@ -409,7 +409,7 @@ class BalsamExecutor(Executor):
         allocation: ``BatchJob`` object
             a ``BatchJob`` with a corresponding machine allocation that should be cancelled.
 
-        timeout: int, optional
+        timeout: int, Optional
             Timeout and warn user after this many seconds of attempting to revoke an allocation.
         """
         allocation.refresh_from_db()
@@ -457,62 +457,62 @@ class BalsamExecutor(Executor):
         Parameters
         ----------
 
-        calc_type: String, optional
+        calc_type: str, Optional
             The calculation type: ``'sim'`` or ``'gen'``
             Only used if ``app_name`` is not supplied. Uses default sim or gen application.
 
-        app_name: String, optional
+        app_name: str, Optional
             The application name. Must be supplied if ``calc_type`` is not.
 
         app_args: dict
             A dictionary of options that correspond to fields to template in the
             ApplicationDefinition's ``command_template`` field.
 
-        num_procs: int, optional
+        num_procs: int, Optional
             The total number of MPI ranks on which to submit the task
 
-        num_nodes: int, optional
+        num_nodes: int, Optional
             The number of nodes on which to submit the task
 
-        procs_per_node: int, optional
+        procs_per_node: int, Optional
             The processes per node for this task
 
         max_tasks_per_node: int
             Instructs Balsam to schedule at most this many Jobs per node.
 
-        machinefile: string, optional
+        machinefile: str, Optional
             Name of a machinefile for this task to use. Unused by Balsam
 
-        gpus_per_rank: int, optional
+        gpus_per_rank: int, Optional
             Number of GPUs to reserve for each MPI rank
 
-        transfers: dict, optional
+        transfers: dict, Optional
             A Job-specific Balsam transfers dictionary that corresponds with an
             ``ApplicationDefinition`` ``transfers`` field. See the Balsam docs for
             more information.
 
-        workdir: String
+        workdir: str
             Specifies as name for the Job's output directory within the Balsam site's
             data directory. Default: ``libe_workflow``
 
-        dry_run: Boolean, optional
+        dry_run: bool, Optional
             Whether this is a dry run - no task will be launched; instead
             runline is printed to logger (at ``INFO`` level)
 
-        wait_on_start: Boolean, optional
+        wait_on_start: bool, Optional
             Whether to block, and wait for task to be polled as ``RUNNING`` (or other
             active/end state) before continuing
 
-        extra_args: dict, optional
+        extra_args: dict, Optional
             Additional arguments to supply to MPI runner.
 
-        tags: dict, optional
+        tags: dict, Optional
             Additional tags to organize the ``Job`` or restrict which ``BatchJobs`` run it.
 
         Returns
         -------
 
-        task: obj: Task
+        task: BalsamTask
             The launched task object
 
 

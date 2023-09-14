@@ -37,7 +37,7 @@ class ResourceScheduler:
         Parameters
         ----------
 
-        user_resources: Resources object, optional
+        user_resources: Resources, optional
             A resources object. If present overrides the class variable.
 
         sched_opts: dict, optional
