@@ -76,5 +76,6 @@ if __name__ == "__main__":
             assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
             if prob_id == 1:
                 assert np.all(H["x"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
+                assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
 
             save_libE_output(H, persis_info, __file__, nworkers)
