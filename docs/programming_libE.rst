@@ -10,6 +10,8 @@ We now give greater detail in programming with libEnsemble.
    libe_module
    data_structures/data_structures
    history_output_logging
+   function_guides/history_array
+   resource_manager/resources_index
 
 .. toctree::
    :caption: Writing User Functions:
@@ -27,6 +29,4 @@ We now give greater detail in programming with libEnsemble.
    :maxdepth: 2
    :caption: Helpful Additions
 
-   function_guides/history_array
-   resource_manager/resources_index
    utilities
