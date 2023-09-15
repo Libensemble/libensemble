@@ -272,11 +272,12 @@ class Manager:
     def _save_every_k(self, fname: str, count: int, k: int) -> None:
         """Saves history every kth step"""
         count = k * (count // k)
-        filename = fname.format(self.date_start, count)
+        date_start = self.date_start
         if platform.system() == "Windows":
-            filename = filename.replace(":", "-")  # ":" is invalid in windows filenames
+            date_start = date_start.replace(":", "-")  # ":" is invalid in windows filenames
+        filename = fname.format(date_start, count)
         if not os.path.isfile(filename) and count > 0:
-            for old_file in glob.glob(fname.format(self.date_start, "*")):
+            for old_file in glob.glob(fname.format(date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 
