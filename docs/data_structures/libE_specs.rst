@@ -183,6 +183,9 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
                 "use_persis_return_sim" [bool] = ``False``:
                     Adds persistent simulator function H return to managers history array.
 
+                 "final_send" [bool] = ``False``:
+                    Send final simulations results to persistent generators before shutdown
+
                 "final_fields" [list] = ``[]``:
                     List of fields in H that the manager will return to persistent
                     workers along with the ``PERSIS_STOP`` tag at the end of the run.

@@ -435,6 +435,11 @@ class LibeSpecs(BaseModel):
     workers along with the ``PERSIS_STOP`` tag at the end of a run
     """
 
+    final_send: Optional[bool] = False
+    """
+    Send final simulations results to persistent generators before shutdown
+    """
+
     disable_resource_manager: Optional[bool] = False
     """
     Disable the built-in resource manager. If ``True``, automatic resource detection

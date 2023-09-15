@@ -49,7 +49,7 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "grad", "sim_id"],
         "out": [("x", float, (n,))],
         "user": {
-            "initial_batch_size": 100,
+            "initial_batch_size": 50,
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -61,21 +61,28 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
 
     # Perform the runs
-    for prob_id in range(2):
+    for prob_id in range(3):
         if prob_id == 0:
-            gen_specs["user"]["replace_final_fields"] = False
-        else:
+            libE_specs["final_send"] = False
+        elif prob_id == 1:
             gen_specs["user"]["replace_final_fields"] = True
             libE_specs["final_fields"] = ["x", "f", "sim_id"]
+        else:
+            gen_specs["user"]["replace_final_fields"] = False
+            libE_specs.pop("final_fields", None)
+            sim_max = 60
+            exit_criteria = {"sim_max": sim_max}  # Go beyond first batch
+            libE_specs["final_send"] = True
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
-
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_manager:
-            assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
+            if prob_id == 0:
+                assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
             if prob_id == 1:
                 assert np.all(H["x"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
                 assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
-
+            if prob_id == 2:
+                assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
             save_libE_output(H, persis_info, __file__, nworkers)
