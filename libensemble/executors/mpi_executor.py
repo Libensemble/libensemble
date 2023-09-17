@@ -289,7 +289,7 @@ class MPIExecutor(Executor):
         Returns
         -------
 
-        task: obj: Task
+        task: Task
             The launched task object
 
 

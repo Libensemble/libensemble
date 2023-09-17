@@ -158,6 +158,14 @@ def parse_args():
 
         nworkers, is_manager, libE_specs, misc_args = parse_args()
 
+    Or for object interface, when creating the ensemble object.
+
+    .. code-block:: python
+
+        from libensemble import Ensemble
+
+        ensemble = Ensemble(parse_args=True)
+
     From the shell::
 
         $ python calling_script --comms local --nworkers 4
@@ -211,7 +219,7 @@ def parse_args():
     nworkers: :obj:`int`
         Number of workers libEnsemble will initiate
 
-    is_manager: :obj:`boolean`
+    is_manager: :obj:`bool`
         Indicates whether the current process is the manager process
 
     libE_specs: :obj:`dict`

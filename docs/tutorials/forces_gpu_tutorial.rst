@@ -13,26 +13,27 @@ number of particles (allows live GPU usage to be viewed).
 
 In the first example, each worker will be using one GPU. The code will assign the
 GPUs available to each worker, using the appropriate method. This works on systems
-using nVidia, AMD and intel GPUs.
+using **Nvidia**, **AMD**, and **Intel** GPUs without modifying the scripts.
 
 Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_.
 *The first two videos are from an earlier release - you no longer need to change
-particle count or modify the `forces.c` file).*
+particle count or modify the `forces.c` file).*. Also, on Polaris, it is no
+longer necessary to change the MPI runner.
 
 Simulation function
 -------------------
 
 The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
-to the forces simple example are highlighted:
+to the simple forces example are highlighted:
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 29-30, 37
+    :emphasize-lines: 31-32, 39
 
     import numpy as np
 
-    # To retrieve our MPI Executor
-    from libensemble.executors.executor import Executor
+    # Optional status codes to display in libE_stats.txt for each gen or sim
+    from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
     # Optional - to print GPU settings
     from libensemble.tools.test_support import check_gpu_setting
@@ -44,6 +45,8 @@ to the forces simple example are highlighted:
         Assigns one MPI rank to each GPU assigned to the worker.
         """
 
+        calc_status = 0
+
         # Parse out num particles, from generator function
         particles = str(int(H["x"][0][0]))
 
@@ -51,7 +54,7 @@ to the forces simple example are highlighted:
         args = particles + " " + str(10) + " " + particles
 
         # Retrieve our MPI Executor
-        exctr = Executor.executor
+        exctr = libE_info["executor"]
 
         # Submit our forces app for execution.
         task = exctr.submit(
@@ -67,29 +70,34 @@ to the forces simple example are highlighted:
         # Optional - prints GPU assignment (method and numbers)
         check_gpu_setting(task, assert_setting=False, print_setting=True)
 
-        # Stat file to check for bad runs
+        # Try loading final energy reading, set the sim's status
         statfile = "forces.stat"
+        try:
+            data = np.loadtxt(statfile)
+            final_energy = data[-1]
+            calc_status = WORKER_DONE
+        except Exception:
+            final_energy = np.nan
+            calc_status = TASK_FAILED
 
-        # Read final energy
-        data = np.loadtxt(statfile)
-        final_energy = data[-1]
-
-        # Define our output array,  populate with energy reading
+        # Define our output array, populate with energy reading
         output = np.zeros(1, dtype=sim_specs["out"])
-        output["energy"][0] = final_energy
+        output["energy"] = final_energy
+
+        # Return final information to worker, for reporting to manager
+        return output, persis_info, calc_status
 
 
-    return output
-
-Line 37 simply prints out how the GPUs were assigned. If this is not as desired,
-a :attr:`platform_specs<libensemble.specs.LibeSpecs.platform_specs>` *libE_specs*
-option can be provided in the calling script. Alternatively, for known systems,
-the LIBE_PLATFORM environment variable can be set.
+Lines 31-32 tell the executor to use the GPUs assigned to this worker, and
+to match processors (MPI ranks) to GPUs.
 
 The user can also set ``num_procs`` and ``num_gpus`` in the generator as in
-the `test_GPU_variable_resources.py`_ example.
+the `forces_gpu_var_resources`_ example, and skip lines 31-32.
 
-While this is sufficient for many users, note that it is possible to query
+Line 37 simply prints out how the GPUs were assigned. If this is not as expected,
+:ref:`platform configuration<datastruct-platform-specs>` can be provided.
+
+While this is sufficient for many/most users, note that it is possible to query
 the resources assigned to *this* worker (nodes and partitions of nodes),
 and use this information however you want.
 
@@ -153,7 +161,7 @@ and use this information however you want.
 
         return output
 
-    The above code will assign a GPU to each worker on CUDA capable systems,
+    The above code will assign a GPU to each worker on CUDA-capable systems,
     so long as the number of workers is chosen to fit the resources.
 
     If you want to have one rank with multiple GPUs, then change source lines 30/31
@@ -206,15 +214,11 @@ Running the example
 -------------------
 
 As an example, if you have been allocated two nodes, each with four GPUs, then assign
-eight workers. For example::
+nine workers (the extra worker runs the persistent generator).
 
-    python run_libe_forces.py --comms local --nworkers 8
+For example::
 
-Note that if you are running one persistent generator that does not require
-resources, then assign nine workers and fix the number of *resource_sets* in
-your calling script::
-
-    libE_specs["num_resource_sets"] = 8
+    python run_libe_forces.py --comms local --nworkers 9
 
 See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
 
@@ -228,29 +232,31 @@ forces run.
 Varying resources
 -----------------
 
-The same code can be used when varying worker resources. In this case, you may
-add an integer field called ``resource_sets`` as a ``gen_specs["out"]`` in your
-calling script.
+A variant of this example where you may specify any number of processors
+and GPUs for each simulation is given in the `forces_gpu_var_resources`_ example.
 
-In the generator function, assign the ``resource_sets`` field of
-:ref:`H<funcguides-history>` for each point generated. For example
-if a larger simulation requires two MPI tasks (and two GPUs), set the ``resource_sets``
-field to *2* for that sim_id in the generator function.
-
-The calling script run_libe_forces.py_ contains alternative commented-out lines for
-a variable resource example. Search for "Uncomment for var resources"
-
-In this case, the simulator function will work unmodified, assigning one CPU processor
-and one GPU to each MPI rank.
+In this example, when simulations are parameterized in the generator function,
+the ``gen_specs["out"]`` field ``num_gpus`` is set for each simulation (based
+on the number of particles). These values will automatically be used for each
+simulation (they do not need to be passed as a ``sim_specs["in"]``).
 
 Further guidance on varying the resources assigned to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>` section.
+
+Multiple Applications
+---------------------
+
+Another variant of this example, forces_multi_app_, has two applications, one that
+uses GPUs, and another that only uses CPUs. The dynamic resource management can
+manage both types of resources and assign these to the same nodes concurrently, for
+maximum efficiency.
 
 Checking GPU usage
 ------------------
 
 The output of `forces.x` will say if it has run on the host or device. When running
-libEnsemble, this can be found under the ``ensemble`` directory.
+libEnsemble, this can be found in the simulation directories (under the ``ensemble``
+directory).
 
 You can check you are running forces on the GPUs as expected by using profiling tools and/or
 by using a monitoring utility. For NVIDIA GPUs, for example, the **Nsight** profiler is
@@ -295,12 +301,10 @@ that runs 8 workers on 2 nodes:
 
     export MPICH_GPU_SUPPORT_ENABLED=1
     export SLURM_EXACT=1
-    export SLURM_MEM_PER_NODE=0
 
-    python run_libe_forces.py --comms local --nworkers 8
+    python run_libe_forces.py --comms local --nworkers 9
 
-where ``SLURM_EXACT`` and ``SLURM_MEM_PER_NODE`` are set to prevent
-resource conflicts on each node.
+where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
@@ -309,4 +313,5 @@ resource conflicts on each node.
 .. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
 .. _Polaris: https://youtu.be/Ff0dYYLQzoU
 .. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
-.. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
+.. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
+.. _forces_multi_app: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py

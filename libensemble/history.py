@@ -20,9 +20,9 @@ class History:
 
     These are set on initialization.
 
-    :ivar numpy_structured_array H:
+    :ivar numpy.ndarray H:
         History array storing rows for each point. Field names are in
-        libensemble/tools/fields_keys.py
+        libensemble/tools/fields_keys.py. Numpy structured array.
 
     :ivar int offset:
         Starting index for this ensemble (after H0 read in)
@@ -167,10 +167,10 @@ class History:
 
         Parameters
         ----------
-        q_inds: numpy array
+        q_inds: numpy.typing.NDArray
             Row IDs for history array H
 
-        sim_worker: integer
+        sim_worker: int
             Worker ID
         """
         q_inds = np.atleast_1d(q_inds)
@@ -212,9 +212,9 @@ class History:
 
         Parameters
         ----------
-        gen_worker: integer
+        gen_worker: int
             The worker who generated these points
-        D: numpy array
+        D: numpy.typing.NDArray
             Output from gen_func
         """
 
@@ -268,7 +268,7 @@ class History:
 
         Parameters
         ----------
-        k: integer
+        k: int
             Number of rows to add to H
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)

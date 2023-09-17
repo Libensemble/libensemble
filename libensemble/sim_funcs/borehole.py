@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 
 bounds = np.array(
     [
@@ -24,7 +25,7 @@ def borehole(H, persis_info, sim_specs, _):
     return H_o, persis_info
 
 
-def borehole_func(x):
+def borehole_func(x: npt.NDArray):
     """This evaluates the Borehole function for n-by-8 input
     matrix x, and returns the flow rate through the Borehole. (Harper and Gupta, 1983)
     input:
@@ -32,7 +33,7 @@ def borehole_func(x):
     Parameters
     ----------
 
-    x: matrix of dimension (n, 8), where n is the number of input configurations:
+    x: numpy.typing.NDArray
 
         .. code-block::
 
@@ -48,8 +49,8 @@ def borehole_func(x):
     Returns
     -------
 
-    vector of dimension (n, 1):
-        flow rate through the Borehole (m^3/year)
+    f: numpy.ndarray
+        vector of dimension (n, 1): flow rate through the Borehole (m^3/year)
 
     """
 
