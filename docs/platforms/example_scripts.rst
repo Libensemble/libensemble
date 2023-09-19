@@ -37,13 +37,6 @@ Bebop - Distributed Mode
     :caption: /examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
     :language: bash
 
-Theta - On MOM Node with Multiprocessing
-----------------------------------------
-
-..  literalinclude:: ../../examples/libE_submission_scripts/theta_submit_mproc.sh
-    :caption: /examples/libE_submission_scripts/theta_submit_mproc.sh
-    :language: bash
-
 Summit - On Launch Nodes with Multiprocessing
 ---------------------------------------------
 

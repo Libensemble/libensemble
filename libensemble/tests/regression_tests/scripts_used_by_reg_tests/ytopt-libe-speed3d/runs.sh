@@ -39,8 +39,6 @@ export NWORKERS="--nworkers ${nws}"  # extra worker running generator (no resour
 # Name of Conda environment
 export CONDA_ENV_NAME=ytune
 
-export PMI_NO_FORK=1 # Required for python kills on Theta
-
 # Activate conda environment
 source /usr/local/miniconda/etc/profile.d/conda.sh
 export PYTHONNOUSERSITE=1

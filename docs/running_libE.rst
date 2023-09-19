@@ -47,7 +47,7 @@ supported with Open MPI. This can be overcome by using a proxy launcher
 with MPICH and its derivative MPI implementations.
 
 It is also unsuitable to use this mode when running on the **launch** nodes of three-tier
-systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
+systems (e.g., Summit). In that case ``local`` mode is recommended.
 
 Local Comms
 -----------

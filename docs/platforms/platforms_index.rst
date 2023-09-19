@@ -215,7 +215,6 @@ libEnsemble on specific HPC systems.
     polaris
     spock/crusher <spock_crusher>
     summit
-    theta
     srun
     example_scripts
 
