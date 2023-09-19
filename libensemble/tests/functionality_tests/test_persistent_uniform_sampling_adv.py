@@ -63,11 +63,11 @@ if __name__ == "__main__":
     # Perform the runs
     for prob_id in range(2):
         if prob_id == 0:
-            libE_specs["final_send"] = False
+            libE_specs["final_gen_send"] = False
         else:
             sim_max = 60
             exit_criteria = {"sim_max": sim_max}  # Go beyond first batch
-            libE_specs["final_send"] = True
+            libE_specs["final_gen_send"] = True
 
         persis_info = add_unique_random_streams({}, nworkers + 1)
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

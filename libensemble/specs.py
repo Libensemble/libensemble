@@ -429,7 +429,7 @@ class LibeSpecs(BaseModel):
     use_persis_return_sim: Optional[bool] = False
     """ Adds persistent simulator output fields to the History array on return """
 
-    final_send: Optional[bool] = False
+    final_gen_send: Optional[bool] = False
     """
     Send final simulations results to persistent generators before shutdown.
     The results will be sent along with the ``PERSIS_STOP`` tag.
