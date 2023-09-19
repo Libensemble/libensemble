@@ -48,12 +48,41 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
 
-    H_o = None
-    if gen_specs["user"].get("replace_final_fields", False):
-        # This is only to test libE ability to accept History after a
-        # PERSIS_STOP. This history is returned in Work.
-        H_o = Work
-        H_o["x"] = -1.23
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+# SH TODO Do we set f_est as we go -> if so,  need to keep all H rows here - init by e.g. persis_info('max_rows')
+def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
+    """
+    This generation function is similar in structure to persistent_uniform,
+    but it sets the sim_ids for the manager, and returns a final update
+    of the value ``f_est``.
+
+    .. seealso::
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_adv.py>`_
+    """  # noqa
+
+    b, n, lb, ub = _get_user_params(gen_specs["user"])
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+    next_id = 0
+
+    # Send batches until manager sends stop tag
+    tag = None
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        H_o = np.zeros(b, dtype=gen_specs["out"])
+        H_o["sim_id"] = range(next_id, next_id + b)
+        next_id += b
+        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        H_o["f_est"] = 0
+        tag, Work, calc_in = ps.send_recv(H_o)
+        if hasattr(calc_in, "__len__"):
+            b = len(calc_in)
+
+    # Having received a PERSIS_STOP, update f_est field for all points and return
+    # For manager to honor final H_o return, must have set libE_specs["use_persis_return_gen"] = True
+    H_o = np.zeros(next_id, dtype=[("sim_id", int), ("f_est", float)])
+    H_o["sim_id"] = range(next_id)
+    H_o["f_est"] = -1.23
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 

@@ -526,13 +526,7 @@ class Manager:
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
-                if self.libE_specs.get("final_fields", False):
-                    rows_to_send = self.hist.trim_H()["sim_ended"]
-                    fields_to_send = self.libE_specs["final_fields"]
-                    H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
-                    self.wcomms[w - 1].send(PERSIS_STOP, H_to_send)
-                    self.hist.update_history_to_gen(rows_to_send)
-                elif self.libE_specs.get("final_send", False):
+                if self.libE_specs.get("final_send", False):
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
                     work = {
                         "H_fields": self.gen_specs["persis_in"],

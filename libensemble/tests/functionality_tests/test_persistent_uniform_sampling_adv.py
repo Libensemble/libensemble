@@ -21,7 +21,7 @@ import sys
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
+from libensemble.gen_funcs.persistent_sampling import persistent_uniform_final_update as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "grad", "sim_id"],
-        "out": [("x", float, (n,))],
+        "out": [("sim_id", int), ("x", float, (n,)), ("f_est", float)],
         "user": {
             "initial_batch_size": 50,
             "lb": np.array([-3, -2]),
@@ -61,15 +61,10 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
 
     # Perform the runs
-    for prob_id in range(3):
+    for prob_id in range(2):
         if prob_id == 0:
             libE_specs["final_send"] = False
-        elif prob_id == 1:
-            gen_specs["user"]["replace_final_fields"] = True
-            libE_specs["final_fields"] = ["x", "f", "sim_id"]
         else:
-            gen_specs["user"]["replace_final_fields"] = False
-            libE_specs.pop("final_fields", None)
             sim_max = 60
             exit_criteria = {"sim_max": sim_max}  # Go beyond first batch
             libE_specs["final_send"] = True
@@ -80,9 +75,7 @@ if __name__ == "__main__":
         if is_manager:
             if prob_id == 0:
                 assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
-            if prob_id == 1:
-                assert np.all(H["x"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
-                assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
-            if prob_id == 2:
+            else:
+                assert np.all(H["f_est"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
                 assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
             save_libE_output(H, persis_info, __file__, nworkers)
