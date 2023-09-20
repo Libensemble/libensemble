@@ -1,6 +1,7 @@
 import importlib
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 import numpy.typing as npt
@@ -301,7 +302,8 @@ class Ensemble:
     def submit(self, fn, outputs: list, *args, **kwargs):  # presumably a "simulation" function?
         self.sim_specs = SimSpecs(sim_f=fn, inputs=args, outputs=outputs, user=kwargs)
         assert self.ready(), "Please provide ExitCriteria and LibeSpecs to the Ensemble instance"
-        return self.run()
+        tpexecutor = ThreadPoolExecutor(max_workers=1)
+        return tpexecutor.submit(self.run)
 
     # def map(self, *iterables, timeout=None, chunksize=1):
     #     pass

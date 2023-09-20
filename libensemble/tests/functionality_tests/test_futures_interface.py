@@ -13,6 +13,8 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
+import time
+
 import numpy as np
 
 from libensemble import Ensemble
@@ -36,9 +38,13 @@ if __name__ == "__main__":
         },
     )
 
-    with Ensemble(parse_args=True, gen_specs=gen_specs, exit_criteria=ExitCriteria(gen_max=501)) as sampling:
+    with Ensemble(parse_args=True, gen_specs=gen_specs, exit_criteria=ExitCriteria(sim_max=1001)) as sampling:
 
         sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
 
-        current_blocking_output = sampling.submit(one_d_example, [("f", float)], "x")
-        print(current_blocking_output[0][:10])
+        future = sampling.submit(one_d_example, [("f", float)], "x")
+        while not future.done():
+            print("waiting")
+            time.sleep(0.1)
+
+        print(future.result()[0][:10])
