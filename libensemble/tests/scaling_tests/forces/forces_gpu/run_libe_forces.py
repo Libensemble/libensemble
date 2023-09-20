@@ -27,9 +27,7 @@ from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-
 if __name__ == "__main__":
-
     # Initialize MPI Executor
     exctr = MPIExecutor()
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")

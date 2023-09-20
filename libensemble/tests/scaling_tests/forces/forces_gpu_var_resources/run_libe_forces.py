@@ -30,9 +30,7 @@ from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample_with_var_gpus as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-
 if __name__ == "__main__":
-
     # Initialize MPI Executor
     exctr = MPIExecutor()
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")

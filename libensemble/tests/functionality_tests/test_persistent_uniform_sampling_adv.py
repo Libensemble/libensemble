@@ -25,7 +25,7 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform_final_u
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -37,45 +37,35 @@ if __name__ == "__main__":
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
-    n = 2
+    n = 3
     sim_specs = {
         "sim_f": sim_f,
         "in": ["x"],
-        "out": [("f", float), ("grad", float, n)],
+        "out": [("f", float)],
+        "user": {"rand": True},
     }
 
     gen_specs = {
         "gen_f": gen_f,
-        "persis_in": ["f", "x", "grad", "sim_id"],
-        "out": [("sim_id", int), ("x", float, (n,)), ("f_est", float)],
+        "persis_in": ["f", "x", "corner_id", "sim_id"],
+        "out": [("sim_id", int), ("corner_id", int), ("x", float, (n,)), ("f_est", float)],
         "user": {
             "initial_batch_size": 50,
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
+            "lb": np.array([-3, -2, -1]),
+            "ub": np.array([3, 2, 1]),
         },
     }
 
-    sim_max = 40
-    exit_criteria = {"sim_max": sim_max}
-
     alloc_specs = {"alloc_f": alloc_f}
 
-    # Perform the runs
-    for prob_id in range(2):
-        if prob_id == 0:
-            libE_specs["final_gen_send"] = False
-        else:
-            sim_max = 60
-            exit_criteria = {"sim_max": sim_max}  # Go beyond first batch
-            libE_specs["final_gen_send"] = True
+    sim_max = 60
+    exit_criteria = {"sim_max": sim_max}  # Go beyond first batch
+    libE_specs["final_gen_send"] = True
 
-        persis_info = add_unique_random_streams({}, nworkers + 1)
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-        if is_manager:
-            if prob_id == 0:
-                assert len(np.unique(H["gen_ended_time"])) == 1, "Everything should have been generated in one batch"
-            else:
-                assert np.all(H["f_est"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
-                assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
-            save_libE_output(H, persis_info, __file__, nworkers)
+    if is_manager:
+        assert np.all(H["f_est"][0:sim_max] == -1.23), "The persistent gen should have set these at shutdown"
+        assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
+        save_libE_output(H, persis_info, __file__, nworkers)
