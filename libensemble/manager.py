@@ -80,7 +80,7 @@ def manager_main(
     Parameters
     ----------
 
-    hist: :obj:`History`
+    hist: :obj:`libensemble.history.History`
         A libEnsemble history type object.
 
     libE_specs: :obj:`dict`
@@ -101,7 +101,7 @@ def manager_main(
     persis_info: :obj:`dict`
         Persistent information to be passed between user functions
 
-    wcomms: :obj:`list`, optional
+    wcomms: :obj:`list`, Optional
         A list of comm type objects for each worker. Default is an empty list.
     """
     if libE_specs.get("profile"):
@@ -226,6 +226,7 @@ class Manager:
             raise ManagerException(
                 "Manager errored on initialization",
                 "Ensemble directory already existed and wasn't empty.",
+                "To reuse ensemble dir, set libE_specs['reuse_output_dir'] = True",
                 e,
             )
 
@@ -271,11 +272,12 @@ class Manager:
     def _save_every_k(self, fname: str, count: int, k: int) -> None:
         """Saves history every kth step"""
         count = k * (count // k)
-        filename = fname.format(self.date_start, count)
+        date_start = self.date_start
         if platform.system() == "Windows":
-            filename = filename.replace(":", "-")  # ":" is invalid in windows filenames
+            date_start = date_start.replace(":", "-")  # ":" is invalid in windows filenames
+        filename = fname.format(date_start, count)
         if not os.path.isfile(filename) and count > 0:
-            for old_file in glob.glob(fname.format(self.date_start, "*")):
+            for old_file in glob.glob(fname.format(date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 

@@ -99,7 +99,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
         Persistent information dictionary
         :doc:`(example)<data_structures/persis_info>`
 
-    calling_file  : :obj:`string`
+    calling_file  : :obj:`str`
 
         Name of user-calling script (or user chosen name) to prefix output files.
         The convention is to send __file__ from user calling script.
@@ -108,7 +108,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
 
         The number of workers in this ensemble. Added to output file names.
 
-    mess: :obj:`String`
+    mess: :obj:`str`
 
         A message to print/log when saving the file.
 

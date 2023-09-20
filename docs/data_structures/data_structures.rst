@@ -13,5 +13,6 @@ See :ref:`here<libe-module>` for more information on combining these into a comp
    gen_specs
    libE_specs
    alloc_specs
+   platform_specs
    persis_info
    exit_criteria

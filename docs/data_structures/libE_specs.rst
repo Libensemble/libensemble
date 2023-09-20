@@ -233,7 +233,7 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
 
                 "resource_info" [dict]:
                     Provide resource information that will override automatically detected resources.
-                    The allowable fields are given below in "Overriding Auto-detection"
+                    The allowable fields are given below in "Overriding Resource Auto-Detection"
                     Ignored if ``"disable_resource_manager"`` is set.
 
                 "scheduler_opts" [dict]:
@@ -251,40 +251,6 @@ the ``LibeSpecs`` class. When provided as a Python class, options are validated 
         :field-list-validators: False
         :model-show-field-summary: False
 
-.. _known-platforms:
-
-Known Platforms List
---------------------
-
-.. dropdown:: ``Known_platforms``
-    :open:
-
-    .. autopydantic_model:: libensemble.resources.platforms.Known_platforms
-        :model-show-validator-members: False
-        :model-show-validator-summary: False
-        :model-show-field-summary: False
-        :field-list-validators: False
-        :field-show-required: False
-        :field-show-default: False
-        :field-show-alias: False
-        :member-order:
-
-.. _platform-fields:
-
-Platform Fields
-----------------
-
-.. dropdown:: ``Platform Fields``
-    :open:
-
-    .. autopydantic_model:: libensemble.resources.platforms.Platform
-        :model-show-validator-members: False
-        :model-show-validator-summary: False
-        :field-list-validators: False
-        :field-show-default: False
-        :member-order:
-        :model-show-field-summary: False
-
 Scheduler Options
 -----------------
 
@@ -296,7 +262,8 @@ Overriding Resource Auto-Detection
 ----------------------------------
 
 Note that ``"cores_on_node"`` and ``"gpus_on_node"`` are supported for backward
-compatibility, but use of ``platform_specs`` is recommended for these settings.
+compatibility, but use of :ref:`Platform specification<datastruct-platform-specs>` is
+recommended for these settings.
 
 .. dropdown:: Resource Info Fields
 
@@ -342,8 +309,8 @@ compatibility, but use of ``platform_specs`` is recommended for these settings.
 
         libE_specs["resource_info"] = customizer
 
-Formatting libE_stats.txt
--------------------------
+Formatting Options for libE_stats File
+--------------------------------------
 
 The allowable ``libE_specs["stats_fmt"]`` fields are::
 

@@ -89,13 +89,13 @@ class GlobalResources:
     **Object Attributes:**
 
     These are set on initialization.
-    :ivar string top_level_dir: Directory where searches for node_list file
+    :ivar str top_level_dir: Directory where searches for node_list file
     :ivar EnvResources env_resources: Object storing environment variables used by resources
     :ivar list global_nodelist: list of all nodes available for running user applications
     :ivar int logical_cores_avail_per_node: Logical cores (including SMT threads) available on a node
     :ivar int physical_cores_avail_per_node: Physical cores available on a node
     :ivar list zero_resource_workers: List of workerIDs to have no resources.
-    :ivar boolean dedicated_mode: Whether to remove libE nodes from global nodelist.
+    :ivar bool dedicated_mode: Whether to remove libE nodes from global nodelist.
     :ivar int num_resource_sets: Number of resource sets, if supplied by the user.
     """
 
@@ -110,54 +110,54 @@ class GlobalResources:
         Parameters
         ----------
 
-        top_level_dir: string, optional
+        top_level_dir: str, Optional
             Directory libEnsemble runs in (default is current working directory)
 
-        dedicated_mode: boolean, optional
+        dedicated_mode: bool, Optional
             If true, then dedicate nodes to running libEnsemble.
             Dedicated mode means that any nodes running libE processes (manager and workers),
             will not be available to worker launched tasks (user applications). They will
             be removed from the nodelist (if present), before dividing into resource sets.
 
-        zero_resource_workers: list of ints, optional
+        zero_resource_workers: List[int], Optional
             List of workers that require no resources.
 
-        num_resource_sets: int, optional
+        num_resource_sets: int, Optional
             The total number of resource sets. Resources will be divided into this number.
             Default: None. If None, resources will be divided by workers (excluding zero_resource_workers).
 
-        cores_on_node: tuple (int, int), optional
+        cores_on_node: tuple (int, int), Optional
             If supplied gives (physical cores, logical cores) for the nodes. If not supplied,
             this will be auto-detected.
 
-        gpus_on_node: int, optional
+        gpus_on_node: int, Optional
             If supplied gives number of GPUs for the nodes. If not supplied,
             this will be auto-detected.
 
-        enforce_worker_core_bounds: boolean, optional
+        enforce_worker_core_bounds: bool, Optional
             If True, then libEnsemble's executor will raise an exception if it detects that
             a worker has been instructed to launch tasks with the number of requested processes
             being excessive to the number of cores allocated to that worker, or not enough
             processes were requested to satisfy allocated cores.
 
-        node_file: String, optional
+        node_file: str, Optional
             If supplied, give the name of a file in the run directory to use as a node-list
             for use by libEnsemble. Defaults to a file named "node_list". If the file does
             not exist, then the node-list will be auto-detected.
 
-        nodelist_env_slurm: String, optional
+        nodelist_env_slurm: str, Optional
             The environment variable giving a node list in Slurm format (Default: uses SLURM_NODELIST).
             Note: This is queried only if a node_list file is not provided.
 
-        nodelist_env_cobalt: String, optional
+        nodelist_env_cobalt: str, Optional
             The environment variable giving a node list in Cobalt format (Default: uses COBALT_PARTNAME).
             Note: This is queried only if a node_list file is not provided.
 
-        nodelist_env_lsf: String, optional
+        nodelist_env_lsf: str, Optional
             The environment variable giving a node list in LSF format (Default: uses LSB_HOSTS).
             Note: This is queried only if a node_list file is not provided.
 
-        nodelist_env_lsf_shortform: String, optional
+        nodelist_env_lsf_shortform: str, Optional
             The environment variable giving a node list in LSF short-form format (Default: uses LSB_MCPU_HOSTS)
             Note: This is only queried if a node_list file is not provided.
 
