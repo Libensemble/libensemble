@@ -101,7 +101,6 @@ if __name__ == "__main__":
 
     base_libE_specs = libE_specs.copy()
     for run in range(5):
-
         # reset
         libE_specs = base_libE_specs.copy()
         persis_info = add_unique_random_streams({}, nworkers + 1)

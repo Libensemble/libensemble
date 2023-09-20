@@ -31,13 +31,6 @@ def _check_output_fields(values: dict) -> dict:
     if values.get("alloc_specs"):
         out_names += [e[0] for e in values.get("alloc_specs").outputs]
 
-    if values.get("libE_specs"):
-        for name in values.get("libE_specs").final_fields:
-            assert name in out_names, (
-                name + " in libE_specs['fields_keys'] is not in sim_specs['out'], "
-                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
-            )
-
     for name in values.get("sim_specs").inputs:
         assert name in out_names, (
             name + " in sim_specs['in'] is not in sim_specs['out'], "

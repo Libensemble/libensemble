@@ -12,7 +12,6 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
-
     # Initialize MPI Executor
     exctr = MPIExecutor()
 
