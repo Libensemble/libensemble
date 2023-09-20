@@ -66,7 +66,6 @@ if __name__ == "__main__":
     stats_lens = []
 
     for i in range(2):
-
         libE_specs["workflow_dir_path"] = (
             "./test_workflow" + str(i) + "_nworkers" + str(nworkers) + "_comms-" + libE_specs["comms"]
         )

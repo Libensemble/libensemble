@@ -66,7 +66,6 @@ def test_set_filename():
 
 
 def test_set_directory(tmp_path):
-
     logs = LogConfig.config
     logs.logger_set = False
     logs.filename = "ensemble.log"

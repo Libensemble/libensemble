@@ -7,6 +7,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
     "persistent_uniform",
+    "persistent_uniform_final_update",
     "persistent_request_shutdown",
     "uniform_nonblocking",
     "batched_history_matching",
@@ -51,38 +52,74 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
-# SH TODO Do we set f_est as we go -> if so,  need to keep all H rows here - init by e.g. persis_info('max_rows')
 def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
     """
-    This generation function is similar in structure to persistent_uniform,
-    but it sets the sim_ids for the manager, and returns a final update
-    of the value ``f_est``.
+    Assuming the value ``"f"`` returned from sim_f is stochastic, this
+    generation is updating an estimated mean ``"f_est"`` of the sim_f output at
+    each of the corners of the domain.
 
     .. seealso::
-        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_adv.py>`_
+        `test_persistent_uniform_sampling_running_mean.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_running_mean.py>`_
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-    next_id = 0
 
-    # Send batches until manager sends stop tag
+    def generate_corners(x, y):
+        n = len(x)
+        corner_indices = np.arange(2**n)
+        corners = []
+        for index in corner_indices:
+            corner = [x[i] if index & (1 << i) else y[i] for i in range(n)]
+            corners.append(corner)
+        return corners
+
+    def sample_corners_with_probability(corners, p, b):
+        selected_corners = np.random.choice(len(corners), size=b, p=p)
+        sampled_corners = [corners[i] for i in selected_corners]
+        return sampled_corners, selected_corners
+
+    corners = generate_corners(lb, ub)
+
+    # Start with equal probabilies
+    p = np.ones(2**n) / 2**n
+
+    running_total = np.nan * np.ones(2**n)
+    number_of_samples = np.zeros(2**n)
+    sent = np.array([], dtype=int)
+
+    # Send batches of `b` points until manager sends stop tag
     tag = None
+    next_id = 0
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["sim_id"] = range(next_id, next_id + b)
         next_id += b
-        H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
-        H_o["f_est"] = 0
+
+        sampled_corners, corner_ids = sample_corners_with_probability(corners, p, b)
+
+        H_o["corner_id"] = corner_ids
+        H_o["x"] = sampled_corners
+        sent = np.append(sent, corner_ids)
+
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
+            for row in calc_in:
+                number_of_samples[row["corner_id"]] += 1
+                if np.isnan(running_total[row["corner_id"]]):
+                    running_total[row["corner_id"]] = row["f"]
+                else:
+                    running_total[row["corner_id"]] += row["f"]
 
     # Having received a PERSIS_STOP, update f_est field for all points and return
     # For manager to honor final H_o return, must have set libE_specs["use_persis_return_gen"] = True
-    H_o = np.zeros(next_id, dtype=[("sim_id", int), ("f_est", float)])
-    H_o["sim_id"] = range(next_id)
-    H_o["f_est"] = -1.23
+    f_est = running_total / number_of_samples
+    H_o = np.zeros(len(sent), dtype=[("sim_id", int), ("corner_id", int), ("f_est", float)])
+    for count, i in enumerate(sent):
+        H_o["sim_id"][count] = count
+        H_o["corner_id"][count] = i
+        H_o["f_est"][count] = f_est[i]
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
