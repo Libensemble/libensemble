@@ -7,6 +7,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
     "persistent_uniform",
+    "persistent_uniform_final_update",
     "persistent_request_shutdown",
     "uniform_nonblocking",
     "batched_history_matching",
@@ -55,7 +56,10 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
     """
     Assuming the value ``"f"`` returned from sim_f is stochastic, this
     generation is updating an estimated mean ``"f_est"`` of the sim_f output at
-    each of the corners of the domain
+    each of the corners of the domain.
+
+    .. seealso::
+        `test_persistent_uniform_sampling_running_mean.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_running_mean.py>`_
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])

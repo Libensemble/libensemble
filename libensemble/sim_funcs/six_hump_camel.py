@@ -58,7 +58,7 @@ def six_hump_camel_simple(x, _, sim_specs):
 
     H_o["f"] = six_hump_camel_func(x[0][0][:2])  # Ignore more than 2 entries of x
 
-    if "pause_time" in sim_specs["user"]:
+    if sim_specs["user"].get("pause_time"):
         time.sleep(sim_specs["user"]["pause_time"])
 
     if sim_specs["user"].get("rand"):

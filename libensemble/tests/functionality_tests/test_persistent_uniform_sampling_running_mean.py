@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    sim_max = 60  # Go beyond first batch
+    sim_max = 120
     exit_criteria = {"sim_max": sim_max}
     libE_specs["final_gen_send"] = True
 
