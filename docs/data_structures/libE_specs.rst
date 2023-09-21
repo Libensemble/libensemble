@@ -180,8 +180,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 "use_persis_return_sim" [bool] = ``False``:
                     Adds persistent simulator output fields to the History array on return.
 
-                 "final_gen_send" [bool] = ``False``:
-                    Send final simulations results to persistent generators before shutdown.
+                "final_gen_send" [bool] = ``False``:
+                    Send final simulation results to persistent generators before shutdown.
                     The results will be sent along with the ``PERSIS_STOP`` tag.
 
         .. tab-item:: Resources

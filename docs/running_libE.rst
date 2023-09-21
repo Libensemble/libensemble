@@ -3,7 +3,7 @@
 Running libEnsemble
 ===================
 
-libEnsemble runs with one manager and multiples workers. Each worker may run either
+libEnsemble runs with one manager and multiple workers. Each worker may run either
 a generator or simulator function (both are Python scripts). Generators
 determine the parameters/inputs for simulations. Simulator functions run and
 manage simulations, which often involve running a user application (see
@@ -31,7 +31,7 @@ The default is ``mpi``.
 
             mpirun -np N python myscript.py
 
-        where ``N`` is the number of processors. This will launch one manager and
+        where ``N`` is the number of processes. This will launch one manager and
         ``N-1`` workers.
 
         This option requires ``mpi4py`` to be installed to interface with the MPI on your system.
@@ -264,7 +264,6 @@ on a dedicated worker while in persistent mode. This requires an appropriate
 
 When running with a persistent generator, it is important to remember that a worker will be dedicated
 to the generator and cannot run simulations. For example, the following run::
-
 
     mpirun -np 3 python my_script.py
 
