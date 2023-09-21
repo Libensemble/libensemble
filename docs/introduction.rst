@@ -24,7 +24,7 @@ and an exit condition. Run the following via ``python this_file.py --comms local
   sampling.sim_specs = SimSpecs(
       sim_f=six_hump_camel,
       inputs=["x"],
-      ouputs=[("f", float)],
+      outputs=[("f", float)],
   )
   sampling.gen_specs = GenSpecs(
       gen_f=uniform_random_sample,

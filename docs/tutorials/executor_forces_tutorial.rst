@@ -224,7 +224,6 @@ Write an alternative Calling Script similar to above, but with the following dif
 
        ensemble.save_output(__file__)
 
-
 Simulation Function
 -------------------
 
@@ -264,7 +263,6 @@ for starters:
 
         # Block until the task finishes
         task.wait()
-
 
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
@@ -335,7 +333,6 @@ and ``ensemble.log`` as usual.
 
 .. dropdown:: **Example run / output**
 
-
    For example, after running:
 
    .. code-block:: bash
@@ -355,7 +352,6 @@ and ``ensemble.log`` as usual.
      Worker     2: sim_id     6: sim Time: 0.275 Start: ... End: ... Status: Completed
      Worker     1: Gen no     1: gen Time: 1.038 Start: ... End: ... Status: Persis gen finished
      Manager     : Exiting ensemble at: 2023-09-12 18:12:09.565 Time Taken: 1.048
-
 
    where ``status`` is set based on the simulation function's returned ``calc_status``.
 
@@ -418,7 +414,6 @@ These may require additional browsing of the documentation to complete.
      or if ``task.runtime`` exceeds sixty seconds.
 
 .. dropdown:: **Click Here for Solution**
-
 
    Showing updated sections only (``---`` refers to snips where code is unchanged).
 

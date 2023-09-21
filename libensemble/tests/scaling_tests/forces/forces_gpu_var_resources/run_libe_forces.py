@@ -9,7 +9,7 @@ in ../forces_app/build_forces.sh. We recommend running forces.x standalone first
 and confirm it is running on the GPU (this is given clearly in the output).
 
 A number of GPUs is requested based on the number of particles (randomly chosen
-from the range for each simulation). For simplicitly, the number of GPUs requested
+from the range for each simulation). For simplicity, the number of GPUs requested
 is based on a linear split of the range (lb to ub), rather than absolute particle
 count.
 
