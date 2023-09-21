@@ -129,7 +129,7 @@ class GenSpecs(BaseModel):
 
     globus_compute_endpoint: Optional[str] = ""
     """
-    A Globus Compute (https://globus_compute.org/) ID corresponding to an active endpoint on a remote system.
+    A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
     """
