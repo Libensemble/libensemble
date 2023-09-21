@@ -4,8 +4,6 @@ max-line-length = 120
 ignore =
         # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
         E203
-        # Not worrying about spaces around arithmetic operations
-        E226
         # Linebreaks before/after unary operators are okay
         W503, W504
 exclude =
