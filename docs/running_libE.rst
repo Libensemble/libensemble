@@ -3,29 +3,43 @@
 Running libEnsemble
 ===================
 
-libEnsemble runs with one manager and many workers. How these processes communicate
-is determined by the launch-method and ``comms`` option. The
-three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
+libEnsemble runs with one manager and multiples workers. Each worker may run either
+a generator or simulator function (both are Python scripts). Generators
+determine the parameters/inputs for simulations. Simulator functions run and
+manage simulations, which often involve running a user application (see
+:doc:`Executor<executor/ex_index>`).
+
+To use libEnsemble, you will need a calling script, which in turn will specify
+generator and simulator functions. Many :doc:`examples<examples/examples_index>`
+are available.
+
+There are currently three communication options for libEnsemble (determining how
+the Manager and Workers communicate). These are ``mpi``, ``local``, ``tcp``.
+The default is ``mpi``.
 
 .. note::
-    You **do not** need ``mpi`` communications to use the
-    :doc:`MPI Executor<executor/mpi_executor>` and launch MPI apps.
-    The modes described here only refer to how libEnsemble's manager and
-    workers communicate.
+    You do not need the ``mpi`` communication mode to use the
+    :doc:`MPI Executor<executor/mpi_executor>`. The communications modes described
+    here only refer to how the libEnsemble manager and workers communicate.
 
 .. tab-set::
 
     .. tab-item:: MPI Comms
 
-        Requires mpi4py_ and an MPI runtime via launching your script with an MPI runner::
+        This option uses mpi4py_ for the Manager/Worker communication. It is used automatically if
+        you run your libEnsemble calling script with an MPI runner such as::
 
             mpirun -np N python myscript.py
 
-        where ``N`` is the number of processes. This will launch one manager and
+        where ``N`` is the number of processors. This will launch one manager and
         ``N-1`` workers.
 
-        MPI works on standalone and multi-node systems, potentially scales the best, and
-        the distribution of processes is highly customizable.
+        This option requires ``mpi4py`` to be installed to interface with the MPI on your system.
+        It works on a standalone system, and with both
+        :doc:`central and distributed modes<platforms/platforms_index>` of running libEnsemble on
+        multi-node systems.
+
+        It also potentially scales the best when running with many workers on HPC systems.
 
         **Limitations of MPI mode**
 
@@ -34,8 +48,8 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         (see :doc:`Balsam<executor/balsam_2_executor>`). This nesting does work
         with MPICH_ and its derivative MPI implementations.
 
-        Don't use MPI comms when running on the **launch** nodes of three-tier
-        systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
+        It is also unsuitable to use this mode when running on the **launch** nodes of
+        three-tier systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
 
     .. tab-item:: Local Comms
 
@@ -54,21 +68,21 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
 
         This will launch one manager and ``N`` workers.
 
-        libEnsemble will run on **one node** in this scenario. To disallow
-        this node from app-launches (if running libEnsemble on a compute node),
+        libEnsemble will run on **one node** in this scenario. To
+        :doc:`disallow this node<platforms/platforms_index>`
+        from app-launches (if running libEnsemble on a compute node),
         set ``libE_specs["dedicated_mode"] = True``.
 
         This mode is often used to run on a **launch** node of a three-tier
         system (e.g., Theta/Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
-        On macOS and Windows, Python's default multiprocessing method is ``"spawn"`` instead
-        of ``"fork"``; to resolve many related issues, place code from ``libE()`` or ``.run()`` onward in
-        an ``if __name__ == "__main__":`` block.
+        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+        calling script code in an ``if __name__ == "__main__":`` block.
 
         **Limitations of local mode**
 
-        - Workers cannot be distributed across nodes
+        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes
         - In some scenarios, any import of ``mpi4py`` will cause this to break.
         - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
@@ -92,6 +106,11 @@ three options are ``mpi``, ``local``, ``tcp``. The default is ``mpi``.
         **Limitations of TCP mode**
 
         - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
+
+Further command line options
+----------------------------
+
+See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for further command line options.
 
 .. _liberegister:
 
@@ -230,8 +249,18 @@ Persistent Workers
 ------------------
 .. _persis_worker:
 
-When running with a persistent generator, a worker will be dedicated
-to the generator and cannot run simulations. The following run::
+In a regular (non-persistent) worker, the user's generator or simulation function is called whenever the worker
+receives work. A persistent worker is one that continues to run the generator or simulation function between work units,
+maintaining the local data environment.
+
+A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
+that maintains optimization data, while generating new simulation inputs. The persistent generator runs
+on a dedicated worker while in persistent mode. This requires an appropriate
+:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
+
+When running with a persistent generator, it is important to remember that a worker will be dedicated
+to the generator and cannot run simulations. For example, the following run::
+
 
     mpirun -np 3 python my_script.py
 
@@ -251,7 +280,8 @@ For example::
 
     os.environ["OMP_NUM_THREADS"] = 4
 
-set in your simulation script before the Executor submit command will export the setting to your run.
+set in your simulation script before the Executor submit command will export the setting to your run. For running a bash script in a sub environment when use the Executor, see the ``env_script``
+option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 Further Run Information
 -----------------------
