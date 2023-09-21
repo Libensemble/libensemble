@@ -68,7 +68,7 @@ along with the work request (simulation).
 In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``:
 
 .. code-block:: python
-    :emphasize-lines: 4
+    :emphasize-lines: 6
 
     gen_specs = {
         "gen_f": gen_f,
@@ -133,7 +133,7 @@ For example, in *CUDA_variable_resources*, the environment variable
 ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
-    :emphasize-lines: 3
+    :emphasize-lines: 2
 
     resources = Resources.resources.worker_resources
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
