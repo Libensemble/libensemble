@@ -2,8 +2,8 @@ name: libEnsemble
 icon: https://raw.githubusercontent.com/Libensemble/libensemble/main/docs/images/libE_logo.png
 headline: Tool for running dynamic ensembles.
 description: |
-  libEnsemble is a Python toolkit for coordinating workflows of asynchronous
-  and dynamic ensembles of calculations.
+  libEnsemble is a Python toolkit for running workflows dynamic ensembles
+  of calculations.
 
   Users write generator and simulator functions to express their ensembles.
   A library of example functions is available which can be modified as needed.
@@ -17,8 +17,8 @@ description: |
 language: Python
 
 release:
-  version: 0.10.2
-  date: 2023-07-24
+  version: 1.0.0
+  date: 2023-09-22
 
 documentation:
   general: https://libensemble.readthedocs.io
