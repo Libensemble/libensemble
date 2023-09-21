@@ -25,7 +25,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     n_samp = 1000
     H0 = np.zeros(n_samp, dtype=[("x", float, 8), ("sim_id", int), ("sim_started", bool)])
     np.random.seed(0)

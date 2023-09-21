@@ -77,8 +77,9 @@ class PersistentSupport:
         tag, Work = self.comm.recv()  # Receive meta-data or signal
         if tag in [STOP_TAG, PERSIS_STOP]:
             logger.debug(f"Persistent {self.calc_str} received signal {tag} from manager")
-            self.comm.push_to_buffer(tag, Work)
-            return tag, Work, None
+            if not isinstance(Work, dict):
+                self.comm.push_to_buffer(tag, Work)
+                return tag, Work, None
         else:
             logger.debug(f"Persistent {self.calc_str} received work request from manager")
 

@@ -55,7 +55,6 @@ from libensemble.tools import add_unique_random_streams
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     # Get paths for applications to run
     six_hump_camel_app = six_hump_camel.__file__
     exctr = MPIExecutor()

@@ -30,7 +30,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     samp = 1000
     n = 8
 

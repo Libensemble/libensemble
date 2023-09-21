@@ -43,7 +43,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 
 if __name__ == "__main__":
-
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 25  # No. of x values
     nparams = 4  # No. of theta params
