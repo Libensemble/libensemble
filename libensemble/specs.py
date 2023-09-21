@@ -531,7 +531,7 @@ class LibeSpecs(BaseModel):
 
 
 class _EnsembleSpecs(BaseModel):
-    """An all-encompasing model for a libEnsemble workflow."""
+    """An all-encompassing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend. """
