@@ -77,7 +77,8 @@ The default is ``mpi``.
         system (e.g., Theta/Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
-        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
+        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
         calling script code in an ``if __name__ == "__main__":`` block.
 
         **Limitations of local mode**
@@ -91,13 +92,15 @@ The default is ``mpi``.
         Run the Manager on one system and launch workers to remote
         systems or nodes over TCP. Configure through
         :class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
-        if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
+        if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with
+        ``Ensemble(parse_args=True)``,
 
         **Reverse-ssh interface**
 
         Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
         colocates workers, functions, and any applications. User
-        functions can also be persistent, unlike when launching remote functions via :ref:`Globus Compute<funcx_ref>`.
+        functions can also be persistent, unlike when launching remote functions via
+        :ref:`Globus Compute<funcx_ref>`.
 
         The remote working directory and Python need to be specified. This may resemble::
 
@@ -110,7 +113,8 @@ The default is ``mpi``.
 Further command line options
 ----------------------------
 
-See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for further command line options.
+See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for
+further command line options.
 
 .. _liberegister:
 
@@ -249,9 +253,9 @@ Persistent Workers
 ------------------
 .. _persis_worker:
 
-In a regular (non-persistent) worker, the user's generator or simulation function is called whenever the worker
-receives work. A persistent worker is one that continues to run the generator or simulation function between work units,
-maintaining the local data environment.
+In a regular (non-persistent) worker, the user's generator or simulation function is called
+whenever the worker receives work. A persistent worker is one that continues to run the
+generator or simulation function between work units, maintaining the local data environment.
 
 A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
 that maintains optimization data, while generating new simulation inputs. The persistent generator runs
@@ -280,7 +284,8 @@ For example::
 
     os.environ["OMP_NUM_THREADS"] = 4
 
-set in your simulation script before the Executor submit command will export the setting to your run. For running a bash script in a sub environment when use the Executor, see the ``env_script``
+set in your simulation script before the Executor submit command will export the setting to your run.
+For running a bash script in a sub environment when use the Executor, see the ``env_script``
 option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 Further Run Information
