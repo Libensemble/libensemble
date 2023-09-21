@@ -61,4 +61,4 @@
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
-.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
+.. _xsdk: https://xsdk.info

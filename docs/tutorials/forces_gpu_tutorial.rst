@@ -87,7 +87,6 @@ to the simple forces example are highlighted:
         # Return final information to worker, for reporting to manager
         return output, persis_info, calc_status
 
-
 Lines 31-32 tell the executor to use the GPUs assigned to this worker, and
 to match processors (MPI ranks) to GPUs.
 

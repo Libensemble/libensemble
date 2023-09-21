@@ -92,6 +92,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
+    "sphinx_copybutton",
 ]
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
@@ -192,20 +193,21 @@ for line in open("nitpicky"):
 # html_theme = 'default'
 # html_theme = 'graphite'
 # html_theme = 'sphinxdoc'
+# html_theme = "sphinx_book_theme"
+
 html_theme = "sphinx_rtd_theme"
 
 html_logo = "./images/libE_logo_white.png"
+html_favicon = "./images/libE_logo_circle.png"
+html_title = "libEnsemble"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
-    "navigation_depth": 3,
-    "collapse_navigation": False,
     "logo_only": True,
 }
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

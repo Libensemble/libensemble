@@ -140,7 +140,7 @@ Additional Information
 See the LCRC Bebop docs here_ for more information about Bebop.
 
 .. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
-.. _Anaconda: https://www.anaconda.com/distribution/
+.. _Anaconda: https://www.anaconda.com/
 .. _conda: https://conda.io/en/latest/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Slurm: https://slurm.schedmd.com/

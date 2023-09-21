@@ -46,13 +46,13 @@ class ResourceScheduler:
 
         The supported fields for sched_opts are::
 
-            "split2fit" [boolean]:
+            "split2fit" [Boolean]:
                 Try to split resource sets across more nodes if space is not currently
                 available on the minimum node count required. Allows more efficient
                 scheduling.
                 Default: True
 
-            "match_slots" [boolean]:
+            "match_slots" [Boolean]:
                 When splitting resource sets across multiple nodes, slot IDs must match.
                 Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
                 to specific slots counts, which should match over multiple nodes.

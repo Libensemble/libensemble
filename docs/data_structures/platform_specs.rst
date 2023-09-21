@@ -3,7 +3,7 @@
 Platform Specs
 ==============
 
-libEnsemble detects platform specfications including MPI runners and resources.
+libEnsemble detects platform specifications including MPI runners and resources.
 Usually this will result in the correct settings. However, users can configure
 platform specification via the `platform_specs`_ option or indicate a known
 platform via the `platform`_ option.
@@ -30,7 +30,7 @@ To define a platform (in calling script):
                gpus_per_node=8,
                gpu_setting_type="runner_default",
                gpu_env_fallback="ROCR_VISIBLE_DEVICES",
-               scheduler_match_slots=False
+               scheduler_match_slots=False,
            )
 
     .. tab-item:: Dictionary
@@ -38,13 +38,13 @@ To define a platform (in calling script):
        .. code-block:: python
 
            libE_specs["platform_specs"] = {
-               "mpi_runner" : "srun",
+               "mpi_runner": "srun",
                "cores_per_node": 64,
                "logical_cores_per_node": 128,
                "gpus_per_node": 8,
                "gpu_setting_type": "runner_default",
                "gpu_env_fallback": "ROCR_VISIBLE_DEVICES",
-               "scheduler_match_slots": False
+               "scheduler_match_slots": False,
            }
 
 The list of platform fields are given below. Any fields not given, will be
@@ -107,4 +107,3 @@ Known Platforms List
         :field-show-default: False
         :field-show-alias: False
         :member-order:
-

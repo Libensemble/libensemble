@@ -6,7 +6,45 @@ Basic Usage
 
 .. basic_usage
 
-See the :doc:`tutorial<tutorials/local_sine_tutorial>` to try out libEnsemble.
+Create an ``Ensemble``, then customize with general settings, simulation and generator parameters,
+and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
+
+.. code-block:: python
+  :linenos:
+
+  import numpy as np
+
+  from libensemble import Ensemble
+  from libensemble.gen_funcs.sampling import uniform_random_sample
+  from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+  from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+  from libensemble.tools import add_unique_random_streams
+
+  sampling = Ensemble(parse_args=True)
+  sampling.sim_specs = SimSpecs(
+      sim_f=six_hump_camel,
+      inputs=["x"],
+      outputs=[("f", float)],
+  )
+  sampling.gen_specs = GenSpecs(
+      gen_f=uniform_random_sample,
+      outputs=[("x", float, (2,))],
+      user={
+          "gen_batch_size": 500,
+          "lb": np.array([-3, -2]),
+          "ub": np.array([3, 2]),
+      },
+  )
+
+  sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
+  sampling.exit_criteria = ExitCriteria(sim_max=101)
+
+  if __name__ == "__main__":
+      sampling.run()
+      sampling.save_output(__file__)
+  print("Some output data:\n", sampling.H[["x", "f"]][:10])
+
+See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
 
 See the `user guide`_ for more information.
 

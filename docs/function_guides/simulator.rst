@@ -3,44 +3,63 @@
 Simulator Functions
 ===================
 
-As described in the :ref:`API<api_sim_f>`, the ``sim_f`` is called by a
-libEnsemble worker via a similar interface to the ``gen_f``::
+Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar interfaces.
 
-    out = sim_f(H[sim_specs["in"]][sim_ids_from_allocf], persis_info, sim_specs, libE_info)
+.. code-block:: python
 
-In practice, most ``sim_f`` function definitions written by users resemble::
+    def my_simulation(Input, persis_info, sim_specs, libE_info):
 
-    def my_simulator(H, persis_info, sim_specs, libE_info):
+        batch_size = sim_specs["user"]["batch_size"]
 
-Where :doc:`sim_specs<../data_structures/sim_specs>` is a
-dictionary containing pre-defined parameters for the ``sim_f``, and the other
-parameters serve similar purposes to those in the ``gen_f``. Valid simulator functions
-can accept a subset of the above parameters.
+        Output = np.zeros(batch_size, sim_specs["out"])
+        ...
+        Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
 
-The pattern of setting up a local ``H``, parsing out parameters from
-:class:`sim_specs<libensemble.specs.SimSpecs>`, performing calculations, and returning the local ``H``
-with ``persis_info`` should be familiar::
+        return Output, persis_info
+
+Most ``sim_f`` function definitions written by users resemble::
+
+    def my_simulation(Input, persis_info, sim_specs, libE_info):
+
+where:
+
+    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`
+    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information
+    * :ref:`sim_specs<datastruct-sim-specs>` is a dictionary of simulation parameters, including which fields from the History array got sent
+    *  ``libE_info`` is a dictionary containing libEnsemble-specific entries
+
+Valid simulator functions can accept a subset of the above parameters. So a very simple simulator function can start::
+
+    def my_simulation(Input):
+
+If sim_specs was initially defined::
+
+    sim_specs = {
+        "sim_f": some_function,
+        "in": ["x"],
+        "out:" ["f", float, (1,)],
+        "user": {
+            "batch_size": 128
+        }
+    }
+
+Then user parameters and a *local* array of outputs may be obtained/initialized like::
 
     batch_size = sim_specs["user"]["batch_size"]
-    local_H_out = np.zeros(batch_size, dtype=sim_specs["out"])
+    Output = np.zeros(batch_size, dtype=sim_specs["out"])
 
-    ... # Perform simulation calculations
+This array should be populated with output values from the simulation::
 
-    return local_H_out, persis_info
+    Output["f"], persis_info = do_a_simulation(Input["x"], persis_info)
 
-Between the output array definition and the function returning, any level and complexity
+Then return the array and ``persis_info`` to libEnsemble::
+
+    return Output, persis_info
+
+Between the ``Output`` definition and the ``return``, any level and complexity
 of computation can be performed. Users are encouraged to use the :doc:`executor<../executor/overview>`
 to submit applications to parallel resources if necessary, or plug in components from
 other libraries to serve their needs.
-
-Simulator functions can also return a :ref:`calc_status<funcguides-calcstatus>`
-integer attribute from the ``libensemble.message_numbers`` module to be logged.
-
-Descriptions of included simulator functions can be found :doc:`here<../examples/sim_funcs>`.
-
-The :doc:`Simple Sine tutorial<../tutorials/local_sine_tutorial>` is an
-excellent introduction for writing simple user functions and using them
-with libEnsemble.
 
 Executor
 --------
@@ -55,10 +74,10 @@ for an additional example to try out.
 Persistent Simulators
 ---------------------
 
-Although comparatively uncommon, simulator functions can also be instantiated and written
+Although comparatively uncommon, simulator functions can also be written
 in a persistent fashion. See the :ref:`here<persistent-gens>` for a general API overview
 of writing persistent generators, since the interface is largely identical. The only
-differences are to include ``EVAL_SIM_TAG`` when instantiating a ``PersistentSupport``
+differences are to pass ``EVAL_SIM_TAG`` when instantiating a ``PersistentSupport``
 class instance, and to return ``FINISHED_PERSISTENT_SIM_TAG`` when the simulator
 function returns.
 

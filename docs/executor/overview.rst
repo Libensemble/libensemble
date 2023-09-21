@@ -45,70 +45,102 @@ The **Executor** provides a portable interface for running applications on any s
 Basic usage
 -----------
 
-In calling script::
+**In calling script**
 
-    from libensemble.executors.mpi_executor import MPIExecutor
+To set up an MPI executor, register an MPI application, and add
+to the ensemble object.
+
+.. code-block:: python
+
+    from libensemble import Ensemble
+    from libensemble.executors import MPIExecutor
 
     exctr = MPIExecutor()
     exctr.register_app(full_path="/path/to/my/exe", app_name="sim1")
+    ensemble = Ensemble(executor=exctr)
 
-Note that the Executor in the calling script does **not** have to be passed to
-``libE()``. They can be extracted via ``Executor.executor`` in the sim function
-(regardless of type).
+If using the ``libE()`` call, the Executor in the calling script does **not**
+have to be passed to the ``libE()`` function. It is transferred via the
+``Executor.executor`` class variable.
 
-In user simulation function::
+**In user simulation function**::
 
-    from libensemble.executors import Executor
+    def sim_func(H, persis_info, sim_specs, libE_info):
 
-    # Will return Executor (whether MPI or inherited such as Balsam).
-    exctr = Executor.executor
+        input_param = str(int(H["x"][0][0]))
+        exctr = libE_info["executor"]
 
-    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
-                        stdout="out.txt", stderr="err.txt")
+        task = exctr.submit(
+            app_name="sim1",
+            num_procs=8,
+            app_args=input_param,
+            stdout="out.txt",
+            stderr="err.txt",
+        )
 
-    # Wait for task to complete
-    task.wait()
+        # Wait for task to complete
+        task.wait()
+
+Example use-cases:
+
+* :doc:`Electrostatic Forces example <../tutorials/executor_forces_tutorial>`: Launches the ``forces.x`` MPI application.
+
+* :doc:`Forces example with GPUs <../tutorials/forces_gpu_tutorial>`: Auto-assigns GPUs via executor.
+
+See the :doc:`Executor<executor>` or :doc:`MPIExecutor<mpi_executor>` interface
+for the complete API.
+
+See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
+diagrams, how common options such as ``libE_specs["dedicated_mode"]`` affect the
+run configuration on clusters and supercomputers.
 
 Advanced Features
 -----------------
 
 **Example of polling output and killing application:**
 
-In user simulation function::
+In simulation function (sim_f).
+
+.. code-block:: python
 
     import time
-    from libensemble.executors import Executor
 
-    # Will return Executor (whether MPI or inherited such as Balsam).
-    exctr = Executor.executor
+    def sim_func(H, persis_info, sim_specs, libE_info):
 
-    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
-                        stdout="out.txt", stderr="err.txt")
+        input_param = str(int(H["x"][0][0]))
+        exctr = libE_info["executor"]
 
-    timeout_sec = 600
-    poll_delay_sec = 1
+        task = exctr.submit(
+            app_name="sim1",
+            num_procs=8,
+            app_args=input_param,
+            stdout="out.txt",
+            stderr="err.txt",
+        )
 
-    while(not task.finished):
+        timeout_sec = 600
+        poll_delay_sec = 1
 
-        # Has manager sent a finish signal
-        exctr.manager_poll()
-        if exctr.manager_signal in [MAN_SIGNAL_KILL, MAN_SIGNAL_FINISH]:
-            task.kill()
-            my_cleanup()
+        while(not task.finished):
 
-        # Check output file for error and kill task
-        elif task.stdout_exists():
-            if "Error" in task.read_stdout():
+            # Has manager sent a finish signal
+            if exctr.manager_kill_received():
                 task.kill()
+                my_cleanup()
 
-        elif task.runtime > timeout_sec:
-            task.kill()  # Timeout
+            # Check output file for error and kill task
+            elif task.stdout_exists():
+                if "Error" in task.read_stdout():
+                    task.kill()
 
-        else:
-            time.sleep(poll_delay_sec)
-            task.poll()
+            elif task.runtime > timeout_sec:
+                task.kill()  # Timeout
 
-    print(task.state)  # state may be finished/failed/killed
+            else:
+                time.sleep(poll_delay_sec)
+                task.poll()
+
+        print(task.state)  # state may be finished/failed/killed
 
 .. The Executor can also be retrieved using Python's ``with`` context switching statement,
 .. although this is effectively syntactical sugar to above::
@@ -123,40 +155,29 @@ In user simulation function::
 Users who wish to poll only for manager kill signals and timeouts don't necessarily
 need to construct a polling loop like above, but can instead use an the ``Executor``
 built-in ``polling_loop()`` method. An alternative to the above simulation function
-may resemble::
+may resemble:
 
-    from libensemble.executors import Executor
+.. code-block:: python
 
-    # Will return Executor (whether MPI or inherited such as Balsam).
-    exctr = Executor.executor
+    def sim_func(H, persis_info, sim_specs, libE_info):
 
-    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
-                        stdout="out.txt", stderr="err.txt")
+        input_param = str(int(H["x"][0][0]))
+        exctr = libE_info["executor"]
 
-    timeout_sec = 600
-    poll_delay_sec = 1
+        task = exctr.submit(
+            app_name="sim1",
+            num_procs=8,
+            app_args=input_param,
+            stdout="out.txt",
+            stderr="err.txt",
+        )
 
-    exctr.polling_loop(task, timeout=timeout_sec, delay=poll_delay_sec)
+        timeout_sec = 600
+        poll_delay_sec = 1
 
-    print(task.state)  # state may be finished/failed/killed
+        exctr.polling_loop(task, timeout=timeout_sec, delay=poll_delay_sec)
 
-Or put *yet another way*::
-
-    from libensemble.executors import Executor
-
-    # Will return Executor (whether MPI or inherited such as Balsam).
-    exctr = Executor.executor
-
-    task = exctr.submit(app_name="sim1", num_procs=8, app_args="input.txt",
-                        stdout="out.txt", stderr="err.txt")
-
-    print(task.result(timeout=600))  # returns state on completion
-
-See the :doc:`executor<executor>` interface for the complete API.
-
-For a complete example use-case see
-the :doc:`Electrostatic Forces example <../tutorials/executor_forces_tutorial>`,
-which launches the ``forces.x`` application as an MPI task.
+        print(task.state)  # state may be finished/failed/killed
 
 .. note::
     Applications or tasks submitted via the Balsam Executor are referred to as
@@ -174,10 +195,6 @@ with each system, including proxy launchers or task management systems such as
 Balsam_. Currently, these Executors launch at the application level within
 an existing resource pool. However, submissions to a batch scheduler may be
 supported in future Executors.
-
-See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
-diagrams, how common options such as ``libE_specs["dedicated_mode"]`` affect the
-run configuration on clusters and supercomputers.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _`concurrent futures`: https://docs.python.org/3.8/library/concurrent.futures.html
