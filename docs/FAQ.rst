@@ -4,7 +4,7 @@ Frequently Asked Questions
 
 If you have any additional questions, feel free to contact us through Support_.
 
-.. _Support: https://libensemble.readthedocs.io/en/latest/quickstart.html#support
+.. _Support: https://github.com/Libensemble/libensemble#resources
 
 Common Errors
 -------------

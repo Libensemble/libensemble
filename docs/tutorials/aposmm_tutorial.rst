@@ -300,6 +300,6 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
 .. _NLopt: https://nlopt.readthedocs.io/en/latest/
 .. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
-.. _SciPy: https://www.scipy.org/scipylib/index.html
+.. _SciPy: https://scipy.org/
 .. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
 .. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials
