@@ -84,7 +84,7 @@ more complicated. The :doc:`APOSMM<../examples/aposmm>`
 optimization generator function included with libEnsemble is persistent so it can
 maintain multiple local optimization subprocesses based on results from complete simulations.
 
-Use ``gen_specs["persis_in"]`` to specify fields to send back to the generator throughout runtime.
+Use ``gen_specs["persis_in"]`` to specify fields to send back to the generator throughout the run.
 ``gen_specs["in"]`` only describes the input fields when the function is **first called**.
 
 Functions for a persistent generator to communicate directly with the manager
@@ -202,7 +202,7 @@ Generator initiated shutdown
 If using a supporting allocation function, the generator can prompt the ensemble to shutdown
 by simply exiting the function (e.g., on a test for a converged value). For example, the
 allocation function :ref:`start_only_persistent<start_only_persistent_label>` closes down
-the ensemble as soon a persistent generator returns. The usual return values should be given.
+the ensemble as soon as a persistent generator returns. The usual return values should be given.
 
 Examples
 --------
