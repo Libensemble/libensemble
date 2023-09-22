@@ -6,7 +6,6 @@ If you have any additional questions, feel free to contact us through Support_.
 
 .. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
 
-
 Debugging
 ---------
 

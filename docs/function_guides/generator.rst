@@ -173,7 +173,7 @@ Previously submitted simulations can be cancelled by sending a message to the ma
 
 - If a generated point is cancelled by the generator **before sending** to another worker for simulation, then it won't be sent.
 - If that point has **already been evaluated** by a simulation, the ``cancel_requested`` field will remain ``True``.
-- If that point is **currently being evaluated**, a kill signal will be sent to the corresponding worker; it must be manually processed in the simulation function. 
+- If that point is **currently being evaluated**, a kill signal will be sent to the corresponding worker; it must be manually processed in the simulation function.
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
 of the capability to cancel pending simulations.
