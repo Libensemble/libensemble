@@ -13,7 +13,7 @@ Release 1.0.0
 
 :Date: September 22, 2023
 
-New Capabilities:
+New capabilities:
 
 * *libE_specs* option `final_gen_send` returns last results to the generator (replaces `final_fields`). #1086
 * *libE_specs* option `reuse_output_dir` allows reuse of workflow and ensemble directories. #1028 #1041
@@ -25,37 +25,39 @@ New Capabilities:
 * sim/gen_specs can use `outputs` in place of `out` to be consistent with `inputs`. #1075
 * Executor can be obtained from `libE_info` (4th parameter) in user functions. #1078
 
-Breaking Changes:
+Breaking changes:
 
 * *libE_specs* option `final_fields` is removed in favor of `final_gen_send`. #1086
 * *libE_specs* option `kill_canceled_sims` now defaults to **False**. #1062
 * *parse_args* is not run automatically by `Ensemble` constructor.
 
-Updates to **Object Oriented** Ensemble Interface:
+Updates to **Object Oriented** Ensemble interface:
 
 * Added `parse_args` as option to `Ensemble` constructor. #1065
 * The *executor* can be passed as an option to the `Ensemble` constructor. #1078
 * Better handling of `Ensemble.add_random_streams` and `ensemble.persis_info`. #1074
 
-Output Changes:
+Output changes:
 
 * The worker ID suffix is removed from sim/gen output directories. #1041
 * Separate *ensemble.log* and *libE_stats.txt* for different workflows directories. #1027 #1041
 * Defaults to four digits for sim/gen ID in output directories (adds digits on overflow). #1052 / #1066
 
-Bug Fixes:
+Bug fixes:
+
 * Resolved PETSc/OpenMPI issue (when using the Executor). #1064
 * Prevent `mpi4py` validation running during local comms (when using OO interface). #1065
 
-Performance Changes:
+Performance changes:
+
 * Optimize `kill_cancelled_sims` function. #1043 / #1063
 * *safe_mode* defaults to **False** (for performance). #1053
 
-Updates to Example Functions:
+Updates to example functions:
 
 * Multiple regression tests and examples ported to use OO ensemble interface. #1014
 
-Update Forces Examples:
+Update forces examples:
 
 * Make persistent generator the default for both simple and GPU examples (inc. updated tutorials).
 * Update to object oriented interface.
