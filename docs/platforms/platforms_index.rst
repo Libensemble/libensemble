@@ -144,7 +144,7 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
-.. _funcx_ref:
+.. _globus_compute_ref:
 
 Globus Compute - Remote User Functions
 --------------------------------------
@@ -152,7 +152,7 @@ Globus Compute - Remote User Functions
 *Alternatively to much of the above*, if libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
-themselves via `Globus Compute`_, a distributed, high-performance function-as-a-service platform:
+themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
 
     .. image:: ../images/funcxmodel.png
         :alt: running_with_globus_compute
@@ -196,7 +196,7 @@ argument. For example::
         globus_compute_endpoint = "3af6dc24-3f27-4c49-8d11-e301ade15353",
     )
 
-See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
+See the ``libensemble/tests/scaling_tests/globus_compute_forces`` directory for a complete
 remote-simulation example.
 
 Instructions for Specific Platforms

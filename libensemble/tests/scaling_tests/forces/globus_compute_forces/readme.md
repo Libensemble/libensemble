@@ -18,25 +18,20 @@ See below.
 
 ### Running with libEnsemble.
 
-On the remote machine:
-
-    pip install funcx-endpoint
-    funcx-endpoint configure forces
-
-Configure the endpoint's `config.py` to include your project information and
+On the remote machine, Configure the endpoint's `config.py` to include your project information and
 match the machine's specifications.
 See [here](https://funcx.readthedocs.io/en/latest/endpoints.html#theta-alcf) for
 an example ALCF Theta configuration.
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces_funcx.py --comms local --nworkers N
+    python run_libe_forces_globus_compute.py --comms local --nworkers N
 
 To run with MPI comms using one manager and `N-1` workers:
 
-    mpirun -np N python run_libe_forces.py
+    mpirun -np N python run_libe_forces_globus_compute.py
 
-Application parameters can be adjusted in `funcx_forces.yaml`.
+Application parameters can be adjusted in `globus_compute_forces.yaml`.
 
 Note that each function and path must be accessible and/or importable on the
 remote machine. Absolute paths are recommended.
