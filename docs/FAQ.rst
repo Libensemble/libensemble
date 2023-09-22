@@ -142,6 +142,11 @@ HPC Errors and Questions
 
 .. dropdown:: **srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
 
+  Note that this message has been observed on Perlmutter when none of the problems
+  below are present, and is likely caused by interference with system processes
+  that run between tasks. In this case, it may cause overhead but does not prevent
+  correct functioning.
+
   When running on a SLURM system, this implies that you are trying to run on a resource
   that is already dedicated to another task. The reason can vary, some reasons are:
 
