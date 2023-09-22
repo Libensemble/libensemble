@@ -16,7 +16,7 @@ Release 1.0.0
 New capabilities:
 
 * *libE_specs* option `final_gen_send` returns last results to the generator (replaces `final_fields`). #1086
-* *libE_specs* option `reuse_output_dir` * allows reuse of workflow and ensemble directories. #1028 #1041
+* *libE_specs* option `reuse_output_dir` allows reuse of workflow and ensemble directories. #1028 #1041
 * *libE_specs* option `calc_dir_id_width` no. of digits for calc ID in output sim/gen dirs. #1052 / #1066
 * Added `gen_num_procs` and `gen_num_gpus` *libE_specs* (and *persis_info*) options for resourcing a generator. #1068
 * Added `gpu_env_fallback` option to platform fields - specifies a GPU environment variable (for non-MPI usage). #1050
@@ -28,7 +28,7 @@ New capabilities:
 Breaking changes:
 
 * *libE_specs* option `final_fields` is removed in favor of `final_gen_send`. #1086
-* *libE_specs* option *kill_canceled_sims* now defaults to **False**. #1062
+* *libE_specs* option `kill_canceled_sims` now defaults to **False**. #1062
 * *parse_args* is not run automatically by `Ensemble` constructor.
 
 Updates to **Object Oriented** ensemble interface:
@@ -48,7 +48,7 @@ Bug fixes:
 
 Performance changes:
 * Optimize `kill_cancelled_sims` function.  #1043 / #1063
-* *safe_mode* defaults to False (for performance). #1053
+* *safe_mode* defaults to **False** (for performance). #1053
 
 Updates to example functions:
 
