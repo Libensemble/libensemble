@@ -11,7 +11,7 @@ The ``alloc_f`` is unique since it is called by libEnsemble's manager instead of
 For allocation functions, as with the other user functions, the level of complexity can
 vary widely. We encourage experimenting with:
 
-    1.  Prioritization of simulations,
+    1.  Prioritization of simulations
     2.  Sending results immediately or in batch
     3.  Assigning varying resources to evaluations
 
@@ -26,7 +26,7 @@ Most ``alloc_f`` function definitions written by users resemble::
 
 where:
 
-    * :ref:`W<funcguides-workerarray>` is an array containing worker state info,
+    * :ref:`W<funcguides-workerarray>` is an array containing worker state info
     * :ref:`H<funcguides-history>` is the *trimmed* History array, containing rows from the generator
     * :ref:`libE_info<libE_info_alloc>` is a set of statistics to determine the progress of work or exit conditions
 
@@ -76,7 +76,7 @@ dictionary values to give to those workers:
 
 This Work dictionary instructs each worker to call the ``sim_f`` (``tag: 1``)
 with data from ``"x"`` and a given ``"H_row"`` from the
-History array. A worker specific ``persis_info`` is also given.
+History array. A worker-specific ``persis_info`` is also given.
 
 Constructing these arrays and determining which workers are available
 for receiving data is simplified by use of the ``AllocSupport`` class
