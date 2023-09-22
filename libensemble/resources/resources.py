@@ -39,11 +39,11 @@ class Resources:
 
     The following are set up after manager/worker fork.
 
-    The resource manager is set up only on the manaager, while the worker resources object is set
+    The resource manager is set up only on the manager, while the worker resources object is set
     up on workers.
 
     :ivar ResourceManager resource_manager: An object that manages resource set assignment to workers.
-    :ivar WorkerResources worker_resources: An object that contains worker specific resources.
+    :ivar WorkerResources worker_resources: An object that contains worker-specific resources.
     """
 
     resources = None
@@ -116,7 +116,7 @@ class GlobalResources:
         dedicated_mode: bool, Optional
             If true, then dedicate nodes to running libEnsemble.
             Dedicated mode means that any nodes running libE processes (manager and workers),
-            will not be available to worker launched tasks (user applications). They will
+            will not be available to worker-launched tasks (user applications). They will
             be removed from the nodelist (if present), before dividing into resource sets.
 
         zero_resource_workers: List[int], Optional

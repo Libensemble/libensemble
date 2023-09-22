@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-This example runs two difference applications, one that uses only CPUs and one
-that uses GPUs. Both uses a variable number of processors. The GPU application
+This example runs different applications, one that uses only CPUs and one
+that uses GPUs. Both use a variable number of processors. The GPU application
 uses one GPU per processor. As the generator creates simulations, it randomly
 assigns between one and max_proc processors to each simulation, and also randomly
 assigns which application is to be run.

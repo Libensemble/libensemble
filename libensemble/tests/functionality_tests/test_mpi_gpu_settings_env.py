@@ -1,12 +1,12 @@
 """
-Tests options to run an an application in a bash specified environment, without
+Tests options to run an application in a bash-specified environment, without
 affecting the parent environment.
 
 This is based on the variable resource detection and automatic GPU assignment test.
 
-This test uses the dry_run option to test correct runline and GPU settings for
-different mocked up systems. Test assertions are in the sim function via the
-check_mpi_runner and check_gpu_setting functions.
+This test uses the dry_run option to test the correct runline and GPU settings
+for different mocked-up systems. Test assertions are in the sim function via
+the check_mpi_runner and check_gpu_setting functions.
 
 Execute via one of the following commands (e.g., 5 workers):
    mpiexec -np 6 python test_mpi_gpu_settings_env.py

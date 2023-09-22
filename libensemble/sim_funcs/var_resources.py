@@ -3,7 +3,7 @@ Simulation functions that use the MPIExecutor with dynamic resource assignment.
 ``six_hump_camel`` and ``helloworld`` python scripts are used as example
 applications, but these could be any MPI application.
 
-Each simulation function use the resources assigned to this worker to set CPU
+Each simulation function uses the resources assigned to this worker to set CPU
 count and, in some functions, specify GPU usage.
 
 GPUs are not used for the six_hump_camel function, but these tests check the
@@ -39,9 +39,9 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     The six_hump_camel app does not run on the GPU, but this test demonstrates
     how to automatically assign the GPUs given to this worker via the MPIExecutor.
 
-    The method used to assign GPUs will be determined by the MPI runner or user
-    provided configuration (e.g., by setting the ``platform`` or ``platform_specs``
-    options or the LIBE_PLATFORM environment variable).
+    The method used to assign GPUs will be determined by the MPI runner or
+    user-provided configuration (e.g., by setting the ``platform`` or
+    ``platform_specs`` options or the LIBE_PLATFORM environment variable).
 
     """
     x = H["x"][0]
@@ -190,7 +190,7 @@ def multi_points_with_variable_resources(H, _, sim_specs, libE_info):
     nodes.
 
     Note that this is also an example that is capable of handling multiple
-    points (sim ids) in one each call.
+    points (sim ids) in each call.
 
     .. seealso::
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
