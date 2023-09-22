@@ -58,7 +58,7 @@ need to write a new allocation function.
               for generating random numbers.
 
             * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined static fields and
-              parameters. Customizable parameters such as boundaries and batch
+              parameters. Customizable parameters such as lower and upper bounds and batch
               sizes are placed within the ``gen_specs["user"]`` dictionary, while input/output and other fields
               that libEnsemble needs to operate the generator are placed outside ``user``.
 

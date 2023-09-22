@@ -75,7 +75,7 @@ Persistent Generators
 While non-persistent generators return after completing their calculation, persistent
 generators do the following in a loop:
 
-    1. Receive simulation results and metadata. Exit if metadata instructs
+    1. Receive simulation results and metadata; exit if metadata instructs
     2. Perform analysis
     3. Send subsequent simulation parameters
 
@@ -160,7 +160,7 @@ a worker can be initiated in *active receive* mode by the allocation
 function (see :ref:`start_only_persistent<start_only_persistent_label>`).
 The persistent worker can then send and receive from the manager at any time.
 
-Ensure there are no communication deadlocks in this mode. In manager/worker message exchanges, only the worker-side
+Ensure there are no communication deadlocks in this mode. In manager--worker message exchanges, only the worker-side
 receive is blocking by default (a non-blocking option is available).
 
 Cancelling Simulations
@@ -173,7 +173,7 @@ Previously submitted simulations can be cancelled by sending a message to the ma
 
 - If a generated point is cancelled by the generator **before sending** to another worker for simulation, then it won't be sent.
 - If that point has **already been evaluated** by a simulation, the ``cancel_requested`` field will remain ``True``.
-- If that point is **currently being evaluated**, a kill signal will be sent to the corresponding worker. It must be manually processed in the simulation function
+- If that point is **currently being evaluated**, a kill signal will be sent to the corresponding worker; it must be manually processed in the simulation function. 
 
 The :doc:`Borehole Calibration tutorial<../tutorials/calib_cancel_tutorial>` gives an example
 of the capability to cancel pending simulations.

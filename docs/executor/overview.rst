@@ -90,8 +90,8 @@ Example use-cases:
 See the :doc:`Executor<executor>` or :doc:`MPIExecutor<mpi_executor>` interface
 for the complete API.
 
-See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
-diagrams, how common options such as ``libE_specs["dedicated_mode"]`` affect the
+See :doc:`Running on HPC Systems<../platforms/platforms_index>` for illustrations
+of how common options such as ``libE_specs["dedicated_mode"]`` affect the
 run configuration on clusters and supercomputers.
 
 Advanced Features

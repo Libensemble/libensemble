@@ -8,7 +8,7 @@ This test uses the dry_run option to test correct runline and GPU settings for
 different mocked up systems. Test assertions are in the sim function via the
 check_mpi_runner and check_gpu_setting functions.
 
-Execute via one of the following commands (e.g. 5 workers):
+Execute via one of the following commands (e.g., 5 workers):
    mpiexec -np 6 python test_mpi_gpu_settings_env.py
    python test_mpi_gpu_settings_env.py --comms local --nworkers 5
 

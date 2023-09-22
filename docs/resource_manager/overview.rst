@@ -68,7 +68,7 @@ along with the work request (simulation).
 In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``:
 
 .. code-block:: python
-    :emphasize-lines: 4
+    :emphasize-lines: 6
 
     gen_specs = {
         "gen_f": gen_f,
@@ -133,7 +133,7 @@ For example, in *CUDA_variable_resources*, the environment variable
 ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
-    :emphasize-lines: 3
+    :emphasize-lines: 2
 
     resources = Resources.resources.worker_resources
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
@@ -195,12 +195,12 @@ Varying generator resources
 
 By default, generators are not allocated resources in dynamic mode. Fixed resources
 for the generator can be set using the *libE_specs* options
-``gen_num_procs`` and ``gen_num_gpus``, which takes an integer value.
-If only  ``gen_num_gpus`` is set, then number of processors will match.
+``gen_num_procs`` and ``gen_num_gpus``, which take integer values.
+If only ``gen_num_gpus`` is set, then the number of processors will be set to match.
 
 To vary generator resources, ``persis_info`` settings can be used in allocation
 functions before calling the ``gen_work`` support function. This takes the
-same options (``gen_num_procs`` and ``gen_num_gpus``)
+same options (``gen_num_procs`` and ``gen_num_gpus``).
 
 Alternatively, the setting ``persis_info["gen_resources"]`` can also be set to
 a number of resource sets.

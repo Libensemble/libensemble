@@ -83,7 +83,7 @@ The default is ``mpi``.
 
         **Limitations of local mode**
 
-        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes
+        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
         - In some scenarios, any import of ``mpi4py`` will cause this to break.
         - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
@@ -110,7 +110,7 @@ The default is ``mpi``.
 
         - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
 
-Further command line options
+Further Command Line Options
 ----------------------------
 
 See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for

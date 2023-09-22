@@ -139,7 +139,7 @@ be processed. The manager will send kill signals to workers that are already pro
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
 
-Allocation function and Cancellation configuration
+Allocation Function and Cancellation Configuration
 --------------------------------------------------
 
 The allocation function used in this example is the *only_persistent_gens* function in the

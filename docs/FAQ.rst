@@ -4,7 +4,17 @@ Frequently Asked Questions
 
 If you have any additional questions, feel free to contact us through Support_.
 
-.. _Support: https://github.com/Libensemble/libensemble#resources
+.. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
+
+
+Debugging
+---------
+
+We recommend using the following options to help debug workflows::
+
+    from libensemble import logger
+    logger.set_level("DEBUG")
+    libE_specs["safe_mode"] = True
 
 Common Errors
 -------------

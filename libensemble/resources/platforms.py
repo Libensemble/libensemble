@@ -100,9 +100,9 @@ class Platform(BaseModel):
         "gpu_env_fallback" = "ROCR_VISIBLE_DEVICES"
 
     This example will use the MPI runner default settings when using an MPI runner, but
-    will otherwise use ROCR_VISIBLE_DEVICES (e.g. if setting via function set_env_to_gpus).
+    will otherwise use ROCR_VISIBLE_DEVICES (e.g., if setting via function set_env_to_gpus).
 
-    If this is not set, the default is "CUDA_VISIBLE_DEVICES"
+    If this is not set, the default is "CUDA_VISIBLE_DEVICES".
 
     """
 
@@ -116,8 +116,8 @@ class Platform(BaseModel):
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``, where
     the value should match on each node of an MPI run (choose **True**).
 
-    When using command-line options just as ``--gpus-per-node``, which allow the systems
-    application level scheduler to manager GPUs, then ``match_slots`` can be **False**
+    When using command-line options just as ``--gpus-per-node``, which allow the system's
+    application-level scheduler to manager GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
@@ -264,7 +264,7 @@ class Known_platforms(BaseModel):
                 export LIBE_PLATFORM="perlmutter_g"
 
 
-    If the platform is not specified, libEnsemble will attempt detect known
+    If the platform is not specified, libEnsemble will attempt to detect known
     platforms (this is not guaranteed).
 
     **Note**: libEnsemble should work on any platform, and detects most

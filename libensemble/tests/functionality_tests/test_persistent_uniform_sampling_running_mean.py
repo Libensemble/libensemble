@@ -2,7 +2,7 @@
 Tests the ability of libEnsemble to
  - give back history entries from the a shutting-down persistent gen
 
-Execute via one of the following commands (e.g. 3 workers):
+Execute via one of the following commands (e.g., 3 workers):
    mpiexec -np 4 python test_persistent_uniform_sampling_adv.py
    python test_persistent_uniform_sampling_running_mean.py --nworkers 3 --comms local
    python test_persistent_uniform_sampling_running_mean.py --nworkers 3 --comms tcp
