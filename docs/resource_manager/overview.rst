@@ -195,12 +195,12 @@ Varying generator resources
 
 By default, generators are not allocated resources in dynamic mode. Fixed resources
 for the generator can be set using the *libE_specs* options
-``gen_num_procs`` and ``gen_num_gpus``, which takes an integer value.
-If only  ``gen_num_gpus`` is set, then number of processors will match.
+``gen_num_procs`` and ``gen_num_gpus``, which take integer values.
+If only ``gen_num_gpus`` is set, then the number of processors will be set to match.
 
 To vary generator resources, ``persis_info`` settings can be used in allocation
 functions before calling the ``gen_work`` support function. This takes the
-same options (``gen_num_procs`` and ``gen_num_gpus``)
+same options (``gen_num_procs`` and ``gen_num_gpus``).
 
 Alternatively, the setting ``persis_info["gen_resources"]`` can also be set to
 a number of resource sets.
