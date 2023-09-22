@@ -155,7 +155,7 @@ launch generator or simulator user function instances to separate resources from
 themselves via `Globus Compute`_, a distributed, high-performance function-as-a-service platform:
 
     .. image:: ../images/funcxmodel.png
-        :alt: running_with_funcx
+        :alt: running_with_globus_compute
         :scale: 50
         :align: center
 
