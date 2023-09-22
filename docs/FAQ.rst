@@ -38,7 +38,7 @@ Common Errors
     one worker, leaving none to run simulation functions.
 
   - An error in the allocation function. For example, perhaps the allocation
-    waiting for all requested evaluations to be returned (e.g, before starting a
+    waiting for all requested evaluations to be returned (e.g., before starting a
     new generator), but this condition
     is not returning True even though all scheduled evaluations have returned. This
     can be due to incorrect implementation (e.g., it has not considered points that
@@ -135,7 +135,7 @@ HPC Errors and Questions
 
   This has been observed with the OFA fabric when using mpi4py and usually
   indicates MPI messages aren't being received correctly. The solution
-  is to either switch fabric or turn off matching probes. See the answer for "Why
+  is to either switch fabric or turn off matching probes. See the answer to "Why
   does libEnsemble hang on certain systems when running with MPI?"
 
   For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
@@ -260,7 +260,7 @@ macOS and Windows Errors
   **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
   " if __name__ == "__main__": freeze_support() ...**
 
-  You need to place your main entrypoint code underneath an ``if __name__ == "__main__":`` block.
+  You need to place your main entry point code underneath an ``if __name__ == "__main__":`` block.
 
   Explanation: Python chooses one of three methods to start new processes when using multiprocessing
   (``--comms local`` with libEnsemble). These are ``"fork"``, ``"spawn"``, and ``"forkserver"``. ``"fork"``

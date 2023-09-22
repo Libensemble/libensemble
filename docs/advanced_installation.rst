@@ -13,7 +13,7 @@ automatically installed alongside libEnsemble:
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
 
-In view of libEnsemble's compiled dependencies, the following installation
+Given libEnsemble's compiled dependencies, the following installation
 methods each offer a trade-off between convenience and the ability
 to customize builds, including platform-specific optimizations.
 
@@ -103,8 +103,8 @@ Further recommendations for selected HPC systems are given in the
             spack install py-libensemble
 
         The above command will install the latest release of libEnsemble with
-        the required dependencies only. There are other optional
-        dependencies that can be specified through variants. The following
+        the required dependencies only. Other optional
+        dependencies can be specified through variants. The following
         line installs libEnsemble version 0.7.2 with some common variants
         (e.g., using :doc:`APOSMM<../examples/aposmm>`):
 
@@ -122,12 +122,12 @@ Further recommendations for selected HPC systems are given in the
 
             spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 
-        The install will create modules for libEnsemble and the dependent
+        The installation will create modules for libEnsemble and the dependent
         packages. These can be loaded by running::
 
             spack load -r py-libensemble
 
-        Any Python packages will be added to the PYTHONPATH, when the modules are loaded. If you do not have
+        Any Python packages will be added to the PYTHONPATH when the modules are loaded. If you do not have
         modules on your system you may need to install ``lmod`` (also available in Spack)::
 
             spack install lmod
