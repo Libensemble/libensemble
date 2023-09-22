@@ -2,8 +2,8 @@
 Writing User Functions
 ======================
 
-User functions typically only require some familiarity with NumPy_, but if they conform to
-the :ref:`user function APIs<user_api>`, they can incorporate any other machine-learning,
+User functions typically require only some familiarity with NumPy_, but if they conform to
+the :ref:`user function APIs<user_api>`, they can incorporate methods from machine-learning,
 mathematics, resource management, or other libraries/applications.
 
 These guides describe common development patterns and optional components:
