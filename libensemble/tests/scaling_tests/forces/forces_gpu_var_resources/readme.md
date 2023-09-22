@@ -1,6 +1,6 @@
 ## Tutorial
 
-This example referred to in the tutorial **Executor - Assign GPUs**.
+This example is referred to in the tutorial **Executor - Assign GPUs**.
 
 When the generator creates parameters for each simulation, it sets a number
 of GPUs required for the simulation. Resources are dynamically assigned to
