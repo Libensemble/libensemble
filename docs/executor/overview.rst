@@ -105,6 +105,7 @@ In simulation function (sim_f).
 
     import time
 
+
     def sim_func(H, persis_info, sim_specs, libE_info):
 
         input_param = str(int(H["x"][0][0]))
@@ -121,7 +122,7 @@ In simulation function (sim_f).
         timeout_sec = 600
         poll_delay_sec = 1
 
-        while(not task.finished):
+        while not task.finished:
 
             # Has manager sent a finish signal
             if exctr.manager_kill_received():
@@ -153,7 +154,7 @@ In simulation function (sim_f).
 ..     ...
 
 Users who wish to poll only for manager kill signals and timeouts don't necessarily
-need to construct a polling loop like above, but can instead use an the ``Executor``
+need to construct a polling loop like above, but can instead use the ``Executor``
 built-in ``polling_loop()`` method. An alternative to the above simulation function
 may resemble:
 
