@@ -14,7 +14,7 @@ Configuring APOSMM
 
 APOSMM works with a choice of optimizers, some requiring external packages. To
 import the optimization packages (and their dependencies) at a global level
-(recommended), add the following lines in the calling script, before importing
+(recommended), add the following lines in the calling script before importing
 APOSMM::
 
     import libensemble.gen_funcs
@@ -26,8 +26,8 @@ where ``optimizers`` is a string (or list of strings) from the available options
 
 .. dropdown:: Issues with ensemble hanging or failed simulations?
 
-    Note, that if using **mpi4py** comms, PETSc must be imported at the global
-    level, or the ensemble may hang.
+    Note that if using **mpi4py** comms, PETSc must be imported at the global
+    level or the ensemble may hang.
 
     Exception: In the case that you are using the MPIExecutor or other MPI inside
     a user function and you are using Open MPI, then you must:
