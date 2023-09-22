@@ -71,7 +71,7 @@ the other will have two.
 Placing zero-resource functions on a fixed worker
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the generator must must always be on worker one, then instead of using
+If the generator must always be on worker one, then instead of using
 ``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
 
 .. code-block:: python

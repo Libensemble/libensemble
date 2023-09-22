@@ -219,7 +219,7 @@ For example::
 
     python run_libe_forces.py --comms local --nworkers 9
 
-See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
+See :ref:`zero-resource workers<zero_resource_workers>` for more ways to express this.
 
 Changing the number of GPUs per worker
 --------------------------------------
