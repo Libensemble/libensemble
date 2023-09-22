@@ -11,7 +11,7 @@ platform via the `platform`_ option.
 platform_specs
 --------------
 
-A Platform object or dictionary specifying settings for a platform.
+A ``Platform`` object or dictionary specifying settings for a platform.
 
 To define a platform (in calling script):
 
@@ -82,7 +82,7 @@ A string giving the name of a known platform defined in the platforms module.
 
     libE_specs["platform"] = "perlmutter_g"
 
-Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+Note: the environment variable ``LIBE_PLATFORM`` is an alternative way of setting.
 
 E.g., in the command line or batch submission script:
 
