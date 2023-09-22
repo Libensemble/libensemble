@@ -154,7 +154,7 @@ need to write a new allocation function.
 
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
-        then returns it so the worker can store the result.
+        and then returns it so the worker can store the result.
 
         **Exercise**
 
@@ -267,7 +267,7 @@ need to write a new allocation function.
             [(-0.37466051, 1.559+09, 2, 2,  True,  True, [-0.38403059],  True,  0, 1.559+09)
             (-0.29279634, 1.559+09, 2, 3,  True,  True, [-2.84444261],  True,  1, 1.559+09)
             ( 0.29358492, 1.559+09, 2, 4,  True,  True, [ 0.29797487],  True,  2, 1.559+09)
-            (-0.3783986 , 1.559+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.559+09)
+            (-0.3783986, 1.559+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.559+09)
             (-0.45982062, 1.559+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.559+09)
             ...
 
@@ -373,7 +373,7 @@ need to write a new allocation function.
         doesn't work, try appending ``--user`` to the end of the command. See the
         mpi4py_ docs for more information.
 
-        Verify that MPI has installed correctly with ``mpirun --version``.
+        Verify that MPI has been installed correctly with ``mpirun --version``.
 
         **Modifying the script**
 

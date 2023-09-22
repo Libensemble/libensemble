@@ -24,7 +24,7 @@ Simulation function
 -------------------
 
 The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
-to the simple forces example are highlighted:
+from the simple forces example are highlighted:
 
 .. code-block:: python
     :linenos:
@@ -246,7 +246,7 @@ Multiple applications
 ---------------------
 
 Another variant of this example, forces_multi_app_, has two applications, one that
-uses GPUs, and another that only uses CPUs. The dynamic resource management can
+uses GPUs, and another that only uses CPUs. Dynamic resource management can
 manage both types of resources and assign these to the same nodes concurrently, for
 maximum efficiency.
 
