@@ -283,9 +283,9 @@ For example::
 
     os.environ["OMP_NUM_THREADS"] = 4
 
-set in your simulation script before the Executor submit command will export the setting to your run.
-For running a bash script in a sub environment when using the Executor, see the ``env_script``
-option to the :doc:`MPI Executor<executor/mpi_executor>`.
+set in your simulation script before the Executor *submit* command will export the setting
+to your run. For running a bash script in a sub environment when using the Executor, see
+the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 Further Run Information
 -----------------------
