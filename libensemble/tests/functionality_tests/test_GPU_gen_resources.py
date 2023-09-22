@@ -15,7 +15,7 @@ A dry_run option is provided. This can be set in the calling script, and will
 just print run-lines and GPU settings. This may be used for testing run-lines
 produced and GPU settings for different MPI runners.
 
-Execute via one of the following commands (e.g. 4 workers):
+Execute via one of the following commands (e.g., 4 workers):
    mpiexec -np 5 python test_GPU_gen_resources.py
    python test_GPU_gen_resources.py --comms local --nworkers 4
 
