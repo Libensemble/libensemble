@@ -33,7 +33,7 @@ CORRESPONDING_CLASSES = {
 class Ensemble:
     """
     The primary object for a libEnsemble workflow.
-    Parses and validates settings, sets up logging, maintains output.
+    Parses and validates settings, sets up logging, and maintains output.
 
     .. dropdown:: Example
         :open:
@@ -343,7 +343,7 @@ class Ensemble:
 
         .. dropdown:: MPI/comms Notes
 
-            Manager-worker intercommunications are parsed from the ``comms`` key of
+            Manager--worker intercommunications are parsed from the ``comms`` key of
             :ref:`libE_specs<datastruct-libe-specs>`. An MPI runtime is assumed by default
             if ``--comms local`` wasn't specified on the command-line or in ``libE_specs``.
 
@@ -526,7 +526,7 @@ class Ensemble:
 
         seed: str, Optional
 
-            Seed for NumPy's RNG
+            Seed for NumPy's RNG.
 
         """
         if num_streams:
@@ -540,7 +540,7 @@ class Ensemble:
     def save_output(self, file: str):
         """
         Writes out History array and persis_info to files.
-        If using a workflow_dir, will place with specified filename in that directory
+        If using a workflow_dir, will place with specified filename in that directory.
 
         Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
