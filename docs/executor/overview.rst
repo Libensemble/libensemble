@@ -107,7 +107,6 @@ In simulation function (sim_f).
 
 
     def sim_func(H, persis_info, sim_specs, libE_info):
-
         input_param = str(int(H["x"][0][0]))
         exctr = libE_info["executor"]
 
@@ -123,7 +122,6 @@ In simulation function (sim_f).
         poll_delay_sec = 1
 
         while not task.finished:
-
             # Has manager sent a finish signal
             if exctr.manager_kill_received():
                 task.kill()
@@ -161,7 +159,6 @@ may resemble:
 .. code-block:: python
 
     def sim_func(H, persis_info, sim_specs, libE_info):
-
         input_param = str(int(H["x"][0][0]))
         exctr = libE_info["executor"]
 

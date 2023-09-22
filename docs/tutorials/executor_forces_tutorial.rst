@@ -60,7 +60,6 @@ generation functions and call libEnsemble. Create a Python file called
     from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     if __name__ == "__main__":
-
         # Initialize MPI Executor
         exctr = MPIExecutor()
 

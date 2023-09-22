@@ -8,7 +8,6 @@ Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar
 .. code-block:: python
 
     def my_simulation(Input, persis_info, sim_specs, libE_info):
-
         batch_size = sim_specs["user"]["batch_size"]
 
         Output = np.zeros(batch_size, sim_specs["out"])

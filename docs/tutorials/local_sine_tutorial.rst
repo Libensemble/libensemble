@@ -74,7 +74,6 @@ need to write a new allocation function.
 
 
             def gen_random_sample(Input, persis_info, gen_specs):
-
                 # Pull out user parameters
                 user_specs = gen_specs["user"]
 
@@ -142,7 +141,6 @@ need to write a new allocation function.
 
 
             def sim_find_sine(Input, _, sim_specs):
-
                 # Create an output array of a single zero
                 Output = np.zeros(1, dtype=sim_specs["out"])
 
