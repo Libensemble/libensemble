@@ -23,28 +23,28 @@ New capabilities:
 * New MPIExecutor `submit()` argument `mpi_runner_type` specifies an MPI runner for current call only. #1054
 * Allow oversubscription when using the `num_procs` *gen_specs["out"]* option. #1058
 * sim/gen_specs can use `outputs` in place of `out` to be consistent with `inputs`. #1075
-* Executor can be obtained from `libE_info` (4th parameter) in user-functions #1078
+* Executor can be obtained from `libE_info` (4th parameter) in user functions. #1078
 
 Breaking changes:
 
 * *libE_specs* option `final_fields` is removed in favor of `final_gen_send`. #1086
-* *libE_specs* option *kill_canceled_sims* nows defaults to **False**. #1062
+* *libE_specs* option *kill_canceled_sims* now defaults to **False**. #1062
 * *parse_args* is not run automatically by `Ensemble` constructor.
 
 Updates to **Object Oriented** ensemble interface:
 
-* Add `parse_args` as option to `Ensemble` constructor. #1065
+* Added `parse_args` as option to `Ensemble` constructor. #1065
 * The *executor* can be passed as an option to the `Ensemble` constructor. #1078
 * Better handling of `Ensemble.add_random_streams` and `ensemble.persis_info`. #1074
 
 * Output changes:
-  * The worker ID suffix is removed from sim/gen output directories #1041
+  * The worker ID suffix is removed from sim/gen output directories. #1041
   * Separate *ensemble.log* and *libE_stats.txt* for diff workflows directories. #1027 #1041
   * Defaults to four digits for sim/gen ID in output dirs (adds digits on overflow). #1052 / #1066
 
 Bug fixes:
 * Resolved PETSc/OpenMPI issue (when using the Executor). #1064
-* Prevent `mpi4py` validation running during local comms (when using OO interface) #1065
+* Prevent `mpi4py` validation running during local comms (when using OO interface). #1065
 
 Performance changes:
 * Optimize `kill_cancelled_sims` function.  #1043 / #1063
@@ -54,7 +54,7 @@ Updates to example functions:
 
 * Multiple regression tests and examples ported to use OO ensemble interface. #1014
 
-* Update forces examples
+* Update forces examples:
   * Make persistent generator the default for both simple and GPU examples (inc. updated tutorials).
   * Update to object oriented interface.
   * Added separate variable resources example for forces GPU.
@@ -66,7 +66,7 @@ Documentation:
 
 :Note:
 
-* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF), Polaris, and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
+* Tested platforms include Linux, MacOS, Windows, and major systems such as Frontier (OLCF), Polaris, and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
 * Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10, 3.11.
 
 :Known issues:
