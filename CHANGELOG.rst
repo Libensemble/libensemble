@@ -40,7 +40,7 @@ Updates to **Object Oriented** Ensemble Interface:
 Output Changes:
 
 * The worker ID suffix is removed from sim/gen output directories. #1041
-* Separate *ensemble.log* and *libE_stats.txt* for diff workflows directories. #1027 #1041
+* Separate *ensemble.log* and *libE_stats.txt* for different workflows directories. #1027 #1041
 * Defaults to four digits for sim/gen ID in output directories (adds digits on overflow). #1052 / #1066
 
 Bug Fixes:
