@@ -43,9 +43,9 @@ See the Executor APIs for optional arguments.
 
     :task.process: (process obj) The process object used by the underlying process
                   manager (e.g., return value of subprocess.Popen).
-    :task.errcode: (int) The errorcode/return code used by the underlying process manager.
+    :task.errcode: (int) The error code (or return code) used by the underlying process manager.
     :task.finished: (boolean) True means task has finished running - not whether it was successful.
-    :task.success: (boolean) Did task complete successfully (e.g., the returncode is zero)?
+    :task.success: (boolean) Did task complete successfully (e.g., the return code is zero)?
     :task.runtime: (int) Time in seconds that task has been running.
     :task.submit_time: (int) Time since epoch that task was submitted.
     :task.total_time: (int) Total time from task submission to completion (only available when task is finished).
