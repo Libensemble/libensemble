@@ -6,7 +6,7 @@ This example is similar to the forces_gpu test.
 The forces.c application should be built by setting the GPU preprocessor condition
 (usually -DGPU) in addition to openMP GPU flags for the given system. See examples
 in ../forces_app/build_forces.sh. We recommend running forces.x standalone first
-and confirm it is running on the GPU (this is given clearly in the output).
+and confirming it is running on the GPU (this is given clearly in the output).
 
 A number of GPUs is requested based on the number of particles (randomly chosen
 from the range for each simulation). For simplicity, the number of GPUs requested
@@ -14,7 +14,7 @@ is based on a linear split of the range (lb to ub), rather than absolute particl
 count.
 
 To mock on a non-GPU system, uncomment the resource_info line in libE_specs. You
-will compile forces without -DGPU option. It is recommended that the lb/ub for
+will compile forces without the -DGPU option. It is recommended that the ub and/or lb for
 particle counts are reduced for CPU performance.
 """
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         },
     )
 
-    # Instruct libEnsemble to exit after this many simulations
+    # Instruct libEnsemble to exit after this many simulations.
     ensemble.exit_criteria = ExitCriteria(sim_max=8)
 
     # Seed random streams for each worker, particularly for gen_f
@@ -92,10 +92,10 @@ if __name__ == "__main__":
     ensemble.run()
 
     if ensemble.is_manager:
-        # Note, this will change if change sim_max, nworkers, lb/ub etc...
+        # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
         if ensemble.exit_criteria.sim_max == 8:
             chksum = np.sum(ensemble.H["energy"])
             assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"
             print("Checksum passed")
         else:
-            print("Run complete. A checksum has not been provided for the given sim_max")
+            print("Run complete; a checksum has not been provided for the given sim_max")
