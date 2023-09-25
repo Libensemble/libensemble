@@ -4,7 +4,7 @@ libEnsemble with SLURM
 
 SLURM is a popular open-source workload manager.
 
-libEnsemble is able to read SLURM node lists and partition these to workers. By
+libEnsemble can read SLURM node lists and partition these to workers. By
 default this is done by :ref:`reading an environment variable<resource_detection>`.
 
 Example SLURM submission scripts for various systems are given in the
@@ -50,12 +50,12 @@ when assigning more than one worker to any given node.
 .. dropdown:: **GTL_DEBUG: [0] cudaHostRegister: no CUDA-capable device is detected**
 
     If using the environment variable ``MPICH_GPU_SUPPORT_ENABLED``, then ``srun`` commands may
-    expect an  option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
+    expect an option for allocating GPUs (e.g., ``--gpus-per-task=1`` would
     allocate one GPU to each MPI task of the MPI run). It is recommended that tasks submitted
     via the :doc:`MPIExecutor<../executor/mpi_executor>` specify this in the ``extra_args``
     option to the ``submit`` function (rather than using an ``#SBATCH`` command).
 
-    If running the libEnsemble user calling script with ``srun``, then it is recommended that
+    If running the libEnsemble calling script with ``srun``, then it is recommended that
     ``MPICH_GPU_SUPPORT_ENABLED`` is set in the user ``sim_f`` or ``gen_f`` function where
     GPU runs will be submitted, instead of in the batch script. For example::
 

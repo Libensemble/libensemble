@@ -49,7 +49,7 @@ to support):
   * A user has a ``gen_f`` that produces meshes for a
     ``sim_f``. Given the ``sim_f`` output, the ``gen_f`` can refine a mesh or
     produce a new mesh. libEnsemble can ensure that the calculated meshes can be
-    used by multiple simulations without requiring movement of data.
+    used by multiple simulations without requiring moving data.
 
   * A user wants to evaluate a simulation ``sim_f`` with different sets of
     parameters, each drawn from a set of possible values. Some parameter values
@@ -60,7 +60,7 @@ to support):
 
   * A user has a simulation ``sim_f`` that requires calculating multiple
     expensive quantities, some of which depend on other quantities. The ``sim_f``
-    can observe intermediate quantities in order to stop related calculations and
+    can observe intermediate quantities to stop related calculations and
     preempt future calculations associated with poor parameter values.
 
   * A user has a ``sim_f`` with multiple fidelities, with the higher-fidelity
@@ -83,7 +83,7 @@ Glossary
 ~~~~~~~~
 
 Here we define some terms used throughout libEnsemble's code and documentation.
-Although many of these terms seem straight-forward, defining such terms assists
+Although many of these terms seem straightforward, defining such terms assists
 with keeping confusion to a minimum when communicating about libEnsemble and
 its capabilities.
 
@@ -104,7 +104,7 @@ its capabilities.
     and ``gen_f`` functions are also commonly configured and parameterized here.
 
   * **User function**: A generator, simulator, or allocation function. These
-    are python functions that govern the libEnsemble workflow. They
+    are Python functions that govern the libEnsemble workflow. They
     must conform to the libEnsemble API for each respective user function, but otherwise can
     be created or modified by the user. libEnsemble comes with many examples of
     each type of user function.
@@ -114,7 +114,7 @@ its capabilities.
     There are multiple executors including the ``MPIExecutor`` and ``BalsamExecutor``.
     The base ``Executor`` class allows local sub-processing of serial tasks.
 
-  * **Submit**: Enqueue or indicate that one or more jobs or tasks needs to be
+  * **Submit**: Enqueue or indicate that one or more jobs or tasks need to be
     launched. When using the libEnsemble Executor, a *submitted* task is executed
     immediately or queued for execution.
 
@@ -125,13 +125,13 @@ its capabilities.
   * **Persistent**: Typically, a worker communicates with the manager
     before and after initiating a user ``gen_f`` or ``sim_f`` calculation. However, user
     functions may also be constructed to communicate directly with the manager,
-    for example, in order to efficiently maintain and update data structures instead of
+    for example, to efficiently maintain and update data structures instead of
     communicating them between manager and worker. These calculations
     and the workers assigned to them are referred to as *persistent*.
 
   * **Resource Manager** libEnsemble has a built-in resource manager that can detect
     (or be provided with) a set of resources (e.g., a node-list). Resources are
-    divided up amongst workers (using *resource sets*), and can be dynamically
+    divided up amongst workers (using *resource sets*) and can be dynamically
     reassigned.
 
   * **Resource Set**: The smallest unit of resources that can be assigned (and

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-This example runs two difference applications, one that uses only CPUs and one
-that uses GPUs. Both uses a variable number of processors. The GPU application
+This example runs different applications, one that uses only CPUs and one
+that uses GPUs. Both use a variable number of processors. The GPU application
 uses one GPU per processor. As the generator creates simulations, it randomly
 assigns between one and max_proc processors to each simulation, and also randomly
 assigns which application is to be run.
@@ -15,10 +15,10 @@ For compile lines, see examples in ../forces_app/build_forces.sh.
 It is recommended to run this test such that:
     ((nworkers - 1) - gpus_on_node) >= gen_specs["user"][max_procs]
 
-E.g, if running on one node with four GPUs, then use:
+E.g., if running on one node with four GPUs, then use:
     python run_libE_forces.py --comms local --nworkers 9
 
-E.g, if running on one node with eight GPUs, then use:
+E.g., if running on one node with eight GPUs, then use:
     python run_libE_forces.py --comms local --nworkers 17
 """
 
@@ -70,12 +70,12 @@ if __name__ == "__main__":
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
-        inputs=[],  # No input when start persistent generator
+        inputs=[],  # No input when starting persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         outputs=[
             ("x", float, (1,)),
-            ("num_procs", int),  # num_procs auto given to sim when use MPIExecutor
-            ("num_gpus", int),  # num_gpus auto given to sim when use MPIExecutor
+            ("num_procs", int),  # num_procs auto given to sim when using MPIExecutor
+            ("num_gpus", int),  # num_gpus auto given to sim when using MPIExecutor
             ("app_type", "S10"),  # select app type (cpu_app or gpu_app)
         ],
         user={
@@ -94,17 +94,17 @@ if __name__ == "__main__":
         },
     )
 
-    # Instruct libEnsemble to exit after this many simulations
+    # Instruct libEnsemble to exit after this many simulations.
     ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers * 2)
 
-    # Seed random streams for each worker, particularly for gen_f
+    # Seed random streams for each worker, particularly for gen_f.
     ensemble.add_random_streams()
 
     # Run ensemble
     ensemble.run()
 
     if ensemble.is_manager:
-        # Note, this will change if change sim_max, nworkers, lb/ub etc...
+        # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
         chksum = np.sum(ensemble.H["energy"])
         print(f"Final energy checksum: {chksum}")
 

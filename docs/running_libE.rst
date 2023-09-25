@@ -19,7 +19,7 @@ The default is ``mpi``.
 
 .. note::
     You do not need the ``mpi`` communication mode to use the
-    :doc:`MPI Executor<executor/mpi_executor>`. The communications modes described
+    :doc:`MPI Executor<executor/mpi_executor>`. The communication modes described
     here only refer to how the libEnsemble manager and workers communicate.
 
 .. tab-set::
@@ -83,7 +83,7 @@ The default is ``mpi``.
 
         **Limitations of local mode**
 
-        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes
+        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
         - In some scenarios, any import of ``mpi4py`` will cause this to break.
         - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
@@ -100,7 +100,7 @@ The default is ``mpi``.
         Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
         colocates workers, functions, and any applications. User
         functions can also be persistent, unlike when launching remote functions via
-        :ref:`Globus Compute<funcx_ref>`.
+        :ref:`Globus Compute<globus_compute_ref>`.
 
         The remote working directory and Python need to be specified. This may resemble::
 
@@ -110,7 +110,7 @@ The default is ``mpi``.
 
         - There cannot be two calls to ``libE()`` or ``Ensemble.run()`` in the same script.
 
-Further command line options
+Further Command Line Options
 ----------------------------
 
 See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for
@@ -258,7 +258,7 @@ whenever the worker receives work. A persistent worker is one that continues to 
 generator or simulation function between work units, maintaining the local data environment.
 
 A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
-that maintains optimization data, while generating new simulation inputs. The persistent generator runs
+that maintains optimization data while generating new simulation inputs. The persistent generator runs
 on a dedicated worker while in persistent mode. This requires an appropriate
 :doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
 
@@ -283,9 +283,9 @@ For example::
 
     os.environ["OMP_NUM_THREADS"] = 4
 
-set in your simulation script before the Executor submit command will export the setting to your run.
-For running a bash script in a sub environment when use the Executor, see the ``env_script``
-option to the :doc:`MPI Executor<executor/mpi_executor>`.
+set in your simulation script before the Executor *submit* command will export the setting
+to your run. For running a bash script in a sub environment when using the Executor, see
+the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 Further Run Information
 -----------------------

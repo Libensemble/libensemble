@@ -4,7 +4,16 @@ Frequently Asked Questions
 
 If you have any additional questions, feel free to contact us through Support_.
 
-.. _Support: https://github.com/Libensemble/libensemble#resources
+.. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
+
+Debugging
+---------
+
+We recommend using the following options to help debug workflows::
+
+    from libensemble import logger
+    logger.set_level("DEBUG")
+    libE_specs["safe_mode"] = True
 
 Common Errors
 -------------
@@ -29,7 +38,7 @@ Common Errors
     one worker, leaving none to run simulation functions.
 
   - An error in the allocation function. For example, perhaps the allocation
-    waiting for all requested evaluations to be returned (e.g, before starting a
+    waiting for all requested evaluations to be returned (e.g., before starting a
     new generator), but this condition
     is not returning True even though all scheduled evaluations have returned. This
     can be due to incorrect implementation (e.g., it has not considered points that
@@ -126,12 +135,17 @@ HPC Errors and Questions
 
   This has been observed with the OFA fabric when using mpi4py and usually
   indicates MPI messages aren't being received correctly. The solution
-  is to either switch fabric or turn off matching probes. See the answer for "Why
+  is to either switch fabric or turn off matching probes. See the answer to "Why
   does libEnsemble hang on certain systems when running with MPI?"
 
   For more information see https://bitbucket.org/mpi4py/mpi4py/issues/102/unpicklingerror-on-commrecv-after-iprobe.
 
 .. dropdown:: **srun: Job \*\*\*\*\*\* step creation temporarily disabled, retrying (Requested nodes are busy)**
+
+  Note that this message has been observed on Perlmutter when none of the problems
+  below are present, and is likely caused by interference with system processes
+  that run between tasks. In this case, it may cause overhead but does not prevent
+  correct functioning.
 
   When running on a SLURM system, this implies that you are trying to run on a resource
   that is already dedicated to another task. The reason can vary, some reasons are:
@@ -251,7 +265,7 @@ macOS and Windows Errors
   **"RuntimeError: An attempt has been made to start a new process... this probably means that you are not using fork...
   " if __name__ == "__main__": freeze_support() ...**
 
-  You need to place your main entrypoint code underneath an ``if __name__ == "__main__":`` block.
+  You need to place your main entry point code underneath an ``if __name__ == "__main__":`` block.
 
   Explanation: Python chooses one of three methods to start new processes when using multiprocessing
   (``--comms local`` with libEnsemble). These are ``"fork"``, ``"spawn"``, and ``"forkserver"``. ``"fork"``

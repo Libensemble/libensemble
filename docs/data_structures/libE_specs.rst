@@ -25,13 +25,13 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
         .. tab-item:: General
 
                 "comms" [str] = ``"mpi"``:
-                    Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'``
+                    Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
                 "nworkers" [int]:
                     Number of worker processes in ``"local"`` or ``"tcp"``.
                 "mpi_comm" [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
                 "dry_run" [bool] = ``False``:
-                    Whether libEnsemble should immediately exit after validating all inputs
+                    Whether libEnsemble should immediately exit after validating all inputs.
                 "abort_on_exception" [bool] = ``True``:
                     In MPI mode, whether to call ``MPI_ABORT`` on an exception.
                     If ``False``, an exception will be raised by the manager.
@@ -45,7 +45,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     On libEnsemble shutdown, number of seconds after which workers considered timed out,
                     then terminated.
                 "kill_canceled_sims" [bool] = ``False``:
-                    Try to kill sims with ``"cancel_requested"`` set ``True``.
+                    Try to kill sims with ``"cancel_requested"`` set to ``True``.
                     If ``False``, the manager avoids this moderate overhead.
                 "disable_log_files" [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
@@ -74,7 +74,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     "ensemble_copy_back" [bool] = ``False``:
                         Whether to copy back contents of ``ensemble_dir_path`` to launch
-                        location. Useful if ``ensemble_dir_path`` located on node-local storage.
+                        location. Useful if ``ensemble_dir_path`` is located on node-local storage.
 
                     "reuse_output_dir" [bool] = ``False``:
                         Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.

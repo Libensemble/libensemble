@@ -60,7 +60,7 @@ array returned by libEnsemble.
 .. points are received.
 
 .. The reserved boolean field ``cancel_requested`` can also be set in a user
-.. function to request that libEnsemble cancels evaluation of the point.
+.. function to request that libEnsemble cancels the evaluation of the point.
 
 .. The remaining reserved fields are protected (populated by libEnsemble), and
 .. store information about each entry. These include boolean fields for the

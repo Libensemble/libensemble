@@ -24,7 +24,7 @@ Simulation function
 -------------------
 
 The ``sim_f`` (``forces_simf.py``) is as follows. The lines that are different
-to the simple forces example are highlighted:
+from the simple forces example are highlighted:
 
 .. code-block:: python
     :linenos:
@@ -96,7 +96,7 @@ the `forces_gpu_var_resources`_ example, and skip lines 31-32.
 Line 37 simply prints out how the GPUs were assigned. If this is not as expected,
 :ref:`platform configuration<datastruct-platform-specs>` can be provided.
 
-While this is sufficient for many/most users, note that it is possible to query
+While this is sufficient for most users, note that it is possible to query
 the resources assigned to *this* worker (nodes and partitions of nodes),
 and use this information however you want.
 
@@ -219,12 +219,12 @@ For example::
 
     python run_libe_forces.py --comms local --nworkers 9
 
-See :ref:`zero resource workers<zero_resource_workers>` for more ways to express this.
+See :ref:`zero-resource workers<zero_resource_workers>` for more ways to express this.
 
 Changing the number of GPUs per worker
 --------------------------------------
 
-If you want to have two GPUs per worker on the same system (four GPUs per node),
+If you want to have two GPUs per worker on the same system (with four GPUs per node),
 you could assign only four workers. You will see that two GPUs are used for each
 forces run.
 
@@ -242,11 +242,11 @@ simulation (they do not need to be passed as a ``sim_specs["in"]``).
 Further guidance on varying the resources assigned to workers can be found under the
 :doc:`resource manager<../resource_manager/resources_index>` section.
 
-Multiple Applications
+Multiple applications
 ---------------------
 
 Another variant of this example, forces_multi_app_, has two applications, one that
-uses GPUs, and another that only uses CPUs. The dynamic resource management can
+uses GPUs, and another that only uses CPUs. Dynamic resource management can
 manage both types of resources and assign these to the same nodes concurrently, for
 maximum efficiency.
 

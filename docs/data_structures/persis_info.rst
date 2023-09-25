@@ -13,7 +13,7 @@ and from the corresponding workers. These are received in the ``persis_info``
 argument of user functions, and returned as the optional second return value.
 
 A typical example is a random number generator stream to be used in consecutive
-calls to a generator (see function
+calls to a generator (see
 :meth:`add_unique_random_streams()<tools.add_unique_random_streams>`)
 
 All other entries persist on the manager and can be updated in the calling script
@@ -55,7 +55,7 @@ Examples:
     .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
        :linenos:
        :start-at:    if gen_count < persis_info.get("num_gens_started", 0):
-       :end-before:    # Give evaluated results back to a running persistent gen
+       :end-before:    # Give evaluated results back to the persistent gen
        :emphasize-lines: 1
        :caption: libensemble/alloc_funcs/start_only_persistent.py
 

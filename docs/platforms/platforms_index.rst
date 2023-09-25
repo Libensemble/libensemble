@@ -52,7 +52,7 @@ If the argument ``libE_specs["dedicated_mode"]=True`` is used when initializing 
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
-To run in central mode using a 5 node allocation with 4 workers: From the head node
+To run in central mode using a 5-node allocation with 4 workers: From the head node
 of the allocation::
 
     mpirun -np 5 python myscript.py
@@ -85,11 +85,11 @@ Systems with Launch/MOM Nodes
 
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
-Most such systems supply a special MPI runner which has some application-level scheduling
+Most such systems supply a special MPI runner that has some application-level scheduling
 capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include: Summit, Sierra and Theta.
+of these systems include: Summit, Sierra, and Theta.
 
-There are two ways of running libEnsemble on these kind of systems. The first, and simplest,
+There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
 or generation functions are not doing much work (other than launching applications). This approach
 is inherently centralized. The entire node allocation is available for the worker-launched
@@ -115,7 +115,7 @@ or *to entirely different systems*.
 
         (New) Multi-System: libEnsemble + BalsamExecutor
 
-Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
+Submission scripts for running on launch/MOM nodes and for using Balsam, can be found in
 the :doc:`examples<example_scripts>`.
 
 Mapping Tasks to Resources
@@ -144,7 +144,7 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
-.. _funcx_ref:
+.. _globus_compute_ref:
 
 Globus Compute - Remote User Functions
 --------------------------------------
@@ -152,10 +152,10 @@ Globus Compute - Remote User Functions
 *Alternatively to much of the above*, if libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
-themselves via `Globus Compute`_, a distributed, high-performance function-as-a-service platform:
+themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
 
     .. image:: ../images/funcxmodel.png
-        :alt: running_with_funcx
+        :alt: running_with_globus_compute
         :scale: 50
         :align: center
 
@@ -196,7 +196,7 @@ argument. For example::
         globus_compute_endpoint = "3af6dc24-3f27-4c49-8d11-e301ade15353",
     )
 
-See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
+See the ``libensemble/tests/scaling_tests/globus_compute_forces`` directory for a complete
 remote-simulation example.
 
 Instructions for Specific Platforms

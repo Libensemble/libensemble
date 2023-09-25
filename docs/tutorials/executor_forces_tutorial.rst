@@ -60,7 +60,6 @@ generation functions and call libEnsemble. Create a Python file called
     from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     if __name__ == "__main__":
-
         # Initialize MPI Executor
         exctr = MPIExecutor()
 
@@ -119,7 +118,7 @@ expect, and also to parameterize user functions:
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
-        inputs=[],  # No input when start persistent generator
+        inputs=[],  # No input when starting persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         outputs=[("x", float, (1,))],
         user={
@@ -275,7 +274,7 @@ available to this worker.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
-This object is roughly equivalent to a Python future, and can be polled, killed,
+This object is roughly equivalent to a Python future and can be polled, killed,
 and evaluated in a variety of helpful ways. For now, we're satisfied with waiting
 for the task to complete via ``task.wait()``.
 

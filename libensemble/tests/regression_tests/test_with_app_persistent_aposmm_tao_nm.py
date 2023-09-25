@@ -5,13 +5,13 @@ the executor to run an application.
 This is to test the scenario, where OpenMPI will fail due to nested MPI, if
 PETSc is imported at global level.
 
-Execute via one of the following commands (e.g. 3 workers):
+Execute via one of the following commands (e.g., 3 workers):
    mpiexec -np 4 python test_persistent_aposmm_tao_nm.py
    python test_with_app_persistent_aposmm_tao_nm.py --nworkers 3 --comms local
    python test_with_app_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
-the objective function will be 2, as one of the three workers will be the
+the objective function will be 2, since one of the three workers will be the
 persistent generator.
 """
 
@@ -35,7 +35,7 @@ from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
-# For OpenMPI must not have these lines, allowing PETSc to import in function.
+# For OpenMPI the following lines cannot be used, thus allowing PETSc to import.
 # import libensemble.gen_funcs
 # libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 

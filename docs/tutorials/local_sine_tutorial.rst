@@ -58,7 +58,7 @@ need to write a new allocation function.
               for generating random numbers.
 
             * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined static fields and
-              parameters. Customizable parameters such as boundaries and batch
+              parameters. Customizable parameters such as lower and upper bounds and batch
               sizes are placed within the ``gen_specs["user"]`` dictionary, while input/output and other fields
               that libEnsemble needs to operate the generator are placed outside ``user``.
 
@@ -74,7 +74,6 @@ need to write a new allocation function.
 
 
             def gen_random_sample(Input, persis_info, gen_specs):
-
                 # Pull out user parameters
                 user_specs = gen_specs["user"]
 
@@ -142,7 +141,6 @@ need to write a new allocation function.
 
 
             def sim_find_sine(Input, _, sim_specs):
-
                 # Create an output array of a single zero
                 Output = np.zeros(1, dtype=sim_specs["out"])
 
@@ -154,7 +152,7 @@ need to write a new allocation function.
 
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
-        then returns it so the worker can store the result.
+        and then returns it so the worker can store the result.
 
         **Exercise**
 
@@ -267,7 +265,7 @@ need to write a new allocation function.
             [(-0.37466051, 1.559+09, 2, 2,  True,  True, [-0.38403059],  True,  0, 1.559+09)
             (-0.29279634, 1.559+09, 2, 3,  True,  True, [-2.84444261],  True,  1, 1.559+09)
             ( 0.29358492, 1.559+09, 2, 4,  True,  True, [ 0.29797487],  True,  2, 1.559+09)
-            (-0.3783986 , 1.559+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.559+09)
+            (-0.3783986, 1.559+09, 2, 1,  True,  True, [-0.38806564],  True,  3, 1.559+09)
             (-0.45982062, 1.559+09, 2, 2,  True,  True, [-0.47779319],  True,  4, 1.559+09)
             ...
 
@@ -373,7 +371,7 @@ need to write a new allocation function.
         doesn't work, try appending ``--user`` to the end of the command. See the
         mpi4py_ docs for more information.
 
-        Verify that MPI has installed correctly with ``mpirun --version``.
+        Verify that MPI has been installed correctly with ``mpirun --version``.
 
         **Modifying the script**
 

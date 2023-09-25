@@ -6,16 +6,16 @@ The persistent generator creates simulations with variable resource requirements
 while also requiring resources itself. The resources required by a sim must
 not be larger than what remains once the generator resources are assigned.
 
-The sim_f (gpu_variable_resources_from_gen) asserts that GPUs assignment
+The sim_f (gpu_variable_resources_from_gen) asserts that the GPU assignment
 is correct for the default method for the MPI runner. GPUs are not actually
-used for default application. Four GPUs per node is mocked up below (if this line
+used for the default application. Four GPUs per node is mocked up below (if this line
 is removed, libEnsemble will detect any GPUs available).
 
 A dry_run option is provided. This can be set in the calling script, and will
 just print run-lines and GPU settings. This may be used for testing run-lines
 produced and GPU settings for different MPI runners.
 
-Execute via one of the following commands (e.g. 4 workers):
+Execute via one of the following commands (e.g., 4 workers):
    mpiexec -np 5 python test_GPU_gen_resources.py
    python test_GPU_gen_resources.py --comms local --nworkers 4
 

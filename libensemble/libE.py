@@ -66,7 +66,6 @@ all platforms and comms-types may resemble:
     from libensemble.tools import add_unique_random_streams
 
     if __name__ == "__main__":
-
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         libE_specs["save_every_k_gens"] = 20

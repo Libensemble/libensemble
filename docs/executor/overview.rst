@@ -90,8 +90,8 @@ Example use-cases:
 See the :doc:`Executor<executor>` or :doc:`MPIExecutor<mpi_executor>` interface
 for the complete API.
 
-See :doc:`Running on HPC Systems<../platforms/platforms_index>` to see, with
-diagrams, how common options such as ``libE_specs["dedicated_mode"]`` affect the
+See :doc:`Running on HPC Systems<../platforms/platforms_index>` for illustrations
+of how common options such as ``libE_specs["dedicated_mode"]`` affect the
 run configuration on clusters and supercomputers.
 
 Advanced Features
@@ -105,8 +105,8 @@ In simulation function (sim_f).
 
     import time
 
-    def sim_func(H, persis_info, sim_specs, libE_info):
 
+    def sim_func(H, persis_info, sim_specs, libE_info):
         input_param = str(int(H["x"][0][0]))
         exctr = libE_info["executor"]
 
@@ -121,8 +121,7 @@ In simulation function (sim_f).
         timeout_sec = 600
         poll_delay_sec = 1
 
-        while(not task.finished):
-
+        while not task.finished:
             # Has manager sent a finish signal
             if exctr.manager_kill_received():
                 task.kill()
@@ -153,14 +152,13 @@ In simulation function (sim_f).
 ..     ...
 
 Users who wish to poll only for manager kill signals and timeouts don't necessarily
-need to construct a polling loop like above, but can instead use an the ``Executor``
+need to construct a polling loop like above, but can instead use the ``Executor``
 built-in ``polling_loop()`` method. An alternative to the above simulation function
 may resemble:
 
 .. code-block:: python
 
     def sim_func(H, persis_info, sim_specs, libE_info):
-
         input_param = str(int(H["x"][0][0]))
         exctr = libE_info["executor"]
 

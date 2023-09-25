@@ -54,7 +54,7 @@ class SimSpecs(BaseModel):
     persis_in: Optional[List[str]] = []
     """
     List of **field names** to send to a persistent simulation function
-    throughout runtime, following initialization.
+    throughout the run, following initialization.
     """
 
     # list of tuples for dtype construction
@@ -116,7 +116,7 @@ class GenSpecs(BaseModel):
     persis_in: Optional[List[str]] = []
     """
     List of **field names** to send to a persistent generator function
-    throughout runtime, following initialization.
+    throughout the run, following initialization.
     """
 
     outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
@@ -262,13 +262,13 @@ class LibeSpecs(BaseModel):
     ensemble_dir_path: Optional[Union[str, Path]] = Path("ensemble")
     """
     Path to main ensemble directory. Can serve
-    as single working directory for workers, or contain calculation directories
+    as a single working directory for workers, or contain calculation directories
     """
 
     ensemble_copy_back: Optional[bool] = False
     """
     Whether to copy back contents of ``ensemble_dir_path`` to launch
-    location. Useful if ``ensemble_dir_path`` located on node-local storage.
+    location. Useful if ``ensemble_dir_path`` is located on node-local storage.
     """
 
     use_worker_dirs: Optional[bool] = False
@@ -421,7 +421,7 @@ class LibeSpecs(BaseModel):
 
     final_gen_send: Optional[bool] = False
     """
-    Send final simulations results to persistent generators before shutdown.
+    Send final simulation results to persistent generators before shutdown.
     The results will be sent along with the ``PERSIS_STOP`` tag.
     """
 
@@ -453,7 +453,7 @@ class LibeSpecs(BaseModel):
 
     enforce_worker_core_bounds: Optional[bool] = False
     """
-    If ``False``, the Executor will permit submission of tasks with a
+    If ``False``, the Executor will permit the submission of tasks with a
     higher processor count than the CPUs available to the worker as
     detected by the resource manager. Larger node counts are not allowed.
     When ``"disable_resource_manager"`` is ``True``,
@@ -531,7 +531,7 @@ class LibeSpecs(BaseModel):
 
 
 class _EnsembleSpecs(BaseModel):
-    """An all-encompasing model for a libEnsemble workflow."""
+    """An all-encompassing model for a libEnsemble workflow."""
 
     H0: Optional[Any] = None  # np.ndarray - avoids sphinx issue
     """ A previous or preformatted libEnsemble History array to prepend. """

@@ -8,7 +8,6 @@ Simulator and :ref:`Generator functions<funcguides-gen>` have relatively similar
 .. code-block:: python
 
     def my_simulation(Input, persis_info, sim_specs, libE_info):
-
         batch_size = sim_specs["user"]["batch_size"]
 
         Output = np.zeros(batch_size, sim_specs["out"])
@@ -78,7 +77,7 @@ Although comparatively uncommon, simulator functions can also be written
 in a persistent fashion. See the :ref:`here<persistent-gens>` for a general API overview
 of writing persistent generators, since the interface is largely identical. The only
 differences are to pass ``EVAL_SIM_TAG`` when instantiating a ``PersistentSupport``
-class instance, and to return ``FINISHED_PERSISTENT_SIM_TAG`` when the simulator
+class instance and to return ``FINISHED_PERSISTENT_SIM_TAG`` when the simulator
 function returns.
 
 .. note::

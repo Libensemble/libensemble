@@ -14,7 +14,7 @@ Convenience Tools and Functions
       .. _p_gen_routines:
 
       These routines are commonly used within persistent generator functions
-      like ``persistent_aposmm`` in ``libensemble/gen_funcs/`` for intermediate
+      such as ``persistent_aposmm`` in ``libensemble/gen_funcs/`` for intermediate
       communication with the manager. Persistent simulator functions are also supported.
 
       .. automodule:: persistent_support

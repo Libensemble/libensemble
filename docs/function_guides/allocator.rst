@@ -11,7 +11,7 @@ The ``alloc_f`` is unique since it is called by libEnsemble's manager instead of
 For allocation functions, as with the other user functions, the level of complexity can
 vary widely. We encourage experimenting with:
 
-    1.  Prioritization of simulations,
+    1.  Prioritization of simulations
     2.  Sending results immediately or in batch
     3.  Assigning varying resources to evaluations
 
@@ -26,16 +26,16 @@ Most ``alloc_f`` function definitions written by users resemble::
 
 where:
 
-    * :ref:`W<funcguides-workerarray>` is an array containing worker state info,
+    * :ref:`W<funcguides-workerarray>` is an array containing worker state info
     * :ref:`H<funcguides-history>` is the *trimmed* History array, containing rows from the generator
     * :ref:`libE_info<libE_info_alloc>` is a set of statistics to determine the progress of work or exit conditions
 
-Most users first check that its appropriate to allocate work::
+Most users first check that it is appropriate to allocate work::
 
         if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
             return {}, persis_info
 
-If allocation is to continue, a support class is instantiated and a
+If the allocation is to continue, a support class is instantiated and a
 :ref:`Work dictionary<funcguides-workdict>` is initialized::
 
         manage_resources = "resource_sets" in H.dtype.names or libE_info["use_resource_sets"]
@@ -76,10 +76,10 @@ dictionary values to give to those workers:
 
 This Work dictionary instructs each worker to call the ``sim_f`` (``tag: 1``)
 with data from ``"x"`` and a given ``"H_row"`` from the
-History array. A worker specific ``persis_info`` is also given.
+History array. A worker-specific ``persis_info`` is also given.
 
 Constructing these arrays and determining which workers are available
-for receiving data is simplified by use of the ``AllocSupport`` class
+for receiving data is simplified by the ``AllocSupport`` class
 available within the ``libensemble.tools.alloc_support`` module:
 
 .. dropdown:: AllocSupport
@@ -92,7 +92,7 @@ available within the ``libensemble.tools.alloc_support`` module:
         .. automethod:: __init__
 
 The Work dictionary is returned to the manager alongside ``persis_info``. If ``1``
-is returned as third value, this instructs the ensemble to stop.
+is returned as the third value, this instructs the ensemble to stop.
 
 .. note:: An error occurs when the ``alloc_f`` returns nothing while
           all workers are idle
@@ -124,7 +124,7 @@ allocation function and detect impending timeouts, then pack up cleanup work req
 or mark points for cancellation.
 
 The remaining values above are useful for efficient filtering of H values
-(e.g., ``sim_ended_count``), saves a filtering an entire column of H.
+(e.g., ``sim_ended_count`` saves filtering by an entire column of H.)
 
 Descriptions of included allocation functions can be found :doc:`here<../examples/alloc_funcs>`.
 The default allocation function is

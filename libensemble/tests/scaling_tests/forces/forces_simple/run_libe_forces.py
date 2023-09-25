@@ -69,5 +69,5 @@ if __name__ == "__main__":
     ensemble.run()
 
     if ensemble.is_manager:
-        # Note, this will change if change sim_max, nworkers, lb/ub etc...
+        # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
         print(f'Final energy checksum: {np.sum(ensemble.H["energy"])}')

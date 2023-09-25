@@ -3,7 +3,7 @@
 Each function generates points uniformly over the domain defined by ``gen_specs["user"]["ub"]``
 and ``gen_specs["user"]["lb"]``.
 
-Most functions use a random request of resources over a range, setting num_procs, num_gpus or
+Most functions use a random request of resources over a range, setting num_procs, num_gpus, or
 resource sets. The function ``uniform_sample_with_var_gpus`` uses the ``x`` value to determine
 the number of GPUs requested.
 """
