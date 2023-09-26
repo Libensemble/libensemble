@@ -52,7 +52,8 @@ _USER_CALC_DIR_WARNING = (
     + "\n"
     + "libEnsemble attempted to reuse {} as a parent directory for calc dirs.\n"
     + "If allowed to continue, previous results may have been overwritten!\n"
-    + "Resolve this by ensuring libE_specs['ensemble_dir_path'] is unique for each run."
+    + "Resolve this either by ensuring libE_specs['ensemble_dir_path'] is unique for each run\n"
+    + "or by setting libE_specs['reuse_output_dir'] = True.\n"
     + "\n"
     + 79 * "*"
     + "\n\n"
@@ -95,10 +96,10 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
 
     persis_info: :obj:`dict`
 
-        Persistent information dictionary
+        Persistent information dictionary.
         :doc:`(example)<data_structures/persis_info>`
 
-    calling_file  : :obj:`string`
+    calling_file  : :obj:`str`
 
         Name of user-calling script (or user chosen name) to prefix output files.
         The convention is to send __file__ from user calling script.
@@ -107,7 +108,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
 
         The number of workers in this ensemble. Added to output file names.
 
-    mess: :obj:`String`
+    mess: :obj:`str`
 
         A message to print/log when saving the file.
 
@@ -149,12 +150,12 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
 
     persis_info: :obj:`dict`
 
-        Persistent information dictionary
+        Persistent information dictionary.
         :ref:`(example)<datastruct-persis-info>`
 
     nstreams: :obj:`int`
 
-        Number of independent random number streams to produce
+        Number of independent random number streams to produce.
 
     seed: :obj:`int`
 

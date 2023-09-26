@@ -6,6 +6,7 @@ import numpy as np
 
 from libensemble.ensemble import Ensemble
 from libensemble.executors.mpi_executor import MPIExecutor
+from libensemble.tools import add_unique_random_streams
 
 ####################
 
@@ -17,7 +18,7 @@ if not os.path.isfile(sim_app):
 
 ####################
 
-forces = Ensemble()
+forces = Ensemble(parse_args=True)
 forces.from_yaml("forces.yaml")
 
 forces.logger.set_level("INFO")
@@ -36,9 +37,7 @@ forces.gen_specs.user.update(
     }
 )
 
-forces.add_random_streams()
+forces.persis_info = add_unique_random_streams({}, forces.nworkers + 1)
 
 forces.run()
-
-if forces.is_manager:
-    forces.save_output(__file__)
+forces.save_output(__file__)

@@ -1,5 +1,5 @@
 # !/usr/bin/env python
-# Integration Test of executor module for libensemble
+# Integration test of executor module for libensemble
 # Test does not require running full libensemble
 import os
 import platform
@@ -67,13 +67,21 @@ def build_simfuncs():
             subprocess.check_call(buildstring.split())
 
 
-# This would typically be in the user calling script
+# This would typically be in the user calling script.
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     from libensemble.executors.mpi_executor import MPIExecutor
 
     exctr = MPIExecutor()
     exctr.add_platform_info()
+    exctr.register_app(full_path=sim_app, calc_type="sim")
+
+
+def setup_executor_no_platform():
+    """Set up an MPI Executor with sim app"""
+    from libensemble.executors.mpi_executor import MPIExecutor
+
+    exctr = MPIExecutor()
     exctr.register_app(full_path=sim_app, calc_type="sim")
 
 
@@ -127,7 +135,7 @@ def is_ompi():
 
 
 # -----------------------------------------------------------------------------
-# The following would typically be in the user sim_func
+# The following would typically be in the user sim_func.
 def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
@@ -135,7 +143,7 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
     while time.time() - start < timeout_sec:
         time.sleep(delay)
 
-        # Check output file for error
+        # Check output file for error.
         if task.stdout_exists():
             if "Error" in task.read_stdout() or "error" in task.read_stdout():
                 print("Found(deliberate) Error in output file - cancelling task")
@@ -215,6 +223,26 @@ def test_launch_and_wait():
     """Test of launching and waiting on task"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+    task.wait()  # Already complete
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+
+
+@pytest.mark.extra
+def test_launch_and_wait_no_platform():
+    """Test of launching and waiting on task with no platform setup
+
+    The MPI runner should be set on first call to executor.
+    """
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor_no_platform()
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = "sleep 1"
@@ -393,7 +421,7 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs not num_nodes*procs_per_node (should fail)
+    # Testing num_procs not num_nodes*procs_per_node (should fail).
     try:
         task = exctr.submit(calc_type="sim", num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
     except MPIResourcesException as e:
@@ -401,7 +429,7 @@ def test_procs_and_machinefile_logic():
     else:
         assert 0
 
-    # Testing no num_procs (shouldn't fail)
+    # Testing no num_procs (should not fail).
     if is_ompi():
         task = exctr.submit(
             calc_type="sim",
@@ -417,7 +445,7 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing nothing given (should fail)
+    # Testing nothing given (should fail).
     try:
         task = exctr.submit(calc_type="sim", app_args=args_for_sim)
     except MPIResourcesException as e:
@@ -425,7 +453,7 @@ def test_procs_and_machinefile_logic():
     else:
         assert 0
 
-    # Testing no num_nodes (shouldn't fail)
+    # Testing no num_nodes (should not fail).
     task = exctr.submit(calc_type="sim", num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
@@ -443,9 +471,9 @@ def test_procs_and_machinefile_logic():
 @pytest.mark.extra
 @pytest.mark.timeout(20)
 def test_doublekill():
-    """Test attempt to kill already killed task
+    """Test attempt to kill already killed task.
 
-    Kill should have no effect (except warning message) and should remain in state killed
+    Kill should have no effect (except warning message) and should remain in state killed.
     """
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -467,9 +495,9 @@ def test_doublekill():
 @pytest.mark.extra
 @pytest.mark.timeout(20)
 def test_finish_and_kill():
-    """Test attempt to kill already finished task
+    """Test attempt to kill already finished task.
 
-    Kill should have no effect (except warning message) and should remain in state FINISHED
+    Kill should have no effect (except warning message) and should remain in state FINISHED.
     """
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -520,7 +548,7 @@ def test_launch_as_gen():
     cores = NCORES
     args_for_sim = "sleep 0.1"
 
-    # Try launching as gen when not registered as gen
+    # Try launching as gen when not registered as gen.
     try:
         task = exctr.submit(calc_type="gen", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
@@ -534,7 +562,7 @@ def test_launch_as_gen():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Try launching as 'alloc' which is not a type
+    # Try launching as 'alloc', which is not a type.
     try:
         task = exctr.submit(calc_type="alloc", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
@@ -580,7 +608,7 @@ def test_kill_task_with_no_submit():
     else:
         assert 0
 
-    # Create a task directly with no submit (Not supported for users)
+    # Create a task directly with no submit (not supported for users).
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
     exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
@@ -603,7 +631,7 @@ def test_poll_task_with_no_submit():
     setup_executor()
     exctr = Executor.executor
 
-    # Create a task directly with no submit (Not supported for users)
+    # Create a task directly with no submit (Not supported for users).
     exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
@@ -639,7 +667,7 @@ def test_retries_launch_fail():
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     assert task.state == "CREATED", "task.state should be CREATED. Returned " + str(task.state)
-    assert exctr.mpi_runner.subgroup_launch, "subgroup_launch should be True"
+    assert exctr.mpi_runner_obj.subgroup_launch, "subgroup_launch should be True"
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
@@ -824,6 +852,7 @@ if __name__ == "__main__":
     setup_module(__file__)
     test_launch_and_poll()
     test_launch_and_wait()
+    test_launch_and_wait_no_platform()
     test_launch_and_wait_timeout()
     test_launch_wait_on_start()
     test_kill_on_file()

@@ -10,7 +10,7 @@
     "inputs": [
       "x_on_cube"
     ],
-    "out": {
+    "outputs": {
       "f": {
         "type": "float"
       },
@@ -22,7 +22,7 @@
   },
   "gen_specs": {
     "gen_f": "numpy.random.uniform",
-    "out": {
+    "outputs": {
       "priority": {
         "type": "float"
       },

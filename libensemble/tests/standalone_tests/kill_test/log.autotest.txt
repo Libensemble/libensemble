@@ -21,13 +21,13 @@ Either run on local node - or create an allocation of nodes and run::
 
 where kill_type currently is 1 or 2. [1 is the original kill - 2 is using group ID approach]
 
-E.g Single node with 4 processes:
+Single node with 4 processes:
 --------------------------------
 kill 1: python killtest.py 1 1 4
 kill 2: python killtest.py 2 1 4
 --------------------------------
 
-E.g Two nodes with 2 processes each:
+Two nodes with 2 processes each:
 --------------------------------
 kill 1: python killtest.py 1 2 2
 kill 2: python killtest.py 2 2 2

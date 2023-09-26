@@ -237,5 +237,5 @@ Read the documentation for Balsam here_.
 .. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/
-.. _information: https://www.alcf.anl.gov/user-guides/conda
+.. _information: https://docs.alcf.anl.gov/theta/data-science-workflows/conda/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/

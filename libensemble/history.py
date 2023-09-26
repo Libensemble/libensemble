@@ -20,9 +20,9 @@ class History:
 
     These are set on initialization.
 
-    :ivar numpy_structured_array H:
+    :ivar numpy.ndarray H:
         History array storing rows for each point. Field names are in
-        libensemble/tools/fields_keys.py
+        libensemble/tools/fields_keys.py. Numpy structured array.
 
     :ivar int offset:
         Starting index for this ensemble (after H0 read in)
@@ -120,7 +120,10 @@ class History:
         self.sim_ended_offset = self.sim_ended_count
         self.gen_informed_offset = self.gen_informed_count
 
-    def update_history_f(self, D: dict, safe_mode: bool) -> None:
+        self.last_started = -1
+        self.last_ended = -1
+
+    def update_history_f(self, D: dict, safe_mode: bool, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history after points have been evaluated
         """
@@ -151,16 +154,23 @@ class History:
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
 
-    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int) -> None:
+        if kill_canceled_sims:
+            for j in range(self.last_ended + 1, np.max(new_inds) + 1):
+                if self.H["sim_ended"][j]:
+                    self.last_ended += 1
+                else:
+                    break
+
+    def update_history_x_out(self, q_inds: npt.NDArray, sim_worker: int, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history (in place) when new points have been given out to be evaluated
 
         Parameters
         ----------
-        q_inds: numpy array
+        q_inds: numpy.typing.NDArray
             Row IDs for history array H
 
-        sim_worker: integer
+        sim_worker: int
             Worker ID
         """
         q_inds = np.atleast_1d(q_inds)
@@ -171,6 +181,8 @@ class History:
         self.H["sim_worker"][q_inds] = sim_worker
 
         self.sim_started_count += len(q_inds)
+        if kill_canceled_sims:
+            self.last_started = np.max(q_inds)
 
     def update_history_to_gen(self, q_inds: npt.NDArray):
         """Updates the history (in place) when points are given back to the gen"""
@@ -200,9 +212,9 @@ class History:
 
         Parameters
         ----------
-        gen_worker: integer
+        gen_worker: int
             The worker who generated these points
-        D: numpy array
+        D: numpy.typing.NDArray
             Output from gen_func
         """
 
@@ -256,7 +268,7 @@ class History:
 
         Parameters
         ----------
-        k: integer
+        k: int
             Number of rows to add to H
         """
         H_1 = np.zeros(k, dtype=self.H.dtype)

@@ -69,7 +69,10 @@ setup(
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
-    install_requires=["numpy", "psutil", "pydantic<2", "tomli", "pyyaml"],
+    install_requires=["numpy>=1.21", "psutil>=5.9.4", "pydantic<2", "tomli>=1.2.1", "pyyaml>=6.0"],
+    # numpy - oldest working version. psutil - oldest working version.
+    # pydantic - avoid major release/rework for now. tomli - max 2-years old version.
+    # pyyaml - oldest working version.
     # If run tests through setup.py - downloads these but does not install
     tests_require=[
         "pytest>=3.1",
@@ -81,10 +84,11 @@ setup(
     extras_require={
         "docs": [
             "autodoc_pydantic",
-            "sphinx",
+            "sphinx<7",
             "sphinx_design",
             "sphinx_rtd_theme",
-            "sphinxcontrib.bibtex",
+            "sphinxcontrib-bibtex",
+            "sphinx-copybutton",
         ],
     },
     scripts=[
@@ -92,7 +96,7 @@ setup(
         "scripts/libesubmit",
     ],
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",

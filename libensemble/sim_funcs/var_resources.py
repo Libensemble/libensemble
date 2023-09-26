@@ -3,7 +3,7 @@ Simulation functions that use the MPIExecutor with dynamic resource assignment.
 ``six_hump_camel`` and ``helloworld`` python scripts are used as example
 applications, but these could be any MPI application.
 
-Each simulation function use the resources assigned to this worker to set CPU
+Each simulation function uses the resources assigned to this worker to set CPU
 count and, in some functions, specify GPU usage.
 
 GPUs are not used for the six_hump_camel function, but these tests check the
@@ -18,6 +18,7 @@ interrogates available resources and sets explicitly.
 __all__ = [
     "gpu_variable_resources",
     "gpu_variable_resources_from_gen",
+    "gpu_variable_resources_subenv",
     "multi_points_with_variable_resources",
     "CUDA_variable_resources",
 ]
@@ -26,11 +27,10 @@ import os
 
 import numpy as np
 
-from libensemble.executors.executor import Executor
 from libensemble.message_numbers import TASK_FAILED, UNSET_TAG, WORKER_DONE
 from libensemble.resources.resources import Resources
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
-from libensemble.tools.test_support import check_gpu_setting
+from libensemble.tools.test_support import check_gpu_setting, check_mpi_runner
 
 
 def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
@@ -39,9 +39,9 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     The six_hump_camel app does not run on the GPU, but this test demonstrates
     how to automatically assign the GPUs given to this worker via the MPIExecutor.
 
-    The method used to assign GPUs will be determined by the MPI runner or user
-    provided configuration (e.g., by setting the ``platform`` or ``platform_specs``
-    options or the LIBE_PLATFORM environment variable).
+    The method used to assign GPUs will be determined by the MPI runner or
+    user-provided configuration (e.g., by setting the ``platform`` or
+    ``platform_specs`` options or the LIBE_PLATFORM environment variable).
 
     """
     x = H["x"][0]
@@ -49,7 +49,7 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
     inpt = " ".join(map(str, x))  # Application input
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
@@ -86,7 +86,7 @@ def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
     dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
     inpt = " ".join(map(str, x))  # Application input
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(
@@ -111,7 +111,76 @@ def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info, calc_status
 
 
-def multi_points_with_variable_resources(H, _, sim_specs):
+def _launch_with_env_and_mpi(exctr, inpt, dry_run, env_script_path, mpi_runner):
+    """Used to launch each application in a chain"""
+
+    task = exctr.submit(
+        app_name="six_hump_camel",
+        app_args=inpt,
+        auto_assign_gpus=True,
+        match_procs_to_gpus=True,
+        dry_run=dry_run,
+        env_script=env_script_path,
+        mpi_runner_type=mpi_runner,
+    )
+
+    if isinstance(mpi_runner, dict):
+        mpi_runner = mpi_runner["runner_name"]
+
+    check_mpi_runner(task, mpi_runner, print_setting=True)
+    check_gpu_setting(task, print_setting=True)
+
+
+def gpu_variable_resources_subenv(H, persis_info, sim_specs, libE_info):
+    """Launches a chain of apps via bash scripts in different sub-processes.
+
+    Different MPI runners are specified for each submit. To run without dry_run
+    these MPI runners need to be present. Dry_run is used by default.
+
+    Otherwise, this test is similar to ``gpu_variable_resources``.
+
+    """
+    x = H["x"][0]
+    H_o = np.zeros(1, dtype=sim_specs["out"])
+    dry_run = sim_specs["user"].get("dry_run", False)  # logs run lines instead of running
+    env_script_path = sim_specs["user"]["env_script"]  # Script to run in subprocess
+    inpt = " ".join(map(str, x))  # Application input
+
+    exctr = libE_info["executor"]  # Get Executor
+
+    # Launch application via given MPI runner, using assigned resources.
+    _launch_with_env_and_mpi(exctr, inpt, dry_run, env_script_path, "openmpi")
+    _launch_with_env_and_mpi(exctr, inpt, dry_run, env_script_path, "srun")
+
+    mpi_runner_type = {"mpi_runner": "openmpi", "runner_name": "special_mpi"}
+    _launch_with_env_and_mpi(exctr, inpt, dry_run, env_script_path, mpi_runner_type)
+
+    # Now run in current environment.
+    task = exctr.submit(
+        app_name="six_hump_camel",
+        app_args=inpt,
+        auto_assign_gpus=True,
+        match_procs_to_gpus=True,
+        dry_run=dry_run,
+    )
+    check_mpi_runner(task, "mpich", print_setting=True)
+    check_gpu_setting(task, print_setting=True)
+
+    if not dry_run:
+        task.wait()  # Wait for run to complete
+
+        # Access app output
+        with open("out.txt") as f:
+            H_o["f"] = float(f.readline().strip())  # Read just first line
+
+    # Asserts GPU set correctly (for known MPI runners)
+    check_gpu_setting(task, print_setting=True)
+
+    calc_status = WORKER_DONE if task.state == "FINISHED" else "FAILED"
+    return H_o, persis_info, calc_status
+
+
+def multi_points_with_variable_resources(H, _, sim_specs, libE_info):
     """
     Evaluates either helloworld or six hump camel for a collection of points
     given in ``H["x"]`` via the MPI executor, supporting variable sized
@@ -121,7 +190,7 @@ def multi_points_with_variable_resources(H, _, sim_specs):
     nodes.
 
     Note that this is also an example that is capable of handling multiple
-    points (sim ids) in one each call.
+    points (sim ids) in each call.
 
     .. seealso::
         `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
@@ -134,7 +203,7 @@ def multi_points_with_variable_resources(H, _, sim_specs):
     set_cores_by_rsets = True  # If True use rset count to set num procs, else use all available to this worker.
     core_multiplier = 1  # Only used with set_cores_by_rsets as a multiplier.
 
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
     task_states = []
     for i, x in enumerate(H["x"]):
         nprocs = None  # Will be as if argument is not present
@@ -145,8 +214,6 @@ def multi_points_with_variable_resources(H, _, sim_specs):
         inpt = None  # Will be as if argument is not present
         if app == "six_hump_camel":
             inpt = " ".join(map(str, H["x"][i]))
-
-        print(f"{nprocs=}")
 
         task = exctr.submit(
             app_name=app,
@@ -220,7 +287,7 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
 
     # Create application input file
     inpt = " ".join(map(str, x))
-    exctr = Executor.executor  # Get Executor
+    exctr = libE_info["executor"]  # Get Executor
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(

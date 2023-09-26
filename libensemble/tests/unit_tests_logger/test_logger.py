@@ -66,8 +66,6 @@ def test_set_filename():
 
 
 def test_set_directory(tmp_path):
-    from libensemble.comms.logs import manager_logging_config
-
     logs = LogConfig.config
     logs.logger_set = False
     logs.filename = "ensemble.log"
@@ -76,14 +74,6 @@ def test_set_directory(tmp_path):
     logger.set_directory(tmp_path)
     assert logs.filename == os.path.join(tmp_path, "ensemble.log")
     assert logs.stat_filename == os.path.join(tmp_path, "libE_stats.txt")
-
-    manager_logging_config()
-    logger.set_directory("toolate")
-    assert logs.filename == os.path.join(tmp_path, "ensemble.log")
-    assert logs.stat_filename == os.path.join(tmp_path, "libE_stats.txt")
-
-    assert os.path.isfile(os.path.join(tmp_path, "ensemble.log"))
-    assert os.path.isfile(os.path.join(tmp_path, "libE_stats.txt"))
 
 
 def test_set_stderr_level():

@@ -1,9 +1,8 @@
 Configuring libEnsemble
 =======================
 
-This section outlines the dictionaries, classes, and other structures used by libEnsemble
-to configure a workflow, oftentimes within a single Python file we refer to as a *calling script*.
-See :ref:`here<libe-module>` for more information on combining these into a complete workflow.
+libEnsemble workflows are configured via the following data structures.
+See :ref:`here<libe-module>` for instruction on constructing a complete workflow.
 
 .. toctree::
    :maxdepth: 2
@@ -13,5 +12,6 @@ See :ref:`here<libe-module>` for more information on combining these into a comp
    gen_specs
    libE_specs
    alloc_specs
+   platform_specs
    persis_info
    exit_criteria

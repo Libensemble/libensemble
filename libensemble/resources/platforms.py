@@ -1,10 +1,10 @@
 """Module for platform specification
 
 This module defines the Platform class which can be used to determine a platform
-(computing system) attributes. A number of known systems are provided.
+(computing system) attributes. Many known systems are provided.
 
 These can be specified by the libE_specs options ``platform_specs`` (recommended).
-If may also be specified, for known systems, via a string in the ``platform``
+It may also be specified, for known systems, via a string in the ``platform``
 option or the environment variable ``LIBE_PLATFORM``.
 """
 
@@ -52,7 +52,7 @@ class Platform(BaseModel):
     Must take one of the following string options.
 
     - ``"runner_default"``:       Use default setting for MPI runner (same as if not set).
-    - ``"env"``:                  Use an environment variable (comma separated list of slots)
+    - ``"env"``:                  Use an environment variable (comma-separated list of slots)
     - ``"option_gpus_per_node"``: Expresses GPUs per node on MPI runner command line.
     - ``"option_gpus_per_task"``: Expresses GPUs per task on MPI runner command line.
 
@@ -89,6 +89,23 @@ class Platform(BaseModel):
 
     """
 
+    gpu_env_fallback: Optional[str]
+    """GPU fallback environment setting if not using an MPI runner.
+
+    For example:
+
+    .. code-block:: python
+
+        "gpu_setting_type" = "runner_default"
+        "gpu_env_fallback" = "ROCR_VISIBLE_DEVICES"
+
+    This example will use the MPI runner default settings when using an MPI runner, but
+    will otherwise use ROCR_VISIBLE_DEVICES (e.g., if setting via function set_env_to_gpus).
+
+    If this is not set, the default is "CUDA_VISIBLE_DEVICES".
+
+    """
+
     scheduler_match_slots: Optional[bool]
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
@@ -99,8 +116,8 @@ class Platform(BaseModel):
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``, where
     the value should match on each node of an MPI run (choose **True**).
 
-    When using command-line options just as ``--gpus-per-node``, which allow the systems
-    application level scheduler to manager GPUs, then ``match_slots`` can be **False**
+    When using command-line options just as ``--gpus-per-node``, which allow the system's
+    application-level scheduler to manage GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
@@ -137,6 +154,7 @@ class Crusher(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -146,6 +164,7 @@ class Frontier(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 8
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -170,6 +189,7 @@ class PerlmutterCPU(Perlmutter):
 class PerlmutterGPU(Perlmutter):
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -180,6 +200,7 @@ class Polaris(Platform):
     logical_cores_per_node: int = 64
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
     scheduler_match_slots: bool = True
 
 
@@ -189,6 +210,7 @@ class Spock(Platform):
     logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
+    gpu_setting_name: str = "ROCR_VISIBLE_DEVICES"
     scheduler_match_slots: bool = False
 
 
@@ -242,7 +264,7 @@ class Known_platforms(BaseModel):
                 export LIBE_PLATFORM="perlmutter_g"
 
 
-    If the platform is not specified, libEnsemble will attempt detect known
+    If the platform is not specified, libEnsemble will attempt to detect known
     platforms (this is not guaranteed).
 
     **Note**: libEnsemble should work on any platform, and detects most
@@ -285,7 +307,7 @@ def known_envs():
 def known_system_detect(cmd="hostname -d"):
     """Detect known systems
 
-    This is a function attempts to detect if on a known system, but users
+    This function attempts to detect if on a known system, but users
     should specify systems to be sure.
     """
     run_cmd = cmd.split()
@@ -299,7 +321,7 @@ def known_system_detect(cmd="hostname -d"):
 
 
 def get_platform(libE_specs):
-    """Return platform as dictionary from relevant libE_specs option.
+    """Return platform as a dictionary from relevant libE_specs option.
 
     For internal use, return a platform as a dictionary from either
     platform name or platform_specs.

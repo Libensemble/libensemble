@@ -11,6 +11,7 @@ def setup_standalone_run():
     os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
     os.environ.pop("LIBE_TEST_SLOTS_1", None)
     os.environ.pop("LIBE_TEST_GPUS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_2", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -19,6 +20,7 @@ def teardown_standalone_run():
     os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
     os.environ.pop("LIBE_TEST_SLOTS_1", None)
     os.environ.pop("LIBE_TEST_GPUS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_2", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -28,6 +30,7 @@ def setup_function(function):
     os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
     os.environ.pop("LIBE_TEST_SLOTS_1", None)
     os.environ.pop("LIBE_TEST_GPUS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_2", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -37,6 +40,7 @@ def teardown_function(function):
     os.environ.pop("LIBE_RESOURCES_TEST_NODE_LIST", None)
     os.environ.pop("LIBE_TEST_SLOTS_1", None)
     os.environ.pop("LIBE_TEST_GPUS_1", None)
+    os.environ.pop("LIBE_TEST_GPUS_2", None)
     if os.path.isfile("node_list"):
         os.remove("node_list")
 
@@ -844,8 +848,59 @@ def test_wresources_set_gpus():
         egpus = os.environ["LIBE_TEST_GPUS_1"]
         assert egpus == exp_out[i], f"Env GPUs {egpus} does not match expected {exp_out[i]}"
 
-        del os.environ["LIBE_TEST_SLOTS_1"]
-        del os.environ["LIBE_TEST_GPUS_1"]
+        os.environ.pop("LIBE_TEST_SLOTS_1", None)
+        os.environ.pop("LIBE_TEST_GPUS_1", None)
+
+
+def _check_set_env_to_gpus(wresources, env, exp):
+    """Check set_env_to_gpus for given wresources/platform"""
+    os.environ.pop(env, None)
+    wresources.set_env_to_gpus()
+    egpus = os.environ[env]
+    assert egpus == exp, f"Env GPUs {egpus} does not match expected {exp}"
+    os.environ.pop(env, None)
+
+
+def test_wresources_set_gpus_by_platform():
+    wresources = _setup_wresources_gpus(4)
+
+    rset_teams = [[0, 1, 4, 5], [2, 3, 6, 7], [1, 3, 5, 7]]
+    exp_out = ["0,1", "2,3", "1,3"]
+
+    # Test routines for querying slots and gpus.
+    for i in range(3):
+        wresources.set_rset_team(rset_teams[i])
+
+        wresources.platform_info = {
+            "gpu_setting_type": "env",
+            "gpu_setting_name": "LIBE_TEST_GPUS_1",
+            "scheduler_match_slots": False,
+        }
+
+        _check_set_env_to_gpus(wresources, "LIBE_TEST_GPUS_1", exp_out[i])
+        os.environ.pop("LIBE_TEST_GPUS_1", None)
+
+        # "gpu_setting_type" should override "gpu_env_fallback"
+        wresources.platform_info["gpu_env_fallback"] = "LIBE_TEST_GPUS_2"  # should ignore
+        _check_set_env_to_gpus(wresources, "LIBE_TEST_GPUS_1", exp_out[i])
+        assert "LIBE_TEST_GPUS_2" not in os.environ, "LIBE_TEST_GPUS_2 should not be set"
+
+        # Change "gpu_setting_type" so not "env" and it should use "gpu_env_fallback"
+        wresources.platform_info["gpu_setting_type"] = "runner_default"
+
+        _check_set_env_to_gpus(wresources, "LIBE_TEST_GPUS_2", exp_out[i])
+        assert "LIBE_TEST_GPUS_1" not in os.environ, "LIBE_TEST_GPUS_1 should not be set"
+
+        # Try default - via empty string or not set
+        wresources.platform_info["gpu_env_fallback"] = ""
+        _check_set_env_to_gpus(wresources, "CUDA_VISIBLE_DEVICES", exp_out[i])
+
+        del wresources.platform_info["gpu_env_fallback"]
+        _check_set_env_to_gpus(wresources, "CUDA_VISIBLE_DEVICES", exp_out[i])
+
+        # If no platform info.
+        wresources.platform_info = None
+        _check_set_env_to_gpus(wresources, "CUDA_VISIBLE_DEVICES", exp_out[i])
     del wresources
 
 
@@ -937,6 +992,7 @@ if __name__ == "__main__":
     test_get_group_list()
     test_machinefile_from_resources()
     test_wresources_set_gpus()
+    test_wresources_set_gpus_by_platform()
     test_wresources_set_gpus_x2()
     test_wresources_set_limit_gpus()
     test_wresources_set_no_gpus()

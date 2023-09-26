@@ -1,5 +1,5 @@
-libEnsemble Internal Modules
-============================
+Internal Modules
+================
 
 This section documents the internal modules of libEnsemble.
 

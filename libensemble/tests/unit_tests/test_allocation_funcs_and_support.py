@@ -37,7 +37,9 @@ H["sim_started_time"] = np.inf
 
 
 def initialize_resources():
-    Resources.init_resources({"comms": "local", "nworkers": 4, "num_resource_sets": 4})
+    platform_info = {"cores_per_node": 8, "gpus_per_node": 4}
+    libE_specs = {"comms": "local", "nworkers": 4, "num_resource_sets": 4}
+    Resources.init_resources(libE_specs=libE_specs, platform_info=platform_info)
     Resources.resources.set_resource_manager(4)
 
 
@@ -218,8 +220,20 @@ def test_als_gen_work():
     als = AllocSupport(W, True, persis_info=persis_info)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1])
+    assert Work[1]["libE_info"]["rset_team"] == [0], "Resource set should be assigned in libE_info"
+    del persis_info["gen_resources"]
 
-    assert len(Work[1]["libE_info"]["rset_team"]), "Resource set should be assigned in libE_info"
+    persis_info["gen_num_procs"] = 2
+    Work[2] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[2])
+    assert Work[2]["libE_info"]["rset_team"] == [1], "Resource set should be assigned in libE_info"
+    assert Work[2]["libE_info"]["num_procs"] == 2, "num_procs set should be assigned in libE_info"
+
+    persis_info["gen_num_procs"] = 2
+    persis_info["gen_num_gpus"] = 2
+    Work[3] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[3])
+    assert Work[3]["libE_info"]["rset_team"] == [2, 3], "Resource set should be assigned in libE_info"
+    assert Work[3]["libE_info"]["num_procs"] == 2, "num_procs set should be assigned in libE_info"
+    assert Work[3]["libE_info"]["num_gpus"] == 2, "num_procs set should be assigned in libE_info"
 
     clear_resources()
 
@@ -240,15 +254,15 @@ def test_als_all_sim_started():
 
     assert not als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1
-    ), "all_sim_started() should've returned False based on boolean filter."
+    ), "all_sim_started() should've returned False based on Boolean filter."
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1, low_bound=3
-    ), "all_sim_started() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_sim_started() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter2
-    ), "all_sim_started() should've returned True based on boolean filter."
+    ), "all_sim_started() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_gvn["cancel_requested"] = np.array([False, True, False, False, False])
@@ -259,7 +273,7 @@ def test_als_all_sim_started():
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1
-    ), "all_sim_started(H_some_gvn) should've returned True based on boolean filter and cancelled."
+    ), "all_sim_started(H_some_gvn) should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvn["cancel_requested"] = np.array([False, True, True, False, False])
@@ -296,15 +310,15 @@ def test_als_all_sim_ended():
 
     assert not als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1
-    ), "all_sim_ended() should've returned False based on boolean filter."
+    ), "all_sim_ended() should've returned False based on Boolean filter."
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1, low_bound=3
-    ), "all_sim_ended() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_sim_ended() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter2
-    ), "all_sim_ended() should've returned True based on boolean filter."
+    ), "all_sim_ended() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_rtn["cancel_requested"] = np.array([False, True, False, False, False])
@@ -313,7 +327,7 @@ def test_als_all_sim_ended():
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1
-    ), "all_sim_ended() should've returned True based on boolean filter and cancelled."
+    ), "all_sim_ended() should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_rtn["cancel_requested"] = np.array([False, True, True, False, False])
@@ -355,15 +369,15 @@ def test_als_all_gen_informed():
 
     assert not als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1
-    ), "all_gen_informed() should've returned False based on boolean filter."
+    ), "all_gen_informed() should've returned False based on Boolean filter."
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1, low_bound=3
-    ), "all_gen_informed() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_gen_informed() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter2
-    ), "all_gen_informed() should've returned True based on boolean filter."
+    ), "all_gen_informed() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_gvnbk["cancel_requested"] = np.array([False, True, False, False, False])
@@ -374,7 +388,7 @@ def test_als_all_gen_informed():
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1
-    ), "all_gen_informed() should've returned True based on boolean filter and cancelled."
+    ), "all_gen_informed() should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvnbk["cancel_requested"] = np.array([False, True, True, False, False])
@@ -424,30 +438,39 @@ def test_als_points_by_priority():
 
 def test_convert_to_rsets():
     user_params = []
-    libE_info = {}
     gen_fields = [("num_procs", int), ("num_gpus", int)]
     H = np.zeros(5, dtype=libE_fields + gen_fields)
 
     H_rows = 1
-    H[H_rows]["num_gpus"] = 3
+    num_gpus = 3
+    H[H_rows]["num_gpus"] = num_gpus
     units_str = "num_gpus"
 
     gpus_per_rset = 1
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, gpus_per_rset, num_gpus, units_str)
+    assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
+    assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
+
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 3, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 
     gpus_per_rset = 2
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 2, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 3, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 
     gpus_per_rset = 0
+    libE_info, num_rsets = {}, None  # Reset
     with pytest.raises(InsufficientResourcesError):
-        num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+        num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
 
     H[H_rows]["num_gpus"] = 0
-    num_rsets = AllocSupport._convert_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
+    libE_info, num_rsets = {}, None  # Reset
+    num_rsets = AllocSupport._convert_rows_to_rsets(libE_info, user_params, H, H_rows, gpus_per_rset, units_str)
     assert num_rsets == 0, f"Unexpected number of rsets {num_rsets}"
     assert libE_info["num_gpus"] == 0, f"Unexpected number for num_gpus {libE_info['num_gpus']}"
 

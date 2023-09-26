@@ -5,8 +5,7 @@ Allocation Specs
 
 Allocation function specifications to be set in the user calling script. *Optional*.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
-all data is validated immediately on instantiation.
+Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
 .. autopydantic_model:: libensemble.specs.AllocSpecs
   :model-show-json: False

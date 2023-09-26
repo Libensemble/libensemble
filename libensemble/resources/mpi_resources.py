@@ -28,7 +28,7 @@ def get_MPI_variant() -> str:
 
     Returns
     -------
-    mpi_variant: string:
+    mpi_variant: str
         MPI variant 'aprun' or 'jsrun' or 'msmpi' or 'mpich' or 'openmpi' or 'srun'
 
     """

@@ -21,16 +21,24 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.tools import add_unique_random_streams
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
-    sampling = Ensemble()
-    sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
-    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
+    sampling = Ensemble(parse_args=True)
+    sampling.libE_specs = LibeSpecs(
+        save_every_k_gens=300,
+        safe_mode=False,
+        disable_log_files=True,
+    )
+    sampling.sim_specs = SimSpecs(
+        sim_f=sim_f,
+        inputs=["x"],
+        outputs=[("f", float)],
+    )
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
-        out=[("x", float, (1,))],
+        outputs=[("x", float, (1,))],
         user={
             "gen_batch_size": 500,
             "lb": np.array([-3]),
@@ -38,11 +46,11 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.add_random_streams()
+    sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
     sampling.exit_criteria = ExitCriteria(gen_max=501)
 
     sampling.run()
     if sampling.is_manager:
         assert len(sampling.H) >= 501
         print("\nlibEnsemble with random sampling has generated enough points")
-        sampling.save_output(__file__)
+    sampling.save_output(__file__)
