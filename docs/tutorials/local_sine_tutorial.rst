@@ -21,7 +21,7 @@ need to write a new allocation function.
         .. code-block:: bash
 
             $ python --version
-            Python 3.8.0            # This should be >= 3.8
+            Python 3.9.0            # This should be >= 3.9
 
         .. _Python: https://www.python.org/
 

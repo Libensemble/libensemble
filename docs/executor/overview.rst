@@ -195,4 +195,4 @@ an existing resource pool. However, submissions to a batch scheduler may be
 supported in future Executors.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
-.. _`concurrent futures`: https://docs.python.org/3.8/library/concurrent.futures.html
+.. _`concurrent futures`: https://docs.python.org/library/concurrent.futures.html
