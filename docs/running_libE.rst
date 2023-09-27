@@ -209,7 +209,7 @@ any machine and any scheduler, using a `PSI/J`_ Python implementation.
                     "type": "JobSpec",
                     "data": {
                         "name": "libe-job",
-                        "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.8",
+                        "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.9",
                         "arguments": [
                             "my_calling_script.py",
                             "--comms",
