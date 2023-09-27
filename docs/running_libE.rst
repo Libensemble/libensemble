@@ -247,7 +247,6 @@ any machine and any scheduler, using a `PSI/J`_ Python implementation.
         If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
         specified calling script, it'll help search for matching candidate scripts.
 
-
 Persistent Workers
 ------------------
 .. _persis_worker:
