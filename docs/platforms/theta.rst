@@ -42,7 +42,7 @@ Alternative
 If you do not wish to clone the miniconda environment and instead create your own, and
 you are using ``mpi4py`` make sure the install picks up Cray's compiler drivers. E.g::
 
-    $ conda create --name my_env python=3.8
+    $ conda create --name my_env python=3.9
     $ export PYTHONNOUSERSITE=1
     $ conda activate my_env
     $ CC=cc MPICC=cc pip install mpi4py --no-binary mpi4py
