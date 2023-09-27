@@ -221,7 +221,7 @@ libEnsemble on specific HPC systems.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Cooley: https://www.alcf.anl.gov/support-center/cooley
-.. _`Globus Compute`: https://www.globus.org/compute
-.. _`Globus Compute endpoints`: https://globus-compute.readthedocs.io/en/latest/endpoints.html
+.. _Globus Compute: https://www.globus.org/compute
+.. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/
-.. _`handful of task-rate and data limits`: https://globus-compute.readthedocs.io/en/latest/limits.html
+.. _handful of task-rate and data limits: https://globus-compute.readthedocs.io/en/latest/limits.html

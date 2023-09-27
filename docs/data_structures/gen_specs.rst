@@ -92,8 +92,8 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
   * In all interfaces, custom fields should only be placed in ``"user"``
   * Generator ``"out"`` fields typically match Simulation ``"in"`` fields, and vice-versa.
 
+.. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field
 .. _sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/sampling.py
-.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py
 .. _test_persistent_aposmm_nlopt.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_nlopt.py
 .. _test_persistent_aposmm_with_grad.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_with_grad.py
-.. _more example uses: https://github.com/Libensemble/libensemble/wiki/Using-persis_in-field
+.. _test_uniform_sampling.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py

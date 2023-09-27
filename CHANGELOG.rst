@@ -6,7 +6,7 @@ Below are the notes from all libEnsemble releases.
 
 GitHub issues are referenced, and can be viewed with hyperlinks on the `github releases page`_.
 
-.. _`github releases page`: https://github.com/Libensemble/libensemble/releases
+.. _github releases page: https://github.com/Libensemble/libensemble/releases
 
 Release 1.0.0
 --------------

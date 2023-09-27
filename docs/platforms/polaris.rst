@@ -96,9 +96,9 @@ For an example that runs a small ensemble using a C application (offloading work
 GPU), see the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A video demonstration_
 of this example is also available.
 
-.. _Polaris: https://www.alcf.anl.gov/polaris
 .. _ALCF: https://www.alcf.anl.gov/
-.. _Python for Polaris: https://www.alcf.anl.gov/support/user-guides/polaris/data-science-workflows/python/index.html
 .. _conda: https://conda.io/en/latest/
-.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _demonstration: https://youtu.be/Ff0dYYLQzoU
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _Polaris: https://www.alcf.anl.gov/polaris
+.. _Python for Polaris: https://www.alcf.anl.gov/support/user-guides/polaris/data-science-workflows/python/index.html
