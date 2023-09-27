@@ -15,7 +15,7 @@
 
 |
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
+.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/Libensemble/libensemble/actions
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
