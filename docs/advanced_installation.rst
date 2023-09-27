@@ -181,8 +181,8 @@ The following packages may be installed separately to enable additional features
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
 .. _Conda: https://docs.conda.io/en/latest/
-.. _Globus Compute: https://www.globus.org/compute
 .. _GitHub: https://github.com/Libensemble/libensemble
+.. _Globus Compute: https://www.globus.org/compute
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
 .. _Open MPI: https://www.open-mpi.org/

@@ -247,7 +247,6 @@ any machine and any scheduler, using a `PSI/J`_ Python implementation.
         If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
         specified calling script, it'll help search for matching candidate scripts.
 
-.. _PSI/J: https://exaworks.org/psij
 
 Persistent Workers
 ------------------
@@ -297,3 +296,4 @@ guide for more information, including some examples for specific systems.
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _MPICH: https://www.mpich.org/
 .. _multiprocessing: https://docs.python.org/3/library/multiprocessing.html
+.. _PSI/J: https://exaworks.org/psij

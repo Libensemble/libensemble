@@ -4,8 +4,6 @@ Frequently Asked Questions
 
 If you have any additional questions, feel free to contact us through Support_.
 
-.. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
-
 Debugging
 ---------
 
@@ -176,10 +174,6 @@ HPC Errors and Questions
     resources for both the libEnsemble manager and workers and the launched tasks. If this is
     complicated, we recommended using a :doc:`dedicated node for libEnsemble<platforms/platforms_index>`.
 
-  .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
-  .. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
-  .. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
-
 libEnsemble Help
 ----------------
 
@@ -198,8 +192,6 @@ libEnsemble Help
 
       from libensemble.tools import ForkablePdb
       ForkablePdb().set_trace()
-
-.. _xQuartz: https://www.xquartz.org/
 
 .. dropdown:: **Can I use the MPI Executor when running libEnsemble with multiprocessing?**
 
@@ -255,8 +247,6 @@ macOS and Windows Errors
 
   Otherwise, install ``msmpi`` and ``mpi4py`` from conda and experiment, or use ``local`` comms.
 
-.. _`Installing PETSc On Microsoft Windows`: https://petsc.org/release/install/windows/#recommended-installation-methods
-
 .. dropdown:: **Windows - "A required privilege is not held by the client"**
 
   Assuming you were trying to use the ``sim_dir_symlink_files`` or ``gen_dir_symlink_files`` options, this indicates that to
@@ -283,8 +273,6 @@ macOS and Windows Errors
     import multiprocessing
     multiprocessing.set_start_method("fork", force=True)
 
-.. _`Python multiprocessing docs`: https://docs.python.org/3/library/multiprocessing.html
-
 .. dropdown:: **"macOS - Fatal error in MPI_Init_thread: Other MPI error, error stack: ... gethostbyname failed"**
 
   Resolve this by appending ``127.0.0.1   [your hostname]`` to /etc/hosts.
@@ -300,3 +288,16 @@ macOS and Windows Errors
   ``sudo codesign --force --deep --sign - /path/to/application.app``
   on our executables, then confirming the next alerts for the executable
   and ``mpiexec.hydra``.
+
+
+
+
+
+
+.. _Installing PETSc On Microsoft Windows: https://petsc.org/release/install/windows/#recommended-installation-methods
+.. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
+.. _Python multiprocessing docs: https://docs.python.org/3/library/multiprocessing.html
+.. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
+.. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources
+.. _xQuartz: https://www.xquartz.org/

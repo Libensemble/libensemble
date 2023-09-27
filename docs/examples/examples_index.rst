@@ -17,4 +17,4 @@ the `libEnsemble Community Repository`_, with corresponding generator documentat
    alloc_funcs
    calling_scripts
 
-.. _`libEnsemble Community Repository`: https://github.com/Libensemble/libe-community-examples
+.. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples

@@ -305,12 +305,12 @@ that runs 8 workers on 2 nodes:
 
 where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 
-.. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
-.. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
 .. _build_forces.sh: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/build_forces.sh
-.. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
-.. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
-.. _Polaris: https://youtu.be/Ff0dYYLQzoU
-.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
+.. _forces.c: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_app/forces.c
+.. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
 .. _forces_multi_app: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
+.. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
+.. _Polaris: https://youtu.be/Ff0dYYLQzoU
+.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
+.. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU

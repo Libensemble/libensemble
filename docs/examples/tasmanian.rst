@@ -21,6 +21,6 @@ use either *venv* or *--user* install.
       :language: python
       :linenos:
 
-.. _Tasmanian: https://tasmanian.ornl.gov/
 .. _pypackaging: https://pypi.org/project/pypackaging/
 .. _scikit-build: https://scikit-build.readthedocs.io/en/latest/index.html
+.. _Tasmanian: https://tasmanian.ornl.gov/

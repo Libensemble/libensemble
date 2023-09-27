@@ -227,15 +227,14 @@ See the ALCF `Support Center`_ for more information about Theta.
 Read the documentation for Balsam here_.
 
 .. _ALCF: https://www.alcf.anl.gov/
-.. _Theta: https://www.alcf.anl.gov/theta
 .. _Balsam: https://balsam.readthedocs.io
 .. _Cobalt: https://www.alcf.anl.gov/support-center/theta/submit-job-theta
-.. _`Support Center`: https://www.alcf.anl.gov/support-center/theta
-.. _here: https://balsam.readthedocs.io/en/latest/
-.. .. _Balsam install: https://balsam.readthedocs.io/en/latest/#quick-setup
-.. _ps_nodes: https://github.com/Libensemble/libensemble/blob/develop/examples/misc/ps_nodes.sh
-.. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
-.. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _conda: https://conda.io/en/latest/
+.. _here: https://balsam.readthedocs.io/en/latest/
 .. _information: https://docs.alcf.anl.gov/theta/data-science-workflows/conda/
+.. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _postgresql: https://www.alcf.anl.gov/support-center/theta/postgresql-and-sqlite
+.. _ps_nodes: https://github.com/Libensemble/libensemble/blob/develop/examples/misc/ps_nodes.sh
+.. _Support Center: https://www.alcf.anl.gov/support-center/theta
+.. _Theta: https://www.alcf.anl.gov/theta
