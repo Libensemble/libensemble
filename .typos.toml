@@ -1,3 +1,9 @@
+[default]
+extend-ignore-identifiers-re = [
+    ".*NDArray.*",
+    "8ba9de56.*"
+]
+
 [default.extend-words]
 als = "als"
 datas = "datas"
