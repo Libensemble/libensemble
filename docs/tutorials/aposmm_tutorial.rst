@@ -297,9 +297,9 @@ applications with parameters requested by APOSMM, then evaluate their output usi
 APOSMM, and repeat until minima are identified. A currently supported example
 can be found in libEnsemble's `WarpX Scaling Test`_.
 
-.. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
-.. _NLopt: https://nlopt.readthedocs.io/en/latest/
-.. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
-.. _SciPy: https://scipy.org/
-.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
 .. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials
+.. _NLopt: https://nlopt.readthedocs.io/en/latest/
+.. _PETSc/TAO: https://www.mcs.anl.gov/petsc/
+.. _SciPy: https://scipy.org/
+.. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
+.. _WarpX Scaling Test: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx

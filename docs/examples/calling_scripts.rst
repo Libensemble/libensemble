@@ -64,4 +64,4 @@ persistent run via a custom allocation function.
     :caption: tests/regression_tests/test_persistent_aposmm_with_grad.py
     :linenos:
 
-.. _`regression tests`: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests
+.. _regression tests: https://github.com/Libensemble/libensemble/tree/develop/libensemble/tests/regression_tests
