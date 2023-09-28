@@ -1,4 +1,4 @@
-sphinx<7
+sphinx<8
 sphinxcontrib-bibtex
 autodoc_pydantic
 sphinx-design

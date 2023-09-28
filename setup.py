@@ -84,7 +84,7 @@ setup(
     extras_require={
         "docs": [
             "autodoc_pydantic",
-            "sphinx<7",
+            "sphinx<8",
             "sphinx_design",
             "sphinx_rtd_theme",
             "sphinxcontrib-bibtex",
