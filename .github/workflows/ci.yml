@@ -14,7 +14,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                mpi-version: "openmpi"
+                mpi-version: [openmpi]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
                 comms-type: l
         env:
