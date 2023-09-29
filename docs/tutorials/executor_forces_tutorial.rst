@@ -44,7 +44,7 @@ generation functions and call libEnsemble. Create a Python file called
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 17,25, 28
+    :emphasize-lines: 16,24,27
 
     #!/usr/bin/env python
     import os
@@ -74,13 +74,13 @@ generation functions and call libEnsemble. Create a Python file called
         # Parse number of workers, comms type, etc. from arguments
         ensemble = Ensemble(parse_args=True, executor=exctr)
 
-On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
+On line 16, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
-On line 22, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
+On line 27, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
 parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 
