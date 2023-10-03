@@ -11,7 +11,7 @@
    :target: https://anaconda.org/conda-forge/libensemble
 
 .. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
-   :target: https://spack.readthedocs.io/en/latest/package_list.html#py-libensemble
+   :target: https://packages.spack.io/package.html?name=py-libensemble
 
 |
 
