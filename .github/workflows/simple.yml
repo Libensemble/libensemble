@@ -6,6 +6,7 @@ on:
       - opened
       - reopened
       - synchronize
+
 jobs:
     test-libE:
         if: '! github.event.pull_request.draft'
