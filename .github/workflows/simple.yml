@@ -1,4 +1,5 @@
 name: libEnsemble-simple-CI
+
 on:
   pull_request:
     types:

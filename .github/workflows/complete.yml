@@ -1,4 +1,5 @@
 name: libEnsemble-complete-CI
+
 on:
   schedule:
     - cron: '0 12 * * 1'
