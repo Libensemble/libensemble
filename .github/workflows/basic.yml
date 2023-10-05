@@ -86,10 +86,12 @@ jobs:
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
-        - name: Install mpi4py from pip, MPI from conda
+        - name: Install mpi4py from pip, MPI from conda, get testing/feature deps
           if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
           run: |
             conda install ${{ matrix.mpi-version }}
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
             pip install mpi4py
 
         - name: Install generator dependencies
