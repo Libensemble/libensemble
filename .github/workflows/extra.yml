@@ -1,0 +1,232 @@
+name: libEnsemble-complete-CI
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'
+
+jobs:
+    test-libE:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest]
+                mpi-version: [mpich]
+                python-version: [3.9, "3.10", "3.11"]
+                comms-type: [m, l]
+                include:
+                    - os: macos-latest
+                      python-version: 3.9
+                      mpi-version: "mpich=4.0.3"
+                      comms-type: m
+                    - os: macos-latest
+                      python-version: 3.9
+                      mpi-version: "mpich=4.0.3"
+                      comms-type: l
+                    - os: ubuntu-latest
+                      python-version: "3.10"
+                      mpi-version: "mpich"
+                      comms-type: t
+                    - os: ubuntu-latest
+                      mpi-version: "openmpi"
+                      python-version: "3.11"
+                      comms-type: l
+
+        env:
+            HYDRA_LAUNCHER: "fork"
+            TERM: xterm-256color
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        defaults:
+            run:
+                shell: bash -l {0}
+
+        steps:
+        - uses: actions/checkout@v4
+        - name: Setup conda - Python ${{ matrix.python-version }}
+          uses: conda-incubator/setup-miniconda@v2
+          with:
+            activate-environment: condaenv
+            miniconda-version: "latest"
+            python-version: ${{ matrix.python-version }}
+            channels: conda-forge
+            channel-priority: flexible
+            auto-update-conda: true
+
+        - uses: actions/cache/restore@v3
+          name: Restore cached dependencies
+          id: cache
+          if: matrix.os == 'ubuntu-latest'
+          with:
+            path: |
+              /home/runner/work/libensemble/libensemble/heffte/build/
+              /home/runner/.local
+              /usr/share/miniconda3/envs/condaenv
+              /usr/share/miniconda3/bin
+              /usr/share/miniconda3/lib
+              /usr/share/miniconda3/include
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+
+        - name: Force-update certifi
+          run: |
+            python --version
+            pip install -I --upgrade certifi
+
+        - name: Install Ubuntu compilers
+          if: matrix.os == 'ubuntu-latest'
+          run: conda install gcc_linux-64
+
+        # Roundabout solution on macos for proper linking with mpicc
+        - name: Install macOS compilers and older SDK
+          if: matrix.os == 'macos-latest'
+          run: |
+            wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.15.sdk.tar.xz
+            mkdir ../sdk; tar xf MacOSX10.15.sdk.tar.xz -C ../sdk
+            conda install clang_osx-64
+
+        - name: Install mpi4py and MPI from conda
+          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
+          run: |
+            conda install mpi4py ${{ matrix.mpi-version }}
+
+        - name: Install mpi4py from pip, MPI from conda
+          if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+          run: |
+            conda install ${{ matrix.mpi-version }}
+            pip install mpi4py
+
+        - name: Install generator dependencies
+          if: steps.cache.outputs.cache-hit != 'true'
+          run: |
+            python -m pip install --upgrade pip
+            conda env update --file install/gen_deps_environment.yml
+
+            pip install ax-platform==0.2.8
+
+        - name: Install surmise
+          if: matrix.os != 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+          run: |
+            pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
+
+        - name: Build ytopt and dependencies
+          if: matrix.python-version != '3.11' && matrix.os != 'macos-latest'
+          run: |
+            pip install scikit-learn==1.1.2
+            pip install pandas==1.5.3
+            pip install ConfigSpace
+            pip install "ray[default]"
+            git clone https://github.com/ytopt-team/scikit-optimize.git
+            cd scikit-optimize
+            pip install .
+            cd ..
+            git clone -b version1 https://github.com/ytopt-team/autotune.git
+            cd autotune
+            pip install .
+            cd ..
+            git clone -b main https://github.com/ytopt-team/ytopt.git
+            cd ytopt
+            pip install .
+            cd ..
+
+        - name: Install generator dependencies for Ubuntu tests
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+          run: |
+            conda install octave
+            sudo apt-get install bc
+
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://github.com/icl-utk-edu/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make -j 4
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
+
+            # pip install dragonfly-opt
+            # pip install git+https://github.com/dragonfly/dragonfly.git
+            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+
+            pip install scikit-build packaging Tasmanian --user
+
+        - name: Copy heffte exe on cache-hit
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
+          run: |
+            cd /home/runner/work/libensemble/libensemble
+            cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
+
+        - name: Install other testing dependencies
+          run: |
+            conda install pyzmq
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
+            git clone https://github.com/argonne-lcf/balsam.git
+            sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
+            cd balsam; pip install -e .; cd ..
+
+        - uses: actions/cache/save@v3
+          name: Save dependencies to cache
+          if: matrix.os == 'ubuntu-latest'
+          with:
+            path: |
+              /home/runner/work/libensemble/libensemble/heffte/build/
+              /home/runner/.local
+              /usr/share/miniconda3/envs/condaenv
+              /usr/share/miniconda3/bin
+              /usr/share/miniconda3/lib
+              /usr/share/miniconda3/include
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+
+        - name: Install libEnsemble, flake8, lock environment
+          run: |
+            pip install -e .
+            flake8 libensemble
+
+        - name: Remove ytopt-heffte test on Python 3.11 (easy way)
+          if: matrix.python-version == '3.11'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
+
+        - name: Run extensive tests, Ubuntu
+          if: matrix.os == 'ubuntu-latest'
+          run: |
+           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Run extensive tests, macOS
+          if: matrix.os == 'macos-latest'
+          env:
+              CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
+          run: |
+            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+
+        - name: Merge coverage, run Coveralls
+          env:
+              COVERALLS_PARALLEL: true
+          run: |
+            mv libensemble/tests/.cov* .
+            coveralls --service=github
+
+    coveralls:
+        name: Notify coveralls of all jobs completing
+        needs: [test-libE]
+        if: '! github.event.pull_request.draft'
+        runs-on: ubuntu-latest
+        container: python:3-slim
+        steps:
+        - name: Finished
+          run: |
+            pip3 install --upgrade coveralls
+            coveralls --finish
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    spellcheck:
+        name: Spellcheck release branch
+        if: contains(github.base_ref, 'develop')
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+        - uses: crate-ci/typos@v1.16.17
