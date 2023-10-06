@@ -174,7 +174,6 @@ def rmfield(a, *fieldnames_to_remove):
     return a[[name for name in a.dtype.names if name not in fieldnames_to_remove]]
 
 
-@pytest.mark.extra
 def test_logging_disabling():
     remove_file_if_exists("ensemble.log")
     remove_file_if_exists("libE_stats.txt")

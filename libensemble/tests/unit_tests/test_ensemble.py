@@ -1,12 +1,10 @@
 import sys
 
 import numpy as np
-import pytest
 
 import libensemble.tests.unit_tests.setup as setup
 
 
-@pytest.mark.extra
 def test_ensemble_init():
     """testing init attrs"""
     from libensemble.ensemble import Ensemble
@@ -20,7 +18,6 @@ def test_ensemble_init():
     assert e.logger.get_level() == 20, "Default log level should be 20."
 
 
-@pytest.mark.extra
 def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
     from libensemble.ensemble import Ensemble
@@ -51,7 +48,6 @@ def test_from_files():
         assert all([i in e.exit_criteria.__dict__.items() for i in exit_criteria.items()])
 
 
-@pytest.mark.extra
 def test_bad_func_loads():
     """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
     from libensemble.ensemble import Ensemble
@@ -71,7 +67,6 @@ def test_bad_func_loads():
         assert flag == 0
 
 
-@pytest.mark.extra
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
