@@ -56,7 +56,6 @@ jobs:
           if: matrix.os == 'ubuntu-latest'
           with:
             path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
               /home/runner/.local
               /usr/share/miniconda3/envs/condaenv
               /usr/share/miniconda3/bin
