@@ -1,5 +1,5 @@
 flake8==6.1.0
-coverage==6.5.0
+coverage==7.3.2
 pytest==7.4.2
 pytest-cov==4.1.0
 pytest-timeout==2.1.0
