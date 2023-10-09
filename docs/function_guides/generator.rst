@@ -5,8 +5,13 @@ Generator Functions
 
 Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar interfaces.
 
+Writing a Generator
+-------------------
+
 .. code-block:: python
 
+    @input_fields(["f"])
+    @output_data([("x", float)])
     def my_generator(Input, persis_info, gen_specs, libE_info):
         batch_size = gen_specs["user"]["batch_size"]
 
@@ -22,19 +27,23 @@ Most ``gen_f`` function definitions written by users resemble::
 
 where:
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`
-    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information
-    * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters, including which fields from the History array got sent
-    *  ``libE_info`` is a dictionary containing libEnsemble-specific entries
+    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy array.
+    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
+    * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters.
+    *  ``libE_info`` is a dictionary containing miscellaneous entries.
+
+*Optional* ``input_fields`` and ``output_data`` decorators for the function describe the
+fields to pass in and the output data format. Otherwise those fields
+need to be specified in :class:`GenSpecs<libensemble.specs.GenSpecs>`.
 
 Valid generator functions can accept a subset of the above parameters. So a very simple generator can start::
 
     def my_generator(Input):
 
-If gen_specs was initially defined::
+If ``gen_specs`` was initially defined::
 
     gen_specs = {
-        "gen_f": some_function,
+        "gen_f": my_generator,
         "in": ["f"],
         "out:" ["x", float, (1,)],
         "user": {
