@@ -29,6 +29,9 @@ Writing a Generator
 
         .. code-block:: python
 
+            from libensemble.specs import input_fields, output_data
+
+
             @input_fields(["f"])
             @output_data([("x", float)])
             def my_generator(Input, persis_info, gen_specs, libE_info):
@@ -64,14 +67,22 @@ If ``gen_specs`` was initially defined:
 
         .. code-block:: python
 
-            gen_specs = GenSpecs(gen_f=my_generator, inputs=["f"], outputs=["x", float, (1,)], user={"batch_size": 128})
+            gen_specs = GenSpecs(
+                gen_f=my_generator,
+                inputs=["f"],
+                outputs=["x", float, (1,)],
+                user={"batch_size": 128},
+            )
 
     .. tab-item:: Decorated function
         :sync: decorate
 
         .. code-block:: python
 
-            gen_specs = GenSpecs(gen_f=my_generator, user={"batch_size": 128})
+            gen_specs = GenSpecs(
+                gen_f=my_generator,
+                user={"batch_size": 128},
+            )
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
 

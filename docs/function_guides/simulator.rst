@@ -29,6 +29,9 @@ Writing a Simulator
 
         .. code-block:: python
 
+            from libensemble.specs import input_fields, output_data
+
+
             @input_fields(["x"])
             @output_data([("f", float)])
             def my_simulation(Input, persis_info, sim_specs, libE_info):
@@ -65,14 +68,22 @@ If ``sim_specs`` was initially defined:
 
         .. code-block:: python
 
-            sim_specs = SimSpecs(sim_f=my_simulation, inputs=["x"], outputs=["f", float, (1,)], user={"batch_size": 128})
+            sim_specs = SimSpecs(
+                sim_f=my_simulation,
+                inputs=["x"],
+                outputs=["f", float, (1,)],
+                user={"batch_size": 128},
+            )
 
     .. tab-item:: Decorated function
         :sync: decorate
 
         .. code-block:: python
 
-            sim_specs = SimSpecs(sim_f=my_simulation, user={"batch_size": 128})
+            sim_specs = SimSpecs(
+                sim_f=my_simulation,
+                user={"batch_size": 128},
+            )
 
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
