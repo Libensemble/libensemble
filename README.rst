@@ -11,11 +11,11 @@
    :target: https://anaconda.org/conda-forge/libensemble
 
 .. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
-   :target: https://spack.readthedocs.io/en/latest/package_list.html#py-libensemble
+   :target: https://packages.spack.io/package.html?name=py-libensemble
 
 |
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
+.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/Libensemble/libensemble/actions
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main

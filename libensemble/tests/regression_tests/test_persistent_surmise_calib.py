@@ -43,7 +43,6 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 
 if __name__ == "__main__":
-
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 25  # No. of x values
     nparams = 4  # No. of theta params
@@ -80,8 +79,8 @@ if __name__ == "__main__":
             persis_in=[o[0] for o in gen_out] + ["f", "sim_ended", "sim_id"],
             out=gen_out,
             user={
-                "n_init_thetas": n_init_thetas,  # Num thetas in initial batch
-                "num_x_vals": n_x,  # Num x points to create
+                "n_init_thetas": n_init_thetas,  # No. of thetas in initial batch
+                "num_x_vals": n_x,  # No. of x points to create
                 "step_add_theta": step_add_theta,  # No. of thetas to generate per step
                 "n_explore_theta": n_explore_theta,  # No. of thetas to explore each step
                 "obsvar": obsvar,  # Variance for generating noise in obs
@@ -110,7 +109,7 @@ if __name__ == "__main__":
         print("Cancelled sims", H["sim_id"][H["cancel_requested"]])
         sims_done = np.count_nonzero(H["sim_ended"])
         test.save_output(__file__)
-        assert sims_done == max_evals, f"Num of completed simulations should be {max_evals}. Is {sims_done}"
+        assert sims_done == max_evals, f"No. of completed simulations should be {max_evals}. Is {sims_done}"
 
         # The following line is only to cover parts of tstd2theta
         tstd2theta(H[0]["thetas"].squeeze(), hard=False)

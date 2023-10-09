@@ -6,16 +6,19 @@ https://libensemble.readthedocs.io/en/develop/tutorials/executor_forces_tutorial
 
 ## QuickStart
 
-Build executable and run example. Go to `forces_app` directory and build `forces.x`:
+Build forces application and run the ensemble. Go to `forces_app` directory and build `forces.x`:
 
     cd ../forces_app
     ./build_forces.sh
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py --comms local --nworkers 5
 
-## Running test run_libe_forces.py
+This will run with four workers. One worker will run the persistent generator.
+The other four will run the forces simulations.
+
+## Detailed instructions
 
 Naive Electrostatics Code Test
 
@@ -30,10 +33,11 @@ See `forces_app` directory for details.
 
 ### Running with libEnsemble.
 
-A random sample of seeds is taken and used as input to the sim func (forces miniapp).
+A random sample of seeds is taken and used as input to the simulation function
+(forces miniapp).
 
-In forces_app directory, modify build_forces.sh for target platform and run to
-build forces.x:
+In the `forces_app` directory, modify `build_forces.sh` for the target platform
+and run to build `forces.x`:
 
     ./build_forces.sh
 

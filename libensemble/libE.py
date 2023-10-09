@@ -66,7 +66,6 @@ all platforms and comms-types may resemble:
     from libensemble.tools import add_unique_random_streams
 
     if __name__ == "__main__":
-
         nworkers, is_manager, libE_specs, _ = parse_args()
 
         libE_specs["save_every_k_gens"] = 20
@@ -160,32 +159,32 @@ def libE(
         Specifications for the simulation function
         :doc:`(example)<data_structures/sim_specs>`
 
-    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
 
         Specifications for the generator function
         :doc:`(example)<data_structures/gen_specs>`
 
-    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
 
         Tell libEnsemble when to stop a run
         :doc:`(example)<data_structures/exit_criteria>`
 
-    persis_info: :obj:`dict`, optional
+    persis_info: :obj:`dict`, Optional
 
         Persistent information to be passed between user functions
         :doc:`(example)<data_structures/persis_info>`
 
-    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
 
         Specifications for the allocation function
         :doc:`(example)<data_structures/alloc_specs>`
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
         :doc:`(example)<data_structures/libE_specs>`
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
+    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`

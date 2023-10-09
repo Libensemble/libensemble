@@ -1,0 +1,56 @@
+# numpy inherited docstrings
+py:obj dtype
+py:obj a
+py:obj a.size == 1
+py:obj n
+py:obj ndarray
+py:obj args
+py:obj numpy.ndarray
+py:class <class 'numpy.ndarray'>
+py:class numpy.ndarray
+py:class numpy.dtype
+py:class numpy.typing.NDArray
+py:class numpy._typing._generic_alias.ScalarType
+py:class numpy._typing._dtype_like._DTypeDict
+py:class numpy._typing._dtype_like._SupportsDType
+
+# Pending on python docs links issue #11975
+py:class list
+py:obj list.append
+py:obj list.append
+py:obj list.count
+py:obj list.extend
+py:obj list.index
+py:obj list.insert
+py:meth list.pop
+py:obj list.remove
+py:class classmethod
+py:class pathlib.Path
+py:class string
+py:class String
+py:class optional
+py:class dict
+py:class int
+py:class <class 'dict'>
+py:class <class 'int'>
+py:class +ScalarType
+
+# Internal paths that are verified importable but Sphinx can't find
+py:class libensemble.resources.platforms.GenericROCm
+py:class libensemble.resources.platforms.Crusher
+py:class libensemble.resources.platforms.Frontier
+py:class libensemble.resources.platforms.PerlmutterCPU
+py:class libensemble.resources.platforms.PerlmutterGPU
+py:class libensemble.resources.platforms.Polaris
+py:class libensemble.resources.platforms.Spock
+py:class libensemble.resources.platforms.Summit
+py:class libensemble.resources.platforms.Sunspot
+py:class libensemble.resources.rset_resources.RSetResources
+py:class libensemble.resources.env_resources.EnvResources
+py:class libensemble.resources.resources.Resources
+py:class libensemble.executors.executor.Application
+py:meth libensemble.tools.save_libE_output
+
+# Types specifying objects that can dramatically vary
+py:class comm
+py:class communicator

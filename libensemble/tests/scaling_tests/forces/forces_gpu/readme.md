@@ -15,18 +15,22 @@ for your platform (these will include -DGPU)
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py --comms local --nworkers 5
+
+This will run libEnsemble with five workers; one for the persistent generator, and
+four for forces simulations (so four GPUs are required).
 
 By default, each run of forces will use one CPU and one GPU. The `forces.c` code can also
 be MPI parallel and will use one GPU for each CPU rank, assuming an even split of ranks
-across nodes.
+across nodes. There must be enough GPUs per simulation worker (for a more dynamic example,
+see `forces_gpu_var_resources`).
 
-## Running test run_libe_forces.py
+## Detailed instructions
 
 Naive Electrostatics Code Test
 
 This is a synthetic, highly configurable simulation function. This test aims
-to show libEnsemble's capability to set assign GPU resources as needed by each
+to show libEnsemble's capability to assign GPU resources as needed by each
 worker and to launch application instances via the `MPIExecutor`.
 
 ### Forces Mini-App

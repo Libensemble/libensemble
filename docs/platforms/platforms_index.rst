@@ -3,8 +3,8 @@
 Running on HPC Systems
 ======================
 
-Central v Distributed
----------------------
+Central vs. Distributed
+-----------------------
 
 libEnsemble has been developed, supported, and tested on systems of highly varying
 scales, from laptops to thousands of compute nodes. On multi-node systems, there are
@@ -12,7 +12,7 @@ two basic modes of configuring libEnsemble to run and launch tasks (user applica
 on the available nodes.
 
 The first mode we refer to as **central** mode, where the libEnsemble manager and worker processes
-are grouped on to one or more dedicated nodes. Workers launch applications onto
+are grouped onto one or more dedicated nodes. Workers launch applications onto
 the remaining allocated nodes:
 
     .. image:: ../images/centralized_new_detailed.png
@@ -52,7 +52,7 @@ If the argument ``libE_specs["dedicated_mode"]=True`` is used when initializing 
 that is running a libEnsemble manager or worker will be removed from the node-list available
 to the workers, ensuring libEnsemble has dedicated nodes.
 
-To run in central mode using a 5 node allocation with 4 workers. From the head node
+To run in central mode using a 5-node allocation with 4 workers: From the head node
 of the allocation::
 
     mpirun -np 5 python myscript.py
@@ -72,7 +72,7 @@ For example::
     mpirun -np 5 -ppn 1 python myscript.py
 
 would launch libEnsemble with 5 processes across 5 nodes. However, the manager would have its
-own node, which is likely wasteful. More often, a machinefile is used to add the manager to
+own node, which is likely wasteful. More often, a ``machinefile`` is used to add the manager to
 the first node. In the :doc:`examples<example_scripts>` directory, you can find an example submission
 script, configured to run libensemble distributed, with multiple workers per node or multiple nodes
 per worker, and adding the manager onto the first node.
@@ -80,16 +80,16 @@ per worker, and adding the manager onto the first node.
 HPC systems that only allow one application to be launched to a node at any one time,
 will not allow a distributed configuration.
 
-Systems with Launch/MOM nodes
+Systems with Launch/MOM Nodes
 -----------------------------
 
 Some large systems have a 3-tier node setup. That is, they have a separate set of launch nodes
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
-Most such systems supply a special MPI runner which has some application-level scheduling
-capability (eg. ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include: Summit, Sierra and Theta.
+Most such systems supply a special MPI runner that has some application-level scheduling
+capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
+of these systems include: Summit, Sierra, and Theta.
 
-There are two ways of running libEnsemble on these kind of systems. The first, and simplest,
+There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
 or generation functions are not doing much work (other than launching applications). This approach
 is inherently centralized. The entire node allocation is available for the worker-launched
@@ -100,7 +100,7 @@ will better manage simulation and generation functions that contain considerable
 computational work or I/O. Therefore the second option is to use proxy task-execution
 services like Balsam_.
 
-Balsam - Externally managed applications
+Balsam - Externally Managed Applications
 ----------------------------------------
 
 Running libEnsemble on the compute nodes while still submitting additional applications
@@ -115,7 +115,7 @@ or *to entirely different systems*.
 
         (New) Multi-System: libEnsemble + BalsamExecutor
 
-Submission scripts for running on launch/MOM nodes and for using Balsam, can be be found in
+Submission scripts for running on launch/MOM nodes and for using Balsam, can be found in
 the :doc:`examples<example_scripts>`.
 
 Mapping Tasks to Resources
@@ -132,7 +132,7 @@ Users with persistent ``gen_f`` functions may notice that the persistent workers
 are still automatically assigned system resources. This can be resolved by
 :ref:`fixing the number of resource sets<zero_resource_workers>`.
 
-Overriding Auto-detection
+Overriding Auto-Detection
 -------------------------
 
 libEnsemble can automatically detect system information. This includes resource information, such as
@@ -144,18 +144,18 @@ libE_specs option.
 When using the MPI Executor, it is possible to override the detected information using the
 `custom_info` argument. See the :doc:`MPI Executor<../executor/mpi_executor>` for more.
 
- .. _funcx_ref:
+.. _globus_compute_ref:
 
-Globus Compute - Remote User functions
+Globus Compute - Remote User Functions
 --------------------------------------
 
 *Alternatively to much of the above*, if libEnsemble is running on some resource with
 internet access (laptops, login nodes, other servers, etc.), workers can be instructed to
 launch generator or simulator user function instances to separate resources from
-themselves via `Globus Compute`_, a distributed, high-performance function-as-a-service platform:
+themselves via `Globus Compute`_ (formerly funcX), a distributed, high-performance function-as-a-service platform:
 
     .. image:: ../images/funcxmodel.png
-        :alt: running_with_funcx
+        :alt: running_with_globus_compute
         :scale: 50
         :align: center
 
@@ -196,7 +196,7 @@ argument. For example::
         globus_compute_endpoint = "3af6dc24-3f27-4c49-8d11-e301ade15353",
     )
 
-See the ``libensemble/tests/scaling_tests/funcx_forces`` directory for a complete
+See the ``libensemble/tests/scaling_tests/globus_compute_forces`` directory for a complete
 remote-simulation example.
 
 Instructions for Specific Platforms
@@ -213,7 +213,7 @@ libEnsemble on specific HPC systems.
     frontier
     perlmutter
     polaris
-    spock/crusher <spock_crusher>
+    spock_crusher
     summit
     theta
     srun
@@ -221,7 +221,7 @@ libEnsemble on specific HPC systems.
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _Cooley: https://www.alcf.anl.gov/support-center/cooley
-.. _`Globus Compute`: https://www.globus.org/compute
-.. _`Globus Compute endpoints`: https://globus-compute.readthedocs.io/en/latest/endpoints.html
+.. _Globus Compute: https://www.globus.org/compute
+.. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/
-.. _`handful of task-rate and data limits`: https://globus-compute.readthedocs.io/en/latest/limits.html
+.. _handful of task-rate and data limits: https://globus-compute.readthedocs.io/en/latest/limits.html

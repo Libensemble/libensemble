@@ -1,5 +1,5 @@
-Release Management for libEnsemble
-==================================
+Release Management
+==================
 
 This section documents the steps to be followed for each libEnsemble release.
 

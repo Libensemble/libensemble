@@ -1,5 +1,5 @@
 # !/usr/bin/env python
-# Integration Test of executor module for libensemble
+# Integration test of executor module for libensemble
 # Test does not require running full libensemble
 import os
 import platform
@@ -67,7 +67,7 @@ def build_simfuncs():
             subprocess.check_call(buildstring.split())
 
 
-# This would typically be in the user calling script
+# This would typically be in the user calling script.
 def setup_executor():
     """Set up an MPI Executor with sim app"""
     from libensemble.executors.mpi_executor import MPIExecutor
@@ -135,7 +135,7 @@ def is_ompi():
 
 
 # -----------------------------------------------------------------------------
-# The following would typically be in the user sim_func
+# The following would typically be in the user sim_func.
 def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
@@ -143,7 +143,7 @@ def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
     while time.time() - start < timeout_sec:
         time.sleep(delay)
 
-        # Check output file for error
+        # Check output file for error.
         if task.stdout_exists():
             if "Error" in task.read_stdout() or "error" in task.read_stdout():
                 print("Found(deliberate) Error in output file - cancelling task")
@@ -203,7 +203,6 @@ def polling_loop_multitask(exctr, task_list, timeout_sec=4.0, delay=0.05):
 # Tests ========================================================================================
 
 
-@pytest.mark.extra
 def test_launch_and_poll():
     """Test of launching and polling task and exiting on task finish"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -218,7 +217,6 @@ def test_launch_and_poll():
     assert task.run_attempts == 1, "task.run_attempts should be 1. Returned " + str(task.run_attempts)
 
 
-@pytest.mark.extra
 def test_launch_and_wait():
     """Test of launching and waiting on task"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -235,7 +233,6 @@ def test_launch_and_wait():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_launch_and_wait_no_platform():
     """Test of launching and waiting on task with no platform setup
 
@@ -255,7 +252,6 @@ def test_launch_and_wait_no_platform():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_launch_and_wait_timeout():
     """Test of launching and waiting on task timeout (and kill)"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -275,7 +271,6 @@ def test_launch_and_wait_timeout():
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_launch_wait_on_start():
     """Test of launching task with wait_on_start"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -292,7 +287,6 @@ def test_launch_wait_on_start():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_kill_on_file():
     """Test of killing task based on something in output file"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -306,7 +300,6 @@ def test_kill_on_file():
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_kill_on_timeout():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -319,7 +312,6 @@ def test_kill_on_timeout():
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_kill_on_timeout_polling_loop_method():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -332,7 +324,6 @@ def test_kill_on_timeout_polling_loop_method():
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_launch_and_poll_multitasks():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -355,7 +346,6 @@ def test_launch_and_poll_multitasks():
         assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_get_task():
     """Return task from given task id"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -381,7 +371,6 @@ def test_get_task():
     assert A is None, "Task found when supplied taskid should not exist"
 
 
-@pytest.mark.extra
 @pytest.mark.timeout(30)
 def test_procs_and_machinefile_logic():
     """Test of supplying various input configurations."""
@@ -421,7 +410,7 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing num_procs not num_nodes*procs_per_node (should fail)
+    # Testing num_procs not num_nodes*procs_per_node (should fail).
     try:
         task = exctr.submit(calc_type="sim", num_procs=9, num_nodes=2, procs_per_node=5, app_args=args_for_sim)
     except MPIResourcesException as e:
@@ -429,7 +418,7 @@ def test_procs_and_machinefile_logic():
     else:
         assert 0
 
-    # Testing no num_procs (shouldn't fail)
+    # Testing no num_procs (should not fail).
     if is_ompi():
         task = exctr.submit(
             calc_type="sim",
@@ -445,7 +434,7 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Testing nothing given (should fail)
+    # Testing nothing given (should fail).
     try:
         task = exctr.submit(calc_type="sim", app_args=args_for_sim)
     except MPIResourcesException as e:
@@ -453,7 +442,7 @@ def test_procs_and_machinefile_logic():
     else:
         assert 0
 
-    # Testing no num_nodes (shouldn't fail)
+    # Testing no num_nodes (should not fail).
     task = exctr.submit(calc_type="sim", num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
     task = polling_loop(exctr, task, delay=0.05)
@@ -468,12 +457,11 @@ def test_procs_and_machinefile_logic():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 @pytest.mark.timeout(20)
 def test_doublekill():
-    """Test attempt to kill already killed task
+    """Test attempt to kill already killed task.
 
-    Kill should have no effect (except warning message) and should remain in state killed
+    Kill should have no effect (except warning message) and should remain in state killed.
     """
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -492,12 +480,11 @@ def test_doublekill():
     assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 @pytest.mark.timeout(20)
 def test_finish_and_kill():
-    """Test attempt to kill already finished task
+    """Test attempt to kill already finished task.
 
-    Kill should have no effect (except warning message) and should remain in state FINISHED
+    Kill should have no effect (except warning message) and should remain in state FINISHED.
     """
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -519,7 +506,6 @@ def test_finish_and_kill():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 @pytest.mark.timeout(20)
 def test_launch_and_kill():
     """Test launching and immediately killing tasks with no poll"""
@@ -540,7 +526,6 @@ def test_launch_and_kill():
         assert task.state == "USER_KILLED", "task.state should be USER_KILLED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_launch_as_gen():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -548,7 +533,7 @@ def test_launch_as_gen():
     cores = NCORES
     args_for_sim = "sleep 0.1"
 
-    # Try launching as gen when not registered as gen
+    # Try launching as gen when not registered as gen.
     try:
         task = exctr.submit(calc_type="gen", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
@@ -562,7 +547,7 @@ def test_launch_as_gen():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
-    # Try launching as 'alloc' which is not a type
+    # Try launching as 'alloc', which is not a type.
     try:
         task = exctr.submit(calc_type="alloc", num_procs=cores, app_args=args_for_sim)
     except ExecutorException as e:
@@ -571,7 +556,6 @@ def test_launch_as_gen():
         assert 0
 
 
-@pytest.mark.extra
 def test_launch_no_app():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_noapp()
@@ -592,7 +576,6 @@ def test_launch_no_app():
         assert 0
 
 
-@pytest.mark.extra
 def test_kill_task_with_no_submit():
     from libensemble.executors.executor import Task
 
@@ -608,7 +591,7 @@ def test_kill_task_with_no_submit():
     else:
         assert 0
 
-    # Create a task directly with no submit (Not supported for users)
+    # Create a task directly with no submit (not supported for users).
     # Debatably make taskID 0 as executor should be deleted if use setup function.
     # But this allows any task ID.
     exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
@@ -623,7 +606,6 @@ def test_kill_task_with_no_submit():
         assert 0
 
 
-@pytest.mark.extra
 def test_poll_task_with_no_submit():
     from libensemble.executors.executor import Task
 
@@ -631,7 +613,7 @@ def test_poll_task_with_no_submit():
     setup_executor()
     exctr = Executor.executor
 
-    # Create a task directly with no submit (Not supported for users)
+    # Create a task directly with no submit (Not supported for users).
     exp_msg = "task libe_task_my_simtask.x_.+has no process ID - check task has been launched"
     exp_re = re.compile(exp_msg)
     myapp = exctr.sim_default_app
@@ -644,7 +626,6 @@ def test_poll_task_with_no_submit():
         assert 0
 
 
-@pytest.mark.extra
 def test_task_failure():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -657,7 +638,6 @@ def test_task_failure():
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_retries_launch_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
@@ -671,7 +651,6 @@ def test_retries_launch_fail():
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
-@pytest.mark.extra
 def test_retries_run_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -685,7 +664,6 @@ def test_retries_run_fail():
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
-@pytest.mark.extra
 def test_register_apps():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()  # This registers an app my_simtask.x (default sim)
@@ -731,7 +709,6 @@ def test_register_apps():
         # assert e.args[1] == "Registered applications: ['my_simtask.x', 'fake_app1', 'fake_app2']"
 
 
-@pytest.mark.extra
 def test_serial_exes():
     setup_serial_executor()
     exctr = Executor.executor
@@ -742,7 +719,6 @@ def test_serial_exes():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
-@pytest.mark.extra
 def test_serial_startup_times():
     setup_executor_startups()
     exctr = Executor.executor
@@ -768,7 +744,6 @@ def test_serial_startup_times():
     assert 0 < startup_time < 1, "Start up time for python program took " + str(startup_time)
 
 
-@pytest.mark.extra
 def test_futures_interface():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -782,7 +757,6 @@ def test_futures_interface():
     assert task.done(), "task.done() should return True after task finishes."
 
 
-@pytest.mark.extra
 def test_futures_interface_cancel():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -795,7 +769,6 @@ def test_futures_interface_cancel():
     assert task.cancelled() and task.done(), "Task should be both cancelled() and done() after cancellation."
 
 
-@pytest.mark.extra
 def test_dry_run():
     """Test of dry_run in poll"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
@@ -808,7 +781,6 @@ def test_dry_run():
     task.kill()
 
 
-@pytest.mark.extra
 def test_non_existent_app():
     """Tests exception on non-existent app"""
     from libensemble.executors.executor import Executor
@@ -828,7 +800,6 @@ def test_non_existent_app():
         assert 0
 
 
-@pytest.mark.extra
 def test_non_existent_app_mpi():
     """Tests exception on non-existent app"""
     from libensemble.executors.mpi_executor import MPIExecutor

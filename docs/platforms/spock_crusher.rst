@@ -74,6 +74,6 @@ To see GPU usage, ssh into the node you are on in another window and run::
     module load rocm
     watch -n 0.1 rocm-smi
 
-.. _Spock:  https://docs.olcf.ornl.gov/systems/spock_quick_start_guide.html
-.. _Slurm: https://slurm.schedmd.com/
 .. _Crusher: https://docs.olcf.ornl.gov/systems/crusher_quick_start_guide.html
+.. _Slurm: https://slurm.schedmd.com/
+.. _Spock:  https://docs.olcf.ornl.gov/systems/spock_quick_start_guide.html

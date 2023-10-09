@@ -52,8 +52,8 @@ In general, the number of resource sets should be set to enable the maximum
 concurrency desired by the ensemble, taking into account generators and simulators.
 
 Users can set generator resources using the *libE_specs* options
-``gen_num_procs`` and/or ``gen_num_gpus``, which take an integer values.
-If only  ``gen_num_gpus`` is set, then number of processors will match.
+``gen_num_procs`` and/or ``gen_num_gpus``, which take integer values.
+If only  ``gen_num_gpus`` is set, then the number of processors is set to match.
 
 To vary generator resources, ``persis_info`` settings can be used in allocation
 functions before calling the ``gen_work`` support function. This takes the
@@ -71,7 +71,7 @@ the other will have two.
 Placing zero-resource functions on a fixed worker
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the generator must must always be on worker one, then instead of using
+If the generator must always be on worker one, then instead of using
 ``num_resource_sets``, use the ``zero_resource_workers`` *libE_specs* option:
 
 .. code-block:: python

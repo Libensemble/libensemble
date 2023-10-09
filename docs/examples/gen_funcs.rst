@@ -18,4 +18,4 @@ Generator Functions
    fd_param_finder
    surmise
 
-.. _`libEnsemble Community Repository`: https://github.com/Libensemble/libe-community-examples
+.. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples

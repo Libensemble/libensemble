@@ -21,7 +21,7 @@ Begin by loading the Python 3 Anaconda module::
 
 You can now create and activate your own custom conda_ environment::
 
-    conda create --name myenv python=3.8
+    conda create --name myenv python=3.9
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
 
@@ -203,9 +203,9 @@ Additional Information
 
 See the OLCF guides_ for more information about Summit.
 
-.. _Summit: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
-.. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
-.. _guides: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
 .. _conda: https://conda.io/en/latest/
+.. _guides: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
+.. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _resource sets: https://docs.olcf.ornl.gov/systems/summit_user_guide.html#job-launcher-jsrun
+.. _Summit: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/

@@ -33,7 +33,6 @@ from libensemble.tools import add_unique_random_streams
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-
     x0 = np.array([1.23, 4.56])  # point about which we are calculating finite difference parameters
     f0 = noisy_function(x0)
     n = len(x0)

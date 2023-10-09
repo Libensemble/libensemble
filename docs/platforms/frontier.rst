@@ -70,5 +70,5 @@ To see GPU usage, ssh into the node you are on in another window and run::
     watch -n 0.1 rocm-smi
 
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
-.. _Slurm: https://slurm.schedmd.com/
 .. _python_on_frontier: https://www.olcf.ornl.gov/wp-content/uploads/2-16-23_python_on_frontier.pdf
+.. _Slurm: https://slurm.schedmd.com/

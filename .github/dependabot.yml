@@ -11,13 +11,16 @@ updates:
     directory: /
     schedule:
       interval: daily
+    target-branch: "develop"
 
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: daily
+    target-branch: "develop"
 
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
       interval: daily
+    target-branch: "develop"

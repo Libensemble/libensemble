@@ -5,8 +5,7 @@ Exit Criteria
 
 The following criteria (or termination tests) can be used to configure when to stop a workflow.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
-all data is validated immediately on instantiation.
+Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
 .. autopydantic_model:: libensemble.specs.ExitCriteria
   :model-show-json: False

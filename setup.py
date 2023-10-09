@@ -84,10 +84,11 @@ setup(
     extras_require={
         "docs": [
             "autodoc_pydantic",
-            "sphinx",
+            "sphinx<8",
             "sphinx_design",
             "sphinx_rtd_theme",
-            "sphinxcontrib.bibtex",
+            "sphinxcontrib-bibtex",
+            "sphinx-copybutton",
         ],
     },
     scripts=[
@@ -95,7 +96,7 @@ setup(
         "scripts/libesubmit",
     ],
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
@@ -104,7 +105,6 @@ setup(
         "Operating System :: Unix",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
