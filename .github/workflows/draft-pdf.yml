@@ -1,9 +1,9 @@
 name: JOSS paper build
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, main, joss-develop ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, main, joss-develop ]
   workflow_dispatch:
 
 jobs:
