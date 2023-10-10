@@ -1,34 +1,35 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'libEnsemble: A complete toolkit for dynamic ensembles of calculations'
 tags:
   - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - ensemble workflows
+  - optimization and learning
 authors:
-  - name: Adrian M. Price-Whelan
-    orcid: 0000-0000-0000-0000
+  - name: Stephen Hudson
+    orcid: 0000-0002-7500-6138
     equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
-  - name: Author with no affiliation
     corresponding: true # (This is how to denote the corresponding author)
-    affiliation: 3
-  - given-names: Ludwig
-    dropping-particle: van
-    surname: Beethoven
-    affiliation: 3
+    affiliation: 1
+  - name: Jeffrey Larson
+    orcid: 0000-0001-9924-2082
+    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
+    affiliation: 1
+  - name: John-Luke Navarro
+    orcid: 0000-0002-9916-9038
+    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
+    affiliation: 1
+  - name: Stefan M. Wild
+    orcid: 0000-0002-6099-2772
+    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
+    affiliation: "2, 3" # (Multiple affiliations must be quoted)
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University, USA
+ - name: Mathematics and Computer Science Division, Argonne National Laboratory, Lemont, IL, USA
    index: 1
- - name: Institution Name, Country
+ - name: AMCR Division, Lawrence Berkeley National Laboratory, Berkeley, CA, USA
    index: 2
- - name: Independent Researcher, Country
+ - name: Industrial Engineering and Management Sciences, Northwestern University, Evanston, IL, USA
    index: 3
-date: 13 August 2017
+date: 13 October 2023
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
