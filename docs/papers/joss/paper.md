@@ -116,5 +116,7 @@ Figure sizes can be customized by adding an optional second parameter:
 
 We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
 Oh, and support from Kathryn Johnston during the genesis of this project.
+This article was supported in part by the PETSc/TAO activity within the U.S. Department of Energy's (DOE's) Exascale Computing Project (17-SC-20-SC) and by the ComPASS and NUCLEI SciDAC projects within DOE's Office of Science, Advanced Scientific Computing Research under contract numbers DE-AC02-06CH11357 and DE-AC02-05CH11231.
+
 
 # References
