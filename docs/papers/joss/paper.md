@@ -40,7 +40,7 @@ bibliography: paper.bib
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
+<!-- The forces on stars, galaxies, and dark matter under external gravitational
 fields lead to the dynamical evolution of structures in the universe. The orbits
 of these bodies are therefore key to understanding the formation, history, and
 future state of galaxies. The field of "galactic dynamics," which aims to model
@@ -48,7 +48,15 @@ the gravitating components of galaxies to study their structure and evolution,
 is now well-established, commonly taught, and frequently used in astronomy.
 Aside from toy problems and demonstrations, the majority of problems require
 efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+performing numerical orbit integration). -->
+
+As the number of available computational resources increases, almost all applications
+or evaluations evantually stop perfectly scaling. Nonetheless, clusters, servers, and other resources
+keep growing, alongside the request to efficiently apply that hardware.
+libEnsemble is a complete Python toolkit and workflow system for intelligently driving
+"ensembles" of experiments or simulations at massive scales. Via a generator-simulator
+(or decision/learner-evaluator) paradigm, libEnsemble enables and encourages multi-disciplinary
+design, decision, and inference studies on or across laptops and heterogeneous hardware.
 
 # Statement of need
 
