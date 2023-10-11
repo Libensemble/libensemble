@@ -18,31 +18,26 @@ import time
 import numpy as np
 
 from libensemble import Ensemble
-from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
+from libensemble.sim_funcs.borehole import borehole, gen_borehole_input
 
-# Import libEnsemble items for this test
-from libensemble.sim_funcs.one_d_func import one_d_example
-from libensemble.specs import ExitCriteria, GenSpecs
-from libensemble.tools import add_unique_random_streams
+
+def create_input_work():
+    n_samp = 1000
+    H0 = np.zeros(n_samp, dtype=[("x", float, 8), ("sim_id", int), ("sim_started", bool)])
+    np.random.seed(0)
+    H0["x"] = gen_borehole_input(n_samp)
+    H0["sim_id"] = range(n_samp)
+    H0["sim_started"] = False
+    return H0
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
 
-    gen_specs = GenSpecs(
-        gen_f=gen_f,
-        outputs=[("x", float, (1,))],
-        user={
-            "gen_batch_size": 500,
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
-    )
+    input_array = create_input_work()
 
-    with Ensemble(parse_args=True, gen_specs=gen_specs, exit_criteria=ExitCriteria(sim_max=1001)) as sampling:
-
-        sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
-
-        future = sampling.submit(one_d_example, [("f", float)], "x")
+    with Ensemble(parse_args=True) as runner:
+        future = runner.submit(borehole, input_array, ["x"], [("f", float)])
         while not future.done():
             print("waiting")
             time.sleep(0.1)

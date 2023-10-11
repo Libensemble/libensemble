@@ -308,14 +308,20 @@ class Ensemble:
         return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
 
     def __enter__(self):
+        from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work
+
+        self.alloc_specs = AllocSpecs(alloc_f=give_pregenerated_sim_work)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def submit(self, fn, outputs: list, *args, **kwargs):  # presumably a "simulation" function?
-        self.sim_specs = SimSpecs(sim_f=fn, inputs=args, outputs=outputs, user=kwargs)
-        assert self.ready(), "Please provide ExitCriteria and LibeSpecs to the Ensemble instance"
+    def submit(
+        self, fn, input_array, input_fields: list, output_data: list, **kwargs
+    ):  # presumably a "simulation" function?
+        self.H0 = input_array
+        self.exit_criteria = ExitCriteria(sim_max=len(input_array))
+        self.sim_specs = SimSpecs(sim_f=fn, inputs=input_fields, outputs=output_data, user=kwargs)
         tpexecutor = ThreadPoolExecutor(max_workers=1)
         return tpexecutor.submit(self.run)
 
