@@ -30,7 +30,7 @@ see `forces_gpu_var_resources`).
 Naive Electrostatics Code Test
 
 This is a synthetic, highly configurable simulation function. This test aims
-to show libEnsemble's capability to set assign GPU resources as needed by each
+to show libEnsemble's capability to assign GPU resources as needed by each
 worker and to launch application instances via the `MPIExecutor`.
 
 ### Forces Mini-App

@@ -2,6 +2,7 @@ import os
 import time
 
 import numpy as np
+
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL
 
 MAX_SEED = 32767

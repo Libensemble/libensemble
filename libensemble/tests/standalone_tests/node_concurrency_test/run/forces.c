@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------
-    Naive Electrostatics Code Example
+    Basic Electrostatics Code Example
     This is designed only as an artificial, highly configurable test
     code for a libEnsemble sim func.
 
@@ -12,7 +12,7 @@
     Added OpenMP options for CPU and GPU.
 
     Jan 2022:
-    Use GPU preprocessor option to compile for GPU (e.g. -DGPU).
+    Use GPU preprocessor option to compile for GPU (e.g., -DGPU).
 
     Run executable on N procs:
 

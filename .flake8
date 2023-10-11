@@ -4,8 +4,6 @@ max-line-length = 120
 ignore =
         # E203 is not PEP 8 compliant. https://github.com/PyCQA/pycodestyle/issues/373
         E203
-        # Not worrying about spaces around arithmetic operations
-        E226
         # Linebreaks before/after unary operators are okay
         W503, W504
 exclude =
@@ -27,29 +25,23 @@ per-file-ignores =
         # systems/versions of MPI:
         libensemble/tests/standalone_tests/mpi_launch_test/create_mpi_jobs.py:E402
 
-        # Similar reasoning for configuring mpi4py
-        libensemble/tests/unit_tests/test_executor.py:E402
-
         # Matplotlib needs something set before import
         scripts/*:E402
 
         # Ignoring linelength in APOSMM
         libensemble/gen_funcs/*aposmm.py:E501
         examples/gen_funcs/*aposmm.py:E501
+        libensemble/tests/functionality_tests/test_mpi_runners.py:E501
+        libensemble/tests/functionality_tests/test_mpi_runners_zrw_supernode_uneven.py:E501
 
         # Need to set something before the APOSMM import
         libensemble/tests/scaling_tests/warpx/run_libensemble_on_warpx.py:E402
         examples/calling_scripts/run_libensemble_on_warpx.py:E402
-        libensemble/gen_funcs/persistent_aposmm.py:E402, E501
         libensemble/tests/regression_tests/test_persistent_aposmm*:E402
-        libensemble/tests/regression_tests/test_with_app_persistent_aposmm_tao_nm.py:E402
         libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py:E402
         libensemble/tests/regression_tests/test_ytopt_heffte.py:E402
         libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py:E402
         libensemble/tests/functionality_tests/test_active_persistent_worker_abort.py:E402
-        libensemble/tests/functionality_tests/test_mpi_runners.py:E501
-        libensemble/tests/functionality_tests/test_mpi_runners_zrw_supernode_uneven.py:E501
-        libensemble/tests/deprecated_tests/test_old_aposmm*:E402
         libensemble/tests/unit_tests/test_persistent_aposmm.py:E402
 
         # Allow undefined name '__version__'

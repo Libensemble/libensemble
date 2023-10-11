@@ -52,7 +52,6 @@ class LocationStack:
         ignore_FileExists: bool = False,
         allow_overwrite: bool = False,
     ) -> None:
-
         for file_path in symlink_files:
             src_path = Path(file_path).absolute()
             dest_path = destdir / Path(file_path.name)

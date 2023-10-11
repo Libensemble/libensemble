@@ -1,37 +1,44 @@
-Put variables (e.g., gen_f or H) in between double ticks ``stuff here`` (no quotes)
+GENERAL
+-------
 
-Code or monospaced values that contain quotes should only use double-quotes ("stuff_here")
+    Put variables (e.g., gen_f or H) in between double ticks ``stuff here`` (no quotes).
 
-Documented classes and functions should be linked to using :class: and :meth: respectively. Ensure the entire module path is used.
+    Code or monospaced values that contain quotes should only use double-quotes ("stuff_here").
 
-Links to other pages should *preferably* use :ref:, so references persist even when files are moved.
+    Use italics for emphasis except within links.
 
-Put short code in between double ticks ``stuff here`` (no quotes)
+    Put short code, file-names, and environment variables within ``double ticks`` (no quotes).
 
-Put referenced file names in between double ticks ``stuff here`` (no quotes)
+    "where" should be lowercased when describing variables in a formula or code sample.
 
-Put environment variables in between double ticks ``stuff here`` (no quotes)
+    Use tabs to compare multiple approaches or categorize content.
 
-Use .. note:: and .. warning:: directives
+    Use dropdowns for multiple long-content sections on the same page.
 
-Put breakout code snippets into a box using two colons ::
+    Acronym for "example": "e.g.," (note the final period and comma). Acronym for "number of": "No. of" (note the period after "No").
 
-No italics on text of links
+    Use semicolons; they're helpful for two smaller sentences describing the same topic.
 
-Use italics for emphasis
+CODE DOCSTRINGS AND TYPE HINTS
+------------------------------
 
-Ensure parameter types, return types, and contents of :obj:`label`, :class:`label`, and other instances are "resolvable" (importable/parsable by Python) to the best of your ability. If not, append to "nitpicky"
+    Ensure parameter types, return types, and contents of :obj:`label`, :class:`label`, and other instances are "resolvable" (importable/parsable by Python) to the best of your ability. If not, append to "nitpicky".
 
-Ensure global types in docstrings match their builtin/typing class or name; "string" should be "str", "optional" should be "Optional"
+    Ensure global types in docstrings match their builtin/typing class or name; "string" should be "str", "optional" should be "Optional".
 
-"list of object" should be "List[object]"
+    "List of object" should be "List[object]".
 
-Docstrings for parameters or fields should end with periods
+    List-items of parameters, fields, or other items should end with periods.
 
-Subsections should be Title Cased
+DOCS PAGES
+----------
 
-"where" should be lowercased when describing variables in a formula or code sample
+    Subsections should be Title Cased.
 
-Use tabs to compare multiple approaches or categorize content
+    Documented classes and functions should be linked to using :class: and :meth: respectively. Ensure the entire module path is used.
 
-Use dropdowns for multiple long-content sections on the same page.
+    Links to other pages should *preferably* use :ref: so references persist when files are moved.
+
+    Use .. note:: and .. warning:: directives to emphasize an edge-case.
+
+    Put breakout code snippets into a box using two colons ::.

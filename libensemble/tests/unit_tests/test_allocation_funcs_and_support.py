@@ -254,15 +254,15 @@ def test_als_all_sim_started():
 
     assert not als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1
-    ), "all_sim_started() should've returned False based on boolean filter."
+    ), "all_sim_started() should've returned False based on Boolean filter."
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1, low_bound=3
-    ), "all_sim_started() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_sim_started() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter2
-    ), "all_sim_started() should've returned True based on boolean filter."
+    ), "all_sim_started() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_gvn["cancel_requested"] = np.array([False, True, False, False, False])
@@ -273,7 +273,7 @@ def test_als_all_sim_started():
 
     assert als.all_sim_started(
         H_some_gvn, pt_filter=myfilter1
-    ), "all_sim_started(H_some_gvn) should've returned True based on boolean filter and cancelled."
+    ), "all_sim_started(H_some_gvn) should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvn["cancel_requested"] = np.array([False, True, True, False, False])
@@ -310,15 +310,15 @@ def test_als_all_sim_ended():
 
     assert not als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1
-    ), "all_sim_ended() should've returned False based on boolean filter."
+    ), "all_sim_ended() should've returned False based on Boolean filter."
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1, low_bound=3
-    ), "all_sim_ended() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_sim_ended() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter2
-    ), "all_sim_ended() should've returned True based on boolean filter."
+    ), "all_sim_ended() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_rtn["cancel_requested"] = np.array([False, True, False, False, False])
@@ -327,7 +327,7 @@ def test_als_all_sim_ended():
 
     assert als.all_sim_ended(
         H_some_rtn, pt_filter=myfilter1
-    ), "all_sim_ended() should've returned True based on boolean filter and cancelled."
+    ), "all_sim_ended() should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_rtn["cancel_requested"] = np.array([False, True, True, False, False])
@@ -369,15 +369,15 @@ def test_als_all_gen_informed():
 
     assert not als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1
-    ), "all_gen_informed() should've returned False based on boolean filter."
+    ), "all_gen_informed() should've returned False based on Boolean filter."
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1, low_bound=3
-    ), "all_gen_informed() should've returned True with boolean filter and adjusted lower bound."
+    ), "all_gen_informed() should've returned True with Boolean filter and adjusted lower bound."
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter2
-    ), "all_gen_informed() should've returned True based on boolean filter."
+    ), "all_gen_informed() should've returned True based on Boolean filter."
 
     # Now cancel a point
     H_some_gvnbk["cancel_requested"] = np.array([False, True, False, False, False])
@@ -388,7 +388,7 @@ def test_als_all_gen_informed():
 
     assert als.all_gen_informed(
         H_some_gvnbk, pt_filter=myfilter1
-    ), "all_gen_informed() should've returned True based on boolean filter and cancelled."
+    ), "all_gen_informed() should've returned True based on Boolean filter and cancelled."
 
     # Now cancel more points
     H_some_gvnbk["cancel_requested"] = np.array([False, True, True, False, False])

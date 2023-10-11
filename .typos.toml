@@ -1,3 +1,9 @@
+[default]
+extend-ignore-identifiers-re = [
+    ".*NDArray.*",
+    "8ba9de56.*"
+]
+
 [default.extend-words]
 als = "als"
 datas = "datas"
@@ -5,4 +11,4 @@ numer = "numer"
 inout = "inout"
 
 [files]
-extend-exclude = ["*.bib", "*.xml"]
+extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]

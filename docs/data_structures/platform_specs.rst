@@ -3,15 +3,15 @@
 Platform Specs
 ==============
 
-libEnsemble detects platform specfications including MPI runners and resources.
+libEnsemble detects platform specifications including MPI runners and resources.
 Usually this will result in the correct settings. However, users can configure
-platform specification via the `platform_specs`_ option or indicate a known
+platform specifications via the `platform_specs`_ option or indicate a known
 platform via the `platform`_ option.
 
 platform_specs
 --------------
 
-A Platform object or dictionary specifying settings for a platform.
+A ``Platform`` object or dictionary specifying settings for a platform.
 
 To define a platform (in calling script):
 
@@ -30,7 +30,7 @@ To define a platform (in calling script):
                gpus_per_node=8,
                gpu_setting_type="runner_default",
                gpu_env_fallback="ROCR_VISIBLE_DEVICES",
-               scheduler_match_slots=False
+               scheduler_match_slots=False,
            )
 
     .. tab-item:: Dictionary
@@ -38,16 +38,16 @@ To define a platform (in calling script):
        .. code-block:: python
 
            libE_specs["platform_specs"] = {
-               "mpi_runner" : "srun",
+               "mpi_runner": "srun",
                "cores_per_node": 64,
                "logical_cores_per_node": 128,
                "gpus_per_node": 8,
                "gpu_setting_type": "runner_default",
                "gpu_env_fallback": "ROCR_VISIBLE_DEVICES",
-               "scheduler_match_slots": False
+               "scheduler_match_slots": False,
            }
 
-The list of platform fields are given below. Any fields not given, will be
+The list of platform fields is given below. Any fields not given will be
 auto-detected by libEnsemble.
 
 .. _platform-fields:
@@ -76,15 +76,15 @@ See :ref:`known platforms<known-platforms>`.
 platform
 --------
 
-A string giving the name of a known platform  defined in the platforms module.
+A string giving the name of a known platform defined in the platforms module.
 
 .. code-block:: python
 
     libE_specs["platform"] = "perlmutter_g"
 
-Note: the environment variable LIBE_PLATFORM is an alternative way of setting.
+Note: the environment variable ``LIBE_PLATFORM`` is an alternative way of setting.
 
-E.g., on command line or batch submission script:
+E.g., in the command line or batch submission script:
 
 .. code-block:: shell
 
@@ -107,4 +107,3 @@ Known Platforms List
         :field-show-default: False
         :field-show-alias: False
         :member-order:
-

@@ -44,7 +44,7 @@ generation functions and call libEnsemble. Create a Python file called
 
 .. code-block:: python
     :linenos:
-    :emphasize-lines: 17,25, 28
+    :emphasize-lines: 16,24,27
 
     #!/usr/bin/env python
     import os
@@ -60,7 +60,6 @@ generation functions and call libEnsemble. Create a Python file called
     from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     if __name__ == "__main__":
-
         # Initialize MPI Executor
         exctr = MPIExecutor()
 
@@ -75,13 +74,13 @@ generation functions and call libEnsemble. Create a Python file called
         # Parse number of workers, comms type, etc. from arguments
         ensemble = Ensemble(parse_args=True, executor=exctr)
 
-On line 15, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
+On line 16, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
-On line 22, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
+On line 27, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
 parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 
@@ -119,7 +118,7 @@ expect, and also to parameterize user functions:
 
     ensemble.gen_specs = GenSpecs(
         gen_f=gen_f,
-        inputs=[],  # No input when start persistent generator
+        inputs=[],  # No input when starting persistent generator
         persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
         outputs=[("x", float, (1,))],
         user={
@@ -224,7 +223,6 @@ Write an alternative Calling Script similar to above, but with the following dif
 
        ensemble.save_output(__file__)
 
-
 Simulation Function
 -------------------
 
@@ -265,7 +263,6 @@ for starters:
         # Block until the task finishes
         task.wait()
 
-
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
 as a random number seed here.
@@ -277,7 +274,7 @@ available to this worker.
 
 After submitting the "forces" app for execution,
 a :ref:`Task<task_tag>` object is returned that correlates with the launched app.
-This object is roughly equivalent to a Python future, and can be polled, killed,
+This object is roughly equivalent to a Python future and can be polled, killed,
 and evaluated in a variety of helpful ways. For now, we're satisfied with waiting
 for the task to complete via ``task.wait()``.
 
@@ -335,7 +332,6 @@ and ``ensemble.log`` as usual.
 
 .. dropdown:: **Example run / output**
 
-
    For example, after running:
 
    .. code-block:: bash
@@ -355,7 +351,6 @@ and ``ensemble.log`` as usual.
      Worker     2: sim_id     6: sim Time: 0.275 Start: ... End: ... Status: Completed
      Worker     1: Gen no     1: gen Time: 1.038 Start: ... End: ... Status: Persis gen finished
      Manager     : Exiting ensemble at: 2023-09-12 18:12:09.565 Time Taken: 1.048
-
 
    where ``status`` is set based on the simulation function's returned ``calc_status``.
 
@@ -419,7 +414,6 @@ These may require additional browsing of the documentation to complete.
 
 .. dropdown:: **Click Here for Solution**
 
-
    Showing updated sections only (``---`` refers to snips where code is unchanged).
 
    .. code-block:: python
@@ -452,7 +446,7 @@ These may require additional browsing of the documentation to complete.
 
         ...
 
+.. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
-.. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _GitHub: https://github.com/Libensemble/libensemble/issues

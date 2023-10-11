@@ -33,7 +33,8 @@ CORRESPONDING_CLASSES = {
 
 class Ensemble:
     """
-    The primary class for a libEnsemble workflow.
+    The primary object for a libEnsemble workflow.
+    Parses and validates settings, sets up logging, and maintains output.
 
     .. dropdown:: Example
         :open:
@@ -41,26 +42,38 @@ class Ensemble:
         .. code-block:: python
             :linenos:
 
-            from libensemble import Ensemble, SimSpecs, GenSpecs, ExitCriteria
-            from my_simulator import beamline
-            from someones_optimizer import optimize
+            import numpy as np
 
-            experiment = Ensemble(parse_args=True)
-            experiment.sim_specs = SimSpecs(sim_f=beamline, inputs=["x"], out=[("f", float)])
-            experiment.gen_specs = GenSpecs(
-                gen_f=optimize,
-                inputs=["f"],
-                out=[("x", float, (1,))],
+            from libensemble import Ensemble
+            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+
+            sampling = Ensemble(parse_args=True)
+            sampling.sim_specs = SimSpecs(
+                sim_f=one_d_example,
+                inputs=["x"],
+                outputs=[("f", float)],
+            )
+            sampling.gen_specs = GenSpecs(
+                gen_f=latin_hypercube_sample,
+                outputs=[("x", float, (1,))],
                 user={
+                    "gen_batch_size": 500,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
             )
 
-            experiment.exit_criteria = ExitCriteria(gen_max=101)
-            results = experiment.run()
+            sampling.add_random_streams()
+            sampling.exit_criteria = ExitCriteria(sim_max=101)
 
-    Call ``.run()`` on the class to start the workflow.
+            if __name__ == "__main__":
+                sampling.run()
+                sampling.save_output(__file__)
+
+    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
+    instructs the Ensemble class to read command-line arguments.
 
     Configure by:
 
@@ -91,7 +104,7 @@ class Ensemble:
             sim_specs = SimSpecs(
                 sim_f=sim_find_energy,
                 inputs=["x"],
-                out=[("y", float)],
+                outputs=[("y", float)],
             )
 
             experiment = Ensemble()
@@ -155,8 +168,8 @@ class Ensemble:
 
                     [gen_specs]
                         gen_f = "generator.gen_random_sample"
-                        [gen_specs.out]
-                            [gen_specs.out.x]
+                        [gen_specs.outputs]
+                            [gen_specs.outputs.x]
                                 type = "float"
                                 size = 1
                         [gen_specs.user]
@@ -165,8 +178,8 @@ class Ensemble:
                     [sim_specs]
                         sim_f = "simulator.sim_find_sine"
                         inputs = ["x"]
-                        [sim_specs.out]
-                            [sim_specs.out.y]
+                        [sim_specs.outputs]
+                            [sim_specs.outputs.y]
                                 type = "float"
 
             .. tab-item:: my_parameters.json
@@ -183,7 +196,7 @@ class Ensemble:
                         },
                         "gen_specs": {
                             "gen_f": "generator.gen_random_sample",
-                            "out": {
+                            "outputs": {
                                 "x": {
                                     "type": "float",
                                     "size": 1
@@ -196,7 +209,7 @@ class Ensemble:
                         "sim_specs": {
                             "sim_f": "simulator.sim_find_sine",
                             "inputs": ["x"],
-                            "out": {
+                            "outputs": {
                                 "f": {"type": "float"}
                             }
                         }
@@ -209,40 +222,41 @@ class Ensemble:
 
         Specifications for the simulation function
 
-    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
 
         Specifications for the generator function
 
-    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
 
         Tell libEnsemble when to stop a run
 
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
 
-    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
 
         Specifications for the allocation function
 
-    persis_info: :obj:`dict`, optional
+    persis_info: :obj:`dict`, Optional
 
         Persistent information to be passed between user function instances
         :doc:`(example)<data_structures/persis_info>`
 
-    executor: :class:`Executor<libensemble.executors.executor.Executor>`, optional
+    executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
 
         libEnsemble Executor instance for use within simulation or generator functions
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
+    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
 
-    parse_args: bool, optional
+    parse_args: bool, Optional
 
         Read ``nworkers``, ``comms``, and other arguments from the command-line. For MPI, calculate ``nworkers``
-        and set the ``is_manager`` boolean attribute on MPI rank 0
+        and set the ``is_manager`` Boolean attribute on MPI rank 0. See the :meth:`parse_args<tools.parse_args>`
+        docs for more information.
 
     """
 
@@ -345,7 +359,7 @@ class Ensemble:
 
         .. dropdown:: MPI/comms Notes
 
-            Manager-worker intercommunications are parsed from the ``comms`` key of
+            Manager--worker intercommunications are parsed from the ``comms`` key of
             :ref:`libE_specs<datastruct-libe-specs>`. An MPI runtime is assumed by default
             if ``--comms local`` wasn't specified on the command-line or in ``libE_specs``.
 
@@ -521,14 +535,14 @@ class Ensemble:
         Parameters
         ----------
 
-        num_streams: int, optional
+        num_streams: int, Optional
 
             Number of matching worker ID and random stream entries to create. Defaults to
             ``self.nworkers``.
 
-        seed: str, optional
+        seed: str, Optional
 
-            Seed for NumPy's RNG
+            Seed for NumPy's RNG.
 
         """
         if num_streams:
@@ -542,7 +556,7 @@ class Ensemble:
     def save_output(self, file: str):
         """
         Writes out History array and persis_info to files.
-        If using a workflow_dir, will place with specified filename in that directory
+        If using a workflow_dir, will place with specified filename in that directory.
 
         Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """

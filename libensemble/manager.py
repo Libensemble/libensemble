@@ -299,7 +299,7 @@ class Manager:
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
-    def _check_work_order(self, Work: dict, w: int) -> None:
+    def _check_work_order(self, Work: dict, w: int, force: bool = False) -> None:
         """Checks validity of an allocation function order"""
         assert w != 0, "Can't send to worker 0; this is the manager."
         if self.W[w - 1]["active_recv"]:
@@ -308,9 +308,10 @@ class Manager:
                 f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
             )
         else:
-            assert self.W[w - 1]["active"] == 0, (
-                "Allocation function requested work be sent to worker %d, an already active worker." % w
-            )
+            if not force:
+                assert self.W[w - 1]["active"] == 0, (
+                    "Allocation function requested work be sent to worker %d, an already active worker." % w
+                )
         work_rows = Work["libE_info"]["H_rows"]
         if len(work_rows):
             work_fields = set(Work["H_fields"])
@@ -526,11 +527,17 @@ class Manager:
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
-                if "final_fields" in self.libE_specs:
-                    rows_to_send = self.hist.trim_H()["sim_ended"]
-                    fields_to_send = self.libE_specs["final_fields"]
-                    H_to_send = self.hist.trim_H()[rows_to_send][fields_to_send]
-                    self.wcomms[w - 1].send(PERSIS_STOP, H_to_send)
+                if self.libE_specs.get("final_gen_send", False):
+                    rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
+                    work = {
+                        "H_fields": self.gen_specs["persis_in"],
+                        "persis_info": persis_info[w],
+                        "tag": PERSIS_STOP,
+                        "libE_info": {"persistent": True, "H_rows": rows_to_send},
+                    }
+                    self._check_work_order(work, w, force=True)
+                    self._send_work_order(work, w)
+                    self.hist.update_history_to_gen(rows_to_send)
                 else:
                     self.wcomms[w - 1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w - 1]["active"]:

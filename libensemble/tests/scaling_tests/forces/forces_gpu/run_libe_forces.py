@@ -11,7 +11,7 @@ in ../forces_app/build_forces.sh. We recommend running forces.x standalone first
 and confirm it is running on the GPU (this is given clearly in the output).
 
 To mock on a non-GPU system, uncomment the resource_info line in libE_specs. You
-will compile forces without -DGPU option. It is recommended that the lb/ub for
+will compile forces without -DGPU option. It is recommended that the ub and/or lb for
 particle counts are reduced for CPU performance.
 """
 
@@ -27,9 +27,7 @@ from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-
 if __name__ == "__main__":
-
     # Initialize MPI Executor
     exctr = MPIExecutor()
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
@@ -86,7 +84,7 @@ if __name__ == "__main__":
     ensemble.run()
 
     if ensemble.is_manager:
-        # Note, this will change if change sim_max, nworkers, lb/ub etc...
+        # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
         if ensemble.exit_criteria.sim_max == 8:
             chksum = np.sum(ensemble.H["energy"])
             assert np.isclose(chksum, 96288744.35136001), f"energy check sum is {chksum}"

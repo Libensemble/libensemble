@@ -19,7 +19,7 @@ export EXE=run_libe_forces.py
 export COMMS="--comms local"
 
 # Number of workers.
-export NWORKERS="--nworkers 4"
+export NWORKERS="--nworkers 5"
 
 # Wallclock for libE. Slightly smaller than job wallclock
 #export LIBE_WALLCLOCK=15 # Optional if pass to script

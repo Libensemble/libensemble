@@ -9,7 +9,7 @@ The standard timing study does two sets of two batches, and then two sets of
 four batches and produces a file time.out inside the output directory (which
 is the platform name appended by datetime).
 
-Be sure to modify project code in submission script as required.
+Be sure to modify the project code in the submission script as required.
 
 Instructions for Perlmutter
 ---------------------------

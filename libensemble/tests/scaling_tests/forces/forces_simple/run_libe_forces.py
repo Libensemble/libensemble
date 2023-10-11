@@ -12,7 +12,6 @@ from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 if __name__ == "__main__":
-
     # Initialize MPI Executor
     exctr = MPIExecutor()
 
@@ -70,5 +69,5 @@ if __name__ == "__main__":
     ensemble.run()
 
     if ensemble.is_manager:
-        # Note, this will change if change sim_max, nworkers, lb/ub etc...
+        # Note, this will change if changing sim_max, nworkers, lb, ub, etc.
         print(f'Final energy checksum: {np.sum(ensemble.H["energy"])}')

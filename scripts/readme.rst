@@ -1,6 +1,4 @@
-=======================
-Timing analysis scripts
-=======================
+**Timing analysis scripts**
 
 Note that all plotting scripts produce a file rather than opening a plot
 interactively.
@@ -9,19 +7,17 @@ The following scripts must be run in the directory with the ``libE_stats.txt``
 file. They extract and plot information from that file.
 
 * ``plot_libe_calcs_util_v_time.py``: Extracts worker utilization vs. time plot
-  (with one-second sampling). Shows number of workers running user sim or gen
-  functions over time.
+  (with one-second sampling). Shows the number of workers running user sim or
+  gen functions over time.
 
 * ``plot_libe_tasks_util_v_time.py``: Extracts launched task utilization v time
-  plot (with one second sampling). Shows number of workers with active tasks,
-  launched via the executor, over time.
+  plot (with one-second sampling). Shows the number of workers with active
+  tasks, launched via the executor, over time.
 
 * ``plot_libe_histogram.py``: Creates histogram showing the number of
   completed/killed/failed user calculations binned by run time.
 
-========================
-Results analysis scripts
-========================
+**Results analysis scripts**
 
 * ``print_npy.py``: Prints to screen from a given ``*.npy`` file containing a
   NumPy structured array. Use ``done`` to print only the lines containing
