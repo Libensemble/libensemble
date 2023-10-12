@@ -60,6 +60,14 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 
 # Statement of need
 
+Examples of way in which libEnsemble has been used in science and engineering problems include
+- optimization of variational algorithms on quantum computers [@Liu2022layer]
+- parallelize the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
+- design of particle accelerators [@Neveu2023]
+- sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022]
+
+Additional details on the parallel features and scalability of libEnsemble can be found in Refs [@Hudson2022] and [@libensemble-man].
+
 `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
 enables wrapping low-level languages (e.g., C) for speed without losing
 flexibility or ease-of-use in the user-interface. The API for `Gala` was
