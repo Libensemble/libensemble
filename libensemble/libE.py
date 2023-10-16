@@ -229,11 +229,11 @@ def libE(
     )
 
     # get corresponding dictionaries back (casted in libE() def)
-    sim_specs = ensemble.sim_specs.dict(by_alias=True)
-    gen_specs = ensemble.gen_specs.dict(by_alias=True)
-    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
-    alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
-    libE_specs = ensemble.libE_specs.dict(by_alias=True)
+    sim_specs = ensemble.sim_specs.model_dump(by_alias=True)
+    gen_specs = ensemble.gen_specs.model_dump(by_alias=True)
+    exit_criteria = ensemble.exit_criteria.model_dump(by_alias=True, exclude_none=True)
+    alloc_specs = ensemble.alloc_specs.model_dump(by_alias=True)
+    libE_specs = ensemble.libE_specs.model_dump(by_alias=True)
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

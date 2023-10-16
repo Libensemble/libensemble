@@ -12,7 +12,7 @@ import os
 import subprocess
 from typing import Optional
 
-from pydantic import BaseConfig, BaseModel, root_validator, validator
+from pydantic import BaseConfig, BaseModel, field_validator, model_validator
 
 BaseConfig.validate_assignment = True
 
@@ -28,25 +28,25 @@ class Platform(BaseModel):
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
 
-    mpi_runner: Optional[str]
+    mpi_runner: Optional[str] = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
     ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
-    runner_name: Optional[str]
+    runner_name: Optional[str] = None
     """Literal string of MPI runner command. Only needed if different to the default
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int]
+    cores_per_node: Optional[int] = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int]
+    logical_cores_per_node: Optional[int] = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int]
+    gpus_per_node: Optional[int] = None
     """Number of GPU devices on a compute node of the platform"""
 
-    gpu_setting_type: Optional[str]
+    gpu_setting_type: Optional[str] = None
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
@@ -82,14 +82,14 @@ class Platform(BaseModel):
 
     """
 
-    gpu_setting_name: Optional[str]
+    gpu_setting_name: Optional[str] = None
     """Name of GPU setting
 
     See :attr:`gpu_setting_type` for more details.
 
     """
 
-    gpu_env_fallback: Optional[str]
+    gpu_env_fallback: Optional[str] = None
     """GPU fallback environment setting if not using an MPI runner.
 
     For example:
@@ -106,7 +106,7 @@ class Platform(BaseModel):
 
     """
 
-    scheduler_match_slots: Optional[bool]
+    scheduler_match_slots: Optional[bool] = None
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
     there are multiple (partial) nodes assigned to a sim function.
@@ -121,7 +121,8 @@ class Platform(BaseModel):
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
-    @validator("gpu_setting_type")
+    @field_validator("gpu_setting_type")
+    @classmethod
     def check_gpu_setting_type(cls, value):
         if value is not None:
             assert value in [
@@ -132,19 +133,20 @@ class Platform(BaseModel):
             ], "Invalid label for GPU specification type"
         return value
 
-    @validator("mpi_runner")
+    @field_validator("mpi_runner")
+    @classmethod
     def check_mpi_runner_type(cls, value):
         if value is not None:
             assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
         return value
 
-    @root_validator
-    def check_logical_cores(cls, values):
-        if values.get("cores_per_node") and values.get("logical_cores_per_node"):
+    @model_validator(mode="after")
+    def check_logical_cores(self):
+        if self.cores_per_node and self.logical_cores_per_node:
             assert (
-                values["logical_cores_per_node"] % values["cores_per_node"] == 0
+                self.logical_cores_per_node % self.cores_per_node == 0
             ), "Logical cores doesn't divide evenly into cores"
-        return values
+        return self
 
 
 # On SLURM systems, let srun assign free GPUs on the node
@@ -298,9 +300,9 @@ def known_envs():
     platform_info = {}
     if os.environ.get("NERSC_HOST") == "perlmutter":
         if os.environ.get("SLURM_JOB_PARTITION").startswith("gpu_"):
-            platform_info = PerlmutterGPU().dict(by_alias=True)
+            platform_info = PerlmutterGPU().model_dump(by_alias=True)
         else:
-            platform_info = PerlmutterCPU().dict(by_alias=True)
+            platform_info = PerlmutterCPU().model_dump(by_alias=True)
     return platform_info
 
 
@@ -314,7 +316,7 @@ def known_system_detect(cmd="hostname -d"):
     platform_info = {}
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
-        platform_info = detect_systems[domain_name]().dict(by_alias=True)
+        platform_info = detect_systems[domain_name]().model_dump(by_alias=True)
     except Exception:
         platform_info = known_envs()
     return platform_info
@@ -333,7 +335,7 @@ def get_platform(libE_specs):
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
-            known_platforms = Known_platforms().dict()
+            known_platforms = Known_platforms().model_dump()
             platform_info = known_platforms[name]
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")

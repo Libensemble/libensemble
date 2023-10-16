@@ -322,7 +322,7 @@ class Ensemble:
 
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):
-            new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+            new_specs = new_specs.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
@@ -459,14 +459,7 @@ class Ensemble:
 
         if len(userf_fields):
             for f in userf_fields:
-                if f == "inputs":
-                    loaded_spec["in"] = field_f[f](loaded_spec[f])
-                    loaded_spec.pop("inputs")
-                elif f == "outputs":
-                    loaded_spec["out"] = field_f[f](loaded_spec[f])
-                    loaded_spec.pop("outputs")
-                else:
-                    loaded_spec[f] = field_f[f](loaded_spec[f])
+                loaded_spec[f] = field_f[f](loaded_spec[f])
 
         return loaded_spec
 
@@ -482,13 +475,9 @@ class Ensemble:
                     old_spec.pop("inputs")  # avoid clashes
                 elif old_spec.get("out") and old_spec.get("outputs"):
                     old_spec.pop("inputs")  # avoid clashes
-            elif isinstance(old_spec, ClassType):
-                old_spec.__dict__.update(**loaded_spec)
-                old_spec = old_spec.dict(by_alias=True)
+                setattr(self, f, ClassType(**old_spec))
             else:  # None. attribute not set yet
                 setattr(self, f, ClassType(**loaded_spec))
-                return
-            setattr(self, f, ClassType(**old_spec))
 
     def from_yaml(self, file_path: str):
         """Parameterizes libEnsemble from ``yaml`` file"""

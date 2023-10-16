@@ -43,9 +43,9 @@ def test_from_files():
         sim_specs.pop("in")
         sim_specs.pop("out")
         gen_specs.pop("out")
-        assert all([i in e.sim_specs.__dict__.items() for i in sim_specs.items()])
-        assert all([i in e.gen_specs.__dict__.items() for i in gen_specs.items()])
-        assert all([i in e.exit_criteria.__dict__.items() for i in exit_criteria.items()])
+        assert all([i in e.sim_specs.model_dump().items() for i in sim_specs.items()])
+        assert all([i in e.gen_specs.model_dump().items() for i in gen_specs.items()])
+        assert all([i in e.exit_criteria.model_dump().items() for i in exit_criteria.items()])
 
 
 def test_bad_func_loads():
@@ -77,9 +77,9 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
+        sim_specs=SimSpecs(inputs=["x"], outputs=[("f", float)]),
         gen_specs=GenSpecs(
-            out=[("x", float, (1,))],
+            outputs=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
                 "lb": np.array([-3]),
