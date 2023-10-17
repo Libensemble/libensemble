@@ -51,7 +51,7 @@ efficient numerical tools, many of which require the same base code (e.g., for
 performing numerical orbit integration). -->
 
 As the number of available computational resources increases, almost all applications
-or evaluations evantually stop perfectly scaling. Nonetheless, clusters, servers, and other resources
+or evaluations eventually stop scaling. Nonetheless, clusters, servers, and other resources
 keep growing, alongside the request to efficiently apply that hardware.
 libEnsemble is a complete Python toolkit and workflow system for intelligently driving
 "ensembles" of experiments or simulations at massive scales. Via a generator-simulator
@@ -62,8 +62,8 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 
 Examples of way in which libEnsemble has been used in science and engineering problems include
 - optimization of variational algorithms on quantum computers [@Liu2022layer]
-- parallelize the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
-- design of particle accelerators [@Neveu2023]
+- parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
+- design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22]
 - sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022]
 
 Additional details on the parallel features and scalability of libEnsemble can be found in Refs [@Hudson2022] and [@libensemble-man].
