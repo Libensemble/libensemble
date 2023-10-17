@@ -62,7 +62,7 @@ if __name__ == "__main__":
         assert "manager.prof" in os.listdir(), "Expected manager profile not found after run"
         # os.remove("manager.prof")
 
-        prof_files = [f"worker_{i+1}.prof" for i in range(nworkers)]
+        prof_files = [f"worker_{i + 1}.prof" for i in range(nworkers)]
 
         # Ensure profile writes complete before checking
         time.sleep(0.5)
