@@ -40,16 +40,6 @@ bibliography: paper.bib
 
 # Summary
 
-<!-- The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration). -->
-
 As the number of available computational resources increases, almost all applications
 or evaluations eventually stop scaling. Nonetheless, clusters, servers, and other resources
 keep growing, alongside the request to efficiently apply that hardware.
@@ -61,6 +51,7 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 # Statement of need
 
 Examples of way in which libEnsemble has been used in science and engineering problems include
+
 - optimization of variational algorithms on quantum computers [@Liu2022layer]
 - parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
 - design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22]
@@ -130,8 +121,8 @@ Figure sizes can be customized by adding an optional second parameter:
 
 # Acknowledgements
 
-We acknowledge contributions from David Bindel (Anyone else we want to ack? Moses and Tyler?)
-This article was supported in part by the PETSc/TAO activity within the U.S. Department of Energy's (DOE's) Exascale Computing Project (17-SC-20-SC) and by the ComPASS and NUCLEI SciDAC projects within DOE's Office of Science, Advanced Scientific Computing Research under contract numbers DE-AC02-06CH11357 and DE-AC02-05CH11231.
+We acknowledge contributions from David Bindel.
+This article was supported in part by the PETSc/TAO activity within the U.S. Department of Energy's (DOE's) Exascale Computing Project (17-SC-20-SC) and by the CAMPA, ComPASS, and NUCLEI SciDAC projects within DOE's Office of Science, Advanced Scientific Computing Research under contract numbers DE-AC02-06CH11357 and DE-AC02-05CH11231.
 
 
 # References
