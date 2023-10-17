@@ -69,7 +69,7 @@ jobs:
             pip install -I --upgrade certifi
 
         - name: Install Ubuntu compilers
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
           run: conda install gcc_linux-64
 
         # Roundabout solution on macos for proper linking with mpicc
@@ -86,7 +86,7 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
 
         - name: Install mpi4py and MPI from conda
-          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
+          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
