@@ -142,7 +142,7 @@ class Platform(BaseModel):
 
     @model_validator(mode="after")
     def check_logical_cores(self):
-        if self.cores_per_node and self.logical_cores_per_node:
+        if self.__dict__.get("cores_per_node") and self.__dict__.get("logical_cores_per_node"):
             assert (
                 self.logical_cores_per_node % self.cores_per_node == 0
             ), "Logical cores doesn't divide evenly into cores"
