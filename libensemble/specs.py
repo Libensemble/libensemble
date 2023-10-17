@@ -529,13 +529,13 @@ class LibeSpecs(BaseModel):
     @model_validator(mode="after")
     def set_workflow_dir(self):
         if self.use_workflow_dir and len(str(self.workflow_dir_path)) <= 1:
-            self.workflow_dir_path = Path(
+            self.__dict__["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
             ).absolute()  # should avoid side-effects. make dir later
         elif len(str(self.workflow_dir_path)) > 1:
             if not self.use_workflow_dir:
-                self.use_workflow_dir = True
-            self.workflow_dir_path = Path(self.workflow_dir_path).absolute()
+                self.__dict__["use_workflow_dir"] = True
+            self.__dict__["workflow_dir_path"] = Path(self.workflow_dir_path).absolute()
         return self
 
 

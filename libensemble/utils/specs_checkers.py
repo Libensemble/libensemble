@@ -86,5 +86,5 @@ def _check_any_workers_and_disable_rm_if_tcp(LibeSpecs):
             if comms_type == "tcp":
                 assert LibeSpecs.workers, "Without nworkers, must specify worker hosts on TCP"
     if comms_type == "tcp":
-        LibeSpecs.disable_resource_manager = True  # Resource management not supported with TCP
+        LibeSpecs.__dict__["disable_resource_manager"] = True  # Resource management not supported with TCP
     return LibeSpecs
