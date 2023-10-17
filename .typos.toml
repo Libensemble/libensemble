@@ -6,6 +6,7 @@ extend-ignore-identifiers-re = [
 
 [default.extend-words]
 als = "als"
+AAS = "AAS"
 datas = "datas"
 numer = "numer"
 inout = "inout"
