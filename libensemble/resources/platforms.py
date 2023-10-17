@@ -12,9 +12,7 @@ import os
 import subprocess
 from typing import Optional
 
-from pydantic import BaseConfig, BaseModel, field_validator, model_validator
-
-BaseConfig.validate_assignment = True
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 
 class PlatformException(Exception):
@@ -120,6 +118,9 @@ class Platform(BaseModel):
     application-level scheduler to manage GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
+    )
 
     @field_validator("gpu_setting_type")
     @classmethod
