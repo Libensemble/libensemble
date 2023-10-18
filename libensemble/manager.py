@@ -272,19 +272,21 @@ class Manager:
     def _save_every_k(self, fname: str, count: int, k: int) -> None:
         """Saves history every kth step"""
         count = k * (count // k)
-        date_start = self.date_start
+        date_start = self.date_start + "_"
         if platform.system() == "Windows":
             date_start = date_start.replace(":", "-")  # ":" is invalid in windows filenames
-        filename = fname.format(date_start, count)
+        if not self.libE_specs["save_H_with_date"]:
+            date_start = ""
+        filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
         if not os.path.isfile(filename) and count > 0:
-            for old_file in glob.glob(fname.format(date_start, "*")):
+            for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 
     def _save_every_k_sims(self) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_sim_{}.npy"),
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
         )
@@ -292,7 +294,7 @@ class Manager:
     def _save_every_k_gens(self) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_gen_{}.npy"),
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
         )
