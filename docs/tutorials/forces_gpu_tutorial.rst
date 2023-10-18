@@ -17,10 +17,6 @@ using **Nvidia**, **AMD**, and **Intel** GPUs without modifying the scripts.
 
 A video demonstrates running this example on Frontier_.
 
-*The first two videos are from an earlier release - you no longer need to change
-particle count or modify the `forces.c` file).*. Also, on Polaris, it is no
-longer necessary to change the MPI runner.
-
 Simulation function
 -------------------
 
