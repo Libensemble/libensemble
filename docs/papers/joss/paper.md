@@ -50,12 +50,19 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 
 # Statement of need
 
-Examples of way in which libEnsemble has been used in science and engineering problems include
+Examples of way in which libEnsemble has been used in science and engineering problems include:
 
-- optimization of variational algorithms on quantum computers [@Liu2022layer]
-- parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
-- design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22]
-- sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022]
+- Optimization of variational algorithms on quantum computers [@Liu2022layer].
+- Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23].
+- Design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22].
+- Sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022].
+
+libEnsemble's generators and simulators, commonly referred to as user-functions, are Python
+functions that simply accept and return NumPy structured arrays. Generators produce input for
+simulators, while simulators evaluate those inputs; any level of complexity is supported. 
+Multiple concurrent instances ("ensembles") of user-functions are coordinated by libEnsemble's
+worker processes. Workers are typically assigned/reassigned compute resources, and within 
+user-functions can launch applications, evaluate intermediate results, and statefully intercommunicate.
 
 Additional details on the parallel features and scalability of libEnsemble can be found in Refs [@Hudson2022] and [@libensemble-man].
 
