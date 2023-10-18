@@ -26,27 +26,28 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **comms** [str] = ``"mpi"``:
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
+
                 **nworkers** [int]:
                     Number of worker processes in ``"local"`` or ``"tcp"``.
+
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
+
                 **dry_run** [bool] = ``False``:
                     Whether libEnsemble should immediately exit after validating all inputs.
+
                 **abort_on_exception** [bool] = ``True``:
                     In MPI mode, whether to call ``MPI_ABORT`` on an exception.
                     If ``False``, an exception will be raised by the manager.
-                **save_every_k_sims** [int]:
-                    Save history array to file after every k simulated points.
-                **save_every_k_gens** [int]:
-                    Save history array to file after every k generated points.
-                **save_H_and_persis_on_abort** [bool] = ``True``:
-                    Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
+
                 **worker_timeout** [int] = ``1``:
                     On libEnsemble shutdown, number of seconds after which workers considered timed out,
                     then terminated.
+
                 **kill_canceled_sims** [bool] = ``False``:
                     Try to kill sims with ``cancel_requested`` set to ``True``.
                     If ``False``, the manager avoids this moderate overhead.
+
                 **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
 
@@ -149,8 +150,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **profile** [bool] = ``False``:
                     Profile manager and worker logic using ``cProfile``.
+
                 **safe_mode** [bool] = ``True``:
                     Prevents user functions from overwriting internal fields, but requires moderate overhead.
+
                 **stats_fmt** [dict]:
                     A dictionary of options for formatting ``"libE_stats.txt"``.
                     See "Formatting Options for libE_stats.txt".
@@ -159,14 +162,19 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **workers** [list]:
                     TCP Only: A list of worker hostnames.
+
                 **ip** [str]:
                     TCP Only: IP address for Manager's system.
+
                 **port** [int]:
                     TCP Only: Port number for Manager's system.
+
                 **authkey** [str]:
                     TCP Only: Authkey for Manager's system.
+
                 **workerID** [int]:
                     TCP Only: Worker ID number assigned to the new process.
+
                 **worker_cmd** [list]:
                     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
                     a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
@@ -174,15 +182,14 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
         .. tab-item:: History
 
-                **use_persis_return_gen** [bool] = ``False``:
-                    Adds persistent generator output fields to the History array on return.
+                **save_every_k_sims** [int]:
+                    Save history array to file after every k simulated points.
 
-                **use_persis_return_sim** [bool] = ``False``:
-                    Adds persistent simulator output fields to the History array on return.
+                **save_every_k_gens** [int]:
+                    Save history array to file after every k generated points.
 
-                **final_gen_send** [bool] = ``False``:
-                    Send final simulation results to persistent generators before shutdown.
-                    The results will be sent along with the ``PERSIS_STOP`` tag.
+                **save_H_and_persis_on_abort** [bool] = ``True``:
+                    Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
 
                 **save_H_on_completion** Optional[bool] = ``True``
                     Save state of ``H`` to file upon completing a workflow.
@@ -193,6 +200,15 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **H_file_prefix** Optional[str] = ``"libE_history"``
                     Prefix for ``H`` filename.
 
+                **use_persis_return_gen** [bool] = ``False``:
+                    Adds persistent generator output fields to the History array on return.
+
+                **use_persis_return_sim** [bool] = ``False``:
+                    Adds persistent simulator output fields to the History array on return.
+
+                **final_gen_send** [bool] = ``False``:
+                    Send final simulation results to persistent generators before shutdown.
+                    The results will be sent along with the ``PERSIS_STOP`` tag.
 
         .. tab-item:: Resources
 
