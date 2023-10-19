@@ -71,7 +71,7 @@ Some crucial considerations relevant to these packages include:
 
 LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code re-use. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
 
-libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms. Some other packages cover parts of these. For example, Colmena has a front-end that uses 'thinker' and 'doer' [check] functions while using Parsl to dispatch simulations.
+libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms. Some other packages cover a sub-set of the workflow. Colmena, for example, has a front-end that uses components to create and co-ordinate tasks while using Parsl to dispatch simulations.
 
 libensemble takes the philosohpy of minimising required dependencies, while supporting various back-end mechanisms when needed. For example, the vast majority of users do not require to be running a database application or special run-time to use libEnsemble, but for those that do, Balsam can be used on the back-end by substituting the reguler MPI executor for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and adoption costs when using libEnsemble.
 
