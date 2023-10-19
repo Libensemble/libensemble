@@ -67,7 +67,6 @@ Some crucial considerations relevant to these packages include:
 - Ability to cancel simulations on the fly.
 
 [***merge sim/gen with this?]
-[***where communications?]
 
 LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code reuse. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
 
@@ -81,7 +80,9 @@ By default, libEnsemble divides available compute resources amongst workers. How
 
 The close coupling between the libEnsemble generator and simulators enables the generator to perform tasks such as asynchronously receiving results, updating models, and canceling previously initiated simulations. Simulations that are already running can be terminated and resources recovered. This is more flexible compared to other packages, where the generation of simulations is external to the dispatch of a batch of simulations.
 
-libEnsemble supports persistent user functions that run on workers, maintaining their memory, which prevents the storing and reloading of data required by packages that only support a fire-and-forget approach to ensemble components.
+libEnsemble also supports persistent user functions that run on workers, maintaining their memory, which prevents the storing and reloading of data required by packages that only support a fire-and-forget approach to ensemble components.
+
+# Example use-cases
 
 Examples of ways in which libEnsemble has been used in science and engineering problems include:
 
