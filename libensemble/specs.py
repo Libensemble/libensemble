@@ -232,6 +232,15 @@ class LibeSpecs(BaseModel):
     save_H_and_persis_on_abort: Optional[bool] = True
     """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
 
+    save_H_on_completion: Optional[bool] = True
+    """ Save state of ``H`` to file upon completing a workflow."""
+
+    save_H_with_date: Optional[bool] = False
+    """ ``H`` filename contains date and timestamp."""
+
+    H_file_prefix: Optional[str] = "libE_history"
+    """ Prefix for ``H`` filename."""
+
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
 

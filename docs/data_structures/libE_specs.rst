@@ -24,30 +24,31 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
         .. tab-item:: General
 
-                "comms" [str] = ``"mpi"``:
+                **comms** [str] = ``"mpi"``:
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
-                "nworkers" [int]:
+
+                **nworkers** [int]:
                     Number of worker processes in ``"local"`` or ``"tcp"``.
-                "mpi_comm" [MPI communicator] = ``MPI.COMM_WORLD``:
+
+                **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
-                "dry_run" [bool] = ``False``:
+
+                **dry_run** [bool] = ``False``:
                     Whether libEnsemble should immediately exit after validating all inputs.
-                "abort_on_exception" [bool] = ``True``:
+
+                **abort_on_exception** [bool] = ``True``:
                     In MPI mode, whether to call ``MPI_ABORT`` on an exception.
                     If ``False``, an exception will be raised by the manager.
-                "save_every_k_sims" [int]:
-                    Save history array to file after every k simulated points.
-                "save_every_k_gens" [int]:
-                    Save history array to file after every k generated points.
-                "save_H_and_persis_on_abort" [bool] = ``True``:
-                    Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
-                "worker_timeout" [int] = ``1``:
+
+                **worker_timeout** [int] = ``1``:
                     On libEnsemble shutdown, number of seconds after which workers considered timed out,
                     then terminated.
-                "kill_canceled_sims" [bool] = ``False``:
-                    Try to kill sims with ``"cancel_requested"`` set to ``True``.
+
+                **kill_canceled_sims** [bool] = ``False``:
+                    Try to kill sims with ``cancel_requested`` set to ``True``.
                     If ``False``, the manager avoids this moderate overhead.
-                "disable_log_files" [bool] = ``False``:
+
+                **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
 
         .. tab-item:: Directories
@@ -56,35 +57,35 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 .. tab-item:: General
 
-                    "use_workflow_dir" [bool] = ``False``:
+                    **use_workflow_dir** [bool] = ``False``:
                         Whether to place *all* log files, dumped arrays, and default ensemble-directories in a
                         separate ``workflow`` directory. Each run is suffixed with a hash.
                         If copying back an ensemble directory from another location, the copy is placed here.
 
-                    "workflow_dir_path" [str]:
+                    **workflow_dir_path** [str]:
                         Optional path to the workflow directory.
 
-                    "ensemble_dir_path" [str] = ``"./ensemble"``:
+                    **ensemble_dir_path** [str] = ``"./ensemble"``:
                         Path to main ensemble directory. Can serve
                         as single working directory for workers, or contain calculation directories.
 
                         .. code-block:: python
 
-                            libE_specs["ensemble_dir_path"] = "/scratch/my_ensemble"
+                            LibeSpecs.ensemble_dir_path = "/scratch/my_ensemble"
 
-                    "ensemble_copy_back" [bool] = ``False``:
+                    **ensemble_copy_back** [bool] = ``False``:
                         Whether to copy back contents of ``ensemble_dir_path`` to launch
                         location. Useful if ``ensemble_dir_path`` is located on node-local storage.
 
-                    "reuse_output_dir" [bool] = ``False``:
+                    **reuse_output_dir** [bool] = ``False``:
                         Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
                         ``False`` by default to protect results.
 
-                    "calc_dir_id_width" [int] = ``4``:
+                    **calc_dir_id_width** [int] = ``4``:
                         The width of the numerical ID component of a calculation directory name. Leading
                         zeros are padded to the sim/gen ID.
 
-                    "use_worker_dirs" [bool] = ``False``:
+                    **use_worker_dirs** [bool] = ``False``:
                         Whether to organize calculation directories under worker-specific directories:
 
                         .. tab-set::
@@ -94,9 +95,9 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                                 .. code-block::
 
                                     - /ensemble_dir
-                                        - /sim0
-                                        - /gen1
-                                        - /sim1
+                                        - /sim0000
+                                        - /gen0001
+                                        - /sim0001
                                         ...
 
                             .. tab-item:: True
@@ -105,135 +106,160 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                                     - /ensemble_dir
                                         - /worker1
-                                            - /sim0
-                                            - /gen1
-                                            - /sim4
+                                            - /sim0000
+                                            - /gen0001
+                                            - /sim0004
                                             ...
                                         - /worker2
                                         ...
 
                 .. tab-item:: Sims
 
-                    "sim_dirs_make" [bool] = ``False``:
+                    **sim_dirs_make** [bool] = ``False``:
                         Whether to make calculation directories for each simulation function call.
 
-                    "sim_dir_copy_files" [list]:
+                    **sim_dir_copy_files** [list]:
                         Paths to files or directories to copy into each sim directory, or ensemble directory.
                         List of strings or ``pathlib.Path`` objects.
 
-                    "sim_dir_symlink_files" [list]:
+                    **sim_dir_symlink_files** [list]:
                         Paths to files or directories to symlink into each sim directory, or ensemble directory.
                         List of strings or ``pathlib.Path`` objects.
 
-                    "sim_input_dir" [str]:
+                    **sim_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the simulation function.
 
                 .. tab-item:: Gens
 
-                    "gen_dirs_make" [bool] = ``False``:
+                    **gen_dirs_make** [bool] = ``False``:
                         Whether to make generator-specific calculation directories for each generator function call.
                         *Each persistent generator creates a single directory*.
 
-                    "gen_dir_copy_files" [list]:
+                    **gen_dir_copy_files** [list]:
                         Paths to copy into the working directory upon calling the generator function.
                         List of strings or ``pathlib.Path`` objects
 
-                    "gen_dir_symlink_files" [list]:
+                    **gen_dir_symlink_files** [list]:
                         Paths to files or directories to symlink into each gen directory.
                         List of strings or ``pathlib.Path`` objects
 
-                    "gen_input_dir" [str]:
+                    **gen_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the generator function.
 
         .. tab-item:: Profiling
 
-                "profile" [bool] = ``False``:
+                **profile** [bool] = ``False``:
                     Profile manager and worker logic using ``cProfile``.
-                "safe_mode" [bool] = ``True``:
+
+                **safe_mode** [bool] = ``True``:
                     Prevents user functions from overwriting internal fields, but requires moderate overhead.
-                "stats_fmt" [dict]:
+
+                **stats_fmt** [dict]:
                     A dictionary of options for formatting ``"libE_stats.txt"``.
                     See "Formatting Options for libE_stats.txt".
 
         .. tab-item:: TCP
 
-                "workers" [list]:
+                **workers** [list]:
                     TCP Only: A list of worker hostnames.
-                "ip" [str]:
+
+                **ip** [str]:
                     TCP Only: IP address for Manager's system.
-                "port" [int]:
+
+                **port** [int]:
                     TCP Only: Port number for Manager's system.
-                "authkey" [str]:
+
+                **authkey** [str]:
                     TCP Only: Authkey for Manager's system.
-                "workerID" [int]:
+
+                **workerID** [int]:
                     TCP Only: Worker ID number assigned to the new process.
-                "worker_cmd" [list]:
+
+                **worker_cmd** [list]:
                     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
                     a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
                     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
 
         .. tab-item:: History
 
-                "use_persis_return_gen" [bool] = ``False``:
+                **save_every_k_sims** [int]:
+                    Save history array to file after every k simulated points.
+
+                **save_every_k_gens** [int]:
+                    Save history array to file after every k generated points.
+
+                **save_H_and_persis_on_abort** [bool] = ``True``:
+                    Save states of ``H`` and ``persis_info`` to file on aborting after an exception.
+
+                **save_H_on_completion** Optional[bool] = ``True``
+                    Save state of ``H`` to file upon completing a workflow.
+
+                **save_H_with_date** Optional[bool] = ``False``
+                    Save ``H`` filename contains date and timestamp.
+
+                **H_file_prefix** Optional[str] = ``"libE_history"``
+                    Prefix for ``H`` filename.
+
+                **use_persis_return_gen** [bool] = ``False``:
                     Adds persistent generator output fields to the History array on return.
 
-                "use_persis_return_sim" [bool] = ``False``:
+                **use_persis_return_sim** [bool] = ``False``:
                     Adds persistent simulator output fields to the History array on return.
 
-                "final_gen_send" [bool] = ``False``:
+                **final_gen_send** [bool] = ``False``:
                     Send final simulation results to persistent generators before shutdown.
                     The results will be sent along with the ``PERSIS_STOP`` tag.
 
         .. tab-item:: Resources
 
-                "disable_resource_manager" [bool] = ``False``:
+                **disable_resource_manager** [bool] = ``False``:
                     Disable the built-in resource manager, including automatic resource detection
                     and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
 
-                "platform" [str]:
-                    Name of a :ref:`known platform<known-platforms>`, e.g., ``libE_specs["platform"] = "perlmutter_g"``
+                **platform** [str]:
+                    Name of a :ref:`known platform<known-platforms>`, e.g., ``LibeSpecs.platform = "perlmutter_g"``
                     Alternatively set the ``LIBE_PLATFORM`` environment variable.
 
-                "platform_specs" [Platform|dict]:
+                **platform_specs** [Platform|dict]:
                     A ``Platform`` object (or dictionary) specifying :ref:`settings for a platform.<platform-fields>`.
                     Fields not provided will be auto-detected. Can be set to a :ref:`known platform object<known-platforms>`.
 
-                "num_resource_sets" [int]:
+                **num_resource_sets** [int]:
                     The total number of resource sets into which resources will be divided.
                     By default resources will be divided by workers (excluding
                     ``zero_resource_workers``).
 
-                "gen_num_procs" [int] = ``0``:
+                **gen_num_procs** [int] = ``0``:
                     The default number of processors (MPI ranks) required by generators. Unless
                     overridden by equivalent ``persis_info`` settings, generators will be allocated
                     this many processors for applications launched via the MPIExecutor.
 
-                "gen_num_gpus" [int] = ``0``:
+                **gen_num_gpus** [int] = ``0``:
                     The default number of GPUs required by generators. Unless overridden by
                     the equivalent ``persis_info`` settings, generators will be allocated this
                     many GPUs.
 
-                "enforce_worker_core_bounds" [bool] = ``False``:
+                **enforce_worker_core_bounds** [bool] = ``False``:
                     Permit submission of tasks with a
                     higher processor count than the CPUs available to the worker.
                     Larger node counts are not allowed. Ignored when
                     ``disable_resource_manager`` is set.
 
-                "dedicated_mode" [bool] = ``False``:
+                **dedicated_mode** [bool] = ``False``:
                     Disallow any resources running libEnsemble processes (manager and workers)
                     from being valid targets for app submissions.
 
-                "zero_resource_workers" [list of ints]:
+                **zero_resource_workers** [list of ints]:
                     List of workers (by IDs) that require no resources. For when a fixed mapping of workers
-                    to resources is required. Otherwise, use ``"num_resource_sets"``.
+                    to resources is required. Otherwise, use ``num_resource_sets``.
                     For use with supported allocation functions.
 
-                "resource_info" [dict]:
+                **resource_info** [dict]:
                     Provide resource information that will override automatically detected resources.
                     The allowable fields are given below in "Overriding Resource Auto-Detection"
-                    Ignored if ``"disable_resource_manager"`` is set.
+                    Ignored if ``disable_resource_manager`` is set.
 
-                "scheduler_opts" [dict]:
+                **scheduler_opts** [dict]:
                     Options for the resource scheduler.
                     See "Scheduler Options" for more options.
 
