@@ -54,13 +54,15 @@ There are a growing number of packages aimed at workflows, and a sub-set of thes
 
 Some crucial considerations relevant to these packages include:
 
+- Ease of use - does the software require a complex setup.
+
 - Portability - running on different machines with different schedulers, hardware, MPI runners with minimal modification to user scripts.
 
 - Scalability - working efficiently with large simulations and many concurrent simulations.
 
-- Dynamic resources - ability to dyanmically assign machine resources to simulations.
+- Interoperability - the modularity of the package and the abilitiy to interoperate with other packages.
 
-- Ease of use - does the software require a complex setup.
+- Dynamic resources - ability to dyanmically assign machine resources to simulations.
 
 - Ability to cancel simulations on on-the-fly.
 
