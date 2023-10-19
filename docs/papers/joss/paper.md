@@ -52,11 +52,6 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 
 There are a growing number of packages aimed at workflows, and a sub-set of these focus on running ensembles of calculations on clusters and supercomputers. A dynamic ensemble refers to packages that automatically steer the ensemble based on intermediate results. This may involve deciding simulation parameters based on numerical optimization or machine learning techniques, among other possibilities. Other packages in this space include Colmena and the RADICAL-Ensemble Toolkit.
 
-[***merge sim/gen with this?]
-[***where communications?]
-
-LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code re-use. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
-
 Some crucial considerations relevant to these packages include:
 
 - Portability - running on different machines with different schedulers, hardware, MPI runners with minimal modification to user scripts.
@@ -68,6 +63,11 @@ Some crucial considerations relevant to these packages include:
 - Ease of use - does the software require a complex setup.
 
 - Ability to cancel simulations on on-the-fly.
+
+[***merge sim/gen with this?]
+[***where communications?]
+
+LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code re-use. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
 
 To acheive portability, libEnsemble employs system detection beyond other packages. It detects crucial system information such as scheduler details, MPI runners, core counts, GPU counts (for different types of GPU), and uses these to produce run-lines and GPU settings for these sytems, without the user having to alter scripts. For example, on a system using "srun", libEnsemble will use srun options to assign GPUs, while on other systems it may assign via environment variables such as ROCR_VISIBLE_DEVICES or CUDA_VISIBLE_DEVICES, while the user only states the number of GPUs needed for each simulation. For cases where autodetection is insufficient the user can supply platform information or the name of a known system via scripts or an environment variable.
 
