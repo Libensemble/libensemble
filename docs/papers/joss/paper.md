@@ -50,7 +50,7 @@ design, decision, and inference studies on or across laptops and heterogeneous h
 
 # Statement of need
 
-There are a growing number of packages aimed at workflows, and a sub-set of these focus on running ensembles of calculations on clusters and supercomputers. A dynamic ensemble refers to packages that automatically steer the ensemble based on intermediate results. This may involve deciding simulation parameters based on numerical optimization or machine learning techniques, among other possibilities. Other packages in this space include Colmena and the RADICAL-Ensemble Toolkit.
+There are a growing number of packages aimed at workflows, and a sub-set of these focus on running ensembles of calculations on clusters and supercomputers. A dynamic ensemble refers to packages that automatically steer the ensemble based on intermediate results. This may involve deciding simulation parameters based on numerical optimization or machine learning techniques, among other possibilities. Other packages in this space include Colmena [@colmena21] and the RADICAL-Ensemble Toolkit [@ensembletoolkit16], and also packages that provide back-end dispatch and execution such as Parsl [@parsl] and Balsam [@Salim2019].
 
 Some crucial considerations relevant to these packages include:
 
@@ -71,13 +71,15 @@ Some crucial considerations relevant to these packages include:
 
 LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code re-use. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
 
+libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms. Some other packages cover parts of these. For example, Colmena has a front-end that uses 'thinker' and 'doer' [check] functions while using Parsl to dispatch simulations.
+
+libensemble takes the philosohpy of minimising required dependencies, while supporting various back-end mechanisms when needed. For example, the vast majority of users do not require to be running a database application or special run-time to use libEnsemble, but for those that do, Balsam can be used on the back-end by substituting the reguler MPI executor for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and adoption costs when using libEnsemble.
+
 To acheive portability, libEnsemble employs system detection beyond other packages. It detects crucial system information such as scheduler details, MPI runners, core counts, GPU counts (for different types of GPU), and uses these to produce run-lines and GPU settings for these sytems, without the user having to alter scripts. For example, on a system using "srun", libEnsemble will use srun options to assign GPUs, while on other systems it may assign via environment variables such as ROCR_VISIBLE_DEVICES or CUDA_VISIBLE_DEVICES, while the user only states the number of GPUs needed for each simulation. For cases where autodetection is insufficient the user can supply platform information or the name of a known system via scripts or an environment variable.
 
 By default, libEnsemble divides available compute resources amongst workers. However, when simulation parameters are created, the number of processes and GPUs can also be specified for each simulation. Combined with the portability features, this makes it very simple to transfer user scripts between platforms.
 
-libensemble takes the philosohpy of minimising required dependencies, while supporting various back-end mechanisms when needed. For example, the vast majority of users do not require to be running a database application or special run-time to use libEnsemble, but for those that do, Balsam can be used on the back-end by substituting the reguler MPI executor for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and adoption costs when using libEnsemble.
-
-The close coupling between libEsnemble generator and simulators enable the generator to both asychronously be taking in results and updating models, and to cancel previously issued simulations. Running simulations can be terminated and resources recovered. This is more flexible compared to other packages, where the generation of simulations is external to the dispatch of a batch of simulations.
+The close coupling between the libEnsemble generator and simulators enables the generator to perform tasks such as asynchronously receiving results, updating models, and cancelling previously initiated simulations. Simulations that are already running can be terminated and resources recovered. This is more flexible compared to other packages, where the generation of simulations is external to the dispatch of a batch of simulations.
 
 libEnsemble supports persistent user functions.that run on workers, maintaining their memory, which prevents the storing and reloading of data required by packages that only support a fire-and-forget approach to ensemble components.
 
