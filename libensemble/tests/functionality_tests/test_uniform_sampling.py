@@ -31,6 +31,7 @@ if __name__ == "__main__":
     libE_specs["save_every_k_gens"] = 300
     libE_specs["save_H_with_date"] = True
     libE_specs["save_H_on_completion"] = False
+    libE_specs["H_file_prefix"] = "TESTING"
 
     sim_specs = {
         "sim_f": six_hump_camel,  # Function whose output is being minimized
