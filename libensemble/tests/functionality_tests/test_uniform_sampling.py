@@ -29,6 +29,8 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["save_every_k_sims"] = 400
     libE_specs["save_every_k_gens"] = 300
+    libE_specs["save_H_with_date"] = True
+    libE_specs["save_H_on_completion"] = False
 
     sim_specs = {
         "sim_f": six_hump_camel,  # Function whose output is being minimized

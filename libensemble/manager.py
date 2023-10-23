@@ -283,7 +283,7 @@ class Manager:
             prefix = self.libE_specs.get("H_file_prefix")
             date_start = self._get_date_start_str()
             Hpath = f"{prefix}_{date_start}after_complete.npy"
-            np.save(os.path.join(self.libE_specs["workflow_dir_path"], Hpath))
+            np.save(os.path.join(self.libE_specs["workflow_dir_path"], Hpath), self.hist.H)
 
     def _save_every_k(self, fname: str, count: int, k: int) -> None:
         """Saves history every kth step"""
