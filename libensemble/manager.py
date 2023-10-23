@@ -7,6 +7,7 @@ import cProfile
 import glob
 import logging
 import os
+from pathlib import Path
 import platform
 import socket
 import sys
@@ -32,12 +33,15 @@ from libensemble.message_numbers import (
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
+from libensemble.run_calculation import RunCalc
 from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
+from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg
+
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -63,6 +67,15 @@ def report_worker_exc(wrk_exc: Exception = None) -> None:
         logger.error(f"---- {from_line} ----")
         logger.error(f"Message: {msg}")
         logger.error(exc)
+
+
+# TODO - do we need persis_in here also
+def get_dtypes(H, sim_specs, gen_specs):
+    dtypes = {
+        EVAL_SIM_TAG: repack_fields(H[sim_specs["in"]]).dtype,
+        EVAL_GEN_TAG: repack_fields(H[gen_specs["in"]]).dtype,
+    }
+    return dtypes
 
 
 def manager_main(
@@ -112,10 +125,7 @@ def manager_main(
         gen_specs["in"] = []
 
     # Send dtypes to workers
-    dtypes = {
-        EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-        EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-    }
+    dtypes = get_dtypes(hist.H, sim_specs, gen_specs)
 
     for wcomm in wcomms:
         wcomm.send(0, dtypes)
@@ -198,6 +208,14 @@ class Manager:
         self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
         self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
         self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
+        self.gen_on_manager = libE_specs.get("gen_on_manager", False)
+
+        if self.gen_on_manager:
+            dtypes = get_dtypes(self.hist.H, sim_specs, gen_specs)
+            # TODO rename from gen_worker
+            self.gen_worker = RunCalc(dtypes, 0, sim_specs, gen_specs, libE_specs)
+            self.LS = LocationStack()
+            self.LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
 
         self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
         self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
@@ -301,17 +319,23 @@ class Manager:
 
     def _check_work_order(self, Work: dict, w: int, force: bool = False) -> None:
         """Checks validity of an allocation function order"""
-        assert w != 0, "Can't send to worker 0; this is the manager."
-        if self.W[w - 1]["active_recv"]:
-            assert "active_recv" in Work["libE_info"], (
-                "Messages to a worker in active_recv mode should have active_recv"
-                f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
-            )
-        else:
-            if not force:
-                assert self.W[w - 1]["active"] == 0, (
-                    "Allocation function requested work be sent to worker %d, an already active worker." % w
+
+        if not self.gen_on_manager:
+            assert w != 0, "Can't send to worker 0; this is the manager."
+
+        # gen on manager (run in place) is not persistent or active_recv and cannot be active already
+        if w != 0:
+            if self.W[w - 1]["active_recv"]:
+                assert "active_recv" in Work["libE_info"], (
+                    "Messages to a worker in active_recv mode should have active_recv"
+                    f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
                 )
+            else:
+                if not force:
+                    assert self.W[w - 1]["active"] == 0, (
+                        "Allocation function requested work be sent to worker %d, an already active worker." % w
+                    )
+
         work_rows = Work["libE_info"]["H_rows"]
         if len(work_rows):
             work_fields = set(Work["H_fields"])
@@ -347,14 +371,33 @@ class Manager:
         if self.resources:
             self.resources.resource_manager.free_rsets(w)
 
-    def _send_work_order(self, Work: dict, w: int) -> None:
+    def _run_calc_in_place(self, Work, w, persis_info, H_to_be_sent=None):
+        """Run user function in place"""
+
+        with self.LS.loc("workflow"):
+            D_recv = self.gen_worker.run(Work, H_to_be_sent)
+
+            # TODO - check: skipping _handle_msg_from_worker
+            # TODO - persis_info needs to be passed through (via _send_work_order) - alt to make self.persis_info
+            # or use persis_info for the worker which is in Work see: "persis_info": persis_info[w],
+            # but we may want to be able to change persis_info direct keys when run on manager
+            self._update_state_on_worker_msg(persis_info, D_recv, w)
+
+    # TODO Either adding persis_info here - or have alternative to _send_work_order altogether.
+    def _send_work_order(self, Work: dict, w: int, persis_info: dict) -> None:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
+
+        if self.gen_on_manager and Work["tag"] == EVAL_GEN_TAG:
+            run_on_gen = True
+        else:
+            run_on_gen = False
 
         if self.resources:
             self._set_resources(Work, w)
 
-        self.wcomms[w - 1].send(Work["tag"], Work)
+        if not run_on_gen:
+            self.wcomms[w - 1].send(Work["tag"], Work)
 
         if Work["tag"] == EVAL_GEN_TAG:
             self.W[w - 1]["gen_started_time"] = time.time()
@@ -366,19 +409,30 @@ class Manager:
             new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
+                # TODO: if gen on manager may not need repack_fields
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
-            self.wcomms[w - 1].send(0, H_to_be_sent)
+
+            if not run_on_gen:
+                self.wcomms[w - 1].send(0, H_to_be_sent)
+        else:
+            H_to_be_sent = None
+
+        if run_on_gen:
+            self._run_calc_in_place(Work, w, persis_info, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
-        self.W[w - 1]["active"] = Work["tag"]
-        if "libE_info" in Work:
-            if "persistent" in Work["libE_info"]:
-                self.W[w - 1]["persis_state"] = Work["tag"]
-                if Work["libE_info"].get("active_recv", False):
-                    self.W[w - 1]["active_recv"] = Work["tag"]
-            else:
-                assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
+
+        # if this is self.gen_on_manager
+        if w != 0:
+            self.W[w - 1]["active"] = Work["tag"]
+            if "libE_info" in Work:
+                if "persistent" in Work["libE_info"]:
+                    self.W[w - 1]["persis_state"] = Work["tag"]
+                    if Work["libE_info"].get("active_recv", False):
+                        self.W[w - 1]["active_recv"] = Work["tag"]
+                else:
+                    assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
 
         work_rows = Work["libE_info"]["H_rows"]
         if Work["tag"] == EVAL_SIM_TAG:
@@ -536,7 +590,7 @@ class Manager:
                         "libE_info": {"persistent": True, "H_rows": rows_to_send},
                     }
                     self._check_work_order(work, w, force=True)
-                    self._send_work_order(work, w)
+                    self._send_work_order(work, w, persis_info)
                     self.hist.update_history_to_gen(rows_to_send)
                 else:
                     self.wcomms[w - 1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
@@ -584,6 +638,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
+            "gen_on_manager": self.gen_on_manager,
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -638,11 +693,14 @@ class Manager:
                     if self._sim_max_given():
                         break
                     self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
+                    self._send_work_order(Work[w], w, persis_info)
                     self._update_state_on_alloc(Work[w], w)
-                assert self.term_test() or any(
-                    self.W["active"] != 0
-                ), "alloc_f did not return any work, although all workers are idle."
+
+                # gen_on_manager completes already so can have all idle at this point
+                if 0 not in Work:
+                    assert self.term_test() or any(
+                        self.W["active"] != 0
+                    ), "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
             report_worker_exc(e)
             raise LoggedException(e.args[0], e.args[1]) from None
