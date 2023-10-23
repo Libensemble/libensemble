@@ -269,14 +269,27 @@ class Manager:
 
     # --- Checkpointing logic
 
-    def _save_every_k(self, fname: str, count: int, k: int) -> None:
-        """Saves history every kth step"""
-        count = k * (count // k)
+    def _get_date_start_str(self) -> str:
+        """Get timestamp for workflow start, for saving History"""
         date_start = self.date_start + "_"
         if platform.system() == "Windows":
             date_start = date_start.replace(":", "-")  # ":" is invalid in windows filenames
         if not self.libE_specs["save_H_with_date"]:
             date_start = ""
+        return date_start
+
+    def _save_H_on_complete(self) -> None:
+        if self.libE_specs.get("save_H_on_completion"):
+            prefix = self.libE_specs.get("H_file_prefix")
+            date_start = self._get_date_start_str()
+            Hpath = f"{prefix}_{date_start}after_complete.npy"
+            np.save(os.path.join(self.libE_specs["workflow_dir_path"], Hpath))
+
+    def _save_every_k(self, fname: str, count: int, k: int) -> None:
+        """Saves history every kth step"""
+        count = k * (count // k)
+        date_start = self._get_date_start_str()
+
         filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
         if not os.path.isfile(filename) and count > 0:
             for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
@@ -561,6 +574,7 @@ class Manager:
             if self.WorkerExc:
                 exit_flag = 1
 
+        self._save_H_on_complete()
         self._kill_workers()
         return persis_info, exit_flag, self.elapsed()
 
