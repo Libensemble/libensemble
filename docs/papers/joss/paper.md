@@ -71,44 +71,72 @@ Some crucial considerations relevant to these packages include:
 
 [merge sim/gen with this?]
 
-libEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need
-for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between
-customizable Python user functions. This modular design also lends itself to exploiting the large
-library of example user functions that are provided with libEnsemble, maximizing code reuse. For
-instance, users can readily choose an existing generator function and tailor a simulator function
-to their particular needs.
-
 libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms.
 Some other packages cover a sub-set of the workflow. Colmena, for example, has a front-end
 that uses components to create and coordinate tasks while using Parsl to dispatch simulations.
+
+<!--- JLN: I think this should be mentioned in any section that discusses flexibility
 libEnsemble communicates between a manager and multiple workers using either Python's built-in
 multiprocessing, MPI (via mpi4py), or TCP.
+-->
 
-libEnsemble takes the philosophy of minimizing required dependencies while supporting various
-back-end mechanisms when needed. For example, the vast majority of users do not require to be
-running a database application or special run-time to use libEnsemble, but for those that do,
-Balsam can be used on the back-end by substituting the regular MPI executor for the Balsam
-executor. This approach simplifies the user experience and reduces the initial setup and
-adoption costs when using libEnsemble.
-
-To achieve portability, libEnsemble employs system detection beyond other packages. It detects crucial
-system information such as scheduler details, MPI runners, core counts, and GPU counts (for different
-types of GPU) and uses these to produce run-lines and GPU settings for these systems, without the user
-having to alter scripts. For example, on a system using "srun", libEnsemble will use srun options to
-assign GPUs, while on other systems it may assign via environment variables such as ROCR_VISIBLE_DEVICES
-or CUDA_VISIBLE_DEVICES, while the user only states the number of GPUs needed for each simulation.
-For cases where autodetection is insufficient, the user can supply platform information or the name
-of a known system via scripts or an environment variable.
-
-By default, libEnsemble divides available compute resources amongst workers. However, when simulation
-parameters are created, the number of processes and GPUs can also be specified for each simulation.
-Combined with the portability features, this makes it very simple to transfer user scripts between platforms.
+libEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need
+to explicitly define task dependencies. Instead, it emphasizes data dependencies between
+customizable Python user functions. This modular design lends itself to exploiting the large
+library of example user functions that are provided with libEnsemble or available from its
+community of users. For instance, developers can choose an existing generator function and tailor
+a simulator function to their particular needs.
 
 The close coupling between the libEnsemble generator and simulators enables the generator to perform tasks
 such as asynchronously receiving results, updating models, and canceling previously initiated simulations.
 Simulations that are already running can be terminated and resources recovered. This is more flexible
 compared to other packages, where the generation of simulations is external to the dispatch of a batch 
 of simulations.
+
+libEnsemble attempts to minimize required dependencies while still supporting optional
+communication mechanisms and application schedulers. For example, for the vast majority of users
+Python's multiprocessing module is sufficient for parallelism, but for those seeking  
+higher or more complex scaling, simply installing MPI and mpi4py
+allows libEnsemble to run with a MPI runtime without adjusting any code. Most users are likewise satisfied
+scheduling application instances to the same allocation as a libEnsemble instance; but an additional
+pip-install of Balsam and one-line adjust are sufficient for libEnsemble to schedule applications across
+the internet.
+
+<!--- JLN: The below paragraph probably needs some rearranging. I think users don't typically seek
+out databases or special runtimes - that's just what they end up stuck with. It's unlikely that a user
+say they want to use a database with libE, with us then recommending Balsam
+
+For example, the vast majority 
+of users do not require to be running a database application or special run-time to use libEnsemble,
+but for those that do, Balsam can be used on the back-end by substituting the regular MPI executor
+for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and
+adoption costs when using libEnsemble.
+
+-->
+
+To achieve portability, libEnsemble employs system detection beyond other packages. It detects crucial
+system information such as scheduler details, MPI runners, core counts, and GPU counts (for different
+types of GPUs) and portably produces run-lines and GPU settings for these systems, without the user
+having to alter scripts. For example, on a system using "srun", libEnsemble will use srun options to
+assign GPUs, while on other systems it may assign via environment variables such as ROCR_VISIBLE_DEVICES
+or CUDA_VISIBLE_DEVICES. Meanwhile the user only enumerates the GPUs needed for each simulation.
+
+<!---
+
+For cases where autodetection is insufficient, the user can supply platform information or the name
+of a known system via scripts or an environment variable.
+
+-->
+
+By default, libEnsemble divides available compute resources amongst workers. Alternatively, when simulation
+parameters are generated, the number of processes and GPUs can also be specified for each simulation.
+Combined with the portability features, this makes it simple to run dynamic-resource workflows on almost
+any GPU cluster.
+
+<!---
+JLN: Although persisent user functions are helpful, I'd be careful emphasizing them as a plus,
+since the existence of agents/daemons in software is very common
+-->
 
 libEnsemble also supports persistent user functions that run on workers, maintaining their memory, which
 prevents the storing and reloading of data required by packages that only support a fire-and-forget approach
@@ -122,6 +150,10 @@ Examples of ways in which libEnsemble has been used in science and engineering p
 - Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23].
 - Design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22].
 - Sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022].
+
+<!---
+Move gen/sim paragraph above?
+-->
 
 libEnsemble's generators and simulators, commonly referred to as user functions, are Python
 functions that simply accept and return NumPy structured arrays. Generators produce input for
