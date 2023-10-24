@@ -53,7 +53,7 @@ Some crucial considerations relevant to these packages include:
 
 - Portability - running on different machines with different schedulers, hardware, and MPI runners with minimal modification to user scripts.
 
-- Scalability - working efficiently with large simulations and many concurrent simulations.
+- Scalability - working efficiently with large and/or many concurrent simulations.
 
 - Interoperability - the modularity of the package and the ability to interoperate with other packages.
 
@@ -63,11 +63,17 @@ Some crucial considerations relevant to these packages include:
 
 [merge sim/gen with this?]
 
-LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble, maximizing code reuse. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
+LibEnsemble stands out primarily through its generator-simulator paradigm, which eliminates the need for users to explicitly define task dependencies. Instead, it emphasizes data dependencies between customizable Python user functions. This modular design also lends itself to exploiting the large library of example user functions that are provided with libEnsemble or available from the community, maximizing code reuse. For instance, users can readily choose an existing generator function and tailor a simulator function to their particular needs.
 
-libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms. Some other packages cover a sub-set of the workflow. Colmena, for example, has a front-end that uses components to create and coordinate tasks while using Parsl to dispatch simulations. libEnsemble communicates between a manager and multiple workers using either Python's built-in multiprocessing, MPI (via mpi4py), or TCP.
+<!--- JLN: can reword the below paragraph -->
 
-libEnsemble takes the philosophy of minimizing required dependencies while supporting various back-end mechanisms when needed. For example, the vast majority of users do not require to be running a database application or special run-time to use libEnsemble, but for those that do, Balsam can be used on the back-end by substituting the regular MPI executor for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and adoption costs when using libEnsemble.
+libEnsemble is a complete toolkit that includes generator in-the-loop and backend mechanisms. Some other packages cover a sub-set of the workflow. Colmena, for example, has a front-end that uses components to create and coordinate tasks while using Parsl to dispatch simulations. 
+
+libEnsemble communicates between a manager and multiple workers using either Python's built-in multiprocessing, MPI (via mpi4py), or TCP.
+
+libEnsemble takes the philosophy of minimizing required dependencies while supporting various back-end mechanisms when needed.
+
+For example, the vast majority of use-cases do not require a database or special run-time. but for those that do, Balsam can be used on the back-end by substituting the regular MPI executor for the Balsam executor. This approach simplifies the user experience and reduces the initial setup and adoption costs when using libEnsemble.
 
 To achieve portability, libEnsemble employs system detection beyond other packages. It detects crucial system information such as scheduler details, MPI runners, core counts, and GPU counts (for different types of GPU) and uses these to produce run-lines and GPU settings for these systems, without the user having to alter scripts. For example, on a system using "srun", libEnsemble will use srun options to assign GPUs, while on other systems it may assign via environment variables such as ROCR_VISIBLE_DEVICES or CUDA_VISIBLE_DEVICES, while the user only states the number of GPUs needed for each simulation. For cases where autodetection is insufficient, the user can supply platform information or the name of a known system via scripts or an environment variable.
 
