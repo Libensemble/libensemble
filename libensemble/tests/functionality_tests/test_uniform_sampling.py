@@ -25,7 +25,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -74,4 +74,3 @@ if __name__ == "__main__":
         assert any([date in i for i in files])
 
         print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
-        save_libE_output(H, persis_info, __file__, nworkers)
