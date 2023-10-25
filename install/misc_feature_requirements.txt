@@ -1,2 +1,1 @@
 globus-compute-sdk==2.5.0
-mpi4py==3.1.5
