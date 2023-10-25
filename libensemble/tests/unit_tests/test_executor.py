@@ -10,12 +10,6 @@ import time
 
 import pytest
 
-if platform.system() != "Windows":
-    import mpi4py
-
-    mpi4py.rc.initialize = False
-    from mpi4py import MPI
-
 from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
 from libensemble.resources.mpi_resources import MPIResourcesException
 
@@ -30,6 +24,10 @@ non_existent_app = "simdir/non_exist.x"
 
 
 def setup_module(module):
+    if platform.system() != "Windows":
+        import mpi4py
+
+        mpi4py.rc.initialize = False
     try:
         print(f"setup_module module:{module.__name__}")
     except AttributeError:
@@ -131,6 +129,11 @@ def setup_executor_fakerunner():
 
 def is_ompi():
     """Determine if running with Open MPI"""
+    import mpi4py
+
+    mpi4py.rc.initialize = False
+    from mpi4py import MPI
+
     return "Open MPI" in MPI.get_vendor()
 
 

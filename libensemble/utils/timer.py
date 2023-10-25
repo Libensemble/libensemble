@@ -3,11 +3,11 @@ libensemble utility class -- manages timer
 """
 
 import datetime
+import time
 
 
-# https://stackoverflow.com/questions/5998245/get-current-time-in-milliseconds-in-python
 def TimestampMillisec64() -> int:
-    return int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds() * 1000)
+    return int(time.time_ns() / 1000000)
 
 
 class Timer:
