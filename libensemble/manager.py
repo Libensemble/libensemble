@@ -573,7 +573,7 @@ class Manager:
             if self.WorkerExc:
                 exit_flag = 1
 
-        self._init_every_k_save(complete=True)
+        self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
         self._kill_workers()
         return persis_info, exit_flag, self.elapsed()
 

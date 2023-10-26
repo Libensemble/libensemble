@@ -33,7 +33,6 @@ if __name__ == "__main__":
     libE_specs["save_every_k_sims"] = 400
     libE_specs["save_every_k_gens"] = 300
     libE_specs["save_H_with_date"] = True
-    libE_specs["save_H_on_completion"] = False
     libE_specs["H_file_prefix"] = "TESTING"
 
     sim_specs = {
@@ -68,9 +67,9 @@ if __name__ == "__main__":
         for m in minima:
             assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
-        files = os.listdir(os.path.dirname(__file__))
+        npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
         date = str(datetime.datetime.today()).split(" ")[0]
-        assert any([i.startswith("TESTING_") for i in files])
-        assert any([date in i for i in files])
+        assert any([i.startswith("TESTING_") for i in npy_files])
+        assert any([date in i for i in npy_files])
 
         print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
