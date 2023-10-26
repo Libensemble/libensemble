@@ -1,5 +1,5 @@
 # TODO where to place main dir or utils/ or other
-# TODO consolidate with worker.py (e.g. inheritence)
+# TODO consolidate with worker.py (e.g. inheritance)
 
 """
 libEnsemble RunCalc class
