@@ -29,54 +29,64 @@ affiliations:
    index: 2
  - name: Industrial Engineering and Management Sciences, Northwestern University, Evanston, IL, USA
    index: 3
-date: 13 October 2023
+date: 31 October 2023
 bibliography: paper.bib
 ---
 
 # Summary
 
-Almost all applications/evaluations eventually stop scaling: their runtime no
+Almost all science and engineering applications eventually stop scaling: their runtime no
 longer decreases as available computational resources increase.
 Therefore, many applications will struggle to efficiently use emerging
-extreme-scale HPC systems.
+extreme-scale HPC and distributed systems.
 libEnsemble is a complete Python toolkit and workflow system for intelligently driving
-"ensembles" of experiments or simulations at massive scales.
+*ensembles* of experiments or simulations at massive scales.
 It enables and encourages multi-disciplinary design, decision, and inference
 studies portably running on laptops, clusters, and supercomputers.
 
 # Statement of need
 
-There are a growing number of packages aimed at workflows, while relatively few
+While there are a growing number of packages aimed at workflows, relatively few
 focus on running dynamic ensembles of calculations on clusters and supercomputers.
-Dynamic ensembles are workflows of computations that are steered
+Dynamic ensembles are workflows of computations that are defined and steered
 based on intermediate results.
 Examples include determining simulation parameters using numerical optimization
-methods, machine learning techniques, or statistical calibration tools.
+methods, machine learning techniques, or statistical calibration tools. In each of
+these examples, the ensemble members are typically simulations that use different
+parameters or data. Additional examples of applications that have used libEnsemble
+are surveyed in [LibEnsemble use cases](#LibEnsemble-use-cases).
 
-Some crucial considerations relevant to these packages include:
+Some key considerations for packages running dynamic ensembles include:
 
-- Ease of use - whether the software requires a complex setup.
+- Ease of use -- whether the software requires a complex setup.
 
-- Portability - running on different machines with different schedulers, hardware, and MPI runners with minimal modification to user scripts.
+- Portability -- running on different machines with different schedulers, hardware, and communication modes (e.g., MPI runners) with minimal modification to user scripts.
 
-- Scalability - working efficiently with large and/or many concurrent simulations.
+- Scalability -- working efficiently with large-scale and/or many concurrent simulations.
 
-- Interoperability - the modularity of the package and the ability to interoperate with other packages.
+- Interoperability -- the modularity of the package and the ability to interoperate with other packages.
 
-- Adaptive resource management - adjust resources given to each simulation throughout the ensemble.
+- Adaptive resource management -- ability to adjust resources given to each simulation throughout the ensemble.
 
-- Ability to cancel simulations on the fly.
+- Efficient resource utilization -- including the ability to cancel simulations on the fly.
 
-[merge sim/gen with this?]
+libEnsemble achieves the above using a generator--simulator--allocator model. 
+libEnsemble's generators, simulators, and allocators -- commonly referred to as user 
+functions -- are Python
+functions that simply accept and return NumPy structured arrays. Generators produce input for
+simulators, while simulators evaluate those inputs and allocators decide whether and when 
+a simulator or generator should be called; any level of complexity is supported.
+Multiple concurrent instances ("ensembles") of user functions are coordinated by libEnsemble's
+worker processes. Workers are typically assigned/reassigned compute resources; within
+user functions, workers can launch applications, evaluate intermediate results, and statefully intercommunicate.
 
-Related work section here:
->>>>>>>
-Other packages in this space include Colmena [@colmena21] and the
-RADICAL-Ensemble Toolkit [@ensembletoolkit16] and also packages that provide
+## Related work 
+
+Other packages for managing workflows and ensembles include Colmena [@colmena21] and the
+RADICAL-Ensemble Toolkit [@ensembletoolkit16] as well as packages that provide
 back-end dispatch and execution such as Parsl [@parsl] and Balsam [@Salim2019].
->>>>>>>
 
-libEnsemble stands out primarily through its generator-simulator paradigm,
+libEnsemble stands out primarily through its generator--simulator paradigm,
 which eliminates the need for users to explicitly define task dependencies.
 Instead, it emphasizes data dependencies between customizable Python user
 functions. This modular design also lends itself to exploiting the large
@@ -85,12 +95,12 @@ available from the community, maximizing code reuse. For instance, users can
 readily choose an existing generator function and tailor a simulator function
 to their particular needs.
 
-<!--- JLN: can reword the below paragraph -->
-
-libEnsemble is a complete toolkit that includes generator in-the-loop and
-backend mechanisms. Some other packages cover a sub-set of the workflow.
-Colmena, for example, has a front-end that uses components to create and
+libEnsemble is a complete toolkit that includes generator-in-the-loop and
+backend mechanisms. Some other packages cover a subset of the workflow.
+Colmena, for example, has a front end that uses components to create and
 coordinate tasks while using Parsl to dispatch simulations.
+
+## LibEnsemble functionality
 
 libEnsemble communicates between a manager and multiple workers using either
 Python's built-in multiprocessing, MPI (via mpi4py), or TCP.
@@ -133,7 +143,7 @@ maintaining their memory, which prevents the storing and reloading of data
 required by packages that only support a fire-and-forget approach to ensemble
 components.
 
-# Example use-cases
+# LibEnsemble use cases
 
 Examples of ways in which libEnsemble has been used in science and engineering
 problems include:
@@ -142,13 +152,6 @@ problems include:
 - Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23].
 - Design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22].
 - Sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022].
-
-libEnsemble's generators and simulators, commonly referred to as user functions, are Python
-functions that simply accept and return NumPy structured arrays. Generators produce input for
-simulators, while simulators evaluate those inputs; any level of complexity is supported.
-Multiple concurrent instances ("ensembles") of user functions are coordinated by libEnsemble's
-worker processes. Workers are typically assigned/reassigned compute resources, and within
-user functions can launch applications, evaluate intermediate results, and statefully intercommunicate.
 
 Additional details on the parallel features and scalability of libEnsemble can
 be found in Refs [@Hudson2022] and [@libensemble-man].
