@@ -38,7 +38,7 @@ bibliography: paper.bib
 Almost all science and engineering applications eventually stop scaling: their runtime no
 longer decreases as available computational resources increase.
 Therefore, many applications will struggle to efficiently use emerging
-extreme-scale HPC and distributed systems.
+extreme-scale high-performance, parallel, and distributed systems.
 libEnsemble is a complete Python toolkit and workflow system for intelligently driving
 *ensembles* of experiments or simulations at massive scales.
 It enables and encourages multi-disciplinary design, decision, and inference
