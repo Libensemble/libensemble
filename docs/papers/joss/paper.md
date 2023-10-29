@@ -105,12 +105,12 @@ coordinate tasks while using Parsl to dispatch simulations.
 ## libEnsemble Functionality
 
 libEnsemble communicates between a manager and multiple workers using either
-Python's built-in multiprocessing, MPI (via mpi4py), or TCP.
+Python's built-in multiprocessing, MPI (via mpi4py [@Dalcin2008]), or TCP.
 
 libEnsemble takes the philosophy of minimizing required dependencies while
 supporting various back-end mechanisms when needed.
 
-For example, the vast majority of use-cases do not require a database or
+For example, the vast majority of current use cases do not require a database or
 special run-time. but for those that do, Balsam can be used on the back-end by
 substituting the regular MPI executor for the Balsam executor. This approach
 simplifies the user experience and reduces the initial setup and adoption costs
@@ -118,30 +118,30 @@ when using libEnsemble.
 
 To achieve portability, libEnsemble employs system detection beyond other
 packages. It detects crucial system information such as scheduler details, MPI
-runners, core counts, and GPU counts (for different types of GPU) and uses
+runners, core counts, and GPU counts (for different types of GPUs) and uses
 these to produce run-lines and GPU settings for these systems, without the user
-having to alter scripts. For example, on a system using "srun", libEnsemble
-will use srun options to assign GPUs, while on other systems it may assign via
-environment variables such as ROCR_VISIBLE_DEVICES or CUDA_VISIBLE_DEVICES,
-while the user only states the number of GPUs needed for each simulation. For
+having to alter scripts. For example, on a system using Slurm's `srun`, libEnsemble
+will use `srun` options to assign GPUs, while on other systems it may assign via
+environment variables such as `ROCR_VISIBLE_DEVICES` or `CUDA_VISIBLE_DEVICES`,
+wherein the user only states the number of GPUs needed for each simulation. For
 cases where autodetection is insufficient, the user can supply platform
 information or the name of a known system via scripts or an environment
 variable.
 
-By default, libEnsemble divides available compute resources amongst workers.
-However, when simulation parameters are created, the number of processes and
+By default, libEnsemble divides available compute resources among workers.
+When simulation parameters are created, however, the number of processes and
 GPUs can also be specified for each simulation. Combined with the portability
-features, this makes it very simple to transfer user scripts between platforms.
+features, this makes it simple to transfer user scripts between platforms.
 
-The close coupling between the libEnsemble generator and simulators enables the
+The close coupling between the libEnsemble generators and simulators enables a
 generator to perform tasks such as asynchronously receiving results, updating
 models, and canceling previously initiated simulations. Simulations that are
 already running can be terminated and resources recovered. This is more
 flexible compared to other packages, where the generation of simulations is
 external to the dispatch of a batch of simulations.
 
-libEnsemble also supports persistent user functions that run on workers,
-maintaining their memory, which prevents the storing and reloading of data
+libEnsemble also supports so-called "persistent user functions" that run on workers,
+while maintaining their memory, which prevents the storing and reloading of data
 required by packages that only support a fire-and-forget approach to ensemble
 components.
 
