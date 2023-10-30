@@ -66,7 +66,7 @@ Some key considerations for packages running dynamic ensembles include:
 
 - Interoperability -- the modularity of the package and the ability to interoperate with other packages.
 
-- Adaptive resource management -- ability to adjust resources given to each simulation throughout the ensemble.
+- Adaptive resource management -- the ability to adjust resources given to each simulation throughout the ensemble.
 
 - Efficient resource utilization -- including the ability to cancel simulations on the fly.
 
@@ -99,7 +99,7 @@ to their particular needs.
 
 libEnsemble takes the philosophy of minimizing required dependencies while
 supporting various back-end mechanisms when needed.
-In constrast to other packages that cover only a
+In contrast to other packages that cover only a
 subset of such a workflow,
 libEnsemble is a complete toolkit that includes generator-in-the-loop and
 backend mechanisms.
@@ -108,7 +108,7 @@ coordinate tasks while using Parsl to dispatch simulations.
 
 For example, the vast majority of current use cases do not require a database or
 special run-time environment. For use cases that have such requirements, Balsam
-can be used on the back-end by
+can be used on the back end by
 substituting the regular MPI executor for the Balsam executor. This approach
 simplifies the user experience and reduces the initial setup and adoption costs
 when using libEnsemble.
@@ -144,21 +144,22 @@ flexible compared to other packages, where the generation of simulations is
 external to the dispatch of a batch of simulations.
 
 libEnsemble also supports so-called "persistent user functions" that
-maintaining their state while running on workers. This prevents the the need to
+maintain their state while running on workers. This prevents the need to
 store and reload data
 as is done by other ensemble packages that support only a fire-and-forget
 approach to ensemble components.
 
 # Representative libEnsemble Use Cases
 
-Examples of libEnsemble application in science and engineering include:
+Examples of libEnsemble applications in science and engineering include:
 
 - Optimization of variational algorithms on quantum computers [@Liu2022layer].
 - Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23].
 - Design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22].
 - Sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022].
 
-A selection of community-provided libEnsemble functions and workflows that users can build off are maintained in [@libEnsembleCommunityExamples].
+A selection of community-provided libEnsemble functions and workflows that
+users can build off is maintained in [@libEnsembleCommunityExamples].
 
 Additional details on the parallel features and scalability of libEnsemble can
 be found in [@Hudson2022] and [@libensemble-man].
