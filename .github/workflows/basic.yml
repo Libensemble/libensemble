@@ -132,26 +132,14 @@ jobs:
           run: |
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
-        - name: Merge coverage, run Coveralls
-          env:
-              COVERALLS_PARALLEL: true
+        - name: Merge coverage
           run: |
             mv libensemble/tests/.cov* .
-            coveralls --service=github
 
-    coveralls:
-        name: Notify coveralls of all jobs completing
-        needs: [test-libE]
-        if: '! github.event.pull_request.draft'
-        runs-on: ubuntu-latest
-        container: python:3-slim
-        steps:
-        - name: Finished
-          run: |
-            pip3 install --upgrade coveralls
-            coveralls --finish
+        - name: Upload coverage reports to Codecov
+          uses: codecov/codecov-action@v3
           env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     spellcheck:
         name: Spellcheck release branch
