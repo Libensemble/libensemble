@@ -46,7 +46,7 @@ studies portably running on laptops, clusters, and supercomputers.
 
 # Statement of Need
 
-While there are a growing number of packages aimed at workflows, relatively few
+While there is a growing number of packages aimed at workflows, relatively few
 focus on running dynamic ensembles of calculations on clusters and supercomputers.
 Dynamic ensembles are workflows of computations that are defined and steered
 based on intermediate results.
@@ -76,7 +76,7 @@ user functions -- are simply Python
 functions that accept and return NumPy structured arrays. Generators produce input for
 simulators, simulators evaluate those inputs, and allocators decide whether and when
 a simulator or generator should be called; any level of complexity is supported.
-Multiple concurrent instances ("an ensemble") of user functions are coordinated by libEnsemble's
+Multiple concurrent instances (an "ensemble") of user functions are coordinated by libEnsemble's
 worker processes. Workers are typically assigned/reassigned compute resources; within
 user functions, workers can launch applications, evaluate intermediate results,
 and communicate via the manager.
@@ -91,7 +91,7 @@ libEnsemble's unique generator--simulator--allocator
 paradigm eliminates the need for users to explicitly define task dependencies.
 Instead, it emphasizes data dependencies between these customizable Python user
 functions. This modular design also lends itself to exploiting the large
-library of example user functions that are provided with libEnsemble or
+library of example user functions provided with libEnsemble or
 available from the community (e.g., [@libEnsembleCommunityExamples]),
 maximizing code reuse. For instance, users can
 readily choose an existing generator function and tailor a simulator function
