@@ -53,14 +53,14 @@ based on intermediate results.
 Examples include determining simulation parameters using numerical optimization
 methods, machine learning techniques, or statistical calibration tools. In each of
 these examples, the ensemble members are typically simulations that use different
-parameters or data. Additional examples of applications that have used libEnsemble are 
+parameters or data. Additional examples of applications that have used libEnsemble are
 surveyed in [Representative libEnsemble Use Cases](#Representative-libEnsemble-Use-Cases).
 
 Some key considerations for packages running dynamic ensembles include:
 
 - Ease of use -- whether the software requires a complex setup.
 
-- Portability -- running on different machines with different schedulers, hardware, and communication modes (e.g., MPI runners) with minimal modification to user scripts.
+- Portability -- running on diverse machines with different schedulers, hardware, and communication modes (e.g., MPI runners) with minimal modification to user scripts.
 
 - Scalability -- working efficiently with large-scale and/or many concurrent simulations.
 
@@ -70,69 +70,72 @@ Some key considerations for packages running dynamic ensembles include:
 
 - Efficient resource utilization -- including the ability to cancel simulations on the fly.
 
-libEnsemble seeks to the maximize the above criteria using a generator--simulator--allocator
-model. libEnsemble's generators, simulators, and allocators -- commonly referred to as 
-user functions -- are Python
-functions that simply accept and return NumPy structured arrays. Generators produce input for
-simulators, simulators evaluate those inputs, and allocators decide whether and when 
+libEnsemble seeks to satisfy the above criteria using a generator--simulator--allocator
+model. libEnsemble's generators, simulators, and allocators -- commonly referred to as
+user functions -- are simply Python
+functions that accept and return NumPy structured arrays. Generators produce input for
+simulators, simulators evaluate those inputs, and allocators decide whether and when
 a simulator or generator should be called; any level of complexity is supported.
-Multiple concurrent instances ("ensembles") of user functions are coordinated by libEnsemble's
+Multiple concurrent instances ("an ensemble") of user functions are coordinated by libEnsemble's
 worker processes. Workers are typically assigned/reassigned compute resources; within
-user functions, workers can launch applications, evaluate intermediate results, 
-and statefully intercommunicate.
+user functions, workers can launch applications, evaluate intermediate results,
+and communicate via the manager.
 
-## Related Work 
+## Related Work
 
 Other packages for managing workflows and ensembles include Colmena [@colmena21] and the
-RADICAL-Ensemble Toolkit [@ensembletoolkit16] as well as packages such as 
-Parsl [@parsl] and Balsam [@Salim2019], which provide back-end dispatch and execution.
+RADICAL-Ensemble Toolkit [@ensembletoolkit16] as well as packages that provide
+back-end dispatch and execution such as Parsl [@parsl] and Balsam [@Salim2019].
 
-libEnsemble stands out primarily through its generator--simulator--allocator 
-paradigm, which eliminates the need for users to explicitly define task dependencies.
-Instead, it emphasizes data dependencies between customizable Python user
+libEnsemble's unique generator--simulator--allocator
+paradigm eliminates the need for users to explicitly define task dependencies.
+Instead, it emphasizes data dependencies between these customizable Python user
 functions. This modular design also lends itself to exploiting the large
 library of example user functions that are provided with libEnsemble or
-available from the community (e.g., [@libEnsembleCommunityExamples]), 
+available from the community (e.g., [@libEnsembleCommunityExamples]),
 maximizing code reuse. For instance, users can
 readily choose an existing generator function and tailor a simulator function
 to their particular needs.
 
+libEnsemble takes the philosophy of minimizing required dependencies while
+supporting various back-end mechanisms when needed.
+In constrast to other packages that cover only a
+subset of such a workflow,
 libEnsemble is a complete toolkit that includes generator-in-the-loop and
-backend mechanisms. Some other packages cover a subset of the workflow.
-Colmena [@colmena21], for example, has a front end that uses components to create and
+backend mechanisms.
+For example, Colmena uses front-end components to create and
 coordinate tasks while using Parsl to dispatch simulations.
+
+For example, the vast majority of current use cases do not require a database or
+special run-time environment. For use cases that have such requirements, Balsam
+can be used on the back-end by
+substituting the regular MPI executor for the Balsam executor. This approach
+simplifies the user experience and reduces the initial setup and adoption costs
+when using libEnsemble.
 
 ## libEnsemble Functionality
 
 libEnsemble communicates between a manager and multiple workers using either
 Python's built-in multiprocessing, MPI (via mpi4py [@Dalcin2008]), or TCP.
 
-libEnsemble takes the philosophy of minimizing required dependencies while
-supporting various back-end mechanisms when needed.
-
-For example, the vast majority of current use cases do not require a database or
-special run-time. but for those that do, Balsam can be used on the back-end by
-substituting the regular MPI executor for the Balsam executor. This approach
-simplifies the user experience and reduces the initial setup and adoption costs
-when using libEnsemble.
-
-To achieve portability, libEnsemble employs system detection beyond other
-packages. It detects crucial system information such as scheduler details, MPI
+To achieve portability, libEnsemble detects runtime setup information not
+commonly detected by other packages:
+It detects crucial system information such as scheduler details, MPI
 runners, core counts, and GPU counts (for different types of GPUs) and uses
 these to produce run-lines and GPU settings for these systems, without the user
-having to alter scripts. For example, on a system using Slurm's `srun`, libEnsemble
-will use `srun` options to assign GPUs, while on other systems it may assign via
-environment variables such as `ROCR_VISIBLE_DEVICES` or `CUDA_VISIBLE_DEVICES`,
-wherein the user only states the number of GPUs needed for each simulation. For
+having to alter scripts. For example, on a system that uses Slurm's `srun`, libEnsemble
+will use `srun` options to assign GPUs, while on other systems it will assign
+GPUs via the appropriate environment variables such as `ROCR_VISIBLE_DEVICES`
+or `CUDA_VISIBLE_DEVICES`,
+allowing the user to simply state the number of GPUs needed for each simulation. For
 cases where autodetection is insufficient, the user can supply platform
 information or the name of a known system via scripts or an environment
-variable.
+variable. This makes it simple to transfer user scripts between platforms.
 
-By default, libEnsemble divides available compute resources among workers.
+
+By default, libEnsemble equally divides available compute resources among workers.
 When simulation parameters are created, however, the number of processes and
-GPUs can also be specified for each simulation. Combined with the portability
-features, this makes it simple to transfer user scripts between platforms.
-
+GPUs can also be specified for each simulation.
 The close coupling between the libEnsemble generators and simulators enables a
 generator to perform tasks such as asynchronously receiving results, updating
 models, and canceling previously initiated simulations. Simulations that are
@@ -140,15 +143,15 @@ already running can be terminated and resources recovered. This is more
 flexible compared to other packages, where the generation of simulations is
 external to the dispatch of a batch of simulations.
 
-libEnsemble also supports so-called "persistent user functions" that run on workers,
-while maintaining their memory, which prevents the storing and reloading of data
-required by packages that only support a fire-and-forget approach to ensemble
-components.
+libEnsemble also supports so-called "persistent user functions" that
+maintaining their state while running on workers. This prevents the the need to
+store and reload data
+as is done by other ensemble packages that support only a fire-and-forget
+approach to ensemble components.
 
 # Representative libEnsemble Use Cases
 
-Examples of ways in which libEnsemble has been used in science and engineering
-problems include:
+Examples of libEnsemble application in science and engineering include:
 
 - Optimization of variational algorithms on quantum computers [@Liu2022layer].
 - Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23].
@@ -158,7 +161,7 @@ problems include:
 A selection of community-provided libEnsemble functions and workflows that users can build off are maintained in [@libEnsembleCommunityExamples].
 
 Additional details on the parallel features and scalability of libEnsemble can
-be found in Refs [@Hudson2022] and [@libensemble-man].
+be found in [@Hudson2022] and [@libensemble-man].
 
 # Acknowledgements
 
