@@ -84,8 +84,8 @@ and communicate via the manager.
 ## Related Work
 
 Other packages for managing workflows and ensembles include Colmena [@colmena21] and the
-RADICAL-Ensemble Toolkit [@ensembletoolkit16] as well as packages that provide
-back-end dispatch and execution such as Parsl [@parsl] and Balsam [@Salim2019].
+RADICAL-Ensemble Toolkit [@ensembletoolkit16] as well as packages such as Parsl
+[@parsl] and Balsam [@Salim2019] that provide back-end dispatch and execution.
 
 libEnsemble's unique generator--simulator--allocator
 paradigm eliminates the need for users to explicitly define task dependencies.
