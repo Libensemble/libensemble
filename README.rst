@@ -62,7 +62,7 @@ Other install methods are described in the docs_.
 Basic Usage
 ===========
 
-Create an ``Ensemble``, then customize with general settings, simulation and generator parameters,
+Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
 and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
 
 .. code-block:: python
