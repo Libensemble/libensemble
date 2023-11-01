@@ -2,7 +2,7 @@ name: libEnsemble-complete-CI
 
 on:
   schedule:
-    - cron: '0 12 * * 1'
+    - cron: '0 * * * *'
 
 jobs:
     test-libE:
@@ -229,4 +229,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.16.20
+        - uses: crate-ci/typos@v1.16.21
