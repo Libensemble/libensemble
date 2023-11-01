@@ -21,6 +21,11 @@ class Runners:
         self.gen_specs = gen_specs
         self.sim_f = sim_specs["sim_f"]
         self.gen_f = gen_specs.get("gen_f")
+
+        if inspect.isclass(self.gen_f):
+            self.gen_obj = self.gen_f(gen_specs)
+            self.gen_f = self.gen_obj.run
+
         self.has_globus_compute_sim = len(sim_specs.get("globus_compute_endpoint", "")) > 0
         self.has_globus_compute_gen = len(gen_specs.get("globus_compute_endpoint", "")) > 0
 
