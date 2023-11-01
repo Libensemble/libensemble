@@ -83,6 +83,12 @@ def give_sim_work_first(
 
             # Give gen work
             return_rows = range(len(H)) if gen_in else []
+            # SH TODO: May want option to return all points or not, but for now using gen_on_manger to decide.
+            if libE_info.get("gen_on_manager", False):
+                # Return only new points to generator
+                returned_but_not_given = np.logical_and.reduce((H["sim_ended"], ~H["gen_informed"])) if gen_in else []
+                if np.any(returned_but_not_given):
+                    return_rows = np.where(returned_but_not_given)[0]
             try:
                 if libE_info.get("gen_on_manager", False):
                     Work[0] = support.gen_work(0, gen_in, return_rows, persis_info.get(0))
