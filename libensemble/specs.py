@@ -529,9 +529,11 @@ class LibeSpecs(BaseModel):
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
 
-    @root_validator
+    @root_validator(pre=True)
     def enable_save_H_when_every_K(cls, values):
-        if values.get("save_every_k_sims") > 0 or values.get("save_every_k_gens") > 0:
+        if "save_H_on_completion" not in values and (
+            values.get("save_every_k_sims", 0) > 0 or values.get("save_every_k_gens", 0) > 0
+        ):
             values["save_H_on_completion"] = True
         return values
 
