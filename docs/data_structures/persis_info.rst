@@ -55,7 +55,7 @@ Examples:
     .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
        :linenos:
        :start-at:    if gen_count < persis_info.get("num_gens_started", 0):
-       :end-before:    # Give evaluated results back to the persistent gen
+       :end-before:    # Give evaluated results back to a running persistent gen
        :emphasize-lines: 1
        :caption: libensemble/alloc_funcs/start_only_persistent.py
 
