@@ -19,7 +19,6 @@ import sys
 import warnings
 
 import numpy as np
-from check_libE_stats import check_libE_stats
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.executors.mpi_executor import MPIExecutor
@@ -32,6 +31,7 @@ from libensemble.sim_funcs.var_resources import multi_points_with_variable_resou
 from libensemble.tools import add_unique_random_streams, parse_args
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+from check_libE_stats import check_libE_stats
 
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
 
