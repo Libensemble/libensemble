@@ -269,33 +269,50 @@ class Manager:
 
     # --- Checkpointing logic
 
-    def _save_every_k(self, fname: str, count: int, k: int) -> None:
-        """Saves history every kth step"""
-        count = k * (count // k)
-        date_start = self.date_start
+    def _get_date_start_str(self) -> str:
+        """Get timestamp for workflow start, for saving History"""
+        date_start = self.date_start + "_"
         if platform.system() == "Windows":
             date_start = date_start.replace(":", "-")  # ":" is invalid in windows filenames
-        filename = fname.format(date_start, count)
+        if not self.libE_specs["save_H_with_date"]:
+            date_start = ""
+        return date_start
+
+    def _save_every_k(self, fname: str, count: int, k: int, complete: bool) -> None:
+        """Saves history every kth step"""
+        if not complete:
+            count = k * (count // k)
+        date_start = self._get_date_start_str()
+
+        filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
         if not os.path.isfile(filename) and count > 0:
-            for old_file in glob.glob(fname.format(date_start, "*")):
+            for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.H)
 
-    def _save_every_k_sims(self) -> None:
+    def _save_every_k_sims(self, complete: bool) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_sim_{}.npy"),
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.npy"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
+            complete,
         )
 
-    def _save_every_k_gens(self) -> None:
+    def _save_every_k_gens(self, complete: bool) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "libE_history_for_run_starting_{}_after_gen_{}.npy"),
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.npy"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
+            complete,
         )
+
+    def _init_every_k_save(self, complete=False) -> None:
+        if self.libE_specs.get("save_every_k_sims") or complete:
+            self._save_every_k_sims(complete)
+        if self.libE_specs.get("save_every_k_gens"):
+            self._save_every_k_gens(complete)
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
@@ -417,10 +434,7 @@ class Manager:
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
-        if self.libE_specs.get("save_every_k_sims"):
-            self._save_every_k_sims()
-        if self.libE_specs.get("save_every_k_gens"):
-            self._save_every_k_gens()
+        self._init_every_k_save()
         return persis_info
 
     def _update_state_on_worker_msg(self, persis_info: dict, D_recv: dict, w: int) -> None:
@@ -559,6 +573,7 @@ class Manager:
             if self.WorkerExc:
                 exit_flag = 1
 
+        self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
         self._kill_workers()
         return persis_info, exit_flag, self.elapsed()
 

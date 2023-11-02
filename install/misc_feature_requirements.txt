@@ -1,1 +1,1 @@
-globus-compute-sdk==2.5.0
+globus-compute-sdk==2.6.0
