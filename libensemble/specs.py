@@ -232,8 +232,11 @@ class LibeSpecs(BaseModel):
     save_H_and_persis_on_abort: Optional[bool] = True
     """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
 
-    save_H_on_completion: Optional[bool] = True
-    """ Save state of ``H`` to file upon completing a workflow."""
+    save_H_on_completion: Optional[bool] = False
+    """
+    Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
+    or ``save_every_k_gens`` is set.
+    """
 
     save_H_with_date: Optional[bool] = False
     """ ``H`` filename contains date and timestamp."""
@@ -525,6 +528,14 @@ class LibeSpecs(BaseModel):
     @root_validator
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
+
+    @root_validator(pre=True)
+    def enable_save_H_when_every_K(cls, values):
+        if "save_H_on_completion" not in values and (
+            values.get("save_every_k_sims", 0) > 0 or values.get("save_every_k_gens", 0) > 0
+        ):
+            values["save_H_on_completion"] = True
+        return values
 
     @root_validator
     def set_workflow_dir(cls, values):

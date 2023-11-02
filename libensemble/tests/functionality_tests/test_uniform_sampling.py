@@ -14,6 +14,9 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local tcp
 # TESTSUITE_NPROCS: 2 4
 
+import datetime
+import os
+
 import numpy as np
 
 from libensemble.gen_funcs.sampling import uniform_random_sample
@@ -22,13 +25,15 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["save_every_k_sims"] = 400
     libE_specs["save_every_k_gens"] = 300
+    libE_specs["save_H_with_date"] = True
+    libE_specs["H_file_prefix"] = "TESTING"
 
     sim_specs = {
         "sim_f": six_hump_camel,  # Function whose output is being minimized
@@ -62,5 +67,9 @@ if __name__ == "__main__":
         for m in minima:
             assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
+        npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
+        date = str(datetime.datetime.today()).split(" ")[0]
+        assert any([i.startswith("TESTING_") for i in npy_files])
+        assert any([date in i for i in npy_files])
+
         print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
-        save_libE_output(H, persis_info, __file__, nworkers)
