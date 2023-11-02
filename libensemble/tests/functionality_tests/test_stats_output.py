@@ -16,6 +16,7 @@ Note: This test contains multiple iterations to test different libE_stats output
 # TESTSUITE_NPROCS: 2 4
 
 import sys
+import warnings
 
 import numpy as np
 from check_libE_stats import check_libE_stats
@@ -29,6 +30,8 @@ from libensemble.libE import libE
 from libensemble.sim_funcs import helloworld, six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # from libensemble.gen_funcs.sampling import uniform_random_sample_with_var_priorities_and_resources as gen_f
 
