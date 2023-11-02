@@ -5,11 +5,7 @@ required. Checks that dates/times are in a valid format.
 
 """
 
-import warnings
-
 from dateutil.parser import parse
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 infile = "libE_stats.txt"
 
@@ -75,5 +71,9 @@ def check_libE_stats(task_datetime=False):
 
 
 if __name__ == "__main__":
+    import warnings
+
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
     check_libE_stats()
     check_libE_stats(task_datetime=True)
