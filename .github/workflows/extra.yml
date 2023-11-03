@@ -2,7 +2,7 @@ name: libEnsemble-complete-CI
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 12 * * 1'
 
 jobs:
     test-libE:

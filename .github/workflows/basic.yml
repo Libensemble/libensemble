@@ -17,15 +17,15 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: [3.9, "3.10", "3.11"]
+                python-version: [3.9, "3.10", "3.11", "3.12"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: 3.9
+                      python-version: 3.11
                       mpi-version: "mpich=4.0.3"
                       comms-type: m
                     - os: macos-latest
-                      python-version: 3.9
+                      python-version: 3.11
                       mpi-version: "mpich=4.0.3"
                       comms-type: l
 
@@ -86,15 +86,8 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
 
         - name: Install mpi4py and MPI from conda
-          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
-
-        - name: Install mpi4py from pip, MPI from conda, get testing/feature deps
-          if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-          run: |
-            conda install ${{ matrix.mpi-version }}
-            pip install mpi4py
 
         - name: Install generator dependencies
           if: matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit != 'true'
