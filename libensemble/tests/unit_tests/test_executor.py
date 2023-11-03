@@ -409,7 +409,7 @@ def test_procs_and_machinefile_logic():
         )
     else:
         task = exctr.submit(calc_type="sim", num_procs=6, num_nodes=2, procs_per_node=3, app_args=args_for_sim)
-    task = polling_loop(exctr, task, delay=0.05)
+    task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     time.sleep(0.25)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
@@ -434,7 +434,7 @@ def test_procs_and_machinefile_logic():
     else:
         task = exctr.submit(calc_type="sim", num_nodes=2, procs_per_node=3, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, delay=0.05)
+    task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     time.sleep(0.25)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
@@ -450,14 +450,14 @@ def test_procs_and_machinefile_logic():
     # Testing no num_nodes (should not fail).
     task = exctr.submit(calc_type="sim", num_procs=2, procs_per_node=2, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, delay=0.05)
+    task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
     # Testing no procs_per_node (shouldn't fail)
     task = exctr.submit(calc_type="sim", num_nodes=1, num_procs=2, app_args=args_for_sim)
     assert 1
-    task = polling_loop(exctr, task, delay=0.05)
+    task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
