@@ -309,7 +309,8 @@ class Manager:
         )
 
     def _init_every_k_save(self, complete=False) -> None:
-        if self.libE_specs.get("save_every_k_sims") or complete:
+        force_final = complete and not self.libE_specs.get("save_every_k_gens")
+        if self.libE_specs.get("save_every_k_sims") or force_final:
             self._save_every_k_sims(complete)
         if self.libE_specs.get("save_every_k_gens"):
             self._save_every_k_gens(complete)
