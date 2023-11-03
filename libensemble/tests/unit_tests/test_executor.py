@@ -393,7 +393,7 @@ def test_procs_and_machinefile_logic():
             f.write(socket.gethostname() + "\n")
 
     task = exctr.submit(calc_type="sim", machinefile=machinefilename, app_args=args_for_sim)
-    task = polling_loop(exctr, task, delay=0.05)
+    task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
