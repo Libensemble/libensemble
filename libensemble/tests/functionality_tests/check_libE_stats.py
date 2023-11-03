@@ -5,11 +5,7 @@ required. Checks that dates/times are in a valid format.
 
 """
 
-import warnings
-
 from dateutil.parser import parse
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 infile = "libE_stats.txt"
 
