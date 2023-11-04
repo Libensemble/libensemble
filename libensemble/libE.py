@@ -119,7 +119,7 @@ from typing import Callable, Dict
 
 import numpy as np
 
-from libensemble.comms.comms import QCommProcess, Timeout
+from libensemble.comms.comms import QCommProcess, Timeout, QCommThread
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
@@ -437,8 +437,14 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     resources = Resources.resources
     executor = Executor.executor
 
+    local_comms = libE_specs.get("local_comms", "multiprocessing")
+    if local_comms == "multiprocessing":
+        QCommWorker = QCommProcess
+    else:
+        QCommWorker = QCommThread
+
     wcomms = [
-        QCommProcess(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        QCommWorker(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
         for w in range(1, nworkers + 1)
     ]
 
