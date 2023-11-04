@@ -288,7 +288,7 @@ class Manager:
         if not os.path.isfile(filename) and count > 0:
             for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
                 os.remove(old_file)
-            np.save(filename, self.hist.H)
+            np.save(filename, self.hist.trim_H())
 
     def _save_every_k_sims(self, complete: bool) -> None:
         """Saves history every kth sim step"""
@@ -309,7 +309,8 @@ class Manager:
         )
 
     def _init_every_k_save(self, complete=False) -> None:
-        if self.libE_specs.get("save_every_k_sims") or complete:
+        force_final = complete and not self.libE_specs.get("save_every_k_gens")
+        if self.libE_specs.get("save_every_k_sims") or force_final:
             self._save_every_k_sims(complete)
         if self.libE_specs.get("save_every_k_gens"):
             self._save_every_k_gens(complete)
