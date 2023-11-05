@@ -251,8 +251,6 @@ def libE(
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "local_threading": libE_local}
-
     return libE_funcs[libE_specs.get("comms", "mpi")](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
     )
