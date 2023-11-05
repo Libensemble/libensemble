@@ -242,7 +242,7 @@ def libE(
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
         sys.exit()
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "local_threading": libE_local}
 
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:
@@ -251,7 +251,7 @@ def libE(
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local}
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "local_threading": libE_local}
 
     return libE_funcs[libE_specs.get("comms", "mpi")](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
@@ -437,15 +437,14 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     resources = Resources.resources
     executor = Executor.executor
 
-    local_comms = libE_specs.get("local_comms", "multiprocessing")
-    if local_comms == "multiprocessing":
-        QCommWorker = QCommProcess
-    else:
-        QCommWorker = QCommThread
+    if libE_specs["comms"] == "local":
+        QCommLocal = QCommProcess
+    else:  # local_threading
+        QCommLocal = QCommThread
         log_comm = False  # Prevents infinite loop of logging.
 
     wcomms = [
-        QCommWorker(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        QCommLocal(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
         for w in range(1, nworkers + 1)
     ]
 
