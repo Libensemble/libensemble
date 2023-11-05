@@ -442,6 +442,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
         QCommWorker = QCommProcess
     else:
         QCommWorker = QCommThread
+        log_comm = False  # Prevents infinite loop of logging.
 
     wcomms = [
         QCommWorker(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
