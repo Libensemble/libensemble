@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional
 
 import numpy.typing as npt
 
-from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
+from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG, EVAL_FINAL_GEN_TAG
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +21,12 @@ class Runners:
         self.gen_specs = gen_specs
         self.sim_f = sim_specs["sim_f"]
         self.gen_f = gen_specs.get("gen_f")
-
+        self.final_f = None
         if inspect.isclass(self.gen_f):
             self.gen_obj = self.gen_f(gen_specs)
             self.gen_f = self.gen_obj.run
+            if hasattr(self.gen_obj, "finalize") and callable(self.gen_obj.finalize):
+                self.final_f = self.gen_obj.finalize
 
         self.has_globus_compute_sim = len(sim_specs.get("globus_compute_endpoint", "")) > 0
         self.has_globus_compute_gen = len(gen_specs.get("globus_compute_endpoint", "")) > 0
@@ -46,6 +48,8 @@ class Runners:
         """Creates functions to run a sim or gen. These functions are either
         called directly by the worker or submitted to a Globus Compute endpoint."""
 
+        run_finalize = []
+
         def run_sim(calc_in, Work):
             """Determines how to run sim."""
             if self.has_globus_compute_sim:
@@ -66,10 +70,18 @@ class Runners:
 
                 return result(calc_in, Work["persis_info"], self.gen_specs, Work["libE_info"], self.gen_f, Work["tag"])
 
+            if self.final_f is not None:
+
+                def run_finalize(calc_in, Work):
+                    result = self._normal_result
+                    return result(
+                        calc_in, Work["persis_info"], self.gen_specs, Work["libE_info"], self.final_f, Work["tag"]
+                    )
+
         else:
             run_gen = []
 
-        return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen}
+        return {EVAL_SIM_TAG: run_sim, EVAL_GEN_TAG: run_gen, EVAL_FINAL_GEN_TAG: run_finalize}
 
     def shutdown(self) -> None:
         if self.has_globus_compute_sim:

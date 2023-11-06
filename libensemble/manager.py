@@ -390,9 +390,10 @@ class Manager:
         else:
             self._send_work_to_worker(Work, w)
 
-    # TODO: look at naming of functions
+    # SH TODO look at naming of functions
+    # SH TODO on final send - has all persis_info here - not just persis_info[0] - check
     def _set_manager_work_order(self, Work: dict, w: int, persis_info: dict) -> None:
-        logger.debug(f"Manager running generator")
+        logger.debug("Manager running generator")
 
         if self.resources:
             self._set_resources(Work, w)
@@ -401,7 +402,7 @@ class Manager:
 
         # TODO functionalize common lines - but for logger.debug message (but that could be templated and sent)
         work_rows = Work["libE_info"]["H_rows"]
-        work_name = calc_type_strings[Work["tag"]]
+        # work_name = calc_type_strings[Work["tag"]]
         # logger.debug(f"Manager sending {work_name} work to worker {w}. Rows {extract_H_ranges(Work) or None}")
         if len(work_rows):
             new_dtype = [(name, self.hist.H.dtype.fields[name][0]) for name in Work["H_fields"]]
@@ -497,8 +498,9 @@ class Manager:
 
     def _update_state_after_local_gen(self, persis_info: dict, D_recv: dict, w: int) -> None:
         # TODO - note w should be zero here always - could just set to 0 or default in function and not send
-        self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.manager_gen_start_time)
-        assert len(D_recv["calc_out"]) or np.any(
+        if isinstance(D_recv.get("calc_out", None), np.ndarray):
+            self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.manager_gen_start_time)
+        assert D_recv['libE_info'].get('finalize') or len(D_recv["calc_out"]) or np.any(
             self.W["active"]
         ), "Gen must return work when is is the only thing active."
         self._freeup_resources(w)
@@ -602,6 +604,22 @@ class Manager:
         nonblocking receive is posted (though the manager will not receive this
         data) and a kill signal is sent.
         """
+
+        # SH TODO consolidate with final_gen_send below
+        # SH TODO should it also support final send to a non-persistent gen (if not a class)
+        if self.gen_on_manager:
+            rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
+            print(f"Manager final gen call: {rows_to_send=}")
+            # TODO use something like "finalize" as below - or use a diff tag - EVAL_FINAL_GEN_TAG
+            work = {
+                "H_fields": self.gen_specs["in"],
+                "persis_info": persis_info[0],
+                "tag": EVAL_GEN_TAG,
+                "libE_info": {"H_rows": rows_to_send, "finalize": True},
+            }
+            self._check_work_order(work, 0, force=True)
+            self._send_work_order(work, 0, persis_info)
+            self.hist.update_history_to_gen(rows_to_send)
 
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
@@ -714,7 +732,6 @@ class Manager:
                 Work, persis_info, flag = self._alloc_work(self.hist.trim_H(), persis_info)
                 if flag:
                     break
-
                 for w in Work:
                     if self._sim_max_given():
                         break
