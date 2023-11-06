@@ -91,7 +91,7 @@ The default is ``mpi``.
 
         Run the Manager on one system and launch workers to remote
         systems or nodes over TCP. Configure through
-        :class:`libE_specs<libensemble.specs.LibeSpecs>`, or on the command line
+        :class:`libE_specs<libensemble.specsV2.LibeSpecs>`, or on the command line
         if using an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with
         ``Ensemble(parse_args=True)``,
 

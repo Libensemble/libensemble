@@ -34,9 +34,9 @@ In slightly more detail, the resource manager divides resources into **resource 
 One resource set is the smallest unit of resources that can be assigned (and
 dynamically reassigned) to workers. By default, the provisioned resources are
 divided by the number of workers (excluding any workers given in the
-``zero_resource_workers`` :class:`libE_specs<libensemble.specs.LibeSpecs>` option).
+``zero_resource_workers`` :class:`libE_specs<libensemble.specsV2.LibeSpecs>` option).
 However, it can also be set directly by the ``num_resource_sets``
-:class:`libE_specs<libensemble.specs.LibeSpecs>` option. If the latter is set, the
+:class:`libE_specs<libensemble.specsV2.LibeSpecs>` option. If the latter is set, the
 dynamic resource assignment algorithm will always be used.
 
 If there are more resource sets than nodes, then the resource sets on each node
@@ -150,7 +150,7 @@ while worker five would set::
 
 .. note::
     If the user sets the number of resource sets directly using the ``num_resource_sets``
-    :class:`libE_specs<libensemble.specs.LibeSpecs>` option, then the dynamic resource
+    :class:`libE_specs<libensemble.specsV2.LibeSpecs>` option, then the dynamic resource
     assignment algorithm will always be used. If ``resource_sets`` is not a field in ``H``,
     then each worker will use one resource set.
 

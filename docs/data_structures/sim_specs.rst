@@ -28,7 +28,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
         )
         ...
 
-    .. autopydantic_model:: libensemble.specs.SimSpecs
+    .. autopydantic_model:: libensemble.specsV2.SimSpecs
       :model-show-json: False
       :model-show-config-member: False
       :model-show-config-summary: False
@@ -54,7 +54,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
         }
         ...
 
-    - test_uniform_sampling.py_ has a :class:`sim_specs<libensemble.specs.SimSpecs>`  that declares
+    - test_uniform_sampling.py_ has a :class:`sim_specs<libensemble.specsV2.SimSpecs>`  that declares
       the name of the ``"in"`` field variable, ``"x"`` (as specified by the
       corresponding generator ``"out"`` field ``"x"`` from the :ref:`gen_specs
       example<gen-specs-example1>`).  Only the field name is required in
@@ -64,7 +64,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
         :start-at: sim_specs
         :end-before: end_sim_specs_rst_tag
 
-    - run_libe_forces.py_ has a longer :class:`sim_specs<libensemble.specs.SimSpecs>` declaration with a number of
+    - run_libe_forces.py_ has a longer :class:`sim_specs<libensemble.specsV2.SimSpecs>` declaration with a number of
       user-specific fields. These are given to the corresponding sim_f, which
       can be found at forces_simf.py_.
 
