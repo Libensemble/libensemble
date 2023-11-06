@@ -1,7 +1,6 @@
 name: libEnsemble-complete-CI
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
