@@ -222,7 +222,7 @@ class QCommThread(Comm):
 
     def terminate(self, timeout=None):
         """Terminate the thread.
-        
+
         A thread can't really be killed from the outside. Ideally the `main`
         function would make periodic checks to some variable that determines
         whether the function should continue. This is not implemented, so
