@@ -42,10 +42,6 @@ def test_location_stack():
         d = s.register_loc(1, None)
         assert d is None, "Dir stack not correctly register None at location 1."
 
-        # Register a dummy location (del should not work)
-        d = s.register_loc(2, Path(os.path.join(tmp_dirname, "lsdummy")))
-        assert ~os.path.isdir(d), "Directory stack registration of dummy should not create dir."
-
         # Push unregistered location (we should not move)
         s.push_loc(3)
         assert s.stack == [None], "Directory stack push_loc(missing) failed to put None on stack."

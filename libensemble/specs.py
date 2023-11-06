@@ -237,6 +237,18 @@ class LibeSpecs(BaseModel):
     save_H_and_persis_on_abort: Optional[bool] = True
     """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
 
+    save_H_on_completion: Optional[bool] = False
+    """
+    Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
+    or ``save_every_k_gens`` is set.
+    """
+
+    save_H_with_date: Optional[bool] = False
+    """ ``H`` filename contains date and timestamp."""
+
+    H_file_prefix: Optional[str] = "libE_history"
+    """ Prefix for ``H`` filename."""
+
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
 
@@ -525,6 +537,14 @@ class LibeSpecs(BaseModel):
     @model_validator(mode="after")
     def check_any_workers_and_disable_rm_if_tcp(self):
         return _check_any_workers_and_disable_rm_if_tcp(self)
+
+    @model_validator(mode="after")
+    def enable_save_H_when_every_K(self):
+        if "save_H_on_completion" not in self.__dict__ and (
+            self.__dict__.get("save_every_k_sims", 0) > 0 or self.__dict__.get("save_every_k_gens", 0) > 0
+        ):
+            self.__dict__["save_H_on_completion"] = True
+            return self
 
     @model_validator(mode="after")
     def set_workflow_dir(self):

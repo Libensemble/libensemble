@@ -374,7 +374,7 @@ echo -e "Selected:"
 COV_LINE_SERIAL=''
 COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
-   COV_LINE_SERIAL='--cov --cov-report html:cov_unit'
+   COV_LINE_SERIAL='--cov --cov-report xml:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
    COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
 
@@ -622,7 +622,7 @@ if [ "$root_found" = true ]; then
 
       if [ "$RUN_COV_TESTS" = true ]; then
 
-        # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
+        # Merge MPI coverage data for all ranks from regression tests and create xml report in sub-dir
 
         for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
         do
@@ -630,8 +630,8 @@ if [ "$root_found" = true ]; then
 
           # Must combine all if in sep sub-dirs will copy to dir above
           coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
-          coverage html
-          echo -e "..Coverage HTML written to dir $DIR/cov_reg/"
+          coverage xml
+          echo -e "..Coverage xml written to dir $DIR/cov_reg/"
 
         done
         cd $ROOT_DIR
@@ -648,8 +648,8 @@ if [ "$root_found" = true ]; then
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
           coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
-          coverage html #Should create cov_merge/ dir
-          echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+          coverage xml #Should create cov_merge/ dir
+          echo -e "..Combined Unit Test/Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
 
         else
 
@@ -659,8 +659,8 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
           coverage combine .cov_reg_out .cov_reg_out2
-          coverage html
-          echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+          coverage xml
+          echo -e "..Combined Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
       fi;
     fi;
