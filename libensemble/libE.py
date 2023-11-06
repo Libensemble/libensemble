@@ -118,6 +118,7 @@ from pathlib import Path
 from typing import Callable, Dict
 
 import numpy as np
+import pydantic
 
 from libensemble.comms.comms import QCommProcess, Timeout
 from libensemble.comms.logs import manager_logging_config
@@ -228,12 +229,18 @@ def libE(
         exit_criteria=exit_criteria,
     )
 
-    # get corresponding dictionaries back (casted in libE() def)
-    sim_specs = ensemble.sim_specs.model_dump(by_alias=True)
-    gen_specs = ensemble.gen_specs.model_dump(by_alias=True)
-    exit_criteria = ensemble.exit_criteria.model_dump(by_alias=True, exclude_none=True)
-    alloc_specs = ensemble.alloc_specs.model_dump(by_alias=True)
-    libE_specs = ensemble.libE_specs.model_dump(by_alias=True)
+    if pydantic.__version__[0] == "1":
+        sim_specs = ensemble.sim_specs.dict(by_alias=True)
+        gen_specs = ensemble.gen_specs.dict(by_alias=True)
+        exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
+        alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
+        libE_specs = ensemble.libE_specs.dict(by_alias=True)
+    elif pydantic.__version__[0] == "2":
+        sim_specs = ensemble.sim_specs.model_dump(by_alias=True)
+        gen_specs = ensemble.gen_specs.model_dump(by_alias=True)
+        exit_criteria = ensemble.exit_criteria.model_dump(by_alias=True, exclude_none=True)
+        alloc_specs = ensemble.alloc_specs.model_dump(by_alias=True)
+        libE_specs = ensemble.libE_specs.model_dump(by_alias=True)
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

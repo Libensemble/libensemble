@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 import numpy.typing as npt
+import pydantic
 import tomli
 import yaml
 
@@ -322,7 +323,10 @@ class Ensemble:
 
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):
-            new_specs = new_specs.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
+            if pydantic.__version__[0] == "2":
+                new_specs = new_specs.model_dump(by_alias=True, exclude_none=True, exclude_unset=True)
+            elif pydantic.__version__[0] == "1":
+                new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:

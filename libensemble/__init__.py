@@ -14,8 +14,8 @@ import pydantic
 from libensemble import logger
 
 if pydantic.__version__[0] == "1":
-    import libensemble.specsV1 as specs
+    from .specs import specsV1 as specs
 elif pydantic.__version__[0] == "2":
-    import libensemble.specsV2 as specs
+    from .specs import specsV2 as specs
 
 from .ensemble import Ensemble

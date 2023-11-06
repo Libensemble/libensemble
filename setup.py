@@ -66,7 +66,7 @@ setup(
         "libensemble.tools",
         "libensemble.executors",
         "libensemble.resources",
-        "libensemble.tests.unit_tests",
+        "libensemble.specs" "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
     install_requires=["numpy>=1.21", "psutil>=5.9.4", "pydantic>=2.4.2", "tomli>=1.2.1", "pyyaml>=6.0"],
