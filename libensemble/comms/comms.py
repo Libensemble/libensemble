@@ -221,8 +221,17 @@ class QCommThread(Comm):
         return self._result
 
     def terminate(self, timeout=None):
-        """Terminate the thread."""
-        raise Timeout()
+        """Terminate the thread.
+        
+        A thread can't really be killed from the outside. Ideally the `main`
+        function would make periodic checks to some variable that determines
+        whether the function should continue. This is not implemented, so
+        it is currently no possible to terminate the thread when calling
+        this method.
+        """
+        self.thread.join(timeout=timeout)
+        if self.running:
+            raise Timeout()
 
     @property
     def running(self):
