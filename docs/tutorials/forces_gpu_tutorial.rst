@@ -15,10 +15,7 @@ In the first example, each worker will be using one GPU. The code will assign th
 GPUs available to each worker, using the appropriate method. This works on systems
 using **Nvidia**, **AMD**, and **Intel** GPUs without modifying the scripts.
 
-Videos demonstrate running this example on Perlmutter_, Spock_, and Polaris_.
-*The first two videos are from an earlier release - you no longer need to change
-particle count or modify the `forces.c` file).*. Also, on Polaris, it is no
-longer necessary to change the MPI runner.
+A video demonstrates running this example on Frontier_.
 
 Simulation function
 -------------------
@@ -310,7 +307,6 @@ where ``SLURM_EXACT`` is set to help prevent resource conflicts on each node.
 .. _forces_gpu: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu
 .. _forces_gpu_var_resources: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu_var_resources/run_libe_forces.py
 .. _forces_multi_app: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_multi_app/run_libe_forces.py
+.. _Frontier: https://youtu.be/H2fmbZ6DnVc
 .. _Perlmutter: https://www.youtube.com/watch?v=Av8ctYph7-Y
 .. _Polaris: https://youtu.be/Ff0dYYLQzoU
-.. _run_libe_forces.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/scaling_tests/forces/forces_gpu/run_libe_forces.py
-.. _Spock: https://www.youtube.com/watch?v=XHXcslDORjU
