@@ -21,7 +21,6 @@
 
 .. image:: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0/status.svg
    :target: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0
-   :alt: JOSS Status
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
