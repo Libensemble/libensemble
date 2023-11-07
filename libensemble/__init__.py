@@ -9,13 +9,12 @@ from .version import __version__
 __author__ = "Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and John-Luke Navarro"
 __credits__ = "Argonne National Laboratory"
 
-import pydantic
-
 from libensemble import logger
+from libensemble.utils.pydantic_support import pydanticV1, pydanticV2
 
-if pydantic.__version__[0] == "1":
+if pydanticV1:
     from .specs import specsV1 as specs
-elif pydantic.__version__[0] == "2":
+elif pydanticV2:
     from .specs import specsV2 as specs
 
 from .ensemble import Ensemble

@@ -118,9 +118,8 @@ from pathlib import Path
 from typing import Callable, Dict
 
 import numpy as np
-import pydantic
 
-from libensemble.comms.comms import QCommProcess, Timeout, QCommThread
+from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
@@ -133,6 +132,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
+from libensemble.utils.pydantic_support import specs_dump
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
@@ -229,18 +229,11 @@ def libE(
         exit_criteria=exit_criteria,
     )
 
-    if pydantic.__version__[0] == "1":
-        sim_specs = ensemble.sim_specs.dict(by_alias=True)
-        gen_specs = ensemble.gen_specs.dict(by_alias=True)
-        exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
-        alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
-        libE_specs = ensemble.libE_specs.dict(by_alias=True)
-    elif pydantic.__version__[0] == "2":
-        sim_specs = ensemble.sim_specs.model_dump(by_alias=True)
-        gen_specs = ensemble.gen_specs.model_dump(by_alias=True)
-        exit_criteria = ensemble.exit_criteria.model_dump(by_alias=True, exclude_none=True)
-        alloc_specs = ensemble.alloc_specs.model_dump(by_alias=True)
-        libE_specs = ensemble.libE_specs.model_dump(by_alias=True)
+    (sim_specs, gen_specs, alloc_specs, libE_specs) = [
+        specs_dump(spec, by_alias=True)
+        for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
+    ]
+    exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)

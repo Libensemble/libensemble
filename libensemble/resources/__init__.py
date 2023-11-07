@@ -1,6 +1,6 @@
-import pydantic
+from libensemble.utils.pydantic_support import pydanticV1, pydanticV2
 
-if pydantic.__version__[0] == "1":
+if pydanticV1:
     from .platforms import platformsV1 as platforms  # noqa: F401
-elif pydantic.__version__[0] == "2":
+elif pydanticV2:
     from .platforms import platformsV2 as platforms  # noqa: F401
