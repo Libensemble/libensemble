@@ -1,8 +1,7 @@
 name: libEnsemble-complete-CI
 
 on:
-  schedule:
-    - cron: '0 12 * * 1'
+  workflow_dispatch:
 
 jobs:
     test-libE:
@@ -12,15 +11,15 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: [3.9, "3.10", "3.11"]
+                python-version: [3.9, "3.10", "3.11", "3.12"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: 3.9
+                      python-version: 3.11
                       mpi-version: "mpich=4.0.3"
                       comms-type: m
                     - os: macos-latest
-                      python-version: 3.9
+                      python-version: 3.11
                       mpi-version: "mpich=4.0.3"
                       comms-type: l
                     - os: ubuntu-latest
@@ -217,4 +216,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.16.22
+        - uses: crate-ci/typos@v1.16.23

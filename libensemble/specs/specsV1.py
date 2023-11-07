@@ -206,7 +206,7 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'`` """
+    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'local_threading'``, or ``'tcp'`` """
 
     nworkers: Optional[int]
     """ Number of worker processes in ``"local"`` or ``"tcp"``."""
@@ -500,7 +500,7 @@ class LibeSpecs(BaseModel):
 
     @validator("comms")
     def check_valid_comms_type(cls, value):
-        assert value in ["mpi", "local", "tcp"], "Invalid comms type"
+        assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
         return value
 
     @validator("platform_specs")
