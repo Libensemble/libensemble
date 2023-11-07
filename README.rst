@@ -33,6 +33,9 @@
    :target: https://github.com/psf/black
    :alt: Code style: black
 
+.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
+   :target: https://github.com/Libensemble/libensemble/actions
+
 |
 
 .. after_badges_rst_tag
