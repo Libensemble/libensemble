@@ -13,14 +13,14 @@
 .. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
    :target: https://packages.spack.io/package.html?name=py-libensemble
 
+.. image:: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0/status.svg
+   :target: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0
+   :alt: JOSS Status
 
 |
 
 .. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/Libensemble/libensemble/actions
-
-.. image:: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0/status.svg
-   :target: https://joss.theoj.org/papers/8d3b1a704c83affe55284dd00857bdb0
 
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
