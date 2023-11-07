@@ -22,6 +22,9 @@
 .. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/Libensemble/libensemble/actions
 
+.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
+   :target: https://github.com/Libensemble/libensemble/actions
+
 .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
    :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
 
@@ -32,9 +35,6 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code style: black
-
-.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
-   :target: https://github.com/Libensemble/libensemble/actions
 
 |
 
