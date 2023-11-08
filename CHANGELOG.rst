@@ -8,6 +8,30 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _github releases page: https://github.com/Libensemble/libensemble/releases
 
+:Date: November 8, 2023
+
+New capabilities:
+
+* New history array save options in libE_specs. #1103/#1139/#1141
+  * `save_H_on_completion` saves history before exiting main libE function.
+  * `save_H_with_date` Include date and timestamp in the save.
+  * `H_file_prefix` Provide prefix for saved file.
+  * `save_H_on_completion` defaults to True when `save_every_k_gens/sims` is set.
+
+Support for Python versions:
+
+* Support/testing for Python 3.12
+* Remove testing of Python 3.8
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows. Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tested Python versions: (Cpython) 3.9, 3.10, 3.11, 3.12.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.0.0
 --------------
 
