@@ -111,7 +111,7 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
 
         - name: Build ytopt and dependencies
-          if: (matrix.python-version != '3.12' || matrix.python-version != '3.11') && matrix.os != 'macos-latest'
+          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
           run: |
             pip install scikit-learn==1.1.2
             pip install pandas==1.5.3
@@ -188,7 +188,7 @@ jobs:
             flake8 libensemble
 
         - name: Remove various tests on newer pythons
-          if: matrix.python-version == '3.11' || matrix.python-version == '3.12'
+          if: matrix.python-version >= '3.11'
           run: |
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
