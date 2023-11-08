@@ -133,7 +133,6 @@ jobs:
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true' && matrix.python-version != '3.12'
           run: |
-            conda install octave
             sudo apt-get install bc
 
             # begin heffte build and dependencies
@@ -152,7 +151,6 @@ jobs:
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
-            pip install scikit-build packaging Tasmanian --user
 
         - name: Copy heffte exe on cache-hit
           if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false' && matrix.python-version != '3.12'
@@ -162,6 +160,8 @@ jobs:
 
         - name: Install other testing dependencies
           run: |
+            conda install octave
+            pip install scikit-build packaging Tasmanian --user
             conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
