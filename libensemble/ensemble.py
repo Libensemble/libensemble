@@ -329,10 +329,17 @@ class Ensemble:
             new_specs.pop("comms")
 
         # Now finally set attribute if we don't have a libE_specs, otherwise update the internal
+        # But be careful that our new libE_specs is a class
         if not self._libE_specs:
-            self._libE_specs = new_specs
+            if isinstance(new_specs, dict):
+                self._libE_specs = LibeSpecs(**new_specs)
+            else:
+                self._libE_specs = new_specs
         else:
             self._libE_specs.__dict__.update(**new_specs)
+
+        if not self.nworkers and self._libE_specs.nworkers:
+            self.nworkers = self._libE_specs.nworkers
 
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
