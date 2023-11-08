@@ -25,8 +25,9 @@ Support for Python versions:
 
 :Note:
 
-* Tested platforms include Linux, MacOS, Windows. Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
-* Tested Python versions: (Cpython) 3.9, 3.10, 3.11, 3.12.
+* Tests were run on Linux and MacOS with python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
 
 :Known Issues:
 
