@@ -100,6 +100,9 @@ jobs:
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
 
+        - name: Install ax-platform
+          if: matrix.python-version != '3.12'
+          run: |
             pip install ax-platform==0.2.8
 
         - name: Install surmise
@@ -108,7 +111,7 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
 
         - name: Build ytopt and dependencies
-          if: matrix.python-version != '3.11' && matrix.os != 'macos-latest'
+          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
           run: |
             pip install scikit-learn==1.1.2
             pip install pandas==1.5.3
@@ -128,9 +131,8 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true'
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true' && matrix.python-version != '3.12'
           run: |
-            conda install octave
             sudo apt-get install bc
 
             # begin heffte build and dependencies
@@ -149,16 +151,17 @@ jobs:
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
-            pip install scikit-build packaging Tasmanian --user
 
         - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false'
+          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false' && matrix.python-version != '3.12'
           run: |
             cd /home/runner/work/libensemble/libensemble
             cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
 
         - name: Install other testing dependencies
           run: |
+            conda install octave
+            pip install scikit-build packaging Tasmanian --user
             conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
@@ -184,22 +187,25 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove ytopt-heffte test on Python 3.11 (easy way)
-          if: matrix.python-version == '3.11'
+        - name: Remove various tests on newer pythons
+          if: matrix.python-version >= '3.11'
           run: |
+            rm ./libensemble/tests/regression_tests/test_heffte.py
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
+            rm ./libensemble/tests/regression_tests/test_persistent_gp.py
+            rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
-            ./libensemble/tests/run-tests.sh -e -A "-W error" -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |

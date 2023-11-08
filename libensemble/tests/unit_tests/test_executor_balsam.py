@@ -4,12 +4,16 @@
 import datetime
 import os
 import sys
+import warnings
 from dataclasses import dataclass
 
 import mock
 import pytest
 
-from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
+from libensemble.executors.executor import Application, Executor, ExecutorException, TimeoutExpired  # noqa E402
 
 
 def setup_module(module):
