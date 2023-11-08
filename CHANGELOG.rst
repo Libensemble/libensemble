@@ -6,7 +6,7 @@ Below are the notes from all libEnsemble releases.
 
 GitHub issues are referenced, and can be viewed with hyperlinks on the `github releases page`_.
 
-.. _github releases page: https://github.com/Libensemble/libensemble/releases
+.. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
 :Date: November 8, 2023
 
@@ -14,18 +14,18 @@ New capabilities:
 
 * New history array save options in libE_specs. #1103/#1139/#1141
   * `save_H_on_completion` saves history before exiting main libE function.
-  * `save_H_with_date` Include date and timestamp in the save.
-  * `H_file_prefix` Provide prefix for saved file.
+  * `save_H_with_date` includes date and timestamp in the save.
+  * `H_file_prefix` provides prefix for saved file.
   * `save_H_on_completion` defaults to True when `save_every_k_gens/sims` is set.
 
 Support for Python versions:
 
-* Support/testing for Python 3.12
-* Remove testing of Python 3.8
+* Adds support/testing for Python 3.12
+* Removes testing of Python 3.8
 
 :Note:
 
-* Tests were run on Linux and MacOS with python versions 3.9, 3.10, 3.11, 3.12
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
 * Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
 * Tests were also run on Bebop and Improv LCRC systems.
 
