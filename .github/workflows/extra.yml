@@ -190,6 +190,7 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
+            rm ./libensemble/tests/regression_tests/test_heffte.py
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
