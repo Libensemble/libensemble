@@ -100,6 +100,9 @@ jobs:
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
 
+        - name: Install ax-platform
+          if: matrix.python-version != '3.12'
+          run: |
             pip install ax-platform==0.2.8
 
         - name: Install surmise
@@ -188,6 +191,11 @@ jobs:
           if: matrix.python-version == '3.11'
           run: |
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
+
+        - name: Remove gp_multitask_ax test on Python 3.12
+          if: matrix.python-version == '3.12'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
