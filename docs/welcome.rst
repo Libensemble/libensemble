@@ -14,7 +14,7 @@
 
   |
 
-  .. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
+  .. image:: https://github.com/Libensemble/libensemble/actions/workflows/basic.yml/badge.svg
     :target: https://github.com/Libensemble/libensemble/actions
 
   .. image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
