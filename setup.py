@@ -84,7 +84,7 @@ setup(
     extras_require={
         "docs": [
             "autodoc_pydantic",
-            "sphinx<7",
+            "sphinx<8",
             "sphinx_design",
             "sphinx_rtd_theme",
             "sphinxcontrib-bibtex",
@@ -105,10 +105,10 @@ setup(
         "Operating System :: Unix",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development :: Libraries :: Python Modules",

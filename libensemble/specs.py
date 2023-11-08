@@ -206,7 +206,7 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, or ``'tcp'`` """
+    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'local_threading'``, or ``'tcp'`` """
 
     nworkers: Optional[int]
     """ Number of worker processes in ``"local"`` or ``"tcp"``."""
@@ -231,6 +231,18 @@ class LibeSpecs(BaseModel):
 
     save_H_and_persis_on_abort: Optional[bool] = True
     """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
+
+    save_H_on_completion: Optional[bool] = False
+    """
+    Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
+    or ``save_every_k_gens`` is set.
+    """
+
+    save_H_with_date: Optional[bool] = False
+    """ ``H`` filename contains date and timestamp."""
+
+    H_file_prefix: Optional[str] = "libE_history"
+    """ Prefix for ``H`` filename."""
 
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
@@ -488,7 +500,7 @@ class LibeSpecs(BaseModel):
 
     @validator("comms")
     def check_valid_comms_type(cls, value):
-        assert value in ["mpi", "local", "tcp"], "Invalid comms type"
+        assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
         return value
 
     @validator("platform_specs")
@@ -516,6 +528,14 @@ class LibeSpecs(BaseModel):
     @root_validator
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
+
+    @root_validator(pre=True)
+    def enable_save_H_when_every_K(cls, values):
+        if "save_H_on_completion" not in values and (
+            values.get("save_every_k_sims", 0) > 0 or values.get("save_every_k_gens", 0) > 0
+        ):
+            values["save_H_on_completion"] = True
+        return values
 
     @root_validator
     def set_workflow_dir(cls, values):
