@@ -686,6 +686,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
     ), "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
 
     if "sample_points" in user_specs:
+        assert user_specs["sample_points"].ndim == 2, "Must have 2 dimensions for sample points"
         assert isinstance(user_specs["sample_points"], np.ndarray)
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H

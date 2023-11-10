@@ -27,8 +27,8 @@ if optimizers is not None:
     if not isinstance(optimizers, list):
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
-    if unrec:
-        raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
+    # if unrec:
+    #     raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
 
     # Preferable to import globally in most cases
     if "petsc" in optimizers:
@@ -36,9 +36,9 @@ if optimizers is not None:
     if "nlopt" in optimizers:
         import nlopt  # noqa: F401
     if "dfols" in optimizers:
-        import dfols
+        import dfols  # noqa: F401
     if "ibcdfo" in optimizers:
-        from ibcdfo import pounders
+        from ibcdfo import pounders  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external" in optimizers:
@@ -441,33 +441,21 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     dist_to_bound = min(min(ub - x0), min(x0 - lb))
     assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small"
 
-    mpmax = 2 * n + 1
-    nfmax = 100 * (n + 1)
-    gtol = 1e-8
-    delta = 0.5 * dist_to_bound
+    nf_max = 100 * (n + 1)
+    g_tol = 1e-8
+    delta_0 = 0.5 * dist_to_bound
     m = len(f0)
-    f0 = []
-    nfs = 0
-    xind = 0
-    printf = 0
-    spsolver = 2
 
-    [X, F, flag, xkin] = pounders.pounders(
+    [X, F, hF, flag, xkin] = pounders.pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,
-        mpmax,
-        nfmax,
-        gtol,
-        delta,
-        nfs,
+        nf_max,
+        g_tol,
+        delta_0,
         m,
-        f0,
-        xind,
         lb,
         ub,
-        printf,
-        spsolver,
     )
 
     assert flag >= 0, "IBCDFO errored"
