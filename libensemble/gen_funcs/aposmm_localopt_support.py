@@ -20,6 +20,11 @@ import psutil
 import libensemble.gen_funcs
 from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to simulate receiving from manager
 
+
+class APOSMMException(Exception):
+    """Raised for any exception in APOSMM"""
+
+
 optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "ibcdfo", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
@@ -27,8 +32,8 @@ if optimizers is not None:
     if not isinstance(optimizers, list):
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
-    # if unrec:
-    #     raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
+    if unrec:
+        raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
 
     # Preferable to import globally in most cases
     if "petsc" in optimizers:
@@ -43,10 +48,6 @@ if optimizers is not None:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external" in optimizers:
         pass
-
-
-class APOSMMException(Exception):
-    """Raised for any exception in APOSMM"""
 
 
 class ConvergedMsg(object):
