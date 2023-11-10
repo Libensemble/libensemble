@@ -31,10 +31,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     num_active_gens: int, optional
         Maximum number of persistent generators to start. Default: 1
 
-    async_return: boolean, optional
+    async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
-    active_recv_gen: boolean, optional
+    active_recv_gen: Boolean, optional
         Create gen in active receive mode. If True, the manager does not need to wait
         for a return from the generator before sending further returned points.
         Default: False
@@ -159,10 +159,10 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
     num_active_gens: int, optional
         Maximum number of persistent generators to start. Default: 1
 
-    async_return: boolean, optional
+    async_return: Boolean, optional
         Return results to gen as they come in (after sample). Default: False (batch return).
 
-    active_recv_gen: boolean, optional
+    active_recv_gen: Boolean, optional
         Create gen in active receive mode. If True, the manager does not need to wait
         for a return from the generator before sending further returned points.
         Default: False

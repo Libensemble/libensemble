@@ -1,13 +1,12 @@
 import numpy as np
 
-# To retrieve our MPI Executor instance
-from libensemble.executors.executor import Executor
-
 # Optional status codes to display in libE_stats.txt for each gen or sim
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def run_forces(H, persis_info, sim_specs, libE_info):
+    """Runs the forces MPI application"""
+
     calc_status = 0
 
     # Parse out num particles, from generator function
@@ -16,19 +15,17 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # app arguments: num particles, timesteps, also using num particles as seed
     args = particles + " " + str(10) + " " + particles
 
-    # Retrieve our MPI Executor instance
-    exctr = Executor.executor
+    # Retrieve our MPI Executor
+    exctr = libE_info["executor"]
 
-    # Submit our forces app for execution. Block until the task starts.
+    # Submit our forces app for execution.
     task = exctr.submit(app_name="forces", app_args=args)
 
     # Block until the task finishes
     task.wait()
 
-    # Stat file to check for bad runs
-    statfile = "forces.stat"
-
     # Try loading final energy reading, set the sim's status
+    statfile = "forces.stat"
     try:
         data = np.loadtxt(statfile)
         final_energy = data[-1]
@@ -37,9 +34,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
         final_energy = np.nan
         calc_status = TASK_FAILED
 
-    # Define our output array,  populate with energy reading
-    outspecs = sim_specs["out"]
-    output = np.zeros(1, dtype=outspecs)
+    # Define our output array, populate with energy reading
+    output = np.zeros(1, dtype=sim_specs["out"])
     output["energy"] = final_energy
 
     # Return final information to worker, for reporting to manager

@@ -1,6 +1,6 @@
-===========================================================
-Borehole Calibration with Selective Simulation Cancellation
-===========================================================
+========================================
+Calibration with Simulation Cancellation
+========================================
 
 Introduction - Calibration with libEnsemble and a Regression Model
 ------------------------------------------------------------------
@@ -8,11 +8,11 @@ Introduction - Calibration with libEnsemble and a Regression Model
 This tutorial demonstrates libEnsemble's capability to selectively cancel pending
 simulations based on instructions from a calibration Generator Function.
 This capability is desirable, especially when evaluations are expensive, since
-compute resources may then be more effectively applied towards critical evaluations.
+compute resources may then be more effectively applied toward critical evaluations.
 
 For a somewhat different approach than libEnsemble's :doc:`other tutorials<tutorials>`,
 we'll emphasize the settings, functions, and data fields within the calling script,
-:ref:`persistent generator<persistent-gens>`, Manager, and :ref:`sim_f<api_sim_f>`
+:ref:`persistent generator<persistent-gens>`, manager, and :ref:`sim_f<api_sim_f>`
 that make this capability possible, rather than outlining a step-by-step process.
 
 The libEnsemble regression test ``test_persistent_surmise_calib.py`` demonstrates
@@ -33,7 +33,7 @@ is to find some parameter :math:`\theta_0` such that :math:`f(\theta_0, x)` clos
 resembles data collected from a physical experiment.  For example, a (simple)
 physical experiment may involve dropping a ball at different heights to study the
 gravitational constant, and the corresponding computer model could be the set of
-differential equations that governs the drop. In a case where the computation of
+differential equations that govern the drop. In a case where the computation of
 the computer model is relatively expensive, we employ a fast surrogate model to
 approximate the model and to inform good parameters to test next.  Here the computer
 model :math:`f(\theta, x)` is accessible only through performing :ref:`sim_f<api_sim_f>`
@@ -139,13 +139,15 @@ be processed. The manager will send kill signals to workers that are already pro
 cancelled points. These signals can be caught and acted on by the user ``sim_f``; otherwise
 they will be ignored.
 
-Allocation function
--------------------
+Allocation Function and Cancellation Configuration
+--------------------------------------------------
 
 The allocation function used in this example is the *only_persistent_gens* function in the
-*start_only_persistent* module. The calling script passes the following specification:
+*start_only_persistent* module. The calling script passes the following specifications:
 
 .. code-block:: python
+
+    libE_specs["kill_canceled_sims"] = True
 
     alloc_specs = {
         "alloc_f": alloc_f,
@@ -171,87 +173,6 @@ running this generator remains in an *active receive* state, until it becomes
 non-persistent. This means both the manager and persistent worker (generator in
 this case) must be prepared for irregular sending/receiving of data.
 
-.. Manager - Cancellation, History Updates, and Allocation
-.. -------------------------------------------------------
-..
-.. Between routines to call the allocation function and distribute allocated work
-.. to each Worker, the Manager selects points from the History array that are:
-..
-..     1) Marked as ``"sim_started"`` by the allocation function
-..     2) Marked with ``"cancel_requested"`` by the generator
-..     3) *Not* been marked as ``"sim_ended"`` by the Manager
-..     4) *Not* been marked with ``"kill_sent"`` by the Manager
-..
-.. If any points match these characteristics, the Workers that are processing these
-.. points are sent ``STOP`` tags and a kill signal. ``"kill_sent"``
-.. is set to ``True`` for each of these points in the Manager's History array. During
-.. the subsequent :ref:`start_only_persistent<start_only_persistent_label>` allocation
-.. function calls, any points in the Manager's History array that have ``"cancel_requested"``
-.. as ``True`` are not allocated::
-..
-..     task_avail = ~H["sim_started"] & ~H["cancel_requested"]
-..
-.. This ``alloc_f`` also can prioritize allocating points that have
-.. higher ``"priority"`` values from the ``gen_f`` values in the local History array::
-..
-..     # Loop through available simulation workers
-..     for i in support.avail_worker_ids(persistent=False):
-..
-..         if np.any(task_avail):
-..             if "priority" in H.dtype.fields:
-..                 priorities = H["priority"][task_avail]
-..                 if alloc_specs["user"].get("give_all_with_same_priority"):
-..                     indexes = (priorities == np.max(priorities))
-..                 else:
-..                     indexes = np.argmax(priorities)
-..             else:
-..                 indexes = 0
-
-.. Simulator - Receiving Kill Signal and Cancelling Tasks
-.. ------------------------------------------------------
-..
-.. Within the Simulation Function, the :doc:`Executor<../executor/overview>`
-.. is used to launch simulations based on points from the generator,
-.. and then enters a routine to loop and check for signals from the Manager::
-..
-..     def subproc_borehole_func(H, subp_opts, libE_info):
-..         sim_id = libE_info["H_rows"][0]
-..         H_o = np.zeros(H.shape[0], dtype=sim_specs["out"])
-..         ...
-..         exctr = Executor.executor
-..         task = exctr.submit(app_name="borehole", app_args=args, stdout="out.txt", stderr="err.txt")
-..         calc_status = polling_loop(exctr, task, sim_id)
-..
-.. where ``polling_loop()`` resembles the following::
-..
-..     def polling_loop(exctr, task, sim_id):
-..         calc_status = UNSET_TAG
-..         poll_interval = 0.01
-..
-..         # Poll task for finish and poll manager for kill signals
-..         while(not task.finished):
-..             exctr.manager_poll()
-..             if exctr.manager_signal == MAN_SIGNAL_KILL:
-..                 task.kill()
-..                 calc_status = MAN_SIGNAL_KILL
-..                 break
-..             else:
-..                 task.poll()
-..                 time.sleep(poll_interval)
-..
-..         if task.state == "FAILED":
-..             calc_status = TASK_FAILED
-..
-..         return calc_status
-..
-.. While the launched task isn't finished, the simulator function periodically polls
-.. both the task's statuses and for signals from the manager via
-.. the :ref:`executor.manager_poll()<manager_poll_label>` function.
-.. Immediately after ``exctr.manager_signal`` is confirmed as ``MAN_SIGNAL_KILL``, the current
-.. task is killed and the function returns with the
-.. ``MAN_SIGNAL_KILL`` :doc:`calc_status<../data_structures/calc_status>`.
-.. This status will be logged in ``libE_stats.txt``.
-
 Calling Script - Reading Results
 --------------------------------
 
@@ -259,10 +180,11 @@ Within the libEnsemble calling script, once the main :doc:`libE()<../libe_module
 function call has returned, it's a simple enough process to view the History rows
 that were marked as cancelled::
 
-    H, persis_info, flag = libE(sim_specs, gen_specs,
-                                exit_criteria, persis_info,
-                                alloc_specs=alloc_specs,
-                                libE_specs=libE_specs)
+    if __name__ == "__main__":  # required by multiprocessing on macOS and windows
+        H, persis_info, flag = libE(sim_specs, gen_specs,
+                                    exit_criteria, persis_info,
+                                    alloc_specs=alloc_specs,
+                                    libE_specs=libE_specs)
 
     if is_manager:
         print("Cancelled sims", H["cancel_requested"])
@@ -286,7 +208,7 @@ Using cancellations to kill running simulations
 ------------------------------------------------
 
 If a generated point is cancelled by the generator before it has been given to a worker for evaluation,
-then it will never be given. If it has already returned from simulation, then results can be returned,
+then it will never be given. If it has already returned from the simulation, then results can be returned,
 but the ``cancel_requested`` field remains as True. However, if the simulation is running when the manager
 receives the cancellation request, a kill signal will be sent to the worker. This can be caught and acted upon
 by a user function, otherwise it will be ignored. To demonstrate this, the test ``test_persistent_surmise_killsims.py``

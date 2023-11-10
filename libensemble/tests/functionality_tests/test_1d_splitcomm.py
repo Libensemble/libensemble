@@ -31,6 +31,7 @@ if __name__ == "__main__":
     is_manager = libE_specs["mpi_comm"].Get_rank() == 0
 
     libE_specs["save_every_k_gens"] = 300
+    libE_specs["H_file_prefix"] = "splitcomm_" + str(sub_comm_number)
     libE_specs["safe_mode"] = False
     libE_specs["disable_log_files"] = True
 

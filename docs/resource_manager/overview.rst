@@ -68,7 +68,7 @@ along with the work request (simulation).
 In the calling script, use a ``gen_specs["out"]`` field called ``resource_sets``:
 
 .. code-block:: python
-    :emphasize-lines: 4
+    :emphasize-lines: 6
 
     gen_specs = {
         "gen_f": gen_f,
@@ -102,7 +102,7 @@ When the allocation function assigns the points to workers for evaluation, it
 will check if the requested number of resource sets are available for each point
 to evaluate. If they are not available, then the evaluation will not be given to
 a worker until enough resources become available. This functionality is built
-into the supplied allocation functions, and generally requires no modification
+into the supplied allocation functions and generally requires no modification
 from the user.
 
 .. image:: ../images/variable_resources2.png
@@ -112,7 +112,7 @@ from the user.
 The particular nodes and slots assigned to each worker will be determined by the
 libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide
 an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`.
-In short, the scheduler will preference fitting simulations onto a node, and using
+In short, the scheduler will prefer fitting simulations onto a node, and using
 even splits across nodes, if necessary.
 
 Accessing resources from the simulation function
@@ -133,7 +133,7 @@ For example, in *CUDA_variable_resources*, the environment variable
 ``CUDA_VISIBLE_DEVICES`` is set to slots:
 
 .. code-block:: python
-    :emphasize-lines: 3
+    :emphasize-lines: 2
 
     resources = Resources.resources.worker_resources
     resources.set_env_to_slots("CUDA_VISIBLE_DEVICES")  # Use convenience function.
@@ -169,7 +169,7 @@ and can be set by a dictionary supplied via ``libE_specs["scheduler_opts"]``
  **match_slots** [boolean]:
     When splitting resource sets across multiple nodes, slot IDs must match.
     Useful if setting an environment variable such as ``CUDA_VISIBLE_DEVICES``
-    to specific slots counts, which should match over multiple nodes.
+    to specific slot counts, which should match over multiple nodes.
     Default: True
 
 In the following example, assume the next simulation requires **four** resource
@@ -193,12 +193,19 @@ if ``split2fit`` is *False*, as this could otherwise never be scheduled.
 Varying generator resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For all supporting allocation functions, setting the ``persis_info["gen_resources"]``
-to an integer value will provide resource sets to generators when they are started,
-with the default to provide no resources. This could be set in the calling script
-or inside the allocation function.
+By default, generators are not allocated resources in dynamic mode. Fixed resources
+for the generator can be set using the *libE_specs* options
+``gen_num_procs`` and ``gen_num_gpus``, which take integer values.
+If only ``gen_num_gpus`` is set, then the number of processors will be set to match.
 
-Note that persistent workers maintain their resources until coming out of a
+To vary generator resources, ``persis_info`` settings can be used in allocation
+functions before calling the ``gen_work`` support function. This takes the
+same options (``gen_num_procs`` and ``gen_num_gpus``).
+
+Alternatively, the setting ``persis_info["gen_resources"]`` can also be set to
+a number of resource sets.
+
+Note that persistent workers maintain their resources until they come out of a
 persistent state.
 
 Example scenarios
@@ -207,7 +214,7 @@ Example scenarios
 Persistent generator
 ^^^^^^^^^^^^^^^^^^^^
 
-You have *one* persistent generator and want *eight* workers for running concurrent
+You have *one* persistent generator and want *eight* workers to run concurrent
 simulations. In this case you can run with *nine* workers.
 
 Either explicitly set eight resource sets (recommended):
@@ -216,13 +223,13 @@ Either explicitly set eight resource sets (recommended):
 
     libE_specs["num_resource_sets"] = 8
 
-Or if the generator should always be the same worker, use one zero resource worker:
+Or if the generator should always be the same worker, use one zero-resource worker:
 
 .. code-block:: python
 
     libE_specs["zero_resource_workers"] = [1]
 
-For the second option, an allocation function supporting zero resource workers must be used.
+For the second option, an allocation function supporting zero-resource workers must be used.
 
 Using the two-node example above, the initial worker mapping in this example will be:
 
@@ -271,10 +278,7 @@ Also, this can be set on the command line as a convenience.
 
     python run_ensemble.py --comms local --nworkers 5 --nresource_sets 8
 
-.. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
-
-.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_CUDA_variable_resources.py
-
 .. _persistent_sampling_var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/gen_funcs/persistent_sampling_var_resources.py
-
+.. _test_GPU_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_GPU_variable_resources.py
+.. _test_persistent_sampling_CUDA_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_CUDA_variable_resources.py
 .. _var_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/sim_funcs/var_resources.py

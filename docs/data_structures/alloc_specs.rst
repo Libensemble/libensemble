@@ -5,8 +5,7 @@ Allocation Specs
 
 Allocation function specifications to be set in the user calling script. *Optional*.
 
-Can be constructed and passed to libEnsemble as a Python class or a dictionary. When provided as a Python class,
-all data is validated immediately on instantiation.
+Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
 .. autopydantic_model:: libensemble.specs.AllocSpecs
   :model-show-json: False
@@ -41,5 +40,5 @@ all data is validated immediately on instantiation.
       :start-at: alloc_specs
       :end-before: end_alloc_specs_rst_tag
 
-.. _test_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py
 .. _fast_alloc_and_pausing.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/fast_alloc_and_pausing.py
+.. _test_uniform_sampling_one_residual_at_a_time.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py

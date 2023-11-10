@@ -13,14 +13,10 @@ __all__ = [
 
 import sys
 import time
+
 import numpy as np
 
-from libensemble.message_numbers import (
-    EVAL_SIM_TAG,
-    FINISHED_PERSISTENT_SIM_TAG,
-    PERSIS_STOP,
-    STOP_TAG,
-)
+from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 
@@ -60,10 +56,13 @@ def six_hump_camel_simple(x, _, sim_specs):
 
     H_o = np.zeros(1, dtype=sim_specs["out"])
 
-    H_o["f"] = six_hump_camel_func(x[0][0])
+    H_o["f"] = six_hump_camel_func(x[0][0][:2])  # Ignore more than 2 entries of x
 
-    if "pause_time" in sim_specs["user"]:
+    if sim_specs["user"].get("pause_time"):
         time.sleep(sim_specs["user"]["pause_time"])
+
+    if sim_specs["user"].get("rand"):
+        H_o["f"] += np.random.normal(0, 1)
 
     return H_o
 

@@ -1,24 +1,23 @@
+import sys
+
 import numpy as np
-import pytest
 
 import libensemble.tests.unit_tests.setup as setup
 
 
-@pytest.mark.extra
 def test_ensemble_init():
     """testing init attrs"""
     from libensemble.ensemble import Ensemble
 
-    e = Ensemble(
-        libE_specs={"comms": "local", "nworkers": 4}
-    )  # without specifying, class assumes MPI since pytest runs without --comms local
-    assert "comms" in e.libE_specs, "internal parse_args() didn't populate defaults for class's libE_specs"
+    sys.argv = ["", "--comms", "local", "--nworkers", "4"]
+
+    e = Ensemble(parse_args=True)
+    assert hasattr(e.libE_specs, "comms"), "internal parse_args() didn't populate defaults for class's libE_specs"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
 
 
-@pytest.mark.extra
 def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
     from libensemble.ensemble import Ensemble
@@ -39,13 +38,16 @@ def test_from_files():
         e.gen_specs.user["lb"] = np.zeros(1)
 
         sim_specs["inputs"] = sim_specs["in"]
+        sim_specs["outputs"] = sim_specs["out"]
+        gen_specs["outputs"] = gen_specs["out"]
         sim_specs.pop("in")
+        sim_specs.pop("out")
+        gen_specs.pop("out")
         assert all([i in e.sim_specs.__dict__.items() for i in sim_specs.items()])
         assert all([i in e.gen_specs.__dict__.items() for i in gen_specs.items()])
         assert all([i in e.exit_criteria.__dict__.items() for i in exit_criteria.items()])
 
 
-@pytest.mark.extra
 def test_bad_func_loads():
     """Test that Ensemble() raises expected errors (with warnings) on incorrect imports"""
     from libensemble.ensemble import Ensemble
@@ -65,7 +67,6 @@ def test_bad_func_loads():
         assert flag == 0
 
 
-@pytest.mark.extra
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble

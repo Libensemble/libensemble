@@ -29,7 +29,7 @@ environment (if you need ``conda install``). More details at `Python for Polaris
        python -m venv /path/to-venv --system-site-packages
        . /path/to-venv/bin/activate
 
-   Where ``/path/to-venv`` can be anywhere you have write access. For future sessions,
+   where ``/path/to-venv`` can be anywhere you have write access. For future sessions,
    just load the ``conda`` module and run the activate line.
 
    You can now pip install libEnsemble::
@@ -42,11 +42,14 @@ for installing libEnsemble, including using Spack.
 Ensuring use of mpiexec
 -----------------------
 
-If using the :doc:`MPIExecutor<../executor/mpi_executor>` it is recommended to
-ensure you are using ``mpiexec`` instead of ``aprun``. When setting up the executor use::
+Prior to libE v 0.10.0, when using the :doc:`MPIExecutor<../executor/mpi_executor>` it
+is necessary to manually tell libEnsemble to use``mpiexec`` instead of ``aprun``.
+When setting up the executor use::
 
     from libensemble.executors.mpi_executor import MPIExecutor
     exctr = MPIExecutor(custom_info={'mpi_runner':'mpich', 'runner_name':'mpiexec'})
+
+From version 0.10.0, this is not necessary.
 
 Job Submission
 --------------
@@ -93,9 +96,9 @@ For an example that runs a small ensemble using a C application (offloading work
 GPU), see the :doc:`forces_gpu<../tutorials/forces_gpu_tutorial>` tutorial. A video demonstration_
 of this example is also available.
 
-.. _Polaris: https://www.alcf.anl.gov/polaris
 .. _ALCF: https://www.alcf.anl.gov/
-.. _Python for Polaris: https://www.alcf.anl.gov/support/user-guides/polaris/data-science-workflows/python/index.html
 .. _conda: https://conda.io/en/latest/
-.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _demonstration: https://youtu.be/Ff0dYYLQzoU
+.. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
+.. _Polaris: https://www.alcf.anl.gov/polaris
+.. _Python for Polaris: https://www.alcf.anl.gov/support/user-guides/polaris/data-science-workflows/python/index.html

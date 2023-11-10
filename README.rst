@@ -1,4 +1,4 @@
-.. image:: docs/images/libEnsemble_Logo.svg
+.. image:: https://raw.githubusercontent.com/Libensemble/libensemble/main/docs/images/libE_logo.png
    :align: center
    :alt: libEnsemble
 
@@ -7,11 +7,19 @@
 .. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
 
-.. image:: https://github.com/Libensemble/libensemble/workflows/libEnsemble-CI/badge.svg?branch=main
+.. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+   :target: https://anaconda.org/conda-forge/libensemble
+
+.. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
+   :target: https://packages.spack.io/package.html?name=py-libensemble
+
+|
+
+.. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
    :target: https://github.com/Libensemble/libensemble/actions
 
-.. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
-   :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
+.. image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
+   :target: https://codecov.io/github/Libensemble/libensemble
 
 .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
@@ -51,6 +59,47 @@ Install libEnsemble and its dependencies from PyPI_ using pip::
 
 Other install methods are described in the docs_.
 
+Basic Usage
+===========
+
+Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
+and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
+
+.. code-block:: python
+
+   import numpy as np
+
+   from libensemble import Ensemble
+   from libensemble.gen_funcs.sampling import uniform_random_sample
+   from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+   from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+   from libensemble.tools import add_unique_random_streams
+
+   if __name__ == "__main__":
+       sampling = Ensemble(parse_args=True)
+       sampling.sim_specs = SimSpecs(
+           sim_f=six_hump_camel,
+           inputs=["x"],
+           outputs=[("f", float)],
+       )
+       sampling.gen_specs = GenSpecs(
+           gen_f=uniform_random_sample,
+           outputs=[("x", float, (2,))],
+           user={
+               "gen_batch_size": 500,
+               "lb": np.array([-3, -2]),
+               "ub": np.array([3, 2]),
+           },
+       )
+
+       sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
+       sampling.exit_criteria = ExitCriteria(sim_max=101)
+       sampling.run()
+       sampling.save_output(__file__)
+
+       if sampling.is_manager:
+           print("Some output data:\n", sampling.H[["x", "f"]][:10])
+
 Resources
 =========
 
@@ -82,6 +131,7 @@ Resources
     doi     = {10.1109/tpds.2021.3082815}
   }
 
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
 .. _conda-forge: https://conda-forge.org/
 .. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
 .. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
@@ -90,7 +140,6 @@ Resources
 .. _libEnsemble Slack page: https://libensemble.slack.com
 .. _MPICH: http://www.mpich.org/
 .. _mpmath: http://mpmath.org/
-.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _PyPI: https://pypi.org
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
-.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples

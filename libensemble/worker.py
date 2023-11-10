@@ -6,7 +6,6 @@ libEnsemble worker class
 import cProfile
 import logging
 import logging.handlers
-import pstats
 import socket
 from itertools import count
 from pathlib import Path
@@ -44,7 +43,7 @@ task_timing = False
 
 
 def worker_main(
-    comm: "Communicator",  # noqa: F821
+    comm: "communicator",  # noqa: F821
     sim_specs: dict,
     gen_specs: dict,
     libE_specs: dict,
@@ -76,7 +75,7 @@ def worker_main(
     workerID: int
         Manager assigned worker ID (if None, default is comm.rank)
 
-    log_comm: boolean
+    log_comm: bool
         Whether to send logging over comm
     """
 
@@ -114,10 +113,7 @@ def worker_main(
     if libE_specs.get("profile"):
         pr.disable()
         profile_state_fname = "worker_%d.prof" % (workerID)
-
-        with open(profile_state_fname, "w") as f:
-            ps = pstats.Stats(pr, stream=f).sort_stats("cumulative")
-            ps.print_stats()
+        pr.dump_stats(profile_state_fname)
 
 
 ######################################################################
@@ -157,7 +153,7 @@ class Worker:
 
     def __init__(
         self,
-        comm: "Communicator",  # noqa: F821
+        comm: "communicator",  # noqa: F821
         dtypes: npt.DTypeLike,
         workerID: int,
         sim_specs: dict,
@@ -202,7 +198,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_executor(workerID: int, comm: "Communicator") -> bool:  # noqa: F821
+    def _set_executor(workerID: int, comm: "communicator") -> bool:  # noqa: F821
         """Sets worker ID in the executor, return True if set"""
         exctr = Executor.executor
         if isinstance(exctr, Executor):
@@ -213,7 +209,7 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: "Communicator") -> bool:  # noqa: F821
+    def _set_resources(workerID, comm: "communicator") -> bool:  # noqa: F821
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
@@ -235,7 +231,7 @@ class Worker:
         Work: :obj:`dict`
             :ref:`(example)<datastruct-work-dict>`
 
-        calc_in: obj: numpy structured array
+        calc_in: ``numpy structured array``
             Rows from the :ref:`history array<funcguides-history>`
             for processing
         """
@@ -350,6 +346,7 @@ class Worker:
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])
+        libE_info["executor"] = Executor.executor
         Worker._set_rset_team(libE_info)
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
@@ -359,6 +356,9 @@ class Worker:
 
         if "comm" in libE_info:
             del libE_info["comm"]
+
+        if "executor" in libE_info:
+            del libE_info["executor"]
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:

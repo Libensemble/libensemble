@@ -1,6 +1,5 @@
 .. include:: introduction.rst
 
-.. _across: https://libensemble.readthedocs.io/en/develop/platforms/platforms_index.html#funcx-remote-user-functions
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _AWA: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
@@ -14,7 +13,6 @@
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
 .. _ECNoise: https://www.mcs.anl.gov/~wild/cnoise/
 .. _example user scripts: https://libensemble.readthedocs.io/en/main/examples/examples_index.html
-.. _funcX: https://funcx.org/
 .. _GitHub: https://github.com/Libensemble/libensemble
 .. _GitHub Actions: https://github.com/Libensemble/libensemble/actions
 .. _IPAC manuscript: https://doi.org/10.18429/JACoW-ICAP2018-SAPAF03
@@ -29,7 +27,6 @@
 .. _NLopt documentation: https://nlopt.readthedocs.io/en/latest/NLopt_Installation/
 .. _nlopt: https://nlopt.readthedocs.io/en/latest/
 .. _NumPy: http://www.numpy.org
-.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _OPAL: http://amas.web.psi.ch/docs/opal/opal_user_guide-1.6.0.pdf
 .. _petsc4py: https://bitbucket.org/petsc/petsc4py
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
@@ -44,6 +41,7 @@
 .. _pytest: https://pypi.org/project/pytest/
 .. _Python: http://www.python.org
 .. _pyyaml: https://pyyaml.org/
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
 .. _SciPy: http://www.scipy.org
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
@@ -61,4 +59,4 @@
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/
 .. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
-.. _xSDK Extreme-scale Scientific Software Development Kit: https://xsdk.info
+.. _xsdk: https://xsdk.info

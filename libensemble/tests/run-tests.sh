@@ -27,8 +27,10 @@ export CODE_DIR=libensemble
 export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
+export UNIT_TEST_MPI_SUBDIR=$TESTING_DIR/unit_tests_mpi_import
 export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
 export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
+export UNIT_TEST_DIRS="$UNIT_TEST_SUBDIR $UNIT_TEST_MPI_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR"
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 export FUNC_TEST_SUBDIR=$TESTING_DIR/functionality_tests
 
@@ -114,7 +116,7 @@ cleanup() {
     filelist=(.cov_merge_out*);        [ -e ${filelist[0]} ] && rm .cov_merge_out*
     filelist=(ensemble_*);             [ -e ${filelist[0]} ] && rm -r ensemble_*
     filelist=(workflow_*);              [ -e ${filelist[0]} ] && rm -r workflow_*
-  for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
+  for DIR in $UNIT_TEST_DIRS ; do
   cd $ROOT_DIR/$DIR
     filelist=(libE_history_at_abort_*.npy); [ -e ${filelist[0]} ] && rm libE_history_at_abort_*.npy
     filelist=(*.out);                   [ -e ${filelist[0]} ] && rm *.out
@@ -128,6 +130,7 @@ cleanup() {
     filelist=(libe_stat_files);         [ -e ${filelist[0]} ] && rm -r libe_stat_files
     filelist=(ensemble.log);            [ -e ${filelist[0]} ] && rm ensemble.log
     filelist=(H_test.npy);              [ -e ${filelist[0]} ] && rm H_test.npy
+    filelist=(workflow_intermediate*);  [ -e ${filelist[0]} ] && rm -r workflow_intermediate*
   done
   for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR; do
   cd $ROOT_DIR/$DIR
@@ -371,7 +374,7 @@ echo -e "Selected:"
 COV_LINE_SERIAL=''
 COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
-   COV_LINE_SERIAL='--cov --cov-report html:cov_unit'
+   COV_LINE_SERIAL='--cov --cov-report xml:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
    COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
 
@@ -397,7 +400,7 @@ if [ "$root_found" = true ]; then
         EXTRA_UNIT_ARG="--runextra"
     fi
 
-    for DIR in $UNIT_TEST_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR ; do
+    for DIR in $UNIT_TEST_DIRS ; do
     cd $ROOT_DIR/$DIR
 
     # unit test subdirs dont contain pytest's conftest.py that defines extra arg
@@ -619,7 +622,7 @@ if [ "$root_found" = true ]; then
 
       if [ "$RUN_COV_TESTS" = true ]; then
 
-        # Merge MPI coverage data for all ranks from regression tests and create html report in sub-dir
+        # Merge MPI coverage data for all ranks from regression tests and create xml report in sub-dir
 
         for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
         do
@@ -627,8 +630,8 @@ if [ "$root_found" = true ]; then
 
           # Must combine all if in sep sub-dirs will copy to dir above
           coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
-          coverage html
-          echo -e "..Coverage HTML written to dir $DIR/cov_reg/"
+          coverage xml
+          echo -e "..Coverage xml written to dir $DIR/cov_reg/"
 
         done
         cd $ROOT_DIR
@@ -645,8 +648,8 @@ if [ "$root_found" = true ]; then
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
           coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
-          coverage html #Should create cov_merge/ dir
-          echo -e "..Combined Unit Test/Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+          coverage xml #Should create cov_merge/ dir
+          echo -e "..Combined Unit Test/Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
 
         else
 
@@ -656,8 +659,8 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
           coverage combine .cov_reg_out .cov_reg_out2
-          coverage html
-          echo -e "..Combined Regression Test Coverage HTML written to dir $COV_MERGE_DIR/cov_merge/"
+          coverage xml
+          echo -e "..Combined Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
         fi;
       fi;
     fi;

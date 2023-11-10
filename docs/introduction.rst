@@ -1,12 +1,7 @@
 .. include:: ../README.rst
     :start-after: after_badges_rst_tag
 
-Basic Usage
-===========
-
-.. basic_usage
-
-See the :doc:`tutorial<tutorials/local_sine_tutorial>` to try out libEnsemble.
+See the :doc:`tutorial<tutorials/local_sine_tutorial>` for a step-by-step beginners guide.
 
 See the `user guide`_ for more information.
 

@@ -4,11 +4,7 @@ import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
-from libensemble.resources.scheduler import (
-    InsufficientFreeResources,
-    InsufficientResourcesError,
-    ResourceScheduler,
-)  # noqa: F401
+from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
 from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
@@ -38,24 +34,26 @@ class AllocSupport:
     ):
         """Instantiate a new AllocSupport instance
 
-        ``W`` is. They are referenced by the various methods,
-        but are never modified.
+        ``W`` is passed in for convenience on init; it is referenced by the various methods,
+        but never modified.
 
         By default, an ``AllocSupport`` instance uses any initiated libEnsemble resource
         module and the built-in libEnsemble scheduler.
 
         :param W: A :ref:`Worker array<funcguides-workerarray>`
-        :param manage_resources: Optional, boolean for if to assign resource sets when creating work units
-        :param persis_info: Optional, A :ref:`dictionary of persistent information.<datastruct-persis-info>`
-        :param scheduler_opts: Optional, A dictionary of options to pass to the resource scheduler.
-        :param user_resources: Optional, A user supplied ``resources`` object.
-        :param user_scheduler: Optional, A user supplied ``user_scheduler`` object.
+        :param manage_resources: (Optional) Boolean for if to assign resource sets when creating work units.
+        :param persis_info: (Optional) A :ref:`dictionary of persistent information.<datastruct-persis-info>`.
+        :param scheduler_opts: (Optional) A dictionary of options to pass to the resource scheduler.
+        :param user_resources: (Optional) A user supplied ``resources`` object.
+        :param user_scheduler: (Optional) A user supplied ``user_scheduler`` object.
         """
         self.W = W
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
         self.sched = None
+        self.def_gen_num_procs = libE_info.get("gen_num_procs", 0)
+        self.def_gen_num_gpus = libE_info.get("gen_num_gpus", 0)
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
             scheduler_opts = libE_info.get("scheduler_opts", {})
@@ -73,7 +71,7 @@ class AllocSupport:
 
         :param rsets_req: Int. Number of resource sets to request.
         :param use_gpus: Bool. Whether to use GPU resource sets.
-        :param user_params: list of Integers. User parameters num_procs, num_gpus
+        :param user_params: List of Integers. User parameters num_procs, num_gpus.
         :returns: List of Integers. Resource set indices assigned.
         """
         rset_team = None
@@ -92,10 +90,10 @@ class AllocSupport:
     def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
         """Returns available workers as a list of IDs, filtered by the given options.
 
-        :param persistent: Optional int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
-        :param active_recv: Optional boolean. Only return workers with given active_recv state.
-        :param zero_resource_workers: Optional boolean. Only return workers that require no resources
-        :returns: List of worker IDs
+        :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
+        :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
+        :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
+        :returns: List of worker IDs.
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
@@ -128,7 +126,7 @@ class AllocSupport:
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
-        # If there are no zero resource workers - then ignore zrw (i.e. use only if they exist)
+        # If there are no zero resource workers - then ignore zrw (i.e., use only if they exist)
         no_zrw = not any(self.W["zero_resource_worker"])
         wrks = []
         for wrk in self.W:
@@ -148,41 +146,72 @@ class AllocSupport:
         """Return the number of active persistent generators."""
         return sum(self.W["persis_state"] == EVAL_GEN_TAG)
 
+    def _req_resources_sim(self, libE_info, user_params, H, H_rows):
+        """Determine required resources for a sim work unit"""
+        use_gpus = None
+        if "resource_sets" in H.dtype.names:
+            num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
+        elif "num_procs" in H.dtype.names:
+            procs_per_rset = self.resources.resource_manager.procs_per_rset
+            num_rsets_req = AllocSupport._convert_rows_to_rsets(
+                libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
+            )
+        else:
+            num_rsets_req = 1
+        if "use_gpus" in H.dtype.names:
+            if np.any(H[H_rows]["use_gpus"]):
+                use_gpus = True
+            else:
+                use_gpus = False
+        if "num_gpus" in H.dtype.names:
+            gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+            num_rsets_req_for_gpus = AllocSupport._convert_rows_to_rsets(
+                libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
+            )
+            if num_rsets_req_for_gpus > 0:
+                use_gpus = True
+            num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+        return num_rsets_req, use_gpus
+
+    def _req_resources_gen(self, libE_info, user_params):
+        """Determine required resources for a gen work unit"""
+        # We could also have libE_specs defaults (gen_num_procs, gen_num_gpus) - passed by libE_info
+        use_gpus = None
+        num_rsets_req = self.persis_info.get("gen_resources", 0)
+        use_gpus = self.persis_info.get("gen_use_gpus", None)  # can be overwritten below
+        if not num_rsets_req:
+            gen_nprocs = self.persis_info.get("gen_num_procs", self.def_gen_num_procs)
+            if gen_nprocs:
+                procs_per_rset = self.resources.resource_manager.procs_per_rset
+                num_rsets_req = AllocSupport._convert_to_rsets(
+                    libE_info, user_params, procs_per_rset, gen_nprocs, "num_procs"
+                )
+            gen_ngpus = self.persis_info.get("gen_num_gpus", self.def_gen_num_gpus)
+            if gen_ngpus:
+                gpus_per_rset = self.resources.resource_manager.gpus_per_rset
+                num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
+                    libE_info, user_params, gpus_per_rset, gen_ngpus, "num_gpus"
+                )
+                if num_rsets_req_for_gpus > 0:
+                    use_gpus = True
+                num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+        return num_rsets_req, use_gpus
+
     def _update_rset_team(self, libE_info, wid, H=None, H_rows=None):
+        """Add rset_team to libE_info."""
         if self.manage_resources and not libE_info.get("rset_team"):
+            num_rsets_req = 0
             if self.W[wid - 1]["persis_state"]:
                 # Even if empty list, non-None rset_team stops manager giving default resources
                 libE_info["rset_team"] = []
                 return
             else:
-                use_gpus = None
                 user_params = []
+                # TODO - can't a gen have these (e.g. if have H0) - or if non-persistent
                 if H is not None and H_rows is not None:
-                    if "resource_sets" in H.dtype.names:
-                        num_rsets_req = np.max(H[H_rows]["resource_sets"])  # sim rsets
-                    elif "num_procs" in H.dtype.names:
-                        procs_per_rset = self.resources.resource_manager.cores_per_rset
-                        num_rsets_req = AllocSupport._convert_to_rsets(
-                            libE_info, user_params, H, H_rows, procs_per_rset, "num_procs"
-                        )
-                    else:
-                        num_rsets_req = 1
-                    if "use_gpus" in H.dtype.names:
-                        if np.any(H[H_rows]["use_gpus"]):
-                            use_gpus = True
-                        else:
-                            use_gpus = False
-                    if "num_gpus" in H.dtype.names:
-                        gpus_per_rset = self.resources.resource_manager.gpus_per_rset
-                        num_rsets_req_for_gpus = AllocSupport._convert_to_rsets(
-                            libE_info, user_params, H, H_rows, gpus_per_rset, "num_gpus"
-                        )
-                        if num_rsets_req_for_gpus > 0:
-                            use_gpus = True
-                        num_rsets_req = max(num_rsets_req, num_rsets_req_for_gpus)
+                    num_rsets_req, use_gpus = self._req_resources_sim(libE_info, user_params, H, H_rows)
                 else:
-                    num_rsets_req = self.persis_info.get("gen_resources", 0)
-                    use_gpus = self.persis_info.get("gen_use_gpus", None)
+                    num_rsets_req, use_gpus = self._req_resources_gen(libE_info, user_params)
                 libE_info["rset_team"] = self.assign_resources(num_rsets_req, use_gpus, user_params)
 
     def sim_work(self, wid, H, H_fields, H_rows, persis_info, **libE_info):
@@ -193,11 +222,11 @@ class AllocSupport:
 
         :param wid: Int. Worker ID.
         :param H: :ref:`History array<funcguides-history>`. For parsing out requested resource sets.
-        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send.
         :param H_rows: Which rows of ``H`` to send.
-        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
+        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary.
 
-        :returns: a Work entry
+        :returns: a Work entry.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -227,13 +256,13 @@ class AllocSupport:
          Includes evaluation of required resources if the worker is not in a
          persistent state.
 
-        :param Work: :ref:`Work dictionary<funcguides-workdict>`
+        :param Work: :ref:`Work dictionary<funcguides-workdict>`.
         :param wid: Worker ID.
-        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send
+        :param H_fields: Which fields from :ref:`H<funcguides-history>` to send.
         :param H_rows: Which rows of ``H`` to send.
-        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary
+        :param persis_info: Worker specific :ref:`persis_info<datastruct-persis-info>` dictionary.
 
-        :returns: A Work entry
+        :returns: A Work entry.
 
         Additional passed parameters are inserted into ``libE_info`` in the resulting work record.
 
@@ -263,8 +292,8 @@ class AllocSupport:
     def _filter_points(self, H_in, pt_filter, low_bound):
         """Returns H and pt_filter filted by lower bound
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
         """
         # Faster not to slice when whole array
         if low_bound is not None:
@@ -282,49 +311,49 @@ class AllocSupport:
         return H, pfilter
 
     def all_sim_started(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have started their sim
+        """Returns ``True`` if all expected points have started their sim.
 
         Excludes cancelled points.
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have started their sim
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if all expected points have started their sim.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"]
         return np.all(H["sim_started"][pfilter & ~excluded_points])
 
     def all_sim_ended(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if all expected points have had their sim_end
+        """Returns ``True`` if all expected points have had their sim_end.
 
         Excludes cancelled points that were not already sim_started.
 
-        :param pt_filter: Optional boolean array filtering expected returned points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if all expected points have had their sim_end
+        :param pt_filter: (Optional) Boolean array filtering expected returned points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if all expected points have had their sim_end.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"] & ~H["sim_started"]
         return np.all(H["sim_ended"][pfilter & ~excluded_points])
 
     def all_gen_informed(self, H, pt_filter=None, low_bound=None):
-        """Returns ``True`` if gen has been informed of all expected points
+        """Returns ``True`` if gen has been informed of all expected points.
 
         Excludes cancelled points that were not already given out.
 
-        :param pt_filter: Optional boolean array filtering expected sim_end points in ``H``.
-        :param low_bound: Optional lower bound for testing all returned.
-        :returns: True if gen have been informed of all expected points
+        :param pt_filter: (Optional) Boolean array filtering expected sim_end points in ``H``.
+        :param low_bound: (Optional) Lower bound for testing all returned.
+        :returns: True if gen have been informed of all expected points.
         """
         H, pfilter = self._filter_points(H, pt_filter, low_bound)
         excluded_points = H["cancel_requested"] & ~H["sim_started"]
         return np.all(H["gen_informed"][pfilter & ~excluded_points])
 
     def points_by_priority(self, H, points_avail, batch=False):
-        """Returns indices of points to give by priority
+        """Returns indices of points to give by priority.
 
-        :param points_avail: Indices of points that are available to give
-        :param batch: Optional boolean. Should batches of points with the same priority be given simultaneously.
+        :param points_avail: Indices of points that are available to give.
+        :param batch: (Optional) Boolean. Should batches of points with the same priority be given simultaneously.
         :returns: An array of point indices to give.
         """
         if "priority" in H.dtype.fields:
@@ -364,18 +393,24 @@ class AllocSupport:
         return H_fields
 
     @staticmethod
-    def _convert_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
-        """Convert num_procs & num_gpus requirements to resource sets"""
+    def _convert_rows_to_rsets(libE_info, user_params, H, H_rows, units_per_rset, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets for sim functions"""
         max_num_units = int(np.max(H[H_rows][units_str]))
-        user_params.append(max_num_units)
-        if max_num_units > 0:
+        num_rsets_req = AllocSupport._convert_to_rsets(libE_info, user_params, units_per_rset, max_num_units, units_str)
+        return num_rsets_req
+
+    @staticmethod
+    def _convert_to_rsets(libE_info, user_params, units_per_rset, num_units, units_str):
+        """Convert num_procs & num_gpus requirements to resource sets"""
+        user_params.append(num_units)
+        if num_units > 0:
             try:
-                num_rsets_req = max_num_units // units_per_rset + (max_num_units % units_per_rset > 0)
+                num_rsets_req = num_units // units_per_rset + (num_units % units_per_rset > 0)
             except ZeroDivisionError:
                 raise InsufficientResourcesError(
                     f"There are zero {units_str} per resource set (worker). Use fewer workers or more resources"
                 )
         else:
             num_rsets_req = 0
-        libE_info[units_str] = max_num_units
+        libE_info[units_str] = num_units
         return num_rsets_req

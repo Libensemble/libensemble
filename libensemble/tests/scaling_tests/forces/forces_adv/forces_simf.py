@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 
-from libensemble.executors.executor import Executor
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE, WORKER_KILL
 
 MAX_SEED = 32767
@@ -70,7 +69,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     sim_particles = perturb(sim_particles, seed, particle_variance)
     print(f"seed: {seed}   particles: {sim_particles}")
 
-    exctr = Executor.executor  # Get Executor
+    # Retrieve our MPI Executor
+    exctr = libE_info["executor"]
 
     args = str(int(sim_particles)) + " " + str(sim_timesteps) + " " + str(seed) + " " + str(kill_rate)
     # task = exctr.submit( app_name="forces", num_procs=cores, app_args=args, stdout="out.txt", stderr="err.txt")

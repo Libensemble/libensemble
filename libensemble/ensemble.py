@@ -8,9 +8,12 @@ import tomli
 import yaml
 
 from libensemble import logger
+from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams
+from libensemble.tools import parse_args as parse_args_f
+from libensemble.tools import save_libE_output
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
 ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
@@ -29,7 +32,8 @@ CORRESPONDING_CLASSES = {
 
 class Ensemble:
     """
-    The primary class for a libEnsemble workflow.
+    The primary object for a libEnsemble workflow.
+    Parses and validates settings, sets up logging, and maintains output.
 
     .. dropdown:: Example
         :open:
@@ -37,30 +41,38 @@ class Ensemble:
         .. code-block:: python
             :linenos:
 
-            from libensemble import Ensemble, SimSpecs, GenSpecs, ExitCriteria
-            from my_simulator import beamline
-            from someones_optimizer import optimize
+            import numpy as np
 
-            experiment = Ensemble()
-            experiment.sim_specs = SimSpecs(sim_f=beamline, inputs=["x"], out=[("f", float)])
-            experiment.gen_specs = GenSpecs(
-                gen_f=optimize,
-                inputs=["f"],
-                out=[("x", float, (1,))],
+            from libensemble import Ensemble
+            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+
+            sampling = Ensemble(parse_args=True)
+            sampling.sim_specs = SimSpecs(
+                sim_f=one_d_example,
+                inputs=["x"],
+                outputs=[("f", float)],
+            )
+            sampling.gen_specs = GenSpecs(
+                gen_f=latin_hypercube_sample,
+                outputs=[("x", float, (1,))],
                 user={
+                    "gen_batch_size": 500,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
             )
 
-            experiment.exit_criteria = ExitCriteria(gen_max=101)
-            results = experiment.run()
+            sampling.add_random_streams()
+            sampling.exit_criteria = ExitCriteria(sim_max=101)
 
-    Parses ``--comms``, ``--nworkers``,
-    and other options from the command-line, validates inputs, configures logging,
-    and performs other preparations.
+            if __name__ == "__main__":
+                sampling.run()
+                sampling.save_output(__file__)
 
-    Call ``.run()`` on the class to start the workflow.
+    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
+    instructs the Ensemble class to read command-line arguments.
 
     Configure by:
 
@@ -91,7 +103,7 @@ class Ensemble:
             sim_specs = SimSpecs(
                 sim_f=sim_find_energy,
                 inputs=["x"],
-                out=[("y", float)],
+                outputs=[("y", float)],
             )
 
             experiment = Ensemble()
@@ -155,8 +167,8 @@ class Ensemble:
 
                     [gen_specs]
                         gen_f = "generator.gen_random_sample"
-                        [gen_specs.out]
-                            [gen_specs.out.x]
+                        [gen_specs.outputs]
+                            [gen_specs.outputs.x]
                                 type = "float"
                                 size = 1
                         [gen_specs.user]
@@ -165,8 +177,8 @@ class Ensemble:
                     [sim_specs]
                         sim_f = "simulator.sim_find_sine"
                         inputs = ["x"]
-                        [sim_specs.out]
-                            [sim_specs.out.y]
+                        [sim_specs.outputs]
+                            [sim_specs.outputs.y]
                                 type = "float"
 
             .. tab-item:: my_parameters.json
@@ -183,7 +195,7 @@ class Ensemble:
                         },
                         "gen_specs": {
                             "gen_f": "generator.gen_random_sample",
-                            "out": {
+                            "outputs": {
                                 "x": {
                                     "type": "float",
                                     "size": 1
@@ -196,14 +208,11 @@ class Ensemble:
                         "sim_specs": {
                             "sim_f": "simulator.sim_find_sine",
                             "inputs": ["x"],
-                            "out": {
+                            "outputs": {
                                 "f": {"type": "float"}
                             }
                         }
                     }
-
-    After calling ``.run()``, the final states of ``H``, ``persis_info``,
-    and a flag are made available.
 
     Parameters
     ----------
@@ -212,31 +221,41 @@ class Ensemble:
 
         Specifications for the simulation function
 
-    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, optional
+    gen_specs: :obj:`dict` or :class:`GenSpecs<libensemble.specs.GenSpecs>`, Optional
 
         Specifications for the generator function
 
-    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, optional
+    exit_criteria: :obj:`dict` or :class:`ExitCriteria<libensemble.specs.ExitCriteria>`, Optional
 
         Tell libEnsemble when to stop a run
 
-    persis_info: :obj:`dict`, optional
-
-        Persistent information to be passed between user functions
-        :doc:`(example)<data_structures/persis_info>`
-
-    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, optional
-
-        Specifications for the allocation function
-
-    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.libeSpecs>`, optional
+    libE_specs: :obj:`dict` or :class:`LibeSpecs<libensemble.specs.LibeSpecs>`, Optional
 
         Specifications for libEnsemble
 
-    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, optional
+    alloc_specs: :obj:`dict` or :class:`AllocSpecs<libensemble.specs.AllocSpecs>`, Optional
+
+        Specifications for the allocation function
+
+    persis_info: :obj:`dict`, Optional
+
+        Persistent information to be passed between user function instances
+        :doc:`(example)<data_structures/persis_info>`
+
+    executor: :class:`Executor<libensemble.executors.executor.Executor>`, Optional
+
+        libEnsemble Executor instance for use within simulation or generator functions
+
+    H0: `NumPy structured array <https://docs.scipy.org/doc/numpy/user/basics.rec.html>`_, Optional
 
         A libEnsemble history to be prepended to this run's history
         :ref:`(example)<funcguides-history>`
+
+    parse_args: bool, Optional
+
+        Read ``nworkers``, ``comms``, and other arguments from the command-line. For MPI, calculate ``nworkers``
+        and set the ``is_manager`` Boolean attribute on MPI rank 0. See the :meth:`parse_args<tools.parse_args>`
+        docs for more information.
 
     """
 
@@ -248,27 +267,75 @@ class Ensemble:
         libE_specs: Optional[LibeSpecs] = None,
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
+        executor: Optional[Executor] = None,
         H0: Optional[npt.NDArray] = None,
+        parse_args: Optional[bool] = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.libE_specs = libE_specs
+        self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
+        self.executor = executor
         self.H0 = H0
 
-        self.nworkers, self.is_manager, libE_specs_parsed, _ = parse_args()
         self._util_logger = logging.getLogger(__name__)
         self.logger = logger
         self.logger.set_level("INFO")
 
-        if not self.libE_specs:
-            self.libE_specs = LibeSpecs(**libE_specs_parsed)
+        self.nworkers = 0
+        self.is_manager = False
+        self.parsed = False
+
+        if parse_args:
+            self.parse_args()
+            self.parsed = True
+
+    def parse_args(self) -> (int, bool, LibeSpecs):
+        self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
+
+        if not self._libE_specs:
+            self._libE_specs = LibeSpecs(**libE_specs_parsed)
+        else:
+            self._libE_specs.__dict__.update(**libE_specs_parsed)
+
+        return self.nworkers, self.is_manager, self._libE_specs
 
     def ready(self) -> bool:
         """Quickly verify that all necessary data has been provided"""
-        return all([i for i in [self.exit_criteria, self.libE_specs, self.sim_specs]])
+        return all([i for i in [self.exit_criteria, self._libE_specs, self.sim_specs]])
+
+    @property
+    def libE_specs(self) -> LibeSpecs:
+        return self._libE_specs
+
+    @libE_specs.setter
+    def libE_specs(self, new_specs):
+        # We need to deal with libE_specs being specified as dict or class, and
+        #   "not" overwrite the internal libE_specs["comms"], but *only* if parse_args
+        #   was called. Otherwise we can respect the complete set of provided options.
+
+        # Convert our libE_specs from dict to class, if its a dict
+        if isinstance(self._libE_specs, dict):
+            self._libE_specs = LibeSpecs(**self._libE_specs)
+
+        # Cast new libE_specs temporarily to dict
+        if not isinstance(new_specs, dict):
+            new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
+
+        # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
+        if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
+            new_specs.pop("comms")
+
+        # Now finally set attribute if we don't have a libE_specs, otherwise update the internal
+        if not self._libE_specs:
+            self._libE_specs = new_specs
+        else:
+            self._libE_specs.__dict__.update(**new_specs)
+
+    def _refresh_executor(self):
+        Executor.executor = self.executor or Executor.executor
 
     def run(self) -> (npt.NDArray, dict, int):
         """
@@ -276,7 +343,7 @@ class Ensemble:
 
         .. dropdown:: MPI/comms Notes
 
-            Manager-worker intercommunications are parsed from the ``comms`` key of
+            Manager--worker intercommunications are parsed from the ``comms`` key of
             :ref:`libE_specs<datastruct-libe-specs>`. An MPI runtime is assumed by default
             if ``--comms local`` wasn't specified on the command-line or in ``libE_specs``.
 
@@ -308,6 +375,8 @@ class Ensemble:
                 2 = Manager timed out and ended simulation
                 3 = Current process is not in libEnsemble MPI communicator
         """
+
+        self._refresh_executor()
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
@@ -381,8 +450,8 @@ class Ensemble:
             "alloc_f": self._get_func,
             "inputs": self._get_normal,
             "persis_in": self._get_normal,
-            "out": self._get_outputs,
-            "funcx_endpoint": self._get_normal,
+            "outputs": self._get_outputs,
+            "globus_compute_endpoint": self._get_normal,
             "user": self._get_normal,
         }
 
@@ -393,6 +462,9 @@ class Ensemble:
                 if f == "inputs":
                     loaded_spec["in"] = field_f[f](loaded_spec[f])
                     loaded_spec.pop("inputs")
+                elif f == "outputs":
+                    loaded_spec["out"] = field_f[f](loaded_spec[f])
+                    loaded_spec.pop("outputs")
                 else:
                     loaded_spec[f] = field_f[f](loaded_spec[f])
 
@@ -408,9 +480,14 @@ class Ensemble:
                 old_spec.update(loaded_spec)
                 if old_spec.get("in") and old_spec.get("inputs"):
                     old_spec.pop("inputs")  # avoid clashes
-            else:
+                elif old_spec.get("out") and old_spec.get("outputs"):
+                    old_spec.pop("inputs")  # avoid clashes
+            elif isinstance(old_spec, ClassType):
                 old_spec.__dict__.update(**loaded_spec)
                 old_spec = old_spec.dict(by_alias=True)
+            else:  # None. attribute not set yet
+                setattr(self, f, ClassType(**loaded_spec))
+                return
             setattr(self, f, ClassType(**old_spec))
 
     def from_yaml(self, file_path: str):
@@ -435,23 +512,42 @@ class Ensemble:
         self._parameterize(loaded)
 
     def add_random_streams(self, num_streams: int = 0, seed: str = ""):
-        """Adds ``np.random`` generators for each worker to ``persis_info``"""
+        """
+
+        Adds ``np.random`` generators for each worker ID to ``self.persis_info``.
+
+        Parameters
+        ----------
+
+        num_streams: int, Optional
+
+            Number of matching worker ID and random stream entries to create. Defaults to
+            ``self.nworkers``.
+
+        seed: str, Optional
+
+            Seed for NumPy's RNG.
+
+        """
         if num_streams:
             nstreams = num_streams
         else:
             nstreams = self._nworkers()
 
-        self.persis_info = add_unique_random_streams({}, nstreams + 1, seed=seed)
+        self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info
 
     def save_output(self, file: str):
         """
         Writes out History array and persis_info to files.
-        If using a workflow_dir, will place with specified filename in that directory
+        If using a workflow_dir, will place with specified filename in that directory.
 
         Format: ``<calling_script>_results_History_length=<length>_evals=<Completed evals>_ranks=<nworkers>``
         """
-        if self._get_option("libE_specs", "workflow_dir_path"):
-            save_libE_output(self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path)
-        else:
-            save_libE_output(self.H, self.persis_info, file, self.nworkers)
+        if self.is_manager:
+            if self._get_option("libE_specs", "workflow_dir_path"):
+                save_libE_output(
+                    self.H, self.persis_info, file, self.nworkers, dest_path=self.libE_specs.workflow_dir_path
+                )
+            else:
+                save_libE_output(self.H, self.persis_info, file, self.nworkers)

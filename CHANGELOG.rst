@@ -8,6 +8,139 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+:Date: November 8, 2023
+
+New capabilities:
+
+* New history array save options in libE_specs. #1103/#1139/#1141
+  * `save_H_on_completion` saves history before exiting main libE function.
+  * `save_H_with_date` includes date and timestamp in the save.
+  * `H_file_prefix` provides prefix for saved file.
+  * `save_H_on_completion` defaults to True when `save_every_k_gens/sims` is set.
+
+Support for Python versions:
+
+* Adds support/testing for Python 3.12
+* Removes testing of Python 3.8
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 1.0.0
+--------------
+
+:Date: September 25, 2023
+
+New capabilities:
+
+* *libE_specs* option `final_gen_send` returns last results to the generator (replaces `final_fields`). #1086
+* *libE_specs* option `reuse_output_dir` allows reuse of workflow and ensemble directories. #1028 #1041
+* *libE_specs* option `calc_dir_id_width` no. of digits for calc ID in output sim/gen directories. #1052 / #1066
+* Added `gen_num_procs` and `gen_num_gpus` *libE_specs* (and *persis_info*) options for resourcing a generator. #1068
+* Added `gpu_env_fallback` option to platform fields - specifies a GPU environment variable (for non-MPI usage). #1050
+* New MPIExecutor `submit()` argument `mpi_runner_type` specifies an MPI runner for current call only. #1054
+* Allow oversubscription when using the `num_procs` *gen_specs["out"]* option. #1058
+* sim/gen_specs can use `outputs` in place of `out` to be consistent with `inputs`. #1075
+* Executor can be obtained from `libE_info` (4th parameter) in user functions. #1078
+
+Breaking changes:
+
+* *libE_specs* option `final_fields` is removed in favor of `final_gen_send`. #1086
+* *libE_specs* option `kill_canceled_sims` now defaults to **False**. #1062
+* *parse_args* is not run automatically by `Ensemble` constructor.
+
+Updates to **Object Oriented** Ensemble interface:
+
+* Added `parse_args` as option to `Ensemble` constructor. #1065
+* The *executor* can be passed as an option to the `Ensemble` constructor. #1078
+* Better handling of `Ensemble.add_random_streams` and `ensemble.persis_info`. #1074
+
+Output changes:
+
+* The worker ID suffix is removed from sim/gen output directories. #1041
+* Separate *ensemble.log* and *libE_stats.txt* for different workflows directories. #1027 #1041
+* Defaults to four digits for sim/gen ID in output directories (adds digits on overflow). #1052 / #1066
+
+Bug fixes:
+
+* Resolved PETSc/OpenMPI issue (when using the Executor). #1064
+* Prevent `mpi4py` validation running during local comms (when using OO interface). #1065
+
+Performance changes:
+
+* Optimize `kill_cancelled_sims` function. #1043 / #1063
+* *safe_mode* defaults to **False** (for performance). #1053
+
+Updates to example functions:
+
+* Multiple regression tests and examples ported to use OO ensemble interface. #1014
+
+Update forces examples:
+
+* Make persistent generator the default for both simple and GPU examples (inc. updated tutorials).
+* Update to object oriented interface.
+* Added separate variable resources example for forces GPU.
+* Rename `multi_task` example to `multi_app`.
+
+Documentation:
+
+* General overhaul and simplification of documentation. #992
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows, and major systems such as Frontier (OLCF), Polaris, and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10, 3.11.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 0.10.2
+--------------
+
+:Date: July 24, 2023
+
+* Fixes issues with workflow directories:
+  * Ensure relative paths are interpreted from where libEnsemble is run. #1020
+  * Create intermediate directories for workflow paths. #1017
+
+* Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF), Polaris (ALCF), Perlmutter (NERSC), Theta (ALCF) and Bebop. The major system tests ran heterogeneous workflows.
+
+:Known issues:
+
+* On systems using SLURM 23.02, some issues have been experienced when using ``mpi4py`` comms.
+* See the known issues section in the documentation for more information (https://libensemble.readthedocs.io/en/main/known_issues.html).
+
+Release 0.10.1
+--------------
+
+:Date: July 10, 2023
+
+Hotfix for breaking changes in Pydantic.
+
+* Pin Pydantic to version < 2.
+* Minor fixes for NumPy 1.25 deprecations.
+
+:Note:
+
+* Tested platforms include Linux, MacOS, Windows and major systems including Frontier (OLCF) and Perlmutter (NERSC). The major system tests ran heterogeneous workflows.
+* Tested Python versions: (Cpython) 3.7, 3.8, 3.9, 3.10, 3.11.
+
+:Known issues:
+
+* See known issues section in the documentation.
+
 Release 0.10.0
 --------------
 
@@ -16,16 +149,16 @@ Release 0.10.0
 New capabilities:
 
 * Enhance portability and simplify the assignment of procs/GPUs to worker resources #928 / #983
- * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
- * Auto-determination of GPU assignment method by MPI runner or provided platform.
- * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
- * Add `set_to_gpus` function (similar to `set_to_slots`).
- * Allow users to specify known systems via option or environment variable.
- * Allow users to specify their own system configurations.
- * These changes remove a number of tweaks that were needed for particular platforms.
+  * Auto-detect GPUs across systems (inc. Nvidia, AMD, and Intel GPUs).
+  * Auto-determination of GPU assignment method by MPI runner or provided platform.
+  * Portable `auto_assign_gpus` / `match_procs_to_gpus` and `num_gpus` arguments added to the MPI executor submit.
+  * Add `set_to_gpus` function (similar to `set_to_slots`).
+  * Allow users to specify known systems via option or environment variable.
+  * Allow users to specify their own system configurations.
+  * These changes remove a number of tweaks that were needed for particular platforms.
 
-*  Resource management supports GPU and non-GPU simulations in the same ensemble. #993
- * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
+* Resource management supports GPU and non-GPU simulations in the same ensemble. #993
+  * User's can specify `num_procs` and `num_gpus` in the generator for each evaluation.
 
 * Pydantic models are used for validating major libE input (input can be provided as classes or dictionaries). #878
 * Added option to store output and ensemble directories in a workflow directory. #982
@@ -51,10 +184,10 @@ Documentation:
 Tests and Examples:
 
 * Updated forces_gpu tutorial example. #956
- * Source code edit is not required for the GPU version.
- * Reports whether running on device or host.
- * Increases problem size.
- * Added versions with persistent generator and multi-task (GPU v non-GPU).
+  * Source code edit is not required for the GPU version.
+  * Reports whether running on device or host.
+  * Increases problem size.
+  * Added versions with persistent generator and multi-task (GPU v non-GPU).
 * Moved multiple tests, generators, and simulators to the community repo.
 * Added ytopt example. And updated heFFTe example. #943
 * Support Python 3.11 #922

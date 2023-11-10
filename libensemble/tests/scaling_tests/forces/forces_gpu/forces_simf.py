@@ -1,8 +1,5 @@
 import numpy as np
 
-# To retrieve our MPI Executor
-from libensemble.executors.executor import Executor
-
 # Optional status codes to display in libE_stats.txt for each gen or sim
 from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
@@ -25,7 +22,7 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     args = particles + " " + str(10) + " " + particles
 
     # Retrieve our MPI Executor
-    exctr = Executor.executor
+    exctr = libE_info["executor"]
 
     # Submit our forces app for execution.
     task = exctr.submit(
@@ -41,10 +38,8 @@ def run_forces(H, persis_info, sim_specs, libE_info):
     # Optional - prints GPU assignment (method and numbers)
     check_gpu_setting(task, assert_setting=False, print_setting=True)
 
-    # Stat file to check for bad runs
-    statfile = "forces.stat"
-
     # Try loading final energy reading, set the sim's status
+    statfile = "forces.stat"
     try:
         data = np.loadtxt(statfile)
         final_energy = data[-1]

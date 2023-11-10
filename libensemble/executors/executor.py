@@ -1,23 +1,17 @@
 """
-This module contains the classes
-``Executor`` and ``Task``. The class ``Executor`` can be used to subprocess an application
-locally. For MPI programs, or any program using non-local compute resources, one of the
-inherited classes should be used. Inherited classes include MPI and Balsam variants.
-An ``executor`` can create and manage multiple ``tasks``. The user function
-can issue and manage ``tasks`` using the submit, poll, wait, and kill functions.
-``Task`` attributes are queried to determine status. Functions are
-also provided to access and interrogate files in the ``task``'s working directory. A
-``manager_poll`` function can be used to poll for STOP signals from the manager.
+This module contains the classes ``Executor`` and ``Task``. An ``executor``
+can create and manage multiple ``tasks``. ``Task`` attributes are queried to
+determine status.
 """
 
 import itertools
 import logging
 import os
-from pathlib import Path
 import shutil
 import stat
 import sys
 import time
+from pathlib import Path
 from typing import Any, Optional, Union
 
 import libensemble.utils.launcher as launcher

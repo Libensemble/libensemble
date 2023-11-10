@@ -4,9 +4,8 @@ import sys
 
 from libensemble.executors.executor import Executor
 from libensemble.executors.mpi_executor import MPIExecutor
-from libensemble.resources.resources import Resources
 from libensemble.resources.platforms import get_platform
-
+from libensemble.resources.resources import Resources
 
 NCORES = 1
 build_sims = ["my_simtask.c", "my_serialtask.c", "c_startup.c"]

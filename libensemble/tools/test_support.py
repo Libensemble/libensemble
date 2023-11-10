@@ -46,7 +46,45 @@ def _set_gpus(task, wresources):
     return wresources.doihave_gpus() and task.ngpus_req > 0
 
 
-def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None):
+def check_mpi_runner(task, exp, print_setting=False):
+    """Checks the given MPI runner is used in runline"""
+
+    # This can be extended - includes values currently tested
+    mpi_runners = {
+        "mpich": {"mpirunner": "mpirun", "ppn": "--ppn"},
+        "openmpi": {"mpirunner": "mpirun", "ppn": "-npernode"},
+        "srun": {"mpirunner": "srun", "ppn": "--ntasks-per-node"},
+        "special_mpi": {"mpirunner": "special_mpi", "ppn": "-npernode"},
+    }
+
+    ppn_setting = {
+        "mpiexec": ["--ppn", "-npernode"],
+        "mpirun": ["--ppn", "-npernode"],
+        "srun": ["--ntasks-per-node"],
+        "jsrun": ["-r"],
+        "aprun": ["-N"],
+        "special_mpi": ["-npernode"],
+    }
+
+    runner_info = mpi_runners[exp]
+
+    mpirunner = task.runline.split(" ", 1)[0]
+    if print_setting:
+        print(f'Expected runner: {runner_info["mpirunner"]} -- Found: {mpirunner}')
+    assert mpirunner == runner_info["mpirunner"]
+
+    for setting in ppn_setting[mpirunner]:
+        ppn_opt_value = _get_opt_value(setting, task.runline)
+        if ppn_opt_value is not None:
+            break
+
+    ppn_option = ppn_opt_value.split(" ", 1)[0]
+    if print_setting:
+        print(f'Expected ppn option: {runner_info["ppn"]} -- Found: {ppn_option}')
+    assert ppn_option == runner_info["ppn"]
+
+
+def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=None, desc=""):
     """Checks GPU run lines
 
     Note that this will check based platform_info or defaults for the MPI runner
@@ -56,10 +94,10 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     Parameters
     ----------
 
-    assert_setting: boolean, optional
+    assert_setting: Boolean, optional
         Raise error if setting is not as expected (for current MPI runner). Default: True
 
-    print_setting: boolean, optional
+    print_setting: Boolean, optional
         Print GPU setting to stdout. Default: False
 
     """
@@ -70,6 +108,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     slots = wresources.slots
     mpirunner = task.runline.split(" ", 1)[0]
+
+    # This is a special case for environment testing
+    if mpirunner == "special_mpi":
+        return
+
     stype = None
     gpu_setting = None
     gpus_per_task = False
@@ -142,13 +185,12 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
 
     # Get expected numbers
     if cmd_line:
+        expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
         if gpus_per_task:
             stype = "runline option: gpus per task"
-            avail_gpus = wresources.slot_count * wresources.gpus_per_rset // int(ppn)
-            expected_nums = _safe_min(avail_gpus, wresources.gen_ngpus)
+            expected_nums //= int(ppn)
         else:
             stype = "runline option: gpus per node"
-            expected_nums = _safe_min(wresources.slot_count * wresources.gpus_per_rset, wresources.gen_ngpus)
         expected_nums = expected_nums if _set_gpus(task, wresources) else None
         if expected_nums is not None:
             expected = _get_expected_output(expected_setting, expected_nums)
@@ -172,8 +214,11 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
     else:
         addon = f"(procs {num_procs}, per node {ppn})"
 
+    if desc:
+        desc += " "
+
     if print_setting:
-        print(f"Worker {task.workerID}: GPU setting ({stype}): {gpu_setting} {addon}")
+        print(f"Worker {task.workerID}: {desc}GPU setting ({stype}): {gpu_setting} {addon}", flush=True)
 
     if assert_setting:
         assert (

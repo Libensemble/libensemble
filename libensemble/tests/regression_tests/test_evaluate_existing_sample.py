@@ -16,48 +16,32 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
-from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
-
 # Import libEnsemble items for this test
-from libensemble.libE import libE
+from libensemble import Ensemble
+from libensemble.alloc_funcs.give_pregenerated_work import give_pregenerated_sim_work as alloc_f
 from libensemble.sim_funcs.borehole import borehole as sim_f
 from libensemble.sim_funcs.borehole import gen_borehole_input
-from libensemble.tools import parse_args, save_libE_output
+from libensemble.specs import AllocSpecs, ExitCriteria, SimSpecs
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
-
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
-
-    gen_specs = {}
-
     n_samp = 1000
-    n = 8
-
     H0 = np.zeros(n_samp, dtype=[("x", float, 8), ("sim_id", int), ("sim_started", bool)])
-
     np.random.seed(0)
     H0["x"] = gen_borehole_input(n_samp)
     H0["sim_id"] = range(n_samp)
     H0["sim_started"] = False
 
-    alloc_specs = {"alloc_f": alloc_f}
+    sampling = Ensemble(parse_args=True)
+    sampling.H0 = H0
+    sampling.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], out=[("f", float)])
+    sampling.alloc_specs = AllocSpecs(alloc_f=alloc_f)
+    sampling.exit_criteria = ExitCriteria(sim_max=len(H0))
+    sampling.run()
 
-    exit_criteria = {"sim_max": len(H0)}
-
-    # Perform the run
-    H, persis_info, flag = libE(
-        sim_specs, gen_specs, exit_criteria, alloc_specs=alloc_specs, libE_specs=libE_specs, H0=H0
-    )
-
-    if is_manager:
-        assert len(H) == len(H0)
-        assert np.array_equal(H0["x"], H["x"])
-        assert np.all(H["sim_ended"])
+    if sampling.is_manager:
+        assert len(sampling.H) == len(H0)
+        assert np.array_equal(H0["x"], sampling.H["x"])
+        assert np.all(sampling.H["sim_ended"])
         print("\nlibEnsemble correctly didn't add anything to initial sample")
-        save_libE_output(H, persis_info, __file__, nworkers)
+        sampling.save_output(__file__)

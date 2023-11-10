@@ -1,9 +1,6 @@
 Output Management
 =================
 
-Each of the following output files can be placed in a run-specific
-directory by setting ``libE_specs["use_workflow_dir"] = True``.
-
 Default Log Files
 ~~~~~~~~~~~~~~~~~
 The history array :ref:`H<funcguides-history>` and
@@ -14,15 +11,25 @@ dumped automatically to these files:
 * ``libE_history_at_abort_<sim_count>.npy``
 * ``libE_persis_info_at_abort_<sim_count>.pickle``
 
-To suppress libEnsemble from producing these two files, set ``libE_specs["save_H_and_persis_on_abort"] = False``.
-
 Two other libEnsemble files produced by default:
 
 * ``libE_stats.txt``: One-line summaries for each user calculation.
 
 * ``ensemble.log``: Logging output. Multiple runs will append output if this file isn't removed. See below for config info.
 
-To suppress libEnsemble from producing these two files, set ``libE_specs["disable_log_files"] = True``.
+**Global options:**
+
+``libE_specs["disable_log_files"] = True``: Disable output files
+
+``libE_specs["use_workflow_dir"] = True``: Place output files in workflow-instance directories
+
+``libE_specs["save_H_and_persis_on_abort"] = False``: Disable dumping the History array and ``persis_info`` to files
+
+.. code-block:: python
+
+  from libensemble.specs import LibeSpecs
+
+  specs = LibeSpecs(disable_log_files=True, save_H_and_persis_on_abort=False)
 
 .. _logger_config:
 
@@ -52,12 +59,19 @@ This boundary can be adjusted::
 
 stderr displaying can be effectively disabled by setting the stderr level to ``CRITICAL``.
 
-.. automodule:: logger
-  :members:
-  :no-undoc-members:
+.. dropdown:: Logger Module
+
+  .. automodule:: logger
+    :members:
+    :no-undoc-members:
 
 .. note::
   The ``scripts`` directory, in the libEnsemble project root directory,
   contains scripts to compare outputs and create plots based on the ensemble output.
 
-.. include:: ../scripts/readme.rst
+Analysis Utilities
+~~~~~~~~~~~~~~~~~~
+
+.. dropdown:: Analysis Utilities
+
+  .. include:: ../scripts/readme.rst

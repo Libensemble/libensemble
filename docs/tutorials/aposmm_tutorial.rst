@@ -1,6 +1,6 @@
-=================================
-Parallel Optimization with APOSMM
-=================================
+========================
+Optimization with APOSMM
+========================
 
 This tutorial demonstrates libEnsemble's capability to identify multiple minima
 of simulation output using the built-in :doc:`APOSMM<../examples/aposmm>`
@@ -237,7 +237,9 @@ check calculated minima:
 .. code-block:: python
     :linenos:
 
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+    if __name__ == "__main__":  # required by multiprocessing on macOS and windows
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
     if is_manager:
         print("Minima:", H[np.where(H["local_min"])]["x"])
 
@@ -295,9 +297,9 @@ applications with parameters requested by APOSMM, then evaluate their output usi
 APOSMM, and repeat until minima are identified. A currently supported example
 can be found in libEnsemble's `WarpX Scaling Test`_.
 
-.. _`Six-Hump Camel function`: https://www.sfu.ca/~ssurjano/camel6.html
-.. _NLopt: https://nlopt.readthedocs.io/en/latest/
-.. _`PETSc/TAO`: https://www.mcs.anl.gov/petsc/
-.. _SciPy: https://www.scipy.org/scipylib/index.html
-.. _`WarpX Scaling Test`: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
 .. _examples/tutorials/aposmm: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials
+.. _NLopt: https://nlopt.readthedocs.io/en/latest/
+.. _PETSc/TAO: https://www.mcs.anl.gov/petsc/
+.. _SciPy: https://scipy.org/
+.. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
+.. _WarpX Scaling Test: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx

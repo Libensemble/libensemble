@@ -6,8 +6,6 @@ Unit test of launcher helpers for libensemble.
 
 import sys
 
-import pytest
-
 import libensemble.utils.launcher as launcher
 
 
@@ -62,8 +60,5 @@ def xtest_submit():
     launcher.cancel(process, 0)
 
 
-@pytest.mark.extra
-def test_launch33():
-    "If we are in Python > 3.2, also check the new-style wait func"
-    if launcher.wait == launcher.wait_py33:
-        xtest_submit()
+def test_launch():
+    xtest_submit()
