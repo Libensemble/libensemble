@@ -324,7 +324,8 @@ need to write a new allocation function.
                 :linenos:
 
                 import numpy as np
-                from libensemble import Ensemble, LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+                from libensemble import Ensemble
+                from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
                 from generator import gen_random_sample
                 from simulator import sim_find_sine
 
