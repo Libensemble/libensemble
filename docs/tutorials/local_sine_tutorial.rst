@@ -238,16 +238,16 @@ need to write a new allocation function.
         .. code-block:: python
             :linenos:
 
-            ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
+            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
             ensemble.add_random_streams()  # setup the random streams unique to each worker
 
             if __name__ == "__main__":  # Python-quirk required on macOS and windows
                 ensemble.run()  # start the ensemble. Blocks until completion.
 
-            history = ensemble.H  # start visualizing our results
+                history = ensemble.H  # start visualizing our results
 
-            print([i for i in history.dtype.fields])  # (optional) to visualize our history array
-            print(history)
+                print([i for i in history.dtype.fields])  # (optional) to visualize our history array
+                print(history)
 
         That's it! Now that these files are complete, we can run our simulation.
 
