@@ -40,7 +40,10 @@ try:
     from minqsw import minqsw  # noqa: F401
 
 except ModuleNotFoundError:
-    sys.exit("Ensure https://github.com/POptUS/minq is located/similinked in the same directory as the calling script")
+    sys.exit(
+        sys.path
+        + ["Ensure https://github.com/POptUS/minq is located/similinked in the same directory as the calling script"]
+    )
 
 
 def combine_component(x):
