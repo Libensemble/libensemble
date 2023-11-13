@@ -85,6 +85,14 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
 
+            git clone --recurse-submodules -b refactor/pounders_API https://github.com/POptUS/IBCDFO.git
+            pushd IBCDFO/minq/py/minq5/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            popd
+            pushd IBCDFO/ibcdfo_pypkg/
+            pip install -e .
+            popd
+
         - name: Install mpi4py and MPI from conda
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
@@ -95,14 +103,6 @@ jobs:
             python -m pip install --upgrade pip
             pip install mpmath
             conda install numpy nlopt scipy
-
-            git clone --recurse-submodules -b refactor/pounders_API https://github.com/POptUS/IBCDFO.git
-            pushd IBCDFO/minq/py/minq5/
-            export PYTHONPATH="$PYTHONPATH:$(pwd)"
-            popd
-            pushd IBCDFO/ibcdfo_pypkg/
-            pip install -e .
-            popd
 
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
