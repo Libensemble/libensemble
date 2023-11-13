@@ -1,14 +1,12 @@
 import numpy as np
 
 
-def sim_find_sine(H, persis_info, sim_specs, _):
-    # underscore for internal/testing arguments
-
+def sim_find_sine(Input, _, sim_specs):
     # Create an output array of a single zero
-    out = np.zeros(1, dtype=sim_specs["out"])
+    Output = np.zeros(1, dtype=sim_specs["out"])
 
-    # Set the zero to the sine of the input value stored in H
-    out["y"] = np.sin(H["x"])
+    # Set the zero to the sine of the Input value
+    Output["y"] = np.sin(Input["x"])
 
-    # Send back our output and persis_info
-    return out, persis_info
+    # Send back our output
+    return Output

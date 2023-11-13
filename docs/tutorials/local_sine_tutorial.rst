@@ -64,7 +64,7 @@ need to write a new allocation function.
 
         Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
-        For now, create a new Python file named ``generator.py``. Write the following:
+        For now, create a new Python file named ``tutorial_gen.py``. Write the following:
 
         .. code-block:: python
             :linenos:
@@ -131,7 +131,7 @@ need to write a new allocation function.
         The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
         serves a purpose similar to the :class:`gen_specs<libensemble.specs.GenSpecs>` dictionary.
 
-        Create a new Python file named ``simulator.py``. Write the following:
+        Create a new Python file named ``tutorial_sim.py``. Write the following:
 
         .. code-block:: python
             :linenos:
@@ -191,9 +191,10 @@ need to write a new allocation function.
             :linenos:
 
             import numpy as np
-            from libensemble import Ensemble, LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
-            from generator import gen_random_sample
-            from simulator import sim_find_sine
+            from libensemble import Ensemble
+            from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+            from tutorial_gen import gen_random_sample
+            from tutorial_sim import sim_find_sine
 
             libE_specs = LibeSpecs(nworkers=4, comms="local")
 
@@ -232,8 +233,8 @@ need to write a new allocation function.
             exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
         Now we're ready to write our libEnsemble :doc:`libE<../programming_libE>`
-        function call. This :ref:`H<funcguides-history>` is the final version of
-        the history array. ``flag`` should be zero if no errors occur.
+        function call. :ref:`ensemble.H<funcguides-history>` is the final version of
+        the history array. ``ensemble.flag`` should be zero if no errors occur.
 
         .. code-block:: python
             :linenos:
@@ -295,8 +296,8 @@ need to write a new allocation function.
 
             colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-            for i in range(1, nworkers + 1):
-                worker_xy = np.extract(H["sim_worker"] == i, H)
+            for i in range(1, libE_specs.nworkers + 1):
+                worker_xy = np.extract(history["sim_worker"] == i, history)
                 x = [entry.tolist()[0] for entry in worker_xy["x"]]
                 y = [entry for entry in worker_xy["y"]]
                 plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
@@ -326,8 +327,8 @@ need to write a new allocation function.
                 import numpy as np
                 from libensemble import Ensemble
                 from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
-                from generator import gen_random_sample
-                from simulator import sim_find_sine
+                from tutorial_gen import gen_random_sample
+                from tutorial_sim import sim_find_sine
 
                 libE_specs = LibeSpecs(nworkers=4, comms="local")
 
@@ -347,7 +348,7 @@ need to write a new allocation function.
                     out=[("y", float)],  # sim_f output. "y" = sine("x")
                 )
 
-                ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
+                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
                 ensemble.add_random_streams()
                 ensemble.run()
 
@@ -390,7 +391,7 @@ need to write a new allocation function.
             :linenos:
 
             ...
-            ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
+            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
             ensemble.add_random_streams()
             ensemble.run()
 
