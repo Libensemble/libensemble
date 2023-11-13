@@ -10,6 +10,10 @@ Both will run with 1 manager, 1 worker running APOSMM+IBCDFO), and 1 worker
 doing the simulation evaluations.
 """
 
+# Do not change these lines - they are parsed by run-tests.sh
+# TESTSUITE_COMMS: local
+# TESTSUITE_NPROCS: 3
+
 import multiprocessing
 import sys
 
@@ -50,8 +54,7 @@ if __name__ == "__main__":
 
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    if nworkers < 2:
-        sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
+    assert nworkers == 2, "This test is just for two workers"
 
     # Declare the run parameters/functions
     m = 214
@@ -101,7 +104,6 @@ if __name__ == "__main__":
     if is_manager:
         assert persis_info[1].get("run_order"), "Run_order should have been given back"
         assert flag == 0
-        # assert np.min(H["f"][H["sim_ended"]]) <= 3000, "Didn't find a value below 3000"
 
         save_libE_output(H, persis_info, __file__, nworkers)
 
