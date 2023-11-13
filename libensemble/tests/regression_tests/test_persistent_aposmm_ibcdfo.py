@@ -37,7 +37,6 @@ except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
 try:
-    sys.path.append("./minq/py/minq5/")  # Needed by pounders, but not pip installable
     from minqsw import minqsw  # noqa: F401
 
 except ModuleNotFoundError:
