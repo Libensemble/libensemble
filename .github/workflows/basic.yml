@@ -100,7 +100,7 @@ jobs:
             pushd IBCDFO/minq/py/minq5/
             export PYTHONPATH="$PYTHONPATH:$(pwd)"
             popd
-            pushd IBCDFO/ibcdfo_pypkg/py/
+            pushd IBCDFO/ibcdfo_pypkg/
             pip install -e .
             popd
 
