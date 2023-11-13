@@ -100,8 +100,8 @@ jobs:
             pushd IBCDFO/minq/py/minq5/
             export PYTHONPATH="$PYTHONPATH:$(pwd)"
             popd
-            pushd IBCDFO/pounders/py/
-            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            pushd IBCDFO/ibcdfo_pypkg/py/
+            pip install -e .
             popd
 
         - uses: actions/cache/save@v3
