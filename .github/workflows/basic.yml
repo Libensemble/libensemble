@@ -96,6 +96,14 @@ jobs:
             pip install mpmath
             conda install numpy nlopt scipy
 
+            git clone -b refactor/pounders_API https://github.com/POptUS/IBCDFO.git
+            pushd IBCDFO/minq/py/minq5/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            popd
+            pushd IBCDFO/pounders/py/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            popd
+
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
