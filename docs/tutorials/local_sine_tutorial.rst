@@ -426,17 +426,17 @@ need to write a new allocation function.
         the manager process with the libEnsemble manager and the other four will run
         libEnsemble workers.
 
-This tutorial is only a tiny demonstration of the parallelism capabilities of
-libEnsemble. libEnsemble has been developed primarily to support research on
-High-Performance computers, with potentially hundreds of workers performing
-calculations simultaneously. Please read our
-:doc:`platform guides <../platforms/platforms_index>` for introductions to using
-libEnsemble on many such machines.
+        This tutorial is only a tiny demonstration of the parallelism capabilities of
+        libEnsemble. libEnsemble has been developed primarily to support research on
+        High-Performance computers, with potentially hundreds of workers performing
+        calculations simultaneously. Please read our
+        :doc:`platform guides <../platforms/platforms_index>` for introductions to using
+        libEnsemble on many such machines.
 
-libEnsemble's Executors can launch non-Python user applications and simulations across
-allocated compute resources. Try out this feature with a more-complicated
-libEnsemble use-case within our
-:doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
+        libEnsemble's Executors can launch non-Python user applications and simulations across
+        allocated compute resources. Try out this feature with a more-complicated
+        libEnsemble use-case within our
+        :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
 
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/
