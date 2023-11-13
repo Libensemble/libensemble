@@ -11,7 +11,7 @@ doing the simulation evaluations.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local
+# TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 3
 
 import multiprocessing
@@ -31,8 +31,6 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 try:
     from ibcdfo.pounders import pounders  # noqa: F401
-
-
 except ModuleNotFoundError:
     sys.exit("Please 'pip install ibcdfo'")
 
@@ -40,10 +38,7 @@ try:
     from minqsw import minqsw  # noqa: F401
 
 except ModuleNotFoundError:
-    sys.exit(
-        sys.path
-        + ["Ensure https://github.com/POptUS/minq is located/similinked in the same directory as the calling script"]
-    )
+    sys.exit("Ensure https://github.com/POptUS/minq has been cloned and that minq/py/minq5/ is on the PYTHONPATH")
 
 
 def combine_component(x):
