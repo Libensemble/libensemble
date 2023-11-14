@@ -20,8 +20,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ python --version
-            Python 3.9.0            # This should be >= 3.9
+            python --version  # This should be >= 3.9
 
         .. _Python: https://www.python.org/
 
@@ -31,8 +30,8 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ pip install libensemble
-            $ pip install matplotlib # Optional
+            pip install libensemble
+            pip install matplotlib # Optional
 
         If your system doesn't allow you to perform these installations, try adding
         ``--user`` to the end of each command.
@@ -48,7 +47,7 @@ need to write a new allocation function.
         An available libEnsemble worker will call this generator function with the
         following parameters:
 
-            * :ref:`Input<funcguides-history>`: A selection of the History array,
+            * :ref:`Input<funcguides-history>`: A selection of the :ref:`History array<funcguides-history>` (*H*),
               passed to the generator function in case the user wants to generate
               new values based on simulation outputs. Since our generator produces random
               numbers, it'll be ignored this time.
@@ -254,7 +253,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ python calling_script.py
+            python calling_script.py
 
         If everything ran perfectly and you included the above print statements, you
         should get something similar to the following output (although the
@@ -420,7 +419,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ mpirun -n 5 python calling_script.py
+            mpirun -n 5 python calling_script.py
 
         where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
         the manager process with the libEnsemble manager and the other four will run
