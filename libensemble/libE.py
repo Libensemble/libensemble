@@ -142,7 +142,7 @@ logger = logging.getLogger(__name__)
 
 
 def detect_env():
-    # Common MPI environment variables
+    '''Return local or MPI comms based on env variables'''
     mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
     comms_type = "local"
 
@@ -267,6 +267,8 @@ def libE(
 
     # Reset gen counter.
     AllocSupport.gen_counter = 0
+
+    # TODO Can we assume local if nworkers is set via libE_specs
 
     return libE_funcs[libE_specs.get("comms", detect_env())](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
