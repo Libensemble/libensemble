@@ -11,7 +11,6 @@ parser.add_argument(
     type=str,
     nargs="?",
     choices=["local", "tcp", "ssh", "client", "mpi"],
-    default="mpi",
     help="Type of communicator",
 )
 parser.add_argument("--nworkers", type=int, nargs="?", help="Number of local forked processes")
@@ -228,6 +227,12 @@ def parse_args():
 
     """
     args, misc_args = parser.parse_known_args(sys.argv[1:])
+
+    # Assume local if nworkers is set.
+    if args.comms is None:
+        if args.nworkers is not None:
+            args.comms = "local"
+
     front_ends = {
         "mpi": _mpi_parse_args,
         "local": _local_parse_args,
