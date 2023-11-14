@@ -141,6 +141,23 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+def detect_env():
+    # Common MPI environment variables
+    mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
+    comms_type = "local"
+
+    for var in mpi_vars:
+        value = os.getenv(var)
+        if value is not None:
+            if var.endswith("_SIZE"):
+                val = os.environ[var]
+                if int(val) > 1:
+                    comms_type = "mpi"
+        else:
+            comms_type = "mpi"
+    return comms_type
+
+
 def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,
@@ -251,7 +268,7 @@ def libE(
     # Reset gen counter.
     AllocSupport.gen_counter = 0
 
-    return libE_funcs[libE_specs.get("comms", "mpi")](
+    return libE_funcs[libE_specs.get("comms", detect_env())](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
     )
 
