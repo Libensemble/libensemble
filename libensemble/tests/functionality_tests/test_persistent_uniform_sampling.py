@@ -46,6 +46,8 @@ if __name__ == "__main__":
         "out": [("f", float), ("grad", float, n)],
     }
 
+    sim_specs["in"] = (["x", "obj_component"],)
+
     gen_specs = {
         "persis_in": ["x", "f", "grad", "sim_id"],
         "out": [("x", float, (n,))],
