@@ -47,7 +47,7 @@ need to write a new allocation function.
         An available libEnsemble worker will call this generator function with the
         following parameters:
 
-            * :ref:`Input<funcguides-history>`: A selection of the :ref:`History array<funcguides-history>` (*H*),
+            * :ref:`InputArray<funcguides-history>`: A selection of the :ref:`History array<funcguides-history>` (*H*),
               passed to the generator function in case the user wants to generate
               new values based on simulation outputs. Since our generator produces random
               numbers, it'll be ignored this time.
@@ -72,7 +72,7 @@ need to write a new allocation function.
             import numpy as np
 
 
-            def gen_random_sample(Input, persis_info, gen_specs):
+            def gen_random_sample(InputArray, persis_info, gen_specs):
                 # Pull out user parameters
                 user_specs = gen_specs["user"]
 
@@ -85,13 +85,13 @@ need to write a new allocation function.
                 batch_size = user_specs["gen_batch_size"]
 
                 # Create empty array of "batch_size" zeros. Array dtype should match "out" fields
-                Output = np.zeros(batch_size, dtype=gen_specs["out"])
+                OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])
 
                 # Set the "x" output field to contain random numbers, using random stream
-                Output["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
+                OutputArray["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
 
                 # Send back our output and persis_info
-                return Output, persis_info
+                return OutputArray, persis_info
 
         Our function creates ``batch_size`` random numbers uniformly distributed
         between the ``lower`` and ``upper`` bounds. A random stream
@@ -112,17 +112,17 @@ need to write a new allocation function.
                 import numpy as np
 
 
-                def gen_random_ints(Input, persis_info, gen_specs, _):
+                def gen_random_ints(InputArray, persis_info, gen_specs, _):
                     user_specs = gen_specs["user"]
                     lower = user_specs["lower"]
                     upper = user_specs["upper"]
                     num = len(lower)
                     batch_size = user_specs["gen_batch_size"]
 
-                    Output = np.zeros(batch_size, dtype=gen_specs["out"])
-                    Output["x"] = persis_info["rand_stream"].integers(lower, upper, (batch_size, num))
+                    OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])
+                    OutputArray["x"] = persis_info["rand_stream"].integers(lower, upper, (batch_size, num))
 
-                    return Output, persis_info
+                    return OutputArray, persis_info
 
     .. tab-item:: 3. Simulator
 
@@ -140,15 +140,15 @@ need to write a new allocation function.
             import numpy as np
 
 
-            def sim_find_sine(Input, _, sim_specs):
+            def sim_find_sine(InputArray, _, sim_specs):
                 # Create an output array of a single zero
-                Output = np.zeros(1, dtype=sim_specs["out"])
+                OutputArray = np.zeros(1, dtype=sim_specs["out"])
 
-                # Set the zero to the sine of the Input value
-                Output["y"] = np.sin(Input["x"])
+                # Set the zero to the sine of the InputArray value
+                OutputArray["y"] = np.sin(InputArray["x"])
 
                 # Send back our output
-                return Output
+                return OutputArray
 
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
@@ -168,12 +168,12 @@ need to write a new allocation function.
                 import numpy as np
 
 
-                def sim_find_cosine(Input, _, sim_specs):
-                    Output = np.zeros(1, dtype=sim_specs["out"])
+                def sim_find_cosine(InputArray, _, sim_specs):
+                    OutputArray = np.zeros(1, dtype=sim_specs["out"])
 
-                    Output["y"] = np.cos(Input["x"])
+                    OutputArray["y"] = np.cos(InputArray["x"])
 
-                    return Output
+                    return OutputArray
 
     .. tab-item:: 4. Script
 
@@ -221,7 +221,7 @@ need to write a new allocation function.
 
             sim_specs = SimSpecs(
                 sim_f=sim_find_sine,  # Our simulator function
-                inputs=["x"],  #  Input field names. "x" from gen_f output
+                inputs=["x"],  #  InputArray field names. "x" from gen_f output
                 out=[("y", float)],  # sim_f output. "y" = sine("x")
             )
 
@@ -346,7 +346,7 @@ need to write a new allocation function.
 
                 sim_specs = SimSpecs(
                     sim_f=sim_find_sine,  # Our simulator function
-                    inputs=["x"],  #  Input field names. "x" from gen_f output
+                    inputs=["x"],  #  InputArray field names. "x" from gen_f output
                     out=[("y", float)],  # sim_f output. "y" = sine("x")
                 )
 
