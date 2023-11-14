@@ -107,6 +107,7 @@ need to write a new allocation function.
 
             .. code-block:: python
                 :linenos:
+                :emphasize-lines: 12
 
                 import numpy as np
 
@@ -162,6 +163,7 @@ need to write a new allocation function.
 
             .. code-block:: python
                 :linenos:
+                :emphasize-lines: 7
 
                 import numpy as np
 
@@ -322,6 +324,7 @@ need to write a new allocation function.
 
             .. code-block:: python
                 :linenos:
+                :emphasize-lines: 13,14,15,25,32,33
 
                 import numpy as np
                 from libensemble import Ensemble
@@ -347,12 +350,15 @@ need to write a new allocation function.
                     out=[("y", float)],  # sim_f output. "y" = sine("x")
                 )
 
+                exit_criteria = ExitCriteria(gen_max=160)
+
                 ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
                 ensemble.add_random_streams()
-                ensemble.run()
+                if __name__ == "__main__":
+                    ensemble.run()
 
-                if ensemble.flag != 0:
-                    print("Oh no! An error occurred!")
+                    if ensemble.flag != 0:
+                        print("Oh no! An error occurred!")
 
     .. tab-item:: 5. Next steps
 
@@ -392,28 +398,29 @@ need to write a new allocation function.
             ...
             ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
             ensemble.add_random_streams()
-            ensemble.run()
+            if __name__ == "__main__":
+                ensemble.run()
 
-            if ensemble.is_manager:  # only True on rank 0
-                H = ensemble.H
-                print([i for i in H.dtype.fields])
-                print(H)
+                if ensemble.is_manager:  # only True on rank 0
+                    H = ensemble.H
+                    print([i for i in H.dtype.fields])
+                    print(H)
 
-                import matplotlib.pyplot as plt
+                    import matplotlib.pyplot as plt
 
-                colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
+                    colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-                for i in range(1, nworkers + 1):
-                    worker_xy = np.extract(H["sim_worker"] == i, H)
-                    x = [entry.tolist()[0] for entry in worker_xy["x"]]
-                    y = [entry for entry in worker_xy["y"]]
-                    plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+                    for i in range(1, nworkers + 1):
+                        worker_xy = np.extract(H["sim_worker"] == i, H)
+                        x = [entry.tolist()[0] for entry in worker_xy["x"]]
+                        y = [entry for entry in worker_xy["y"]]
+                        plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
 
-                plt.title("Sine calculations for a uniformly sampled random distribution")
-                plt.xlabel("x")
-                plt.ylabel("sine(x)")
-                plt.legend(loc="lower right")
-                plt.savefig("tutorial_sines.png")
+                    plt.title("Sine calculations for a uniformly sampled random distribution")
+                    plt.xlabel("x")
+                    plt.ylabel("sine(x)")
+                    plt.legend(loc="lower right")
+                    plt.savefig("tutorial_sines.png")
 
         With these changes in place, our libEnsemble code can be run with MPI by
 
