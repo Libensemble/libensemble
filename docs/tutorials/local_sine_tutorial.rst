@@ -96,32 +96,6 @@ need to write a new allocation function.
         from ``persis_info`` is used to generate these values, which are then placed
         into an output NumPy array that matches the dtype from ``gen_specs["out"]``.
 
-        **Exercise**
-
-        Write a simple generator function that instead produces random integers, using
-        the ``numpy.random.Generator.integers(low, high, size)`` function.
-
-        .. dropdown:: **Click Here for Solution**
-
-            .. code-block:: python
-                :linenos:
-                :emphasize-lines: 12
-
-                import numpy as np
-
-
-                def gen_random_ints(InputArray, persis_info, gen_specs, _):
-                    user_specs = gen_specs["user"]
-                    lower = user_specs["lower"]
-                    upper = user_specs["upper"]
-                    num = len(lower)
-                    batch_size = user_specs["gen_batch_size"]
-
-                    OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])
-                    OutputArray["x"] = persis_info["rand_stream"].integers(lower, upper, (batch_size, num))
-
-                    return OutputArray, persis_info
-
     .. tab-item:: 3. Simulator
 
         Next, we'll write our simulator function or :ref:`sim_f<api_sim_f>`. Simulator
@@ -151,27 +125,6 @@ need to write a new allocation function.
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
         and then returns it so the worker can store the result.
-
-        **Exercise**
-
-        Write a simple simulator function that instead calculates the *cosine* of a received
-        value, using the ``numpy.cos(x)`` function.
-
-        .. dropdown:: **Click Here for Solution**
-
-            .. code-block:: python
-                :linenos:
-                :emphasize-lines: 7
-
-                import numpy as np
-
-
-                def sim_find_cosine(InputArray, _, sim_specs):
-                    OutputArray = np.zeros(1, dtype=sim_specs["out"])
-
-                    OutputArray["y"] = np.cos(InputArray["x"])
-
-                    return OutputArray
 
     .. tab-item:: 4. Script
 
