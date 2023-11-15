@@ -413,6 +413,8 @@ need to write a new allocation function.
 
                 if ensemble.is_manager:  # only True on rank 0
                     history = ensemble.H  # start visualizing our results
+                    print([i for i in history.dtype.fields])
+                    print(history)
 
                     colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 

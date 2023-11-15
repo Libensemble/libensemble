@@ -31,11 +31,12 @@ ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
 ensemble.add_random_streams()  # setup the random streams unique to each worker
 
 if __name__ == "__main__":
-
     ensemble.run()  # start the ensemble. Blocks until completion.
 
     if ensemble.is_manager:  # only True on rank 0
         history = ensemble.H  # start visualizing our results
+        print([i for i in history.dtype.fields])
+        print(history)
 
         colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
