@@ -36,8 +36,6 @@ need to write a new allocation function.
         If your system doesn't allow you to perform these installations, try adding
         ``--user`` to the end of each command.
 
-        .. _NumPy: https://www.numpy.org/
-        .. _Matplotlib: https://matplotlib.org/
 
     .. tab-item:: 2. Generator
 
@@ -385,37 +383,41 @@ need to write a new allocation function.
 
         **Modifying the script**
 
-        Only a few changes are necessary to make our code MPI-compatible. Note the following:
+        Only a few changes are necessary to make our code MPI-compatible. For starters,
+        comment out the ``libE_specs`` definition:
 
         .. code-block:: python
             :linenos:
             :lineno-start: 7
 
-            libE_specs = LibeSpecs()  # class will autodetect MPI runtime
+            # libE_specs = LibeSpecs(nworkers=4, comms="local")
 
-        So that only one process executes the graphing and printing portion of our code,
-        modify the bottom of the calling script like this:
+        We'll be parameterizing our MPI runtime with a ``parse_args=True`` argument to
+        the ``Ensemble`` class instead of ``libE_specs``. We'll also use an ``ensemble.is_manager``
+        attribute so only the first MPI rank runs the data-processing code.
+
+        The bottom of your calling script should now resemble:
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 27
+            :lineno-start: 28
 
-            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+            # replace libE_specs with parse_args=True. Detects MPI runtime
+            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
+
             ensemble.add_random_streams()
+
             if __name__ == "__main__":
-                ensemble.run()
+
+                ensemble.run()  # start the ensemble. Blocks until completion.
 
                 if ensemble.is_manager:  # only True on rank 0
-                    H = ensemble.H
-                    print([i for i in H.dtype.fields])
-                    print(H)
-
-                    import matplotlib.pyplot as plt
+                    history = ensemble.H  # start visualizing our results
 
                     colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-                    for i in range(1, nworkers + 1):
-                        worker_xy = np.extract(H["sim_worker"] == i, H)
+                    for i in range(1, ensemble.nworkers + 1):
+                        worker_xy = np.extract(history["sim_worker"] == i, history)
                         x = [entry.tolist()[0] for entry in worker_xy["x"]]
                         y = [entry for entry in worker_xy["y"]]
                         plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
@@ -448,8 +450,10 @@ need to write a new allocation function.
         libEnsemble use-case within our
         :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
 
+.. _Matplotlib: https://matplotlib.org/
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/install.html
+.. _NumPy: https://www.numpy.org/
 .. _here: https://www.mpich.org/downloads/
 .. _examples/tutorials/simple_sine: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/simple_sine
