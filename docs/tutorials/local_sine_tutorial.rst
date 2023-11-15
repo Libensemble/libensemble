@@ -400,7 +400,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 28
+            :lineno-start: 27
 
             # replace libE_specs with parse_args=True. Detects MPI runtime
             ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
@@ -415,6 +415,8 @@ need to write a new allocation function.
                     history = ensemble.H  # start visualizing our results
                     print([i for i in history.dtype.fields])
                     print(history)
+
+                    import matplotlib.pyplot as plt
 
                     colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
