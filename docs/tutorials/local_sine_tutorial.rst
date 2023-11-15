@@ -247,21 +247,21 @@ need to write a new allocation function.
             :linenos:
             :lineno-start: 37
 
-            import matplotlib.pyplot as plt
+                import matplotlib.pyplot as plt
 
-            colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
+                colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-            for i in range(1, libE_specs.nworkers + 1):
-                worker_xy = np.extract(history["sim_worker"] == i, history)
-                x = [entry.tolist()[0] for entry in worker_xy["x"]]
-                y = [entry for entry in worker_xy["y"]]
-                plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+                for i in range(1, libE_specs.nworkers + 1):
+                    worker_xy = np.extract(history["sim_worker"] == i, history)
+                    x = [entry.tolist()[0] for entry in worker_xy["x"]]
+                    y = [entry for entry in worker_xy["y"]]
+                    plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
 
-            plt.title("Sine calculations for a uniformly sampled random distribution")
-            plt.xlabel("x")
-            plt.ylabel("sine(x)")
-            plt.legend(loc="lower right")
-            plt.savefig("tutorial_sines.png")
+                plt.title("Sine calculations for a uniformly sampled random distribution")
+                plt.xlabel("x")
+                plt.ylabel("sine(x)")
+                plt.legend(loc="lower right")
+                plt.savefig("tutorial_sines.png")
 
         Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
 
