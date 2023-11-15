@@ -180,7 +180,7 @@ need to write a new allocation function.
         Now lets write the script that configures our generator and simulator
         functions and starts libEnsemble.
 
-        Create an empty Python file named ``calling_script.py``.
+        Create an empty Python file named ``calling.py``.
         In this file, we'll start by importing NumPy, libEnsemble's setup classes,
         and the generator and simulator functions we just created.
 
@@ -208,6 +208,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 9
 
             gen_specs = GenSpecs(
                 gen_f=gen_random_sample,  # Our generator function
@@ -230,6 +231,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 25
 
             exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
@@ -239,6 +241,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 27
 
             ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
             ensemble.add_random_streams()  # setup the random streams unique to each worker
@@ -255,7 +258,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            python calling_script.py
+            python calling.py
 
         If everything ran perfectly and you included the above print statements, you
         should get something similar to the following output (although the
@@ -288,7 +291,7 @@ need to write a new allocation function.
 
         If you want to verify your results through plotting and installed Matplotlib
         earlier, copy and paste the following code into the bottom of your calling
-        script and run ``python calling_script.py`` again
+        script and run ``python calling.py`` again
 
         .. code-block:: python
             :linenos:
@@ -386,6 +389,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 7
 
             libE_specs = LibeSpecs()  # class will autodetect MPI runtime
 
@@ -394,8 +398,8 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 27
 
-            ...
             ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
             ensemble.add_random_streams()
             if __name__ == "__main__":
@@ -426,7 +430,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            mpirun -n 5 python calling_script.py
+            mpirun -n 5 python calling.py
 
         where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
         the manager process with the libEnsemble manager and the other four will run

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def gen_random_sample(Input, persis_info, gen_specs):
+def gen_random_sample(InputArray, persis_info, gen_specs):
     # Pull out user parameters
     user_specs = gen_specs["user"]
 
@@ -14,10 +14,10 @@ def gen_random_sample(Input, persis_info, gen_specs):
     batch_size = user_specs["gen_batch_size"]
 
     # Create empty array of "batch_size" zeros. Array dtype should match "out" fields
-    Output = np.zeros(batch_size, dtype=gen_specs["out"])
+    OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])
 
     # Set the "x" output field to contain random numbers, using random stream
-    Output["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
+    OutputArray["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
 
     # Send back our output and persis_info
-    return Output, persis_info
+    return OutputArray, persis_info
