@@ -148,7 +148,8 @@ need to write a new allocation function.
             from gen import gen_random_sample
             from sim import sim_find_sine
 
-            libE_specs = LibeSpecs(nworkers=4, comms="local")
+            if __name__ == "__main__":  # Python-quirk required on macOS and windows
+                libE_specs = LibeSpecs(nworkers=4, comms="local")
 
         We configure the settings and specifications for our ``sim_f`` and ``gen_f``
         functions in the :ref:`GenSpecs<datastruct-gen-specs>` and
@@ -159,32 +160,32 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 9
+            :lineno-start: 10
 
-            gen_specs = GenSpecs(
-                gen_f=gen_random_sample,  # Our generator function
-                out=[("x", float, (1,))],  # gen_f output (name, type, size)
-                user={
-                    "lower": np.array([-3]),  # lower boundary for random sampling
-                    "upper": np.array([3]),  # upper boundary for random sampling
-                    "gen_batch_size": 5,  # number of x's gen_f generates per call
-                },
-            )
+                gen_specs = GenSpecs(
+                    gen_f=gen_random_sample,  # Our generator function
+                    out=[("x", float, (1,))],  # gen_f output (name, type, size)
+                    user={
+                        "lower": np.array([-3]),  # lower boundary for random sampling
+                        "upper": np.array([3]),  # upper boundary for random sampling
+                        "gen_batch_size": 5,  # number of x's gen_f generates per call
+                    },
+                )
 
-            sim_specs = SimSpecs(
-                sim_f=sim_find_sine,  # Our simulator function
-                inputs=["x"],  #  InputArray field names. "x" from gen_f output
-                out=[("y", float)],  # sim_f output. "y" = sine("x")
-            )
+                sim_specs = SimSpecs(
+                    sim_f=sim_find_sine,  # Our simulator function
+                    inputs=["x"],  #  InputArray field names. "x" from gen_f output
+                    out=[("y", float)],  # sim_f output. "y" = sine("x")
+                )
 
         We then specify the circumstances where
         libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria>`.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 25
+            :lineno-start: 26
 
-            exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
+                exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
         Now we're ready to write our libEnsemble :doc:`libE<../programming_libE>`
         function call. :ref:`ensemble.H<funcguides-history>` is the final version of
@@ -192,12 +193,10 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 27
+            :lineno-start: 28
 
-            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
-            ensemble.add_random_streams()  # setup the random streams unique to each worker
-
-            if __name__ == "__main__":  # Python-quirk required on macOS and windows
+                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+                ensemble.add_random_streams()  # setup the random streams unique to each worker
                 ensemble.run()  # start the ensemble. Blocks until completion.
 
                 history = ensemble.H  # start visualizing our results
@@ -246,6 +245,7 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 37
 
             import matplotlib.pyplot as plt
 
@@ -278,7 +278,7 @@ need to write a new allocation function.
 
             .. code-block:: python
                 :linenos:
-                :emphasize-lines: 13,14,15,25,32,33
+                :emphasize-lines: 14,15,16,26,32,33
 
                 import numpy as np
                 from libensemble import Ensemble
@@ -286,29 +286,29 @@ need to write a new allocation function.
                 from gen import gen_random_sample
                 from sim import sim_find_sine
 
-                libE_specs = LibeSpecs(nworkers=4, comms="local")
-
-                gen_specs = GenSpecs(
-                    gen_f=gen_random_sample,  # Our generator function
-                    out=[("x", float, (1,))],  # gen_f output (name, type, size)
-                    user={
-                        "lower": np.array([-6]),  # lower boundary for random sampling
-                        "upper": np.array([6]),  # upper boundary for random sampling
-                        "gen_batch_size": 10,  # number of x's gen_f generates per call
-                    },
-                )
-
-                sim_specs = SimSpecs(
-                    sim_f=sim_find_sine,  # Our simulator function
-                    inputs=["x"],  #  InputArray field names. "x" from gen_f output
-                    out=[("y", float)],  # sim_f output. "y" = sine("x")
-                )
-
-                exit_criteria = ExitCriteria(gen_max=160)
-
-                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
-                ensemble.add_random_streams()
                 if __name__ == "__main__":
+                    libE_specs = LibeSpecs(nworkers=4, comms="local")
+
+                    gen_specs = GenSpecs(
+                        gen_f=gen_random_sample,  # Our generator function
+                        out=[("x", float, (1,))],  # gen_f output (name, type, size)
+                        user={
+                            "lower": np.array([-6]),  # lower boundary for random sampling
+                            "upper": np.array([6]),  # upper boundary for random sampling
+                            "gen_batch_size": 10,  # number of x's gen_f generates per call
+                        },
+                    )
+
+                    sim_specs = SimSpecs(
+                        sim_f=sim_find_sine,  # Our simulator function
+                        inputs=["x"],  #  InputArray field names. "x" from gen_f output
+                        out=[("y", float)],  # sim_f output. "y" = sine("x")
+                    )
+
+                    exit_criteria = ExitCriteria(gen_max=160)
+
+                    ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+                    ensemble.add_random_streams()
                     ensemble.run()
 
                     if ensemble.flag != 0:
@@ -341,9 +341,9 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 7
+            :lineno-start: 8
 
-            # libE_specs = LibeSpecs(nworkers=4, comms="local")
+                # libE_specs = LibeSpecs(nworkers=4, comms="local")
 
         We'll be parameterizing our MPI runtime with a ``parse_args=True`` argument to
         the ``Ensemble`` class instead of ``libE_specs``. We'll also use an ``ensemble.is_manager``
@@ -353,15 +353,12 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
-            :lineno-start: 27
+            :lineno-start: 28
 
-            # replace libE_specs with parse_args=True. Detects MPI runtime
-            ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
+                # replace libE_specs with parse_args=True. Detects MPI runtime
+                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
 
-            ensemble.add_random_streams()
-
-            if __name__ == "__main__":
-
+                ensemble.add_random_streams()
                 ensemble.run()  # start the ensemble. Blocks until completion.
 
                 if ensemble.is_manager:  # only True on rank 0
