@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def EvaluateFunction(x, component):
+def EvaluateFunction(x, component=None):
     """
     Evaluates the chained Rosenbrock function
 
@@ -21,17 +21,18 @@ def EvaluateFunction(x, component):
 
     n = len(x) // 2
 
-    if np.isnan(component):
+    if component is None:
         f1 = 100 * np.power(np.power(x[::2], 2) - x[1::2], 2)
         f2 = np.power(x[::2] - np.ones(n), 2)
         f = f1 + f2
+
     else:
         i = component
         x1 = x[2 * i]
         x2 = x[2 * i + 1]
         f = 100 * (x1**2 - x2) ** 2 + (x1 - 1) ** 2
 
-    return f[0]
+    return f.squeeze()
 
 
 def EvaluateJacobian(x, component, const):
@@ -79,13 +80,14 @@ def rosenbrock_eval(H, persis_info, sim_specs, _):
 
     for i, x in enumerate(H["x"]):
         if "obj_component" in H.dtype.fields:
-            H_o["f_i"][i] = EvaluateFunction(x, H["obj_component"][i])
+            obj_component = H["obj_component"][i]
+            H_o["f_i"][i] = EvaluateFunction(x, obj_component)
 
             if persis_info.get("get_grad", False):
-                H_o["gradf_i"][i] = EvaluateJacobian(x, H["obj_component"][i], const)
+                H_o["gradf_i"][i] = EvaluateJacobian(x, obj_component, const)
 
         else:
-            H_o["f"][i] = EvaluateFunction(x, np.nan)
+            H_o["f"][i] = EvaluateFunction(x)
 
             if persis_info.get("get_grad", False):
                 H_o["grad"][i] = EvaluateJacobian(x, np.nan, const)
