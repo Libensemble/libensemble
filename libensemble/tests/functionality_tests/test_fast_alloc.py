@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.six_hump_camel import six_hump_camel_simple as sim_f
+from libensemble.sim_funcs.branin.branin_obj import call_branin as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -69,10 +69,10 @@ if __name__ == "__main__":
             alloc_specs = {"alloc_f": alloc_f, "user": {"num_active_gens": 1}}
 
         for rep in range(1):
-            sim_specs["user"]["pause_time"] = time
+            sim_specs["user"]["uniform_random_pause_ub"] = time
 
             if time == 0:
-                sim_specs["user"].pop("pause_time")
+                sim_specs["user"].pop("uniform_random_pause_ub")
                 gen_specs["user"]["gen_batch_size"] = num_pts // 2
 
             persis_info["next_to_give"] = 0
