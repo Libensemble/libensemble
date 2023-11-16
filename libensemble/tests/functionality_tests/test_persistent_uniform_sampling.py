@@ -82,7 +82,7 @@ if __name__ == "__main__":
             gen_specs["user"]["num_components"] = m
             gen_specs["user"]["lb"] = np.arange(-2 * m - 1, -1)
             gen_specs["user"]["ub"] = np.arange(2 * m + 1, 1, -1)
-            sim_specs["out"] = [("f", float), ("gradf_i", float, 2 * m)]
+            sim_specs["out"] = [("f_i", float), ("gradf_i", float, 2 * m)]
             sim_specs["in"] = ["x", "obj_component"]
             # sim_specs["out"] = [("f", float), ("grad", float, n)]
 
