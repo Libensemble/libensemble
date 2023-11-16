@@ -56,6 +56,9 @@ these examples, the ensemble members are typically simulations that use differen
 parameters or data. Additional examples of applications that have used libEnsemble are
 surveyed in [Representative libEnsemble Use Cases](#Representative-libEnsemble-Use-Cases).
 
+The target audience for libEnsemble includes scientists, engineers, and other researchers
+who stand to benefit from such dynamic workflows.
+
 Key considerations for packages running dynamic ensembles include the following:
 
 - Ease of use -- whether the software requires a complex setup
