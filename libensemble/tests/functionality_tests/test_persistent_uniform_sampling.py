@@ -70,11 +70,12 @@ if __name__ == "__main__":
         if run == 0:
             gen_specs["gen_f"] = gen_f1
         elif run == 1:
-            persis_info["const"] = 500
             gen_specs["gen_f"] = gen_f2
             gen_specs["user"]["num_best_vals"] = 5
         elif run == 2:
             m = 8
+            for i in persis_info:
+                persis_info[i]["const"] = 500
 
             gen_specs["gen_f"] = gen_f1
             gen_specs["persis_in"] = ["x", "f_i", "gradf_i", "sim_id"]
