@@ -83,7 +83,7 @@ setup(
     ],
     extras_require={
         "docs": [
-            "autodoc_pydantic<2",
+            "autodoc_pydantic<3",
             "sphinx<8",
             "sphinx_design",
             "sphinx_rtd_theme",
