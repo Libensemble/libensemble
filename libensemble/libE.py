@@ -141,6 +141,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+# TODO This actually needs to be determined in specs.py class LibeSpecs(BaseModel)
 def detect_env():
     '''Return local or MPI comms based on env variables'''
     mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
@@ -153,8 +154,6 @@ def detect_env():
                 val = os.environ[var]
                 if int(val) > 1:
                     comms_type = "mpi"
-        else:
-            comms_type = "mpi"
     return comms_type
 
 
