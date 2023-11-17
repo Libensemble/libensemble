@@ -126,7 +126,7 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    exit_criteria = {"sim_max": 2 * max_evals}
+    exit_criteria = {"sim_max": max_evals}
 
     # Perform the run
     H, persis_info, flag = libE(
