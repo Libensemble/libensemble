@@ -12,7 +12,7 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 5, 7
 # TESTSUITE_OS_SKIP: WIN
 
