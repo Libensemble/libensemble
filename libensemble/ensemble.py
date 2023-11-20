@@ -274,7 +274,7 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self._libE_specs = libE_specs
+        self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -284,7 +284,7 @@ class Ensemble:
         self.logger = logger
         self.logger.set_level("INFO")
 
-        self.nworkers = 0
+        self._nworkers = 0
         self.is_manager = False
         self.parsed = False
 
@@ -316,27 +316,23 @@ class Ensemble:
         #   "not" overwrite the internal libE_specs["comms"], but *only* if parse_args
         #   was called. Otherwise we can respect the complete set of provided options.
 
-        # Convert our libE_specs from dict to class, if its a dict
-        if isinstance(self._libE_specs, dict):
-            self._libE_specs = LibeSpecs(**self._libE_specs)
+        # Respect everything if libE_specs isn't set
+        if not hasattr(self, "_libE_specs") or not self._libE_specs:
+            if isinstance(new_specs, dict):
+                self._libE_specs = LibeSpecs(**new_specs)
+            else:
+                self._libE_specs = new_specs
+            return
 
         # Cast new libE_specs temporarily to dict
-        if not isinstance(new_specs, dict):
+        if isinstance(new_specs, LibeSpecs):
             new_specs = new_specs.dict(by_alias=True, exclude_none=True, exclude_unset=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
             new_specs.pop("comms")
 
-        # Now finally set attribute if we don't have a libE_specs, otherwise update the internal
-        # But be careful that our new libE_specs is a class
-        if not self._libE_specs:
-            if isinstance(new_specs, dict):
-                self._libE_specs = LibeSpecs(**new_specs)
-            else:
-                self._libE_specs = new_specs
-        else:
-            self._libE_specs.__dict__.update(**new_specs)
+        self._libE_specs.__dict__.update(**new_specs)
 
         if not self.nworkers and self._libE_specs.nworkers:
             self.nworkers = self._libE_specs.nworkers
@@ -397,10 +393,15 @@ class Ensemble:
 
         return self.H, self.persis_info, self.flag
 
-    def _nworkers(self):
-        if self.nworkers:
-            return self.nworkers
-        return self.libE_specs.nworkers
+    @property
+    def nworkers(self):
+        return self._nworkers or self.libE_specs.nworkers
+
+    @nworkers.setter
+    def nworkers(self, value):
+        self._nworkers = value
+        if self.libE_specs:
+            self.libE_specs.nworkers = value
 
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""
@@ -539,7 +540,7 @@ class Ensemble:
         if num_streams:
             nstreams = num_streams
         else:
-            nstreams = self._nworkers()
+            nstreams = self.nworkers
 
         self.persis_info = add_unique_random_streams(self.persis_info, nstreams + 1, seed=seed)
         return self.persis_info

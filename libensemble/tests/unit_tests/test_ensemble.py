@@ -13,9 +13,25 @@ def test_ensemble_init():
 
     e = Ensemble(parse_args=True)
     assert hasattr(e.libE_specs, "comms"), "internal parse_args() didn't populate defaults for class's libE_specs"
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
+
+
+def test_ensemble_parse_args_false():
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    e = Ensemble()  # parse_args defaults to False
+    e.libE_specs = {"comms": "local", "nworkers": 4}
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+
+    # test pass attribute as dict
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
 
 def test_from_files():
@@ -88,6 +104,7 @@ def test_full_workflow():
         ),
         exit_criteria=ExitCriteria(gen_max=101),
     )
+
     ens.add_random_streams()
     ens.run()
     if ens.is_manager:
@@ -106,6 +123,7 @@ def test_full_workflow():
 
 if __name__ == "__main__":
     test_ensemble_init()
+    test_ensemble_parse_args_false()
     test_from_files()
     test_bad_func_loads()
     test_full_workflow()
