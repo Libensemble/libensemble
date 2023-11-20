@@ -14,7 +14,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
 from libensemble.tools import save_libE_output
-from libensemble.utils.pydantic_support import specs_dump
+from libensemble.utils.pydantic_bindings import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
 ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"

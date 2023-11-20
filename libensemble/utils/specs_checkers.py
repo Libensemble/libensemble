@@ -8,48 +8,50 @@ import logging
 import numpy as np
 
 from libensemble.tools.fields_keys import libE_fields
+from libensemble.utils.pydantic_bindings import specs_check_setattr as scs
+from libensemble.utils.pydantic_bindings import specs_checker_getattr as scg
 
 logger = logging.getLogger(__name__)
 
 
-def _check_exit_criteria(EnsembleSpecs):
-    if "stop_val" in EnsembleSpecs.exit_criteria:
-        stop_name = EnsembleSpecs.exit_criteria.stop_val[0]
-        sim_out_names = [e[0] for e in EnsembleSpecs.sim_specs.outputs]
-        gen_out_names = [e[0] for e in EnsembleSpecs.gen_specs.outputs]
+def _check_exit_criteria(values):
+    if "stop_val" in scg(values, "exit_criteria"):
+        stop_name = scg(values, "exit_criteria").stop_val[0]
+        sim_out_names = [e[0] for e in scg(values, "sim_specs").outputs]
+        gen_out_names = [e[0] for e in scg(values, "gen_specs").outputs]
         assert stop_name in sim_out_names + gen_out_names, f"Can't stop on {stop_name} if it's not in a sim/gen output"
-    return EnsembleSpecs
+    return values
 
 
-def _check_output_fields(EnsembleSpecs):
+def _check_output_fields(values):
     out_names = [e[0] for e in libE_fields]
-    if EnsembleSpecs.H0 is not None and EnsembleSpecs.H0.dtype.names is not None:
-        out_names += list(EnsembleSpecs.H0.dtype.names)
-    out_names += [e[0] for e in EnsembleSpecs.sim_specs.outputs]
-    if EnsembleSpecs.gen_specs:
-        out_names += [e[0] for e in EnsembleSpecs.gen_specs.outputs]
-    if EnsembleSpecs.alloc_specs:
-        out_names += [e[0] for e in EnsembleSpecs.alloc_specs.outputs]
+    if scg(values, "H0") is not None and scg(values, "H0").dtype.names is not None:
+        out_names += list(scg(values, "H0").dtype.names)
+    out_names += [e[0] for e in scg(values, "sim_specs").outputs]
+    if scg(values, "gen_specs"):
+        out_names += [e[0] for e in scg(values, "gen_specs").outputs]
+    if scg(values, "alloc_specs"):
+        out_names += [e[0] for e in scg(values, "alloc_specs").outputs]
 
-    for name in EnsembleSpecs.sim_specs.inputs:
+    for name in scg(values, "sim_specs").inputs:
         assert name in out_names, (
             name + " in sim_specs['in'] is not in sim_specs['out'], "
             "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
         )
 
-    if EnsembleSpecs.gen_specs:
-        for name in EnsembleSpecs.gen_specs.inputs:
+    if scg(values, "gen_specs"):
+        for name in scg(values, "gen_specs").inputs:
             assert name in out_names, (
                 name + " in gen_specs['in'] is not in sim_specs['out'], "
                 "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
             )
-    return EnsembleSpecs
+    return values
 
 
-def _check_H0(EnsembleSpecs):
-    if EnsembleSpecs.H0.size > 0:
-        H0 = EnsembleSpecs.H0
-        specs = [EnsembleSpecs.sim_specs, EnsembleSpecs.gen_specs]
+def _check_H0(values):
+    if scg(values, "H0").size > 0:
+        H0 = scg(values, "H0")
+        specs = [scg(values, "sim_specs"), scg(values, "gen_specs")]
         specs_dtype_list = list(set(libE_fields + sum([k.outputs or [] for k in specs if k], [])))
         specs_dtype_fields = [i[0] for i in specs_dtype_list]
         specs_inputs_list = list(set(sum([k.inputs + k.persis_in or [] for k in specs if k], [])))
@@ -74,17 +76,17 @@ def _check_H0(EnsembleSpecs):
         for field in H0.dtype.names:
             if field in specs_dtype_list:
                 _check_consistent_field(field, H0[field], Dummy_H[field])
-    return EnsembleSpecs
+    return values
 
 
-def _check_any_workers_and_disable_rm_if_tcp(LibeSpecs):
-    comms_type = LibeSpecs.comms
+def _check_any_workers_and_disable_rm_if_tcp(values):
+    comms_type = scg(values, "comms")
     if comms_type in ["local", "tcp"]:
-        if LibeSpecs.nworkers:
-            assert LibeSpecs.nworkers >= 1, "Must specify at least one worker"
+        if scg(values, "nworkers"):
+            assert scg(values, "nworkers") >= 1, "Must specify at least one worker"
         else:
             if comms_type == "tcp":
-                assert LibeSpecs.workers, "Without nworkers, must specify worker hosts on TCP"
+                assert scg(values, "workers"), "Without nworkers, must specify worker hosts on TCP"
     if comms_type == "tcp":
-        LibeSpecs.__dict__["disable_resource_manager"] = True  # Resource management not supported with TCP
-    return LibeSpecs
+        scs(values, "disable_resource_manager", True)  # Resource management not supported with TCP
+    return values

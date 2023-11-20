@@ -132,7 +132,7 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
-from libensemble.utils.pydantic_support import specs_dump
+from libensemble.utils.pydantic_bindings import specs_dump
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main

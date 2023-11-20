@@ -1,4 +1,4 @@
-from libensemble.utils.pydantic_support import pydanticV1, pydanticV2
+from libensemble.utils.pydantic_bindings import pydanticV1, pydanticV2
 
 if pydanticV1:
     from .platformsV1 import Platform  # noqa: F401
