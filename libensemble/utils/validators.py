@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 
 from libensemble.resources.platforms import Platform
-from libensemble.utils.pydantic_bindings import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1, pydanticV2
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
@@ -22,6 +22,8 @@ _IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
 
 if pydanticV1:
     from pydantic import root_validator, validator
+
+    # SPECS VALIDATORS #####
 
     @validator("outputs", pre=True)
     def check_valid_out(cls, v):
@@ -109,10 +111,39 @@ if pydanticV1:
             return _check_H0(values)
         return values
 
+    # RESOURCES VALIDATORS #####
+
+    @validator("gpu_setting_type")
+    def check_gpu_setting_type(cls, value):
+        if value is not None:
+            assert value in [
+                "runner_default",
+                "env",
+                "option_gpus_per_node",
+                "option_gpus_per_task",
+            ], "Invalid label for GPU specification type"
+        return value
+
+    @validator("mpi_runner")
+    def check_mpi_runner_type(cls, value):
+        if value is not None:
+            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
+        return value
+
+    @root_validator
+    def check_logical_cores(cls, values):
+        if values.get("cores_per_node") and values.get("logical_cores_per_node"):
+            assert (
+                values["logical_cores_per_node"] % values["cores_per_node"] == 0
+            ), "Logical cores doesn't divide evenly into cores"
+        return values
+
 elif pydanticV2:
     from pydantic import field_validator, model_validator
 
-    @field_validator("outputs", mode="before")
+    # SPECS VALIDATORS #####
+
+    @field_validator("outputs")
     @classmethod
     def check_valid_out(cls, v):
         try:
@@ -122,7 +153,7 @@ elif pydanticV2:
         else:
             return v
 
-    @field_validator("inputs", "persis_in", mode="before")
+    @field_validator("inputs", "persis_in")
     @classmethod
     def check_valid_in(cls, v):
         if not all(isinstance(s, str) for s in v):
@@ -202,4 +233,33 @@ elif pydanticV2:
     def check_H0(self):
         if self.H0 is not None:
             return _check_H0(self)
+        return self
+
+    # RESOURCES VALIDATORS #####
+
+    @field_validator("gpu_setting_type")
+    @classmethod
+    def check_gpu_setting_type(cls, value):
+        if value is not None:
+            assert value in [
+                "runner_default",
+                "env",
+                "option_gpus_per_node",
+                "option_gpus_per_task",
+            ], "Invalid label for GPU specification type"
+        return value
+
+    @field_validator("mpi_runner")
+    @classmethod
+    def check_mpi_runner_type(cls, value):
+        if value is not None:
+            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
+        return value
+
+    @model_validator(mode="after")
+    def check_logical_cores(self):
+        if self.__dict__.get("cores_per_node") and self.__dict__.get("logical_cores_per_node"):
+            assert (
+                self.logical_cores_per_node % self.cores_per_node == 0
+            ), "Logical cores doesn't divide evenly into cores"
         return self

@@ -266,7 +266,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
 .. dropdown:: Complete Class API
 
-    .. autopydantic_model:: libensemble.specsV2.LibeSpecs
+    .. autopydantic_model:: libensemble.specs.LibeSpecs
         :model-show-json: False
         :model-show-config-member: False
         :model-show-config-summary: False

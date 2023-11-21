@@ -1,14 +1,17 @@
-import pydantic
-
+from libensemble.resources.platforms import Platform
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
+from libensemble.utils.misc import pydanticV1, pydanticV2
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
     check_any_workers_and_disable_rm_if_tcp,
     check_exit_criteria,
+    check_gpu_setting_type,
     check_H0,
     check_input_dir_exists,
     check_inputs_exist,
+    check_logical_cores,
+    check_mpi_runner_type,
     check_output_fields,
     check_valid_comms_type,
     check_valid_in,
@@ -35,10 +38,9 @@ _EnsembleSpecs.check_output_fields = check_output_fields
 _EnsembleSpecs.set_ensemble_nworkers = set_ensemble_nworkers
 _EnsembleSpecs.check_H0 = check_H0
 
-pydantic_version = pydantic.__version__[0]
-
-pydanticV1 = pydantic_version == "1"
-pydanticV2 = pydantic_version == "2"
+Platform.check_gpu_setting_type = check_gpu_setting_type
+Platform.check_mpi_runner_type = check_mpi_runner_type
+Platform.check_logical_cores = check_logical_cores
 
 if pydanticV1:
     from pydantic import BaseConfig
@@ -71,24 +73,4 @@ elif pydanticV2:
     LibeSpecs.model_config = model_config
     ExitCriteria.model_config = model_config
     _EnsembleSpecs.model_config = model_config
-
-
-def specs_dump(specs, **kwargs):
-    if pydanticV1:
-        return specs.dict(**kwargs)
-    elif pydanticV2:
-        return specs.model_dump(**kwargs)
-
-
-def specs_checker_getattr(obj, key):
-    if pydanticV1:  # dict
-        return obj.get(key)
-    elif pydanticV2:  # actual obj
-        return getattr(obj, key)
-
-
-def specs_check_setattr(obj, key, value):
-    if pydanticV1:  # dict
-        obj[key] = value
-    elif pydanticV2:  # actual obj
-        obj.__dict__[key] = value
+    Platform.model_config = model_config

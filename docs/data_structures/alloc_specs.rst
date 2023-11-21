@@ -7,7 +7,7 @@ Allocation function specifications to be set in the user calling script. *Option
 
 Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
-.. autopydantic_model:: libensemble.specsV2.AllocSpecs
+.. autopydantic_model:: libensemble.specs.AllocSpecs
   :model-show-json: False
   :model-show-config-member: False
   :model-show-config-summary: False

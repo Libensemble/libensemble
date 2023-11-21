@@ -19,7 +19,7 @@ PBS             PBS_NODEFILE
 ===========  ===========================
 
 These environment variable names can be modified via the  :ref:`resource_info<resource_info>`
-:class:`libE_specs<libensemble.specsV2.LibeSpecs>` option.
+:class:`libE_specs<libensemble.specs.LibeSpecs>` option.
 
 On other systems you may have to supply a node list in a file called **node_list**
 in your run directory. For example, on ALCF system Cooley_, the session node list
@@ -38,6 +38,6 @@ manager is disabled, then runs without a hostlist or machinefile supplied may be
 undesirably scheduled to the same nodes.
 
 System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
-:class:`libE_specs<libensemble.specsV2.LibeSpecs>` option.
+:class:`libE_specs<libensemble.specs.LibeSpecs>` option.
 
 .. _Cooley: https://www.alcf.anl.gov/support-center/cooley

@@ -7,7 +7,7 @@ The following criteria (or termination tests) can be used to configure when to s
 
 Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
-.. autopydantic_model:: libensemble.specsV2.ExitCriteria
+.. autopydantic_model:: libensemble.specs.ExitCriteria
   :model-show-json: False
   :model-show-config-member: False
   :model-show-config-summary: False

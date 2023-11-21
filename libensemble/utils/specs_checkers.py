@@ -8,8 +8,8 @@ import logging
 import numpy as np
 
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.utils.pydantic_bindings import specs_check_setattr as scs
-from libensemble.utils.pydantic_bindings import specs_checker_getattr as scg
+from libensemble.utils.misc import specs_check_setattr as scs
+from libensemble.utils.misc import specs_checker_getattr as scg
 
 logger = logging.getLogger(__name__)
 
