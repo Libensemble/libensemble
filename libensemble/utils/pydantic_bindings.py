@@ -1,5 +1,5 @@
 from libensemble.resources.platforms import Platform
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.utils.misc import pydanticV1, pydanticV2
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
@@ -22,6 +22,38 @@ from libensemble.utils.validators import (
     set_workflow_dir,
 )
 
+if pydanticV1:
+    from pydantic import BaseConfig, Field
+
+    BaseConfig.arbitrary_types_allowed = True
+    BaseConfig.allow_population_by_field_name = True
+    BaseConfig.extra = "allow"
+    BaseConfig.error_msg_templates = {
+        "value_error.extra": _UNRECOGNIZED_ERR,
+        "type_error.callable": _UFUNC_INVALID_ERR,
+    }
+    BaseConfig.validate_assignment = True
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    LibeSpecs.Config = Config
+    _EnsembleSpecs.Config = Config
+
+elif pydanticV2:
+    from pydantic import ConfigDict, Field
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True, populate_by_name=True, extra="allow", validate_assignment=True
+    )
+
+    SimSpecs.model_config = model_config
+    GenSpecs.model_config = model_config
+    LibeSpecs.model_config = model_config
+    ExitCriteria.model_config = model_config
+    _EnsembleSpecs.model_config = model_config
+    Platform.model_config = model_config
+
 SimSpecs.check_valid_out = check_valid_out
 SimSpecs.check_valid_in = check_valid_in
 GenSpecs.check_valid_out = check_valid_out
@@ -42,35 +74,8 @@ Platform.check_gpu_setting_type = check_gpu_setting_type
 Platform.check_mpi_runner_type = check_mpi_runner_type
 Platform.check_logical_cores = check_logical_cores
 
-if pydanticV1:
-    from pydantic import BaseConfig
-
-    BaseConfig.arbitrary_types_allowed = True
-    BaseConfig.allow_population_by_field_name = True
-    BaseConfig.extra = "forbid"
-    BaseConfig.error_msg_templates = {
-        "value_error.extra": _UNRECOGNIZED_ERR,
-        "type_error.callable": _UFUNC_INVALID_ERR,
-    }
-    BaseConfig.validate_assignment = True
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    LibeSpecs.Config = Config
-    _EnsembleSpecs.Config = Config
-
-
-elif pydanticV2:
-    from pydantic import ConfigDict
-
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
-    )
-
-    SimSpecs.model_config = model_config
-    GenSpecs.model_config = model_config
-    LibeSpecs.model_config = model_config
-    ExitCriteria.model_config = model_config
-    _EnsembleSpecs.model_config = model_config
-    Platform.model_config = model_config
+SimSpecs.inputs = Field(default=[], serialization_alias="in")
+SimSpecs.outputs = Field(default=[], serialization_alias="out")
+GenSpecs.inputs = Field(default=[], serialization_alias="in")
+GenSpecs.outputs = Field(default=[], serialization_alias="out")
+AllocSpecs.outputs = Field(default=[], serialization_alias="out")

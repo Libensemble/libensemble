@@ -34,7 +34,7 @@ if pydanticV1:
         else:
             return v
 
-    @validator("inputs", "persis_in", pre=True)
+    @validator("inputs", "persis_in", "in", pre=True)
     def check_valid_in(cls, v):
         if not all(isinstance(s, str) for s in v):
             raise ValueError(_IN_INVALID_ERR)

@@ -2,7 +2,7 @@ import random
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
@@ -26,7 +26,7 @@ class SimSpecs(BaseModel):
     produced by a generator function.
     """
 
-    inputs: List[str] = Field([], alias="in")
+    inputs: Optional[List[str]] = []
     """
     List of **field names** out of the complete history to pass
     into the simulation function upon calling.
@@ -39,7 +39,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
@@ -73,7 +73,7 @@ class GenSpecs(BaseModel):
     simulator function, and makes decisions based on simulator function output.
     """
 
-    inputs: Optional[List[str]] = Field([], alias="in")
+    inputs: Optional[List[str]] = []
     """
     List of **field names** out of the complete history to pass
     into the generator function upon calling.
@@ -85,7 +85,7 @@ class GenSpecs(BaseModel):
     throughout the run, following initialization.
     """
 
-    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
@@ -124,7 +124,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
