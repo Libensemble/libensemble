@@ -13,6 +13,13 @@ which perform computations via **user functions**:
 * :ref:`allocator<api_alloc_f>`: Decides whether a simulator or generator should be
   called (and with what inputs/resources) as workers become available
 
+.. figure:: images/adaptiveloop.png
+  :alt: Adaptive loops
+  :align: center
+  :scale: 90
+
+|
+
 The default allocator (``alloc_f``) instructs workers to run the simulator on the
 highest priority work from the generator. If a worker is idle and there is
 no work, that worker is instructed to call the generator.

@@ -14,11 +14,11 @@
 
   |
 
-  .. image:: https://github.com/Libensemble/libensemble/actions/workflows/ci.yml/badge.svg?branch=develop
+  .. image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
     :target: https://github.com/Libensemble/libensemble/actions
 
-  .. image:: https://coveralls.io/repos/github/Libensemble/libensemble/badge.svg?branch=main
-    :target: https://coveralls.io/github/Libensemble/libensemble?branch=main
+  .. image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
+    :target: https://codecov.io/github/Libensemble/libensemble
 
   .. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
     :target: https://libensemble.readthedocs.org/en/latest/

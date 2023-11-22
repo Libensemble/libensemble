@@ -9,7 +9,6 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 
 if platform.system() in ["Linux", "Darwin"]:
     multiprocessing.set_start_method("fork", force=True)
-    from libensemble.gen_funcs.persistent_aposmm import aposmm, update_history_optimal
 
 import numpy as np
 
@@ -21,6 +20,8 @@ libE_info = {"comm": {}}
 
 @pytest.mark.extra
 def test_persis_aposmm_localopt_test():
+    from libensemble.gen_funcs.persistent_aposmm import aposmm
+
     _, _, gen_specs_0, _, _ = setup.hist_setup1()
 
     H = np.zeros(4, dtype=[("f", float), ("sim_id", bool), ("dist_to_unit_bounds", float), ("sim_ended", bool)])
@@ -40,6 +41,8 @@ def test_persis_aposmm_localopt_test():
 
 @pytest.mark.extra
 def test_update_history_optimal():
+    from libensemble.gen_funcs.persistent_aposmm import update_history_optimal
+
     hist, _, _, _, _ = setup.hist_setup1(n=2)
 
     H = hist.H
@@ -71,6 +74,7 @@ def test_standalone_persistent_aposmm():
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    from libensemble.gen_funcs.persistent_aposmm import aposmm
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
@@ -127,6 +131,7 @@ def test_standalone_persistent_aposmm_combined_func():
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    from libensemble.gen_funcs.persistent_aposmm import aposmm
 
     persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
