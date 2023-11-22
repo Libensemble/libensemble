@@ -652,6 +652,8 @@ def input_fields(fields: List[str]):
 
     def decorator(func):
         setattr(func, "inputs", fields)
+        if not func.__doc__:
+            func.__doc__ = ""
         func.__doc__ = f"\n    **Input Fields:** ``{func.inputs}``\n" + func.__doc__
         return func
 
@@ -688,6 +690,8 @@ def persistent_input_fields(fields: List[str]):
 
     def decorator(func):
         setattr(func, "persis_in", fields)
+        if not func.__doc__:
+            func.__doc__ = ""
         func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_in}``\n" + func.__doc__
         return func
 
@@ -714,6 +718,8 @@ def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, T
 
     def decorator(func):
         setattr(func, "outputs", fields)
+        if not func.__doc__:
+            func.__doc__ = ""
         func.__doc__ = f"\n    **Output Datatypes:** ``{func.outputs}``\n" + func.__doc__
         return func
 
