@@ -64,8 +64,6 @@ if __name__ == "__main__":
     num_dimensions = 2
     sim_specs = {
         "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
     }
 
     gen_specs = {
