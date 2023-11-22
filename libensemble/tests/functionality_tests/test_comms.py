@@ -42,8 +42,6 @@ if __name__ == "__main__":
 
     gen_specs = {
         "gen_f": gen_f,
-        "in": ["sim_id"],
-        "out": [("x", float, (2,))],
         "user": {
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
