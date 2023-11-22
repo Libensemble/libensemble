@@ -688,7 +688,7 @@ def persistent_input_fields(fields: List[str]):
 
     def decorator(func):
         setattr(func, "persis_in", fields)
-        func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_inputs}``\n" + func.__doc__
+        func.__doc__ = f"\n    **Persistent Input Fields:** ``{func.persis_in}``\n" + func.__doc__
         return func
 
     return decorator
