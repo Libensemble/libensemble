@@ -70,6 +70,8 @@ def test_bad_func_loads():
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.one_d_func import one_d_example
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -77,8 +79,9 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
+        sim_specs=SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)]),
         gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
             out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
@@ -104,8 +107,46 @@ def test_full_workflow():
     assert not flag, "Ensemble didn't exit after specifying dry_run"
 
 
+def test_flakey_workflow():
+    """Test initializing a workflow via Specs and Ensemble.run()"""
+    from pydantic.error_wrappers import ValidationError
+
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    LS = LibeSpecs(comms="local", nworkers=4)
+
+    flag = 1
+    try:
+        ens = Ensemble(
+            libE_specs=LS,
+            sim_specs=SimSpecs(sim_f=one_d_example, inputs=["X"], out=[("f", float)]),
+            gen_specs=GenSpecs(
+                gen_f=latin_hypercube_sample,
+                out=[("x", float, (1,))],
+                user={
+                    "gen_batch_size": 100,
+                    "lb": np.array([-3]),
+                    "ub": np.array([3]),
+                },
+            ),
+            exit_criteria=ExitCriteria(gen_max=101),
+        )
+        ens.sim_specs.inputs = (["x"],)  # note trailing comma
+        ens.add_random_streams()
+        ens.run()
+    except ValidationError as e:
+        assert e.errors()[0]["msg"] == "Value should be a list of field names (a list of strings)"
+        flag = 0
+
+    assert not flag, "should've caught input errors"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_from_files()
     test_bad_func_loads()
     test_full_workflow()
+    test_flakey_workflow()
