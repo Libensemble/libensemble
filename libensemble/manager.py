@@ -280,7 +280,8 @@ class Manager:
 
     def _save_every_k(self, fname: str, count: int, k: int, complete: bool) -> None:
         """Saves history every kth step"""
-        count = k * (count // k)
+        if not complete:
+            count = k * (count // k)
         date_start = self._get_date_start_str()
 
         filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
