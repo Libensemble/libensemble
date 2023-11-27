@@ -234,9 +234,7 @@ def libE(
         for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
     ]
     exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
-    import ipdb
 
-    ipdb.set_trace()
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
 

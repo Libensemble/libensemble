@@ -42,6 +42,7 @@ if pydanticV1:
 
 elif pydanticV2:
     from pydantic import ConfigDict, Field
+    from pydantic.fields import FieldInfo
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True, populate_by_name=True, extra="allow", validate_assignment=True
@@ -53,6 +54,19 @@ elif pydanticV2:
     ExitCriteria.model_config = model_config
     _EnsembleSpecs.model_config = model_config
     Platform.model_config = model_config
+
+    SimSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(SimSpecs.model_fields["inputs"], Field(alias="in"))
+    SimSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(SimSpecs.model_fields["outputs"], Field(alias="out"))
+    SimSpecs.model_rebuild(force=True)
+
+    GenSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(GenSpecs.model_fields["inputs"], Field(alias="in"))
+    GenSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(GenSpecs.model_fields["outputs"], Field(alias="out"))
+    GenSpecs.model_rebuild(force=True)
+
+    AllocSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
+        AllocSpecs.model_fields["outputs"], Field(alias="out")
+    )
+    AllocSpecs.model_rebuild(force=True)
 
 SimSpecs.check_valid_out = check_valid_out
 SimSpecs.check_valid_in = check_valid_in
@@ -73,9 +87,3 @@ _EnsembleSpecs.check_H0 = check_H0
 Platform.check_gpu_setting_type = check_gpu_setting_type
 Platform.check_mpi_runner_type = check_mpi_runner_type
 Platform.check_logical_cores = check_logical_cores
-
-SimSpecs.inputs = Field(default=[], serialization_alias="in")
-SimSpecs.outputs = Field(default=[], serialization_alias="out")
-GenSpecs.inputs = Field(default=[], serialization_alias="in")
-GenSpecs.outputs = Field(default=[], serialization_alias="out")
-AllocSpecs.outputs = Field(default=[], serialization_alias="out")
