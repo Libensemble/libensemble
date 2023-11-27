@@ -212,7 +212,7 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def set_workflow_dir(self):
-        if "use_workflow_dir" in self.__dict__ and len(str(self.__dict__.get("workflow_dir_path"))) <= 1:
+        if self.__dict__.get("use_workflow_dir") and len(str(self.__dict__.get("workflow_dir_path"))) <= 1:
             self.__dict__["workflow_dir_path"] = Path(
                 "./workflow_" + secrets.token_hex(3)
             ).absolute()  # should avoid side-effects. make dir later
