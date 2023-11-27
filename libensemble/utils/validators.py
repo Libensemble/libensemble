@@ -1,6 +1,6 @@
 import secrets
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 
 import numpy as np
 
@@ -100,15 +100,22 @@ if pydanticV1:
         return _check_output_fields(values)
 
     @root_validator
-    def set_ensemble_nworkers(cls, values):
-        if values.get("libE_specs"):
-            values["nworkers"] = values["libE_specs"].nworkers
-        return values
-
-    @root_validator
     def check_H0(cls, values):
         if values.get("H0") is not None:
             return _check_H0(values)
+        return values
+
+    @root_validator
+    def check_provided_ufuncs(cls, values):
+        sim_specs = values.get("sim_specs")
+        assert hasattr(sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
+        assert isinstance(sim_specs.sim_f, Callable), "Simulation function is not callable."
+
+        if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
+            gen_specs = values.get("gen_specs")
+            assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
+            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
+
         return values
 
     # RESOURCES VALIDATORS #####
@@ -224,15 +231,20 @@ elif pydanticV2:
         return _check_output_fields(self)
 
     @model_validator(mode="after")
-    def set_ensemble_nworkers(self):
-        if self.libE_specs:
-            self.nworkers = self.libE_specs.nworkers
-        return self
-
-    @model_validator(mode="after")
     def check_H0(self):
         if self.H0 is not None:
             return _check_H0(self)
+        return self
+
+    @model_validator(mode="after")
+    def check_provided_ufuncs(self):
+        assert hasattr(self.sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
+        assert isinstance(self.sim_specs.sim_f, Callable), "Simulation function is not callable."
+
+        if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
+            assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
+            assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
+
         return self
 
     # RESOURCES VALIDATORS #####

@@ -1,9 +1,13 @@
 import numpy as np
-from pydantic import ValidationError
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
-from libensemble.utils.misc import specs_dump
+from libensemble.utils.misc import pydanticV1, pydanticV2, specs_dump
+
+if pydanticV1:
+    from pydantic.error_wrappers import ValidationError
+elif pydanticV2:
+    from pydantic import ValidationError
 
 
 class Fake_MPI:
@@ -43,14 +47,17 @@ def test_sim_gen_alloc_exit_specs_invalid():
         "in": [("f", float), ("fvec", float, 3)],  # _IN_INVALID_ERR
         "out": ["x_on_cube"],  # _OUT_DTYPE_ERR
         "globus_compute_endpoint": 1234,  # invalid endpoint, should be str
-        "user": np.zeros(100),  # 'value is not a valid dict'
+        "user": np.zeros(10),  # 'value is not a valid dict'
     }
 
     try:
         SimSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
-        assert len(e.errors()) == 5, "SimSpecs model should have detected 5 errors in specs"
+        if pydanticV1:
+            assert len(e.errors()) == 5, "SimSpecs model should have detected 5 errors in specs"
+        elif pydanticV2:  # Pydantic 2 will point out individual errors in iterables
+            assert len(e.errors()) == 7, "SimSpecs model should have detected 7 errors in specs"
         flag = 1
     assert flag, "SimSpecs didn't raise ValidationError on invalid specs"
 
@@ -58,7 +65,10 @@ def test_sim_gen_alloc_exit_specs_invalid():
         GenSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
-        assert len(e.errors()) == 5, "GenSpecs model should have detected 5 errors in specs"
+        if pydanticV1:
+            assert len(e.errors()) == 5, "GenSpecs model should have detected 5 errors in specs"
+        elif pydanticV2:
+            assert len(e.errors()) == 7, "GenSpecs model should have detected 7 errors in specs"
         flag = 1
     assert flag, "GenSpecs didn't raise ValidationError on invalid specs"
 
@@ -106,13 +116,11 @@ def test_ensemble_specs():
     ec = ExitCriteria(**exit_criteria)
     ls = LibeSpecs(**libE_specs)
 
-    # Should fail because H0 has points with 'sim_ended'==False
     H0 = np.zeros(5, dtype=[("x_on_cube", float, 8), ("sim_id", int), ("sim_started", bool), ("sim_ended", bool)])
     H0["sim_id"] = [0, 1, 2, -1, -1]
     H0[["sim_started", "sim_ended"]][0:3] = True
 
-    es = _EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
-    assert es.nworkers == libE_specs["nworkers"], "nworkers not passed through to ensemble specs"
+    _EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
 
 
 if __name__ == "__main__":

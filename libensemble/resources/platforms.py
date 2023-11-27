@@ -28,25 +28,25 @@ class Platform(BaseModel):
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
 
-    mpi_runner: Optional[str] = ""
+    mpi_runner: Optional[str] = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
     ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
-    runner_name: Optional[str] = ""
+    runner_name: Optional[str] = None
     """Literal string of MPI runner command. Only needed if different to the default
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int] = 0
+    cores_per_node: Optional[int] = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int] = 0
+    logical_cores_per_node: Optional[int] = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int] = 0
+    gpus_per_node: Optional[int] = None
     """Number of GPU devices on a compute node of the platform"""
 
-    gpu_setting_type: Optional[str] = ""
+    gpu_setting_type: Optional[str] = None
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
@@ -82,14 +82,14 @@ class Platform(BaseModel):
 
     """
 
-    gpu_setting_name: Optional[str] = ""
+    gpu_setting_name: Optional[str] = None
     """Name of GPU setting
 
     See :attr:`gpu_setting_type` for more details.
 
     """
 
-    gpu_env_fallback: Optional[str] = ""
+    gpu_env_fallback: Optional[str] = None
     """GPU fallback environment setting if not using an MPI runner.
 
     For example:
@@ -308,7 +308,7 @@ def get_platform(libE_specs):
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
-            known_platforms = specs_dump(Known_platforms())
+            known_platforms = specs_dump(Known_platforms(), exclude_none=True)
             platform_info = known_platforms[name]
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")

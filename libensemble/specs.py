@@ -465,11 +465,8 @@ class _EnsembleSpecs(BaseModel):
     exit_criteria: ExitCriteria
     """ Configurations for when to exit a workflow. """
 
-    persis_info: Optional[dict]
+    persis_info: Optional[dict] = None
     """ Per-worker information and structures to be passed between user function instances. """
 
     alloc_specs: Optional[AllocSpecs] = AllocSpecs()
     """ Specifications for the allocation function. """
-
-    nworkers: Optional[int] = 0
-    """ Number of worker processes to spawn (only in local/tcp modes). """

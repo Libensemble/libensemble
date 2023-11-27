@@ -3,6 +3,7 @@ import sys
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
+from libensemble.utils.misc import pydanticV1, pydanticV2
 
 
 def test_ensemble_init():
@@ -109,7 +110,10 @@ def test_full_workflow():
 
 def test_flakey_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
-    from pydantic.error_wrappers import ValidationError
+    if pydanticV1:
+        from pydantic.error_wrappers import ValidationError
+    elif pydanticV2:
+        from pydantic import ValidationError
 
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
@@ -137,8 +141,7 @@ def test_flakey_workflow():
         ens.sim_specs.inputs = (["x"],)  # note trailing comma
         ens.add_random_streams()
         ens.run()
-    except ValidationError as e:
-        assert e.errors()[0]["msg"] == "Value should be a list of field names (a list of strings)"
+    except ValidationError:
         flag = 0
 
     assert not flag, "should've caught input errors"
