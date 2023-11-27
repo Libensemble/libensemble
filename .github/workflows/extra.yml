@@ -28,7 +28,7 @@ jobs:
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      python-version: "3.11"
+                      python-version: "3.12"
                       comms-type: l
 
         env:

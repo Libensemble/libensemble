@@ -28,7 +28,7 @@ Assuming MPI and its C compiler ``mpicc`` are available, compile
 
 .. code-block:: bash
 
-    $ mpicc -O3 -o forces.x forces.c -lm
+    mpicc -O3 -o forces.x forces.c -lm
 
 Alternative build lines for different platforms can be found in the ``build_forces.sh``
 file in the same directory.
@@ -321,7 +321,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    $ python run_libe_forces.py --comms local --nworkers [nworkers]
+    python run_libe_forces.py --comms local --nworkers [nworkers]
 
 where ``nworkers`` is one more than the number of concurrent simulations.
 
@@ -336,7 +336,7 @@ and ``ensemble.log`` as usual.
 
    .. code-block:: bash
 
-       $ python run_libe_forces.py --comms local --nworkers 3
+       python run_libe_forces.py --comms local --nworkers 3
 
    my ``libE_stats.txt`` resembled::
 

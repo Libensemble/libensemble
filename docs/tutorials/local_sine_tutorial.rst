@@ -20,8 +20,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ python --version
-            Python 3.9.0            # This should be >= 3.9
+            python --version  # This should be >= 3.9
 
         .. _Python: https://www.python.org/
 
@@ -31,14 +30,12 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            $ pip install libensemble
-            $ pip install matplotlib # Optional
+            pip install libensemble
+            pip install matplotlib # Optional
 
         If your system doesn't allow you to perform these installations, try adding
         ``--user`` to the end of each command.
 
-        .. _NumPy: https://www.numpy.org/
-        .. _Matplotlib: https://matplotlib.org/
 
     .. tab-item:: 2. Generator
 
@@ -48,7 +45,7 @@ need to write a new allocation function.
         An available libEnsemble worker will call this generator function with the
         following parameters:
 
-            * :ref:`Input<funcguides-history>`: A selection of the History array,
+            * :ref:`InputArray<funcguides-history>`: A selection of the :ref:`History array<funcguides-history>` (*H*),
               passed to the generator function in case the user wants to generate
               new values based on simulation outputs. Since our generator produces random
               numbers, it'll be ignored this time.
@@ -64,16 +61,16 @@ need to write a new allocation function.
 
         Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
-        For now, create a new Python file named ``generator.py``. Write the following:
+        For now, create a new Python file named ``gen.py``. Write the following:
 
         .. code-block:: python
             :linenos:
-            :caption: examples/tutorials/simple_sine/tutorial_gen.py
+            :caption: examples/tutorials/simple_sine/gen.py
 
             import numpy as np
 
 
-            def gen_random_sample(Input, persis_info, gen_specs):
+            def gen_random_sample(InputArray, persis_info, gen_specs):
                 # Pull out user parameters
                 user_specs = gen_specs["user"]
 
@@ -86,43 +83,18 @@ need to write a new allocation function.
                 batch_size = user_specs["gen_batch_size"]
 
                 # Create empty array of "batch_size" zeros. Array dtype should match "out" fields
-                Output = np.zeros(batch_size, dtype=gen_specs["out"])
+                OutputArray = np.zeros(batch_size, dtype=gen_specs["out"])
 
                 # Set the "x" output field to contain random numbers, using random stream
-                Output["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
+                OutputArray["x"] = persis_info["rand_stream"].uniform(lower, upper, (batch_size, num))
 
                 # Send back our output and persis_info
-                return Output, persis_info
+                return OutputArray, persis_info
 
         Our function creates ``batch_size`` random numbers uniformly distributed
         between the ``lower`` and ``upper`` bounds. A random stream
         from ``persis_info`` is used to generate these values, which are then placed
         into an output NumPy array that matches the dtype from ``gen_specs["out"]``.
-
-        **Exercise**
-
-        Write a simple generator function that instead produces random integers, using
-        the ``numpy.random.Generator.integers(low, high, size)`` function.
-
-        .. dropdown:: **Click Here for Solution**
-
-            .. code-block:: python
-                :linenos:
-
-                import numpy as np
-
-
-                def gen_random_ints(Input, persis_info, gen_specs, _):
-                    user_specs = gen_specs["user"]
-                    lower = user_specs["lower"]
-                    upper = user_specs["upper"]
-                    num = len(lower)
-                    batch_size = user_specs["gen_batch_size"]
-
-                    Output = np.zeros(batch_size, dtype=gen_specs["out"])
-                    Output["x"] = persis_info["rand_stream"].integers(lower, upper, (batch_size, num))
-
-                    return Output, persis_info
 
     .. tab-item:: 3. Simulator
 
@@ -131,55 +103,35 @@ need to write a new allocation function.
         The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
         serves a purpose similar to the :class:`gen_specs<libensemble.specs.GenSpecs>` dictionary.
 
-        Create a new Python file named ``simulator.py``. Write the following:
+        Create a new Python file named ``sim.py``. Write the following:
 
         .. code-block:: python
             :linenos:
-            :caption: examples/tutorials/simple_sine/tutorial_sim.py
+            :caption: examples/tutorials/simple_sine/sim.py
 
             import numpy as np
 
 
-            def sim_find_sine(Input, _, sim_specs):
+            def sim_find_sine(InputArray, _, sim_specs):
                 # Create an output array of a single zero
-                Output = np.zeros(1, dtype=sim_specs["out"])
+                OutputArray = np.zeros(1, dtype=sim_specs["out"])
 
-                # Set the zero to the sine of the Input value
-                Output["y"] = np.sin(Input["x"])
+                # Set the zero to the sine of the InputArray value
+                OutputArray["y"] = np.sin(InputArray["x"])
 
                 # Send back our output
-                return Output
+                return OutputArray
 
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
         and then returns it so the worker can store the result.
-
-        **Exercise**
-
-        Write a simple simulator function that instead calculates the *cosine* of a received
-        value, using the ``numpy.cos(x)`` function.
-
-        .. dropdown:: **Click Here for Solution**
-
-            .. code-block:: python
-                :linenos:
-
-                import numpy as np
-
-
-                def sim_find_cosine(Input, _, sim_specs):
-                    Output = np.zeros(1, dtype=sim_specs["out"])
-
-                    Output["y"] = np.cos(Input["x"])
-
-                    return Output
 
     .. tab-item:: 4. Script
 
         Now lets write the script that configures our generator and simulator
         functions and starts libEnsemble.
 
-        Create an empty Python file named ``calling_script.py``.
+        Create an empty Python file named ``calling.py``.
         In this file, we'll start by importing NumPy, libEnsemble's setup classes,
         and the generator and simulator functions we just created.
 
@@ -191,11 +143,13 @@ need to write a new allocation function.
             :linenos:
 
             import numpy as np
-            from libensemble import Ensemble, LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
-            from generator import gen_random_sample
-            from simulator import sim_find_sine
+            from libensemble import Ensemble
+            from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+            from gen import gen_random_sample
+            from sim import sim_find_sine
 
-            libE_specs = LibeSpecs(nworkers=4, comms="local")
+            if __name__ == "__main__":  # Python-quirk required on macOS and windows
+                libE_specs = LibeSpecs(nworkers=4, comms="local")
 
         We configure the settings and specifications for our ``sim_f`` and ``gen_f``
         functions in the :ref:`GenSpecs<datastruct-gen-specs>` and
@@ -206,54 +160,55 @@ need to write a new allocation function.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 10
 
-            gen_specs = GenSpecs(
-                gen_f=gen_random_sample,  # Our generator function
-                out=[("x", float, (1,))],  # gen_f output (name, type, size)
-                user={
-                    "lower": np.array([-3]),  # lower boundary for random sampling
-                    "upper": np.array([3]),  # upper boundary for random sampling
-                    "gen_batch_size": 5,  # number of x's gen_f generates per call
-                },
-            )
+                gen_specs = GenSpecs(
+                    gen_f=gen_random_sample,  # Our generator function
+                    out=[("x", float, (1,))],  # gen_f output (name, type, size)
+                    user={
+                        "lower": np.array([-3]),  # lower boundary for random sampling
+                        "upper": np.array([3]),  # upper boundary for random sampling
+                        "gen_batch_size": 5,  # number of x's gen_f generates per call
+                    },
+                )
 
-            sim_specs = SimSpecs(
-                sim_f=sim_find_sine,  # Our simulator function
-                inputs=["x"],  #  Input field names. "x" from gen_f output
-                out=[("y", float)],  # sim_f output. "y" = sine("x")
-            )
+                sim_specs = SimSpecs(
+                    sim_f=sim_find_sine,  # Our simulator function
+                    inputs=["x"],  #  InputArray field names. "x" from gen_f output
+                    out=[("y", float)],  # sim_f output. "y" = sine("x")
+                )
 
         We then specify the circumstances where
         libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria>`.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 26
 
-            exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
+                exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
         Now we're ready to write our libEnsemble :doc:`libE<../programming_libE>`
-        function call. This :ref:`H<funcguides-history>` is the final version of
-        the history array. ``flag`` should be zero if no errors occur.
+        function call. :ref:`ensemble.H<funcguides-history>` is the final version of
+        the history array. ``ensemble.flag`` should be zero if no errors occur.
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 28
 
-            ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
-            ensemble.add_random_streams()  # setup the random streams unique to each worker
-
-            if __name__ == "__main__":  # Python-quirk required on macOS and windows
+                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+                ensemble.add_random_streams()  # setup the random streams unique to each worker
                 ensemble.run()  # start the ensemble. Blocks until completion.
 
-            history = ensemble.H  # start visualizing our results
+                history = ensemble.H  # start visualizing our results
 
-            print([i for i in history.dtype.fields])  # (optional) to visualize our history array
-            print(history)
+                print([i for i in history.dtype.fields])  # (optional) to visualize our history array
+                print(history)
 
         That's it! Now that these files are complete, we can run our simulation.
 
         .. code-block:: bash
 
-            $ python calling_script.py
+            python calling.py
 
         If everything ran perfectly and you included the above print statements, you
         should get something similar to the following output (although the
@@ -286,26 +241,27 @@ need to write a new allocation function.
 
         If you want to verify your results through plotting and installed Matplotlib
         earlier, copy and paste the following code into the bottom of your calling
-        script and run ``python calling_script.py`` again
+        script and run ``python calling.py`` again
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 37
 
-            import matplotlib.pyplot as plt
+                import matplotlib.pyplot as plt
 
-            colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
+                colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-            for i in range(1, nworkers + 1):
-                worker_xy = np.extract(H["sim_worker"] == i, H)
-                x = [entry.tolist()[0] for entry in worker_xy["x"]]
-                y = [entry for entry in worker_xy["y"]]
-                plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+                for i in range(1, libE_specs.nworkers + 1):
+                    worker_xy = np.extract(history["sim_worker"] == i, history)
+                    x = [entry.tolist()[0] for entry in worker_xy["x"]]
+                    y = [entry for entry in worker_xy["y"]]
+                    plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
 
-            plt.title("Sine calculations for a uniformly sampled random distribution")
-            plt.xlabel("x")
-            plt.ylabel("sine(x)")
-            plt.legend(loc="lower right")
-            plt.savefig("tutorial_sines.png")
+                plt.title("Sine calculations for a uniformly sampled random distribution")
+                plt.xlabel("x")
+                plt.ylabel("sine(x)")
+                plt.legend(loc="lower right")
+                plt.savefig("tutorial_sines.png")
 
         Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
 
@@ -322,36 +278,41 @@ need to write a new allocation function.
 
             .. code-block:: python
                 :linenos:
+                :emphasize-lines: 14,15,16,26,32,33
 
                 import numpy as np
-                from libensemble import Ensemble, LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
-                from generator import gen_random_sample
-                from simulator import sim_find_sine
+                from libensemble import Ensemble
+                from libensemble.specs import LibeSpecs, SimSpecs, GenSpecs, ExitCriteria
+                from gen import gen_random_sample
+                from sim import sim_find_sine
 
-                libE_specs = LibeSpecs(nworkers=4, comms="local")
+                if __name__ == "__main__":
+                    libE_specs = LibeSpecs(nworkers=4, comms="local")
 
-                gen_specs = GenSpecs(
-                    gen_f=gen_random_sample,  # Our generator function
-                    out=[("x", float, (1,))],  # gen_f output (name, type, size)
-                    user={
-                        "lower": np.array([-6]),  # lower boundary for random sampling
-                        "upper": np.array([6]),  # upper boundary for random sampling
-                        "gen_batch_size": 10,  # number of x's gen_f generates per call
-                    },
-                )
+                    gen_specs = GenSpecs(
+                        gen_f=gen_random_sample,  # Our generator function
+                        out=[("x", float, (1,))],  # gen_f output (name, type, size)
+                        user={
+                            "lower": np.array([-6]),  # lower boundary for random sampling
+                            "upper": np.array([6]),  # upper boundary for random sampling
+                            "gen_batch_size": 10,  # number of x's gen_f generates per call
+                        },
+                    )
 
-                sim_specs = SimSpecs(
-                    sim_f=sim_find_sine,  # Our simulator function
-                    inputs=["x"],  #  Input field names. "x" from gen_f output
-                    out=[("y", float)],  # sim_f output. "y" = sine("x")
-                )
+                    sim_specs = SimSpecs(
+                        sim_f=sim_find_sine,  # Our simulator function
+                        inputs=["x"],  #  InputArray field names. "x" from gen_f output
+                        out=[("y", float)],  # sim_f output. "y" = sine("x")
+                    )
 
-                ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
-                ensemble.add_random_streams()
-                ensemble.run()
+                    exit_criteria = ExitCriteria(gen_max=160)
 
-                if ensemble.flag != 0:
-                    print("Oh no! An error occurred!")
+                    ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, libE_specs)
+                    ensemble.add_random_streams()
+                    ensemble.run()
+
+                    if ensemble.flag != 0:
+                        print("Oh no! An error occurred!")
 
     .. tab-item:: 5. Next steps
 
@@ -375,69 +336,78 @@ need to write a new allocation function.
 
         **Modifying the script**
 
-        Only a few changes are necessary to make our code MPI-compatible. Note the following:
+        Only a few changes are necessary to make our code MPI-compatible. For starters,
+        comment out the ``libE_specs`` definition:
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 8
 
-            libE_specs = LibeSpecs()  # class will autodetect MPI runtime
+                # libE_specs = LibeSpecs(nworkers=4, comms="local")
 
-        So that only one process executes the graphing and printing portion of our code,
-        modify the bottom of the calling script like this:
+        We'll be parameterizing our MPI runtime with a ``parse_args=True`` argument to
+        the ``Ensemble`` class instead of ``libE_specs``. We'll also use an ``ensemble.is_manager``
+        attribute so only the first MPI rank runs the data-processing code.
+
+        The bottom of your calling script should now resemble:
 
         .. code-block:: python
             :linenos:
+            :lineno-start: 28
 
-            ...
-            ensemble = Ensemble(libE_specs, sim_specs, gen_specs, exit_criteria)
-            ensemble.add_random_streams()
-            ensemble.run()
+                # replace libE_specs with parse_args=True. Detects MPI runtime
+                ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
 
-            if ensemble.is_manager:  # only True on rank 0
-                H = ensemble.H
-                print([i for i in H.dtype.fields])
-                print(H)
+                ensemble.add_random_streams()
+                ensemble.run()  # start the ensemble. Blocks until completion.
 
-                import matplotlib.pyplot as plt
+                if ensemble.is_manager:  # only True on rank 0
+                    history = ensemble.H  # start visualizing our results
+                    print([i for i in history.dtype.fields])
+                    print(history)
 
-                colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
+                    import matplotlib.pyplot as plt
 
-                for i in range(1, nworkers + 1):
-                    worker_xy = np.extract(H["sim_worker"] == i, H)
-                    x = [entry.tolist()[0] for entry in worker_xy["x"]]
-                    y = [entry for entry in worker_xy["y"]]
-                    plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+                    colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 
-                plt.title("Sine calculations for a uniformly sampled random distribution")
-                plt.xlabel("x")
-                plt.ylabel("sine(x)")
-                plt.legend(loc="lower right")
-                plt.savefig("tutorial_sines.png")
+                    for i in range(1, ensemble.nworkers + 1):
+                        worker_xy = np.extract(history["sim_worker"] == i, history)
+                        x = [entry.tolist()[0] for entry in worker_xy["x"]]
+                        y = [entry for entry in worker_xy["y"]]
+                        plt.scatter(x, y, label="Worker {}".format(i), c=colors[i - 1])
+
+                    plt.title("Sine calculations for a uniformly sampled random distribution")
+                    plt.xlabel("x")
+                    plt.ylabel("sine(x)")
+                    plt.legend(loc="lower right")
+                    plt.savefig("tutorial_sines.png")
 
         With these changes in place, our libEnsemble code can be run with MPI by
 
         .. code-block:: bash
 
-            $ mpirun -n 5 python calling_script.py
+            mpirun -n 5 python calling.py
 
         where ``-n 5`` tells ``mpirun`` to produce five processes, one of which will be
         the manager process with the libEnsemble manager and the other four will run
         libEnsemble workers.
 
-This tutorial is only a tiny demonstration of the parallelism capabilities of
-libEnsemble. libEnsemble has been developed primarily to support research on
-High-Performance computers, with potentially hundreds of workers performing
-calculations simultaneously. Please read our
-:doc:`platform guides <../platforms/platforms_index>` for introductions to using
-libEnsemble on many such machines.
+        This tutorial is only a tiny demonstration of the parallelism capabilities of
+        libEnsemble. libEnsemble has been developed primarily to support research on
+        High-Performance computers, with potentially hundreds of workers performing
+        calculations simultaneously. Please read our
+        :doc:`platform guides <../platforms/platforms_index>` for introductions to using
+        libEnsemble on many such machines.
 
-libEnsemble's Executors can launch non-Python user applications and simulations across
-allocated compute resources. Try out this feature with a more-complicated
-libEnsemble use-case within our
-:doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
+        libEnsemble's Executors can launch non-Python user applications and simulations across
+        allocated compute resources. Try out this feature with a more-complicated
+        libEnsemble use-case within our
+        :doc:`Electrostatic Forces tutorial <./executor_forces_tutorial>`.
 
+.. _Matplotlib: https://matplotlib.org/
 .. _MPI: https://en.wikipedia.org/wiki/Message_Passing_Interface
 .. _MPICH: https://www.mpich.org/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/install.html
+.. _NumPy: https://www.numpy.org/
 .. _here: https://www.mpich.org/downloads/
 .. _examples/tutorials/simple_sine: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/simple_sine

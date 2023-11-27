@@ -7,9 +7,7 @@ import numpy as np
 from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.gen_funcs.sampling import latin_hypercube_sample
 from libensemble.resources.platforms import Platform
-from libensemble.sim_funcs.one_d_func import one_d_example
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
@@ -39,7 +37,7 @@ class SimSpecs(BaseModel):
     Specifications for configuring a Simulation Function.
     """
 
-    sim_f: Callable = one_d_example
+    sim_f: Callable = None
     """
     Python function matching the ``sim_f`` interface. Evaluates parameters
     produced by a generator function.
@@ -101,7 +99,7 @@ class GenSpecs(BaseModel):
     Specifications for configuring a Generator Function.
     """
 
-    gen_f: Optional[Callable] = latin_hypercube_sample
+    gen_f: Optional[Callable] = None
     """
     Python function matching the ``gen_f`` interface. Produces parameters for evaluation by a
     simulator function, and makes decisions based on simulator function output.
@@ -571,7 +569,7 @@ class _EnsembleSpecs(BaseModel):
     persis_info: Optional[dict]
     """ Per-worker information and structures to be passed between user function instances. """
 
-    alloc_specs: Optional[AllocSpecs]
+    alloc_specs: Optional[AllocSpecs] = AllocSpecs()
     """ Specifications for the allocation function. """
 
     nworkers: Optional[int]
@@ -579,6 +577,19 @@ class _EnsembleSpecs(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    @root_validator
+    def check_provided_ufuncs(cls, values):
+        sim_specs = values.get("sim_specs")
+        assert hasattr(sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
+        assert isinstance(sim_specs.sim_f, Callable), "Simulation function is not callable."
+
+        if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
+            gen_specs = values.get("gen_specs")
+            assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
+            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
+
+        return values
 
     @root_validator
     def check_exit_criteria(cls, values):

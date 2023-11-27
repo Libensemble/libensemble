@@ -52,7 +52,7 @@ def borehole(H, persis_info, sim_specs, libE_info):
     else:
         # Failure model (excluding observations)
         if sim_id > sim_specs["user"]["num_obs"]:
-            if (f / borehole_true(H["x"])) > 1.25:
+            if (f / borehole_true(H["x"])) > 0.019:
                 f = np.inf
                 calc_status = TASK_FAILED
                 print(f"Failure of sim_id {sim_id}", flush=True)
