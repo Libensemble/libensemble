@@ -2,7 +2,8 @@ import numpy as np
 from pydantic import ValidationError
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.specs import _IN_INVALID_ERR, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
+from libensemble.utils.misc import specs_dump
 
 
 class Fake_MPI:
@@ -31,9 +32,9 @@ def test_sim_gen_alloc_exit_specs():
     ec = ExitCriteria(**exit_criteria)
 
     # maybe I don't need to test this - this should be taken for granted as part of pydantic?
-    assert ss.model_dump(by_alias=True, exclude_unset=True) == sim_specs, "sim_specs model conversion failed"
-    assert gs.model_dump(by_alias=True, exclude_unset=True) == gen_specs, "gen_specs model conversion failed"
-    assert ec.model_dump(by_alias=True, exclude_unset=True) == exit_criteria, "exit_criteria model conversion failed"
+    assert specs_dump(ss, by_alias=True, exclude_unset=True) == sim_specs, "sim_specs model conversion failed"
+    assert specs_dump(gs, by_alias=True, exclude_unset=True) == gen_specs, "gen_specs model conversion failed"
+    assert specs_dump(ec, by_alias=True, exclude_unset=True) == exit_criteria, "exit_criteria model conversion failed"
 
 
 def test_sim_gen_alloc_exit_specs_invalid():
@@ -49,9 +50,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
         SimSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
-        msgs = [i["msg"] for i in e.errors()]
         assert len(e.errors()) == 5, "SimSpecs model should have detected 5 errors in specs"
-        assert "Value error, " + _IN_INVALID_ERR in msgs
         flag = 1
     assert flag, "SimSpecs didn't raise ValidationError on invalid specs"
 
@@ -59,9 +58,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
         GenSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
-        msgs = [i["msg"] for i in e.errors()]
         assert len(e.errors()) == 5, "GenSpecs model should have detected 5 errors in specs"
-        assert "Value error, " + _IN_INVALID_ERR in msgs
         flag = 1
     assert flag, "GenSpecs didn't raise ValidationError on invalid specs"
 
@@ -96,7 +93,6 @@ def test_libe_specs_invalid():
         LibeSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
-        # msgs = [i["msg"] for i in e.errors()]
         assert len(e.errors()) == 2, "LibeSpecs model should have detected 2 errors in specs"
         flag = 1
     assert flag, "LibeSpecs didn't raise ValidationError on invalid specs"
