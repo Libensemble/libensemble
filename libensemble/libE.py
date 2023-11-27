@@ -142,7 +142,7 @@ logger = logging.getLogger(__name__)
 
 
 # TODO This actually needs to be determined in specs.py class LibeSpecs(BaseModel)
-def detect_env():
+def detect_comms_env():
     '''Return local or MPI comms based on env variables'''
     mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
     comms_type = "local"
@@ -269,7 +269,7 @@ def libE(
 
     # TODO Can we assume local if nworkers is set via libE_specs
 
-    return libE_funcs[libE_specs.get("comms", detect_env())](
+    return libE_funcs[libE_specs.get("comms", detect_comms_env())](
         sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
     )
 
