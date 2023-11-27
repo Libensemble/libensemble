@@ -66,7 +66,6 @@ setup(
         "libensemble.tools",
         "libensemble.executors",
         "libensemble.resources",
-        "libensemble.specs",
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
