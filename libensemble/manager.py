@@ -285,7 +285,7 @@ class Manager:
         date_start = self._get_date_start_str()
 
         filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
-        if not os.path.isfile(filename) and count > 0:
+        if (not os.path.isfile(filename) and count > 0) or complete:
             for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.trim_H())
