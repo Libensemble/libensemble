@@ -334,9 +334,6 @@ class Ensemble:
 
         self._libE_specs.__dict__.update(**new_specs)
 
-        if not self.nworkers and self._libE_specs.nworkers:
-            self.nworkers = self._libE_specs.nworkers
-
     def _refresh_executor(self):
         Executor.executor = self.executor or Executor.executor
 

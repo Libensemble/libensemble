@@ -33,6 +33,10 @@ def test_ensemble_parse_args_false():
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
+    # test that adjusting Ensemble.nworkers also changes libE_specs
+    e.nworkers = 8
+    assert e.libE_specs.nworkers == 8, "libE_specs nworkers not adjusted"
+
 
 def test_from_files():
     """Test that Ensemble() specs dicts resemble setup dicts"""
