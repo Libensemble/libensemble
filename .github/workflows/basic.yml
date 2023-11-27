@@ -86,7 +86,6 @@ jobs:
             pip install -r install/misc_feature_requirements.txt
 
         - name: Install mpi4py and MPI from conda
-          if: steps.cache.outputs.cache-hit != 'true'
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
