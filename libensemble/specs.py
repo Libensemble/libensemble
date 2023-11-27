@@ -468,7 +468,7 @@ class _EnsembleSpecs(BaseModel):
     persis_info: Optional[dict]
     """ Per-worker information and structures to be passed between user function instances. """
 
-    alloc_specs: Optional[AllocSpecs]
+    alloc_specs: Optional[AllocSpecs] = AllocSpecs()
     """ Specifications for the allocation function. """
 
     nworkers: Optional[int] = 0

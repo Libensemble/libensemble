@@ -118,6 +118,7 @@ from pathlib import Path
 from typing import Callable, Dict
 
 import numpy as np
+from pydantic import validate_arguments
 
 from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
@@ -142,6 +143,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+@validate_arguments
 def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,

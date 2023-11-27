@@ -12,7 +12,7 @@ The number of concurrent evaluations of the objective function with 2 gens will 
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 5, 7
 # TESTSUITE_OS_SKIP: WIN
 
@@ -32,64 +32,64 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
-    n = 2
-    ngens = 2
-    init_batch_size = nworkers - ngens
+    for ngens in range(1, 3):
+        n = 2
+        init_batch_size = nworkers - ngens
 
-    if ngens >= nworkers:
-        sys.exit("You number of generators must be less than the number of workers -- aborting...")
+        if ngens >= nworkers:
+            sys.exit("The number of generators must be less than the number of workers -- aborting...")
 
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-        "user": {"uniform_random_pause_ub": 0.5},
-    }
+        sim_specs = {
+            "sim_f": sim_f,
+            "in": ["x"],
+            "out": [("f", float)],
+            "user": {"uniform_random_pause_ub": 0.5},
+        }
 
-    gen_specs = {
-        "gen_f": gen_f,
-        "persis_in": ["f", "x", "sim_id"],
-        "out": [("x", float, (n,))],
-        "user": {
-            "initial_batch_size": init_batch_size,
-            "shutdown_limit": 10,  # Iterations on a gen before it triggers a shutdown.
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
-    }
+        gen_specs = {
+            "gen_f": gen_f,
+            "persis_in": ["f", "x", "sim_id"],
+            "out": [("x", float, (n,))],
+            "user": {
+                "initial_batch_size": init_batch_size,
+                "shutdown_limit": 10,  # Iterations on a gen before it triggers a shutdown.
+                "lb": np.array([-3, -2]),
+                "ub": np.array([3, 2]),
+            },
+        }
 
-    alloc_specs = {
-        "alloc_f": alloc_f,
-        "user": {
-            "async_return": True,
-            "num_active_gens": ngens,
-        },
-    }
+        alloc_specs = {
+            "alloc_f": alloc_f,
+            "user": {
+                "async_return": True,
+                "num_active_gens": ngens,
+            },
+        }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"gen_max": 50, "wallclock_max": 300}
+        exit_criteria = {"gen_max": 50, "wallclock_max": 300}
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    if is_manager:
-        [ended_times, counts] = np.unique(H["gen_ended_time"], return_counts=True)
-        print("Num. points in each gen iteration:", counts)
-        assert (
-            counts[0] == init_batch_size
-        ), "The first gen_ended_time should be common among initial_batch_size number of points"
-        assert (
-            sum(counts == init_batch_size) >= ngens
-        ), "The initial batch of each gen should be common among initial_batch_size number of points"
-        assert (
-            len(np.unique(counts)) > 1
-        ), "All gen_ended_times are the same; they should be different for the async case"
+        if is_manager:
+            [ended_times, counts] = np.unique(H["gen_ended_time"], return_counts=True)
+            print("Num. points in each gen iteration:", counts)
+            assert (
+                counts[0] == init_batch_size
+            ), "The first gen_ended_time should be common among initial_batch_size number of points"
+            assert (
+                sum(counts == init_batch_size) >= ngens
+            ), "The initial batch of each gen should be common among initial_batch_size number of points"
+            assert (
+                len(np.unique(counts)) > 1
+            ), "All gen_ended_times are the same; they should be different for the async case"
 
-        gen_workers = np.unique(H["gen_worker"])
-        print("Generators that issued points", gen_workers)
-        assert (
-            len(gen_workers) == ngens
-        ), f"The number of gens used {len(gen_workers)} does not match num_active_gens {ngens}"
+            gen_workers = np.unique(H["gen_worker"])
+            print("Generators that issued points", gen_workers)
+            assert (
+                len(gen_workers) == ngens
+            ), f"The number of gens used {len(gen_workers)} does not match num_active_gens {ngens}"
 
-        save_libE_output(H, persis_info, __file__, nworkers)
+            save_libE_output(H, persis_info, __file__, nworkers)
