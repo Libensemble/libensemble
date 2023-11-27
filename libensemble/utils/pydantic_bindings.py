@@ -25,7 +25,7 @@ from libensemble.utils.validators import (
 )
 
 if pydanticV1:
-    from pydantic import BaseConfig, Field
+    from pydantic import BaseConfig, Field, create_model
     from pydantic import validate_arguments as libE_wrapper  # noqa: F401
 
     BaseConfig.arbitrary_types_allowed = True
