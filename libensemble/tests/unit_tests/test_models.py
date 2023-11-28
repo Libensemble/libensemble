@@ -66,9 +66,9 @@ def test_sim_gen_alloc_exit_specs_invalid():
 
     try:
         if pydanticV1:
-            GenSpecs.model_validate(bad_specs)
-        elif pydanticV2:
             GenSpecs.parse_obj(bad_specs)
+        elif pydanticV2:
+            GenSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
         if pydanticV1:
