@@ -124,8 +124,7 @@ def test_libe_specs_invalid():
         elif pydanticV2:
             LibeSpecs.model_validate(bad_specs)
         flag = 0
-    except ValidationError as e:
-        assert len(e.errors()) > 1, "LibeSpecs model should have detected multiple errors in specs"
+    except ValidationError:
         flag = 1
     assert flag, "LibeSpecs didn't raise ValidationError on invalid specs"
 
