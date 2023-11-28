@@ -204,7 +204,7 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def enable_save_H_when_every_K(self):
-        if "save_H_on_completion" not in self.__dict__ and (
+        if not self.__dict__.get("save_H_on_completion") and (
             self.__dict__.get("save_every_k_sims", 0) > 0 or self.__dict__.get("save_every_k_gens", 0) > 0
         ):
             self.__dict__["save_H_on_completion"] = True
