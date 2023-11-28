@@ -69,7 +69,7 @@ setup(
         "libensemble.tests.unit_tests",
         "libensemble.tests.regression_tests",
     ],
-    install_requires=["numpy>=1.21", "psutil>=5.9.4", "pydantic>=2.4.2", "tomli>=1.2.1", "pyyaml>=6.0"],
+    install_requires=["numpy>=1.21", "psutil>=5.9.4", "pydantic>=1.10.13", "tomli>=1.2.1", "pyyaml>=6.0"],
     # numpy - oldest working version. psutil - oldest working version.
     # pyyaml - oldest working version.
     # If run tests through setup.py - downloads these but does not install
