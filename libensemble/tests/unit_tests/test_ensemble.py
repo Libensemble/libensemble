@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.utils.misc import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1, pydanticV2, specs_dump
 
 
 def test_ensemble_init():
@@ -64,9 +64,9 @@ def test_from_files():
         sim_specs.pop("in")
         sim_specs.pop("out")
         gen_specs.pop("out")
-        assert all([i in e.sim_specs.model_dump().items() for i in sim_specs.items()])
-        assert all([i in e.gen_specs.model_dump().items() for i in gen_specs.items()])
-        assert all([i in e.exit_criteria.model_dump().items() for i in exit_criteria.items()])
+        assert all([i in specs_dump(e.sim_specs).items() for i in sim_specs.items()])
+        assert all([i in specs_dump(e.gen_specs).items() for i in gen_specs.items()])
+        assert all([i in specs_dump(e.exit_criteria).items() for i in exit_criteria.items()])
 
 
 def test_bad_func_loads():
