@@ -29,10 +29,14 @@ jobs:
                       python-version: 3.11
                       mpi-version: "mpich=4.0.3"
                       comms-type: l
-                    - python-version: 3.10
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: 3.10
                       pydantic-version: "1.10.13"
                       comms-type: m
-                    - python-version: 3.10
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: 3.10
                       pydantic-version: "1.10.13"
                       comms-type: l
 
