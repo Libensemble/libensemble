@@ -147,10 +147,10 @@ if __name__ == "__main__":
 
         # check having only cores_per_node
         if run_set == "jsrun":
-            libE_specs["platform_specs"].logical_cores_per_node = None
+            del libE_specs["platform_specs"].logical_cores_per_node
 
         if run_set == "custom":
-            libE_specs["platform_specs"].cores_per_node = None
+            del libE_specs["platform_specs"].cores_per_node
             libE_specs["platform_specs"].logical_cores_per_node = 128
 
         # Reset persis_info. If has num_gens_started > 0 from alloc, will not runs any sims.
