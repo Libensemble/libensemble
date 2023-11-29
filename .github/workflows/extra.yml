@@ -28,7 +28,7 @@ jobs:
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      python-version: "3.11"
+                      python-version: "3.12"
                       comms-type: l
 
         env:
@@ -43,7 +43,7 @@ jobs:
         steps:
         - uses: actions/checkout@v4
         - name: Setup conda - Python ${{ matrix.python-version }}
-          uses: conda-incubator/setup-miniconda@v2
+          uses: conda-incubator/setup-miniconda@v3
           with:
             activate-environment: condaenv
             miniconda-version: "latest"
