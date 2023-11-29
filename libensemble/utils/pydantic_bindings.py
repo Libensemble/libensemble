@@ -1,7 +1,7 @@
+from pydantic import Field, create_model
+
 from libensemble import specs
 from libensemble.resources import platforms
-
-# from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
 from libensemble.utils.misc import pydanticV1, pydanticV2
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
@@ -25,7 +25,7 @@ from libensemble.utils.validators import (
 )
 
 if pydanticV1:
-    from pydantic import BaseConfig, Field, create_model
+    from pydantic import BaseConfig
     from pydantic import validate_arguments as libE_wrapper  # noqa: F401
 
     BaseConfig.arbitrary_types_allowed = True
@@ -44,7 +44,7 @@ if pydanticV1:
     specs._EnsembleSpecs.Config = Config
 
 elif pydanticV2:
-    from pydantic import ConfigDict, Field, create_model
+    from pydantic import ConfigDict
     from pydantic import validate_call as libE_wrapper  # noqa: F401
     from pydantic.fields import FieldInfo
 
@@ -54,6 +54,7 @@ elif pydanticV2:
 
     specs.SimSpecs.model_config = model_config
     specs.GenSpecs.model_config = model_config
+    specs.AllocSpecs.model_config = model_config
     specs.LibeSpecs.model_config = model_config
     specs.ExitCriteria.model_config = model_config
     specs._EnsembleSpecs.model_config = model_config
@@ -62,23 +63,25 @@ elif pydanticV2:
     specs.SimSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
         specs.SimSpecs.model_fields["inputs"], Field(alias="in")
     )
+
     specs.SimSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
         specs.SimSpecs.model_fields["outputs"], Field(alias="out")
     )
-    specs.SimSpecs.model_rebuild(force=True)
 
     specs.GenSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
         specs.GenSpecs.model_fields["inputs"], Field(alias="in")
     )
+
     specs.GenSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
         specs.GenSpecs.model_fields["outputs"], Field(alias="out")
     )
-    specs.GenSpecs.model_rebuild(force=True)
 
     specs.AllocSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
         specs.AllocSpecs.model_fields["outputs"], Field(alias="out")
     )
 
+    specs.SimSpecs.model_rebuild(force=True)
+    specs.GenSpecs.model_rebuild(force=True)
     specs.AllocSpecs.model_rebuild(force=True)
     specs.LibeSpecs.model_rebuild(force=True)
     specs.ExitCriteria.model_rebuild(force=True)

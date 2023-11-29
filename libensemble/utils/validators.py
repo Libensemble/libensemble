@@ -1,6 +1,6 @@
 import secrets
 from pathlib import Path
-from typing import Callable, Union
+from typing import Callable
 
 import numpy as np
 
@@ -18,54 +18,81 @@ _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a u
 _OUT_DTYPE_ERR = "unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
 _IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
 
-""" Pydantic validation logic, implemented in both V1 and V2"""
+
+def check_valid_out(cls, v):
+    try:
+        _ = np.dtype(v)
+    except TypeError:
+        raise ValueError(_OUT_DTYPE_ERR.format(v))
+    else:
+        return v
+
+
+def check_valid_in(cls, v):
+    if not all(isinstance(s, str) for s in v):
+        raise ValueError(_IN_INVALID_ERR)
+    return v
+
+
+def check_valid_comms_type(cls, value):
+    assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
+    return value
+
+
+def set_platform_specs_to_class(cls, value) -> Platform:
+    if isinstance(value, dict):
+        value = Platform(**value)
+    return value
+
+
+def check_input_dir_exists(cls, value):
+    if value:
+        if isinstance(value, str):
+            value = Path(value).absolute()
+        assert value.exists(), "value does not refer to an existing path"
+        assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
+    return value
+
+
+def check_inputs_exist(cls, value):
+    value = [Path(path).absolute() for path in value]
+    for f in value:
+        assert f.exists(), f"'{f}' in Value does not refer to an existing path."
+    return value
+
+
+def check_gpu_setting_type(cls, value):
+    if value is not None:
+        assert value in [
+            "runner_default",
+            "env",
+            "option_gpus_per_node",
+            "option_gpus_per_task",
+        ], "Invalid label for GPU specification type"
+    return value
+
+
+def check_mpi_runner_type(cls, value):
+    if value is not None:
+        assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
+    return value
+
 
 if pydanticV1:
     from pydantic import root_validator, validator
 
     # SPECS VALIDATORS #####
 
-    @validator("outputs", pre=True)
-    def check_valid_out(cls, v):
-        try:
-            _ = np.dtype(v)
-        except TypeError:
-            raise ValueError(_OUT_DTYPE_ERR.format(v))
-        else:
-            return v
-
-    @validator("inputs", "persis_in", pre=True)
-    def check_valid_in(cls, v):
-        if not all(isinstance(s, str) for s in v):
-            raise ValueError(_IN_INVALID_ERR)
-        return v
-
-    @validator("comms")
-    def check_valid_comms_type(cls, value):
-        assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
-        return value
-
-    @validator("platform_specs")
-    def set_platform_specs_to_class(cls, value) -> Platform:
-        if isinstance(value, dict):
-            value = Platform(**value)
-        return value
-
-    @validator("sim_input_dir", "gen_input_dir")
-    def check_input_dir_exists(cls, value):
-        if value:
-            if isinstance(value, str):
-                value = Path(value).absolute()
-            assert value.exists(), "value does not refer to an existing path"
-            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
-        return value
-
-    @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    def check_inputs_exist(cls, value):
-        value = [Path(path).absolute() for path in value]
-        for f in value:
-            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
-        return value
+    check_valid_out = validator("outputs", pre=True)(check_valid_out)
+    check_valid_in = validator("inputs", "persis_in", pre=True)(check_valid_in)
+    check_valid_comms_type = validator("comms")(check_valid_comms_type)
+    set_platform_specs_to_class = validator("platform_specs")(set_platform_specs_to_class)
+    check_input_dir_exists = validator("sim_input_dir", "gen_input_dir")(check_input_dir_exists)
+    check_inputs_exist = validator(
+        "sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files"
+    )(check_inputs_exist)
+    check_gpu_setting_type = validator("gpu_setting_type")(check_gpu_setting_type)
+    check_mpi_runner_type = validator("mpi_runner")(check_mpi_runner_type)
 
     @root_validator
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
@@ -120,23 +147,6 @@ if pydanticV1:
 
     # RESOURCES VALIDATORS #####
 
-    @validator("gpu_setting_type")
-    def check_gpu_setting_type(cls, value):
-        if value is not None:
-            assert value in [
-                "runner_default",
-                "env",
-                "option_gpus_per_node",
-                "option_gpus_per_task",
-            ], "Invalid label for GPU specification type"
-        return value
-
-    @validator("mpi_runner")
-    def check_mpi_runner_type(cls, value):
-        if value is not None:
-            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
-        return value
-
     @root_validator
     def check_logical_cores(cls, values):
         if values.get("cores_per_node") and values.get("logical_cores_per_node"):
@@ -150,53 +160,16 @@ elif pydanticV2:
 
     # SPECS VALIDATORS #####
 
-    @field_validator("outputs")
-    @classmethod
-    def check_valid_out(cls, v):
-        try:
-            _ = np.dtype(v)
-        except TypeError:
-            raise ValueError(_OUT_DTYPE_ERR)
-        else:
-            return v
-
-    @field_validator("inputs", "persis_in")
-    @classmethod
-    def check_valid_in(cls, v):
-        if not all(isinstance(s, str) for s in v):
-            raise ValueError(_IN_INVALID_ERR)
-        return v
-
-    @field_validator("comms")
-    @classmethod
-    def check_valid_comms_type(cls, value):
-        assert value in ["mpi", "local", "tcp"], "Invalid comms type"
-        return value
-
-    @field_validator("platform_specs")
-    @classmethod
-    def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
-        if isinstance(value, dict):
-            value = Platform(**value)
-        return value
-
-    @field_validator("sim_input_dir", "gen_input_dir")
-    @classmethod
-    def check_input_dir_exists(cls, value):
-        if value:
-            if isinstance(value, str):
-                value = Path(value).absolute()
-            assert value.exists(), "value does not refer to an existing path"
-            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
-        return value
-
-    @field_validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    @classmethod
-    def check_inputs_exist(cls, value):
-        value = [Path(path).absolute() for path in value]
-        for f in value:
-            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
-        return value
+    check_valid_out = field_validator("outputs")(classmethod(check_valid_out))
+    check_valid_in = field_validator("inputs", "persis_in")(classmethod(check_valid_in))
+    check_valid_comms_type = field_validator("comms")(classmethod(check_valid_comms_type))
+    set_platform_specs_to_class = field_validator("platform_specs")(classmethod(set_platform_specs_to_class))
+    check_input_dir_exists = field_validator("sim_input_dir", "gen_input_dir")(classmethod(check_input_dir_exists))
+    check_inputs_exist = field_validator(
+        "sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files"
+    )(classmethod(check_inputs_exist))
+    check_gpu_setting_type = field_validator("gpu_setting_type")(classmethod(check_gpu_setting_type))
+    check_mpi_runner_type = field_validator("mpi_runner")(classmethod(check_mpi_runner_type))
 
     @model_validator(mode="after")
     def check_any_workers_and_disable_rm_if_tcp(self):
@@ -248,25 +221,6 @@ elif pydanticV2:
         return self
 
     # RESOURCES VALIDATORS #####
-
-    @field_validator("gpu_setting_type")
-    @classmethod
-    def check_gpu_setting_type(cls, value):
-        if value is not None:
-            assert value in [
-                "runner_default",
-                "env",
-                "option_gpus_per_node",
-                "option_gpus_per_task",
-            ], "Invalid label for GPU specification type"
-        return value
-
-    @field_validator("mpi_runner")
-    @classmethod
-    def check_mpi_runner_type(cls, value):
-        if value is not None:
-            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
-        return value
 
     @model_validator(mode="after")
     def check_logical_cores(self):
