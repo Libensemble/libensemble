@@ -163,12 +163,7 @@ class LocalOptInterfacer(object):
         elif "fvec" in data.dtype.names:
             self.comm_queue.put((data["x_on_cube"], data["fvec"]))
         else:
-            self.comm_queue.put(
-                (
-                    data["x_on_cube"],
-                    data["f"],
-                )
-            )
+            self.comm_queue.put((data["x_on_cube"], data["f"]))
 
         self.child_can_read.set()
         self.parent_can_read.wait()
