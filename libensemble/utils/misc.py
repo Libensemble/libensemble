@@ -44,7 +44,7 @@ def specs_checker_getattr(obj, key):
         return getattr(obj, key)
 
 
-def specs_check_setattr(obj, key, value):
+def specs_checker_setattr(obj, key, value):
     if pydanticV1:  # dict
         obj[key] = value
     elif pydanticV2:  # actual obj

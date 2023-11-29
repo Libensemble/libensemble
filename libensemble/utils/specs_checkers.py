@@ -4,12 +4,14 @@ Reference the models in that file.
 """
 
 import logging
+import secrets
+from pathlib import Path
 
 import numpy as np
 
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.utils.misc import specs_check_setattr as scs
 from libensemble.utils.misc import specs_checker_getattr as scg
+from libensemble.utils.misc import specs_checker_setattr as scs
 
 logger = logging.getLogger(__name__)
 
@@ -89,4 +91,22 @@ def _check_any_workers_and_disable_rm_if_tcp(values):
                 assert scg(values, "workers"), "Without nworkers, must specify worker hosts on TCP"
     if comms_type == "tcp":
         scs(values, "disable_resource_manager", True)  # Resource management not supported with TCP
+    return values
+
+
+def _check_set_workflow_dir(values):
+    if scg(values, "use_workflow_dir") and len(str(scg(values, "workflow_dir_path"))) <= 1:
+        scs(values, "workflow_dir_path", Path("./workflow_" + secrets.token_hex(3)).absolute())
+    elif len(str(scg(values, "workflow_dir_path"))) > 1:
+        if not scg(values, "use_workflow_dir"):
+            scs(values, "use_workflow_dir", True)
+        scs(values, "workflow_dir_path", Path(scg(values, "workflow_dir_path")).absolute())
+    return values
+
+
+def _check_logical_cores(values):
+    if scg(values, "cores_per_node") and scg(values, "logical_cores_per_node"):
+        assert (
+            scg(values, "logical_cores_per_node") % scg(values, "cores_per_node") == 0
+        ), "Logical cores doesn't divide evenly into cores"
     return values

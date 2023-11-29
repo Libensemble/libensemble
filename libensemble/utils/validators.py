@@ -1,4 +1,3 @@
-import secrets
 from pathlib import Path
 from typing import Callable
 
@@ -10,7 +9,9 @@ from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
+    _check_logical_cores,
     _check_output_fields,
+    _check_set_workflow_dir,
 )
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
@@ -108,15 +109,7 @@ if pydanticV1:
 
     @root_validator
     def set_workflow_dir(cls, values):
-        if values.get("use_workflow_dir") and len(str(values.get("workflow_dir_path"))) <= 1:
-            values["workflow_dir_path"] = Path(
-                "./workflow_" + secrets.token_hex(3)
-            ).absolute()  # should avoid side-effects. make dir later
-        elif len(str(values.get("workflow_dir_path"))) > 1:
-            if not values.get("use_workflow_dir"):
-                values["use_workflow_dir"] = True
-            values["workflow_dir_path"] = Path(values["workflow_dir_path"]).absolute()
-        return values
+        return _check_set_workflow_dir(values)
 
     @root_validator
     def check_exit_criteria(cls, values):
@@ -149,11 +142,7 @@ if pydanticV1:
 
     @root_validator
     def check_logical_cores(cls, values):
-        if values.get("cores_per_node") and values.get("logical_cores_per_node"):
-            assert (
-                values["logical_cores_per_node"] % values["cores_per_node"] == 0
-            ), "Logical cores doesn't divide evenly into cores"
-        return values
+        return _check_logical_cores(values)
 
 elif pydanticV2:
     from pydantic import field_validator, model_validator
@@ -185,15 +174,7 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def set_workflow_dir(self):
-        if self.__dict__.get("use_workflow_dir") and len(str(self.__dict__.get("workflow_dir_path"))) <= 1:
-            self.__dict__["workflow_dir_path"] = Path(
-                "./workflow_" + secrets.token_hex(3)
-            ).absolute()  # should avoid side-effects. make dir later
-        elif len(str(self.workflow_dir_path)) > 1:
-            if not self.use_workflow_dir:
-                self.__dict__["use_workflow_dir"] = True
-            self.__dict__["workflow_dir_path"] = Path(self.workflow_dir_path).absolute()
-        return self
+        return _check_set_workflow_dir(self)
 
     @model_validator(mode="after")
     def check_exit_criteria(self):
@@ -224,8 +205,4 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def check_logical_cores(self):
-        if self.__dict__.get("cores_per_node") and self.__dict__.get("logical_cores_per_node"):
-            assert (
-                self.logical_cores_per_node % self.cores_per_node == 0
-            ), "Logical cores doesn't divide evenly into cores"
-        return self
+        return _check_logical_cores(self)
