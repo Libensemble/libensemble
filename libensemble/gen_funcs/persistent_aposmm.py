@@ -589,7 +589,10 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
 def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """Calculate the critical distance r_k"""
     if lhs_divisions == 0:
-        r_k = rk_const * (log(n_s) / n_s) ** (1 / n)
+        if n_s == 1:
+            r_k = 1e8
+        else:
+            r_k = rk_const * (log(n_s) / n_s) ** (1 / n)
     else:
         k = np.floor(n_s / lhs_divisions).astype(int)
         if k <= 1:  # to prevent r_k=0

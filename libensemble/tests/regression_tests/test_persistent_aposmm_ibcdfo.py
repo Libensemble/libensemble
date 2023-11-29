@@ -81,6 +81,7 @@ if __name__ == "__main__":
         "out": gen_out,
         "user": {
             "initial_sample_size": 1,
+            "max_active_runs": 1,
             "sample_points": np.array([[0.1, 0.2, 0.345]]),
             "localopt_method": "ibcdfo_pounders",
             "components": m,
