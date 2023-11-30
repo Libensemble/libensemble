@@ -37,11 +37,14 @@ def specs_dump(specs, **kwargs):
         return specs.model_dump(**kwargs)
 
 
-def specs_checker_getattr(obj, key):
+def specs_checker_getattr(obj, key, default=None):
     if pydanticV1:  # dict
-        return obj.get(key)
+        return obj.get(key, default)
     elif pydanticV2:  # actual obj
-        return getattr(obj, key)
+        try:
+            return getattr(obj, key)
+        except AttributeError:
+            return default
 
 
 def specs_checker_setattr(obj, key, value):
