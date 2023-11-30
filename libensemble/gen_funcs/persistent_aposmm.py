@@ -137,7 +137,6 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
     persis_info['total_runs']: Running count of started/completed localopt runs
     persis_info['run_order']: Sequence of indices of points in unfinished runs
-    persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
 
