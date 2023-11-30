@@ -442,6 +442,12 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     delta_0 = 0.5 * dist_to_bound
     m = len(f0)
 
+    if "hfun" in user_specs:
+        print(user_specs)
+        Options = {"hfun": user_specs["hfun"], "combinemodels": user_specs["combinemodels"]}
+    else:
+        Options = None
+
     [X, F, hF, flag, xkin] = pounders.pounders(
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
@@ -452,6 +458,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
         m,
         lb,
         ub,
+        Options=Options,
     )
 
     assert flag >= 0, "IBCDFO errored"
