@@ -443,7 +443,6 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     m = len(f0)
 
     if "hfun" in user_specs:
-        print(user_specs)
         Options = {"hfun": user_specs["hfun"], "combinemodels": user_specs["combinemodels"]}
     else:
         Options = None

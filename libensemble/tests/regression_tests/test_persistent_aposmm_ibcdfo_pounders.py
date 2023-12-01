@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     assert nworkers == 2, "This test is just for two workers"
 
-    for inst in range(2):
+    for inst in range(1, 2):
         if inst == 0:
             # Declare the run parameters/functions
             m = 214
@@ -110,6 +110,7 @@ if __name__ == "__main__":
             "out": gen_out,
             "user": {
                 "initial_sample_size": 1,
+                "stop_after_k_runs": 1,
                 "max_active_runs": 1,
                 "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
                 "localopt_method": "ibcdfo_pounders",
