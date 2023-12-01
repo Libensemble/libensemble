@@ -105,10 +105,10 @@ jobs:
           run: |
             pip install ax-platform==0.2.8
 
-        - name: Install surmise
-          if: matrix.os != 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
-          run: |
-            pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
+        #- name: Install surmise
+        #  if: matrix.os != 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+        #  run: |
+        #    pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
 
         - name: Build ytopt and dependencies
           if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
