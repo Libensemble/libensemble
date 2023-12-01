@@ -130,7 +130,7 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest'  && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
 
@@ -152,7 +152,7 @@ jobs:
 
 
         - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             cd /home/runner/work/libensemble/libensemble
             cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
