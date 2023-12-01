@@ -34,8 +34,6 @@ if __name__ == "__main__":
 
     sim_specs = {
         "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
         "user": {"uniform_random_pause_ub": 10},
     }
 

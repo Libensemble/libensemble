@@ -57,7 +57,6 @@ if __name__ == "__main__":
         print("\nlibEnsemble with random sampling has generated enough points")
 
         assert "manager.prof" in os.listdir(), "Expected manager profile not found after run"
-        # os.remove("manager.prof")
 
         prof_files = [f"worker_{i + 1}.prof" for i in range(nworkers)]
 
@@ -66,11 +65,3 @@ if __name__ == "__main__":
 
         for file in prof_files:
             assert file in os.listdir(), "Expected profile {file} not found after run"
-            # with open(file, "r") as f:
-            #     data = f.read().split()
-            #     num_worker_funcs_profiled = sum(["worker" in i for i in data])
-            # assert num_worker_funcs_profiled >= 8, (
-            #     "Insufficient number of " + "worker functions profiled: " + str(num_worker_funcs_profiled)
-            # )
-
-            # os.remove(file)
