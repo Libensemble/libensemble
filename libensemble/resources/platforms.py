@@ -224,6 +224,16 @@ class Summit(Platform):
     scheduler_match_slots: bool = False
 
 
+class Aurora(Platform):
+    mpi_runner: str = "mpich"
+    runner_name: str = "mpiexec"
+    cores_per_node: int = 104
+    logical_cores_per_node: int = 208
+    gpus_per_node: int = 6
+    gpu_setting_type: str = "runner_default"
+    scheduler_match_slots: bool = True
+
+
 class Sunspot(Platform):
     mpi_runner: str = "mpich"
     runner_name: str = "mpiexec"
@@ -272,6 +282,7 @@ class Known_platforms(BaseModel):
     where auto-detection encounters ambiguity or an unknown feature.
     """
 
+    aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
@@ -287,6 +298,7 @@ class Known_platforms(BaseModel):
 detect_systems = {
     "crusher.olcf.ornl.gov": Crusher,
     "frontier.olcf.ornl.gov": Frontier,
+    "hostmgmt.cm.aurora.alcf.anl.gov": Aurora,
     "hsn.cm.polaris.alcf.anl.gov": Polaris,
     "spock.olcf.ornl.gov": Spock,
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
