@@ -56,6 +56,7 @@ if __name__ == "__main__":
     sim_max = 120
     exit_criteria = {"sim_max": sim_max}
     libE_specs["final_gen_send"] = True
+    libE_specs["save_every_k_sims"] = 2
 
     for run in range(2):
         if run == 2:
@@ -68,6 +69,11 @@ if __name__ == "__main__":
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
         if is_manager:
+            # Check that last saved history agrees with returned history.
+            H_saved = np.load(f"libE_history_after_sim_{sim_max}.npy")
+            for name in H.dtype.names:
+                np.testing.assert_array_equal(H_saved[name], H[name])
+
             assert np.all(H["f_est"][0:sim_max] != 0), "The persistent gen should have set these at shutdown"
             assert np.all(H["gen_informed"][0:sim_max]), "Need to mark the gen having been informed."
             save_libE_output(H, persis_info, __file__, nworkers)
