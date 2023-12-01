@@ -156,6 +156,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
     return H_o, persis_info
 
 
+@output_data([("x", float, (1,))])
 def latin_hypercube_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin
