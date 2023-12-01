@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     assert nworkers == 2, "This test is just for two workers"
 
-    for inst in range(1, 2):
+    for inst in range(2):
         if inst == 0:
             # Declare the run parameters/functions
             m = 214
@@ -114,6 +114,7 @@ if __name__ == "__main__":
                 "max_active_runs": 1,
                 "sample_points": np.atleast_2d(0.1 * (np.arange(n) + 1)),
                 "localopt_method": "ibcdfo_pounders",
+                "run_max_eval": 100 * (n + 1),
                 "components": m,
                 "lb": -1 * np.ones(n),
                 "ub": np.ones(n),

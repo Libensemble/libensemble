@@ -437,7 +437,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
     dist_to_bound = min(min(ub - x0), min(x0 - lb))
     assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small"
 
-    nf_max = 100 * (n + 1)
+    run_max_eval = user_specs.get("run_max_eval", 100 * (n + 1))
     g_tol = 1e-8
     delta_0 = 0.5 * dist_to_bound
     m = len(f0)
@@ -451,7 +451,7 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
         lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
         x0,
         n,
-        nf_max,
+        run_max_eval,
         g_tol,
         delta_0,
         m,
