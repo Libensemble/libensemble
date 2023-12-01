@@ -391,6 +391,27 @@ def test_update_history_f():
     assert hist.sim_started_count == 0  # In real case this would be ahead.....
     assert hist.index == 0  # In real case this would be ahead....
 
+    # Test objects in history
+    hist, sim_specs, _, _, _ = setup.hist_setup_object()
+    size = 2
+    sim_ids = [0, 1]  # First row to be filled
+    calc_out = np.zeros(size, dtype=sim_specs["out"])
+    calc_out["g"][0:1] = sim_specs["sim_f"]  # note that the output value is the *function*
+    D_recv = {
+        "calc_out": calc_out,
+        "persis_info": {},
+        "libE_info": {"H_rows": sim_ids},
+        "calc_status": WORKER_DONE,
+        "calc_type": 2,
+    }
+
+    hist.update_history_f(D_recv, safe_mode)
+    assert np.all(hist.H["sim_ended"][0:1])
+    assert np.all(~hist.H["sim_ended"][3:10])  # Check the rest
+    assert hist.sim_ended_count == 2
+    assert hist.sim_started_count == 0  # In real case this would be ahead.....
+    assert hist.index == 0  # In real case this would be ahead....
+
 
 def test_update_history_f_vec():
     hist, sim_specs, _, _, _ = setup.hist_setup1()
