@@ -63,7 +63,7 @@ need to write a new allocation function.
 
         For now, create a new Python file named ``gen.py``. Write the following:
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/sine_gen.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_gen.py
             :language: python
             :linenos:
             :caption: examples/tutorials/simple_sine/sine_gen.py
@@ -83,7 +83,7 @@ need to write a new allocation function.
 
         Create a new Python file named ``sim.py``. Write the following:
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/sine_sim.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_sim.py
             :language: python
             :linenos:
             :caption: examples/tutorials/simple_sine/sine_sim.py
@@ -106,7 +106,7 @@ need to write a new allocation function.
         specify the number of workers and the manager/worker intercommunication method.
         ``"local"``, refers to Python's multiprocessing.
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
             :language: python
             :linenos:
             :end-at: libE_specs = LibeSpecs
@@ -119,7 +119,7 @@ need to write a new allocation function.
         These classes also describe to libEnsemble what inputs and outputs from those
         functions to expect.
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
             :language: python
             :linenos:
             :lineno-start: 10
@@ -129,7 +129,7 @@ need to write a new allocation function.
         We then specify the circumstances where
         libEnsemble should stop execution in :ref:`ExitCriteria<datastruct-exit-criteria>`.
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
             :language: python
             :linenos:
             :lineno-start: 26
@@ -140,7 +140,7 @@ need to write a new allocation function.
         function call. :ref:`ensemble.H<funcguides-history>` is the final version of
         the history array. ``ensemble.flag`` should be zero if no errors occur.
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
             :language: python
             :linenos:
             :lineno-start: 28
@@ -188,7 +188,7 @@ need to write a new allocation function.
         earlier, copy and paste the following code into the bottom of your calling
         script and run ``python calling.py`` again
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial.py
             :language: python
             :linenos:
             :lineno-start: 37
@@ -209,7 +209,7 @@ need to write a new allocation function.
 
         .. dropdown:: **Click Here for Solution**
 
-            .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial_2.py
+            .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial_2.py
                 :language: python
                 :linenos:
                 :emphasize-lines: 15,16,17,27,33,34
@@ -239,7 +239,7 @@ need to write a new allocation function.
         Only a few changes are necessary to make our code MPI-compatible. For starters,
         comment out the ``libE_specs`` definition:
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial_3.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial_3.py
             :language: python
             :start-at: # libE_specs = LibeSpecs
             :end-at: # libE_specs = LibeSpecs
@@ -251,7 +251,7 @@ need to write a new allocation function.
 
         The bottom of your calling script should now resemble:
 
-        .. literalinclude:: ../../libensemble/tests/tutorial_tests/test_local_sine_tutorial_3.py
+        .. literalinclude:: ../../libensemble/tests/functionality_tests/test_local_sine_tutorial_3.py
             :linenos:
             :lineno-start: 28
             :language: python
