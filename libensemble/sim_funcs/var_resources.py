@@ -78,7 +78,7 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
 
 
 @input_fields(["x"])
-@output_data(["f", float])
+@output_data([("f", float)])
 def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
     """Launches an app and assigns CPU and GPU resources as defined by the gen.
 
