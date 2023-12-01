@@ -11,7 +11,7 @@ from libensemble.specs import input_fields, output_data
 
 
 @input_fields(["x"])
-@output_data(["f", float])
+@output_data([("f", float)])
 def call_branin(H, _, sim_specs):
     """Evaluates the Branin function"""
     batch = len(H["x"])
