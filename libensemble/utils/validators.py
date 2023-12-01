@@ -121,9 +121,7 @@ if pydanticV1:
 
     @root_validator
     def check_H0(cls, values):
-        if values.get("H0") is not None:
-            return _check_H0(values)
-        return values
+        return _check_H0(values)
 
     @root_validator
     def check_provided_ufuncs(cls, values):
@@ -186,9 +184,7 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def check_H0(self):
-        if self.H0 is not None:
-            return _check_H0(self)
-        return self
+        return _check_H0(self)
 
     @model_validator(mode="after")
     def check_provided_ufuncs(self):
