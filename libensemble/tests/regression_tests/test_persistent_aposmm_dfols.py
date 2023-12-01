@@ -52,7 +52,6 @@ if __name__ == "__main__":
     # Declare the run parameters/functions
     m = 214
     n = 3
-    budget = 10
 
     sim_specs = {
         "sim_f": sim_f,
