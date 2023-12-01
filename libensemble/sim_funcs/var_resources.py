@@ -30,6 +30,7 @@ import numpy as np
 from libensemble.message_numbers import TASK_FAILED, UNSET_TAG, WORKER_DONE
 from libensemble.resources.resources import Resources
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+from libensemble.specs import input_fields, output_data
 from libensemble.tools.test_support import check_gpu_setting, check_mpi_runner
 
 
@@ -76,6 +77,8 @@ def gpu_variable_resources(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info, calc_status
 
 
+@input_fields(["x"])
+@output_data(["f", float])
 def gpu_variable_resources_from_gen(H, persis_info, sim_specs, libE_info):
     """Launches an app and assigns CPU and GPU resources as defined by the gen.
 

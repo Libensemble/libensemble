@@ -71,8 +71,6 @@ if __name__ == "__main__":
 
     gpu_test.sim_specs = SimSpecs(
         sim_f=sim_f,
-        inputs=["x"],
-        out=[("f", float)],
         user={"dry_run": False},
     )
     gpu_test.gen_specs = GenSpecs(
