@@ -61,7 +61,7 @@ need to write a new allocation function.
 
         Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
-        For now, create a new Python file named ``gen.py``. Write the following:
+        For now, create a new Python file named ``sine_gen.py``. Write the following:
 
         .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_gen.py
             :language: python
@@ -81,7 +81,7 @@ need to write a new allocation function.
         The only new parameter here is :ref:`sim_specs<datastruct-sim-specs>`, which
         serves a purpose similar to the :class:`gen_specs<libensemble.specs.GenSpecs>` dictionary.
 
-        Create a new Python file named ``sim.py``. Write the following:
+        Create a new Python file named ``sine_sim.py``. Write the following:
 
         .. literalinclude:: ../../libensemble/tests/functionality_tests/sine_sim.py
             :language: python
