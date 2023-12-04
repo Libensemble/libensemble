@@ -61,7 +61,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-basic
 
         - name: Force-update certifi
           run: |
@@ -101,7 +101,7 @@ jobs:
         - name: Install generator dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install mpmath
+            pip install mpmath matplotlib
             conda install numpy nlopt scipy
 
         - uses: actions/cache/save@v3

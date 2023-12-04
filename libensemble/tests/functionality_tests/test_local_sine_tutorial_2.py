@@ -1,6 +1,6 @@
 import numpy as np
-from gen import gen_random_sample
-from sim import sim_find_sine
+from sine_gen import gen_random_sample
+from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
