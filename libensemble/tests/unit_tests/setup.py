@@ -70,3 +70,11 @@ def hist_setup2A_genout_sim_ids(sim_max=10):
     H0 = []
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
     return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
+
+
+def hist_setup_object(sim_max=10):
+    sim_specs, gen_specs, exit_criteria = make_criteria_and_specs_1A(simx=sim_max)
+    sim_specs["out"] = [("g", object)]
+    alloc_specs = AllocSpecs().dict()
+    hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, [])
+    return hist, sim_specs, gen_specs, exit_criteria, alloc_specs

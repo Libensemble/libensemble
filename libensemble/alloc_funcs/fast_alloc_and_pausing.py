@@ -22,7 +22,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         combine_component_func is larger than a known upper bound on the objective.
 
     .. seealso::
-        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
@@ -124,14 +124,6 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                     np.logical_or(H["sim_ended"][last_size:], H["paused"][last_size:])
                 ):
                     break
-                # Don't call APOSMM if there are runs going but none need advancing
-                if len(persis_info[lw]["run_order"]):
-                    runs_needing_to_advance = np.zeros(len(persis_info[lw]["run_order"]), dtype=bool)
-                    for run, inds in enumerate(persis_info[lw]["run_order"].values()):
-                        runs_needing_to_advance[run] = np.all(H["sim_ended"][inds])
-
-                    if not np.any(runs_needing_to_advance):
-                        break
 
             # Give gen work
             i = idle_workers[0]

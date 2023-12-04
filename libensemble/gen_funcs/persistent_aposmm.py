@@ -87,6 +87,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       points must satisfy
     - ``'rk_const' [float]``: Multiplier in front of the r_k value
     - ``'max_active_runs' [int]``: Bound on number of runs APOSMM is advancing
+    - ``'stop_after_k_minima' [int]``: Tell APOSMM to stop after this many
+      local minima have been identified by a local optimization run.
+    - ``'stop_after_k_runs' [int]``: Tell APOSMM to stop after this many runs
+      have ended. (The number of ended runs may be less than the number of
+      minima if, for example, a local optimization run ends due to a evaluation
+      constraint, but not convergence criteria.)
 
     If the rules in ``decide_where_to_start_localopt`` produces more than
     ``'max_active_runs'`` in some iteration, then existing runs are prioritized.
@@ -130,14 +136,13 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                       unless opt_flag is 1)
     opt_flag:         1 if the run ended with an optimal point (x_opt) or
                       0 if it ended because e.g., maxiters/maxevals were reached
-    num_samples_needed:   Number of additional uniformly drawn samples needed
+    num_samples:      Number of additional uniformly drawn samples needed
 
 
     Description of persistent variables used to maintain the state of APOSMM
 
     persis_info['total_runs']: Running count of started/completed localopt runs
     persis_info['run_order']: Sequence of indices of points in unfinished runs
-    persis_info['old_runs']: Sequence of indices of points in finished runs
 
     """
 
@@ -145,9 +150,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
         user_specs = gen_specs["user"]
         ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         n, n_s, rk_const, ld, mu, nu, comm, local_H = initialize_APOSMM(H, user_specs, libE_info)
-        local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass = initialize_children(
-            user_specs
-        )
+        (
+            local_opters,
+            sim_id_to_child_inds,
+            run_order,
+            run_pts,
+            total_runs,
+            ended_runs,
+            fields_to_pass,
+        ) = initialize_children(user_specs)
+
         if user_specs["initial_sample_size"] != 0:
             # Send our initial sample. We don't need to check that n_s is large enough:
             # the alloc_func only returns when the initial sample has function values.
@@ -177,8 +189,12 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     persis_info["run_order"] = run_order
                     break
 
-                if np.sum(local_H["local_min"]) >= user_specs.get("stop_after_this_many_minima", np.inf):
+                if np.sum(local_H["local_min"]) >= user_specs.get("stop_after_k_minima", np.inf) or len(
+                    ended_runs
+                ) >= user_specs.get("stop_after_k_runs", np.inf):
                     # This break happens here so the manager can be informed about the last minima.
+                    clean_up_and_stop(local_opters)
+                    persis_info["run_order"] = run_order
                     break
 
                 n_s, n_r = update_local_H_after_receiving(local_H, n, n_s, user_specs, Work, calc_in, fields_to_pass)
@@ -194,6 +210,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                                 opt_ind = update_history_optimal(x_opt, opt_flag, local_H, run_order[child_idx])
                                 new_opt_inds_to_send_mgr.append(opt_ind)
                                 local_opters.pop(child_idx)
+                                ended_runs.append(child_idx)
                             else:
                                 add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
                                 new_inds_to_send_mgr.append(len(local_H) - 1)
@@ -221,9 +238,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
 
                     local_opters[total_runs] = local_opter
 
-                    x_new = local_opter.iterate(
-                        local_H[ind][fields_to_pass]
-                    )  # Assuming the second point can't be ruled optimal
+                    x_new = local_opter.iterate(local_H[ind][fields_to_pass])  # Assuming the second x won't be optimal
 
                     add_to_local_H(local_H, x_new, user_specs, local_flag=1, on_cube=True)
                     new_inds_to_send_mgr.append(len(local_H) - 1)
@@ -239,18 +254,16 @@ def aposmm(H, persis_info, gen_specs, libE_info):
                     total_runs += 1
 
             if first_pass:
-                num_samples_needed = persis_info["nworkers"] - 1 - len(new_inds_to_send_mgr)
+                num_samples = persis_info["nworkers"] - 1 - len(new_inds_to_send_mgr)
                 first_pass = False
             else:
-                num_samples_needed = n_r - len(new_inds_to_send_mgr)
+                num_samples = n_r - len(new_inds_to_send_mgr)
 
-            if num_samples_needed > 0:
+            if num_samples > 0:
                 persis_info = add_k_sample_points_to_local_H(
-                    num_samples_needed, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
+                    num_samples, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds
                 )
-                new_inds_to_send_mgr = new_inds_to_send_mgr + list(
-                    range(len(local_H) - num_samples_needed, len(local_H))
-                )
+                new_inds_to_send_mgr = new_inds_to_send_mgr + list(range(len(local_H) - num_samples, len(local_H)))
 
             if not user_specs.get("standalone"):
                 ps.send(local_H[new_inds_to_send_mgr + new_opt_inds_to_send_mgr][[i[0] for i in gen_specs["out"]]])
@@ -589,7 +602,10 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
 def calc_rk(n, n_s, rk_const, lhs_divisions=0):
     """Calculate the critical distance r_k"""
     if lhs_divisions == 0:
-        r_k = rk_const * (log(n_s) / n_s) ** (1 / n)
+        if n_s == 1:
+            r_k = 1e8
+        else:
+            r_k = rk_const * (log(n_s) / n_s) ** (1 / n)
     else:
         k = np.floor(n_s / lhs_divisions).astype(int)
         if k <= 1:  # to prevent r_k=0
@@ -668,11 +684,7 @@ def initialize_APOSMM(H, user_specs, libE_info):
             "ind_of_better_s",
         ]
         if any([i in H.dtype.names for i in over_written_fields]):
-            print(
-                "\n[APOSMM] persistent_aposmm ignores any given values in these fields: "
-                + str(over_written_fields)
-                + "\n"
-            )
+            print("\n[APOSMM] Ignoring given values in these fields: " + str(over_written_fields) + "\n")
 
         initialize_dists_and_inds(local_H, len(H))
 
@@ -681,11 +693,11 @@ def initialize_APOSMM(H, user_specs, libE_info):
 
     n_s = np.sum(~local_H["local_pt"])
 
-    assert (
-        n_s > 0 or user_specs["initial_sample_size"] > 0
-    ), "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
+    msg = "APOSMM requires a positive initial_sample_size, or some existing points in order to determine where to start local optimization runs."
+    assert n_s > 0 or user_specs["initial_sample_size"] > 0, msg
 
     if "sample_points" in user_specs:
+        assert user_specs["sample_points"].ndim == 2, "Must have 2 dimensions for sample points"
         assert isinstance(user_specs["sample_points"], np.ndarray)
 
     return n, n_s, rk_c, ld, mu, nu, comm, local_H
@@ -696,10 +708,9 @@ def initialize_children(user_specs):
     local_opters = {}
     sim_id_to_child_inds = {}
     run_order = {}
-    run_pts = (
-        {}
-    )  # This can differ from 'x_on_cube' if, for example, user_specs['periodic'] is True and run points are off the cube.
+    run_pts = {}  # These can differ from 'x_on_cube' (e.g., if user_specs['periodic']=1 and runs leave unit cube)
     total_runs = 0
+    ended_runs = []
     if user_specs["localopt_method"] in ["LD_MMA", "blmvm", "scipy_BFGS"]:
         fields_to_pass = ["x_on_cube", "f", "grad"]
     elif user_specs["localopt_method"] in [
@@ -714,12 +725,12 @@ def initialize_children(user_specs):
         "nm",
     ]:
         fields_to_pass = ["x_on_cube", "f"]
-    elif user_specs["localopt_method"] in ["pounders", "dfols"]:
+    elif user_specs["localopt_method"] in ["pounders", "ibcdfo_pounders", "dfols"]:
         fields_to_pass = ["x_on_cube", "fvec"]
     else:
         raise NotImplementedError(f"Unknown local optimization method {user_specs['localopt_method']}.")
 
-    return local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, fields_to_pass
+    return local_opters, sim_id_to_child_inds, run_order, run_pts, total_runs, ended_runs, fields_to_pass
 
 
 def add_k_sample_points_to_local_H(k, user_specs, persis_info, n, comm, local_H, sim_id_to_child_inds):

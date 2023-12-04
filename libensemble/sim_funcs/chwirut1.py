@@ -263,11 +263,11 @@ def chwirut_eval(H, _, sim_specs):
     are evaluated and returned in the ``"fvec"`` field.
 
     .. seealso::
-        `test_old_aposmm_pounders.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_pounders.py>`_
+        `test_persistent_aposmm_pounders.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_aposmm_pounders.py>`_ # noqa
         for an example where the entire fvec is computed each call.
 
     .. seealso::
-        `test_old_aposmm_one_residual_at_a_time.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_one_residual_at_a_time.py>`_
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
         for an example where one component of fvec is computed per call
     """
 
@@ -287,7 +287,10 @@ def chwirut_eval(H, _, sim_specs):
 
         else:
             O["fvec"][i] = EvaluateFunction(x)
-            O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
+            if "combine_component_func" in sim_specs["user"]:
+                O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
+            else:
+                O["f"][i] = np.sum(O["fvec"][i] ** 2)
 
     return O
 

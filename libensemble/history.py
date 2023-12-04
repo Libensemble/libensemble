@@ -136,7 +136,7 @@ class History:
             for field in fields:
                 if safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
-                if np.isscalar(returned_H[field][j]):
+                if np.isscalar(returned_H[field][j]) or returned_H.dtype[field].hasobject:
                     self.H[field][ind] = returned_H[field][j]
                 else:
                     # len or np.size

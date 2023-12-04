@@ -13,9 +13,29 @@ def test_ensemble_init():
 
     e = Ensemble(parse_args=True)
     assert hasattr(e.libE_specs, "comms"), "internal parse_args() didn't populate defaults for class's libE_specs"
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
     assert e.logger.get_level() == 20, "Default log level should be 20."
+
+
+def test_ensemble_parse_args_false():
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    e = Ensemble()  # parse_args defaults to False
+    e.libE_specs = {"comms": "local", "nworkers": 4}
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+
+    # test pass attribute as dict
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
+    assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
+    assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
+
+    # test that adjusting Ensemble.nworkers also changes libE_specs
+    e.nworkers = 8
+    assert e.libE_specs.nworkers == 8, "libE_specs nworkers not adjusted"
 
 
 def test_from_files():
@@ -70,6 +90,8 @@ def test_bad_func_loads():
 def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.one_d_func import one_d_example
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -77,8 +99,9 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(inputs=["x"], out=[("f", float)]),
+        sim_specs=SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)]),
         gen_specs=GenSpecs(
+            gen_f=latin_hypercube_sample,
             out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
@@ -88,6 +111,7 @@ def test_full_workflow():
         ),
         exit_criteria=ExitCriteria(gen_max=101),
     )
+
     ens.add_random_streams()
     ens.run()
     if ens.is_manager:
@@ -104,8 +128,47 @@ def test_full_workflow():
     assert not flag, "Ensemble didn't exit after specifying dry_run"
 
 
+def test_flakey_workflow():
+    """Test initializing a workflow via Specs and Ensemble.run()"""
+    from pydantic.error_wrappers import ValidationError
+
+    from libensemble.ensemble import Ensemble
+    from libensemble.gen_funcs.sampling import latin_hypercube_sample
+    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+    LS = LibeSpecs(comms="local", nworkers=4)
+
+    flag = 1
+    try:
+        ens = Ensemble(
+            libE_specs=LS,
+            sim_specs=SimSpecs(sim_f=one_d_example, inputs=["X"], out=[("f", float)]),
+            gen_specs=GenSpecs(
+                gen_f=latin_hypercube_sample,
+                out=[("x", float, (1,))],
+                user={
+                    "gen_batch_size": 100,
+                    "lb": np.array([-3]),
+                    "ub": np.array([3]),
+                },
+            ),
+            exit_criteria=ExitCriteria(gen_max=101),
+        )
+        ens.sim_specs.inputs = (["x"],)  # note trailing comma
+        ens.add_random_streams()
+        ens.run()
+    except ValidationError as e:
+        assert e.errors()[0]["msg"] == "Value should be a list of field names (a list of strings)"
+        flag = 0
+
+    assert not flag, "should've caught input errors"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
+    test_ensemble_parse_args_false()
     test_from_files()
     test_bad_func_loads()
     test_full_workflow()
+    test_flakey_workflow()

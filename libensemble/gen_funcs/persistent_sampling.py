@@ -21,6 +21,10 @@ def _get_user_params(user_specs):
     ub = user_specs["ub"]
     lb = user_specs["lb"]
     n = len(lb)  # dimension
+    assert isinstance(b, int), "Batch size must be an integer"
+    assert isinstance(n, int), "Dimension must be an integer"
+    assert isinstance(lb, np.ndarray), "lb must be a numpy array"
+    assert isinstance(ub, np.ndarray), "ub must be a numpy array"
     return b, n, lb, ub
 
 
@@ -34,7 +38,7 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
-        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_async.py>`_
+        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
@@ -45,6 +49,10 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = np.zeros(b, dtype=gen_specs["out"])
         H_o["x"] = persis_info["rand_stream"].uniform(lb, ub, (b, n))
+        if "obj_component" in H_o.dtype.fields:
+            H_o["obj_component"] = persis_info["rand_stream"].integers(
+                low=0, high=gen_specs["user"]["num_components"], size=b
+            )
         tag, Work, calc_in = ps.send_recv(H_o)
         if hasattr(calc_in, "__len__"):
             b = len(calc_in)
