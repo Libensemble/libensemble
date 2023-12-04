@@ -109,6 +109,14 @@ total_time() {
   echo "$diff"
 }
 
+build_forces() {
+  local root_dir=$1
+  pushd $root_dir/libensemble/tests/scaling_tests/forces/forces_app/
+  mpicc -O3 -o forces.x forces.c -lm
+  popd
+  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests/functionality_tests
+}
+
 #Cleanup test run directories
 cleanup() {
   THISDIR=${PWD}
@@ -452,7 +460,8 @@ if [ "$root_found" = true ]; then
     fi
     #Build any sim/gen source code dependencies here .....
 
-    # cd $ROOT_DIR/$REG_TEST_SUBDIR
+    # build forces
+    [ $RUN_REG_TESTS = "true" ]  && [ $RUN_MPI = "true" ] && $(build_forces $ROOT_DIR)
 
     #Run regression tests using MPI
     #Before first test set error code to zero
