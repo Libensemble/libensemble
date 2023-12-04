@@ -4,11 +4,13 @@ import sys
 import numpy as np
 from forces_simf import run_forces  # Sim func from current dir
 
-from libensemble import Ensemble
+from libensemble import Ensemble, logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+
+logger.set_level("DEBUG")
 
 if __name__ == "__main__":
     # Initialize MPI Executor

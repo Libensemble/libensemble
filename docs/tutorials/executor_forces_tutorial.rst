@@ -45,20 +45,19 @@ generation functions and call libEnsemble. Create a Python file called
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :end-at: libE_specs = LibeSpecs
+    :end-at: ensemble = Ensemble
 
 
-On line 16, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
-
+We first instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
-On line 27, we initialize the ensemble. The :meth:`parse_args<tools.parse_args>`
+The last line above initializes the ensemble. The :meth:`parse_args<tools.parse_args>`
 parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 
-Next, we add basic configuration for the ensemble. As one worker will run a persistent
+Next, we will add basic configuration for the ensemble. As one worker will run a persistent
 generator, we calculate the number of workers that need resources to run simulations.
 We also set `sim_dirs_make` so that a directory is created for each simulation. This
 helps organize output and also helps prevent workers from overwriting previous results.
@@ -66,9 +65,9 @@ helps organize output and also helps prevent workers from overwriting previous r
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: libE_specs = LibeSpecs
-    :end-at: libE_specs = LibeSpecs
-    :lineno-start: 30
+    :start-at: nsim_workers = ensemble.nworkers
+    :end-at: )
+    :lineno-start: 28
 
 
 Next we define the :ref:`sim_specs<datastruct-sim-specs>` and
@@ -79,9 +78,9 @@ expect, and also to parameterize user functions:
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: libE_specs = LibeSpecs
-    :end-at: libE_specs = LibeSpecs
-    :lineno-start: 38
+    :start-at: ensemble.sim_specs = SimSpecs(
+    :end-at: gen_specs_end_tag
+    :lineno-start: 36
 
 Next, configure an allocation function, which starts the one persistent
 generator and farms out the simulations. We also tell it to wait for all
@@ -90,9 +89,9 @@ simulations to return their results, before generating more parameters.
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: libE_specs = LibeSpecs
-    :end-at: libE_specs = LibeSpecs
-    :lineno-start: 56
+    :start-at: ensemble.alloc_specs = AllocSpecs
+    :end-at: )
+    :lineno-start: 54
 
 
 Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
@@ -107,9 +106,9 @@ Finally we :doc:`run<../libe_module>` the ensemble.
 .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
     :language: python
     :linenos:
-    :start-at: libE_specs = LibeSpecs
-    :end-at: libE_specs = LibeSpecs
-    :lineno-start: 64
+    :start-at: Instruct libEnsemble
+    :end-at: ensemble.run()
+    :lineno-start: 61
 
 Exercise
 ^^^^^^^^
@@ -127,46 +126,40 @@ Write an alternative Calling Script similar to above, but with the following dif
 
    **Soln 1.** Debug logging gives lots of information.
 
-   .. code-block:: python
-       :linenos:
-       :lineno-start: 13
-
-       from libensemble import logger
-
-       logger.set_level("DEBUG")
+  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+      :language: python
+      :linenos:
+      :start-at: Instruct libEnsemble
+      :end-at: ensemble.run()
+      :lineno-start: 61
 
    **Soln 2.** This can also be specified via :ref:`platform_specs<datastruct-platform-specs>` option.
 
-   .. code-block:: python
-       :linenos:
-       :lineno-start: 16
-
-        # Initialize MPI Executor
-        exctr = MPIExecutor(custom_info={"mpi_runner": "openmpi"})
+  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+      :language: python
+      :linenos:
+      :start-at: Instruct libEnsemble
+      :end-at: ensemble.run()
+      :lineno-start: 61
 
    **Soln 3.** Set ``async_return`` to *True*.
 
-   .. code-block:: python
-       :linenos:
-       :lineno-start: 56
-       :emphasize-lines: 5
-
-        # Starts one persistent generator. Simulated values are returned in batch.
-        ensemble.alloc_specs = AllocSpecs(
-            alloc_f=alloc_f,
-            user={
-                "async_return": True,
-            },
-        )
+  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+      :language: python
+      :linenos:
+      :start-at: Instruct libEnsemble
+      :end-at: ensemble.run()
+      :lineno-start: 61
 
    **Soln 4.** This will save the output based on the name of the calling script. You
    can give any string in place of ``__file__``.
 
-   .. code-block:: python
-       :linenos:
-       :lineno-start: 72
-
-       ensemble.save_output(__file__)
+  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+      :language: python
+      :linenos:
+      :start-at: Instruct libEnsemble
+      :end-at: ensemble.run()
+      :lineno-start: 61
 
 Simulation Function
 -------------------
