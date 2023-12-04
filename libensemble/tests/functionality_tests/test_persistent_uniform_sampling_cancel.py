@@ -3,7 +3,7 @@ Tests libEnsemble with a simple persistent uniform sampling generator
 function.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_sampling.py
+   mpiexec -np 4 python test_persistent_uniform_sampling_cancel.py
    python test_persistent_uniform_sampling_cancel.py --nworkers 3 --comms local
    python test_persistent_uniform_sampling_cancel.py --nworkers 3 --comms tcp
 
