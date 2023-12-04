@@ -151,7 +151,6 @@ jobs:
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
-
         - name: Copy heffte exe on cache-hit
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |

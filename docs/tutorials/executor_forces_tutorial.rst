@@ -47,7 +47,6 @@ generation functions and call libEnsemble. Create a Python file called
     :linenos:
     :end-at: ensemble = Ensemble
 
-
 We first instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
@@ -68,7 +67,6 @@ helps organize output and also helps prevent workers from overwriting previous r
     :start-at: nsim_workers = ensemble.nworkers
     :end-at: )
     :lineno-start: 28
-
 
 Next we define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>`. Recall that these are used to specify
@@ -92,7 +90,6 @@ simulations to return their results, before generating more parameters.
     :start-at: ensemble.alloc_specs = AllocSpecs
     :end-at: )
     :lineno-start: 54
-
 
 Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
 exit after running eight simulations.
