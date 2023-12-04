@@ -287,7 +287,10 @@ def chwirut_eval(H, _, sim_specs):
 
         else:
             O["fvec"][i] = EvaluateFunction(x)
-            O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
+            if "combine_component_func" in sim_specs["user"]:
+                O["f"][i] = sim_specs["user"]["combine_component_func"](O["fvec"][i])
+            else:
+                O["f"][i] = np.sum(O["fvec"][i] ** 2)
 
     return O
 
