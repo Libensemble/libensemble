@@ -78,7 +78,7 @@ expect, and also to parameterize user functions:
     :linenos:
     :start-at: ensemble.sim_specs = SimSpecs(
     :end-at: gen_specs_end_tag
-    :lineno-start: 36
+    :lineno-start: 37
 
 Next, configure an allocation function, which starts the one persistent
 generator and farms out the simulations. We also tell it to wait for all
@@ -89,7 +89,7 @@ simulations to return their results, before generating more parameters.
     :linenos:
     :start-at: ensemble.alloc_specs = AllocSpecs
     :end-at: )
-    :lineno-start: 54
+    :lineno-start: 55
 
 Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
 exit after running eight simulations.
@@ -105,7 +105,7 @@ Finally we :doc:`run<../libe_module>` the ensemble.
     :linenos:
     :start-at: Instruct libEnsemble
     :end-at: ensemble.run()
-    :lineno-start: 61
+    :lineno-start: 62
 
 Exercise
 ^^^^^^^^

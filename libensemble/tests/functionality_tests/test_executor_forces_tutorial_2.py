@@ -31,8 +31,7 @@ if __name__ == "__main__":
 
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers,
-        sim_dirs_make=True,
+        num_resource_sets=nsim_workers, sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial_2"
     )
 
     ensemble.sim_specs = SimSpecs(
