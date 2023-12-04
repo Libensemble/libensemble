@@ -31,7 +31,7 @@ def six_hump_camel(H, persis_info, sim_specs, libE_info):
     defined.
 
     .. seealso::
-        `test_old_aposmm_with_gradients.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_old_aposmm_with_gradients.py>`_ # noqa
+        `test_uniform_sampling.py  <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
 
     batch = len(H["x"])
@@ -56,7 +56,7 @@ def six_hump_camel_simple(x, _, sim_specs):
     Evaluates the six hump camel function for a single point ``x``.
 
     .. seealso::
-        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_fast_alloc.py>`_ # noqa
     """
 
     H_o = np.zeros(1, dtype=sim_specs["out"])

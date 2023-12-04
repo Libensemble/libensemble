@@ -196,7 +196,7 @@ def multi_points_with_variable_resources(H, _, sim_specs, libE_info):
     points (sim ids) in each call.
 
     .. seealso::
-        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     batch = len(H["x"])

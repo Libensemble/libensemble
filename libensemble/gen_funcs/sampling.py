@@ -24,7 +24,7 @@ def uniform_random_sample(_, persis_info, gen_specs):
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     .. seealso::
-        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
+        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -49,7 +49,7 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     This generator is used to test/demonstrate setting of resource sets.
 
     #.. seealso::
-        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     ub = gen_specs["user"]["ub"]
@@ -113,7 +113,7 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
     separately.
 
     .. seealso::
-        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
