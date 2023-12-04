@@ -42,37 +42,11 @@ Let's begin by writing our calling script to specify our simulation and
 generation functions and call libEnsemble. Create a Python file called
 `run_libe_forces.py` containing:
 
-.. code-block:: python
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
     :linenos:
-    :emphasize-lines: 16,24,27
+    :end-at: libE_specs = LibeSpecs
 
-    #!/usr/bin/env python
-    import os
-    import sys
-
-    import numpy as np
-    from forces_simf import run_forces  # Sim func from current dir
-
-    from libensemble import Ensemble
-    from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-    from libensemble.executors import MPIExecutor
-    from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
-    from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-
-    if __name__ == "__main__":
-        # Initialize MPI Executor
-        exctr = MPIExecutor()
-
-        # Register simulation executable with executor
-        sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
-
-        if not os.path.isfile(sim_app):
-            sys.exit("forces.x not found - please build first in ../forces_app dir")
-
-        exctr.register_app(full_path=sim_app, app_name="forces")
-
-        # Parse number of workers, comms type, etc. from arguments
-        ensemble = Ensemble(parse_args=True, executor=exctr)
 
 On line 16, we instantiate our :doc:`MPI Executor<../executor/mpi_executor>`.
 
@@ -89,60 +63,37 @@ generator, we calculate the number of workers that need resources to run simulat
 We also set `sim_dirs_make` so that a directory is created for each simulation. This
 helps organize output and also helps prevent workers from overwriting previous results.
 
-.. code-block:: python
-  :linenos:
-  :lineno-start: 30
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
+    :linenos:
+    :start-at: libE_specs = LibeSpecs
+    :end-at: libE_specs = LibeSpecs
+    :lineno-start: 30
 
-    nsim_workers = ensemble.nworkers - 1  # One worker is for persistent generator
-
-    # Persistent gen does not need resources
-    ensemble.libE_specs = LibeSpecs(
-        num_resource_sets=nsim_workers,
-        sim_dirs_make=True,
-    )
 
 Next we define the :ref:`sim_specs<datastruct-sim-specs>` and
 :ref:`gen_specs<datastruct-gen-specs>`. Recall that these are used to specify
 to libEnsemble what user functions and input/output fields to
 expect, and also to parameterize user functions:
 
-.. code-block:: python
-  :linenos:
-  :lineno-start: 38
-
-    ensemble.sim_specs = SimSpecs(
-        sim_f=run_forces,
-        inputs=["x"],
-        outputs=[("energy", float)],
-    )
-
-    ensemble.gen_specs = GenSpecs(
-        gen_f=gen_f,
-        inputs=[],  # No input when starting persistent generator
-        persis_in=["sim_id"],  # Return sim_ids of evaluated points to generator
-        outputs=[("x", float, (1,))],
-        user={
-            "initial_batch_size": nsim_workers,
-            "lb": np.array([1000]),  # min particles
-            "ub": np.array([3000]),  # max particles
-        },
-    )
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
+    :linenos:
+    :start-at: libE_specs = LibeSpecs
+    :end-at: libE_specs = LibeSpecs
+    :lineno-start: 38
 
 Next, configure an allocation function, which starts the one persistent
 generator and farms out the simulations. We also tell it to wait for all
 simulations to return their results, before generating more parameters.
 
-.. code-block:: python
-  :linenos:
-  :lineno-start: 56
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
+    :linenos:
+    :start-at: libE_specs = LibeSpecs
+    :end-at: libE_specs = LibeSpecs
+    :lineno-start: 56
 
-    # Starts one persistent generator. Simulated values are returned in batch.
-    ensemble.alloc_specs = AllocSpecs(
-        alloc_f=alloc_f,
-        user={
-            "async_return": False,  # False causes batch returns
-        },
-    )
 
 Now we set :ref:`exit_criteria<datastruct-exit-criteria>` to
 exit after running eight simulations.
@@ -153,18 +104,12 @@ These can be used for random number generation if required.
 
 Finally we :doc:`run<../libe_module>` the ensemble.
 
-.. code-block:: python
-  :linenos:
-  :lineno-start: 64
-
-    # Instruct libEnsemble to exit after this many simulations
-    ensemble.exit_criteria = ExitCriteria(sim_max=8)
-
-    # Seed random streams for each worker, particularly for gen_f
-    ensemble.add_random_streams()
-
-    # Run ensemble
-    ensemble.run()
+.. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial.py
+    :language: python
+    :linenos:
+    :start-at: libE_specs = LibeSpecs
+    :end-at: libE_specs = LibeSpecs
+    :lineno-start: 64
 
 Exercise
 ^^^^^^^^

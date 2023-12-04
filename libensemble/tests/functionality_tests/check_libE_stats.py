@@ -71,6 +71,5 @@ def check_libE_stats(task_datetime=False):
 
 
 if __name__ == "__main__":
-
     check_libE_stats()
     check_libE_stats(task_datetime=True)
