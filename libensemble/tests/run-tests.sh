@@ -485,6 +485,8 @@ if [ "$root_found" = true ]; then
         COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
         IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
 
+        if [[ "$COMMS_LIST" = "" ]]; then COMMS_LIST="local"; fi
+
         if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
           continue
         fi
@@ -496,6 +498,9 @@ if [ "$root_found" = true ]; then
           OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
           OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
           if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+
+          if [[ "$NPROCS_LIST" = "" ]]; then NPROCS_LIST=4; fi
+
           for NPROCS in ${NPROCS_LIST}
           do
             NWORKERS=$((NPROCS-1))

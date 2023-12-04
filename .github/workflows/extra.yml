@@ -64,7 +64,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-extra
 
         - name: Force-update certifi
           run: |
@@ -95,9 +95,9 @@ jobs:
             pip install mpi4py
 
         - name: Install generator dependencies
-          if: steps.cache.outputs.cache-hit != 'true'
           run: |
             python -m pip install --upgrade pip
+            pip install mpmath matplotlib
             conda env update --file install/gen_deps_environment.yml
 
         - name: Install ax-platform
@@ -105,10 +105,10 @@ jobs:
           run: |
             pip install ax-platform==0.2.8
 
-        - name: Install surmise
-          if: matrix.os != 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
-          run: |
-            pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
+        #- name: Install surmise
+        #  if: matrix.os != 'macos-latest' && steps.cache.outputs.cache-hit != 'true'
+        #  run: |
+        #    pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
 
         - name: Build ytopt and dependencies
           if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
@@ -131,7 +131,7 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'true' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest'  && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
 
@@ -153,7 +153,7 @@ jobs:
 
 
         - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && steps.cache.outputs.cache-hit != 'false' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             cd /home/runner/work/libensemble/libensemble
             cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
@@ -168,6 +168,15 @@ jobs:
             git clone https://github.com/argonne-lcf/balsam.git
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
+
+            git clone --recurse-submodules -b refactor/pounders_API https://github.com/POptUS/IBCDFO.git
+            pushd IBCDFO/minq/py/minq5/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+            popd
+            pushd IBCDFO/ibcdfo_pypkg/
+            pip install -e .
+            popd
 
         - uses: actions/cache/save@v3
           name: Save dependencies to cache

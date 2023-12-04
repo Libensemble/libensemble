@@ -83,4 +83,4 @@ function returns.
 .. note::
   An example routine using a persistent simulator can be found in test_persistent_sim_uniform_sampling_.
 
-.. _test_persistent_sim_uniform_sampling: https://github.com/Libensemble/libensemble/blob/main/libensemble/tests/regression_tests/test_persistent_sim_uniform_sampling.py
+.. _test_persistent_sim_uniform_sampling: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sim_uniform_sampling.py
