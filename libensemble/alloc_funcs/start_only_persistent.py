@@ -42,10 +42,10 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     tags: alloc, batch, async, persistent, priority
 
     .. seealso::
-        `test_persistent_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling.py>`_ # noqa
-        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_sampling_async.py>`_ # noqa
+        `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_ # noqa
+        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_ # noqa
         `test_persistent_surmise_calib.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_surmise_calib.py>`_ # noqa
-        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
+        `test_persistent_uniform_gen_decides_stop.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_gen_decides_stop.py>`_ # noqa
     """
 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
@@ -169,7 +169,7 @@ def only_persistent_workers(W, H, sim_specs, gen_specs, alloc_specs, persis_info
 
 
     .. seealso::
-        `test_persistent_gensim_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_gensim_uniform_sampling.py>`_ # noqa
+        `test_persistent_gensim_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sim_uniform_sampling.py>`_ # noqa
     """
 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:

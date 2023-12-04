@@ -38,7 +38,7 @@ def persistent_uniform(_, persis_info, gen_specs, libE_info):
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_
-        `test_persistent_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_sampling_async.py>`_
+        `test_persistent_uniform_sampling_async.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling_async.py>`_
     """  # noqa
 
     b, n, lb, ub = _get_user_params(gen_specs["user"])
