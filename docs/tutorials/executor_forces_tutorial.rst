@@ -164,34 +164,10 @@ exit statuses back to the manager.
 Create another Python file named ``forces_simf.py`` containing the following
 for starters:
 
-.. code-block:: python
+.. literalinclude:: ../../libensemble/tests/functionality_tests/forces_simf.py
+    :language: python
     :linenos:
-
-    import numpy as np
-
-    # Optional status codes to display in libE_stats.txt for each gen or sim
-    from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
-
-
-    def run_forces(H, persis_info, sim_specs, libE_info):
-        """Runs the forces MPI application"""
-
-        calc_status = 0
-
-        # Parse out num particles, from generator function
-        particles = str(int(H["x"][0][0]))
-
-        # app arguments: num particles, timesteps, also using num particles as seed
-        args = particles + " " + str(10) + " " + particles
-
-        # Retrieve our MPI Executor
-        exctr = libE_info["executor"]
-
-        # Submit our forces app for execution.
-        task = exctr.submit(app_name="forces", app_args=args)
-
-        # Block until the task finishes
-        task.wait()
+    :end-at: task.wait()
 
 We retrieve the generated number of particles from ``H`` and construct
 an argument string for our launched application. The particle count doubles up
@@ -218,26 +194,11 @@ a local output :ref:`History array<funcguides-history>`, and if successful,
 set the simulation function's exit status :ref:`calc_status<funcguides-calcstatus>`
 to ``WORKER_DONE``. Otherwise, send back ``NAN`` and a ``TASK_FAILED`` status:
 
-.. code-block:: python
+.. literalinclude:: ../../libensemble/tests/functionality_tests/forces_simf.py
+    :language: python
     :linenos:
     :lineno-start: 27
-
-        # Try loading final energy reading, set the sim's status
-        statfile = "forces.stat"
-        try:
-            data = np.loadtxt(statfile)
-            final_energy = data[-1]
-            calc_status = WORKER_DONE
-        except Exception:
-            final_energy = np.nan
-            calc_status = TASK_FAILED
-
-        # Define our output array, populate with energy reading
-        output = np.zeros(1, dtype=sim_specs["out"])
-        output["energy"] = final_energy
-
-        # Return final information to worker, for reporting to manager
-        return output, persis_info, calc_status
+    :start-at: Try loading final
 
 ``calc_status`` will be displayed in the ``libE_stats.txt`` log file.
 
