@@ -14,7 +14,7 @@ logger.set_level("DEBUG")
 
 if __name__ == "__main__":
     # Initialize MPI Executor
-    exctr = MPIExecutor()
+    exctr = MPIExecutor(custom_info={"mpi_runner": "openmpi"})
 
     # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     ensemble.alloc_specs = AllocSpecs(
         alloc_f=alloc_f,
         user={
-            "async_return": False,  # False causes batch returns
+            "async_return": True,
         },
     )
 
@@ -69,3 +69,5 @@ if __name__ == "__main__":
 
     # Run ensemble
     ensemble.run()
+
+    ensemble.save_output(__file__)

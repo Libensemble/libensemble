@@ -126,40 +126,32 @@ Write an alternative Calling Script similar to above, but with the following dif
 
    **Soln 1.** Debug logging gives lots of information.
 
-  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
-      :language: python
-      :linenos:
-      :start-at: Instruct libEnsemble
-      :end-at: ensemble.run()
-      :lineno-start: 61
+      .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+          :language: python
+          :start-at: from libensemble import Ensemble, logger
+          :end-at: logger.set_level("DEBUG")
 
    **Soln 2.** This can also be specified via :ref:`platform_specs<datastruct-platform-specs>` option.
 
-  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
-      :language: python
-      :linenos:
-      :start-at: Instruct libEnsemble
-      :end-at: ensemble.run()
-      :lineno-start: 61
+      .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+          :language: python
+          :start-at: Initialize MPI Executor
+          :end-at: exctr = MPIExecutor
 
-   **Soln 3.** Set ``async_return`` to *True*.
+   **Soln 3.** Set ``async_return`` to *True* in the allocation .
 
-  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
-      :language: python
-      :linenos:
-      :start-at: Instruct libEnsemble
-      :end-at: ensemble.run()
-      :lineno-start: 61
+      .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+          :language: python
+          :start-at: # Starts one persistent generator
+          :end-at: )
 
-   **Soln 4.** This will save the output based on the name of the calling script. You
-   can give any string in place of ``__file__``.
+   **Soln 4.** End your script in the following manny to save the output based
+   on the name of the calling script. You can give any string in place of ``__file__``.
 
-  .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
-      :language: python
-      :linenos:
-      :start-at: Instruct libEnsemble
-      :end-at: ensemble.run()
-      :lineno-start: 61
+      .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
+          :language: python
+          :start-at: Run ensemble
+          :end-at: save_output
 
 Simulation Function
 -------------------
