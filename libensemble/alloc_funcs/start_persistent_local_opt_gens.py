@@ -21,7 +21,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
     tags: alloc, persistent, aposmm
 
     .. seealso::
-        `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
+        `test_uniform_sampling_then_persistent_localopt_runs.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_then_persistent_localopt_runs.py>`_ # noqa
     """
 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
