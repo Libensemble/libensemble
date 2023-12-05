@@ -114,7 +114,7 @@ build_forces() {
   pushd $root_dir/libensemble/tests/scaling_tests/forces/forces_app/
   mpicc -O3 -o forces.x forces.c -lm
   popd
-  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests/functionality_tests
+  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests
 }
 
 #Cleanup test run directories
