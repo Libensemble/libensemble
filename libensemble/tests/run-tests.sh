@@ -461,7 +461,7 @@ if [ "$root_found" = true ]; then
     #Build any sim/gen source code dependencies here .....
 
     # build forces
-    build_forces($ROOT_DIR)
+    $(build_forces $ROOT_DIR)
 
     #Run regression tests using MPI
     #Before first test set error code to zero
