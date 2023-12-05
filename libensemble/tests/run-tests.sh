@@ -439,6 +439,9 @@ if [ "$root_found" = true ]; then
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
+    # build forces
+    $(build_forces $ROOT_DIR)
+
     tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
@@ -460,8 +463,6 @@ if [ "$root_found" = true ]; then
     fi
     #Build any sim/gen source code dependencies here .....
 
-    # build forces
-    $(build_forces $ROOT_DIR)
 
     #Run regression tests using MPI
     #Before first test set error code to zero

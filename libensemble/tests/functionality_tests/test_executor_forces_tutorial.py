@@ -17,10 +17,6 @@ if __name__ == "__main__":
     # Register simulation executable with executor
     sim_app = os.path.join(os.getcwd(), "../forces_app/forces.x")
 
-    current_directory = os.getcwd()
-    parent_directory = os.path.dirname(current_directory)
-    contents = os.listdir(parent_directory)
-    print(contents)
     if not os.path.isfile(sim_app):
         sys.exit("forces.x not found - please build first in ../forces_app dir")
 
