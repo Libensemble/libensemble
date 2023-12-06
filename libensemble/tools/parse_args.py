@@ -10,7 +10,7 @@ parser.add_argument(
     "--comms",
     type=str,
     nargs="?",
-    choices=["local", "local_threading", "tcp", "ssh", "client", "mpi"],
+    choices=["local", "threads", "tcp", "ssh", "client", "mpi"],
     default="mpi",
     help="Type of communicator",
 )
@@ -231,7 +231,7 @@ def parse_args():
     front_ends = {
         "mpi": _mpi_parse_args,
         "local": _local_parse_args,
-        "local_threading": _local_parse_args,
+        "threads": _local_parse_args,
         "tcp": _tcp_parse_args,
         "ssh": _ssh_parse_args,
         "client": _client_parse_args,

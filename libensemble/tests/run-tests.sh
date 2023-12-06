@@ -507,7 +507,7 @@ if [ "$root_found" = true ]; then
 
             RUN_TEST=false
             if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-            if [ "$RUN_LOCAL" = true ] &&  ( [ "$LAUNCHER" = local ] || [ "$LAUNCHER" = local_threading ] ); then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] &&  ( [ "$LAUNCHER" = local ] || [ "$LAUNCHER" = threads ] ); then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
             if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then

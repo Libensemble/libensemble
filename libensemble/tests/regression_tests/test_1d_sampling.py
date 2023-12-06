@@ -10,7 +10,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local local_threading tcp
+# TESTSUITE_COMMS: mpi local threads tcp
 # TESTSUITE_NPROCS: 2 4
 
 import numpy as np
@@ -29,7 +29,6 @@ if __name__ == "__main__":
     sampling.libE_specs = LibeSpecs(
         save_every_k_gens=300,
         safe_mode=False,
-        disable_log_files=True,
     )
     sampling.sim_specs = SimSpecs(
         sim_f=sim_f,
