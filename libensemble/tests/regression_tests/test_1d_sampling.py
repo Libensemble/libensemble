@@ -31,11 +31,13 @@ if __name__ == "__main__":
         safe_mode=False,
         disable_log_files=True,
     )
+
     sampling.sim_specs = SimSpecs(
         sim_f=sim_f,
         inputs=["x"],
         outputs=[("f", float)],
     )
+
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
         outputs=[("x", float, (1,))],
