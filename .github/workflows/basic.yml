@@ -104,10 +104,6 @@ jobs:
             pip install mpmath matplotlib
             conda install numpy nlopt scipy
 
-        - name: Install gpcam
-          run: |
-            pip install gpcam
-
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'

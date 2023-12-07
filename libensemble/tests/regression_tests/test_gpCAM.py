@@ -8,11 +8,15 @@ Execute via one of the following commands (e.g. 3 workers):
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
 persistent generator.
+
+See libensemble.gen_funcs.persistent_gpCAM for more details about the generator
+setup.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
 
 import sys
 
