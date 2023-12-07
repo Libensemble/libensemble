@@ -47,7 +47,6 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if all_x.shape[0] == 0:
             x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
@@ -111,7 +110,7 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
             pop_size=batch_size,
             max_iter=1,
         )["x"]
-        print(f"Ask time:{time.time()- start}")
+        print(f"Ask time:{time.time() - start}")
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
         H_o["x"] = x_new
 
