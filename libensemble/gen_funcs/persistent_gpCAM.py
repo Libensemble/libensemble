@@ -1,4 +1,6 @@
-"""Persistent generator providing points using sampling"""
+"""Persistent generator exposing gpCAM functionality"""
+
+import time
 
 import numpy as np
 from gpcam import GPOptimizer as GP
@@ -7,7 +9,8 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
-    "persistent_gpCAM",
+    "persistent_gpCAM_simple",
+    "persistent_gpCAM_ask_tell",
 ]
 
 
@@ -24,13 +27,12 @@ def _get_user_params(user_specs):
     return b, n, lb, ub
 
 
-def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
+def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     """
-    This generation function always enters into persistent mode and returns
-    ``gen_specs["initial_batch_size"]`` uniformly sampled points the first time it
-    is called. Afterwards, it returns the number of points given. This can be
-    used in either a batch or asynchronous mode by adjusting the allocation
-    function.
+    This generation function constructs a global surrogate of `f` values.
+    It is a batched method that produces a first batch uniformly random from
+    (lb, ub) and on following iterations samples the GP posterior covariance
+    function to find sample points.
 
     .. seealso::
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
@@ -42,8 +44,6 @@ def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
     all_x = np.empty((0, n))
     all_y = np.empty((0, 1))
 
-    hps_bounds = np.vstack(([0.001, 1e9], np.tile([1e-3, 1e2], (n, 1))))
-
     # Send batches until manager sends stop tag
     tag = None
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -51,24 +51,70 @@ def persistent_gpCAM(H_in, persis_info, gen_specs, libE_info):
         if all_x.shape[0] == 0:
             x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
-            init_hps = np.random.uniform(size=len(hps_bounds), low=hps_bounds[:, 0], high=hps_bounds[:, 1])
             # We are assuming deterministic y, so we set the noise to be tiny
-            my_gp2S = GP(all_x, all_y, init_hps, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
 
-            my_gp2S.train(hps_bounds, max_iter=2)
+            my_gp2S.train(max_iter=2)
 
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
             var_rand = my_gp2S.posterior_covariance(x_for_var, variance_only=True)["v(x)"]
-            inds_for_largest_var = np.argsort(var_rand)[-batch_size:]
-            x_new = x_for_var[inds_for_largest_var]
+            x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
 
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
         H_o["x"] = x_new
         tag, Work, calc_in = ps.send_recv(H_o)
-        if not hasattr(calc_in, "__len__"):
-            break
 
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
+
+
+def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
+    """
+    Like persistent_gpCAM_simple, this generation function constructs a global
+    surrogate of `f` values. It also aa batched method that produces a first batch
+    uniformly random from (lb, ub). On subequent iterations, it calls an
+    optimization method to produce the next batch of points. This optimization
+    might be too slow (relative to the simulation evaluation time) for some use cases.
+
+    .. seealso::
+        `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
+    """  # noqa
+
+    batch_size, n, lb, ub = _get_user_params(gen_specs["user"])
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    H_o = np.zeros(batch_size, dtype=gen_specs["out"])
+    x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
+    H_o["x"] = x_new
+
+    all_x = np.empty((0, n))
+    all_y = np.empty((0, 1))
+
+    tag, Work, calc_in = ps.send_recv(H_o)
+
+    first_call = True
+    while tag not in [STOP_TAG, PERSIS_STOP]:
         all_x = np.vstack((all_x, x_new))
         all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
+
+        if first_call:
+            # Initialize GP
+            my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+        else:
+            my_gp2S.tell(all_x, all_y, variances=1e-8)
+
+        my_gp2S.train()
+
+        start = time.time()
+        x_new = my_gp2S.ask(
+            bounds=np.column_stack((lb, ub)),
+            n=batch_size,
+            pop_size=batch_size,
+            max_iter=1,
+        )["x"]
+        print(f"Ask time:{time.time()- start}")
+        H_o = np.zeros(batch_size, dtype=gen_specs["out"])
+        H_o["x"] = x_new
+
+        tag, Work, calc_in = ps.send_recv(H_o)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG

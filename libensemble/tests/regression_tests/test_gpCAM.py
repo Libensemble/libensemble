@@ -12,14 +12,14 @@ persistent generator.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 4
+# TESTSUITE_NPROCS: 4
 
 import sys
 
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM as gen_f
+from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM_ask_tell, persistent_gpCAM_simple
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -35,7 +35,6 @@ if __name__ == "__main__":
 
     n = 4
     batch_size = 15
-    num_batches = 10
 
     sim_specs = {
         "sim_f": sim_f,
@@ -46,7 +45,6 @@ if __name__ == "__main__":
     }
 
     gen_specs = {
-        "gen_f": gen_f,
         "persis_in": ["x", "f", "sim_id"],
         "out": [("x", float, (n,))],
         "user": {
@@ -58,14 +56,22 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
-    exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
+    for inst in range(2):
+        if inst == 0:
+            gen_specs["gen_f"] = persistent_gpCAM_simple
+            num_batches = 10
+            exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
+        elif inst == 1:
+            gen_specs["gen_f"] = persistent_gpCAM_ask_tell
+            num_batches = 3  # Few because the ask_tell gen can be slow
+            exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+        persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    if is_manager:
-        assert len(np.unique(H["gen_ended_time"])) == num_batches
+        if is_manager:
+            assert len(np.unique(H["gen_ended_time"])) == num_batches
 
-        save_libE_output(H, persis_info, __file__, nworkers)
+            save_libE_output(H, persis_info, __file__, nworkers)
