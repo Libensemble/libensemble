@@ -104,6 +104,7 @@ jobs:
           if: matrix.python-version != '3.12'
           run: |
             pip install ax-platform==0.2.8
+            pip install gpcam
 
         - name: Install surmise
           if: matrix.os != 'macos-latest'
@@ -201,6 +202,7 @@ jobs:
           run: |
             rm ./libensemble/tests/regression_tests/test_heffte.py
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
+            rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
