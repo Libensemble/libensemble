@@ -63,6 +63,10 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         H_o["x"] = x_new
         tag, Work, calc_in = ps.send_recv(H_o)
 
+        if calc_in is not None:
+            all_x = np.vstack((all_x, x_new))
+            all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
+
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
@@ -100,7 +104,7 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
             my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
             first_call = False
         else:
-            my_gp2S.tell(all_x, all_y, variances=1e-8)
+            my_gp2S.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
 
         my_gp2S.train()
 
