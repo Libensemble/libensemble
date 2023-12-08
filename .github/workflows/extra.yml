@@ -131,21 +131,9 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
-
-            # begin heffte build and dependencies
-            sudo apt install libfftw3-dev
-            git clone https://github.com/icl-utk-edu/heffte.git
-            mkdir heffte/build
-            cd heffte/build
-            pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make -j 4
-            make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            # end heffte build and dependencies
 
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
@@ -171,6 +159,19 @@ jobs:
             pip install -e .
             popd
 
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://github.com/icl-utk-edu/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make -j 4
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
+
+
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
@@ -192,6 +193,7 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
+            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
