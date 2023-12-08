@@ -149,11 +149,11 @@ jobs:
 
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
-            #pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
 
         - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             cd /home/runner/work/libensemble/libensemble
             cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
@@ -199,8 +199,6 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
-            rm ./libensemble/tests/regression_tests/test_heffte.py
-            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
