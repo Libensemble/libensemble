@@ -98,6 +98,7 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
         if first_call:
             # Initialize GP
             my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            first_call = False
         else:
             my_gp2S.tell(all_x, all_y, variances=1e-8)
 
