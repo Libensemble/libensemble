@@ -124,7 +124,7 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
-            rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial.py # matplotlib errors on 3.12
+            rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on 3.12
 
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
