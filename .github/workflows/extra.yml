@@ -131,7 +131,7 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest'  && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             sudo apt-get install bc
 
@@ -149,7 +149,7 @@ jobs:
 
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
-            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            #pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 
 
         - name: Copy heffte exe on cache-hit
