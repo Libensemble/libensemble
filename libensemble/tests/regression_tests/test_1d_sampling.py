@@ -30,11 +30,13 @@ if __name__ == "__main__":
         save_every_k_gens=300,
         safe_mode=False,
     )
+
     sampling.sim_specs = SimSpecs(
         sim_f=sim_f,
         inputs=["x"],
         outputs=[("f", float)],
     )
+
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
         outputs=[("x", float, (1,))],
