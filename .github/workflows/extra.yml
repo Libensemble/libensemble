@@ -159,6 +159,9 @@ jobs:
             pip install -e .
             popd
 
+        - name: Build heffte
+          if: matrix.os != 'macos-latest'
+          run: |
             # begin heffte build and dependencies
             sudo apt install libfftw3-dev
             git clone https://github.com/icl-utk-edu/heffte.git
@@ -170,7 +173,6 @@ jobs:
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
-
 
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
