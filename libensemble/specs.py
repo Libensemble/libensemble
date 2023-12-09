@@ -366,7 +366,7 @@ class LibeSpecs(BaseModel):
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
     """ TCP Only: Authkey for Manager's system."""
 
-    workerID: Optional[int] = 0
+    workerID: Optional[int] = None
     """ TCP Only: Worker ID number assigned to the new process. """
 
     worker_cmd: Optional[List[str]] = []
