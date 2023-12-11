@@ -6,3 +6,4 @@ pytest-timeout==2.2.0
 mock==5.1.0
 python-dateutil==2.8.2
 anyio==4.1.0
+matplotlib==3.8.2
