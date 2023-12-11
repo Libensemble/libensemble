@@ -61,16 +61,3 @@ if __name__ == "__main__":
 
     if is_manager:
         assert return_flag == 0
-
-    libE_specs["abort_on_exception"] = True
-
-    # Perform the run
-    return_flag = 1
-    try:
-        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-    except LoggedException as e:
-        print(f"Caught deliberate exception: {e}")
-        return_flag = 0
-
-    if is_manager:
-        assert return_flag == 0
