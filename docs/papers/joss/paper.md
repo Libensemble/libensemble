@@ -76,7 +76,7 @@ Key considerations for packages running dynamic ensembles include the following:
 libEnsemble seeks to satisfy the above criteria using a generator--simulator--allocator
 model. libEnsemble's generators, simulators, and allocators -- commonly referred to as
 user functions -- are simply Python
-functions that accept and return NumPy structured arrays. Generators produce input for
+functions that accept and return NumPy [@harris2020array] structured arrays. Generators produce input for
 simulators, simulators evaluate those inputs, and allocators decide whether and when
 a simulator or generator should be called; any level of complexity is supported.
 Multiple concurrent instances (an "ensemble") of user functions are coordinated by libEnsemble's
