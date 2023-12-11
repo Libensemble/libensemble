@@ -104,11 +104,6 @@ class QComm(Comm):
     These can be used with threads or multiprocessing.
     """
 
-    # Integer count  - shared amongst processes
-    # Supports adding/removing workers - only works with 'fork'
-    # lock = Lock()
-    # _ncomms = Value("i", 0)
-
     def __init__(self, inbox, outbox, nworkers=None, copy_msg=False):
         """Set the inbox and outbox queues."""
         self._inbox = inbox
@@ -189,14 +184,6 @@ class QCommLocal(Comm):
     def mail_flag(self):
         """Check whether we know a message is ready for receipt."""
         return not self.outbox.empty()
-
-    def terminate(self, timeout=None):
-        """Terminate the thread/process."""
-        if self.running:
-            self.handle.terminate()
-        self.handle.join(timeout=timeout)
-        if self.running:
-            raise Timeout()
 
     def result(self, timeout=None):
         """Join and return the thread/process main result (or re-raise an exception)."""
