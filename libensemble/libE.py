@@ -119,7 +119,7 @@ from typing import Callable, Dict
 
 import numpy as np
 
-from libensemble.comms.comms import QCommProcess, QCommThread
+from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
@@ -456,7 +456,10 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 def kill_proc_team(wcomms, timeout):
     """Join on workers (and terminate forcefully if needed)."""
     for wcomm in wcomms:
-        wcomm.result(timeout=timeout)
+        try:
+            wcomm.result(timeout=timeout)
+        except Timeout:
+            wcomm.terminate()
 
 
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):
