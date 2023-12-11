@@ -47,8 +47,8 @@ MOCK_MODULES = [
     "scipy.spatial",
     "scipy.spatial.distance",
     "scipy.stats",
-    # "surmise.calibration",
-    # "surmise.emulation",
+    "surmise.calibration",
+    "surmise.emulation",
     "Tasmanian",
 ]
 

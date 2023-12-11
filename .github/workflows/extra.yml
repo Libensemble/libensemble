@@ -132,32 +132,13 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest'  && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
-
-            # begin heffte build and dependencies
-            sudo apt install libfftw3-dev
-            git clone https://github.com/icl-utk-edu/heffte.git
-            mkdir heffte/build
-            cd heffte/build
-            pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make -j 4
-            make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            # end heffte build and dependencies
 
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
-
-
-        - name: Copy heffte exe on cache-hit
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
-          run: |
-            cd /home/runner/work/libensemble/libensemble
-            cp ./heffte/build/benchmarks/speed3d_c2c ./libensemble/tests/regression_tests/
 
         - name: Install other testing dependencies
           run: |
@@ -178,6 +159,21 @@ jobs:
             pushd IBCDFO/ibcdfo_pypkg/
             pip install -e .
             popd
+
+        - name: Build heffte
+          if: matrix.os != 'macos-latest'
+          run: |
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://github.com/icl-utk-edu/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make -j 4
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
 
         - uses: actions/cache/save@v3
           name: Save dependencies to cache
@@ -200,7 +196,6 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
-            rm ./libensemble/tests/regression_tests/test_heffte.py
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
