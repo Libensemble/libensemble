@@ -150,18 +150,7 @@ class QComm(Comm):
         return not self._inbox.empty()
 
 
-class QCommThread(Comm):
-    """Launch a user function in a thread with an attached QComm."""
-
-    def __init__(self, main, nworkers, *args, **kwargs):
-        self.inbox = thread_queue.Queue()
-        self.outbox = thread_queue.Queue()
-        self._result = None
-        self._exception = None
-        self._done = False
-        comm = QComm(self.inbox, self.outbox, nworkers)
-        self.thread = Thread(target=QCommThread._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
-
+class QCommLocal(Comm):
     def _is_result_msg(self, msg):
         """Return true if message indicates final result (and set result/except)."""
         if len(msg) and isinstance(msg[0], CommResult):
@@ -174,8 +163,12 @@ class QCommThread(Comm):
             return True
         return False
 
+    def run(self):
+        """Start the thread/process."""
+        self.handle.start()
+
     def send(self, *args):
-        """Send a message to the thread (called from creator)"""
+        """Send a message to the thread/process (called from creator)"""
         self.inbox.put(args)
 
     def recv(self, timeout=None):
@@ -197,12 +190,16 @@ class QCommThread(Comm):
         """Check whether we know a message is ready for receipt."""
         return not self.outbox.empty()
 
-    def run(self):
-        """Start the thread."""
-        self.thread.start()
+    def terminate(self, timeout=None):
+        """Terminate the thread/process."""
+        if self.running:
+            self.handle.terminate()
+        self.handle.join(timeout=timeout)
+        if self.running:
+            raise Timeout()
 
     def result(self, timeout=None):
-        """Join and return the thread main result (or re-raise an exception)."""
+        """Join and return the thread/process main result (or re-raise an exception)."""
         get_timeout = _timeout_fun(timeout)
         while not self._done and (timeout is None or timeout >= 0):
             try:
@@ -213,12 +210,45 @@ class QCommThread(Comm):
             timeout = get_timeout()
         if not self._done:
             raise Timeout()
-        self.thread.join(timeout=timeout)
-        if self.running:
-            raise Timeout()
+        self.terminate(timeout=timeout)
         if self._exception is not None:
             raise RemoteException(self._exception.msg, self._exception.exc)
         return self._result
+
+    @staticmethod
+    def _qcomm_main(comm, main, *args, **kwargs):
+        """Main routine -- handles return values and exceptions."""
+        try:
+            _result = main(comm, *args, **kwargs)
+            comm.send(CommResult(_result))
+        except Exception as e:
+            comm.send(CommResultErr(str(e), format_exc()))
+            raise e
+
+    @property
+    def running(self):
+        """Check if the thread/process is running."""
+        return self.handle.is_alive()
+
+    def __enter__(self):
+        self.run()
+        return self
+
+    def __exit__(self, etype, value, traceback):
+        self.handle.join()
+
+
+class QCommThread(QCommLocal):
+    """Launch a user function in a thread with an attached QComm."""
+
+    def __init__(self, main, nworkers, *args, **kwargs):
+        self.inbox = thread_queue.Queue()
+        self.outbox = thread_queue.Queue()
+        self._result = None
+        self._exception = None
+        self._done = False
+        comm = QComm(self.inbox, self.outbox, nworkers)
+        self.handle = Thread(target=QCommThread._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the thread.
@@ -229,34 +259,12 @@ class QCommThread(Comm):
         it is currently no possible to terminate the thread when calling
         this method.
         """
-        self.thread.join(timeout=timeout)
+        self.handle.join(timeout=timeout)
         if self.running:
             raise Timeout()
 
-    @property
-    def running(self):
-        """Check if the thread is running."""
-        return self.thread.is_alive()
 
-    @staticmethod
-    def _qcomm_main(comm, main, *args, **kwargs):
-        """Main routine -- handles return values and exceptions."""
-        try:
-            _result = main(comm, *args, **kwargs)
-            comm.send(CommResult(_result))
-        except Exception as e:
-            comm.send(CommResultErr(str(e), format_exc()))
-            raise e
-
-    def __enter__(self):
-        self.run()
-        return self
-
-    def __exit__(self, etype, value, traceback):
-        self.thread.join()
-
-
-class QCommProcess(Comm):
+class QCommProcess(QCommLocal):
     """Launch a user function in a process with an attached QComm."""
 
     def __init__(self, main, nworkers, *args, **kwargs):
@@ -267,92 +275,12 @@ class QCommProcess(Comm):
         self._done = False
         comm = QComm(self.inbox, self.outbox, nworkers)
 
-        self.process = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
-
-    def _is_result_msg(self, msg):
-        """Return true if message indicates final result (and set result/except)."""
-        if len(msg) and isinstance(msg[0], CommResult):
-            self._result = msg[0].value
-            self._done = True
-            return True
-        if len(msg) and isinstance(msg[0], CommResultErr):
-            self._exception = msg[0]
-            self._done = True
-            return True
-        return False
-
-    def send(self, *args):
-        """Send a message to the thread (called from creator)"""
-        self.inbox.put(args)
-
-    def recv(self, timeout=None):
-        """Return a message from the thread or raise TimeoutError."""
-        try:
-            if self._done:
-                raise CommFinishedException()
-            if not self.outbox.empty():
-                msg = self.outbox.get()
-            else:
-                msg = self.outbox.get(timeout=timeout)
-            if self._is_result_msg(msg):
-                raise CommFinishedException()
-            return msg
-        except thread_queue.Empty:
-            raise Timeout()
-
-    def mail_flag(self):
-        """Check whether we know a message is ready for receipt."""
-        return not self.outbox.empty()
-
-    def run(self):
-        """Start the process."""
-        self.process.start()
-
-    def result(self, timeout=None):
-        """Join and return the thread main result (or re-raise an exception)."""
-        get_timeout = _timeout_fun(timeout)
-        while not self._done and (timeout is None or timeout >= 0):
-            try:
-                msg = self.outbox.get(timeout=timeout)
-            except thread_queue.Empty:
-                raise Timeout()
-            self._is_result_msg(msg)
-            timeout = get_timeout()
-        if not self._done:
-            raise Timeout()
-        self.process.join(timeout=timeout)
-        if self.running:
-            raise Timeout()
-        if self._exception is not None:
-            raise RemoteException(self._exception.msg, self._exception.exc)
-        return self._result
+        self.handle = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the process."""
         if self.running:
-            self.process.terminate()
-        self.process.join(timeout=timeout)
+            self.handle.terminate()
+        self.handle.join(timeout=timeout)
         if self.running:
             raise Timeout()
-
-    @property
-    def running(self):
-        """Return true if process is running"""
-        return self.process.is_alive()
-
-    @staticmethod
-    def _qcomm_main(comm, main, *args, **kwargs):
-        """Main routine -- handles return values and exceptions."""
-        try:
-            _result = main(comm, *args, **kwargs)
-            comm.send(CommResult(_result))
-        except Exception as e:
-            comm.send(CommResultErr(str(e), format_exc()))
-            raise e
-
-    def __enter__(self):
-        self.run()
-        return self
-
-    def __exit__(self, etype, value, traceback):
-        self.process.join()
