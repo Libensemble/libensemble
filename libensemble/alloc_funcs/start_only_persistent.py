@@ -90,6 +90,11 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     # Now the give_sim_work_first part
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
     avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
+    if user.get("alt_type"):
+        avail_workers = list(
+            set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
+            | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False))
+        )
     for wid in avail_workers:
         if not np.any(points_to_evaluate):
             break
@@ -97,7 +102,12 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
 
         try:
-            Work[wid] = support.sim_work(wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid))
+            if user.get("alt_type"):
+                Work[wid] = support.sim_work(
+                    wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid), persistent=True
+                )
+            else:
+                Work[wid] = support.sim_work(wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid))
         except InsufficientFreeResources:
             break
 
