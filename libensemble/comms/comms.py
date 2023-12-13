@@ -146,6 +146,11 @@ class QComm(Comm):
 
 
 class QCommLocal(Comm):
+    def __init__(self, main, nworkers, *args, **kwargs):
+        self._result = None
+        self._exception = None
+        self._done = False
+
     def _is_result_msg(self, msg):
         """Return true if message indicates final result (and set result/except)."""
         if len(msg) and isinstance(msg[0], CommResult):
@@ -231,9 +236,7 @@ class QCommThread(QCommLocal):
     def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = thread_queue.Queue()
         self.outbox = thread_queue.Queue()
-        self._result = None
-        self._exception = None
-        self._done = False
+        super().__init__(self, main, nworkers, *args, **kwargs)
         comm = QComm(self.inbox, self.outbox, nworkers)
         self.handle = Thread(target=QCommThread._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
@@ -257,11 +260,8 @@ class QCommProcess(QCommLocal):
     def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = Queue()
         self.outbox = Queue()
-        self._result = None
-        self._exception = None
-        self._done = False
+        super().__init__(self, main, nworkers, *args, **kwargs)
         comm = QComm(self.inbox, self.outbox, nworkers)
-
         self.handle = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
