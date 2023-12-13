@@ -376,7 +376,7 @@ COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
    COV_LINE_SERIAL='--cov --cov-report xml:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
-   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
+   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing,thread' #running in regression dir itself
 
    #include branch coverage? eg. flags if never jumped a statement block... [see .coveragerc file]
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
@@ -507,7 +507,7 @@ if [ "$root_found" = true ]; then
 
             RUN_TEST=false
             if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-            if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] &&  ( [ "$LAUNCHER" = local ] || [ "$LAUNCHER" = threads ] ); then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
             if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then
