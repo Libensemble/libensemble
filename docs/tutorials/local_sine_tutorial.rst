@@ -36,7 +36,6 @@ need to write a new allocation function.
         If your system doesn't allow you to perform these installations, try adding
         ``--user`` to the end of each command.
 
-
     .. tab-item:: 2. Generator
 
         Let's begin the coding portion of this tutorial by writing our generator function,
@@ -56,8 +55,7 @@ need to write a new allocation function.
 
             * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined static fields and
               parameters. Customizable parameters such as lower and upper bounds and batch
-              sizes are placed within the ``gen_specs["user"]`` dictionary, while input/output and other fields
-              that libEnsemble needs to operate the generator are placed outside ``user``.
+              sizes are placed within the ``gen_specs["user"]`` dictionary.
 
         Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
@@ -67,7 +65,6 @@ need to write a new allocation function.
             :language: python
             :linenos:
             :caption: examples/tutorials/simple_sine/sine_gen.py
-
 
         Our function creates ``batch_size`` random numbers uniformly distributed
         between the ``lower`` and ``upper`` bounds. A random stream
@@ -87,7 +84,6 @@ need to write a new allocation function.
             :language: python
             :linenos:
             :caption: examples/tutorials/simple_sine/sine_sim.py
-
 
         Our simulator function is called by a worker for every work item produced by
         the generator function. This function calculates the sine of the passed value,
@@ -110,7 +106,6 @@ need to write a new allocation function.
             :language: python
             :linenos:
             :end-at: libE_specs = LibeSpecs
-
 
         We configure the settings and specifications for our ``sim_f`` and ``gen_f``
         functions in the :ref:`GenSpecs<datastruct-gen-specs>` and
@@ -146,8 +141,6 @@ need to write a new allocation function.
             :lineno-start: 28
             :start-at: ensemble = Ensemble
             :end-at: print(history)
-
-
 
         That's it! Now that these files are complete, we can run our simulation.
 
@@ -194,7 +187,6 @@ need to write a new allocation function.
             :lineno-start: 37
             :start-at: import matplotlib
             :end-at: plt.savefig("tutorial_sines.png")
-
 
         Each of these example files can be found in the repository in `examples/tutorials/simple_sine`_.
 
@@ -243,7 +235,6 @@ need to write a new allocation function.
             :language: python
             :start-at: # libE_specs = LibeSpecs
             :end-at: # libE_specs = LibeSpecs
-
 
         We'll be parameterizing our MPI runtime with a ``parse_args=True`` argument to
         the ``Ensemble`` class instead of ``libE_specs``. We'll also use an ``ensemble.is_manager``
