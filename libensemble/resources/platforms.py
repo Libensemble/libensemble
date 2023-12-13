@@ -147,6 +147,17 @@ class Platform(BaseModel):
         return values
 
 
+class Aurora(Platform):
+    mpi_runner: str = "mpich"
+    runner_name: str = "mpiexec"
+    cores_per_node: int = 104
+    logical_cores_per_node: int = 208
+    gpus_per_node: int = 6
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
+    scheduler_match_slots: bool = True
+
+
 # On SLURM systems, let srun assign free GPUs on the node
 class Crusher(Platform):
     mpi_runner: str = "srun"
@@ -222,17 +233,6 @@ class Summit(Platform):
     gpu_setting_type: str = "option_gpus_per_task"
     gpu_setting_name: str = "-g"
     scheduler_match_slots: bool = False
-
-
-class Aurora(Platform):
-    mpi_runner: str = "mpich"
-    runner_name: str = "mpiexec"
-    cores_per_node: int = 104
-    logical_cores_per_node: int = 208
-    gpus_per_node: int = 6
-    gpu_setting_type: str = "env"
-    gpu_setting_name: str = "ZE_AFFINITY_MASK"
-    scheduler_match_slots: bool = True
 
 
 class Sunspot(Platform):
