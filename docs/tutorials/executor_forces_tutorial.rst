@@ -142,7 +142,7 @@ Write an alternative Calling Script similar to above, but with the following dif
           :start-at: # Starts one persistent generator
           :end-at: )
 
-   **Soln 4.** End your script in the following manny to save the output based
+   **Soln 4.** End your script in the following manner to save the output based
    on the name of the calling script. You can give any string in place of ``__file__``.
 
       .. literalinclude:: ../../libensemble/tests/functionality_tests/test_executor_forces_tutorial_2.py
