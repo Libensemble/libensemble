@@ -111,10 +111,10 @@ total_time() {
 
 build_forces() {
   local root_dir=$1
-  pushd $root_dir/libensemble/tests/scaling_tests/forces/forces_app/
+  pushd $root_dir/tests/scaling_tests/forces/forces_app/
   mpicc -O3 -o forces.x forces.c -lm
   popd
-  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests
+  cp -r $root_dir/tests/scaling_tests/forces/forces_app/ $root_dir/tests
 }
 
 #Cleanup test run directories
