@@ -36,7 +36,7 @@ def check_valid_in(cls, v):
 
 
 def check_valid_comms_type(cls, value):
-    assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
+    assert value in ["mpi", "local", "threads", "tcp"], "Invalid comms type"
     return value
 
 

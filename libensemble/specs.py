@@ -157,7 +157,7 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'local_threading'``, or ``'tcp'`` """
+    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
 
     nworkers: Optional[int] = 0
     """ Number of worker processes in ``"local"`` or ``"tcp"``."""
@@ -366,7 +366,7 @@ class LibeSpecs(BaseModel):
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
     """ TCP Only: Authkey for Manager's system."""
 
-    workerID: Optional[int] = 0
+    workerID: Optional[int] = None
     """ TCP Only: Worker ID number assigned to the new process. """
 
     worker_cmd: Optional[List[str]] = []
