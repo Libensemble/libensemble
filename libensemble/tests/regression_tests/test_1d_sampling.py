@@ -29,6 +29,7 @@ if __name__ == "__main__":
     sampling.libE_specs = LibeSpecs(
         save_every_k_gens=300,
         safe_mode=False,
+        disable_log_files=True,
     )
 
     sampling.sim_specs = SimSpecs(
