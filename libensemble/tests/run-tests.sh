@@ -109,14 +109,6 @@ total_time() {
   echo "$diff"
 }
 
-build_forces() {
-  local root_dir=$1
-  pushd $root_dir/libensemble/tests/scaling_tests/forces/forces_app/
-  mpicc -O3 -o forces.x forces.c -lm
-  popd
-  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests
-}
-
 #Cleanup test run directories
 cleanup() {
   THISDIR=${PWD}
@@ -443,7 +435,7 @@ if [ "$root_found" = true ]; then
     pushd $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/
     mpicc -O3 -o forces.x forces.c -lm
     popd
-    cp -r $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/ $ROOT_DIR/libensemble/tests
+    cp -r $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app $ROOT_DIR/libensemble/tests
 
     tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
