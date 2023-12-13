@@ -55,8 +55,7 @@ need to write a new allocation function.
 
             * :ref:`gen_specs<datastruct-gen-specs>`: Dictionary with user-defined static fields and
               parameters. Customizable parameters such as lower and upper bounds and batch
-              sizes are placed within the ``gen_specs["user"]`` dictionary, while input/output and other fields
-              that libEnsemble needs to operate the generator are placed outside ``user``.
+              sizes are placed within the ``gen_specs["user"]`` dictionary.
 
         Later on, we'll populate :class:`gen_specs<libensemble.specs.GenSpecs>` and ``persis_info`` when we initialize libEnsemble.
 
