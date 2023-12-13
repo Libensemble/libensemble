@@ -230,7 +230,8 @@ class Aurora(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: str = "runner_default"
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
 
 
@@ -240,7 +241,8 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: str = "runner_default"
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
 
 
