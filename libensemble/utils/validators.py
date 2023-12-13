@@ -145,7 +145,7 @@ if pydanticV1:
         if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("sim_f").inputs
         if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
-            values["out"] = values.get("sim_f").outputs
+            values["outputs"] = values.get("sim_f").outputs
         if hasattr(values.get("sim_f"), "persis_in") and not values.get("persis_in"):
             values["persis_in"] = values.get("sim_f").persis_in
         return values
@@ -159,7 +159,7 @@ if pydanticV1:
         if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("gen_f").inputs
         if hasattr(values.get("gen_f"), "outputs") and not values.get("outputs"):
-            values["out"] = values.get("gen_f").outputs
+            values["outputs"] = values.get("gen_f").outputs
         if hasattr(values.get("gen_f"), "persis_in") and not values.get("persis_in"):
             values["persis_in"] = values.get("gen_f").persis_in
         return values
@@ -230,7 +230,7 @@ elif pydanticV2:
         if hasattr(self.__dict__.get("sim_f"), "inputs") and not self.__dict__.get("inputs"):
             self.__dict__["inputs"] = self.__dict__.get("sim_f").inputs
         if hasattr(self.__dict__.get("sim_f"), "outputs") and not self.__dict__.get("outputs"):
-            self.__dict__["out"] = self.__dict__.get("sim_f").outputs
+            self.__dict__["outputs"] = self.__dict__.get("sim_f").outputs
         if hasattr(self.__dict__.get("sim_f"), "persis_in") and not self.__dict__.get("persis_in"):
             self.__dict__["persis_in"] = self.__dict__.get("sim_f").persis_in
         return self
@@ -240,7 +240,7 @@ elif pydanticV2:
         if hasattr(self.__dict__.get("gen_f"), "inputs") and not self.__dict__.get("inputs"):
             self.__dict__["inputs"] = self.__dict__.get("gen_f").inputs
         if hasattr(self.__dict__.get("gen_f"), "outputs") and not self.__dict__.get("outputs"):
-            self.__dict__["out"] = self.__dict__.get("gen_f").outputs
+            self.__dict__["outputs"] = self.__dict__.get("gen_f").outputs
         if hasattr(self.__dict__.get("gen_f"), "persis_in") and not self.__dict__.get("persis_in"):
             self.__dict__["persis_in"] = self.__dict__.get("gen_f").persis_in
         return self
