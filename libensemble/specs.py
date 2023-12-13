@@ -1,35 +1,18 @@
 import random
-import secrets
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-import numpy as np
-from pydantic import BaseConfig, BaseModel, Field, root_validator, validator
+from pydantic import BaseModel, Field
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
-from libensemble.utils.specs_checkers import (
-    _check_any_workers_and_disable_rm_if_tcp,
-    _check_exit_criteria,
-    _check_H0,
-    _check_output_fields,
-)
-
-_UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
-_OUT_DTYPE_ERR = "Unable to coerce '{}' into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
-_IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
-_UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
-
-BaseConfig.arbitrary_types_allowed = True
-BaseConfig.allow_population_by_field_name = True
-BaseConfig.extra = "forbid"
-BaseConfig.error_msg_templates = {
-    "value_error.extra": _UNRECOGNIZED_ERR,
-    "type_error.callable": _UFUNC_INVALID_ERR,
-}
-BaseConfig.validate_assignment = True
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
+
+
+"""
+Pydantic-version agnostic
+"""
 
 
 class SimSpecs(BaseModel):
@@ -43,7 +26,7 @@ class SimSpecs(BaseModel):
     produced by a generator function.
     """
 
-    inputs: Optional[List[str]] = Field([], alias="in")
+    inputs: Optional[List[str]] = Field(default=[], alias="in")
     """
     List of **field names** out of the complete history to pass
     into the simulation function upon calling.
@@ -78,31 +61,6 @@ class SimSpecs(BaseModel):
     the simulator function.
     """
 
-    @validator("outputs", pre=True)
-    def check_valid_out(cls, v):
-        try:
-            _ = np.dtype(v)
-        except TypeError:
-            raise ValueError(_OUT_DTYPE_ERR.format(v))
-        else:
-            return v
-
-    @validator("inputs", "persis_in", pre=True)
-    def check_valid_in(cls, v):
-        if not all(isinstance(s, str) for s in v):
-            raise ValueError(_IN_INVALID_ERR)
-        return v
-
-    @root_validator
-    def set_in_out_from_attrs(cls, values):
-        if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
-            values["inputs"] = values.get("sim_f").inputs
-        if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
-            values["outputs"] = values.get("sim_f").outputs
-        if hasattr(values.get("sim_f"), "persis_in") and not values.get("persis_in"):
-            values["persis_in"] = values.get("sim_f").persis_in
-        return values
-
 
 class GenSpecs(BaseModel):
     """
@@ -115,7 +73,7 @@ class GenSpecs(BaseModel):
     simulator function, and makes decisions based on simulator function output.
     """
 
-    inputs: Optional[List[str]] = Field([], alias="in")
+    inputs: Optional[List[str]] = Field(default=[], alias="in")
     """
     List of **field names** out of the complete history to pass
     into the generator function upon calling.
@@ -148,31 +106,6 @@ class GenSpecs(BaseModel):
     customizing the generator function
     """
 
-    @validator("outputs", pre=True)
-    def check_valid_out(cls, v):
-        try:
-            _ = np.dtype(v)
-        except TypeError:
-            raise ValueError(_OUT_DTYPE_ERR.format(v))
-        else:
-            return v
-
-    @validator("inputs", "persis_in", pre=True)
-    def check_valid_in(cls, v):
-        if not all(isinstance(s, str) for s in v):
-            raise ValueError(_IN_INVALID_ERR)
-        return v
-
-    @root_validator
-    def set_in_out_from_attrs(cls, values):
-        if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
-            values["inputs"] = values.get("gen_f").inputs
-        if hasattr(values.get("gen_f"), "outputs") and not values.get("outputs"):
-            values["outputs"] = values.get("gen_f").outputs
-        if hasattr(values.get("gen_f"), "persis_in") and not values.get("persis_in"):
-            values["persis_in"] = values.get("gen_f").persis_in
-        return values
-
 
 class AllocSpecs(BaseModel):
     """
@@ -191,7 +124,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
@@ -205,16 +138,16 @@ class ExitCriteria(BaseModel):
     Specifications for configuring when libEnsemble should stop a given run.
     """
 
-    sim_max: Optional[int]
+    sim_max: Optional[int] = None
     """Stop when this many new points have been evaluated by simulation functions."""
 
-    gen_max: Optional[int]
+    gen_max: Optional[int] = None
     """Stop when this many new points have been generated by generator functions."""
 
-    wallclock_max: Optional[float]
+    wallclock_max: Optional[float] = None
     """Stop when this many seconds has elapsed since the manager initialized."""
 
-    stop_val: Optional[Tuple[str, float]]
+    stop_val: Optional[Tuple[str, float]] = None
     """Stop when ``H[str] < float`` for the given ``(str, float)`` pair."""
 
 
@@ -224,9 +157,9 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'local_threading'``, or ``'tcp'`` """
+    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
 
-    nworkers: Optional[int]
+    nworkers: Optional[int] = 0
     """ Number of worker processes in ``"local"`` or ``"tcp"``."""
 
     mpi_comm: Optional[Any] = None
@@ -421,7 +354,7 @@ class LibeSpecs(BaseModel):
     stats_fmt: Optional[dict] = {}
     """ Options for formatting ``'libE_stats.txt'``. See 'Formatting libE_stats.txt'. """
 
-    workers: Optional[List[str]]
+    workers: Optional[List[str]] = []
     """ TCP Only: A list of worker hostnames. """
 
     ip: Optional[str] = None
@@ -433,10 +366,10 @@ class LibeSpecs(BaseModel):
     authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
     """ TCP Only: Authkey for Manager's system."""
 
-    workerID: Optional[int]
+    workerID: Optional[int] = None
     """ TCP Only: Worker ID number assigned to the new process. """
 
-    worker_cmd: Optional[List[str]]
+    worker_cmd: Optional[List[str]] = []
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
     a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
@@ -461,20 +394,20 @@ class LibeSpecs(BaseModel):
     and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
     """
 
-    num_resource_sets: Optional[int]
+    num_resource_sets: Optional[int] = 0
     """
     Total number of resource sets. Resources will be divided into this number.
     If not set, resources will be divided evenly (excluding zero_resource_workers).
     """
 
-    gen_num_procs: Optional[int]
+    gen_num_procs: Optional[int] = 0
     """
     The default number of processors (MPI ranks) required by generators. Unless
     overridden by the equivalent `persis_info` settings, generators will be
     allocated this many processors for applications launched via the MPIExecutor.
     """
 
-    gen_num_gpus: Optional[int]
+    gen_num_gpus: Optional[int] = 0
     """
     The default number of GPUs required by generators. Unless overridden by
     the equivalent `persis_info` settings, generators will be allocated this
@@ -513,60 +446,6 @@ class LibeSpecs(BaseModel):
     scheduler_opts: Optional[dict] = {}
     """ Options for the resource scheduler. See 'Scheduler Options' for more info """
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    @validator("comms")
-    def check_valid_comms_type(cls, value):
-        assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
-        return value
-
-    @validator("platform_specs")
-    def set_platform_specs_to_class(cls, value: Union[Platform, dict]) -> Platform:
-        if isinstance(value, dict):
-            value = Platform(**value)
-        return value
-
-    @validator("sim_input_dir", "gen_input_dir")
-    def check_input_dir_exists(cls, value):
-        if value:
-            if isinstance(value, str):
-                value = Path(value).absolute()
-            assert value.exists(), "value does not refer to an existing path"
-            assert value != Path("."), "Value can't refer to the current directory ('.' or Path('.'))."
-        return value
-
-    @validator("sim_dir_copy_files", "sim_dir_symlink_files", "gen_dir_copy_files", "gen_dir_symlink_files")
-    def check_inputs_exist(cls, value):
-        value = [Path(path).absolute() for path in value]
-        for f in value:
-            assert f.exists(), f"'{f}' in Value does not refer to an existing path."
-        return value
-
-    @root_validator
-    def check_any_workers_and_disable_rm_if_tcp(cls, values):
-        return _check_any_workers_and_disable_rm_if_tcp(values)
-
-    @root_validator(pre=True)
-    def enable_save_H_when_every_K(cls, values):
-        if "save_H_on_completion" not in values and (
-            values.get("save_every_k_sims", 0) > 0 or values.get("save_every_k_gens", 0) > 0
-        ):
-            values["save_H_on_completion"] = True
-        return values
-
-    @root_validator
-    def set_workflow_dir(cls, values):
-        if values.get("use_workflow_dir") and len(str(values.get("workflow_dir_path"))) <= 1:
-            values["workflow_dir_path"] = Path(
-                "./workflow_" + secrets.token_hex(3)
-            ).absolute()  # should avoid side-effects. make dir later
-        elif len(str(values.get("workflow_dir_path"))) > 1:
-            if not values.get("use_workflow_dir"):
-                values["use_workflow_dir"] = True
-            values["workflow_dir_path"] = Path(values["workflow_dir_path"]).absolute()
-        return values
-
 
 class _EnsembleSpecs(BaseModel):
     """An all-encompassing model for a libEnsemble workflow."""
@@ -586,50 +465,11 @@ class _EnsembleSpecs(BaseModel):
     exit_criteria: ExitCriteria
     """ Configurations for when to exit a workflow. """
 
-    persis_info: Optional[dict]
+    persis_info: Optional[dict] = None
     """ Per-worker information and structures to be passed between user function instances. """
 
     alloc_specs: Optional[AllocSpecs] = AllocSpecs()
     """ Specifications for the allocation function. """
-
-    nworkers: Optional[int]
-    """ Number of worker processes to spawn (only in local/tcp modes). """
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    @root_validator
-    def check_provided_ufuncs(cls, values):
-        sim_specs = values.get("sim_specs")
-        assert hasattr(sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
-        assert isinstance(sim_specs.sim_f, Callable), "Simulation function is not callable."
-
-        if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
-            gen_specs = values.get("gen_specs")
-            assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
-
-        return values
-
-    @root_validator
-    def check_exit_criteria(cls, values):
-        return _check_exit_criteria(values)
-
-    @root_validator
-    def check_output_fields(cls, values):
-        return _check_output_fields(values)
-
-    @root_validator
-    def set_ensemble_nworkers(cls, values):
-        if values.get("libE_specs"):
-            values["nworkers"] = values["libE_specs"].nworkers
-        return values
-
-    @root_validator
-    def check_H0(cls, values):
-        if values.get("H0") is not None:
-            return _check_H0(values)
-        return values
 
 
 def input_fields(fields: List[str]):

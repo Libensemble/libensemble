@@ -22,6 +22,38 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.tools.persistent_support import PersistentSupport
 
 
+def initialize(U, libE_info):
+    # Extract bounds of the parameter space, and batch size
+    ub_list = U.get("ub", None)
+    lb_list = U.get("lb", None)
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    # Fidelity range.
+    fidel_range = U.get("range", None)
+
+    # Get fidelity cost function.
+    cost_func = U.get("cost_func", None)
+
+    # Number of points to generate initially
+    number_of_gen_points = U.get("gen_batch_size", None)
+
+    return ub_list, lb_list, ps, fidel_range, cost_func, number_of_gen_points
+
+
+def feed_GP(H, opt, with_z=True):
+    for i in range(len(H)):
+        x = H["x"][i]
+        y = H["f"][i]
+        if with_z:
+            z = H["z"][i]
+            opt.tell([([z], x, -y)])
+        else:
+            opt.tell([(x, -y)])
+    # Update hyperparameters
+    opt._build_new_model()
+    return opt
+
+
 def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model, update it as new simulation results
@@ -30,13 +62,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     This is a persistent `genf` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
     """
-    # Extract bounds of the parameter space, and batch size
-    ub_list = gen_specs["user"]["ub"]
-    lb_list = gen_specs["user"]["lb"]
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-
-    # Number of points to generate initially
-    number_of_gen_points = gen_specs["user"]["gen_batch_size"]
+    ub_list, lb_list, ps, _, _, number_of_gen_points = initialize(gen_specs["user"], libE_info)
 
     # Initialize the dragonfly GP optimizer
     domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
@@ -54,12 +80,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
 
     # If there is any past history, feed it to the GP
     if len(H) > 0:
-        for i in range(len(H)):
-            x = H["x"][i]
-            y = H["f"][i]
-            opt.tell([(x, -y)])
-        # Update hyperparameters
-        opt._build_new_model()
+        opt = feed_GP(H, opt, with_z=False)
 
     # Receive information from the manager (or a STOP_TAG)
     tag = None
@@ -79,12 +100,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
             # Check how many simulations have returned
             n = len(calc_in["f"])
             # Update the GP with latest simulation results
-            for i in range(n):
-                x = calc_in["x"][i]
-                y = calc_in["f"][i]
-                opt.tell([(x, -y)])
-            # Update hyperparameters
-            opt._build_new_model()
+            opt = feed_GP(calc_in, opt, with_z=False)
             # Set the number of points to generate to that number:
             number_of_gen_points = n
         else:
@@ -102,19 +118,8 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     This is a persistent `genf` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
     """
-    # Extract bounds of the parameter space, and batch size
-    ub_list = gen_specs["user"]["ub"]
-    lb_list = gen_specs["user"]["lb"]
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
 
-    # Fidelity range.
-    fidel_range = gen_specs["user"]["range"]
-
-    # Get fidelity cost function.
-    cost_func = gen_specs["user"]["cost_func"]
-
-    # Number of points to generate initially
-    number_of_gen_points = gen_specs["user"]["gen_batch_size"]
+    ub_list, lb_list, ps, fidel_range, cost_func, number_of_gen_points = initialize(gen_specs["user"], libE_info)
 
     # Initialize the dragonfly GP optimizer
     domain = EuclideanDomain([[lo, up] for lo, up in zip(lb_list, ub_list)])
@@ -140,13 +145,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
 
     # If there is any past history, feed it to the GP
     if len(H) > 0:
-        for i in range(len(H)):
-            x = H["x"][i]
-            z = H["z"][i]
-            y = H["f"][i]
-            opt.tell([([z], x, -y)])
-        # Update hyperparameters
-        opt._build_new_model()
+        opt = feed_GP(H, opt)
 
     # Receive information from the manager (or a STOP_TAG)
     tag = None
@@ -167,13 +166,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
             # Check how many simulations have returned
             n = len(calc_in["f"])
             # Update the GP with latest simulation results
-            for i in range(n):
-                x = calc_in["x"][i]
-                z = calc_in["z"][i]
-                y = calc_in["f"][i]
-                opt.tell([([z], x, -y)])
-            # Update hyperparameters
-            opt._build_new_model()
+            opt = feed_GP(calc_in, opt)
             # Set the number of points to generate to that number:
             number_of_gen_points = n
         else:
@@ -191,18 +184,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     This is a persistent `genf` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
     """
-    # Extract bounds of the parameter space, and batch size
-    ub_list = gen_specs["user"]["ub"]
-    lb_list = gen_specs["user"]["lb"]
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-
-    # Multifidelity settings.
-    cost_func = gen_specs["user"]["cost_func"]
-    # discrete_fidel = gen_specs["user"]["discrete"]
-    fidel_range = gen_specs["user"]["range"]
-
-    # Number of points to generate initially.
-    number_of_gen_points = gen_specs["user"]["gen_batch_size"]
+    ub_list, lb_list, ps, fidel_range, cost_func, number_of_gen_points = initialize(gen_specs["user"], libE_info)
 
     # Create configuration dictionary from which Dragongly will
     # automatically generate the necessary domains and orderings.
@@ -249,13 +231,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
 
     # If there is any past history, feed it to the GP
     if len(H) > 0:
-        for i in range(len(H)):
-            x = H["x"][i]
-            z = H["z"][i]
-            y = H["f"][i]
-            opt.tell([([z], x, -y)])
-        # Update hyperparameters
-        opt._build_new_model()
+        opt = feed_GP(H, opt)
 
     # Receive information from the manager (or a STOP_TAG)
     tag = None
@@ -276,11 +252,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
             # Check how many simulations have returned
             n = len(calc_in["f"])
             # Update the GP with latest simulation results
-            for i in range(n):
-                x = calc_in["x"][i]
-                z = calc_in["z"][i]
-                y = calc_in["f"][i]
-                opt.tell([([z], x, -y)])
+            opt = feed_GP(calc_in, opt)
             # Update hyperparameters
             opt._build_new_model()
             # Set the number of points to generate to that number:
