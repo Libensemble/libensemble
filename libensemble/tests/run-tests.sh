@@ -111,10 +111,10 @@ total_time() {
 
 build_forces() {
   local root_dir=$1
-  pushd $root_dir/tests/scaling_tests/forces/forces_app/
+  pushd $root_dir/libensemble/tests/scaling_tests/forces/forces_app/
   mpicc -O3 -o forces.x forces.c -lm
   popd
-  cp -r $root_dir/tests/scaling_tests/forces/forces_app/ $root_dir/tests
+  cp -r $root_dir/libensemble/tests/scaling_tests/forces/forces_app/ $root_dir/libensemble/tests
 }
 
 #Cleanup test run directories
@@ -440,7 +440,10 @@ if [ "$root_found" = true ]; then
 
   if [ "$RUN_REG_TESTS" = true ]; then
     # build forces
-    $(build_forces $ROOT_DIR)
+    pushd $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/
+    mpicc -O3 -o forces.x forces.c -lm
+    popd
+    cp -r $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/ $ROOT_DIR/libensemble/tests
 
     tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
