@@ -1,6 +1,6 @@
 sphinx<8
 sphinxcontrib-bibtex
-autodoc_pydantic<2
+autodoc_pydantic
 sphinx-design
 numpy
 sphinx_rtd_theme>1

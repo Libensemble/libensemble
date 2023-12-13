@@ -24,7 +24,7 @@ def EvaluateFunction(x, component=None):
     if component is None:
         f1 = 100 * np.power(np.power(x[::2], 2) - x[1::2], 2)
         f2 = np.power(x[::2] - np.ones(n), 2)
-        f = f1 + f2
+        f = np.sum(f1) + np.sum(f2)
 
     else:
         i = component
