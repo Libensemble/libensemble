@@ -2,7 +2,7 @@
 libEnsemble communication interface
 ====================================================
 
-A comm provides a message passing abstraction for communication
+A comm provides a message-passing abstraction for communication
 between a worker user function and the manager.  Basic messages are:
 
   stop() - manager tells persistent gen/sim to stop
@@ -14,7 +14,7 @@ between a worker user function and the manager.  Basic messages are:
   result(id, rec) - manager informs gen a sim completed
   killed(id) - manager informs gen a sim was killed
 
-To facilitate information sharing, we also have messages for history
+To facilitate information sharing, there are also messages for history
 access and monitoring (for persistent gens):
 
   get_history(lo, hi) - gen requests history
@@ -46,7 +46,7 @@ class ManagerStop(Exception):
 
 
 class RemoteException(Exception):
-    """Exception raised when we received a remote exception."""
+    """Exception raised a remote exception is received."""
 
     def __init__(self, msg, exc):
         super().__init__(msg)
@@ -89,7 +89,7 @@ class Comm(ABC):
         """Receive a message or raise TimeoutError."""
 
     def mail_flag(self):
-        """Check whether we know a message is ready for receipt."""
+        """Check whether a message is ready for receipt."""
         return False
 
     def kill_pending(self):
@@ -141,7 +141,7 @@ class QComm(Comm):
         self.recv_buffer = args
 
     def mail_flag(self):
-        """Check whether we know a message is ready for receipt."""
+        """Check whether a message is ready for receipt."""
         return not self._inbox.empty()
 
 
@@ -187,7 +187,7 @@ class QCommLocal(Comm):
             raise Timeout()
 
     def mail_flag(self):
-        """Check whether we know a message is ready for receipt."""
+        """Check whether a message is ready for receipt."""
         return not self.outbox.empty()
 
     def result(self, timeout=None):
@@ -243,11 +243,11 @@ class QCommThread(QCommLocal):
     def terminate(self, timeout=None):
         """Terminate the thread.
 
-        A thread can't really be killed from the outside. Ideally the `main`
-        function would make periodic checks to some variable that determines
-        whether the function should continue. This is not implemented, so
-        it is currently no possible to terminate the thread when calling
-        this method.
+        Threads can't easily be killed from the outside. It is possible to achieve such
+        functionality, for example, with the `main` function periodically checking some
+        variable/output to determine if the function should continue. This is not
+        implemented here, so it is currently not possible to terminate the thread when
+        calling this method.
         """
         self.handle.join(timeout=timeout)
         if self.running:
