@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def _check_exit_criteria(values):
-    if "stop_val" in scg(values, "exit_criteria"):
+    if scg(values, "exit_criteria").stop_val is not None:
         stop_name = scg(values, "exit_criteria").stop_val[0]
         sim_out_names = [e[0] for e in scg(values, "sim_specs").outputs]
         gen_out_names = [e[0] for e in scg(values, "gen_specs").outputs]
