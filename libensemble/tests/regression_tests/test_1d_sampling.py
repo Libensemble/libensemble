@@ -26,18 +26,8 @@ from libensemble.tools import add_unique_random_streams
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     sampling = Ensemble(parse_args=True)
-    sampling.libE_specs = LibeSpecs(
-        save_every_k_gens=300,
-        safe_mode=False,
-        disable_log_files=True,
-    )
-
-    sampling.sim_specs = SimSpecs(
-        sim_f=sim_f,
-        inputs=["x"],
-        outputs=[("f", float)],
-    )
-
+    sampling.libE_specs = LibeSpecs(save_every_k_gens=300, safe_mode=False, disable_log_files=True)
+    sampling.sim_specs = SimSpecs(sim_f=sim_f)
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
         outputs=[("x", float, (1,))],

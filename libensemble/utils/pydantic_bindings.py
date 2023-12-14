@@ -20,8 +20,10 @@ from libensemble.utils.validators import (
     check_valid_in,
     check_valid_out,
     enable_save_H_when_every_K,
+    genf_set_in_out_from_attrs,
     set_platform_specs_to_class,
     set_workflow_dir,
+    simf_set_in_out_from_attrs,
 )
 
 if pydanticV1:
@@ -91,13 +93,21 @@ elif pydanticV2:
 specs.SimSpecs = create_model(
     "SimSpecs",
     __base__=specs.SimSpecs,
-    __validators__={"check_valid_out": check_valid_out, "check_valid_in": check_valid_in},
+    __validators__={
+        "check_valid_out": check_valid_out,
+        "check_valid_in": check_valid_in,
+        "simf_set_in_out_from_attrs": simf_set_in_out_from_attrs,
+    },
 )
 
 specs.GenSpecs = create_model(
     "GenSpecs",
     __base__=specs.GenSpecs,
-    __validators__={"check_valid_out": check_valid_out, "check_valid_in": check_valid_in},
+    __validators__={
+        "check_valid_out": check_valid_out,
+        "check_valid_in": check_valid_in,
+        "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
+    },
 )
 
 specs.LibeSpecs = create_model(

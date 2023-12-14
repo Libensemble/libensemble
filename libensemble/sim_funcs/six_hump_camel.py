@@ -17,9 +17,12 @@ import time
 import numpy as np
 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.specs import input_fields, output_data
 from libensemble.tools.persistent_support import PersistentSupport
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel function for a collection of points given in ``H["x"]``.

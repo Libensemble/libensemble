@@ -5,16 +5,43 @@ Generator Functions
 
 Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar interfaces.
 
-.. code-block:: python
+Writing a Generator
+-------------------
 
-    def my_generator(Input, persis_info, gen_specs, libE_info):
-        batch_size = gen_specs["user"]["batch_size"]
+.. tab-set::
 
-        Output = np.zeros(batch_size, gen_specs["out"])
-        ...
-        Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+    .. tab-item:: Non-decorated
+        :sync: nodecorate
 
-        return Output, persis_info
+        .. code-block:: python
+
+            def my_generator(Input, persis_info, gen_specs, libE_info):
+                batch_size = gen_specs["user"]["batch_size"]
+
+                Output = np.zeros(batch_size, gen_specs["out"])
+                # ...
+                Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+
+                return Output, persis_info
+
+    .. tab-item:: Decorated
+        :sync: decorate
+
+        .. code-block:: python
+
+            from libensemble.specs import input_fields, output_data
+
+
+            @input_fields(["f"])
+            @output_data([("x", float)])
+            def my_generator(Input, persis_info, gen_specs, libE_info):
+                batch_size = gen_specs["user"]["batch_size"]
+
+                Output = np.zeros(batch_size, gen_specs["out"])
+                # ...
+                Output["x"], persis_info = generate_next_simulation_inputs(Input["f"], persis_info)
+
+                return Output, persis_info
 
 Most ``gen_f`` function definitions written by users resemble::
 
@@ -22,25 +49,40 @@ Most ``gen_f`` function definitions written by users resemble::
 
 where:
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`
-    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information
-    * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters, including which fields from the History array got sent
-    *  ``libE_info`` is a dictionary containing libEnsemble-specific entries
+    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy array.
+    * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
+    * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters.
+    *  ``libE_info`` is a dictionary containing miscellaneous entries.
 
 Valid generator functions can accept a subset of the above parameters. So a very simple generator can start::
 
     def my_generator(Input):
 
-If gen_specs was initially defined::
+If ``gen_specs`` was initially defined:
 
-    gen_specs = {
-        "gen_f": some_function,
-        "in": ["f"],
-        "out:" ["x", float, (1,)],
-        "user": {
-            "batch_size": 128
-        }
-    }
+.. tab-set::
+
+    .. tab-item:: Non-decorated function
+        :sync: nodecorate
+
+        .. code-block:: python
+
+            gen_specs = GenSpecs(
+                gen_f=my_generator,
+                inputs=["f"],
+                outputs=["x", float, (1,)],
+                user={"batch_size": 128},
+            )
+
+    .. tab-item:: Decorated function
+        :sync: decorate
+
+        .. code-block:: python
+
+            gen_specs = GenSpecs(
+                gen_f=my_generator,
+                user={"batch_size": 128},
+            )
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
 
@@ -56,10 +98,9 @@ Then return the array and ``persis_info`` to libEnsemble::
 
     return Output, persis_info
 
-Between the ``Output`` definition and the ``return``, any level and complexity
-of computation can be performed. Users are encouraged to use the :doc:`executor<../executor/overview>`
-to submit applications to parallel resources if necessary, or plug in components from
-other libraries to serve their needs.
+Between the ``Output`` definition and the ``return``, any computation can be performed.
+Users can try an :doc:`executor<../executor/overview>` to submit applications to parallel
+resources, or plug in components from other libraries to serve their needs.
 
 .. note::
 
@@ -74,17 +115,17 @@ Persistent Generators
 While non-persistent generators return after completing their calculation, persistent
 generators do the following in a loop:
 
-    1. Receive simulation results and metadata; exit if metadata instructs
-    2. Perform analysis
-    3. Send subsequent simulation parameters
+    1. Receive simulation results and metadata; exit if metadata instructs.
+    2. Perform analysis.
+    3. Send subsequent simulation parameters.
 
 Persistent generators don't need to be re-initialized on each call, but are typically
-more complicated. The :doc:`APOSMM<../examples/aposmm>`
-optimization generator function included with libEnsemble is persistent so it can
-maintain multiple local optimization subprocesses based on results from complete simulations.
+more complicated. The persistent :doc:`APOSMM<../examples/aposmm>`
+optimization generator function included with libEnsemble maintains
+local optimization subprocesses based on results from complete simulations.
 
-Use ``gen_specs["persis_in"]`` to specify fields to send back to the generator throughout the run.
-``gen_specs["in"]`` only describes the input fields when the function is **first called**.
+Use ``GenSpecs.persis_in`` to specify fields to send back to the generator throughout the run.
+``GenSpecs.inputs`` only describes the input fields when the function is **first called**.
 
 Functions for a persistent generator to communicate directly with the manager
 are available in the :ref:`libensemble.tools.persistent_support<p_gen_routines>` class.
@@ -159,7 +200,7 @@ a worker can be initiated in *active receive* mode by the allocation
 function (see :ref:`start_only_persistent<start_only_persistent_label>`).
 The persistent worker can then send and receive from the manager at any time.
 
-Ensure there are no communication deadlocks in this mode. In manager--worker message exchanges, only the worker-side
+Ensure there are no communication deadlocks in this mode. In manager-worker message exchanges, only the worker-side
 receive is blocking by default (a non-blocking option is available).
 
 Cancelling Simulations
