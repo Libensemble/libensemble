@@ -175,6 +175,11 @@ class GlobalResources:
             cores_on_node = (platform_info.get("cores_per_node"), platform_info.get("logical_cores_per_node"))
         gpus_on_node = resource_info.get("gpus_on_node") or platform_info.get("gpus_per_node")
 
+        self.tiles_per_gpu = 1
+        if libE_specs.get("use_tiles_as_gpus", False):
+            # Not yet detected so only uses tiles if set in platform_info
+            self.tiles_per_gpu = platform_info.get("tiles_per_gpu") or 1
+
         node_file = resource_info.get("node_file", None)
         nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)
         nodelist_env_cobalt = resource_info.get("nodelist_env_cobalt", None)
@@ -218,7 +223,7 @@ class GlobalResources:
 
         self.physical_cores_avail_per_node = cores_on_node[0]
         self.logical_cores_avail_per_node = cores_on_node[1]
-        self.gpus_avail_per_node = gpus_on_node
+        self.gpus_avail_per_node = gpus_on_node * self.tiles_per_gpu
         self.platform_info = platform_info
         self.libE_nodes = None
 

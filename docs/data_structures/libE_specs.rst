@@ -240,6 +240,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     the equivalent ``persis_info`` settings, generators will be allocated this
                     many GPUs.
 
+                **use_tiles_as_gpus** [bool] = ``False``:
+                    If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided
+                    in platform specs or detected.
+
                 **enforce_worker_core_bounds** [bool] = ``False``:
                     Permit submission of tasks with a
                     higher processor count than the CPUs available to the worker.

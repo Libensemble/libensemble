@@ -46,6 +46,9 @@ class Platform(BaseModel):
     gpus_per_node: Optional[int]
     """Number of GPU devices on a compute node of the platform"""
 
+    tiles_per_gpu: Optional[int]
+    """Number of tiles on a GPU"""
+
     gpu_setting_type: Optional[str]
     """ How GPUs will be assigned.
 
@@ -153,6 +156,7 @@ class Aurora(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
+    tiles_per_gpu: int = 2
     gpu_setting_type: str = "env"
     gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
@@ -241,6 +245,7 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
+    tiles_per_gpu: int = 2
     gpu_setting_type: str = "env"
     gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
