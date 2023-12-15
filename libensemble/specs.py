@@ -124,7 +124,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = []
+    outputs: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, Tuple]]]] = Field([], alias="out")
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
