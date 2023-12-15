@@ -67,7 +67,7 @@ Then in the session run::
     python run_libe_forces.py --comms local --nworkers 13
 
 This provides twelve workers for running simulations (one for each GPU across
-two nodes). An extra worker is added for running the peristent generator. The
+two nodes). An extra worker is added for running the persistent generator. The
 GPU settings for each worker simulation are printed.
 
 Looking at ``libE_stats.txt`` will provide a summary of the runs.
