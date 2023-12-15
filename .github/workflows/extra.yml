@@ -12,23 +12,38 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
+                pydantic-version: ["2.5.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: "mpich=4.0.3"
+                      pydantic-version: "2.5.2"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: "mpich=4.0.3"
+                      pydantic-version: "2.5.2"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: "mpich"
+                      pydantic-version: "2.5.2"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
+                      pydantic-version: "2.5.2"
                       python-version: "3.12"
+                      comms-type: l
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: "3.10"
+                      pydantic-version: "1.10.13"
+                      comms-type: m
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: "3.10"
+                      pydantic-version: "1.10.13"
                       comms-type: l
 
         env:
@@ -64,7 +79,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-extra
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-extra
 
         - name: Force-update certifi
           run: |
@@ -190,6 +205,7 @@ jobs:
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
+            pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
 
@@ -200,6 +216,12 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
+
+        - name: Remove Balsam/Globus-compute tests on Pydantic 2
+          if: matrix.pydantic-version == '2.5.2'
+          run: |
+            rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
+            rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
