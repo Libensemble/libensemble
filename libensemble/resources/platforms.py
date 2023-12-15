@@ -49,6 +49,8 @@ class Platform(BaseModel):
     tiles_per_gpu: Optional[int] = None
     """Number of tiles on a GPU"""
 
+    gpu_setting_type: Optional[str] = None
+
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
