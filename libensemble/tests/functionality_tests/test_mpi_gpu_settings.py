@@ -43,6 +43,7 @@ persistent generator.
 
 import os
 import sys
+import warnings
 
 import numpy as np
 
@@ -60,6 +61,7 @@ from libensemble.tools import add_unique_random_streams, parse_args
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
 
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     )
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-        print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
+        print(f"\nRunning GPU setting checks (via platform_specs class) for {run_set} ------------------- ")
         libE_specs["platform_specs"].mpi_runner = run_set
 
         print(f'{libE_specs["platform_specs"]=}')
@@ -174,7 +176,7 @@ if __name__ == "__main__":
     }
 
     for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
-        print(f"\nRunning GPU setting checks (via platform_specs) for {run_set} ------------------- ")
+        print(f"\nRunning GPU setting checks (via platform_specs dict) for {run_set} ------------------- ")
         libE_specs["platform_specs"]["mpi_runner"] = run_set
 
         print(f'{libE_specs["platform_specs"]=}')

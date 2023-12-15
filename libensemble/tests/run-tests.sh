@@ -376,7 +376,7 @@ COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
    COV_LINE_SERIAL='--cov --cov-report xml:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
-   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
+   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing,thread' #running in regression dir itself
 
    #include branch coverage? eg. flags if never jumped a statement block... [see .coveragerc file]
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
@@ -431,6 +431,12 @@ if [ "$root_found" = true ]; then
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
+    # build forces
+    pushd $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/
+    mpicc -O3 -o forces.x forces.c -lm
+    popd
+    cp -r $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app $ROOT_DIR/libensemble/tests
+
     tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
@@ -452,7 +458,6 @@ if [ "$root_found" = true ]; then
     fi
     #Build any sim/gen source code dependencies here .....
 
-    # cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Run regression tests using MPI
     #Before first test set error code to zero
@@ -485,6 +490,8 @@ if [ "$root_found" = true ]; then
         COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
         IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
 
+        if [[ "$COMMS_LIST" = "" ]]; then COMMS_LIST="local"; fi
+
         if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
           continue
         fi
@@ -496,13 +503,16 @@ if [ "$root_found" = true ]; then
           OS_SKIP_LIST=$(sed -n '/# TESTSUITE_OS_SKIP/s/# TESTSUITE_OS_SKIP: //p' $TEST_SCRIPT)
           OMPI_SKIP=$(sed -n '/# TESTSUITE_OMPI_SKIP/s/# TESTSUITE_OMPI_SKIP: //p' $TEST_SCRIPT)
           if [ "$REG_RUN_LARGEST_TEST_ONLY" = true ]; then  NPROCS_LIST=${NPROCS_LIST##*' '}; fi
+
+          if [[ "$NPROCS_LIST" = "" ]]; then NPROCS_LIST=4; fi
+
           for NPROCS in ${NPROCS_LIST}
           do
             NWORKERS=$((NPROCS-1))
 
             RUN_TEST=false
             if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-            if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] &&  ( [ "$LAUNCHER" = local ] || [ "$LAUNCHER" = threads ] ); then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
             if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then

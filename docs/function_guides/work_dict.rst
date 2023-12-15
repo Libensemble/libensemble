@@ -34,4 +34,4 @@ or the equivalent "persis_in" variants.
 
 .. _start_only_persistent.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_only_persistent.py
 .. _start_persistent_local_opt_gens.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py
-.. _test_uniform_sampling_with_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py
+.. _test_uniform_sampling_with_variable_resources.py: https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py

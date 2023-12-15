@@ -10,7 +10,7 @@ parser.add_argument(
     "--comms",
     type=str,
     nargs="?",
-    choices=["local", "tcp", "ssh", "client", "mpi"],
+    choices=["local", "threads", "tcp", "ssh", "client", "mpi"],
     default="mpi",
     help="Type of communicator",
 )
@@ -65,7 +65,7 @@ def _mpi_parse_args(args):
 
 def _local_parse_args(args):
     """Parses arguments for forked processes using multiprocessing."""
-    libE_specs = {"comms": "local"}
+    libE_specs = {"comms": args.comms}
     nworkers = args.nworkers
 
     if args.nresource_sets is not None:
@@ -231,6 +231,7 @@ def parse_args():
     front_ends = {
         "mpi": _mpi_parse_args,
         "local": _local_parse_args,
+        "threads": _local_parse_args,
         "tcp": _tcp_parse_args,
         "ssh": _ssh_parse_args,
         "client": _client_parse_args,

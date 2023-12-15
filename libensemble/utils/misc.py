@@ -5,6 +5,13 @@ Misc internal functions
 from itertools import groupby
 from operator import itemgetter
 
+import pydantic
+
+pydantic_version = pydantic.__version__[0]
+
+pydanticV1 = pydantic_version == "1"
+pydanticV2 = pydantic_version == "2"
+
 
 def extract_H_ranges(Work: dict) -> str:
     """Convert received H_rows into ranges for labeling"""
@@ -21,3 +28,27 @@ def extract_H_ranges(Work: dict) -> str:
             else:
                 ranges.append(str(group[0]))
         return "_".join(ranges)
+
+
+def specs_dump(specs, **kwargs):
+    if pydanticV1:
+        return specs.dict(**kwargs)
+    elif pydanticV2:
+        return specs.model_dump(**kwargs)
+
+
+def specs_checker_getattr(obj, key, default=None):
+    if pydanticV1:  # dict
+        return obj.get(key, default)
+    elif pydanticV2:  # actual obj
+        try:
+            return getattr(obj, key)
+        except AttributeError:
+            return default
+
+
+def specs_checker_setattr(obj, key, value):
+    if pydanticV1:  # dict
+        obj[key] = value
+    elif pydanticV2:  # actual obj
+        obj.__dict__[key] = value
