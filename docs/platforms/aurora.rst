@@ -67,7 +67,7 @@ Then in the session run::
     python run_libe_forces.py --comms local --nworkers 13
 
 This provides twelve workers for running simulations (one for each GPU across
-two nodes). An extra worker is added for running the persistent generator. The
+two nodes). An extra worker is added to run the persistent generator. The
 GPU settings for each worker simulation are printed.
 
 Looking at ``libE_stats.txt`` will provide a summary of the runs.
@@ -75,7 +75,7 @@ Looking at ``libE_stats.txt`` will provide a summary of the runs.
 Using tiles as GPUs
 -------------------
 
-If you wish to treat each tile as it's own GPU, then add the *libE_specs*
+If you wish to treat each tile as its own GPU, then add the *libE_specs*
 option ``use_tiles_as_gpus=True``, so the *libE_specs* block of
 ``run_libe_forces.py`` becomes:
 
@@ -104,9 +104,9 @@ Demonstration
 
 Note that a video demonstration_ of the *forces_gpu* example on *Frontier*
 is also available. The workflow is identical when running on Aurora, with the
-exception of compiler options and using a different number of workers due to
-different numbers of GPUs on a node.
+exception of different compiler options and numbers of workers (because the
+numbers of GPUs on a node differs).
 
-.. _Aurora: https://www.alcf.anl.gov/support-center/aurorasunspot/getting-started-aurora
 .. _ALCF: https://www.alcf.anl.gov/
+.. _Aurora: https://www.alcf.anl.gov/support-center/aurorasunspot/getting-started-aurora
 .. _demonstration: https://youtu.be/H2fmbZ6DnVc
