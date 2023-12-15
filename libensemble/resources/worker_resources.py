@@ -200,6 +200,7 @@ class WorkerResources(RSetResources):
         self.gen_nprocs = None
         self.gen_ngpus = None
         self.platform_info = resources.platform_info
+        self.tiles_per_gpu = resources.tiles_per_gpu
 
     # User convenience functions ----------------------------------------------
 
@@ -217,6 +218,9 @@ class WorkerResources(RSetResources):
         slot_list = [j for i in self.slots_on_node for j in range(i * n, (i + 1) * n)]
         if limit is not None:
             slot_list = slot_list[:limit]
+        if self.tiles_per_gpu > 1:
+            ntiles = self.tiles_per_gpu
+            slot_list = [f"{i // ntiles}.{i % ntiles}" for i in slot_list]
         slots = delimiter.join(map(str, slot_list))
         return slots
 

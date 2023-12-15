@@ -46,7 +46,11 @@ class Platform(BaseModel):
     gpus_per_node: Optional[int] = None
     """Number of GPU devices on a compute node of the platform"""
 
+    tiles_per_gpu: Optional[int] = None
+    """Number of tiles on a GPU"""
+
     gpu_setting_type: Optional[str] = None
+
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
@@ -120,6 +124,18 @@ class Platform(BaseModel):
     application-level scheduler to manage GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
+
+
+class Aurora(Platform):
+    mpi_runner: str = "mpich"
+    runner_name: str = "mpiexec"
+    cores_per_node: int = 104
+    logical_cores_per_node: int = 208
+    gpus_per_node: int = 6
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
+    scheduler_match_slots: bool = True
 
 
 # On SLURM systems, let srun assign free GPUs on the node
@@ -205,7 +221,9 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: str = "runner_default"
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
 
 
@@ -247,6 +265,7 @@ class Known_platforms(BaseModel):
     where auto-detection encounters ambiguity or an unknown feature.
     """
 
+    aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
@@ -262,6 +281,7 @@ class Known_platforms(BaseModel):
 detect_systems = {
     "crusher.olcf.ornl.gov": Crusher,
     "frontier.olcf.ornl.gov": Frontier,
+    "hostmgmt.cm.aurora.alcf.anl.gov": Aurora,
     "hsn.cm.polaris.alcf.anl.gov": Polaris,
     "spock.olcf.ornl.gov": Spock,
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
