@@ -13,3 +13,7 @@ cd $PBS_O_WORKDIR
 # 2 nodes - 12 sim workers (6 GPUs per node)
 python run_libe_forces.py --comms local --nworkers 13
 
+# if using libE_specs["use_tiles_as_gpus"] = True
+# 2 nodes 24 sim workers  (12 GPU tiles per node)
+# python run_libe_forces.py --comms local --nworkers 25
+
