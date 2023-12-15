@@ -241,8 +241,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     many GPUs.
 
                 **use_tiles_as_gpus** [bool] = ``False``:
-                    If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided
-                    in platform specs or detected.
+                    If ``True`` then treat a GPU tile as one GPU, assuming
+                    ``tiles_per_GPU`` is provided in ``platform_specs`` or detected.
 
                 **enforce_worker_core_bounds** [bool] = ``False``:
                     Permit submission of tasks with a
