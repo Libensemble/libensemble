@@ -93,8 +93,8 @@ will use one GPU tile)::
     python run_libe_forces.py --comms local --nworkers 25
 
 Note that the *forces* example will automatically use the GPUs available to
-each worker (with one MPI rank per GPU), so provided fewer workers will
-use more than one GPU per simulation.
+each worker (with one MPI rank per GPU), so if fewer workers are provided,
+more than one GPU will be used per simulation.
 
 Also see ``forces_gpu_var_resources`` and ``forces_multi_app`` examples for
 cases that use varying processor/GPU counts per simulation.
