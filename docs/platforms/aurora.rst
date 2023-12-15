@@ -51,8 +51,8 @@ simulations for each worker::
     # Instruct libEnsemble to exit after this many simulations
     ensemble.exit_criteria = ExitCriteria(sim_max=nsim_workers*2)
 
-Now grab an interactive session on two nodes (or use the batch script in same
-directory)::
+Now grab an interactive session on two nodes (or use the batch script at
+``../submission_scripts/submit_pbs_aurora.sh``)::
 
     qsub -A <myproject> -l select=2 -l walltime=15:00 -lfilesystems=home -q EarlyAppAccess -I
 
