@@ -220,7 +220,7 @@ class WorkerResources(RSetResources):
             slot_list = slot_list[:limit]
         if self.tiles_per_gpu > 1:
             ntiles = self.tiles_per_gpu
-            slot_list = [float(f"{i // ntiles}.{i % ntiles}") for i in slot_list]
+            slot_list = [f"{i // ntiles}.{i % ntiles}" for i in slot_list]
         slots = delimiter.join(map(str, slot_list))
         return slots
 
