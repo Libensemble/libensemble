@@ -209,6 +209,7 @@ libEnsemble on specific HPC systems.
     :maxdepth: 2
     :titlesonly:
 
+    aurora
     bebop
     frontier
     perlmutter
