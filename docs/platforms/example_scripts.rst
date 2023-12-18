@@ -33,12 +33,6 @@ for submitting workflows to almost any system or scheduler.
         :caption: /examples/libE_submission_scripts/bebop_submit_slurm_distrib.sh
         :language: bash
 
-.. dropdown:: Theta - On MOM Node with Multiprocessing
-
-    ..  literalinclude:: ../../examples/libE_submission_scripts/theta_submit_mproc.sh
-        :caption: /examples/libE_submission_scripts/theta_submit_mproc.sh
-        :language: bash
-
 .. dropdown:: Summit - On Launch Nodes with Multiprocessing
 
     ..  literalinclude:: ../../examples/libE_submission_scripts/summit_submit_mproc.sh
