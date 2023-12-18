@@ -54,7 +54,7 @@ Examples include determining simulation parameters using numerical optimization
 methods, machine learning techniques, or statistical calibration tools. In each of
 these examples, the ensemble members are typically simulations that use different
 parameters or data. Additional examples of applications that have used libEnsemble are
-surveyed in [Representative libEnsemble Use Cases](#Representative-libEnsemble-Use-Cases).
+surveyed in the [Representative libEnsemble Use Cases](#markdown-header-representative-libensemble-use-cases) section below.
 
 The target audience for libEnsemble includes scientists, engineers, and other researchers
 who stand to benefit from such dynamic workflows.
