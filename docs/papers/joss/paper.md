@@ -95,7 +95,7 @@ paradigm eliminates the need for users to explicitly define task dependencies.
 Instead, it emphasizes data dependencies between these customizable Python user
 functions. This modular design also lends itself to exploiting the large
 library of example user functions provided with libEnsemble or
-available from the community (e.g., [@libEnsembleCommunityExamples]),
+available from the community (e.g., @libEnsembleCommunityExamples),
 maximizing code reuse. For instance, users can
 readily choose an existing generator function and tailor a simulator function
 to their particular needs.
@@ -158,14 +158,14 @@ Examples of libEnsemble applications in science and engineering include the foll
 
 - Optimization of variational algorithms on quantum computers [@Liu2022layer]
 - Parallelization of the ParMOO solver for multiobjective simulation optimization problems [@ParMOODesign23]
-- Design of particle accelerators [@Neveu2023] [@PhysRevAccelBeams.26.084601] [@Pousa22]
+- Design of particle accelerators [@Neveu2023; @PhysRevAccelBeams.26.084601; @Pousa22]
 - Sequential Bayesian experimental design [@Surer2023] and Bayesian calibration [@MCMPSW2022]
 
 A selection of community-provided libEnsemble functions and workflows that
-users can build off is maintained in [@libEnsembleCommunityExamples].
+users can build off is maintained in @libEnsembleCommunityExamples.
 
 Additional details on the parallel features and scalability of libEnsemble can
-be found in [@Hudson2022] and [@libensemble-man].
+be found in @Hudson2022 and @libensemble-man.
 
 # Acknowledgments
 
