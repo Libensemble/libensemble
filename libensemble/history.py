@@ -62,6 +62,7 @@ class History:
             # - then convert that type into a python type in the best way known so far...
             # - we need to make sure the size of string types is preserved
             # - if sub-array shape, save as 3-tuple
+
             H0_fields = []
             for i in range(len(H0.dtype.names)):
                 dtype = H0.dtype[i]
@@ -123,6 +124,14 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
+    def _append_new_fields(self, H_f: npt.NDArray) -> None:
+        dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
+        H_new = np.zeros(len(self.H), dtype=dtype_new)
+        old_fields = self.H.dtype.names
+        for field in old_fields:
+            H_new[field][: len(self.H)] = self.H[field]
+        self.H = H_new
+
     def update_history_f(self, D: dict, safe_mode: bool, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history after points have been evaluated
@@ -131,6 +140,9 @@ class History:
         new_inds = D["libE_info"]["H_rows"]  # The list of rows (as a numpy array)
         returned_H = D["calc_out"]
         fields = returned_H.dtype.names if returned_H is not None else []
+
+        if any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
+            self._append_new_fields(returned_H)
 
         for j, ind in enumerate(new_inds):
             for field in fields:
