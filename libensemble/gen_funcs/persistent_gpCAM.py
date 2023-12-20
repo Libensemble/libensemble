@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-def _get_user_params(user_specs):
+def _initialize_gpcAM(user_specs, libE_info):
     """Extract user params"""
     b = user_specs["batch_size"]
     ub = user_specs["ub"]
@@ -24,7 +24,15 @@ def _get_user_params(user_specs):
     assert isinstance(n, int), "Dimension must be an integer"
     assert isinstance(lb, np.ndarray), "lb must be a numpy array"
     assert isinstance(ub, np.ndarray), "ub must be a numpy array"
-    return b, n, lb, ub
+
+    all_x = np.empty((0, n))
+    all_y = np.empty((0, 1))
+
+    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+
+    np.random.seed(0)
+
+    return b, n, lb, ub, all_x, all_y, ps
 
 
 def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
@@ -38,11 +46,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
 
-    batch_size, n, lb, ub = _get_user_params(gen_specs["user"])
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-
-    all_x = np.empty((0, n))
-    all_y = np.empty((0, 1))
+    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
 
     # Send batches until manager sends stop tag
     tag = None
@@ -82,15 +86,11 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
 
-    batch_size, n, lb, ub = _get_user_params(gen_specs["user"])
-    ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
 
     H_o = np.zeros(batch_size, dtype=gen_specs["out"])
     x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
     H_o["x"] = x_new
-
-    all_x = np.empty((0, n))
-    all_y = np.empty((0, 1))
 
     tag, Work, calc_in = ps.send_recv(H_o)
 
