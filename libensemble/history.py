@@ -142,7 +142,7 @@ class History:
         returned_H = D["calc_out"]
         fields = returned_H.dtype.names if returned_H is not None else []
 
-        if any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
+        if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
             self._append_new_fields(returned_H)
 
         for j, ind in enumerate(new_inds):
