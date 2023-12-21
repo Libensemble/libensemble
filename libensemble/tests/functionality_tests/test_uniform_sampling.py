@@ -15,7 +15,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import datetime
-import glob
 import os
 
 import numpy as np
@@ -27,6 +26,7 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
 from libensemble.sim_funcs.mock_sim import mock_sim
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+from libensemble.tests.regression_tests.common import read_generated_file
 from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
@@ -64,7 +64,8 @@ if __name__ == "__main__":
         if run == 1:
             # Test running a mock sim using previous history file
             sim_specs["sim_f"] = mock_sim
-            sim_specs["user"] = {"history_file": glob.glob("TESTING_*_after_sim_504.npy")[-1]}
+            hfile = read_generated_file("TESTING_*_after_gen_1000.npy")
+            sim_specs["user"] = {"history_file": hfile}
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
