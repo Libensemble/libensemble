@@ -234,6 +234,9 @@ class History:
         if len(D) == 0:
             return
 
+        if any([field not in self.H.dtype.names for field in D.dtype.names]):
+            self._append_new_fields(D)
+
         t = time.time()
         rows_remaining = len(self.H) - self.index
 
