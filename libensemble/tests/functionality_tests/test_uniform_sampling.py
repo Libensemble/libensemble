@@ -15,6 +15,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 2 4
 
 import datetime
+import glob
 import os
 
 import numpy as np
@@ -24,6 +25,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 # Import libEnsemble items for this test
 from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+from libensemble.sim_funcs.mock_sim import mock_sim
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -57,19 +59,26 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    for run in range(2):
 
-    if is_manager:
-        assert flag == 0
+        if run == 1:
+            # Test running a mock sim using previous history file
+            sim_specs["sim_f"] = mock_sim
+            sim_specs["user"] = {"history_file": glob.glob("TESTING_*_after_sim_504.npy")[-1]}
 
-        tol = 0.1
-        for m in minima:
-            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-        npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
-        date = str(datetime.datetime.today()).split(" ")[0]
-        assert any([i.startswith("TESTING_") for i in npy_files])
-        assert any([date in i for i in npy_files])
+        if is_manager:
+            assert flag == 0
 
-        print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
+            tol = 0.1
+            for m in minima:
+                assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+
+            npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
+            date = str(datetime.datetime.today()).split(" ")[0]
+            assert any([i.startswith("TESTING_") for i in npy_files])
+            assert any([date in i for i in npy_files])
+
+            print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
