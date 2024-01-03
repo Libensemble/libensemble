@@ -66,7 +66,7 @@ def report_worker_exc(wrk_exc: Exception = None) -> None:
 
 
 def manager_main(
-    hist: npt.NDArray,
+    hist,
     libE_specs: dict,
     alloc_specs: dict,
     sim_specs: dict,
@@ -168,7 +168,7 @@ class Manager:
 
     def __init__(
         self,
-        hist: npt.NDArray,
+        hist,
         libE_specs: dict,
         alloc_specs: dict,
         sim_specs: dict,
@@ -183,6 +183,7 @@ class Manager:
         self.safe_mode = libE_specs.get("safe_mode")
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
+        self.hist.safe_mode = self.safe_mode
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
@@ -452,9 +453,9 @@ class Manager:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w - 1]["gen_started_time"])
+                    self.hist.update_history_x_in(w, final_data, self.W[w - 1]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
-                    self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
+                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w - 1]["persis_state"] = 0
@@ -467,9 +468,9 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
+                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.W[w - 1]["gen_started_time"])
+                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w - 1]["gen_started_time"])
                 assert (
                     len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w - 1]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."

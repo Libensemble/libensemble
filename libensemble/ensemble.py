@@ -480,7 +480,7 @@ class Ensemble:
                 if old_spec.get("in") and old_spec.get("inputs"):
                     old_spec.pop("inputs")  # avoid clashes
                 elif old_spec.get("out") and old_spec.get("outputs"):
-                    old_spec.pop("inputs")  # avoid clashes
+                    old_spec.pop("outputs")  # avoid clashes
                 setattr(self, f, ClassType(**old_spec))
             else:  # None. attribute not set yet
                 setattr(self, f, ClassType(**loaded_spec))

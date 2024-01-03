@@ -62,6 +62,7 @@ def hist_setup2(sim_max=10, H0_in=[]):
     alloc_specs = specs_dump(AllocSpecs())
     H0 = H0_in
     hist = History(alloc_specs, sim_specs, gen_specs, exit_criteria, H0)
+    hist.safe_mode = True
     return hist, sim_specs, gen_specs, exit_criteria, alloc_specs
 
 
