@@ -35,6 +35,15 @@ def _initialize_gpcAM(user_specs, libE_info):
     return b, n, lb, ub, all_x, all_y, ps
 
 
+def _update_gp(all_x, all_y, x_for_var):
+    # We are assuming deterministic y, so we set the noise to be tiny
+    my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+    my_gp2S.train(max_iter=2)
+    var_rand = my_gp2S.posterior_covariance(x_for_var, variance_only=True)["v(x)"]
+    # print(np.max(var_rand))
+    return var_rand
+
+
 def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     """
     This generation function constructs a global surrogate of `f` values.
@@ -50,17 +59,16 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
 
     # Send batches until manager sends stop tag
     tag = None
+    persis_info["max_variance"] = []
     while tag not in [STOP_TAG, PERSIS_STOP]:
+
         if all_x.shape[0] == 0:
             x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
-            # We are assuming deterministic y, so we set the noise to be tiny
-            my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
-
-            my_gp2S.train(max_iter=2)
-
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-            var_rand = my_gp2S.posterior_covariance(x_for_var, variance_only=True)["v(x)"]
+            var_rand = _update_gp(all_x, all_y, x_for_var)
+            persis_info["max_variance"].append(np.max(var_rand))
+
             x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
 
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
@@ -70,6 +78,13 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         if calc_in is not None:
             all_x = np.vstack((all_x, x_new))
             all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
+
+    # If final points are sent with PERSIS_STOP, update model and get final var_rand
+    if calc_in is not None:
+        # H_o not updated by default - is persis_info
+        x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+        var_rand = _update_gp(all_x, all_y, x_for_var)
+        persis_info["max_variance"].append(np.max(var_rand))
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
