@@ -1,9 +1,11 @@
 """Persistent generator exposing gpCAM functionality"""
 
+import copy
 import time
 
 import numpy as np
 from gpcam import GPOptimizer as GP
+from scipy.spatial.distance import pdist, squareform
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
@@ -17,8 +19,8 @@ __all__ = [
 def _initialize_gpcAM(user_specs, libE_info):
     """Extract user params"""
     b = user_specs["batch_size"]
-    ub = user_specs["ub"]
-    lb = user_specs["lb"]
+    lb = np.array(user_specs["lb"])
+    ub = np.array(user_specs["ub"])
     n = len(lb)  # dimension
     assert isinstance(b, int), "Batch size must be an integer"
     assert isinstance(n, int), "Dimension must be an integer"
@@ -35,13 +37,68 @@ def _initialize_gpcAM(user_specs, libE_info):
     return b, n, lb, ub, all_x, all_y, ps
 
 
-def _update_gp(all_x, all_y, x_for_var):
-    # We are assuming deterministic y, so we set the noise to be tiny
+def _generate_nd_mesh(lb, ub, num_points=10):
+    """
+    Generate a mesh of points in n-dimensional space over a hypercube defined by lb and ub.
+
+    :param lb: Lower bound (n-dimensional array).
+    :param ub: Upper bound (n-dimensional array).
+    :param num_points: Number of points to generate in each dimension.
+    :return: A mesh of points as a numpy array.
+    """
+    # Generate grids for each dimension
+    grids = [np.linspace(lb[i], ub[i], num_points) for i in range(len(lb))]
+
+    # Create a meshgrid
+    mesh = np.meshgrid(*grids)
+
+    # Convert the meshgrid to a list of points
+    points = np.stack(mesh, axis=-1).reshape(-1, len(lb))
+    D = squareform(pdist(points))
+    return points, D
+
+
+def _update_gp_and_eval_var(all_x, all_y, x_for_var):
+    """
+    Update the GP using the points in all_x and their function values in
+    all_y. (We are assuming deterministic values in all_y, so we set the noise
+    to be 1e-8 when build the GP.) Then evaluates the posterior covariance at
+    points in x_for_var.
+    """
     my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
     my_gp2S.train(max_iter=2)
     var_rand = my_gp2S.posterior_covariance(x_for_var, variance_only=True)["v(x)"]
     # print(np.max(var_rand))
+
     return var_rand
+
+
+def find_eligible_points(X, D, F, r):
+    """
+    Find points in X such that no point has another point within distance r with a larger F value.
+
+    :param X: A 2D numpy array where each row represents a point.
+    :param D: Pairwise distance matrix for points in X.
+    :param F: Function values for each point in X.
+    :param r: Radius constraint.
+    :return: Indices of the eligible points in the original X.
+    """
+    # Sort points by their function values in descending order
+    sorted_indices = np.argsort(-F)
+
+    sorted_X = copy.deepcopy(X)
+    sorted_D = copy.deepcopy(D)
+
+    sorted_X = X[sorted_indices]
+    sorted_D = D[:, sorted_indices][sorted_indices]
+
+    eligible_indices = []
+    for idx in range(len(sorted_X)):
+        # Check if this point is within r distance of any point already added
+        if not any(sorted_D[idx, :idx] < r):
+            eligible_indices.append(sorted_indices[idx])
+
+    return eligible_indices
 
 
 def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
@@ -54,22 +111,44 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     .. seealso::
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
+    U = gen_specs["user"]
 
-    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
+    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(U, libE_info)
 
     # Send batches until manager sends stop tag
     tag = None
     persis_info["max_variance"] = []
-    while tag not in [STOP_TAG, PERSIS_STOP]:
 
+    if U.get("use_grid"):
+        x_for_var, D = _generate_nd_mesh(lb, ub)
+        vals_above_diagonal = D[np.triu_indices(len(x_for_var), 1)]
+        r_high_init = np.max(vals_above_diagonal)
+        r_low_init = np.min(vals_above_diagonal)
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
         if all_x.shape[0] == 0:
             x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
-            x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-            var_rand = _update_gp(all_x, all_y, x_for_var)
+            if not U.get("use_grid"):
+                x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+            var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
             persis_info["max_variance"].append(np.max(var_rand))
 
-            x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
+            if U.get("use_grid"):
+                r_high = r_high_init
+                r_low = r_low_init
+                new_inds = []
+                r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
+
+                while len(new_inds) < batch_size:
+                    new_inds = find_eligible_points(x_for_var, D, var_rand, r_cand)
+                    if len(new_inds) < batch_size:
+                        r_high = r_cand
+                    r_cand = (r_high + r_low) / 2.0
+
+                x_new = x_for_var[new_inds[:batch_size]]
+            else:
+                x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
 
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
         H_o["x"] = x_new
@@ -83,7 +162,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     if calc_in is not None:
         # H_o not updated by default - is persis_info
         x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-        var_rand = _update_gp(all_x, all_y, x_for_var)
+        var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
         persis_info["max_variance"].append(np.max(var_rand))
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
