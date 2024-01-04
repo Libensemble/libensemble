@@ -67,7 +67,7 @@ if __name__ == "__main__":
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
         if inst == 1:
             gen_specs["user"]["use_grid"] = True
-        elif inst == 1:
+        elif inst == 2:
             gen_specs["gen_f"] = persistent_gpCAM_ask_tell
             num_batches = 3  # Few because the ask_tell gen can be slow
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
