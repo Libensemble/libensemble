@@ -37,7 +37,7 @@ def _initialize_gpcAM(user_specs, libE_info):
     return b, n, lb, ub, all_x, all_y, ps
 
 
-def _generate_nd_mesh(lb, ub, num_points=10):
+def _generate_mesh(lb, ub, num_points=10):
     """
     Generate a mesh of points in n-dimensional space over a hypercube defined by lb and ub.
 
@@ -73,7 +73,7 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var):
     return var_rand
 
 
-def find_eligible_points(X, D, F, r):
+def _find_eligible_points(X, D, F, r):
     """
     Find points in X such that no point has another point within distance r with a larger F value.
 
@@ -120,7 +120,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     persis_info["max_variance"] = []
 
     if U.get("use_grid"):
-        x_for_var, D = _generate_nd_mesh(lb, ub)
+        x_for_var, D = _generate_mesh(lb, ub)
         vals_above_diagonal = D[np.triu_indices(len(x_for_var), 1)]
         r_high_init = np.max(vals_above_diagonal)
         r_low_init = np.min(vals_above_diagonal)
@@ -141,7 +141,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
                 r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
 
                 while len(new_inds) < batch_size:
-                    new_inds = find_eligible_points(x_for_var, D, var_rand, r_cand)
+                    new_inds = _find_eligible_points(x_for_var, D, var_rand, r_cand)
                     if len(new_inds) < batch_size:
                         r_high = r_cand
                     r_cand = (r_high + r_low) / 2.0
