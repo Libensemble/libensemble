@@ -43,7 +43,6 @@ Writing a Simulator
 
                 return Output, persis_info
 
-
 Most ``sim_f`` function definitions written by users resemble::
 
     def my_simulation(Input, persis_info, sim_specs, libE_info):
@@ -84,7 +83,6 @@ If ``sim_specs`` was initially defined:
                 sim_f=my_simulation,
                 user={"batch_size": 128},
             )
-
 
 Then user parameters and a *local* array of outputs may be obtained/initialized like::
 
