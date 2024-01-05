@@ -51,41 +51,16 @@ An alternative calling script `run_libe_forces_from_yaml.py` can be run in the s
 way as `run_libe_forces.py` above. This uses an alternative libEnsemble interface, where
 an ensemble object is created and parameters can be read from the `forces.yaml` file.
 
-### Running with Balsam
-
-These instructions refer to the use of Balsam before v0.6. This now uses the
-Legacy Balsam executor in libEnsemble.
-
-This Balsam does not support multi-site (see balsam_forces directory for multi-site Balsam forces).
-
-This version is only recommended if that one cannot be accessed on the system or does not support
-a required feature.
-
-To run with balsam, set `USE_BALSAM = True` in `run_libe_forces.py`.
-You need to have followed the instructions to install `balsam` and set-up/activate a database.
-(See https://github.com/argonne-lcf/balsam).
-
-Then to test locally, run the `balsam_local.sh` script. The default runs with 2 workers.
-
-    ./balsam_local.sh
-
-The running tasks can be seen inside the balsam database dir `<DIR>/data/libe_workflow/`.
-While the key output files will be copied back to the run dir at completion. Also see
-the log in `<DIR>/log` if there are any issues.
-
 ### Using batch scripts
 
+See `examples/libE_submission_scripts`
+
 The scripts are set up assuming a conda environment. To use the script directly
-you will need to replace the following templated values:
+you will need to replace the following templated values if on a Cobalt system:
 
   <projectID> in the COBALT -A directive with your project ID.
 
   <conda_env_name> is the name of your conda environment.
-
-and in Balsam scripts:
-
-  <dbase_name> The name of an initialized balsam database.
-               (with max_connections enough for the number of workers)
 
 The included scripts are.
 
@@ -93,9 +68,12 @@ The included scripts are.
 
   Example Summit submission script to run libEnsemble in central mode on the Summit launch nodes with multiprocessing worker concurrency.
 
+* cobalt_submit_mproc.sh:
+
+  Example submission script to run libEnsemble similarly on ALCF's Theta, a now-retired system.
+
 #### Plotting Options
 
 If either of the plotting options in the submission scripts is set to true, the scripts must be in the directory specified by PLOT_DIR. These scripts can be found in the libEnsemble project in the postproc_scripts/ directory.
 
         export LIBE_PLOTS=true
-        export BALSAM_PLOTS=true
