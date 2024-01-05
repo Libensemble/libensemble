@@ -20,8 +20,6 @@ See below.
 
 On the remote machine, Configure the endpoint's `config.py` to include your project information and
 match the machine's specifications.
-See [here](https://funcx.readthedocs.io/en/latest/endpoints.html#theta-alcf) for
-an example ALCF Theta configuration.
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 

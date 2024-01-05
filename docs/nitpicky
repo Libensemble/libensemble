@@ -36,6 +36,7 @@ py:class <class 'int'>
 py:class +ScalarType
 
 # Internal paths that are verified importable but Sphinx can't find
+py:class libensemble.resources.platforms.Aurora
 py:class libensemble.resources.platforms.GenericROCm
 py:class libensemble.resources.platforms.Crusher
 py:class libensemble.resources.platforms.Frontier
