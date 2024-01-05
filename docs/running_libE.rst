@@ -13,8 +13,8 @@ To use libEnsemble, you will need a calling script, which in turn will specify
 generator and simulator functions. Many :doc:`examples<examples/examples_index>`
 are available.
 
-There are currently three communication options for libEnsemble (determining how
-the Manager and Workers communicate). These are ``mpi``, ``local``, ``tcp``.
+There are currently four communication options for libEnsemble (determining how
+the Manager and Workers are instantiated and communicate). These are ``mpi``, ``local``, ``threads``, and ``tcp``.
 The default is ``mpi``.
 
 .. note::
@@ -75,17 +75,34 @@ The default is ``mpi``.
 
         This mode is often used to run on a **launch** node of a three-tier
         system (e.g., Summit), ensuring the whole compute-node allocation is available for
-        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
+        launching apps.
 
-        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
-        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
-        calling script code in an ``if __name__ == "__main__":`` block.
+        .. note::
+
+            On macOS (since Python 3.8) and Windows, the default multiprocessing method
+            is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+            calling script code in an ``if __name__ == "__main__":`` block.
 
         **Limitations of local mode**
 
         - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
         - In some scenarios, any import of ``mpi4py`` will cause this to break.
         - Does not have the potential scaling of MPI mode, but is sufficient for most users.
+
+    .. tab-item:: Threads Comms
+
+        Uses Python's built-in threading_ module. Has a largely identical interface to ``"local"`` comms::
+
+            python myscript.py --comms threads --nworkers N
+
+        May be faster than other comms for simple use-cases or Jupyter notebooks.
+
+        **Limitations of threads**
+
+        Shares limitations of ``"local"`` comms, plus:
+
+        - Workers cannot operate in separate directories.
+        - Isn't truely parallel due to Python's GIL_.
 
     .. tab-item:: TCP Comms
 
@@ -292,7 +309,9 @@ For running on multi-node platforms and supercomputers, there are alternative wa
 libEnsemble to resources. See the :doc:`Running on HPC Systems<platforms/platforms_index>`
 guide for more information, including some examples for specific systems.
 
+.. _GIL: https://wiki.python.org/moin/GlobalInterpreterLock
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _MPICH: https://www.mpich.org/
 .. _multiprocessing: https://docs.python.org/3/library/multiprocessing.html
+.. _threading: https://docs.python.org/3/library/threading.html
 .. _PSI/J: https://exaworks.org/psij

@@ -25,10 +25,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
         .. tab-item:: General
 
                 **comms** [str] = ``"mpi"``:
-                    Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
+                    Manager/Worker communications mode: ``"mpi"``, ``"local"``, ``"threads"``, or ``"tcp"``.
 
                 **nworkers** [int]:
-                    Number of worker processes in ``"local"`` or ``"tcp"``.
+                    Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
@@ -52,6 +52,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
 
         .. tab-item:: Directories
+
+            .. warning:: Separate working directories are not supported with ``"threads"`` comms.
 
             .. tab-set::
 

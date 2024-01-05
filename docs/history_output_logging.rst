@@ -19,11 +19,11 @@ Two other libEnsemble files produced by default:
 
 **Global options:**
 
-``libE_specs["disable_log_files"] = True``: Disable output files
+``libE_specs["disable_log_files"] = True``: Disable output files.
 
-``libE_specs["use_workflow_dir"] = True``: Place output files in workflow-instance directories
+``libE_specs["use_workflow_dir"] = True``: Place output files in workflow-instance directories.
 
-``libE_specs["save_H_and_persis_on_abort"] = False``: Disable dumping the History array and ``persis_info`` to files
+``libE_specs["save_H_and_persis_on_abort"] = False``: Disable dumping the History array and ``persis_info`` to files.
 
 .. code-block:: python
 
