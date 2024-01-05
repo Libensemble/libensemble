@@ -102,7 +102,7 @@ The default is ``mpi``.
         Shares limitations of ``"local"`` comms, plus:
 
         - Workers cannot operate in separate directories.
-        - Isn't truely parallel due to Python's GIL_.
+        - Isn't truly parallel due to Python's GIL_.
 
     .. tab-item:: TCP Comms
 
