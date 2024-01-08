@@ -86,14 +86,11 @@ def _find_eligible_points(X, D, F, r):
     # Sort points by their function values in descending order
     sorted_indices = np.argsort(-F)
 
-    sorted_X = copy.deepcopy(X)
     sorted_D = copy.deepcopy(D)
-
-    sorted_X = X[sorted_indices]
     sorted_D = D[:, sorted_indices][sorted_indices]
 
     eligible_indices = []
-    for idx in range(len(sorted_X)):
+    for idx in range(len(sorted_D)):
         # Check if this point is within r distance of any point already added
         if not any(sorted_D[idx, :idx] < r):
             eligible_indices.append(sorted_indices[idx])
