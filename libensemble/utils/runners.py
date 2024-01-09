@@ -1,7 +1,7 @@
 import inspect
 import logging
 import logging.handlers
-from typing import Callable, Optional
+from typing import Optional
 
 import numpy.typing as npt
 
@@ -15,29 +15,27 @@ class Runner:
         if specs.get("threaded"):  # TODO: undecided interface
             return super(Runner, ThreadRunner).__new__(ThreadRunner)
         else:
-            return Runner
+            return super().__new__(Runner)
 
     def __init__(self, specs):
         self.specs = specs
         self.f = specs.get("sim_f") or specs.get("gen_f")
 
-    def _truncate_args(self, calc_in, persis_info, specs, libE_info, user_f):
-        nparams = len(inspect.signature(user_f).parameters)
-        args = [calc_in, persis_info, specs, libE_info]
+    def _truncate_args(self, calc_in: npt.NDArray, persis_info, libE_info):
+        nparams = len(inspect.signature(self.f).parameters)
+        args = [calc_in, persis_info, self.specs, libE_info]
         return args[:nparams]
 
-    def _result(
-        self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable, tag: int
-    ) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         """User function called in-place"""
-        args = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
-        return user_f(*args)
+        args = self._truncate_args(calc_in, persis_info, libE_info)
+        return self.f(*args)
 
     def shutdown(self) -> None:
         pass
 
-    def run(self, calc_in, Work):
-        return self._result(calc_in, Work["persis_info"], self.specs, Work["libE_info"], self.f, Work["tag"])
+    def run(self, calc_in: npt.NDArray, Work: dict) -> (npt.NDArray, dict, Optional[int]):
+        return self._result(calc_in, Work["persis_info"], Work["libE_info"])
 
 
 class GlobusComputeRunner(Runner):
@@ -45,9 +43,6 @@ class GlobusComputeRunner(Runner):
         super().__init__(specs)
         self.globus_compute_executor = self._get_globus_compute_executor()(endpoint_id=specs["globus_compute_endpoint"])
         self.globus_compute_fid = self.globus_compute_executor.register_function(self.f)
-
-    def shutdown(self) -> None:
-        self.globus_compute_executor.shutdown()
 
     def _get_globus_compute_executor(self):
         try:
@@ -59,21 +54,20 @@ class GlobusComputeRunner(Runner):
         else:
             return Executor
 
-    def _result(
-        self, calc_in: npt.NDArray, persis_info: dict, specs: dict, libE_info: dict, user_f: Callable, tag: int
-    ) -> (npt.NDArray, dict, Optional[int]):
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         from libensemble.worker import Worker
 
         libE_info["comm"] = None  # 'comm' object not pickle-able
         Worker._set_executor(0, None)  # ditto for executor
 
-        fargs = self._truncate_args(calc_in, persis_info, specs, libE_info, user_f)
-        exctr = self.globus_compute_executor
-        func_id = self.globus_compute_fid
-
-        task_fut = exctr.submit_to_registered_function(func_id, fargs)
+        fargs = self._truncate_args(calc_in, persis_info, libE_info)
+        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, fargs)
         return task_fut.result()
+
+    def shutdown(self) -> None:
+        self.globus_compute_executor.shutdown()
 
 
 class ThreadRunner(Runner):
-    pass
+    def __init__(self, specs):
+        super().__init__(specs)

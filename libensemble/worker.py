@@ -413,5 +413,6 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            self.runners.shutdown()
+            self.gen_runner.shutdown()
+            self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()

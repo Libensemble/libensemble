@@ -3,9 +3,8 @@ import numpy as np
 import pytest
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.tools.fields_keys import libE_fields
-from libensemble.utils.runners import Runners
+from libensemble.utils.runners import Runner
 
 
 def get_ufunc_args():
@@ -19,7 +18,7 @@ def get_ufunc_args():
 
     sim_ids = np.zeros(1, dtype=int)
     Work = {
-        "tag": EVAL_SIM_TAG,
+        "tag": 1,
         "persis_info": {},
         "libE_info": {"H_rows": sim_ids},
         "H_fields": sim_specs["in"],
@@ -28,29 +27,14 @@ def get_ufunc_args():
     return calc_in, sim_specs, gen_specs
 
 
-@pytest.mark.extra
 def test_normal_runners():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
 
-    runners = Runners(sim_specs, gen_specs)
-    assert (
-        not runners.has_globus_compute_sim and not runners.has_globus_compute_gen
+    simrunner = Runner(sim_specs)
+    genrunner = Runner(gen_specs)
+    assert not hasattr(simrunner, "globus_compute_executor") and not hasattr(
+        genrunner, "globus_compute_executor"
     ), "Globus Compute use should not be detected without setting endpoint fields"
-
-    ro = runners.make_runners()
-    assert all(
-        [i in ro for i in [EVAL_SIM_TAG, EVAL_GEN_TAG]]
-    ), "Both user function tags should be included in runners dictionary"
-
-
-@pytest.mark.extra
-def test_normal_no_gen():
-    calc_in, sim_specs, gen_specs = get_ufunc_args()
-
-    runners = Runners(sim_specs, {})
-    ro = runners.make_runners()
-
-    assert not ro[2], "generator function shouldn't be provided if not using gen_specs"
 
 
 @pytest.mark.extra
@@ -60,10 +44,10 @@ def test_globus_compute_runner_init():
     sim_specs["globus_compute_endpoint"] = "1234"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runners = Runners(sim_specs, gen_specs)
+        runner = Runner(sim_specs)
 
-        assert (
-            runners.sim_globus_compute_executor is not None
+        assert hasattr(
+            runner, "globus_compute_executor"
         ), "Globus ComputeExecutor should have been instantiated when globus_compute_endpoint found in specs"
 
 
@@ -74,7 +58,7 @@ def test_globus_compute_runner_pass():
     sim_specs["globus_compute_endpoint"] = "1234"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runners = Runners(sim_specs, gen_specs)
+        runner = Runner(sim_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - no exception
         globus_compute_mock = mock.Mock()
@@ -83,12 +67,12 @@ def test_globus_compute_runner_pass():
         globus_compute_future.exception.return_value = None
         globus_compute_future.result.return_value = (True, True)
 
-        runners.sim_globus_compute_executor = globus_compute_mock
-        ro = runners.make_runners()
+        runner.globus_compute_executor = globus_compute_mock
+        runners = {1: runner.run}
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
-        out, persis_info = ro[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
+        out, persis_info = runners[1](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 1})
 
         assert all([out, persis_info]), "Globus Compute runner correctly returned results"
 
@@ -100,7 +84,7 @@ def test_globus_compute_runner_fail():
     gen_specs["globus_compute_endpoint"] = "4321"
 
     with mock.patch("globus_compute_sdk.Executor"):
-        runners = Runners(sim_specs, gen_specs)
+        runner = Runner(gen_specs)
 
         #  Creating Mock Globus ComputeExecutor and Globus Compute future object - yes exception
         globus_compute_mock = mock.Mock()
@@ -108,19 +92,18 @@ def test_globus_compute_runner_fail():
         globus_compute_mock.submit_to_registered_function.return_value = globus_compute_future
         globus_compute_future.exception.return_value = Exception
 
-        runners.gen_globus_compute_executor = globus_compute_mock
-        ro = runners.make_runners()
+        runner.globus_compute_executor = globus_compute_mock
+        runners = {2: runner.run}
 
         libE_info = {"H_rows": np.array([2, 3, 4]), "workerID": 1, "comm": "fakecomm"}
 
         with pytest.raises(Exception):
-            out, persis_info = ro[2](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 2})
+            out, persis_info = runners[2](calc_in, {"libE_info": libE_info, "persis_info": {}, "tag": 2})
             pytest.fail("Expected exception")
 
 
 if __name__ == "__main__":
     test_normal_runners()
-    test_normal_no_gen()
     test_globus_compute_runner_init()
     test_globus_compute_runner_pass()
     test_globus_compute_runner_fail()
