@@ -37,6 +37,23 @@ def test_normal_runners():
     ), "Globus Compute use should not be detected without setting endpoint fields"
 
 
+def test_thread_runners():
+    calc_in, sim_specs, gen_specs = get_ufunc_args()
+
+    def tupilize(arg1, arg2):
+        return (arg1, arg2)
+
+    sim_specs["threaded"] = True  # TODO: undecided interface
+    sim_specs["sim_f"] = tupilize
+    persis_info = {"hello": "threads"}
+
+    simrunner = Runner(sim_specs)
+    result = simrunner._result(calc_in, persis_info, {})
+    assert result == (calc_in, persis_info)
+    assert hasattr(simrunner, "thread_handle")
+    simrunner.shutdown()
+
+
 @pytest.mark.extra
 def test_globus_compute_runner_init():
     calc_in, sim_specs, gen_specs = get_ufunc_args()
@@ -104,6 +121,7 @@ def test_globus_compute_runner_fail():
 
 if __name__ == "__main__":
     test_normal_runners()
+    test_thread_runners()
     test_globus_compute_runner_init()
     test_globus_compute_runner_pass()
     test_globus_compute_runner_fail()

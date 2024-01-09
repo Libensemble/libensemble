@@ -5,6 +5,8 @@ from typing import Optional
 
 import numpy.typing as npt
 
+from libensemble.comms.comms import QCommThread
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,3 +73,12 @@ class GlobusComputeRunner(Runner):
 class ThreadRunner(Runner):
     def __init__(self, specs):
         super().__init__(specs)
+
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+        fargs = self._truncate_args(calc_in, persis_info, libE_info)
+        self.thread_handle = QCommThread(self.f, None, *fargs, ufunc=True)
+        self.thread_handle.run()
+        return self.thread_handle.result()
+
+    def shutdown(self) -> None:
+        self.thread_handle.terminate()
