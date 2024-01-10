@@ -658,7 +658,7 @@ class Executor:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, comm, workerid=None) -> None:
+    def set_worker_info(self, comm=None, workerid=None) -> None:
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
