@@ -73,28 +73,21 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var):
     return var_rand
 
 
-def _find_eligible_points(X, D, F, r):
+def _find_eligible_points(sorted_indices, sorted_D, r):
     """
     Find points in X such that no point has another point within distance r with a larger F value.
 
-    :param X: A 2D numpy array where each row represents a point.
-    :param D: Pairwise distance matrix for points in X.
-    :param F: Function values for each point in X.
+    :param sorted_indices: Indices sorted based on variance (highest to lowest).
+    :param sorted_D: Sorted pirwise distance matrix for points in X.
     :param r: Radius constraint.
     :return: Indices of the eligible points in the original X.
     """
-    # Sort points by their function values in descending order
-    sorted_indices = np.argsort(-F)
-
-    sorted_D = copy.deepcopy(D)
-    sorted_D = D[:, sorted_indices][sorted_indices]
 
     eligible_indices = []
-    for idx in range(len(sorted_D)):
+    for idx in range(len(sorted_indices)):
         # Check if this point is within r distance of any point already added
         if not any(sorted_D[idx, :idx] < r):
             eligible_indices.append(sorted_indices[idx])
-
     return eligible_indices
 
 
@@ -137,8 +130,10 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
                 new_inds = []
                 r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
 
+                sorted_indices = np.argsort(-var_rand)
+                sorted_D = D[:, sorted_indices][sorted_indices]
                 while len(new_inds) < batch_size:
-                    new_inds = _find_eligible_points(x_for_var, D, var_rand, r_cand)
+                    new_inds = _find_eligible_points(sorted_indices, sorted_D, r_cand)
                     if len(new_inds) < batch_size:
                         r_high = r_cand
                     r_cand = (r_high + r_low) / 2.0
@@ -158,7 +153,8 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     # If final points are sent with PERSIS_STOP, update model and get final var_rand
     if calc_in is not None:
         # H_o not updated by default - is persis_info
-        x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+        if not use_grid:
+            x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
         var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
         persis_info["max_variance"].append(np.max(var_rand))
 
