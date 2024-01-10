@@ -1,11 +1,8 @@
 """Persistent generator exposing gpCAM functionality"""
 
-import copy
 import time
-
 import numpy as np
 from gpcam import GPOptimizer as GP
-from scipy.spatial.distance import pdist, squareform
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
@@ -54,8 +51,8 @@ def _generate_mesh(lb, ub, num_points=10):
 
     # Convert the meshgrid to a list of points
     points = np.stack(mesh, axis=-1).reshape(-1, len(lb))
-    D = squareform(pdist(points))
-    return points, D
+
+    return points
 
 
 def _update_gp_and_eval_var(all_x, all_y, x_for_var):
@@ -73,22 +70,41 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var):
     return var_rand
 
 
-def _find_eligible_points(sorted_indices, sorted_D, r):
+def calculate_grid_distances(lb, ub, num_points):
+    """Calculate mininum and maximum distances between points in grid"""
+    num_points = [num_points] * len(lb)
+    spacings = [(ub[i] - lb[i]) / (num_points[i] - 1) for i in range(len(lb))]
+    min_distance = min(spacings)
+    max_distance = np.sqrt(sum([(ub[i] - lb[i]) ** 2 for i in range(len(lb))]))
+    return min_distance, max_distance
+
+
+def is_point_far_enough(point, eligible_points, r):
+    """Check if point is at least r distance away from all points in eligible_points."""
+    for ep in eligible_points:
+        if np.linalg.norm(point - ep) < r:
+            return False
+    return True
+
+
+def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     """
     Find points in X such that no point has another point within distance r with a larger F value.
 
+    :param x_for_var: positions of each point mesh
     :param sorted_indices: Indices sorted based on variance (highest to lowest).
-    :param sorted_D: Sorted pirwise distance matrix for points in X.
     :param r: Radius constraint.
-    :return: Indices of the eligible points in the original X.
+    :param batch_size: Number of points requested
+    :return: The eligible points in the original X.
     """
-
-    eligible_indices = []
-    for idx in range(len(sorted_indices)):
-        # Check if this point is within r distance of any point already added
-        if not any(sorted_D[idx, :idx] < r):
-            eligible_indices.append(sorted_indices[idx])
-    return eligible_indices
+    eligible_points = []
+    for idx in sorted_indices:
+        point = x_for_var[idx]
+        if is_point_far_enough(point, eligible_points, r):
+            eligible_points.append(point)
+            if len(eligible_points) == batch_size:
+                break
+    return np.array(eligible_points)
 
 
 def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
@@ -110,10 +126,9 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     persis_info["max_variance"] = []
 
     if U.get("use_grid"):
-        x_for_var, D = _generate_mesh(lb, ub)
-        vals_above_diagonal = D[np.triu_indices(len(x_for_var), 1)]
-        r_high_init = np.max(vals_above_diagonal)
-        r_low_init = np.min(vals_above_diagonal)
+        num_points = 10
+        x_for_var = _generate_mesh(lb, ub)
+        r_low_init, r_high_init = calculate_grid_distances(lb, ub, num_points)
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
         if all_x.shape[0] == 0:
@@ -127,18 +142,15 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
             if U.get("use_grid"):
                 r_high = r_high_init
                 r_low = r_low_init
-                new_inds = []
+                x_new = []
                 r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
 
                 sorted_indices = np.argsort(-var_rand)
-                sorted_D = D[:, sorted_indices][sorted_indices]
-                while len(new_inds) < batch_size:
-                    new_inds = _find_eligible_points(sorted_indices, sorted_D, r_cand)
-                    if len(new_inds) < batch_size:
+                while len(x_new) < batch_size:
+                    x_new = _find_eligible_points(x_for_var, sorted_indices, r_cand, batch_size)
+                    if len(x_new) < batch_size:
                         r_high = r_cand
                     r_cand = (r_high + r_low) / 2.0
-
-                x_new = x_for_var[new_inds[:batch_size]]
             else:
                 x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
 
@@ -153,7 +165,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     # If final points are sent with PERSIS_STOP, update model and get final var_rand
     if calc_in is not None:
         # H_o not updated by default - is persis_info
-        if not use_grid:
+        if not U.get("use_grid"):
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
         var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
         persis_info["max_variance"].append(np.max(var_rand))
