@@ -1,6 +1,5 @@
 """Persistent generator exposing gpCAM functionality"""
 
-import copy
 import time
 
 import numpy as np
@@ -153,7 +152,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     # If final points are sent with PERSIS_STOP, update model and get final var_rand
     if calc_in is not None:
         # H_o not updated by default - is persis_info
-        if not use_grid:
+        if not U.get("use_grid"):
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
         var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
         persis_info["max_variance"].append(np.max(var_rand))
