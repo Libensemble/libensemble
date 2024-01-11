@@ -29,11 +29,15 @@ if __name__ == "__main__":
 
     sim_specs = {
         "sim_f": sim_f,
+        "in": ["x"],
+        "out": [("f", float)],
         "user": {"pause_time": 2},
     }
 
     gen_specs = {
         "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, (2,))],
         "user": {
             "gen_batch_size": 5,
             "lb": np.array([-3, -2]),

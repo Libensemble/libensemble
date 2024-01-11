@@ -23,13 +23,10 @@ from libensemble.tools import add_unique_random_streams, parse_args, save_libE_o
 
 
 def sim_f(In):
-    Out = np.zeros(1, dtype=[("f", float)])
+    Out = np.zeros(1, dtype=[("f", float), ("N", int)])
     Out["f"] = np.linalg.norm(In)
+    Out["N"] = 123
     return Out
-
-
-def sim_f_noreturn(In):
-    print(np.linalg.norm(In))
 
 
 if __name__ == "__main__":
@@ -59,17 +56,6 @@ if __name__ == "__main__":
 
     if is_manager:
         assert len(H) >= 501
+        assert "N" in H.dtype.names, "New datatype not added to history"
         print("\nlibEnsemble with random sampling has generated enough points")
         save_libE_output(H, persis_info, __file__, nworkers)
-
-    # Test running a sim_f without any returns
-    sim_specs = {
-        "sim_f": sim_f_noreturn,
-        "in": ["x"],
-    }
-
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
-
-    if is_manager:
-        assert len(H) >= 501
-        print("\nlibEnsemble with random sampling has generated enough points")

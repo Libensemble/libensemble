@@ -34,12 +34,15 @@ if __name__ == "__main__":
 
     sim_specs = {
         "sim_f": sim_f,
+        "in": ["x"],
         "out": [("f", float), ("large", float, 1000000)],
         "user": {},
     }
 
     gen_specs = {
         "gen_f": gen_f,
+        "in": ["sim_id"],
+        "out": [("x", float, (2,))],
         "user": {
             "gen_batch_size": num_pts,
             "lb": np.array([-3, -2]),

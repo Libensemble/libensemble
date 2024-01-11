@@ -91,6 +91,8 @@ if __name__ == "__main__":
 
     gen_specs = {
         "gen_f": gen_f,
+        "in": [],
+        "out": [("x", float, (n,))],
         "user": {
             "initial_batch_size": 20,
             "lb": np.array([-3, -2]),
