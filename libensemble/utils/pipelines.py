@@ -85,6 +85,9 @@ class Worker:
             self.active = 0
             self.active_recv = 0
 
+    def set_work(self, Work):
+        self.__dict__["_Work"] = Work
+
     def send(self, tag, data):
         self._wcomms[self._wid].send(tag, data)
 
@@ -126,14 +129,15 @@ class ManagerFromWorker(_ManagerPipeline):
 
     def _handle_msg_from_worker(self, persis_info: dict, w: int) -> None:
         """Handles a message from worker w"""
+        worker = Worker(self.W, w)
         try:
-            msg = self.wcomms[w - 1].recv()
+            msg = worker.recv()
             tag, D_recv = msg
         except CommFinishedException:
             logger.debug(f"Finalizing message from Worker {w}")
             return
         if isinstance(D_recv, WorkerErrMsg):
-            self.W[w - 1]["active"] = 0
+            worker.active = 0
             logger.debug(f"Manager received exception from worker {w}")
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -162,7 +166,7 @@ class ManagerFromWorker(_ManagerPipeline):
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    self.hist.update_history_x_in(w, final_data, self.W[w - 1]["gen_started_time"])
+                    self.hist.update_history_x_in(w, final_data, worker.gen_started_time)
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
@@ -216,6 +220,7 @@ class ManagerFromWorker(_ManagerPipeline):
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
+                worker = Worker(self.W, w)
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if self.libE_specs.get("final_gen_send", False):
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
@@ -225,14 +230,14 @@ class ManagerFromWorker(_ManagerPipeline):
                         "tag": PERSIS_STOP,
                         "libE_info": {"persistent": True, "H_rows": rows_to_send},
                     }
-                    self._check_work_order(work, w, force=True)
+                    # self._check_work_order(work, w, force=True)  # this work is hardcoded, not from an alloc_f. trust!
                     self._send_work_order(work, w)
                     self.hist.update_history_to_gen(rows_to_send)
                 else:
-                    self.wcomms[w - 1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
-                if not self.W[w - 1]["active"]:
+                    worker.send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if not worker.active:
                     # Re-activate if necessary
-                    self.W[w - 1]["active"] = self.W[w - 1]["persis_state"]
+                    worker.active = worker.persis_state
                 self.persis_pending.append(w)
 
         exit_flag = 0
@@ -327,13 +332,15 @@ class ManagerToWorker(_ManagerPipeline):
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
 
+        worker = Worker(self.W, w)
+
         if Resources.resources:
             self._set_resources(Work, w)
 
-        self.wcomms[w - 1].send(Work["tag"], Work)
+        worker.send(Work["tag"], Work)
 
         if Work["tag"] == EVAL_GEN_TAG:
-            self.W[w - 1]["gen_started_time"] = time.time()
+            worker.gen_started_time = time.time()
 
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
@@ -343,19 +350,22 @@ class ManagerToWorker(_ManagerPipeline):
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
-            self.wcomms[w - 1].send(0, H_to_be_sent)
+            worker.send(0, H_to_be_sent)
 
     def _check_work_order(self, Work: dict, w: int, force: bool = False) -> None:
         """Checks validity of an allocation function order"""
-        assert w != 0, "Can't send to worker 0; this is the manager."
-        if self.W[w - 1]["active_recv"]:
+        # assert w != 0, "Can't send to worker 0; this is the manager."
+
+        worker = Worker(self.W, w)
+
+        if worker.active_recv:
             assert "active_recv" in Work["libE_info"], (
                 "Messages to a worker in active_recv mode should have active_recv"
                 f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
             )
         else:
             if not force:
-                assert self.W[w - 1]["active"] == 0, (
+                assert worker.active == 0, (
                     "Allocation function requested work be sent to worker %d, an already active worker." % w
                 )
         work_rows = Work["libE_info"]["H_rows"]
