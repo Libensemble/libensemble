@@ -36,6 +36,7 @@ from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
+from libensemble.utils.pipelines import ManagerFromWorker, ManagerToWorker
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg
 
@@ -107,9 +108,6 @@ def manager_main(
     if libE_specs.get("profile"):
         pr = cProfile.Profile()
         pr.enable()
-
-    if "in" not in gen_specs:
-        gen_specs["in"] = []
 
     # Send dtypes to workers
     dtypes = {
@@ -642,11 +640,15 @@ class Manager:
         logger.info(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")
 
+        self.ToWorker = ManagerToWorker(self)
+        self.FromWorker = ManagerFromWorker(self)
+
         # Continue receiving and giving until termination test is satisfied
         try:
             while not self.term_test():
-                self._kill_cancelled_sims()
-                persis_info = self._receive_from_workers(persis_info)
+                self.ToWorker._kill_cancelled_sims()
+                persis_info = self.FromWorker._receive_from_workers(persis_info)
+                self._init_every_k_save()
                 Work, persis_info, flag = self._alloc_work(self.hist.trim_H(), persis_info)
                 if flag:
                     break
@@ -654,21 +656,22 @@ class Manager:
                 for w in Work:
                     if self._sim_max_given():
                         break
-                    self._check_work_order(Work[w], w)
-                    self._send_work_order(Work[w], w)
-                    self._update_state_on_alloc(Work[w], w)
+                    self.ToWorker._check_work_order(Work[w], w)
+                    self.ToWorker._send_work_order(Work[w], w)
+                    self.ToWorker._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
                     self.W["active"] != 0
                 ), "alloc_f did not return any work, although all workers are idle."
-        except WorkerException as e:
+        except WorkerException as e:  # catches all error messages from worker
             report_worker_exc(e)
             raise LoggedException(e.args[0], e.args[1]) from None
-        except Exception as e:
+        except Exception as e:  # should only catch bugs within manager, or AssertionErrors
             logger.error(traceback.format_exc())
             raise LoggedException(e.args) from None
         finally:
             # Return persis_info, exit_flag, elapsed time
-            result = self._final_receive_and_kill(persis_info)
+            result = self.FromWorker._final_receive_and_kill(persis_info)
+            self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
             sys.stdout.flush()
             sys.stderr.flush()
         return result
