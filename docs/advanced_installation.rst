@@ -118,7 +118,7 @@ Further recommendations for selected HPC systems are given in the
 
         On some platforms you may wish to run libEnsemble without ``mpi4py``,
         using a serial PETSc build. This is often preferable if running on
-        the launch nodes of a three-tier system (e.g., Theta/Summit)::
+        the launch nodes of a three-tier system (e.g., Summit)::
 
             spack install py-libensemble +scipy +mpmath +petsc4py ^py-petsc4py~mpi ^petsc~mpi~hdf5~hypre~superlu-dist
 

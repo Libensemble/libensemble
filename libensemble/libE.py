@@ -266,7 +266,7 @@ def manager(
     persis_info,
     alloc_specs,
     libE_specs,
-    hist: np.ndarray,
+    hist: History,
     on_abort: Callable = None,
     on_cleanup: Callable = None,
 ):

@@ -122,9 +122,6 @@ if __name__ == "__main__":
             #     assert np.all(grad[l <= 1e-7] <= 0)
 
             #     if not np.all(grad[np.logical_and(u >= 1e-7, l >= 1e-7)] <= 1e-5):
-            #         import ipdb
-
-            #         ipdb.set_trace()
             # else:
             #     d = np.linalg.solve(np.dot(J.T, J), np.dot(J.T, F))
             #     assert np.linalg.norm(d) <= 1e-5

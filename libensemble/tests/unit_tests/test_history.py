@@ -71,8 +71,6 @@ x = [
 
 exp_x_in_setup2["x"] = x
 
-safe_mode = True
-
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
@@ -149,7 +147,7 @@ def test_update_history_x_in_Oempty():
     hist, sim_specs, gen_specs, _, _ = setup.hist_setup2()
     H_o = np.zeros(0, dtype=gen_specs["out"])
     gen_worker = 1
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
 
     compare_hists(hist.H, wrs2)
 
@@ -173,7 +171,7 @@ def test_update_history_x_in():
     H_o = np.zeros(size, dtype=gen_specs["out"])
     H_o["x"] = single_rand
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
     assert isclose(single_rand, hist.H["x"][0])
     assert hist.sim_started_count == 0
     assert hist.index == 1
@@ -185,7 +183,7 @@ def test_update_history_x_in():
     H_o = np.zeros(size, dtype=gen_specs["out"])
     H_o["x"] = gen_specs["gen_f"](size=size)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2[: size + 1]
 
@@ -202,7 +200,7 @@ def test_update_history_x_in():
     H_o = np.zeros(size, dtype=gen_specs["out"])
     H_o["x"] = gen_specs["gen_f"](size=size)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
 
@@ -215,7 +213,7 @@ def test_update_history_x_in():
     # Test libE errors when a protected field appears in output from a gen_worker
     H_o = np.zeros(size, dtype=gen_specs["out"] + [("sim_started", bool)])
     try:
-        hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+        hist.update_history_x_in(gen_worker, H_o, np.inf)
     except AssertionError:
         assert 1, "Failed like it should have"
     else:
@@ -224,7 +222,7 @@ def test_update_history_x_in():
     # Test libE errors when a protected field appears in output from a gen_worker
     H_o = np.zeros(size, dtype=gen_specs["out"] + [("sim_started", bool)])
     try:
-        hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+        hist.update_history_x_in(gen_worker, H_o, np.inf)
     except AssertionError:
         assert 1, "Failed like it should have"
     else:
@@ -246,7 +244,7 @@ def test_update_history_x_in_sim_ids():
     H_o["x"] = single_rand
     H_o["sim_id"] = 0
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
     assert isclose(single_rand, hist.H["x"][0])
     assert hist.sim_started_count == 0
     assert hist.index == 1
@@ -258,7 +256,7 @@ def test_update_history_x_in_sim_ids():
     H_o = np.zeros(size, dtype=gen_specs["out"])
     H_o["x"] = gen_specs["gen_f"](size=size)
     H_o["sim_id"] = range(1, 7)
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
 
     # Compare by column
     exp_x = exp_x_in_setup2[: size + 1]
@@ -277,7 +275,7 @@ def test_update_history_x_in_sim_ids():
     H_o["x"] = gen_specs["gen_f"](size=size)
     H_o["sim_id"] = range(7, 10)
 
-    hist.update_history_x_in(gen_worker, H_o, safe_mode, np.inf)
+    hist.update_history_x_in(gen_worker, H_o, np.inf)
     # Compare by column
     exp_x = exp_x_in_setup2
 
@@ -357,7 +355,7 @@ def test_update_history_f():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
     assert isclose(exp_vals[0], hist.H["g"][0])
     assert np.all(hist.H["sim_ended"][0:1])
     assert np.all(~hist.H["sim_ended"][1:10])  # Check the rest
@@ -383,7 +381,7 @@ def test_update_history_f():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
     assert np.allclose(exp_vals, hist.H["g"])
     assert np.all(hist.H["sim_ended"][0:3])
     assert np.all(~hist.H["sim_ended"][3:10])  # Check the rest
@@ -405,7 +403,7 @@ def test_update_history_f():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
     assert np.all(hist.H["sim_ended"][0:1])
     assert np.all(~hist.H["sim_ended"][3:10])  # Check the rest
     assert hist.sim_ended_count == 2
@@ -435,7 +433,7 @@ def test_update_history_f_vec():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
 
     assert isclose(exp_fs[0], hist.H["f"][0])
     assert np.allclose(exp_fvecs[0], hist.H["fvec"][0])
@@ -470,7 +468,7 @@ def test_update_history_f_vec():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
 
     assert np.allclose(exp_fs, hist.H["f"])
     assert np.allclose(exp_fvecs, hist.H["fvec"])
@@ -507,7 +505,7 @@ def test_update_history_f_vec():
         "calc_type": 2,
     }
 
-    hist.update_history_f(D_recv, safe_mode)
+    hist.update_history_f(D_recv)
 
     assert np.allclose(exp_fs, hist.H["f"])
     assert np.allclose(exp_fvecs, hist.H["fvec"])

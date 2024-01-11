@@ -414,6 +414,12 @@ class LibeSpecs(BaseModel):
     many GPUs.
     """
 
+    use_tiles_as_gpus: Optional[bool] = False
+    """
+    If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided
+    in platform specs or detected.
+    """
+
     enforce_worker_core_bounds: Optional[bool] = False
     """
     If ``False``, the Executor will permit the submission of tasks with a

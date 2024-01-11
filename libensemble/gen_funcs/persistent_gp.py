@@ -54,6 +54,22 @@ def feed_GP(H, opt, with_z=True):
     return opt
 
 
+def build_requested_points(number_of_gen_points, out_dtype, opt, set_type=1):
+    H_o = np.zeros(number_of_gen_points, dtype=out_dtype)
+    for i in range(number_of_gen_points):
+        if set_type == 0:
+            x = opt.ask()
+            H_o["x"][i] = x
+            H_o["resource_sets"][i] = 1
+        elif set_type == 1:
+            z, input_vector = opt.ask()
+            H_o["x"][i] = input_vector
+            H_o["z"][i] = z[0]
+            H_o["resource_sets"][i] = max(1, int(z[0] / 2))
+
+    return H_o
+
+
 def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model, update it as new simulation results
@@ -87,11 +103,7 @@ def persistent_gp_gen_f(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
-        H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])
-        for i in range(number_of_gen_points):
-            x = opt.ask()
-            H_o["x"][i] = x
-            H_o["resource_sets"][i] = 1
+        H_o = build_requested_points(number_of_gen_points, gen_specs["out"], opt, set_type=0)
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -152,12 +164,7 @@ def persistent_gp_mf_gen_f(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
-        H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])
-        for i in range(number_of_gen_points):
-            z, input_vector = opt.ask()
-            H_o["x"][i] = input_vector
-            H_o["z"][i] = z[0]
-            H_o["resource_sets"][i] = max(1, int(z[0] / 2))
+        H_o = build_requested_points(number_of_gen_points, gen_specs["out"], opt, set_type=1)
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager
@@ -238,12 +245,7 @@ def persistent_gp_mf_disc_gen_f(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         # Ask the optimizer to generate `batch_size` new points
         # Store this information in the format expected by libE
-        H_o = np.zeros(number_of_gen_points, dtype=gen_specs["out"])
-        for i in range(number_of_gen_points):
-            z, input_vector = opt.ask()
-            H_o["x"][i] = input_vector
-            H_o["z"][i] = z[0]
-            H_o["resource_sets"][i] = max(1, int(z[0] / 2))
+        H_o = build_requested_points(number_of_gen_points, gen_specs["out"], opt, set_type=1)
 
         # Send data and get results from finished simulation
         # Blocking call: waits for simulation results to be sent by the manager

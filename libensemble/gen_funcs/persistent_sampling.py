@@ -92,7 +92,7 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
 
     corners = generate_corners(lb, ub)
 
-    # Start with equal probabilies
+    # Start with equal probabilities
     p = np.ones(2**n) / 2**n
 
     running_total = np.nan * np.ones(2**n)
