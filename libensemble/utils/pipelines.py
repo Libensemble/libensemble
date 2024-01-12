@@ -20,6 +20,7 @@ from libensemble.message_numbers import (
 from libensemble.resources.resources import Resources
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING
 from libensemble.utils.misc import extract_H_ranges
+from libensemble.worker import Worker as LocalWorker
 from libensemble.worker import WorkerErrMsg
 
 logger = logging.getLogger(__name__)
@@ -53,12 +54,23 @@ class WorkerToManager(_WorkPipeline):
         super().__init__(libE_specs, sim_specs, gen_specs)
 
 
+class WorkerFromManager(_WorkPipeline):
+    def __init__(self, libE_specs, sim_specs, gen_specs):
+        super().__init__(libE_specs, sim_specs, gen_specs)
+
+
 class Worker:
     """Wrapper class for Worker array and worker comms"""
 
+    def __new__(cls, W: npt.NDArray, wid: int, wcomms: list = []):
+        if wid == 0:
+            return super(Worker, ManagerWorker).__new__(ManagerWorker)
+        else:
+            return super().__new__(Worker)
+
     def __init__(self, W: npt.NDArray, wid: int, wcomms: list = []):
         self.__dict__["_W"] = W
-        self.__dict__["_wididx"] = wid - 1
+        self.__dict__["_wididx"] = wid
         self.__dict__["_wcomms"] = wcomms
 
     def __setattr__(self, field, value):
@@ -82,9 +94,6 @@ class Worker:
             self.active = 0
             self.active_recv = 0
 
-    def set_work(self, Work):
-        self.__dict__["_Work"] = Work
-
     def send(self, tag, data):
         self._wcomms[self._wididx].send(tag, data)
 
@@ -93,6 +102,20 @@ class Worker:
 
     def recv(self):
         return self._wcomms[self._wididx].recv()
+
+
+class ManagerWorker(Worker):
+    """Manager invisibly sends work to itself, then performs work"""
+
+    def __init__(self, W: npt.NDArray, wid: int, wcomms: list = []):
+        super().__init__(W, wid, wcomms)
+
+    def run_gen_work(self, pipeline):
+        comm = self.__dict__["_wcomms"][0]
+        local_worker = LocalWorker(
+            comm, pipeline.libE_specs["_dtypes"], 0, pipeline.sim_specs, pipeline.gen_specs, pipeline.libE_specs
+        )
+        local_worker.run(iterations=1)
 
 
 class _ManagerPipeline(_WorkPipeline):
@@ -202,7 +225,7 @@ class ManagerFromWorker(_ManagerPipeline):
         while new_stuff:
             new_stuff = False
             for w in self.W["worker_id"]:
-                if self.wcomms[w - 1].mail_flag():
+                if self.wcomms[w].mail_flag():
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
@@ -331,6 +354,9 @@ class ManagerToWorker(_ManagerPipeline):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
             worker.send(0, H_to_be_sent)
 
+        if Work["tag"] == EVAL_GEN_TAG and w == 0:
+            worker.run_gen_work(self)
+
     def _check_work_order(self, Work: dict, w: int, force: bool = False) -> None:
         """Checks validity of an allocation function order"""
 
@@ -358,8 +384,3 @@ class ManagerToWorker(_ManagerPipeline):
             diff_fields = list(work_fields.difference(hist_fields))
 
             assert not diff_fields, f"Allocation function requested invalid fields {diff_fields} be sent to worker={w}."
-
-
-class ManagerInplace(_ManagerPipeline):
-    def __init__(self, libE_specs, sim_specs, gen_specs):
-        super().__init__(libE_specs, sim_specs, gen_specs)

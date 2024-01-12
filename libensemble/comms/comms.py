@@ -150,6 +150,7 @@ class QCommLocal(Comm):
         self._result = None
         self._exception = None
         self._done = False
+        self._ufunc = kwargs.get("ufunc", False)
 
     def _is_result_msg(self, msg):
         """Return true if message indicates final result (and set result/except)."""
