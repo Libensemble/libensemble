@@ -676,7 +676,7 @@ class Executor:
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool] = False,
+        wait_on_start: Optional[bool | int] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
@@ -707,9 +707,10 @@ class Executor:
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: bool, Optional
+        wait_on_start: bool or int, Optional
             Whether to wait for task to be polled as RUNNING (or other
-            active/end state) before continuing
+            active/end state) before continuing. If an integer N is supplied,
+            wait at most N seconds.
 
         env_script: str, Optional
             The full path of a shell script to set up the environment for the
@@ -762,7 +763,10 @@ class Executor:
                     start_new_session=False,
                 )
             if wait_on_start:
-                self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
+                if isinstance(wait_on_start, int):
+                    self._wait_on_start(task, wait_on_start)
+                else:
+                    self._wait_on_start(task, 0)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
