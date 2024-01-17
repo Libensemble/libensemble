@@ -63,7 +63,7 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v3
+        - uses: actions/cache/restore@v4
           name: Restore cached dependencies
           id: cache
           if: matrix.os == 'ubuntu-latest'
@@ -117,7 +117,7 @@ jobs:
             pip install mpmath matplotlib
             conda install numpy nlopt scipy
 
-        - uses: actions/cache/save@v3
+        - uses: actions/cache/save@v4
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
           with:
