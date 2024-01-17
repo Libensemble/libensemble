@@ -28,7 +28,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
 
                 **nworkers** [int]:
-                    Number of worker processes in ``"local"`` or ``"tcp"``.
+                    Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
+
+                **manager_runs_additional_worker** [int] = False
+                    Manager process can launch an additional threaded worker
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
