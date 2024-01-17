@@ -155,6 +155,51 @@ Posting kill messages for all workers.
 """
 
 
+class _Worker:
+    """Wrapper class for Worker array and worker comms"""
+
+    # def __new__(cls, W: npt.NDArray, wid: int, wcomms: list = []):
+    #     if wid == 0:
+    #         return super(Worker, ManagerWorker).__new__(ManagerWorker)
+    #     else:
+    #         return super().__new__(Worker)
+
+    # def __init__(self, W: npt.NDArray, wid: int, wcomms: list = []):
+    #     self.__dict__["_W"] = W
+    #     self.__dict__["_wididx"] = wid
+    #     self.__dict__["_wcomms"] = wcomms
+
+    # def __setattr__(self, field, value):
+    #     self._W[self._wididx][field] = value
+
+    # def __getattr__(self, field):
+    #     return self._W[self._wididx][field]
+
+    # def update_state_on_alloc(self, Work: dict):
+    #     self.active = Work["tag"]
+    #     if "persistent" in Work["libE_info"]:
+    #         self.persis_state = Work["tag"]
+    #         if Work["libE_info"].get("active_recv", False):
+    #             self.active_recv = Work["tag"]
+    #     else:
+    #         assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
+
+    # def update_persistent_state(self):
+    #     self.persis_state = 0
+    #     if self.active_recv:
+    #         self.active = 0
+    #         self.active_recv = 0
+
+    # def send(self, tag, data):
+    #     self._wcomms[self._wididx].send(tag, data)
+
+    # def mail_flag(self):
+    #     return self._wcomms[self._wididx].mail_flag()
+
+    # def recv(self):
+    #     return self._wcomms[self._wididx].recv()
+
+
 class Manager:
     """Manager class for libensemble."""
 
@@ -454,6 +499,40 @@ class Manager:
             calc_status, str
         ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
 
+    def _update_state_on_local_gen_msg(self, persis_info, D_recv):
+        calc_type = D_recv["calc_type"]
+        # calc_status = D_recv["calc_status"]
+        Manager._check_received_calc(D_recv)
+
+        # keep_state = D_recv["libE_info"].get("keep_state", False)
+
+        if calc_type == EVAL_GEN_TAG:
+            self.hist.update_history_x_in(0, D_recv["calc_out"], 999)
+
+        if D_recv.get("persis_info"):
+            persis_info[0].update(D_recv["persis_info"])
+
+    def _handle_msg_from_local_gen(self, persis_info: dict) -> None:
+        """Handles a message from worker w"""
+        try:
+            msg = self.local_worker_comm.recv()
+            tag, D_recv = msg
+        except CommFinishedException:
+            logger.debug("Finalizing message from Worker 0")
+            return
+        if isinstance(D_recv, WorkerErrMsg):
+            logger.debug("Manager received exception from worker 0")
+            if not self.WorkerExc:
+                self.WorkerExc = True
+                self._kill_workers()
+                raise WorkerException("Received error message from worker 0", D_recv.msg, D_recv.exc)
+        elif isinstance(D_recv, logging.LogRecord):
+            logger.debug("Manager received a log message from worker 0")
+            logging.getLogger(D_recv.name).handle(D_recv)
+        else:
+            logger.debug("Manager received data message from worker 0")
+            self._update_state_on_local_gen_msg(persis_info, D_recv)
+
     def _receive_from_workers(self, persis_info: dict) -> dict:
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
@@ -464,6 +543,9 @@ class Manager:
         new_stuff = True
         while new_stuff:
             new_stuff = False
+            if self.local_worker_comm.mail_flag():
+                new_stuff = True
+                self._handle_msg_from_local_gen(persis_info)
             for w in self.W["worker_id"]:
                 if self.wcomms[w - 1].mail_flag():
                     new_stuff = True
@@ -638,6 +720,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
+            "gen_on_man": self.libE_specs.get("gen_man", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
