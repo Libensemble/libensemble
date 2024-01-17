@@ -55,6 +55,11 @@ class SimSpecs(BaseModel):
     calling them locally.
     """
 
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
+    """
+
     user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
@@ -98,6 +103,11 @@ class GenSpecs(BaseModel):
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
+    """
+
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
     """
 
     user: Optional[dict] = {}
