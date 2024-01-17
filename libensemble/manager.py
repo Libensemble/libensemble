@@ -18,7 +18,8 @@ import numpy as np
 import numpy.typing as npt
 from numpy.lib.recfunctions import repack_fields
 
-from libensemble.comms.comms import CommFinishedException
+from libensemble.comms.comms import CommFinishedException, QCommThread
+from libensemble.executors.executor import Executor
 from libensemble.message_numbers import (
     EVAL_GEN_TAG,
     EVAL_SIM_TAG,
@@ -37,7 +38,7 @@ from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNI
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
-from libensemble.worker import WorkerErrMsg
+from libensemble.worker import WorkerErrMsg, worker_main
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -209,6 +210,29 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
+        self.local_worker_comm = None
+        self.libE_specs["gen_man"] = True
+
+        dtypes = {
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+        }
+
+        if self.libE_specs.get("gen_man", False):
+            self.local_worker_comm = QCommThread(
+                worker_main,
+                len(self.wcomms),
+                sim_specs,
+                gen_specs,
+                libE_specs,
+                0,
+                False,
+                Resources.resources,
+                Executor.executor,
+            )
+            self.local_worker_comm.run()
+            self.local_worker_comm.send(0, dtypes)
+
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         self.scheduler_opts = self.libE_specs.get("scheduler_opts", {})
@@ -265,6 +289,8 @@ class Manager:
 
     def _kill_workers(self) -> None:
         """Kills the workers"""
+        if self.local_worker_comm:
+            self.local_worker_comm.send(STOP_TAG, MAN_SIGNAL_FINISH)
         for w in self.W["worker_id"]:
             self.wcomms[w - 1].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
@@ -373,7 +399,10 @@ class Manager:
         if self.resources:
             self._set_resources(Work, w)
 
-        self.wcomms[w - 1].send(Work["tag"], Work)
+        if Work["tag"] == EVAL_GEN_TAG and self.libE_specs.get("gen_man", False):
+            self.local_worker_comm.send(Work["tag"], Work)
+        else:
+            self.wcomms[w - 1].send(Work["tag"], Work)
 
         if Work["tag"] == EVAL_GEN_TAG:
             self.W[w - 1]["gen_started_time"] = time.time()
@@ -386,7 +415,11 @@ class Manager:
             H_to_be_sent = np.empty(len(work_rows), dtype=new_dtype)
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
-            self.wcomms[w - 1].send(0, H_to_be_sent)
+
+            if Work["tag"] == EVAL_GEN_TAG and self.libE_specs.get("gen_man", False):
+                self.local_worker_comm.send(0, H_to_be_sent)
+            else:
+                self.wcomms[w - 1].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
@@ -525,6 +558,8 @@ class Manager:
                 kill_ids = self.hist.H["sim_id"][kill_sim_rows]
                 kill_on_workers = self.hist.H["sim_worker"][kill_sim_rows]
                 for w in kill_on_workers:
+                    if self.local_worker_comm:
+                        self.local_worker_comm.send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.wcomms[w - 1].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H["kill_sent"][kill_ids] = True
 
@@ -555,6 +590,8 @@ class Manager:
                     self._send_work_order(work, w)
                     self.hist.update_history_to_gen(rows_to_send)
                 else:
+                    if self.local_worker_comm:
+                        self.local_worker_comm.send(PERSIS_STOP, MAN_SIGNAL_KILL)
                     self.wcomms[w - 1].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w - 1]["active"]:
                     # Re-activate if necessary

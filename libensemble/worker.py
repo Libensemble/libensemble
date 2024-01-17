@@ -51,7 +51,6 @@ def worker_main(
     log_comm: bool = True,
     resources: Resources = None,
     executor: Executor = None,
-    iterations: int = 0,
 ) -> None:  # noqa: F821
     """Evaluates calculations given to it by the manager.
 
@@ -109,7 +108,7 @@ def worker_main(
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
-        worker.run(iterations)
+        worker.run()
 
     if libE_specs.get("profile"):
         pr.disable()
@@ -375,12 +374,10 @@ class Worker:
             "calc_type": calc_type,
         }
 
-    def run(self, iterations=0) -> None:
+    def run(self) -> None:
         """Runs the main worker loop."""
         try:
             logger.info(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
-
-            current_iterations = 0
 
             for worker_iter in count(start=1):
                 logger.debug(f"Iteration {worker_iter}")
@@ -410,9 +407,6 @@ class Worker:
                 if response is None:
                     break
                 self.comm.send(0, response)
-                current_iterations += 1
-                if iterations > 0 and (current_iterations >= iterations):
-                    break
 
         except Exception as e:
             self.comm.send(0, WorkerErrMsg(" ".join(format_exc_msg(type(e), e)).strip(), format_exc()))
