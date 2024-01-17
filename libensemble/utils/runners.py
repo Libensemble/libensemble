@@ -73,6 +73,7 @@ class GlobusComputeRunner(Runner):
 class ThreadRunner(Runner):
     def __init__(self, specs):
         super().__init__(specs)
+        self.thread_handle = None
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         fargs = self._truncate_args(calc_in, persis_info, libE_info)
@@ -81,4 +82,5 @@ class ThreadRunner(Runner):
         return self.thread_handle.result()
 
     def shutdown(self) -> None:
-        self.thread_handle.terminate()
+        if self.thread_handle is not None:
+            self.thread_handle.terminate()
