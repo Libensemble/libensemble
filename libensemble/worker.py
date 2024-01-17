@@ -51,6 +51,7 @@ def worker_main(
     log_comm: bool = True,
     resources: Resources = None,
     executor: Executor = None,
+    iterations: int = 0,
 ) -> None:  # noqa: F821
     """Evaluates calculations given to it by the manager.
 
@@ -96,7 +97,7 @@ def worker_main(
     if libE_specs.get("use_workflow_dir"):
         _, libE_specs["workflow_dir_path"] = comm.recv()
 
-    workerID = workerID or comm.rank
+    workerID = workerID or getattr(comm, "rank", 0)
 
     # Initialize logging on comms
     if log_comm:
@@ -108,7 +109,7 @@ def worker_main(
     # Set up and run worker
     worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
     with LS.loc("workflow"):
-        worker.run()
+        worker.run(iterations)
 
     if libE_specs.get("profile"):
         pr.disable()
