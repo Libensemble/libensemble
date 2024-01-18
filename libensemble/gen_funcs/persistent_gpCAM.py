@@ -170,8 +170,12 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         tag, Work, calc_in = ps.send_recv(H_o)
 
         if calc_in is not None:
+            y_new = np.atleast_2d(calc_in["f"]).T
+            nan_indices = [i for i, fval in enumerate(y_new) if np.isnan(fval)]
+            x_new = np.delete(x_new, nan_indices, axis=0)
+            y_new = np.delete(y_new, nan_indices, axis=0)
             all_x = np.vstack((all_x, x_new))
-            all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
+            all_y = np.vstack((all_y, y_new))
 
     # If final points are sent with PERSIS_STOP, update model and get final var_vals
     if calc_in is not None:
