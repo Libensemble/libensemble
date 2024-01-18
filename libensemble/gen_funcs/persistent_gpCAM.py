@@ -3,6 +3,7 @@
 import time
 
 import numpy as np
+from numpy.lib.recfunctions import repack_fields
 from gpcam import GPOptimizer as GP
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
@@ -35,6 +36,24 @@ def _initialize_gpcAM(user_specs, libE_info):
     return b, n, lb, ub, all_x, all_y, ps
 
 
+def _read_testpoints(U):
+    """Read numpy file containing evaluated points for measuring GP error"""
+    test_points_file = U.get('test_points_file')
+    if test_points_file is None:
+        return None
+
+    test_points = np.load(test_points_file)
+
+    # Remove any NaNs
+    nan_indices = [i for i, fval in enumerate(test_points['f']) if np.isnan(fval)]
+    test_points = np.delete(test_points, nan_indices, axis=0)
+
+    # In case large fields we don't need
+    test_points = repack_fields(test_points[["x", "f"]])
+
+    return test_points
+
+
 def _generate_mesh(lb, ub, num_points=10):
     """
     Generate a mesh of points in n-dimensional space over a hypercube defined by lb and ub.
@@ -56,16 +75,18 @@ def _generate_mesh(lb, ub, num_points=10):
     return points
 
 
-def _update_gp_and_eval_var(all_x, all_y, x_for_var):
+def _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info):
     """
     Update the GP using the points in all_x and their function values in
     all_y. (We are assuming deterministic values in all_y, so we set the noise
     to be 1e-8 when build the GP.) Then evaluates the posterior covariance at
-    points in x_for_var.
+    points in x_for_var. If we have test points, calculate mean square error
+    at those points.
     """
     my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
-    my_gp2S.train(max_iter=2)
+    my_gp2S.train()
 
+    # Obtain covariance in groups to prevent memory overload.
     n_rows = x_for_var.shape[0]
     var_vals = []
     group_size = 1000
@@ -76,8 +97,14 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var):
         var_vals.extend(var_vals_group)
 
     assert len(var_vals) == n_rows, "Something wrong with the grouping"
-    # print(np.max(var_vals))
 
+    persis_info.setdefault("max_variance", []).append(np.max(var_vals))
+    persis_info.setdefault("mean_variance", []).append(np.mean(var_vals))
+
+    if test_points is not None:
+        f_est = my_gp2S.posterior_mean(test_points["x"])["f(x)"]
+        mse = np.mean((f_est - test_points["f"])**2)
+        persis_info.setdefault("mean_squared_error", []).append(mse)
     return np.array(var_vals)
 
 
@@ -130,6 +157,8 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     """  # noqa
     U = gen_specs["user"]
 
+    test_points = _read_testpoints(U)
+
     batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(U, libE_info)
 
     # Send batches until manager sends stop tag
@@ -138,7 +167,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
 
     if U.get("use_grid"):
         num_points = 10
-        x_for_var = _generate_mesh(lb, ub)
+        x_for_var = _generate_mesh(lb, ub, num_points)
         r_low_init, r_high_init = calculate_grid_distances(lb, ub, num_points)
 
     while tag not in [STOP_TAG, PERSIS_STOP]:
@@ -147,8 +176,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         else:
             if not U.get("use_grid"):
                 x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-            var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var)
-            persis_info["max_variance"].append(np.max(var_vals))
+            var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info)
 
             if U.get("use_grid"):
                 r_high = r_high_init
@@ -182,8 +210,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         # H_o not updated by default - is persis_info
         if not U.get("use_grid"):
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-        var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var)
-        persis_info["max_variance"].append(np.max(var_vals))
+        var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
