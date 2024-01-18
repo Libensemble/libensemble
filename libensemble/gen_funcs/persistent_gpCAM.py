@@ -83,7 +83,7 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info):
     points in x_for_var. If we have test points, calculate mean square error
     at those points.
     """
-    my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+    my_gp2S = GP(all_x, all_y, noise_variances=1e-12 * np.ones(len(all_y)))
     my_gp2S.train()
 
     # Obtain covariance in groups to prevent memory overload.
