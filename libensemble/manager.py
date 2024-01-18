@@ -671,7 +671,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "gen_on_man": self.libE_specs.get("gen_man", False),
+            "manager_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
