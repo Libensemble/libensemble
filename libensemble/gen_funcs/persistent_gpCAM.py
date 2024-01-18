@@ -1,6 +1,7 @@
 """Persistent generator exposing gpCAM functionality"""
 
 import time
+
 import numpy as np
 from gpcam import GPOptimizer as GP
 
@@ -64,10 +65,20 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var):
     """
     my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
     my_gp2S.train(max_iter=2)
-    var_rand = my_gp2S.posterior_covariance(x_for_var, variance_only=True)["v(x)"]
-    # print(np.max(var_rand))
 
-    return var_rand
+    n_rows = x_for_var.shape[0]
+    var_vals = []
+    group_size = 1000
+
+    for start_idx in range(0, n_rows, group_size):
+        end_idx = min(start_idx + group_size, n_rows)
+        var_vals_group = my_gp2S.posterior_covariance(x_for_var[start_idx:end_idx], variance_only=True)["v(x)"]
+        var_vals.extend(var_vals_group)
+
+    assert len(var_vals) == n_rows, "Something wrong with the grouping"
+    # print(np.max(var_vals))
+
+    return np.array(var_vals)
 
 
 def calculate_grid_distances(lb, ub, num_points):
@@ -136,8 +147,8 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         else:
             if not U.get("use_grid"):
                 x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-            var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
-            persis_info["max_variance"].append(np.max(var_rand))
+            var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var)
+            persis_info["max_variance"].append(np.max(var_vals))
 
             if U.get("use_grid"):
                 r_high = r_high_init
@@ -145,14 +156,14 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
                 x_new = []
                 r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
 
-                sorted_indices = np.argsort(-var_rand)
+                sorted_indices = np.argsort(-var_vals)
                 while len(x_new) < batch_size:
                     x_new = _find_eligible_points(x_for_var, sorted_indices, r_cand, batch_size)
                     if len(x_new) < batch_size:
                         r_high = r_cand
                     r_cand = (r_high + r_low) / 2.0
             else:
-                x_new = x_for_var[np.argsort(var_rand)[-batch_size:]]
+                x_new = x_for_var[np.argsort(var_vals)[-batch_size:]]
 
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
         H_o["x"] = x_new
@@ -162,13 +173,13 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
             all_x = np.vstack((all_x, x_new))
             all_y = np.vstack((all_y, np.atleast_2d(calc_in["f"]).T))
 
-    # If final points are sent with PERSIS_STOP, update model and get final var_rand
+    # If final points are sent with PERSIS_STOP, update model and get final var_vals
     if calc_in is not None:
         # H_o not updated by default - is persis_info
         if not U.get("use_grid"):
             x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-        var_rand = _update_gp_and_eval_var(all_x, all_y, x_for_var)
-        persis_info["max_variance"].append(np.max(var_rand))
+        var_vals = _update_gp_and_eval_var(all_x, all_y, x_for_var)
+        persis_info["max_variance"].append(np.max(var_vals))
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
