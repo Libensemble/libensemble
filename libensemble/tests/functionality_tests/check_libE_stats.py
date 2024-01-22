@@ -39,11 +39,10 @@ def check_start_end_times(start="Start:", end="End:", everyline=True):
     with open(infile) as f:
         total_cnt = 0
         for line in f:
-            print(line)
             s_cnt = 0
             e_cnt = 0
             lst = line.split()
-            if lst[0] == "Manager":
+            if line.startswith("Manager     : Starting") or line.startswith("Manager     : Exiting"):
                 check_datetime(lst[5], lst[6])
                 continue
             for i, val in enumerate(lst):
