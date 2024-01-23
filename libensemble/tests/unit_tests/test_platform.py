@@ -14,7 +14,7 @@ summit_spec = {
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
-    'tiles_per_gpu': None,
+    "tiles_per_gpu": None,
     "gpu_setting_type": "option_gpus_per_task",
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
