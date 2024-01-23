@@ -54,9 +54,6 @@ if __name__ == "__main__":
     gen_out = [
         ("x", float, n),
         ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
     ]
 
     gen_specs = {

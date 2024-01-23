@@ -16,9 +16,17 @@ from scipy.spatial.distance import cdist
 
 from libensemble.gen_funcs.aposmm_localopt_support import ConvergedMsg, LocalOptInterfacer, simulate_recv_from_manager
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.specs import output_data
 from libensemble.tools.persistent_support import PersistentSupport
 
 
+@output_data(
+    [
+        ("sim_id", int),
+        ("local_min", bool),
+        ("local_pt", bool),
+    ]
+)
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points

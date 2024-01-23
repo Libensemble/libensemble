@@ -1,9 +1,11 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG
+from libensemble.specs import input_fields
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
+@input_fields(["local_pt"])
 def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE_info):
     """
     This allocation function will give simulation work if possible, but

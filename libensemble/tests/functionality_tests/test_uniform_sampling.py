@@ -60,7 +60,6 @@ if __name__ == "__main__":
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
     for run in range(2):
-
         if run == 1:
             # Test running a mock sim using previous history file
             sim_specs["sim_f"] = mock_sim
