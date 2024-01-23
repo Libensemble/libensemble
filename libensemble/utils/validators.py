@@ -142,12 +142,21 @@ if pydanticV1:
             from libensemble.sim_funcs.one_d_func import one_d_example
 
             values["sim_f"] = one_d_example
-        if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
-            values["inputs"] = values.get("sim_f").inputs
-        if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
-            values["outputs"] = values.get("sim_f").outputs
-        if hasattr(values.get("sim_f"), "persis_in") and not values.get("persis_in"):
-            values["persis_in"] = values.get("sim_f").persis_in
+        if hasattr(values.get("sim_f"), "inputs"):
+            if not values.get("inputs"):
+                values["inputs"] = values.get("sim_f").inputs
+            else:
+                values["inputs"] = list(set(values["inputs"] + values.get("sim_f").inputs))
+        if hasattr(values.get("sim_f"), "outputs"):
+            if not values.get("outputs"):
+                values["outputs"] = values.get("sim_f").outputs
+            else:
+                values["outputs"] = list(set(values["outputs"] + values.get("sim_f").outputs))
+        if hasattr(values.get("sim_f"), "persis_in"):
+            if not values.get("persis_in"):
+                values["persis_in"] = values.get("sim_f").persis_in
+            else:
+                values["persis_in"] = list(set(values["persis_in"] + values.get("sim_f").persis_in))
         return values
 
     @root_validator
@@ -156,12 +165,21 @@ if pydanticV1:
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
 
             values["gen_f"] = latin_hypercube_sample
-        if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
-            values["inputs"] = values.get("gen_f").inputs
-        if hasattr(values.get("gen_f"), "outputs") and not values.get("outputs"):
-            values["outputs"] = values.get("gen_f").outputs
-        if hasattr(values.get("gen_f"), "persis_in") and not values.get("persis_in"):
-            values["persis_in"] = values.get("gen_f").persis_in
+        if hasattr(values.get("sim_f"), "inputs"):
+            if not values.get("inputs"):
+                values["inputs"] = values.get("gen_f").inputs
+            else:
+                values["inputs"] = list(set(values["inputs"] + values.get("gen_f").inputs))
+        if hasattr(values.get("gen_f"), "outputs"):
+            if not values.get("outputs"):
+                values["outputs"] = values.get("gen_f").outputs
+            else:
+                values["outputs"] = list(set(values["outputs"] + values.get("gen_f").outputs))
+        if hasattr(values.get("gen_f"), "persis_in"):
+            if not values.get("persis_in"):
+                values["persis_in"] = values.get("gen_f").persis_in
+            else:
+                values["persis_in"] = list(set(values["persis_in"] + values.get("gen_f").persis_in))
         return values
 
     # RESOURCES VALIDATORS #####
@@ -227,22 +245,44 @@ elif pydanticV2:
 
     @model_validator(mode="after")
     def simf_set_in_out_from_attrs(self):
-        if hasattr(self.__dict__.get("sim_f"), "inputs") and not self.__dict__.get("inputs"):
-            self.__dict__["inputs"] = self.__dict__.get("sim_f").inputs
-        if hasattr(self.__dict__.get("sim_f"), "outputs") and not self.__dict__.get("outputs"):
-            self.__dict__["outputs"] = self.__dict__.get("sim_f").outputs
-        if hasattr(self.__dict__.get("sim_f"), "persis_in") and not self.__dict__.get("persis_in"):
-            self.__dict__["persis_in"] = self.__dict__.get("sim_f").persis_in
+        if hasattr(self.__dict__.get("sim_f"), "inputs"):
+            if not self.__dict__.get("inputs"):
+                self.__dict__["inputs"] = self.__dict__.get("sim_f").inputs
+            else:
+                self.__dict__["inputs"] = list(set(self.__dict__["inputs"] + self.__dict__.get("sim_f").inputs))
+        if hasattr(self.__dict__.get("sim_f"), "outputs"):
+            if not self.__dict__.get("outputs"):
+                self.__dict__["outputs"] = self.__dict__.get("sim_f").outputs
+            else:
+                self.__dict__["outputs"] = list(set(self.__dict__["outputs"] + self.__dict__.get("sim_f").outputs))
+        if hasattr(self.__dict__.get("sim_f"), "persis_in"):
+            if not self.__dict__.get("persis_in"):
+                self.__dict__["persis_in"] = self.__dict__.get("sim_f").persis_in
+            else:
+                self.__dict__["persis_in"] = list(
+                    set(self.__dict__["persis_in"] + self.__dict__.get("sim_f").persis_in)
+                )
         return self
 
     @model_validator(mode="after")
     def genf_set_in_out_from_attrs(self):
-        if hasattr(self.__dict__.get("gen_f"), "inputs") and not self.__dict__.get("inputs"):
-            self.__dict__["inputs"] = self.__dict__.get("gen_f").inputs
-        if hasattr(self.__dict__.get("gen_f"), "outputs") and not self.__dict__.get("outputs"):
-            self.__dict__["outputs"] = self.__dict__.get("gen_f").outputs
-        if hasattr(self.__dict__.get("gen_f"), "persis_in") and not self.__dict__.get("persis_in"):
-            self.__dict__["persis_in"] = self.__dict__.get("gen_f").persis_in
+        if hasattr(self.__dict__.get("gen_f"), "inputs"):
+            if not self.__dict__.get("inputs"):
+                self.__dict__["inputs"] = self.__dict__.get("gen_f").inputs
+            else:
+                self.__dict__["inputs"] = list(set(self.__dict__["inputs"] + self.__dict__.get("gen_f").inputs))
+        if hasattr(self.__dict__.get("gen_f"), "outputs"):
+            if not self.__dict__.get("outputs"):
+                self.__dict__["outputs"] = self.__dict__.get("gen_f").outputs
+            else:
+                self.__dict__["outputs"] = list(set(self.__dict__["outputs"] + self.__dict__.get("gen_f").outputs))
+        if hasattr(self.__dict__.get("gen_f"), "persis_in"):
+            if not self.__dict__.get("persis_in"):
+                self.__dict__["persis_in"] = self.__dict__.get("gen_f").persis_in
+            else:
+                self.__dict__["persis_in"] = list(
+                    set(self.__dict__["persis_in"] + self.__dict__.get("gen_f").persis_in)
+                )
         return self
 
     # RESOURCES VALIDATORS #####
