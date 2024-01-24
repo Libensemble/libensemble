@@ -166,6 +166,9 @@ class _WorkerIndexer:
         else:
             return self.iterable[key - 1]
 
+    def __setitem__(self, key, value):
+        self.iterable[key] = value
+
     def __len__(self):
         return len(self.iterable)
 
