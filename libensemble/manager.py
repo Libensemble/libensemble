@@ -665,7 +665,7 @@ class Manager:
 
         alloc_f = self.alloc_specs["alloc_f"]
         output = alloc_f(
-            self.W,
+            self.W.iterable,
             H,
             self.sim_specs,
             self.gen_specs,
