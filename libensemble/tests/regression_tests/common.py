@@ -10,6 +10,7 @@ import time
 
 class FileNotFoundError(Exception):
     """Exception raised when a file is not found within the specified timeout."""
+
     pass
 
 
