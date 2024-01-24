@@ -155,46 +155,16 @@ Posting kill messages for all workers.
 """
 
 
-class _Worker:
-    """Wrapper class for Worker array and worker comms"""
+class _WorkerIndexer:
+    def __init__(self, iterable: list, additional_worker=False):
+        self.iterable = iterable
+        self.additional_worker = additional_worker
 
-    def __init__(self, W: npt.NDArray, wid: int, wcomms: list = []):
-        self.__dict__["_W"] = W
-        if 0 in W["worker_id"]:  # Contains "0" for manager. Otherwise first entry is Worker 1
-            self.__dict__["_wididx"] = wid
+    def __getitem__(self, key):
+        if self.additional_worker or isinstance(key, str):
+            return self.iterable[key]
         else:
-            self.__dict__["_wididx"] = wid - 1
-        self.__dict__["_wcomms"] = wcomms
-
-    def __setattr__(self, field, value):
-        self._W[self._wididx][field] = value
-
-    def __getattr__(self, field):
-        return self._W[self._wididx][field]
-
-    def update_state_on_alloc(self, Work: dict):
-        self.active = Work["tag"]
-        if "persistent" in Work["libE_info"]:
-            self.persis_state = Work["tag"]
-            if Work["libE_info"].get("active_recv", False):
-                self.active_recv = Work["tag"]
-        else:
-            assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
-
-    def update_persistent_state(self):
-        self.persis_state = 0
-        if self.active_recv:
-            self.active = 0
-            self.active_recv = 0
-
-    def send(self, tag, data):
-        self._wcomms[self._wididx].send(tag, data)
-
-    def mail_flag(self):
-        return self._wcomms[self._wididx].mail_flag()
-
-    def recv(self):
-        return self._wcomms[self._wididx].recv()
+            return self.iterable[key - 1]
 
 
 class Manager:
@@ -253,6 +223,7 @@ class Manager:
         ]
 
         if self.libE_specs.get("manager_runs_additional_worker", False):
+            # We start an additional Worker 0 on a thread.
 
             dtypes = {
                 EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
@@ -276,13 +247,16 @@ class Manager:
             local_worker_comm.run()
             local_worker_comm.send(0, dtypes)
 
+        self.W = _WorkerIndexer(self.W, self.libE_specs.get("manager_runs_additional_worker", False))
+        self.wcomms = _WorkerIndexer(self.wcomms, self.libE_specs.get("manager_runs_additional_worker", False))
+
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
         self.scheduler_opts = self.libE_specs.get("scheduler_opts", {})
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
-            for wrk in self.W:
+            for wrk in self.W.iterable:
                 if wrk["worker_id"] in gresource.zero_resource_workers:
                     wrk["zero_resource_worker"] = True
 
@@ -333,8 +307,7 @@ class Manager:
     def _kill_workers(self) -> None:
         """Kills the workers"""
         for w in self.W["worker_id"]:
-            worker = _Worker(self.W, w, self.wcomms)
-            worker.send(STOP_TAG, MAN_SIGNAL_FINISH)
+            self.wcomms[w].send(STOP_TAG, MAN_SIGNAL_FINISH)
 
     # --- Checkpointing logic
 
@@ -389,15 +362,14 @@ class Manager:
     def _check_work_order(self, Work: dict, w: int, force: bool = False) -> None:
         """Checks validity of an allocation function order"""
         # assert w != 0, "Can't send to worker 0; this is the manager."
-        worker = _Worker(self.W, w, self.wcomms)
-        if worker.active_recv:
+        if self.W[w]["active_recv"]:
             assert "active_recv" in Work["libE_info"], (
                 "Messages to a worker in active_recv mode should have active_recv"
                 f"set to True in libE_info. Work['libE_info'] is {Work['libE_info']}"
             )
         else:
             if not force:
-                assert worker.active == 0, (
+                assert self.W[w]["active"] == 0, (
                     "Allocation function requested work be sent to worker %d, an already active worker." % w
                 )
         work_rows = Work["libE_info"]["H_rows"]
@@ -439,15 +411,13 @@ class Manager:
         """Sends an allocation function order to a worker"""
         logger.debug(f"Manager sending work unit to worker {w}")
 
-        worker = _Worker(self.W, w, self.wcomms)
-
         if self.resources:
             self._set_resources(Work, w)
 
-        worker.send(Work["tag"], Work)
+        self.wcomms[w].send(Work["tag"], Work)
 
         if Work["tag"] == EVAL_GEN_TAG:
-            worker.gen_started_time = time.time()
+            self.W[w]["gen_started_time"] = time.time()
 
         work_rows = Work["libE_info"]["H_rows"]
         work_name = calc_type_strings[Work["tag"]]
@@ -458,13 +428,18 @@ class Manager:
             for i, row in enumerate(work_rows):
                 H_to_be_sent[i] = repack_fields(self.hist.H[Work["H_fields"]][row])
 
-            worker.send(0, H_to_be_sent)
+            self.wcomms[w].send(0, H_to_be_sent)
 
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
 
-        worker = _Worker(self.W, w, self.wcomms)
-        worker.update_state_on_alloc(Work)
+        self.W[w]["active"] = Work["tag"]
+        if "persistent" in Work["libE_info"]:
+            self.W[w]["persis_state"] = Work["tag"]
+            if Work["libE_info"].get("active_recv", False):
+                self.W[w]["active_recv"] = Work["tag"]
+        else:
+            assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
 
         work_rows = Work["libE_info"]["H_rows"]
         if Work["tag"] == EVAL_SIM_TAG:
@@ -499,8 +474,7 @@ class Manager:
         while new_stuff:
             new_stuff = False
             for w in self.W["worker_id"]:
-                worker = _Worker(self.W, w, self.wcomms)
-                if worker.mail_flag():
+                if self.wcomms[w].mail_flag():
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
@@ -513,37 +487,38 @@ class Manager:
         calc_status = D_recv["calc_status"]
         Manager._check_received_calc(D_recv)
 
-        worker = _Worker(self.W, w, self.wcomms)
-
         keep_state = D_recv["libE_info"].get("keep_state", False)
-        if w not in self.persis_pending and not worker.active_recv and not keep_state:
-            worker.active = 0
+        if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
+            self.W[w]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    self.hist.update_history_x_in(w, final_data, worker.gen_started_time)
+                    self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
-            worker.update_persistent_state()
+            self.W[w]["persis_state"] = 0
+            if self.W[w]["active_recv"]:
+                self.W[w]["active"] = 0
+                self.W[w]["active_recv"] = 0
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
-                worker.active = 0
+                self.W[w]["active"] = 0
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
                 self.hist.update_history_f(D_recv, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], worker.gen_started_time)
+                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w]["gen_started_time"])
                 assert (
-                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or worker.persis_state
+                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."
             if "libE_info" in D_recv and "persistent" in D_recv["libE_info"]:
                 # Now a waiting, persistent worker
-                worker.persis_state = calc_type
+                self.W[w]["persis_state"] = calc_type
             else:
                 self._freeup_resources(w)
 
@@ -552,15 +527,14 @@ class Manager:
 
     def _handle_msg_from_worker(self, persis_info: dict, w: int) -> None:
         """Handles a message from worker w"""
-        worker = _Worker(self.W, w, self.wcomms)
         try:
-            msg = worker.recv()
+            msg = self.wcomms[w].recv()
             tag, D_recv = msg
         except CommFinishedException:
             logger.debug(f"Finalizing message from Worker {w}")
             return
         if isinstance(D_recv, WorkerErrMsg):
-            worker.active = 0
+            self.W[w]["active"] = 0
             logger.debug(f"Manager received exception from worker {w}")
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -593,8 +567,7 @@ class Manager:
                 kill_ids = self.hist.H["sim_id"][kill_sim_rows]
                 kill_on_workers = self.hist.H["sim_worker"][kill_sim_rows]
                 for w in kill_on_workers:
-                    worker = _Worker(self.W, w, self.wcomms)
-                    worker.send(STOP_TAG, MAN_SIGNAL_KILL)
+                    self.wcomms[w].send(STOP_TAG, MAN_SIGNAL_KILL)
                     self.hist.H["kill_sent"][kill_ids] = True
 
     # --- Handle termination
@@ -611,7 +584,6 @@ class Manager:
         # Send a handshake signal to each persistent worker.
         if any(self.W["persis_state"]):
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
-                worker = _Worker(self.W, w, self.wcomms)
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if self.libE_specs.get("final_gen_send", False):
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
@@ -625,10 +597,10 @@ class Manager:
                     self._send_work_order(work, w)
                     self.hist.update_history_to_gen(rows_to_send)
                 else:
-                    worker.send(PERSIS_STOP, MAN_SIGNAL_KILL)
-                if not worker.active:
+                    self.wcomms[w].send(PERSIS_STOP, MAN_SIGNAL_KILL)
+                if not self.W[w]["active"]:
                     # Re-activate if necessary
-                    worker.active = worker.persis_state
+                    self.W[w]["active"] = self.W[w]["persis_state"]
                 self.persis_pending.append(w)
 
         exit_flag = 0
