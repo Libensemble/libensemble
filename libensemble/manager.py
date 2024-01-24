@@ -166,6 +166,12 @@ class _WorkerIndexer:
         else:
             return self.iterable[key - 1]
 
+    def __len__(self):
+        return len(self.iterable)
+
+    def __iter__(self):
+        return iter(self.iterable)
+
 
 class Manager:
     """Manager class for libensemble."""
@@ -256,7 +262,7 @@ class Manager:
         if self.resources is not None:
             gresource = self.resources.glob_resources
             self.scheduler_opts = gresource.update_scheduler_opts(self.scheduler_opts)
-            for wrk in self.W.iterable:  # "for wrk in self.W" produces a key of 0 when not applicable
+            for wrk in self.W:
                 if wrk["worker_id"] in gresource.zero_resource_workers:
                     wrk["zero_resource_worker"] = True
 
