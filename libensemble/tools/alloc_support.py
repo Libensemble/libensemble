@@ -201,7 +201,7 @@ class AllocSupport:
         """Add rset_team to libE_info."""
         if self.manage_resources and not libE_info.get("rset_team"):
             num_rsets_req = 0
-            if self.W[wid - 1]["persis_state"]:
+            if self.W[wid]["persis_state"]:
                 # Even if empty list, non-None rset_team stops manager giving default resources
                 libE_info["rset_team"] = []
                 return
@@ -272,7 +272,7 @@ class AllocSupport:
         """
         self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid - 1]["persis_state"]:
+        if not self.W[wid]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info["gen_count"] = AllocSupport.gen_counter
 
