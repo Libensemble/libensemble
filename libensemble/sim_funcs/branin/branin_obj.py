@@ -7,8 +7,11 @@ import time
 import numpy as np
 
 from libensemble.sim_funcs.branin.branin import branin
+from libensemble.specs import input_fields, output_data
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def call_branin(H, _, sim_specs):
     """Evaluates the Branin function"""
     batch = len(H["x"])

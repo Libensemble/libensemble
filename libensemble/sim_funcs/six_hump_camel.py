@@ -49,6 +49,8 @@ def six_hump_camel(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def six_hump_camel_simple(x, _, sim_specs):
     """
     Evaluates the six hump camel function for a single point ``x``.
