@@ -262,13 +262,12 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
     For an equivalent function that auto-assigns GPUs using platform detection, see
     GPU_variable_resources.
     """
-    print(libE_info)
     x = H["x"][0]
     H_o = np.zeros(1, dtype=sim_specs["out"])
     dry_run = sim_specs["user"].get("dry_run", False)  # dry_run only prints run lines in ensemble.log
 
     # Interrogate resources available to this worker
-    resources = Resources.resources.worker_resources
+    resources = Resources.resources.get_worker_resources(libE_info["workerID"])
     slots = resources.slots
 
     assert resources.matching_slots, f"Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {slots}"

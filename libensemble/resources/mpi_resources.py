@@ -129,7 +129,7 @@ def _max_rsets_per_node(worker_resources):
     return max(rsets_on_node)
 
 
-def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False):
+def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False, workerID=None):
     """Reconciles user-supplied options with available worker
     resources to produce run configuration.
 
@@ -140,7 +140,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
     User-supplied config options are honored, and an exception is
     raised if these are infeasible.
     """
-    wresources = resources.worker_resources
+    wresources = resources.get_worker_resources(workerID)
     gresources = resources.glob_resources
     node_list = wresources.local_nodelist
     rassert(node_list, "Node list is empty - aborting")

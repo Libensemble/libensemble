@@ -208,10 +208,10 @@ class MPIRunner:
 
         return nprocs, nnodes, ppn, extra_args
 
-    def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
+    def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources, workerID):
         """Adjust an invalid config"""
         if resources is not None:
-            wresources = resources.worker_resources
+            wresources = resources.get_worker_resources(workerID)
             if ngpus is not None:
                 # When gen gives num_procs or num_gpus will have num_nodes
                 if nnodes:
@@ -270,7 +270,7 @@ class MPIRunner:
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
-        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
+        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources, workerID)
 
         if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
@@ -286,7 +286,7 @@ class MPIRunner:
             machinefile = None
 
         if machinefile is None and resources is not None:
-            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads)
+            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads, workerID)
             hostlist, machinefile = self.express_spec(
                 task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
             )

@@ -188,7 +188,7 @@ class Worker:
         resources = Resources.resources
         exctr = Executor.executor
         if isinstance(resources, Resources):
-            wresources = resources.worker_resources
+            wresources = resources.get_worker_resources(libE_info["workerID"])
             wresources.set_rset_team(libE_info["rset_team"])
             Worker._set_gen_procs_gpus(libE_info, wresources)
             if isinstance(exctr, Executor):
@@ -315,7 +315,7 @@ class Worker:
 
         if self.stats_fmt.get("show_resource_sets", False):
             # Maybe just call option resource_sets if already in sub-dictionary
-            resources = Resources.resources.worker_resources
+            resources = Resources.resources.get_worker_resources(workerid=self.workerID)
             calc_msg += f" rsets: {resources.rset_team}"
 
         # Always put status last as could involve different numbers of words. Some scripts may assume this.
