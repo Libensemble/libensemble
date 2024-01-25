@@ -61,7 +61,6 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     tag = None
     persis_info["max_variance"] = []
     while tag not in [STOP_TAG, PERSIS_STOP]:
-
         if all_x.shape[0] == 0:
             x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
