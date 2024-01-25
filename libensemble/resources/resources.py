@@ -6,6 +6,7 @@ This module detects and returns system resources
 import logging
 import os
 import socket
+from typing import Optional
 
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
@@ -67,11 +68,27 @@ class Resources:
         self.top_level_dir = top_level_dir or os.getcwd()
         self.glob_resources = GlobalResources(libE_specs=libE_specs, platform_info=platform_info, top_level_dir=None)
         self.resource_manager = None  # For Manager
-        self.worker_resources = None  # For Workers
+        self._worker_resources = {}  # For Workers
 
     def set_worker_resources(self, num_workers: int, workerid: int) -> None:
         """Initiate the worker resources component of resources"""
-        self.worker_resources = WorkerResources(num_workers, self.glob_resources, workerid)
+        self._worker_resources[workerid] = WorkerResources(num_workers, self.glob_resources, workerid)
+
+    def get_worker_resources(self, workerid: Optional[int] = None) -> WorkerResources:
+        """Get the worker resources component of resources.
+
+        If running with threaded workers, must specify the worker ID.
+        """
+        if (
+            len(self._worker_resources) == 1 or not workerid
+        ):  # If only one worker *or* each worker running in separate *process*
+            (resources,) = self._worker_resources.values()  #
+            return resources
+        return self._worker_resources[workerid]
+
+    @property
+    def worker_resources(self) -> dict:
+        return self.get_worker_resources()
 
     def set_resource_manager(self, num_workers: int) -> None:
         """Initiate the resource manager component of resources"""
@@ -243,7 +260,6 @@ class GlobalResources:
                 self.global_nodelist = GlobalResources.remove_nodes(self.global_nodelist, self.libE_nodes)
                 if not self.global_nodelist:
                     logger.warning("Warning. Node-list for tasks is empty. Remove dedicated_mode or add nodes")
-                    pass
 
     def update_scheduler_opts(self, scheduler_opts):
         """Add scheduler options from platform_info, if not present"""
