@@ -143,7 +143,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
     wresources = resources.get_worker_resources(workerID)
     gresources = resources.glob_resources
     node_list = wresources.local_nodelist
-    rassert(node_list, "Node list is empty - aborting")
+    rassert(node_list, f"Node list for Worker {workerID} is empty - aborting")
     local_node_count = wresources.local_node_count
 
     cores_avail_per_node = (

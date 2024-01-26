@@ -359,7 +359,7 @@ class WorkerResources(RSetResources):
             team_list += split_list[index]
 
         local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
-        logger.debug(f"Worker's local_nodelist is {local_nodelist}")
+        logger.debug(f"Worker {workerID}'s local_nodelist is {local_nodelist}")
 
         slots = {}
         for node in local_nodelist:
