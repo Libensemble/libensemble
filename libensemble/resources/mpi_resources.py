@@ -228,6 +228,7 @@ def create_machinefile(
     num_nodes: Optional[int] = None,
     procs_per_node: Optional[int] = None,
     hyperthreads: bool = False,
+    workerID: int = None,
 ) -> Tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
@@ -240,7 +241,7 @@ def create_machinefile(
         except Exception as e:
             logger.warning(f"Could not remove existing machinefile: {e}")
 
-    node_list = resources.worker_resources.local_nodelist
+    node_list = resources.get_worker_resources(workerID).local_nodelist
     logger.debug(f"Creating machinefile with {num_nodes} nodes and {procs_per_node} ranks per node")
 
     with open(machinefile, "w") as f:
@@ -251,11 +252,11 @@ def create_machinefile(
     return built_mfile, num_procs, num_nodes, procs_per_node
 
 
-def get_hostlist(resources, num_nodes=None):
+def get_hostlist(resources, num_nodes, workerID):
     """Creates a hostlist based on user-supplied config options.
 
     completed by detected machine resources
     """
-    node_list = resources.worker_resources.local_nodelist
+    node_list = resources.get_worker_resources(workerID).local_nodelist
     hostlist_str = ",".join([str(x) for x in node_list[:num_nodes]])
     return hostlist_str

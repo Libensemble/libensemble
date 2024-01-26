@@ -99,7 +99,7 @@ class MPIRunner:
         hostlist = None
         machinefile = None
         # Always use host lists (unless uneven mapping)
-        hostlist = mpi_resources.get_hostlist(resources, nnodes)
+        hostlist = mpi_resources.get_hostlist(resources, nnodes, workerID)
         return hostlist, machinefile
 
     def _set_gpu_cli_option(self, wresources, extra_args, gpu_setting_name, gpu_value):
@@ -136,7 +136,7 @@ class MPIRunner:
             self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
         return extra_args
 
-    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
+    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID):
         """Assign GPU resources to slots, limited by ngpus if present.
 
         GPUs will be assigned using the slot count and GPUs per slot (from resources).
@@ -151,7 +151,7 @@ class MPIRunner:
 
         """
 
-        wresources = resources.worker_resources
+        wresources = resources.get_worker_resources(workerID)
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
@@ -372,7 +372,7 @@ class OPENMPI_MPIRunner(MPIRunner):
             machinefile += f"_for_worker_{workerID}"
         machinefile += f"_task_{task.id}"
         mfile_created, nprocs, nnodes, ppn = mpi_resources.create_machinefile(
-            resources, machinefile, nprocs, nnodes, ppn, hyperthreads
+            resources, machinefile, nprocs, nnodes, ppn, hyperthreads, workerID
         )
         jassert(mfile_created, "Auto-creation of machinefile failed")
 
@@ -505,7 +505,7 @@ class JSRUN_MPIRunner(MPIRunner):
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_gpus(
-                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID
             )
 
         rm_rpn = True if ppn is None and nnodes is None else False

@@ -368,7 +368,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         # Run manager or worker code, depending
         if is_manager:
             if resources is not None:
-                resources.set_resource_manager(nworkers)
+                resources.set_resource_manager(nworkers + libE_specs["manager_runs_additional_worker"])
             return libE_mpi_manager(
                 mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
             )
@@ -482,7 +482,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     # Set manager resources after the forkpoint.
     if resources is not None:
-        resources.set_resource_manager(libE_specs["nworkers"])
+        resources.set_resource_manager(libE_specs["nworkers"] + libE_specs["manager_runs_additional_worker"])
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)
