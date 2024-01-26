@@ -17,6 +17,7 @@ import sys
 
 import numpy as np
 
+from libensemble import logger
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_sample as gen_f
@@ -26,6 +27,9 @@ from libensemble.libE import libE
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import CUDA_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+
+logger.set_level("DEBUG")
+
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":

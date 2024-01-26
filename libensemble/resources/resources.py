@@ -79,12 +79,9 @@ class Resources:
 
         If running with threaded workers, must specify the worker ID.
         """
-        if (
-            len(self._worker_resources) == 1 or not workerid
-        ):  # If only one worker *or* each worker running in separate *process*
-            print(self._worker_resources.values())
-            (resources,) = self._worker_resources.values()  #
-            return resources
+        # if len(self._worker_resources) == 1:  # If only one worker *or* each worker running in separate *process*
+        #     (resources,) = self._worker_resources.values()  #
+        #     return resources
         return self._worker_resources[workerid]
 
     @property

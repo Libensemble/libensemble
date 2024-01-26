@@ -103,7 +103,7 @@ class ResourceManager(RSetResources):
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
-        for i in range(1, num_workers + 1):
+        for i in range(num_workers + 1):
             if i in zero_resource_list:
                 index_list.append(None)
             else:

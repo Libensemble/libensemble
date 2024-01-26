@@ -171,7 +171,7 @@ class Worker:
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)
-        Worker._set_resources(self.workerID, self.comm)
+        Worker._set_resources(self.workerID, self.comm, self.libE_specs)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
     @staticmethod
@@ -209,11 +209,13 @@ class Worker:
             return False
 
     @staticmethod
-    def _set_resources(workerID, comm: "communicator") -> bool:  # noqa: F821
+    def _set_resources(workerID, comm: "communicator", libE_specs) -> bool:  # noqa: F821
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.set_worker_resources(comm.get_num_workers(), workerID)
+            resources.set_worker_resources(
+                comm.get_num_workers() + libE_specs["manager_runs_additional_worker"], workerID
+            )
             return True
         else:
             logger.debug(f"No resources set on worker {workerID}")
