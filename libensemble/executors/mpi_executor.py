@@ -157,12 +157,13 @@ class MPIExecutor(Executor):
                     )
             except Exception as e:
                 logger.warning(f"task {task.name} submit command failed on try {retry_count} with error {e}")
-                task.poll()
+                task.state = "FAILED"
                 retry = True
                 retry_count += 1
             else:
                 if wait_on_start:
                     self._wait_on_start(task, self.fail_time)
+                task.poll()
 
                 if task.state == "FAILED":
                     logger.warning(
