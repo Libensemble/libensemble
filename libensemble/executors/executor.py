@@ -569,8 +569,8 @@ class Executor:
         self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is Optionally killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Potentially useful
+        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
 
@@ -676,7 +676,7 @@ class Executor:
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool | int] = False,
+        wait_on_start: Optional[Union[bool, int]] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
