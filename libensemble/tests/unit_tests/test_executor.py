@@ -664,10 +664,9 @@ def test_retries_run_fail():
     setup_executor()
     exctr = Executor.executor
     exctr.retry_delay_incr = 0.05
-    exctr.fail_time = 3
     cores = NCORES
     args_for_sim = "sleep 0 Fail"
-    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=3)
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
