@@ -3,7 +3,6 @@ libEnsemble worker class
 ====================================================
 """
 
-import cProfile
 import logging
 import logging.handlers
 import socket
@@ -79,6 +78,8 @@ def worker_main(
     """
 
     if libE_specs.get("profile"):
+        import cProfile
+
         pr = cProfile.Profile()
         pr.enable()
 
