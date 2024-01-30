@@ -19,6 +19,7 @@ from libensemble.message_numbers import (
     MAN_KILL_SIGNALS,
     STOP_TAG,
     TASK_FAILED,
+    TASK_FAILED_TO_START,
     UNSET_TAG,
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
@@ -37,7 +38,8 @@ WAITING
 RUNNING
 FINISHED
 USER_KILLED
-FAILED""".split()
+FAILED
+FAILED_TO_START""".split()
 
 NOT_STARTED_STATES = """
 CREATED
@@ -48,6 +50,7 @@ END_STATES = """
 FINISHED
 USER_KILLED
 FAILED
+FAILED_TO_START
 """.split()
 
 
@@ -619,6 +622,8 @@ class Executor:
         if calc_status == UNSET_TAG:
             if task.state == "FINISHED":
                 calc_status = WORKER_DONE
+            elif task.state == "FAILED_TO_START":
+                calc_status = TASK_FAILED_TO_START
             elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
