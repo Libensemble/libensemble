@@ -28,7 +28,6 @@ from libensemble.message_numbers import (
     MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
-    calc_status_strings,
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
@@ -407,15 +406,6 @@ class Manager:
 
     # --- Handle incoming messages from workers
 
-    @staticmethod
-    def _check_received_calc(D_recv: dict) -> None:
-        """Checks the type and status fields on a receive calculation"""
-        calc_status = D_recv["calc_status"]
-
-        assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
-            calc_status, str
-        ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
-
     def _receive_from_workers(self, persis_info: dict) -> dict:
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
@@ -438,7 +428,6 @@ class Manager:
         """Updates history and worker info on worker message"""
         calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
-        Manager._check_received_calc(D_recv)
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
         if w not in self.persis_pending and not self.W[w - 1]["active_recv"] and not keep_state:

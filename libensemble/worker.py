@@ -301,6 +301,8 @@ class Worker:
             raise
         finally:
             ctype_str = calc_type_strings[calc_type]
+            # effectively converts calc_status to the relevant string or returns as-is.
+            # on the manager side, the only ones used for functionality are the FINISHED_PERSISTENT tags
             status = calc_status_strings.get(calc_status, calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
 
