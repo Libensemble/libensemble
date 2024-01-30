@@ -410,12 +410,7 @@ class Manager:
     @staticmethod
     def _check_received_calc(D_recv: dict) -> None:
         """Checks the type and status fields on a receive calculation"""
-        calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
-        assert calc_type in [
-            EVAL_SIM_TAG,
-            EVAL_GEN_TAG,
-        ], f"Aborting, Unknown calculation type received. Received type: {calc_type}"
 
         assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
             calc_status, str
