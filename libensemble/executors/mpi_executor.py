@@ -163,6 +163,7 @@ class MPIExecutor(Executor):
             else:
                 if wait_on_start:
                     self._wait_on_start(task, self.fail_time)
+                task.poll()
 
                 if task.state == "FAILED":
                     logger.warning(

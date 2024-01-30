@@ -281,13 +281,16 @@ def test_launch_wait_on_start():
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = "sleep 0.2"
-    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
-    assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(task.state)
-    exctr.poll(task)
-    if not task.finished:
-        task = polling_loop(exctr, task)
-    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
-    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+    for value in [True, 1]:
+        task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=value)
+        assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(
+            task.state
+        )
+        exctr.poll(task)
+        if not task.finished:
+            task = polling_loop(exctr, task)
+        assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+        assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
 def test_kill_on_file():
@@ -651,7 +654,7 @@ def test_retries_launch_fail():
     cores = NCORES
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    assert task.state == "CREATED", "task.state should be CREATED. Returned " + str(task.state)
+    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
     assert exctr.mpi_runner_obj.subgroup_launch, "subgroup_launch should be True"
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
