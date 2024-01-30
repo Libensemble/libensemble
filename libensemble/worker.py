@@ -22,7 +22,6 @@ from libensemble.message_numbers import (
     EVAL_GEN_TAG,
     EVAL_SIM_TAG,
     MAN_SIGNAL_FINISH,
-    MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
     UNSET_TAG,
@@ -219,6 +218,21 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
+    def _extract_debug_data(self, calc_type, Work):
+        if calc_type == EVAL_SIM_TAG:
+            enum_desc = "sim_id"
+            calc_id = extract_H_ranges(Work)
+        else:
+            enum_desc = "Gen no"
+            # Use global gen count if available
+            if Work["libE_info"].get("gen_count"):
+                calc_id = str(Work["libE_info"]["gen_count"])
+            else:
+                calc_id = str(self.calc_iter[calc_type])
+        # Add a right adjust (minimum width).
+        calc_id = calc_id.rjust(5, " ")
+        return enum_desc, calc_id
+
     def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
         """Runs a calculation on this worker object.
 
@@ -238,21 +252,7 @@ class Worker:
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        # calc_stats stores timing and summary info for this Calc (sim or gen)
-        # calc_id = next(self._calc_id_counter)
-
-        if calc_type == EVAL_SIM_TAG:
-            enum_desc = "sim_id"
-            calc_id = extract_H_ranges(Work)
-        else:
-            enum_desc = "Gen no"
-            # Use global gen count if available
-            if Work["libE_info"].get("gen_count"):
-                calc_id = str(Work["libE_info"]["gen_count"])
-            else:
-                calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (minimum width).
-        calc_id = calc_id.rjust(5, " ")
+        enum_desc, calc_id = self._extract_debug_data(calc_type, Work)
 
         timer = Timer()
 
@@ -281,12 +281,12 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:  # better way of doing this logic?
+            if out:
                 if len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
-                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                    if isinstance(out[1], (int, str)):  # got Out, calc_status
                         calc_status = out[1]
                         return out[0], Work["persis_info"], calc_status
                     return *out, calc_status  # got Out, persis_info
@@ -316,7 +316,6 @@ class Worker:
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
         if self.stats_fmt.get("show_resource_sets", False):
-            # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
             calc_msg += f" rsets: {resources.rset_team}"
 
@@ -353,14 +352,9 @@ class Worker:
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
-        if "libE_info" in Work:
-            libE_info = Work["libE_info"]
-
-        if "comm" in libE_info:
-            del libE_info["comm"]
-
-        if "executor" in libE_info:
-            del libE_info["executor"]
+        libE_info = Work["libE_info"]  # the following attributes were always set
+        del libE_info["comm"]
+        del libE_info["executor"]
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
@@ -389,21 +383,13 @@ class Worker:
                 if mtag in [STOP_TAG, PERSIS_STOP]:
                     if Work is MAN_SIGNAL_FINISH:
                         break
-                    elif Work is MAN_SIGNAL_KILL:
-                        continue
+                    continue
 
                 # Active recv is for persistent worker only - throw away here
                 if isinstance(Work, dict):
-                    if Work.get("libE_info", False):
-                        if Work["libE_info"].get("active_recv", False) and not Work["libE_info"].get(
-                            "persistent", False
-                        ):
-                            if len(Work["libE_info"]["H_rows"]) > 0:
-                                _, _, _ = self._recv_H_rows(Work)
-                            continue
-                else:
-                    logger.debug(f"mtag: {mtag}; Work: {Work}")
-                    raise
+                    libE_info = Work.get("libE_info", False)
+                    if libE_info and libE_info.get("active_recv", False) and not libE_info.get("persistent", False):
+                        raise ValueError("active_recv worker must also be persistent")
 
                 response = self._handle(Work)
                 if response is None:
