@@ -654,7 +654,7 @@ def test_retries_launch_fail():
     cores = NCORES
     args_for_sim = "sleep 0"
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
-    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
+    assert task.state == "FAILED_TO_START", "task.state should be FAILED_TO_START. Returned " + str(task.state)
     assert exctr.mpi_runner_obj.subgroup_launch, "subgroup_launch should be True"
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
