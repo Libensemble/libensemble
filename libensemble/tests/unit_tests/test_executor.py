@@ -659,6 +659,20 @@ def test_retries_launch_fail():
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
 
+def test_retries_before_polling_loop_method():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor_fakerunner()
+    exctr = Executor.executor
+    exctr.retry_delay_incr = 0.05
+    cores = NCORES
+    args_for_sim = "sleep 0"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    exctr.polling_loop(task, timeout=1)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FAILED_TO_START", "task.state should be FAILED_TO_START. Returned " + str(task.state)
+    assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
+
+
 def test_retries_run_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor()
@@ -848,6 +862,7 @@ if __name__ == "__main__":
     test_poll_task_with_no_submit()
     test_task_failure()
     test_retries_launch_fail()
+    test_retries_before_polling_loop_method()
     test_retries_run_fail()
     test_register_apps()
     test_serial_exes()

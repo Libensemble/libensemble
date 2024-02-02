@@ -603,7 +603,11 @@ class Executor:
         calc_status = UNSET_TAG
 
         while not task.finished:
-            task.poll()
+            try:
+                task.poll()
+            except ExecutorException as e:
+                logger.warning(f"Exception in polling_loop: {e}")
+                break
 
             if poll_manager:
                 man_signal = self.manager_poll()
