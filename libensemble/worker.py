@@ -21,6 +21,7 @@ from libensemble.message_numbers import (
     EVAL_GEN_TAG,
     EVAL_SIM_TAG,
     MAN_SIGNAL_FINISH,
+    MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
     UNSET_TAG,
@@ -350,9 +351,14 @@ class Worker:
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
-        libE_info = Work["libE_info"]  # the following attributes were always set
-        del libE_info["comm"]
-        del libE_info["executor"]
+        if "libE_info" in Work:
+            libE_info = Work["libE_info"]
+
+        if "comm" in libE_info:
+            del libE_info["comm"]
+
+        if "executor" in libE_info:
+            del libE_info["executor"]
 
         # If there was a finish signal, bail
         if calc_status == MAN_SIGNAL_FINISH:
@@ -381,13 +387,21 @@ class Worker:
                 if mtag in [STOP_TAG, PERSIS_STOP]:
                     if Work is MAN_SIGNAL_FINISH:
                         break
-                    continue
+                    elif Work is MAN_SIGNAL_KILL:
+                        continue
 
                 # Active recv is for persistent worker only - throw away here
                 if isinstance(Work, dict):
-                    libE_info = Work.get("libE_info", False)
-                    if libE_info and libE_info.get("active_recv", False) and not libE_info.get("persistent", False):
-                        raise ValueError("active_recv worker must also be persistent")
+                    if Work.get("libE_info", False):
+                        if Work["libE_info"].get("active_recv", False) and not Work["libE_info"].get(
+                            "persistent", False
+                        ):
+                            if len(Work["libE_info"]["H_rows"]) > 0:
+                                _, _, _ = self._recv_H_rows(Work)
+                            continue
+                else:
+                    logger.debug(f"mtag: {mtag}; Work: {Work}")
+                    raise ValueError("Received unexpected Work message: ", Work)
 
                 response = self._handle(Work)
                 if response is None:
