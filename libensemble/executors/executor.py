@@ -772,10 +772,7 @@ class Executor:
                     start_new_session=False,
                 )
             if wait_on_start:
-                if isinstance(wait_on_start, int):
-                    self._wait_on_start(task, wait_on_start)
-                else:
-                    self._wait_on_start(task, 0)
+                self._wait_on_start(task, wait_on_start)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()

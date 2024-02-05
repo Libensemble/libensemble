@@ -226,10 +226,7 @@ class Worker:
         else:
             enum_desc = "Gen no"
             # Use global gen count if available
-            if Work["libE_info"].get("gen_count"):
-                calc_id = str(Work["libE_info"]["gen_count"])
-            else:
-                calc_id = str(self.calc_iter[calc_type])
+            calc_id = str(Work["libE_info"].get("gen_count"))  # if we're doing a gen, we always have a gen count?
         # Add a right adjust (minimum width).
         calc_id = calc_id.rjust(5, " ")
         return enum_desc, calc_id
