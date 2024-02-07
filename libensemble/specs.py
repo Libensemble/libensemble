@@ -55,6 +55,11 @@ class SimSpecs(BaseModel):
     calling them locally.
     """
 
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
+    """
+
     user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
@@ -98,6 +103,11 @@ class GenSpecs(BaseModel):
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
+    """
+
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
     """
 
     user: Optional[dict] = {}
@@ -160,7 +170,10 @@ class LibeSpecs(BaseModel):
     """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
 
     nworkers: Optional[int] = 0
-    """ Number of worker processes in ``"local"`` or ``"tcp"``."""
+    """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
+
+    manager_runs_additional_worker: Optional[int] = False
+    """ Manager process can launch an additional threaded worker """
 
     mpi_comm: Optional[Any] = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
