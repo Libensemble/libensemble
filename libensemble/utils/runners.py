@@ -6,6 +6,8 @@ from typing import Optional
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
+from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 logger = logging.getLogger(__name__)
 
@@ -92,5 +94,18 @@ class AskTellGenRunner(Runner):
     def __init__(self, specs):
         super().__init__(specs)
 
+    def _persistent_result(
+        self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict
+    ) -> (npt.NDArray, dict, Optional[int]):
+        self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+        tag = None
+        while tag not in [STOP_TAG, PERSIS_STOP]:
+            H_out = self.f.ask()
+            tag, _, H_in = self.ps.send_recv(H_out)
+            self.f.tell(H_in)
+        return self.f.finalize()
+
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+        if libE_info.get("persistent"):
+            return self._persistent_result(calc_in, persis_info, libE_info)
         return self.f.ask()
