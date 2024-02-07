@@ -16,6 +16,8 @@ class Runner:
             return super(Runner, GlobusComputeRunner).__new__(GlobusComputeRunner)
         if specs.get("threaded"):  # TODO: undecided interface
             return super(Runner, ThreadRunner).__new__(ThreadRunner)
+        if hasattr(specs.get("gen_f", None), "ask"):
+            return super(Runner, AskTellGenRunner).__new__(AskTellGenRunner)
         else:
             return super().__new__(Runner)
 
@@ -84,3 +86,11 @@ class ThreadRunner(Runner):
     def shutdown(self) -> None:
         if self.thread_handle is not None:
             self.thread_handle.terminate()
+
+
+class AskTellGenRunner(Runner):
+    def __init__(self, specs):
+        super().__init__(specs)
+
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+        return self.f.ask()

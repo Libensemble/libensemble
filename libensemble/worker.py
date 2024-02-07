@@ -257,6 +257,7 @@ class Worker:
 
         try:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
+            out = None
             calc = self.runners[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
@@ -280,8 +281,8 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:
-                if len(out) >= 3:  # Out, persis_info, calc_status
+            if out is not None:
+                if not isinstance(out, np.ndarray) and len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status

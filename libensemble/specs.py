@@ -72,7 +72,7 @@ class GenSpecs(BaseModel):
     Specifications for configuring a Generator Function.
     """
 
-    gen_f: Optional[Callable] = None
+    gen_f: Optional[Any] = None
     """
     Python function matching the ``gen_f`` interface. Produces parameters for evaluation by a
     simulator function, and makes decisions based on simulator function output.
