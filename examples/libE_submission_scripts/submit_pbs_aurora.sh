@@ -12,4 +12,3 @@ cd $PBS_O_WORKDIR
 
 # 2 nodes - 12 sim workers (6 GPUs per node)
 python libE_calling_script.py --comms local --nworkers 13
-

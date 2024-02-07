@@ -292,7 +292,7 @@ def known_envs():
     """Detect system by environment variables"""
     platform_info = {}
     if os.environ.get("NERSC_HOST") == "perlmutter":
-        if os.environ.get("SLURM_JOB_PARTITION").startswith("gpu_"):
+        if "gpu_" in os.environ.get("SLURM_JOB_PARTITION"):
             platform_info = specs_dump(PerlmutterGPU(), by_alias=True)
         else:
             platform_info = specs_dump(PerlmutterCPU(), by_alias=True)

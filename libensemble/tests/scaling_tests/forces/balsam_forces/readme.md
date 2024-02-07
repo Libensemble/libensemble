@@ -74,12 +74,13 @@ to be transferred back to your personal device after every app run. The
 simulation function will wait for Balsam to transfer back a stat file, then determine
 the calc status based on the received output.
 
-*To transfer files to/from Theta*, you will need to login to Globus and activate
-Theta's Managed Public Endpoint:
+*To transfer files to/from a system*, you will need to login to Globus and activate
+that system's Managed Public Endpoint:
 
+- Check your system's documentation for your Globus endpoint ID
 - Login to Globus, click "Endpoints" on the left.
-- Search for ``alcf#dtn_theta``, click on the result.
-- On the right, click "Activate", then "Continue". Authenticate with ALCF.
+- Search for the Globus endpoint ID, click on the result.
+- On the right, click "Activate", then "Continue". Authenticate with your organization.
 
 ### Configuring libEnsemble
 

@@ -2,8 +2,27 @@
 Common plumbing for regression tests
 """
 
+import glob
 import os
 import os.path
+import time
+
+
+class FileNotFoundError(Exception):
+    """Exception raised when a file is not found within the specified timeout."""
+
+    pass
+
+
+def read_generated_file(file_pattern, timeout=2.0):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        hfiles = glob.glob(file_pattern)
+        if hfiles:
+            return hfiles[-1]
+        else:
+            time.sleep(0.1)
+    raise FileNotFoundError(f"File with pattern '{file_pattern}' not found within {timeout} seconds.")
 
 
 def create_node_file(num_nodes, name="node_list"):
