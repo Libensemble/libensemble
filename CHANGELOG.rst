@@ -8,6 +8,55 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.2.0
+--------------
+
+:Date: February 8, 2024
+
+New capabilities:
+
+* Support for both Pydantic 1 and 2. #1135
+* Support ``object`` dtype in history array. #1179 / #1181
+* Users can add additional fields to output arrays in user functions. #1203
+* Decorators to provide user function in/out specs. #1072
+
+Fixes:
+
+* Bug fix - Overwrite history file on completion when even when the pathname is unchanged. #1177
+* Prevent duplicate save when using ``save_every_k_gens``. #1154
+* Add a ``FAILED_TO_START`` task status. #1229
+* Set ``ensemble.nworkers`` when create ensemble object even when ``parse_args`` is *False*. #1162
+
+Platform support:
+
+* Add platform support for **Aurora**. #1183
+  * Support for GPU tiles (new platform spec `tiles_per_gpu`).
+  * Add *libE_specs* option `use_tiles_as_gpus` to treat each tile as a GPU.
+  * Add Aurora platform guide.
+* Add platform guide for **Improv**. #1235
+* Detection of Perlmutter GPU nodes updated. #1211
+* Make ``srun`` GPU setting default to `gpus_per_task` instead of `gpus_per_node`. #1206
+* Remove Theta support and guide. #1200
+
+Example user functions:
+
+* Add **gpCAM** generator. #1189 / #1213 / #1220
+* Add `mock_sim` to enable replay of a previous run using history file. #1207
+* Fix Sine tutorial. #1168
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora, Polaris, and Perlmutter (NERSC). Recently tested on Frontier (OLCF).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 1.1.0
+--------------
+
 :Date: November 8, 2023
 
 New capabilities:
