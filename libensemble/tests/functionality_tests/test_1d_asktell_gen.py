@@ -70,7 +70,7 @@ class PersistentUniform:
         self.last_H = H_o
         return H_o
 
-    def tell(self, H_in):
+    def tell(self, H_in, *args):
         if hasattr(H_in, "__len__"):
             self.b = len(H_in)
 

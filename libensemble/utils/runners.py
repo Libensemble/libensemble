@@ -102,7 +102,7 @@ class AskTellGenRunner(Runner):
         while tag not in [STOP_TAG, PERSIS_STOP]:
             H_out = self.f.ask()
             tag, _, H_in = self.ps.send_recv(H_out)
-            self.f.tell(H_in)
+            self.f.tell(H_in, tag)
         return self.f.finalize()
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
