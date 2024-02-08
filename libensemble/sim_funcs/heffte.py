@@ -1,6 +1,7 @@
 """
 Example sim_f for simple heFFTe use case.
 """
+
 import subprocess
 
 import numpy as np

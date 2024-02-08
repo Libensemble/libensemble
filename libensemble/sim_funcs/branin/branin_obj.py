@@ -2,6 +2,7 @@
 Calls the branin function. Default behavior uses the python function, but
 uncommenting lines will write x.in to file, call branin.py, and then read f.out.
 """
+
 import time
 
 import numpy as np

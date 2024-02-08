@@ -26,7 +26,7 @@ class RSetResources:
     rset_dtype = [
         ("group", int),  # Group ID this resource set belongs to
         ("slot", int),  # Slot ID this resource set belongs to
-        ("gpus", bool)  # Does this resource set have GPUs
+        ("gpus", bool),  # Does this resource set have GPUs
         # ('pool', int),    # Pool ID (eg. separate gen/sim resources) - not yet used.
     ]
 

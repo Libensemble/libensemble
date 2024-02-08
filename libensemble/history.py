@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class History:
-
     """The History class provides methods for managing the history array.
 
     **Object Attributes:**

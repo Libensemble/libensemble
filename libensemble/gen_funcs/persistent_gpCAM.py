@@ -3,8 +3,8 @@
 import time
 
 import numpy as np
-from numpy.lib.recfunctions import repack_fields
 from gpcam import GPOptimizer as GP
+from numpy.lib.recfunctions import repack_fields
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
@@ -38,14 +38,14 @@ def _initialize_gpcAM(user_specs, libE_info):
 
 def _read_testpoints(U):
     """Read numpy file containing evaluated points for measuring GP error"""
-    test_points_file = U.get('test_points_file')
+    test_points_file = U.get("test_points_file")
     if test_points_file is None:
         return None
 
     test_points = np.load(test_points_file)
 
     # Remove any NaNs
-    nan_indices = [i for i, fval in enumerate(test_points['f']) if np.isnan(fval)]
+    nan_indices = [i for i, fval in enumerate(test_points["f"]) if np.isnan(fval)]
     test_points = np.delete(test_points, nan_indices, axis=0)
 
     # In case large fields we don't need
@@ -103,7 +103,7 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info):
 
     if test_points is not None:
         f_est = my_gp2S.posterior_mean(test_points["x"])["f(x)"]
-        mse = np.mean((f_est - test_points["f"])**2)
+        mse = np.mean((f_est - test_points["f"]) ** 2)
         persis_info.setdefault("mean_squared_error", []).append(mse)
     return np.array(var_vals)
 

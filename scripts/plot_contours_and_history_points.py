@@ -14,6 +14,7 @@ Working case:
       python plot_contours_and_history_points.py XXX.npy
   where XXX.npy is the last history file saved by the regression test
 """
+
 import sys
 
 import matplotlib.pyplot as plt
