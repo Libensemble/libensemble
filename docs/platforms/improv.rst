@@ -22,7 +22,7 @@ options for installing libEnsemble, including using Spack.
 Job Submission
 --------------
 
-Improv uses the PBS scheduler is used to submit jobs from login nodes to run on the
+Improv uses the PBS scheduler to submit jobs from login nodes to run on the
 compute nodes.
 
 Example
