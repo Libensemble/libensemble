@@ -98,7 +98,6 @@ Common Errors
   This warning happens with Pydantic 2.6.0. Upgrading to the latest version
   (2.6.1+) should remove the warning.
 
-
 HPC Errors and Questions
 ------------------------
 

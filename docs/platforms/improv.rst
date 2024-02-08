@@ -5,7 +5,6 @@ Improv
 Improv_ is an LCRC production cluster at Argonne National Laboratory with 825
 dual-socket compute nodes with AMD 7713 64-core processors.
 
-
 Installing libEnsemble and Dependencies
 ---------------------------------------
 
@@ -66,8 +65,7 @@ You can install mpi4py as usual having installed the openmpi module::
 
     pip install mpi4py
 
-Note if using ``mpi4py`` comms with openMPI, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
+Note if using ``mpi4py`` comms with openmpi, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
 to prevent HCOLL warnings.
-
 
 .. _Improv: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-improv/
