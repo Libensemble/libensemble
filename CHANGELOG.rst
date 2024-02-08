@@ -41,6 +41,7 @@ Platform support:
 Example user functions:
 
 * Add **gpCAM** generator. #1189 / #1213 / #1220
+* Support for IBCDFO local optimization methods in APOSMM. #998
 * Add `mock_sim` to enable replay of a previous run using history file. #1207
 * Fix Sine tutorial. #1168
 
