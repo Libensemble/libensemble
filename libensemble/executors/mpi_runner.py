@@ -364,7 +364,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         """
         hostlist = None
         machinefile = None
-        # Use machine files for OpenMPI
+        # Use machine files for Open-MPI
         # as "-host" requires entry for every rank
 
         machinefile = "machinefile_autogen"
@@ -431,8 +431,8 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("-N", "--nodes")
         self.arg_ppn = ("--ntasks-per-node",)
         self.default_mpi_options = "--exact"
-        self.default_gpu_arg = "--gpus-per-node"
-        self.default_gpu_arg_type = "option_gpus_per_node"
+        self.default_gpu_arg = "--gpus-per-task"
+        self.default_gpu_arg_type = "option_gpus_per_task"
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,

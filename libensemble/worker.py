@@ -3,7 +3,6 @@ libEnsemble worker class
 ====================================================
 """
 
-import cProfile
 import logging
 import logging.handlers
 import socket
@@ -80,6 +79,8 @@ def worker_main(
     """
 
     if libE_specs.get("profile"):
+        import cProfile
+
         pr = cProfile.Profile()
         pr.enable()
 
@@ -128,7 +129,6 @@ class WorkerErrMsg:
 
 
 class Worker:
-
     """The worker class provides methods for controlling sim and gen funcs
 
     **Object Attributes:**
@@ -219,6 +219,18 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
+    def _extract_debug_data(self, calc_type, Work):
+        if calc_type == EVAL_SIM_TAG:
+            enum_desc = "sim_id"
+            calc_id = extract_H_ranges(Work)
+        else:
+            enum_desc = "Gen no"
+            # Use global gen count if available
+            calc_id = str(Work["libE_info"].get("gen_count"))  # if we're doing a gen, we always have a gen count?
+        # Add a right adjust (minimum width).
+        calc_id = calc_id.rjust(5, " ")
+        return enum_desc, calc_id
+
     def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
         """Runs a calculation on this worker object.
 
@@ -238,21 +250,7 @@ class Worker:
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        # calc_stats stores timing and summary info for this Calc (sim or gen)
-        # calc_id = next(self._calc_id_counter)
-
-        if calc_type == EVAL_SIM_TAG:
-            enum_desc = "sim_id"
-            calc_id = extract_H_ranges(Work)
-        else:
-            enum_desc = "Gen no"
-            # Use global gen count if available
-            if Work["libE_info"].get("gen_count"):
-                calc_id = str(Work["libE_info"]["gen_count"])
-            else:
-                calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (minimum width).
-        calc_id = calc_id.rjust(5, " ")
+        enum_desc, calc_id = self._extract_debug_data(calc_type, Work)
 
         timer = Timer()
 
@@ -281,12 +279,12 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:  # better way of doing this logic?
+            if out:
                 if len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
-                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                    if isinstance(out[1], (int, str)):  # got Out, calc_status
                         calc_status = out[1]
                         return out[0], Work["persis_info"], calc_status
                     return *out, calc_status  # got Out, persis_info
@@ -301,6 +299,8 @@ class Worker:
             raise
         finally:
             ctype_str = calc_type_strings[calc_type]
+            # effectively converts calc_status to the relevant string or returns as-is.
+            # on the manager side, the only ones used for functionality are the FINISHED_PERSISTENT tags
             status = calc_status_strings.get(calc_status, calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
 
@@ -314,7 +314,6 @@ class Worker:
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
         if self.stats_fmt.get("show_resource_sets", False):
-            # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
             calc_msg += f" rsets: {resources.rset_team}"
 
@@ -401,7 +400,7 @@ class Worker:
                             continue
                 else:
                     logger.debug(f"mtag: {mtag}; Work: {Work}")
-                    raise
+                    raise ValueError("Received unexpected Work message: ", Work)
 
                 response = self._handle(Work)
                 if response is None:

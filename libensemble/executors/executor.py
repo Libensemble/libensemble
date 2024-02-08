@@ -19,6 +19,7 @@ from libensemble.message_numbers import (
     MAN_KILL_SIGNALS,
     STOP_TAG,
     TASK_FAILED,
+    TASK_FAILED_TO_START,
     UNSET_TAG,
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
@@ -37,7 +38,8 @@ WAITING
 RUNNING
 FINISHED
 USER_KILLED
-FAILED""".split()
+FAILED
+FAILED_TO_START""".split()
 
 NOT_STARTED_STATES = """
 CREATED
@@ -48,6 +50,7 @@ END_STATES = """
 FINISHED
 USER_KILLED
 FAILED
+FAILED_TO_START
 """.split()
 
 
@@ -569,8 +572,8 @@ class Executor:
         self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is Optionally killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Potentially useful
+        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
 
@@ -600,7 +603,11 @@ class Executor:
         calc_status = UNSET_TAG
 
         while not task.finished:
-            task.poll()
+            try:
+                task.poll()
+            except ExecutorException as e:
+                logger.warning(f"Exception in polling_loop: {e}")
+                break
 
             if poll_manager:
                 man_signal = self.manager_poll()
@@ -619,6 +626,8 @@ class Executor:
         if calc_status == UNSET_TAG:
             if task.state == "FINISHED":
                 calc_status = WORKER_DONE
+            elif task.state == "FAILED_TO_START":
+                calc_status = TASK_FAILED_TO_START
             elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
@@ -676,7 +685,7 @@ class Executor:
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool] = False,
+        wait_on_start: Optional[Union[bool, int]] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
@@ -707,9 +716,10 @@ class Executor:
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: bool, Optional
+        wait_on_start: bool or int, Optional
             Whether to wait for task to be polled as RUNNING (or other
-            active/end state) before continuing
+            active/end state) before continuing. If an integer N is supplied,
+            wait at most N seconds.
 
         env_script: str, Optional
             The full path of a shell script to set up the environment for the
@@ -762,7 +772,7 @@ class Executor:
                     start_new_session=False,
                 )
             if wait_on_start:
-                self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
+                self._wait_on_start(task, wait_on_start)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()

@@ -28,7 +28,6 @@ from libensemble.message_numbers import (
     MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
-    calc_status_strings,
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
@@ -66,7 +65,7 @@ def report_worker_exc(wrk_exc: Exception = None) -> None:
 
 
 def manager_main(
-    hist: npt.NDArray,
+    hist,
     libE_specs: dict,
     alloc_specs: dict,
     sim_specs: dict,
@@ -168,7 +167,7 @@ class Manager:
 
     def __init__(
         self,
-        hist: npt.NDArray,
+        hist,
         libE_specs: dict,
         alloc_specs: dict,
         sim_specs: dict,
@@ -183,6 +182,7 @@ class Manager:
         self.safe_mode = libE_specs.get("safe_mode")
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
+        self.hist.safe_mode = self.safe_mode
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
@@ -285,7 +285,7 @@ class Manager:
         date_start = self._get_date_start_str()
 
         filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
-        if not os.path.isfile(filename) and count > 0:
+        if (not os.path.isfile(filename) and count > 0) or complete:
             for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
                 os.remove(old_file)
             np.save(filename, self.hist.trim_H())
@@ -406,20 +406,6 @@ class Manager:
 
     # --- Handle incoming messages from workers
 
-    @staticmethod
-    def _check_received_calc(D_recv: dict) -> None:
-        """Checks the type and status fields on a receive calculation"""
-        calc_type = D_recv["calc_type"]
-        calc_status = D_recv["calc_status"]
-        assert calc_type in [
-            EVAL_SIM_TAG,
-            EVAL_GEN_TAG,
-        ], f"Aborting, Unknown calculation type received. Received type: {calc_type}"
-
-        assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
-            calc_status, str
-        ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
-
     def _receive_from_workers(self, persis_info: dict) -> dict:
         """Receives calculation output from workers. Loops over all
         active workers and probes to see if worker is ready to
@@ -442,7 +428,6 @@ class Manager:
         """Updates history and worker info on worker message"""
         calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
-        Manager._check_received_calc(D_recv)
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
         if w not in self.persis_pending and not self.W[w - 1]["active_recv"] and not keep_state:
@@ -452,9 +437,9 @@ class Manager:
             final_data = D_recv.get("calc_out", None)
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
-                    self.hist.update_history_x_in(w, final_data, self.safe_mode, self.W[w - 1]["gen_started_time"])
+                    self.hist.update_history_x_in(w, final_data, self.W[w - 1]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
-                    self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
+                    self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w - 1]["persis_state"] = 0
@@ -467,9 +452,9 @@ class Manager:
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
-                self.hist.update_history_f(D_recv, self.safe_mode, self.kill_canceled_sims)
+                self.hist.update_history_f(D_recv, self.kill_canceled_sims)
             if calc_type == EVAL_GEN_TAG:
-                self.hist.update_history_x_in(w, D_recv["calc_out"], self.safe_mode, self.W[w - 1]["gen_started_time"])
+                self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w - 1]["gen_started_time"])
                 assert (
                     len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w - 1]["persis_state"]
                 ), "Gen must return work when is is the only thing active and not persistent."

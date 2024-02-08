@@ -18,15 +18,28 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
+                pydantic-version: ["2.5.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: "3.11"
                       mpi-version: "mpich=4.0.3"
+                      pydantic-version: "2.5.2"
                       comms-type: m
                     - os: macos-latest
-                      python-version: 3.11
+                      python-version: "3.11"
                       mpi-version: "mpich=4.0.3"
+                      pydantic-version: "2.5.2"
+                      comms-type: l
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: "3.10"
+                      pydantic-version: "1.10.13"
+                      comms-type: m
+                    - os: ubuntu-latest
+                      mpi-version: mpich
+                      python-version: "3.10"
+                      pydantic-version: "1.10.13"
                       comms-type: l
 
         env:
@@ -41,7 +54,7 @@ jobs:
         steps:
         - uses: actions/checkout@v4
         - name: Setup conda - Python ${{ matrix.python-version }}
-          uses: conda-incubator/setup-miniconda@v2
+          uses: conda-incubator/setup-miniconda@v3
           with:
             activate-environment: condaenv
             miniconda-version: "latest"
@@ -50,7 +63,7 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v3
+        - uses: actions/cache/restore@v4
           name: Restore cached dependencies
           id: cache
           if: matrix.os == 'ubuntu-latest'
@@ -61,7 +74,7 @@ jobs:
               /usr/share/miniconda3/bin
               /usr/share/miniconda3/lib
               /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-basic
 
         - name: Force-update certifi
           run: |
@@ -85,18 +98,26 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
 
+            git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
+            pushd IBCDFO/minq/py/minq5/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+            popd
+            pushd IBCDFO/ibcdfo_pypkg/
+            pip install -e .
+            popd
+
         - name: Install mpi4py and MPI from conda
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
         - name: Install generator dependencies
-          if: matrix.os != 'windows-latest' && steps.cache.outputs.cache-hit != 'true'
           run: |
             python -m pip install --upgrade pip
-            pip install mpmath
+            pip install mpmath matplotlib
             conda install numpy nlopt scipy
 
-        - uses: actions/cache/save@v3
+        - uses: actions/cache/save@v4
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
           with:
@@ -108,10 +129,16 @@ jobs:
               /usr/share/miniconda3/include
             key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
 
-        - name: Install libEnsemble, flake8, lock environment
+        - name: Install libEnsemble, flake8
           run: |
+            pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
+
+        - name: Remove various tests on newer pythons
+          if: matrix.python-version >= '3.11'
+          run: |
+            rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on 3.12
 
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
@@ -130,7 +157,7 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v3
+          uses: codecov/codecov-action@v4
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -140,4 +167,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.16.23
+        - uses: crate-ci/typos@v1.18.1

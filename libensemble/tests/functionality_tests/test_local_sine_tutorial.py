@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from gen import gen_random_sample
-from sim import sim_find_sine
+from sine_gen import gen_random_sample
+from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
@@ -21,9 +20,9 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
 
     sim_specs = SimSpecs(
         sim_f=sim_find_sine,  # Our simulator function
-        inputs=["x"],  # Input field names. "x" from gen_f output
+        inputs=["x"],  # InputArray field names. "x" from gen_f output
         out=[("y", float)],  # sim_f output. "y" = sine("x")
-    )
+    )  # sim_specs_end_tag
 
     exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
@@ -32,6 +31,11 @@ if __name__ == "__main__":  # Python-quirk required on macOS and windows
     ensemble.run()  # start the ensemble. Blocks until completion.
 
     history = ensemble.H  # start visualizing our results
+
+    print([i for i in history.dtype.fields])  # (optional) to visualize our history array
+    print(history)
+
+    import matplotlib.pyplot as plt
 
     colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 

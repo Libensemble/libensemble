@@ -2,13 +2,17 @@
 Calls the branin function. Default behavior uses the python function, but
 uncommenting lines will write x.in to file, call branin.py, and then read f.out.
 """
+
 import time
 
 import numpy as np
 
 from libensemble.sim_funcs.branin.branin import branin
+from libensemble.specs import input_fields, output_data
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def call_branin(H, _, sim_specs):
     """Evaluates the Branin function"""
     batch = len(H["x"])

@@ -14,6 +14,7 @@ summit_spec = {
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
+    "tiles_per_gpu": None,
     "gpu_setting_type": "option_gpus_per_task",
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
@@ -58,6 +59,9 @@ def test_platform_known():
 
 def test_platform_specs():
     """Test known platform and platform_specs supplied"""
+    from libensemble.specs import LibeSpecs
+    from libensemble.utils.misc import specs_dump
+
     exp = my_spec
     libE_specs = {"platform_specs": my_spec}
     platform_info = get_platform(libE_specs)
@@ -74,6 +78,10 @@ def test_platform_specs():
     libE_specs = {"platform": "generic_rocm", "platform_specs": my_spec}
     platform_info = get_platform(libE_specs)
     assert platform_info == exp, f"platform_info does not match expected: {platform_info}"
+
+    LS = LibeSpecs(platform_specs=exp)
+    assert not isinstance(LS.platform_specs, dict), "Internal platform_specs not cast to class"
+    assert specs_dump(LS.platform_specs, exclude_none=True) == exp, "Conversion isn't as expected"
 
 
 def test_known_sys_detect():

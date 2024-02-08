@@ -1,12 +1,11 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from gen import gen_random_sample
-from sim import sim_find_sine
+from sine_gen import gen_random_sample
+from sine_sim import sim_find_sine
 
 from libensemble import Ensemble
 from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # Python-quirk required on macOS and windows
     # libE_specs = LibeSpecs(nworkers=4, comms="local")
 
     gen_specs = GenSpecs(
@@ -21,20 +20,24 @@ if __name__ == "__main__":
 
     sim_specs = SimSpecs(
         sim_f=sim_find_sine,  # Our simulator function
-        inputs=["x"],  # Input field names. "x" from gen_f output
+        inputs=["x"],  # InputArray field names. "x" from gen_f output
         out=[("y", float)],  # sim_f output. "y" = sine("x")
-    )
+    )  # sim_specs_end_tag
 
     exit_criteria = ExitCriteria(sim_max=80)  # Stop libEnsemble after 80 simulations
 
+    # replace libE_specs with parse_args=True. Detects MPI runtime
     ensemble = Ensemble(sim_specs, gen_specs, exit_criteria, parse_args=True)
-    ensemble.add_random_streams()  # setup the random streams unique to each worker
+
+    ensemble.add_random_streams()
     ensemble.run()  # start the ensemble. Blocks until completion.
 
     if ensemble.is_manager:  # only True on rank 0
         history = ensemble.H  # start visualizing our results
         print([i for i in history.dtype.fields])
         print(history)
+
+        import matplotlib.pyplot as plt
 
         colors = ["b", "g", "r", "y", "m", "c", "k", "w"]
 

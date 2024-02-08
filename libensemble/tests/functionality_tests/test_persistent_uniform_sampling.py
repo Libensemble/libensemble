@@ -3,7 +3,7 @@ Tests libEnsemble with a simple persistent uniform sampling generator
 function.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_sampling.py
+   mpiexec -np 4 python test_persistent_uniform_sampling.py
    python test_persistent_uniform_sampling.py --nworkers 3 --comms local
    python test_persistent_uniform_sampling.py --nworkers 3 --comms tcp
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     libE_specs["kill_canceled_sims"] = False
 
-    for run in range(2):
+    for run in range(3):
         persis_info = add_unique_random_streams({}, nworkers + 1)
         for i in persis_info:
             persis_info[i]["get_grad"] = True
@@ -72,6 +72,20 @@ if __name__ == "__main__":
         elif run == 1:
             gen_specs["gen_f"] = gen_f2
             gen_specs["user"]["num_best_vals"] = 5
+        elif run == 2:
+            m = 8
+            for i in persis_info:
+                persis_info[i]["const"] = 500
+
+            gen_specs["gen_f"] = gen_f1
+            gen_specs["persis_in"] = ["x", "f_i", "gradf_i", "sim_id"]
+            gen_specs["out"] = [("x", float, (2 * m,)), ("obj_component", int)]
+            gen_specs["user"]["num_components"] = m
+            gen_specs["user"]["lb"] = np.arange(-2 * m - 1, -1)
+            gen_specs["user"]["ub"] = np.arange(2 * m + 1, 1, -1)
+            sim_specs["out"] = [("f_i", float), ("gradf_i", float, 2 * m)]
+            sim_specs["in"] = ["x", "obj_component"]
+            # sim_specs["out"] = [("f", float), ("grad", float, n)]
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

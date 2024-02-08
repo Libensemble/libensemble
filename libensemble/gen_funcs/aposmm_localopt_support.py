@@ -2,11 +2,13 @@
 This module contains methods for APOSMM to interface with various local
 optimization routines.
 """
+
 __all__ = [
     "LocalOptInterfacer",
     "run_local_nlopt",
     "run_local_tao",
     "run_local_dfols",
+    "run_local_ibcdfo_pounders",
     "run_local_scipy_opt",
     "run_external_localopt",
 ]
@@ -19,7 +21,12 @@ import psutil
 import libensemble.gen_funcs
 from libensemble.message_numbers import EVAL_GEN_TAG, STOP_TAG  # Only used to simulate receiving from manager
 
-optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "external"]
+
+class APOSMMException(Exception):
+    """Raised for any exception in APOSMM"""
+
+
+optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "ibcdfo", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is not None:
@@ -27,7 +34,7 @@ if optimizers is not None:
         optimizers = [optimizers]
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
-        print(f"APOSMM Warning: unrecognized optimizers {unrec}")
+        raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
 
     # Preferable to import globally in most cases
     if "petsc" in optimizers:
@@ -36,14 +43,12 @@ if optimizers is not None:
         import nlopt  # noqa: F401
     if "dfols" in optimizers:
         import dfols  # noqa: F401
+    if "ibcdfo" in optimizers:
+        from ibcdfo import pounders  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external" in optimizers:
         pass
-
-
-class APOSMMException(Exception):
-    """Raised for any exception in APOSMM"""
 
 
 class ConvergedMsg(object):
@@ -117,8 +122,12 @@ class LocalOptInterfacer(object):
             run_local_opt = run_local_scipy_opt
         elif user_specs["localopt_method"] in ["dfols"]:
             run_local_opt = run_local_dfols
+        elif user_specs["localopt_method"] in ["ibcdfo_pounders"]:
+            run_local_opt = run_local_ibcdfo_pounders
         elif user_specs["localopt_method"] in ["external_localopt"]:
             run_local_opt = run_external_localopt
+        else:
+            raise APOSMMException(f"APOSMM Error: unrecognized method {user_specs['localopt_method']}")
 
         self.parent_can_read.clear()
         self.process = Process(
@@ -155,12 +164,7 @@ class LocalOptInterfacer(object):
         elif "fvec" in data.dtype.names:
             self.comm_queue.put((data["x_on_cube"], data["fvec"]))
         else:
-            self.comm_queue.put(
-                (
-                    data["x_on_cube"],
-                    data["f"],
-                )
-            )
+            self.comm_queue.put((data["x_on_cube"], data["f"]))
 
         self.child_can_read.set()
         self.parent_can_read.wait()
@@ -406,6 +410,67 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
         print(
             "[APOSMM] The DFO-LS run started from " + str(x0) + " stopped with an exit "
             "flag of " + str(soln.flag) + ". No point from this run will be "
+            "ruled as a minimum! APOSMM may start a new run from some point "
+            "in this run."
+        )
+        opt_flag = 0
+
+    finish_queue(x_opt, opt_flag, comm_queue, parent_can_read, user_specs)
+
+
+def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
+    """
+    Runs a IBCDFO local optimization run starting at ``x0``, governed by the
+    parameters in ``user_specs``.
+
+    Although IBCDFO methods can receive previous evaluations, few other methods
+    support that, so APOSMM assumes the first point will be re-evaluated (but
+    not be sent back to the manager).
+    """
+    n = len(x0)
+    # Define bound constraints (lower <= x <= upper)
+    lb = np.zeros(n)
+    ub = np.ones(n)
+
+    # Set random seed (for reproducibility)
+    np.random.seed(0)
+
+    dist_to_bound = min(min(ub - x0), min(x0 - lb))
+    assert dist_to_bound > np.finfo(np.float64).eps, "The distance to the boundary is too small"
+
+    run_max_eval = user_specs.get("run_max_eval", 100 * (n + 1))
+    g_tol = 1e-8
+    delta_0 = 0.5 * dist_to_bound
+    m = len(f0)
+
+    if "hfun" in user_specs:
+        Options = {"hfun": user_specs["hfun"], "combinemodels": user_specs["combinemodels"]}
+    else:
+        Options = None
+
+    [X, F, hF, flag, xkin] = pounders.pounders(
+        lambda x: scipy_dfols_callback_fun(x, comm_queue, child_can_read, parent_can_read, user_specs),
+        x0,
+        n,
+        run_max_eval,
+        g_tol,
+        delta_0,
+        m,
+        lb,
+        ub,
+        Options=Options,
+    )
+
+    assert flag >= 0, "IBCDFO errored"
+
+    x_opt = X[xkin]
+
+    if flag == 0:
+        opt_flag = 1
+    else:
+        print(
+            "[APOSMM] The IBCDFO run started from " + str(x0) + " stopped with an exit "
+            "flag of " + str(flag) + ". No point from this run will be "
             "ruled as a minimum! APOSMM may start a new run from some point "
             "in this run."
         )

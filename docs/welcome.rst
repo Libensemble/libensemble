@@ -28,6 +28,10 @@
     :target: https://github.com/psf/black
     :alt: Code style: black
 
+  .. image:: https://joss.theoj.org/papers/10.21105/joss.06031/status.svg
+    :target: https://doi.org/10.21105/joss.06031
+    :alt: JOSS Status
+
 |
 
 libEnsemble

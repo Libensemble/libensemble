@@ -16,9 +16,9 @@ Local Sine Tutorial
 This example is from the Local Sine :doc:`Tutorial<../tutorials/local_sine_tutorial>`,
 meant to run with Python's multiprocessing as the primary ``comms`` method.
 
-..  literalinclude:: ../../examples/tutorials/simple_sine/calling.py
+..  literalinclude:: ../../examples/tutorials/simple_sine/test_local_sine_tutorial.py
     :language: python
-    :caption: examples/tutorials/simple_sine/calling.py
+    :caption: examples/tutorials/simple_sine/test_local_sine_tutorial.py
     :linenos:
     :emphasize-lines: 8-28
 

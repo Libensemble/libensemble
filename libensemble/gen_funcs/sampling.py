@@ -3,7 +3,10 @@ This module contains multiple generation functions for sampling a domain. All
 use (and return) a random stream in ``persis_info``, given by the allocation
 function.
 """
+
 import numpy as np
+
+from libensemble.specs import output_data
 
 __all__ = [
     "uniform_random_sample",
@@ -15,13 +18,14 @@ __all__ = [
 ]
 
 
+@output_data([("x", float, 2)])  # default: can be overwritten in gen_specs
 def uniform_random_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
     defined by ``gen_specs["user"]["ub"]`` and ``gen_specs["user"]["lb"]``.
 
     .. seealso::
-        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling.py>`_ # noqa
+        `test_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -46,7 +50,7 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
     This generator is used to test/demonstrate setting of resource sets.
 
     #.. seealso::
-        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     ub = gen_specs["user"]["ub"]
@@ -110,7 +114,7 @@ def uniform_random_sample_obj_components(H, persis_info, gen_specs):
     separately.
 
     .. seealso::
-        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
+        `test_uniform_sampling_one_residual_at_a_time.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_one_residual_at_a_time.py>`_ # noqa
     """
     ub = gen_specs["user"]["ub"]
     lb = gen_specs["user"]["lb"]
@@ -153,6 +157,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
     return H_o, persis_info
 
 
+@output_data([("x", float, (1,))])
 def latin_hypercube_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin

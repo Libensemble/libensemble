@@ -76,7 +76,7 @@ if __name__ == "__main__":
             "initial_sample_size": 0,  # Don't need to do evaluations because the sampling already done below
             "localopt_method": "LD_MMA",
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "stop_after_this_many_minima": 25,
+            "stop_after_k_minima": 25,
             "xtol_rel": 1e-6,
             "ftol_rel": 1e-6,
             "max_active_runs": 6,
@@ -121,6 +121,12 @@ if __name__ == "__main__":
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0=H0)
 
     if is_manager:
+        assert persis_info[1].get("run_order"), "Run_order should have been given back"
+        assert (
+            len(persis_info[1]["run_order"]) >= gen_specs["user"]["stop_after_k_minima"]
+        ), "This test should have many runs started."
+        assert len(H) < exit_criteria["sim_max"], "Test should have stopped early due to 'stop_after_k_minima'"
+
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 
@@ -130,7 +136,5 @@ if __name__ == "__main__":
             # We use their values to test APOSMM has identified all minima
             print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
-
-        assert len(H) < exit_criteria["sim_max"], "Test should have stopped early"
 
         save_libE_output(H, persis_info, __file__, nworkers)

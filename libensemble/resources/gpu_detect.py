@@ -59,6 +59,19 @@ def zeinfo():
     return gpu_count
 
 
+def get_num_tiles():
+    """Get number of tiles on GPU if available"""
+
+    # Currently only relevant to Intel GPUs
+    try:
+        ps = subprocess.Popen(("zeinfo"), stderr=subprocess.PIPE)
+        output = subprocess.check_output(("grep", "Number of sub-devices"), stdin=ps.stderr)
+        tile_count = int(output.decode().split()[3])
+    except Exception:
+        return 1
+    return tile_count
+
+
 METHODS = {
     "pynvml": pynvml,
     "nvidia_smi": nvidia_smi,

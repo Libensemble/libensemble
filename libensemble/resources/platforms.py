@@ -12,9 +12,9 @@ import os
 import subprocess
 from typing import Optional
 
-from pydantic import BaseConfig, BaseModel, root_validator, validator
+from pydantic import BaseModel
 
-BaseConfig.validate_assignment = True
+from libensemble.utils.misc import specs_dump
 
 
 class PlatformException(Exception):
@@ -28,25 +28,29 @@ class Platform(BaseModel):
     All are optional, and any not defined will be determined by libEnsemble's auto-detection.
     """
 
-    mpi_runner: Optional[str]
+    mpi_runner: Optional[str] = None
     """MPI runner: One of ``"mpich"``, ``"openmpi"``, ``"aprun"``,
     ``"srun"``, ``"jsrun"``, ``"msmpi"``, ``"custom"`` """
 
-    runner_name: Optional[str]
+    runner_name: Optional[str] = None
     """Literal string of MPI runner command. Only needed if different to the default
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int]
+    cores_per_node: Optional[int] = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int]
+    logical_cores_per_node: Optional[int] = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int]
+    gpus_per_node: Optional[int] = None
     """Number of GPU devices on a compute node of the platform"""
 
-    gpu_setting_type: Optional[str]
+    tiles_per_gpu: Optional[int] = None
+    """Number of tiles on a GPU"""
+
+    gpu_setting_type: Optional[str] = None
+
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
@@ -82,14 +86,14 @@ class Platform(BaseModel):
 
     """
 
-    gpu_setting_name: Optional[str]
+    gpu_setting_name: Optional[str] = None
     """Name of GPU setting
 
     See :attr:`gpu_setting_type` for more details.
 
     """
 
-    gpu_env_fallback: Optional[str]
+    gpu_env_fallback: Optional[str] = None
     """GPU fallback environment setting if not using an MPI runner.
 
     For example:
@@ -106,7 +110,7 @@ class Platform(BaseModel):
 
     """
 
-    scheduler_match_slots: Optional[bool]
+    scheduler_match_slots: Optional[bool] = True
     """
     Whether the libEnsemble resource scheduler should only assign matching slots when
     there are multiple (partial) nodes assigned to a sim function.
@@ -121,30 +125,17 @@ class Platform(BaseModel):
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
 
-    @validator("gpu_setting_type")
-    def check_gpu_setting_type(cls, value):
-        if value is not None:
-            assert value in [
-                "runner_default",
-                "env",
-                "option_gpus_per_node",
-                "option_gpus_per_task",
-            ], "Invalid label for GPU specification type"
-        return value
 
-    @validator("mpi_runner")
-    def check_mpi_runner_type(cls, value):
-        if value is not None:
-            assert value in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"], "Invalid MPI runner name"
-        return value
-
-    @root_validator
-    def check_logical_cores(cls, values):
-        if values.get("cores_per_node") and values.get("logical_cores_per_node"):
-            assert (
-                values["logical_cores_per_node"] % values["cores_per_node"] == 0
-            ), "Logical cores doesn't divide evenly into cores"
-        return values
+class Aurora(Platform):
+    mpi_runner: str = "mpich"
+    runner_name: str = "mpiexec"
+    cores_per_node: int = 104
+    logical_cores_per_node: int = 208
+    gpus_per_node: int = 6
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
+    scheduler_match_slots: bool = True
 
 
 # On SLURM systems, let srun assign free GPUs on the node
@@ -230,7 +221,9 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: str = "runner_default"
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
 
 
@@ -272,6 +265,7 @@ class Known_platforms(BaseModel):
     where auto-detection encounters ambiguity or an unknown feature.
     """
 
+    aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
@@ -287,6 +281,7 @@ class Known_platforms(BaseModel):
 detect_systems = {
     "crusher.olcf.ornl.gov": Crusher,
     "frontier.olcf.ornl.gov": Frontier,
+    "hostmgmt.cm.aurora.alcf.anl.gov": Aurora,
     "hsn.cm.polaris.alcf.anl.gov": Polaris,
     "spock.olcf.ornl.gov": Spock,
     "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
@@ -297,10 +292,10 @@ def known_envs():
     """Detect system by environment variables"""
     platform_info = {}
     if os.environ.get("NERSC_HOST") == "perlmutter":
-        if os.environ.get("SLURM_JOB_PARTITION").startswith("gpu_"):
-            platform_info = PerlmutterGPU().dict(by_alias=True)
+        if "gpu_" in os.environ.get("SLURM_JOB_PARTITION"):
+            platform_info = specs_dump(PerlmutterGPU(), by_alias=True)
         else:
-            platform_info = PerlmutterCPU().dict(by_alias=True)
+            platform_info = specs_dump(PerlmutterCPU(), by_alias=True)
     return platform_info
 
 
@@ -314,7 +309,7 @@ def known_system_detect(cmd="hostname -d"):
     platform_info = {}
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
-        platform_info = detect_systems[domain_name]().dict(by_alias=True)
+        platform_info = specs_dump(detect_systems[domain_name](), by_alias=True)
     except Exception:
         platform_info = known_envs()
     return platform_info
@@ -333,7 +328,7 @@ def get_platform(libE_specs):
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
     if name:
         try:
-            known_platforms = Known_platforms().dict()
+            known_platforms = specs_dump(Known_platforms(), exclude_none=True)
             platform_info = known_platforms[name]
         except KeyError:
             raise PlatformException(f"Error. Unknown platform requested {name}")

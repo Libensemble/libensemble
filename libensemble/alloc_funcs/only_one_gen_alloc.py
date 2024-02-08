@@ -8,7 +8,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     are given. If there is no active generator, then one is started.
 
     .. seealso::
-        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_fast_alloc.py>`_ # noqa
+        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_fast_alloc.py>`_ # noqa
     """
 
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:

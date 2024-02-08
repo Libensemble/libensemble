@@ -119,7 +119,7 @@ from typing import Callable, Dict
 
 import numpy as np
 
-from libensemble.comms.comms import QCommProcess, Timeout, QCommThread
+from libensemble.comms.comms import QCommProcess, QCommThread, Timeout
 from libensemble.comms.logs import manager_logging_config
 from libensemble.comms.tcp_mgr import ClientQCommManager, ServerQCommManager
 from libensemble.executors.executor import Executor
@@ -132,6 +132,8 @@ from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, Sim
 from libensemble.tools.alloc_support import AllocSupport
 from libensemble.tools.tools import _USER_SIM_ID_WARNING
 from libensemble.utils import launcher
+from libensemble.utils.misc import specs_dump
+from libensemble.utils.pydantic_bindings import libE_wrapper
 from libensemble.utils.timer import Timer
 from libensemble.version import __version__
 from libensemble.worker import worker_main
@@ -141,6 +143,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
+@libE_wrapper
 def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,
@@ -228,12 +231,11 @@ def libE(
         exit_criteria=exit_criteria,
     )
 
-    # get corresponding dictionaries back (casted in libE() def)
-    sim_specs = ensemble.sim_specs.dict(by_alias=True)
-    gen_specs = ensemble.gen_specs.dict(by_alias=True)
-    exit_criteria = ensemble.exit_criteria.dict(by_alias=True, exclude_none=True)
-    alloc_specs = ensemble.alloc_specs.dict(by_alias=True)
-    libE_specs = ensemble.libE_specs.dict(by_alias=True)
+    (sim_specs, gen_specs, alloc_specs, libE_specs) = [
+        specs_dump(spec, by_alias=True)
+        for spec in [ensemble.sim_specs, ensemble.gen_specs, ensemble.alloc_specs, ensemble.libE_specs]
+    ]
+    exit_criteria = specs_dump(ensemble.exit_criteria, by_alias=True, exclude_none=True)
 
     # Extract platform info from settings or environment
     platform_info = get_platform(libE_specs)
@@ -242,7 +244,7 @@ def libE(
         logger.manager_warning("Dry run. All libE() inputs validated. Exiting.")
         sys.exit()
 
-    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "local_threading": libE_local}
+    libE_funcs = {"mpi": libE_mpi, "tcp": libE_tcp, "local": libE_local, "threads": libE_local}
 
     Resources.init_resources(libE_specs, platform_info)
     if Executor.executor is not None:
@@ -264,7 +266,7 @@ def manager(
     persis_info,
     alloc_specs,
     libE_specs,
-    hist: np.ndarray,
+    hist: History,
     on_abort: Callable = None,
     on_cleanup: Callable = None,
 ):
@@ -437,7 +439,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
 
     if libE_specs["comms"] == "local":
         QCommLocal = QCommProcess
-    else:  # local_threading
+    else:  # threads
         QCommLocal = QCommThread
         log_comm = False  # Prevents infinite loop of logging.
 
