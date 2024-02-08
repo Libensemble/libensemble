@@ -2,7 +2,7 @@
 Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer and using
 the executor to run an application.
 
-This is to test the scenario, where OpenMPI will fail due to nested MPI, if
+This is to test the scenario, where Open-MPI will fail due to nested MPI, if
 PETSc is imported at global level.
 
 Execute via one of the following commands (e.g., 3 workers):
@@ -35,7 +35,7 @@ from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import multi_points_with_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
-# For OpenMPI the following lines cannot be used, thus allowing PETSc to import.
+# For Open-MPI the following lines cannot be used, thus allowing PETSc to import.
 # import libensemble.gen_funcs
 # libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
 

@@ -61,11 +61,11 @@ Now run forces with five workers (one for generator and four for simulations)::
 mpi4py comms
 ============
 
-You can install mpi4py as usual having installed the openmpi module::
+You can install mpi4py as usual having installed the Open-MPI module::
 
     pip install mpi4py
 
-Note if using ``mpi4py`` comms with openmpi, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
+Note if using ``mpi4py`` comms with Open-MPI, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
 to prevent HCOLL warnings.
 
 .. _Improv: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-improv/
