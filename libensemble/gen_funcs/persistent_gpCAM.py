@@ -109,7 +109,7 @@ def _update_gp_and_eval_var(all_x, all_y, x_for_var, test_points, persis_info):
 
 
 def calculate_grid_distances(lb, ub, num_points):
-    """Calculate mininum and maximum distances between points in grid"""
+    """Calculate minimum and maximum distances between points in grid"""
     num_points = [num_points] * len(lb)
     spacings = [(ub[i] - lb[i]) / (num_points[i] - 1) for i in range(len(lb))]
     min_distance = min(spacings)

@@ -31,20 +31,20 @@ following block:
 
 .. code-block:: console
 
-    (my_env) user@login:~$ CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
+    CC=mpiicc MPICC=mpiicc pip install mpi4py --no-binary mpi4py
 
 libEnsemble can then be installed via ``pip`` or ``conda``. To install via ``pip``:
 
 .. code-block:: console
 
-    (my_env) user@login:~$ pip install libensemble
+    pip install libensemble
 
 To install via ``conda``:
 
 .. code-block:: console
 
-    (my_env) user@login:~$ conda config --add channels conda-forge
-    (my_env) user@login:~$ conda install -c conda-forge libensemble
+    conda config --add channels conda-forge
+    conda install -c conda-forge libensemble
 
 See :doc:`here<../advanced_installation>` for more information on advanced options
 for installing libEnsemble.
