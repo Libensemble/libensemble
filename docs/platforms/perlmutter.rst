@@ -41,14 +41,14 @@ by one of the following ways.
 
 .. code-block:: console
 
-    (my_env) user@perlmutter07:~$ pip install libensemble
+    pip install libensemble
 
 2. Install via **conda**:
 
 .. code-block:: console
 
-    (my_env) user@perlmutter07:~$ conda config --add channels conda-forge
-    (my_env) user@perlmutter07:~$ conda install -c conda-forge libensemble
+    conda config --add channels conda-forge
+    conda install -c conda-forge libensemble
 
 See :doc:`advanced installation<../advanced_installation>` for other installation options.
 
@@ -59,6 +59,15 @@ Perlmutter uses Slurm_ for job submission and management. The two most common
 commands for initiating jobs are ``salloc`` and ``sbatch`` for running
 in interactive and batch modes, respectively. libEnsemble runs on the compute nodes
 on Perlmutter using either ``multi-processing`` (recommended) or ``mpi4py``.
+
+While libEnsemble should detect Perlmutter settings, you can ensure this by setting
+one of the following environment variables in the submission script or interactive
+session for either the CPU or GPU partitions of Perlmutter:
+
+.. code-block:: console
+
+    export LIBE_PLATFORM="perlmutter_c"  # For CPU partition
+    export LIBE_PLATFORM="perlmutter_g"  # For GPU partition
 
 Example
 -------
@@ -86,6 +95,7 @@ Now grab an interactive session on one node::
 
 Then in the session run::
 
+    export LIBE_PLATFORM="perlmutter_g"
     python run_libe_forces.py --comms local --nworkers 4
 
 To see GPU usage, ssh into the node you are on in another window and run::

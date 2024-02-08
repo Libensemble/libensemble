@@ -5,6 +5,8 @@ function.
 """
 import numpy as np
 
+from libensemble.specs import output_data
+
 __all__ = [
     "uniform_random_sample",
     "uniform_random_sample_with_variable_resources",
@@ -15,6 +17,7 @@ __all__ = [
 ]
 
 
+@output_data([("x", float, 2)])  # default: can be overwritten in gen_specs
 def uniform_random_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
@@ -153,6 +156,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
     return H_o, persis_info
 
 
+@output_data([("x", float, (1,))])
 def latin_hypercube_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin

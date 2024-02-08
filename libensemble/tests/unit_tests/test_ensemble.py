@@ -100,10 +100,9 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)]),
+        sim_specs=SimSpecs(sim_f=one_d_example),
         gen_specs=GenSpecs(
             gen_f=latin_hypercube_sample,
-            out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
                 "lb": np.array([-3]),
@@ -147,10 +146,9 @@ def test_flakey_workflow():
     try:
         ens = Ensemble(
             libE_specs=LS,
-            sim_specs=SimSpecs(sim_f=one_d_example, inputs=["X"], out=[("f", float)]),
+            sim_specs=SimSpecs(sim_f=one_d_example),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
-                out=[("x", float, (1,))],
                 user={
                     "gen_batch_size": 100,
                     "lb": np.array([-3]),

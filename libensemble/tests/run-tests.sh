@@ -458,7 +458,6 @@ if [ "$root_found" = true ]; then
     fi
     #Build any sim/gen source code dependencies here .....
 
-
     #Run regression tests using MPI
     #Before first test set error code to zero
     code=0

@@ -39,7 +39,7 @@ See the Executor APIs for optional arguments.
         below and the query functions.
 
     :task.state: (string) The task status. One of
-                ("UNKNOWN"|"CREATED"|"WAITING"|"RUNNING"|"FINISHED"|"USER_KILLED"|"FAILED")
+                ("UNKNOWN"|"CREATED"|"WAITING"|"RUNNING"|"FINISHED"|"USER_KILLED"|"FAILED"|"FAILED_TO_START")
 
     :task.process: (process obj) The process object used by the underlying process
                   manager (e.g., return value of subprocess.Popen).
