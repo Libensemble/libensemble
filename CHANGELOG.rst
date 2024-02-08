@@ -47,7 +47,7 @@ Example user functions:
 :Note:
 
 * Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
-* Heterogeneous workflows tested on Polaris, and Perlmutter (NERSC). Recently tested on Frontier (OLCF).
+* Heterogeneous workflows tested on Aurora, Polaris, and Perlmutter (NERSC). Recently tested on Frontier (OLCF).
 * Tests were also run on Bebop and Improv LCRC systems.
 
 :Known Issues:

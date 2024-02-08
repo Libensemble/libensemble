@@ -93,6 +93,12 @@ Common Errors
       This error may depend on how multiprocessing handles an existing MPI
       communicator in a particular platform.
 
+.. dropdown:: **"UserWarning: Pydantic serializer warnings:Unexpected extra items present in tuple**
+
+  This warning happens with Pydantic 2.6.0. Upgrading to the latest version
+  (2.6.1+) should remove the warning.
+
+
 HPC Errors and Questions
 ------------------------
 
