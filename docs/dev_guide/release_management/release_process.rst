@@ -19,7 +19,7 @@ Before release
 - Version number is updated wherever it appears (and ``+dev`` suffix is removed)
   (in ``libensemble/version.py``).
 
-- Year in ``README.rst`` under *Citing libEnsemble* is checked for correctness.
+- Year in ``LICENSE`` is checked for correctness.
   (Note: The year generated in docs by ``docs/conf.py`` should be automatic).
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
