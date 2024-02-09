@@ -1,2 +1,4 @@
 ignore:
   - "libensemble/tools/parse_args.py"
+  - "libensemble/tools/forkable_pdb.py"
+  - "libensemble/sim_funcs/executor_hworld.py"
