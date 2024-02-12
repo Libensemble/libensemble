@@ -5,7 +5,6 @@ Improv
 Improv_ is an LCRC production cluster at Argonne National Laboratory with 825
 dual-socket compute nodes with AMD 7713 64-core processors.
 
-
 Installing libEnsemble and Dependencies
 ---------------------------------------
 
@@ -22,8 +21,8 @@ options for installing libEnsemble, including using Spack.
 Job Submission
 --------------
 
-Improv uses the PBS scheduler to submit jobs from login nodes to run on the
-compute nodes.
+Improv uses the PBS scheduler to submit jobs from login nodes to run on compute
+nodes.
 
 Example
 -------
@@ -62,12 +61,11 @@ Now run forces with five workers (one for generator and four for simulations)::
 mpi4py comms
 ============
 
-You can install mpi4py as usual having installed the openmpi module::
+You can install mpi4py as usual having installed the Open-MPI module::
 
     pip install mpi4py
 
-Note if using ``mpi4py`` comms with openMPI, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
+Note if using ``mpi4py`` comms with Open-MPI, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
 to prevent HCOLL warnings.
-
 
 .. _Improv: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-improv/

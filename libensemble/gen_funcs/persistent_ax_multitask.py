@@ -8,6 +8,7 @@ of the whole libEnsemble run.
 This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 """
+
 import os
 from copy import deepcopy
 

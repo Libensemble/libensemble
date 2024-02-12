@@ -33,7 +33,7 @@ Before release
 
   - On-line CI (GitHub Actions) tests must pass.
 
-  - Launch and verify extra tests: ``gh workflow run libEnsemble-complete-CI --ref release/branch_name``
+  - Launch and verify extra tests: ``gh workflow run libEnsemble-complete-CI --ref branch_name``
 
   - Scaling tests must be run on HPC platforms listed as supported in release notes.
     Test variants by platform, launch mechanism, scale, and other factors can
