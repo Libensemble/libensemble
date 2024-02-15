@@ -86,3 +86,4 @@ if __name__ == "__main__":
         persis_info = add_unique_random_streams({}, nworkers + 1)
         gen_specs["user"]["run_max_eval"] = 10 * (n + 1)
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        assert flag == 0
