@@ -81,3 +81,8 @@ if __name__ == "__main__":
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
         assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
+
+    if libE_specs["comms"] == "mpi":
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        gen_specs["user"]["run_max_eval"] = 10 * (n + 1)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
