@@ -52,7 +52,7 @@ Registering an application is as easy as providing the full file-path and giving
 it a memorable name. This Executor will later be used within our simulation
 function to launch the registered app.
 
-The last line above initializes the ensemble. The :meth:`parse_args<tools.parse_args>`
+The last line in the above codeblock initializes the ensemble. The :meth:`parse_args<tools.parse_args>`
 parameter is used to read `comms` and `nworkers` from the command line. This sets
 the respective `libE_specs` options.
 

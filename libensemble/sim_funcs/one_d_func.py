@@ -1,6 +1,7 @@
 """
 This module contains an example 1d function
 """
+
 __all__ = ["one_d_example"]
 
 import numpy as np

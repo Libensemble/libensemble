@@ -2,6 +2,7 @@
 This module contains methods for APOSMM to interface with various local
 optimization routines.
 """
+
 __all__ = [
     "LocalOptInterfacer",
     "run_local_nlopt",
