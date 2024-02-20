@@ -62,25 +62,16 @@ elif pydanticV2:
     specs._EnsembleSpecs.model_config = model_config
     platforms.Platform.model_config = model_config
 
-    specs.SimSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
-        specs.SimSpecs.model_fields["inputs"], Field(alias="in")
-    )
+    model = specs.SimSpecs.model_fields
+    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    specs.SimSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.SimSpecs.model_fields["outputs"], Field(alias="out")
-    )
+    model = specs.GenSpecs.model_fields
+    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    specs.GenSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
-        specs.GenSpecs.model_fields["inputs"], Field(alias="in")
-    )
-
-    specs.GenSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.GenSpecs.model_fields["outputs"], Field(alias="out")
-    )
-
-    specs.AllocSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.AllocSpecs.model_fields["outputs"], Field(alias="out")
-    )
+    model = specs.AllocSpecs.model_fields
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
     specs.SimSpecs.model_rebuild(force=True)
     specs.GenSpecs.model_rebuild(force=True)
