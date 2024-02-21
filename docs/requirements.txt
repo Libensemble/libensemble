@@ -1,6 +1,5 @@
 sphinx<8
 sphinxcontrib-bibtex
-pydantic==2.5.1
 autodoc_pydantic
 sphinx-design
 numpy
