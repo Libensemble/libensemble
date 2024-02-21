@@ -366,6 +366,13 @@ class AllocSupport:
             q_inds = 0
         return np.nonzero(points_avail)[0][q_inds]
 
+    def skip_canceled_points(self, H, persis_info):
+        """Increments the "next_to_give" field in persis_info to skip any cancelled points"""
+        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
+            persis_info["next_to_give"] += 1
+
+        return persis_info
+
     @staticmethod
     def _check_H_rows(H_rows):
         """Ensure H_rows is a numpy array.  If it is not, then convert if possible,
