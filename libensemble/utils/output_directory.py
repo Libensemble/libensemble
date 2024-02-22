@@ -187,35 +187,33 @@ class EnsembleDirectory:
 
     def copy_back(self) -> None:
         """Copy back all ensemble dir contents to launch location"""
-        if self.ensemble_dir.exists() and self.ensemble_copy_back and self.loc_stack:
-            no_calc_dirs = not self.sim_dirs_make or not self.gen_dirs_make
+        if not self.ensemble_dir.exists() or not self.ensemble_copy_back or not self.loc_stack:
+            return
 
-            for dire in self.loc_stack.dirs.values():
-                dire = Path(dire)
-                dest_path = self.copybackdir / Path(dire.stem)
-                if dire == self.ensemble_dir:  # occurs when no_calc_dirs is True
-                    continue  # otherwise, entire ensemble dir copied into copyback dir
+        for dire in self.loc_stack.dirs.values():
+            dire = Path(dire)
+            dest_path = self.copybackdir / Path(dire.stem)
+            if dire == self.ensemble_dir:  # occurs when no_calc_dirs is True
+                continue  # otherwise, entire ensemble dir copied into copyback dir
 
+            if self.allow_overwrite:
+                shutil.rmtree(dest_path, ignore_errors=True)
+            shutil.copytree(dire, dest_path, symlinks=True, dirs_exist_ok=True)
+            if dire.stem.startswith("worker"):
+                return  # Worker dir (with all contents) has been copied.
+
+        # If not using calc dirs, likely miscellaneous files to copy back
+        if not self.sim_dirs_make or not self.gen_dirs_make:
+            p = re.compile(r"((^sim)|(^gen))\d")
+            for filep in [i for i in os.listdir(self.ensemble_dir) if not p.match(i)]:  # each noncalc_dir file
+                source_path = self.ensemble_dir / filep
+                dest_path = self.copybackdir / filep
                 if self.allow_overwrite:
                     shutil.rmtree(dest_path, ignore_errors=True)
-                shutil.copytree(dire, dest_path, symlinks=True, dirs_exist_ok=True)
-                if dire.stem.startswith("worker"):
-                    return  # Worker dir (with all contents) has been copied.
-
-            # If not using calc dirs, likely miscellaneous files to copy back
-            if no_calc_dirs:
-                p = re.compile(r"((^sim)|(^gen))\d")
-                for filep in [i for i in os.listdir(self.ensemble_dir) if not p.match(i)]:  # each noncalc_dir file
-                    source_path = os.path.join(self.ensemble_dir, filep)
-                    dest_path = os.path.join(self.copybackdir, filep)
-                    if self.allow_overwrite:
-                        shutil.rmtree(dest_path, ignore_errors=True)
-                    try:
-                        if os.path.isdir(source_path):
-                            shutil.copytree(source_path, dest_path, symlinks=True)
-                        else:
-                            shutil.copy(source_path, dest_path, follow_symlinks=False)
-                    except FileExistsError:
-                        continue
-                    except shutil.SameFileError:  # creating an identical symlink
-                        continue
+                try:
+                    if os.path.isdir(source_path):
+                        shutil.copytree(source_path, dest_path, symlinks=True)
+                    else:
+                        shutil.copy(source_path, dest_path, follow_symlinks=False)
+                except (FileExistsError, shutil.SameFileError):  # creating an identical symlink
+                    continue
