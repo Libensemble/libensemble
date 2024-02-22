@@ -4,7 +4,7 @@ from typing import Callable
 import numpy as np
 
 from libensemble.resources.platforms import Platform
-from libensemble.utils.misc import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
@@ -170,7 +170,7 @@ if pydanticV1:
     def check_logical_cores(cls, values):
         return _check_logical_cores(values)
 
-elif pydanticV2:
+else:
     from pydantic import field_validator, model_validator
 
     # SPECS VALIDATORS #####

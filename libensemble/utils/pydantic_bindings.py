@@ -4,7 +4,7 @@ from pydantic import Field, create_model
 
 from libensemble import specs
 from libensemble.resources import platforms
-from libensemble.utils.misc import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
@@ -47,7 +47,7 @@ if pydanticV1:
     specs.LibeSpecs.Config = Config
     specs._EnsembleSpecs.Config = Config
 
-elif pydanticV2:
+else:
     from pydantic import ConfigDict
     from pydantic import validate_call as libE_wrapper  # noqa: F401
     from pydantic.fields import FieldInfo

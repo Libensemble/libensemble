@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.utils.misc import pydanticV1, pydanticV2, specs_dump
+from libensemble.utils.misc import pydanticV1, specs_dump
 
 
 def test_ensemble_init():
@@ -132,7 +132,7 @@ def test_flakey_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     if pydanticV1:
         from pydantic.error_wrappers import ValidationError
-    elif pydanticV2:
+    else:
         from pydantic import ValidationError
 
     from libensemble.ensemble import Ensemble
