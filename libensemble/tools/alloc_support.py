@@ -54,6 +54,7 @@ class AllocSupport:
         self.sched = None
         self.def_gen_num_procs = libE_info.get("gen_num_procs", 0)
         self.def_gen_num_gpus = libE_info.get("gen_num_gpus", 0)
+        self.gen_on_manager = libE_info.get("gen_on_manager", False)
         if self.resources is not None:
             wrk_resources = self.resources.resource_manager
             scheduler_opts = libE_info.get("scheduler_opts", {})
@@ -272,7 +273,7 @@ class AllocSupport:
         """
         self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid - 1]["persis_state"]:
+        if self.gen_on_manager or not self.W[wid - 1]["persis_state"]:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info["gen_count"] = AllocSupport.gen_counter
 

@@ -42,6 +42,8 @@ WORKER_DONE = 35  # Calculation was successful
 # last_calc_status_rst_tag
 CALC_EXCEPTION = 36  # Reserved: Automatically used if user_f raised an exception
 
+EVAL_FINAL_GEN_TAG = 36
+
 MAN_KILL_SIGNALS = [MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL]
 
 calc_status_strings = {

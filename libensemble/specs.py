@@ -156,6 +156,10 @@ class LibeSpecs(BaseModel):
     Specifications for configuring libEnsemble's runtime behavior.
     """
 
+    # TODO Move to best place
+    gen_on_manager: Optional[bool] = False
+    """ Whether libEnsemble should run generators on the manager. """
+
     comms: Optional[str] = "mpi"
     """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
 
