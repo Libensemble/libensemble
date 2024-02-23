@@ -38,7 +38,6 @@ Examples:
        :linenos:
        :start-at:     for wid in support.avail_worker_ids():
        :end-before:         # Give sim work if possible
-       :emphasize-lines: 3-4
        :caption: libensemble/alloc_funcs/fast_alloc.py
 
   .. tab-item:: Tracking running generators
