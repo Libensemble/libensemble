@@ -8,6 +8,24 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.2.1
+--------------
+
+:Date: February 23, 2024
+
+* Fix documentation bug where pydantic models do not display correctly.  #1249
+* Improve internal efficiency. #1243 / #1249
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.2.0
 --------------
 

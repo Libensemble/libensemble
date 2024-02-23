@@ -2,11 +2,11 @@ import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs, _EnsembleSpecs
-from libensemble.utils.misc import pydanticV1, pydanticV2, specs_dump
+from libensemble.utils.misc import pydanticV1, specs_dump
 
 if pydanticV1:
     from pydantic.error_wrappers import ValidationError
-elif pydanticV2:
+else:
     from pydantic import ValidationError
 
 
@@ -53,7 +53,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     try:
         if pydanticV1:
             SimSpecs.parse_obj(bad_specs)
-        elif pydanticV2:
+        else:
             SimSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
@@ -64,7 +64,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     try:
         if pydanticV1:
             GenSpecs.parse_obj(bad_specs)
-        elif pydanticV2:
+        else:
             GenSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError as e:
@@ -77,7 +77,7 @@ def test_sim_gen_alloc_exit_specs_invalid():
     try:
         if pydanticV1:
             ExitCriteria.parse_obj(bad_ec)
-        elif pydanticV2:
+        else:
             ExitCriteria.model_validate(bad_ec)
         flag = 0
     except ValidationError:
@@ -90,28 +90,28 @@ def test_libe_specs():
     libE_specs = {"mpi_comm": Fake_MPI(), "comms": "mpi"}
     if pydanticV1:
         ls = LibeSpecs.parse_obj(libE_specs)
-    elif pydanticV2:
+    else:
         ls = LibeSpecs.model_validate(libE_specs)
 
     libE_specs["sim_input_dir"] = "./simdir"
     libE_specs["sim_dir_copy_files"] = ["./simdir"]
     if pydanticV1:
         ls = LibeSpecs.parse_obj(libE_specs)
-    elif pydanticV2:
+    else:
         ls = LibeSpecs.model_validate(libE_specs)
 
     libE_specs = {"comms": "tcp", "nworkers": 4}
 
     if pydanticV1:
         ls = LibeSpecs.parse_obj(libE_specs)
-    elif pydanticV2:
+    else:
         ls = LibeSpecs.model_validate(libE_specs)
     assert ls.disable_resource_manager, "resource manager should be disabled when using tcp comms"
 
     libE_specs = {"comms": "tcp", "workers": ["hello.host"]}
     if pydanticV1:
         ls = LibeSpecs.parse_obj(libE_specs)
-    elif pydanticV2:
+    else:
         ls = LibeSpecs.model_validate(libE_specs)
 
 
@@ -121,7 +121,7 @@ def test_libe_specs_invalid():
     try:
         if pydanticV1:
             LibeSpecs.parse_obj(bad_specs)
-        elif pydanticV2:
+        else:
             LibeSpecs.model_validate(bad_specs)
         flag = 0
     except ValidationError:
