@@ -224,6 +224,10 @@ y[213] =    28.9500;  t[213] =   1.7500;
 # fmt: on
 
 
+def func_def(x, i):
+    return y[i] - np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
+
+
 def EvaluateFunction(x, component=np.nan):
     """
     Evaluates the chwirut function
@@ -231,10 +235,9 @@ def EvaluateFunction(x, component=np.nan):
     if np.isnan(component):
         f = np.zeros(NOBSERVATIONS)
         for i in range(NOBSERVATIONS):
-            f[i] = y[i] - np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
+            f[i] = func_def(x, i)
     else:
-        i = component
-        f = y[i] - np.exp(-x[0] * t[i]) / (x[1] + x[2] * t[i])
+        f = func_def(x, component)
 
     return f
 

@@ -71,6 +71,7 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
 @output_data([("f", float), ("cstat", int)])
 def executor_hworld(H, _, sim_specs, info):
     """Tests launching and polling task and exiting on task finish"""
+
     exctr = info["executor"]
     cores = sim_specs["user"]["cores"]
     ELAPSED_TIMEOUT = "elapsed_timeout" in sim_specs["user"]

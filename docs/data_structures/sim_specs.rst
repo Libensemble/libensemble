@@ -23,7 +23,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
         sim_specs = SimSpecs(
             sim_f=sim_find_sine,
             inputs=["x"],
-            out=[("y", float)],
+            outputs=[("y", float)],
             user={"batch": 1234},
         )
         ...

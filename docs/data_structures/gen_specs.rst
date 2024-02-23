@@ -23,7 +23,7 @@ Can be constructed and passed to libEnsemble as a Python class or a dictionary.
 
         gen_specs = GenSpecs(
             gen_f=gen_random_sample,
-            out=[("x", float, (1,))],
+            outputs=[("x", float, (1,))],
             user={
                 "lower": np.array([-3]),
                 "upper": np.array([3]),
