@@ -187,6 +187,29 @@ class Manager:
         ("zero_resource_worker", bool),
     ]
 
+    def _run_additional_worker(self, hist, sim_specs, gen_specs, libE_specs):
+        dtypes = {
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+        }
+
+        self.W = np.zeros(len(self.wcomms) + 1, dtype=Manager.worker_dtype)
+        self.W["worker_id"] = np.arange(len(self.wcomms) + 1)
+        local_worker_comm = QCommThread(
+            worker_main,
+            len(self.wcomms),
+            sim_specs,
+            gen_specs,
+            libE_specs,
+            0,
+            False,
+            Resources.resources,
+            Executor.executor,
+        )
+        self.wcomms = [local_worker_comm] + self.wcomms
+        local_worker_comm.run()
+        local_worker_comm.send(0, dtypes)
+
     def __init__(
         self,
         hist,
@@ -232,28 +255,7 @@ class Manager:
 
         if self.libE_specs.get("manager_runs_additional_worker", False):
             # We start an additional Worker 0 on a thread.
-
-            dtypes = {
-                EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-                EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-            }
-
-            self.W = np.zeros(len(self.wcomms) + 1, dtype=Manager.worker_dtype)
-            self.W["worker_id"] = np.arange(len(self.wcomms) + 1)
-            local_worker_comm = QCommThread(
-                worker_main,
-                len(self.wcomms),
-                sim_specs,
-                gen_specs,
-                libE_specs,
-                0,
-                False,
-                Resources.resources,
-                Executor.executor,
-            )
-            self.wcomms = [local_worker_comm] + self.wcomms
-            local_worker_comm.run()
-            local_worker_comm.send(0, dtypes)
+            self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
 
         self.W = _WorkerIndexer(self.W, self.libE_specs.get("manager_runs_additional_worker", False))
         self.wcomms = _WorkerIndexer(self.wcomms, self.libE_specs.get("manager_runs_additional_worker", False))
@@ -637,6 +639,7 @@ class Manager:
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
             "manager_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
+            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
