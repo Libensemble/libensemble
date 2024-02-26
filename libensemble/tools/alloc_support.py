@@ -5,7 +5,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
-from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -47,7 +47,7 @@ class AllocSupport:
         :param user_resources: (Optional) A user supplied ``resources`` object.
         :param user_scheduler: (Optional) A user supplied ``user_scheduler`` object.
         """
-        self.W = W
+        self.W = _WorkerIndexer(W, libE_info.get("manager_runs_additional_worker", False))
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
@@ -221,7 +221,7 @@ class AllocSupport:
         """Add rset_team to libE_info."""
         if self.manage_resources and not libE_info.get("rset_team"):
             num_rsets_req = 0
-            if self.W[wid - 1]["persistent"]:
+            if self.W[wid]["persistent"]:
                 # Even if empty list, non-None rset_team stops manager giving default resources
                 libE_info["rset_team"] = []
                 return
@@ -292,7 +292,7 @@ class AllocSupport:
         """
         self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid - 1]["persistent"]:
+        if not self.W[wid]["persistent"]:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info["gen_count"] = AllocSupport.gen_counter
 

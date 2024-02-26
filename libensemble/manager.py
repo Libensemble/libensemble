@@ -34,7 +34,7 @@ from libensemble.message_numbers import (
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
-from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg, worker_main
@@ -152,27 +152,6 @@ Termination due to wallclock_max has occurred.
 Some issued work has not been returned.
 Posting kill messages for all workers.
 """
-
-
-class _WorkerIndexer:
-    def __init__(self, iterable: list, additional_worker=False):
-        self.iterable = iterable
-        self.additional_worker = additional_worker
-
-    def __getitem__(self, key):
-        if self.additional_worker or isinstance(key, str):
-            return self.iterable[key]
-        else:
-            return self.iterable[key - 1]
-
-    def __setitem__(self, key, value):
-        self.iterable[key] = value
-
-    def __len__(self):
-        return len(self.iterable)
-
-    def __iter__(self):
-        return iter(self.iterable)
 
 
 class Manager:
