@@ -1,6 +1,5 @@
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
@@ -30,7 +29,7 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
 
     # If wid is in persistent mode, and all of its calculated values have
     # returned, give them back to wid. Otherwise, give nothing to wid
-    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
+    for wid in support.avail_gen_worker_ids(persistent=True):
         # What (x_ind, f_ind) pairs have all of the evaluation of all n_ind
         # values complete.
         inds_not_sent_back = ~H["gen_informed"]

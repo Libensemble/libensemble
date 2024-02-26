@@ -100,6 +100,9 @@ class AllocSupport:
         be ignored.
         """
 
+        if persistent == EVAL_GEN_TAG:  # backwards compatibility
+            return self.avail_gen_worker_ids(persistent, active_recv, zero_resource_workers)
+
         # For abbrev.
         def fltr_persis():
             return wrk["persistent"] == persistent

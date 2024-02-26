@@ -1,6 +1,5 @@
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
@@ -25,7 +24,7 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
 
     # If wid is idle, but in persistent mode, and generated work has all returned
     # give output back to wid. Otherwise, give nothing to wid
-    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
+    for wid in support.avail_gen_worker_ids(persistent=True):
         # if > 1 persistent generator, assign the correct work to it
         inds_generated_by_wid = H["gen_worker"] == wid
         if support.all_sim_ended(H, inds_generated_by_wid):
