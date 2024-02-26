@@ -102,10 +102,7 @@ class AllocSupport:
 
         # For abbrev.
         def fltr_persis():
-            if persistent:
-                return wrk["persistent"]
-            else:
-                return True
+            return wrk["persistent"] == persistent
 
         def fltr_zrw():
             # If none exist or you did not ask for zrw then return True
@@ -160,11 +157,11 @@ class AllocSupport:
 
     def test_any_gen(self):
         """Returns ``True`` if a generator worker is active."""
-        return any(self.W["active"] == EVAL_GEN_TAG)
+        return any(self.W["active"] & self.W["worker_type"] == EVAL_GEN_TAG)
 
     def count_persis_gens(self):
         """Return the number of active persistent generators."""
-        return sum(self.W["persistent"] == EVAL_GEN_TAG)
+        return sum((self.W["persistent"]) & (self.W["worker_type"] == EVAL_GEN_TAG))
 
     def _req_resources_sim(self, libE_info, user_params, H, H_rows):
         """Determine required resources for a sim work unit"""
