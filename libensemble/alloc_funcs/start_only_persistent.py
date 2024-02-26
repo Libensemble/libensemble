@@ -1,6 +1,6 @@
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
+from libensemble.message_numbers import EVAL_SIM_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
@@ -51,7 +51,6 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     if libE_info["sim_max_given"] or not libE_info["any_idle_workers"]:
         return {}, persis_info
 
-    # Initialize alloc_specs["user"] as user.
     user = alloc_specs.get("user", {})
     manage_resources = libE_info["use_resource_sets"]
 
@@ -71,7 +70,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
         return Work, persis_info, 1
 
     # Give evaluated results back to a running persistent gen
-    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=active_recv_gen):
+    for wid in support.avail_gen_worker_ids(persistent=True, active_recv=active_recv_gen):
         gen_inds = H["gen_worker"] == wid
         returned_but_not_given = np.logical_and.reduce((H["sim_ended"], ~H["gen_informed"], gen_inds))
         if np.any(returned_but_not_given):

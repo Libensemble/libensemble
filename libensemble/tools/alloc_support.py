@@ -87,29 +87,25 @@ class AllocSupport:
             rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
 
-    def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None):
+    def avail_worker_ids(self, persistent=False, active_recv=False, zero_resource_workers=None, worker_type=None):
         """Returns available workers as a list of IDs, filtered by the given options.
 
         :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
         :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
         :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
+        :param worker_type: (Optional) Int. Only return workers with given ``worker_type`` (1=sim, 2=gen).
         :returns: List of worker IDs.
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
         be ignored.
         """
 
-        def fltr(wrk, field, option):
-            """Filter by condition if supplied"""
-            if option is None:
-                return True
-            return wrk[field] == option
-
         # For abbrev.
         def fltr_persis():
-            if persistent is None:
+            if persistent:
+                return wrk["persistent"]
+            else:
                 return True
-            return wrk["persis_state"] == persistent
 
         def fltr_zrw():
             # If none exist or you did not ask for zrw then return True
@@ -123,6 +119,12 @@ class AllocSupport:
             else:
                 return not wrk["active"]
 
+        def fltr_worker_type():
+            if worker_type:
+                return wrk["worker_type"] == worker_type
+            else:
+                return True
+
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
@@ -130,13 +132,31 @@ class AllocSupport:
         no_zrw = not any(self.W["zero_resource_worker"])
         wrks = []
         for wrk in self.W:
-            if fltr_recving() and fltr_persis() and fltr_zrw():
+            if fltr_recving() and fltr_persis() and fltr_zrw() and fltr_worker_type():
                 wrks.append(wrk["worker_id"])
         return wrks
 
+    def avail_gen_worker_ids(self, persistent=False, active_recv=False, zero_resource_workers=None):
+        """Returns available generator workers as a list of IDs."""
+        return self.avail_worker_ids(
+            persistent=persistent,
+            active_recv=active_recv,
+            zero_resource_workers=zero_resource_workers,
+            worker_type=EVAL_GEN_TAG,
+        )
+
+    def avail_sim_worker_ids(self, persistent=False, active_recv=False, zero_resource_workers=None):
+        """Returns available generator workers as a list of IDs."""
+        return self.avail_worker_ids(
+            persistent=persistent,
+            active_recv=active_recv,
+            zero_resource_workers=zero_resource_workers,
+            worker_type=EVAL_SIM_TAG,
+        )
+
     def count_gens(self):
         """Returns the number of active generators."""
-        return sum(self.W["active"] == EVAL_GEN_TAG)
+        return sum(self.W["active"] & self.W["worker_type"] == EVAL_GEN_TAG)
 
     def test_any_gen(self):
         """Returns ``True`` if a generator worker is active."""
@@ -144,7 +164,7 @@ class AllocSupport:
 
     def count_persis_gens(self):
         """Return the number of active persistent generators."""
-        return sum(self.W["persis_state"] == EVAL_GEN_TAG)
+        return sum(self.W["persistent"] == EVAL_GEN_TAG)
 
     def _req_resources_sim(self, libE_info, user_params, H, H_rows):
         """Determine required resources for a sim work unit"""
@@ -201,7 +221,7 @@ class AllocSupport:
         """Add rset_team to libE_info."""
         if self.manage_resources and not libE_info.get("rset_team"):
             num_rsets_req = 0
-            if self.W[wid - 1]["persis_state"]:
+            if self.W[wid - 1]["persistent"]:
                 # Even if empty list, non-None rset_team stops manager giving default resources
                 libE_info["rset_team"] = []
                 return
@@ -272,7 +292,7 @@ class AllocSupport:
         """
         self._update_rset_team(libE_info, wid)
 
-        if not self.W[wid - 1]["persis_state"]:
+        if not self.W[wid - 1]["persistent"]:
             AllocSupport.gen_counter += 1  # Count total gens
             libE_info["gen_count"] = AllocSupport.gen_counter
 
