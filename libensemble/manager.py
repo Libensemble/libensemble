@@ -185,6 +185,8 @@ class Manager:
         )
         local_worker_comm.run()
         local_worker_comm.send(0, dtypes)
+        if libE_specs.get("use_workflow_dir"):
+            local_worker_comm.send(0, libE_specs.get("workflow_dir_path"))
         return local_worker_comm
 
     def __init__(
