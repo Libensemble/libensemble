@@ -153,11 +153,11 @@ class AllocSupport:
 
     def count_gens(self):
         """Returns the number of active generators."""
-        return sum(self.W["active"] & self.W["worker_type"] == EVAL_GEN_TAG)
+        return sum(self.W["active"] & (self.W["worker_type"] == EVAL_GEN_TAG))
 
     def test_any_gen(self):
         """Returns ``True`` if a generator worker is active."""
-        return any(self.W["active"] & self.W["worker_type"] == EVAL_GEN_TAG)
+        return any(self.W["active"] & (self.W["worker_type"] == EVAL_GEN_TAG))
 
     def count_persis_gens(self):
         """Return the number of active persistent generators."""
