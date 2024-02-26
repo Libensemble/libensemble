@@ -92,7 +92,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
     if user.get("alt_type"):
         avail_workers = list(
             set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
-            | set(support.avail_worker_ids(persistent=EVAL_SIM_TAG, zero_resource_workers=False))
+            | set(support.avail_worker_ids(persistent=True, zero_resource_workers=False, worker_type=EVAL_SIM_TAG))
         )
     for wid in avail_workers:
         if not np.any(points_to_evaluate):
