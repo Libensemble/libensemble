@@ -90,7 +90,9 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 break
             points_to_evaluate[sim_ids_to_send] = False
 
-        elif gen_count == 0 and not np.any(np.logical_and(W["active"] == EVAL_GEN_TAG, W["persis_state"] == 0)):
+        elif gen_count == 0 and not np.any(
+            np.logical_and((W["active"]), (W["persistent"] is False), (W["worker_type"] == EVAL_GEN_TAG))
+        ):
             # Finally, generate points since there is nothing else to do (no resource sets req.)
             Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info[wid], rset_team=[])
             gen_count += 1
