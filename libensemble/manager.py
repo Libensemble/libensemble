@@ -622,7 +622,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "manager_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
+            "manager_runs_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
             "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
         }
 
