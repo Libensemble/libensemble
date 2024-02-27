@@ -10,7 +10,7 @@ from typing import Optional
 
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
-from libensemble.resources.gpu_detect import get_num_tiles
+from libensemble.resources.gpu_detect import zeinfo
 from libensemble.resources.mpi_resources import get_MPI_runner
 from libensemble.resources.worker_resources import ResourceManager, WorkerResources
 
@@ -194,7 +194,7 @@ class GlobalResources:
         self.tiles_per_gpu = 1
         if libE_specs.get("use_tiles_as_gpus", False):
             # Not yet detected so only uses tiles if set in platform_info
-            self.tiles_per_gpu = platform_info.get("tiles_per_gpu") or get_num_tiles()
+            self.tiles_per_gpu = platform_info.get("tiles_per_gpu") or zeinfo("Number of sub-devices", except_val=1)
 
         node_file = resource_info.get("node_file", None)
         nodelist_env_slurm = resource_info.get("nodelist_env_slurm", None)

@@ -212,6 +212,7 @@ libEnsemble on specific HPC systems.
     aurora
     bebop
     frontier
+    improv
     perlmutter
     polaris
     spock_crusher

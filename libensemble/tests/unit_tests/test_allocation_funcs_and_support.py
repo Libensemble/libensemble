@@ -17,12 +17,13 @@ libE_specs = {"comms": "local", "nworkers": 4}
 H0 = []
 
 W = np.array(
-    [(1, 0, 0, 0, False), (2, 0, 0, 0, False), (3, 0, 0, 0, False), (4, 0, 0, 0, False)],
+    [(1, 0, 0, 0, 0, False), (2, 0, 0, 0, 0, False), (3, 0, 0, 0, 0, False), (4, 0, 0, 0, 0, False)],
     dtype=[
         ("worker_id", "<i8"),
-        ("active", "<i8"),
-        ("persis_state", "<i8"),
-        ("active_recv", "<i8"),
+        ("worker_type", "<i8"),
+        ("active", "?"),
+        ("persistent", "?"),
+        ("active_recv", "?"),
         ("zero_resource_worker", "?"),
     ],
 )
@@ -57,7 +58,7 @@ def test_decide_work_and_resources():
     libE_info = {"sim_max_given": False, "any_idle_workers": True, "use_resource_sets": False}
 
     # Don't give out work when all workers are active
-    W["active"] = 1
+    W["active"] = True
     Work, persis_info = al["alloc_f"](W, hist.H, sim_specs, gen_specs, al, {}, libE_info)
     assert len(Work) == 0
 
@@ -99,17 +100,17 @@ def test_als_worker_ids():
     assert als.avail_worker_ids() == [1, 2, 3, 4], "avail_worker_ids() didn't return expected available worker list."
 
     W_ps = W.copy()
-    W_ps["persis_state"] = np.array([2, 0, 0, 0])
+    W_ps["persistent"] = np.array([True, 0, 0, 0])
     als = AllocSupport(W_ps, True)
-    assert als.avail_worker_ids(persistent=2) == [
+    assert als.avail_worker_ids(persistent=True) == [
         1
     ], "avail_worker_ids() didn't return expected persistent worker list."
 
     W_ar = W.copy()
-    W_ar["active_recv"] = np.array([1, 0, 0, 0])
-    W_ar["persis_state"] = np.array([2, 0, 0, 0])
+    W_ar["active_recv"] = np.array([True, 0, 0, 0])
+    W_ar["persistent"] = np.array([True, 0, 0, 0])
     als = AllocSupport(W_ar, True)
-    assert als.avail_worker_ids(persistent=2, active_recv=True) == [
+    assert als.avail_worker_ids(persistent=True, active_recv=True) == [
         1
     ], "avail_worker_ids() didn't return expected persistent worker list."
 
@@ -120,16 +121,8 @@ def test_als_worker_ids():
         flag = 0
     assert flag == 0, "AllocSupport didn't error on invalid options for avail_worker_ids()"
 
-    W_ar = W.copy()
-    W_ar["active_recv"] = np.array([1, 0, 0, 0])
-    W_ar["persis_state"] = np.array([2, 0, 0, 0])
-    als = AllocSupport(W_ar, True)
-    assert als.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=True) == [
-        1
-    ], "avail_worker_ids() didn't return expected persistent worker list."
-
     W_zrw = W.copy()
-    W_zrw["zero_resource_worker"] = np.array([1, 0, 0, 0])
+    W_zrw["zero_resource_worker"] = np.array([True, 0, 0, 0])
     als = AllocSupport(W_zrw, True)
     assert als.avail_worker_ids(zero_resource_workers=True) == [
         1
@@ -138,13 +131,14 @@ def test_als_worker_ids():
 
 def test_als_evaluate_gens():
     W_gens = W.copy()
-    W_gens["active"] = np.array([2, 0, 2, 0])
+    W_gens["active"] = np.array([True, 0, True, 0])
+    W_gens["worker_type"] = np.array([2, 0, 2, 0])
     als = AllocSupport(W_gens, True)
     assert als.count_gens() == 2, "count_gens() didn't return correct number of active generators"
 
     assert als.test_any_gen(), "test_any_gen() didn't return True on a generator worker being active."
 
-    W_gens["persis_state"] = np.array([2, 0, 0, 0])
+    W_gens["persistent"] = np.array([True, 0, 0, 0])
 
     assert (
         als.count_persis_gens() == 1
@@ -171,7 +165,7 @@ def test_als_sim_work():
     ), "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps["persis_state"] = np.array([1, 0, 0, 0])
+    W_ps["persistent"] = np.array([True, 0, 0, 0])
     als = AllocSupport(W_ps, True)
     Work = {}
     Work[1] = als.sim_work(1, H, ["x"], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
@@ -208,7 +202,7 @@ def test_als_gen_work():
     ), "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps["persis_state"] = np.array([2, 0, 0, 0])
+    W_ps["persistent"] = np.array([True, 0, 0, 0])
     als = AllocSupport(W_ps, True)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1], persistent=True)

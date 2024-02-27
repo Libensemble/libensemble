@@ -364,7 +364,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         """
         hostlist = None
         machinefile = None
-        # Use machine files for OpenMPI
+        # Use machine files for Open-MPI
         # as "-host" requires entry for every rank
 
         machinefile = "machinefile_autogen"

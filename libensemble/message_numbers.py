@@ -37,9 +37,10 @@ WORKER_KILL = 30  # Worker kills not covered by a more specific case
 WORKER_KILL_ON_ERR = 31  # Worker killed due to an error in results
 WORKER_KILL_ON_TIMEOUT = 32  # Worker killed on timeout
 TASK_FAILED = 33  # Calc had tasks that failed
-WORKER_DONE = 34  # Calculation was successful
+TASK_FAILED_TO_START = 34  # Calc had tasks that failed to start
+WORKER_DONE = 35  # Calculation was successful
 # last_calc_status_rst_tag
-CALC_EXCEPTION = 35  # Reserved: Automatically used if user_f raised an exception
+CALC_EXCEPTION = 36  # Reserved: Automatically used if user_f raised an exception
 
 MAN_KILL_SIGNALS = [MAN_SIGNAL_FINISH, MAN_SIGNAL_KILL]
 
@@ -52,7 +53,8 @@ calc_status_strings = {
     WORKER_KILL_ON_ERR: "Worker killed task on Error",
     WORKER_KILL_ON_TIMEOUT: "Worker killed task on Timeout",
     WORKER_KILL: "Worker killed",
-    TASK_FAILED: "Task Failed",
+    TASK_FAILED: "Task Failed during run",
+    TASK_FAILED_TO_START: "Task Failed to start",
     WORKER_DONE: "Completed",
     CALC_EXCEPTION: "Exception occurred",
     None: "Unknown Status",

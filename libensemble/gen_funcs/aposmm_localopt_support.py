@@ -2,6 +2,7 @@
 This module contains methods for APOSMM to interface with various local
 optimization routines.
 """
+
 __all__ = [
     "LocalOptInterfacer",
     "run_local_nlopt",
@@ -29,8 +30,7 @@ optimizer_list = ["petsc", "nlopt", "dfols", "scipy", "ibcdfo", "external"]
 optimizers = libensemble.gen_funcs.rc.aposmm_optimizers
 
 if optimizers is not None:
-    if not isinstance(optimizers, list):
-        optimizers = [optimizers]
+    assert isinstance(optimizers, list), "Must have a list"
     unrec = set(optimizers) - set(optimizer_list)
     if unrec:
         raise APOSMMException(f"APOSMM Error: unrecognized optimizers {unrec}")
@@ -46,7 +46,7 @@ if optimizers is not None:
         from ibcdfo import pounders  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
-    if "external" in optimizers:
+    if "external_localopt" in optimizers:
         pass
 
 

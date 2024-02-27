@@ -2,7 +2,6 @@
 Below are the fields used within libEnsemble
 """
 
-
 libE_fields = [
     ("sim_id", int),  # Unique id of a generated entry in H
     ("gen_worker", int),  # Worker that generated this entry

@@ -22,9 +22,7 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     gen_in = gen_specs.get("in", [])
 
     for wid in support.avail_worker_ids():
-        # Skip any cancelled points
-        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
-            persis_info["next_to_give"] += 1
+        persis_info = support.skip_canceled_points(H, persis_info)
 
         if persis_info["next_to_give"] < len(H):
             try:

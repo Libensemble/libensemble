@@ -29,13 +29,12 @@ from libensemble.message_numbers import (
     MAN_SIGNAL_KILL,
     PERSIS_STOP,
     STOP_TAG,
-    calc_status_strings,
     calc_type_strings,
 )
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
-from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg, worker_main
@@ -155,38 +154,40 @@ Posting kill messages for all workers.
 """
 
 
-class _WorkerIndexer:
-    def __init__(self, iterable: list, additional_worker=False):
-        self.iterable = iterable
-        self.additional_worker = additional_worker
-
-    def __getitem__(self, key):
-        if self.additional_worker or isinstance(key, str):
-            return self.iterable[key]
-        else:
-            return self.iterable[key - 1]
-
-    def __setitem__(self, key, value):
-        self.iterable[key] = value
-
-    def __len__(self):
-        return len(self.iterable)
-
-    def __iter__(self):
-        return iter(self.iterable)
-
-
 class Manager:
     """Manager class for libensemble."""
 
     worker_dtype = [
         ("worker_id", int),
-        ("active", int),
-        ("persis_state", int),
-        ("active_recv", int),
+        ("worker_type", int),
+        ("active", bool),
+        ("persistent", bool),
+        ("active_recv", bool),
         ("gen_started_time", float),
         ("zero_resource_worker", bool),
     ]
+
+    def _run_additional_worker(self, hist, sim_specs, gen_specs, libE_specs):
+        dtypes = {
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+        }
+        local_worker_comm = QCommThread(
+            worker_main,
+            len(self.wcomms),
+            sim_specs,
+            gen_specs,
+            libE_specs,
+            0,
+            False,
+            Resources.resources,
+            Executor.executor,
+        )
+        local_worker_comm.run()
+        local_worker_comm.send(0, dtypes)
+        if libE_specs.get("use_workflow_dir"):
+            local_worker_comm.send(0, libE_specs.get("workflow_dir_path"))
+        return local_worker_comm
 
     def __init__(
         self,
@@ -222,8 +223,6 @@ class Manager:
         self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
         self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
 
-        self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
-        self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
         self.term_tests = [
             (2, "wallclock_max", self.term_test_wallclock),
             (1, "sim_max", self.term_test_sim_max),
@@ -231,33 +230,18 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        if self.libE_specs.get("manager_runs_additional_worker", False):
-            # We start an additional Worker 0 on a thread.
+        additional_worker = self.libE_specs.get("manager_runs_additional_worker", False)
 
-            dtypes = {
-                EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-                EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-            }
-
-            self.W = np.zeros(len(self.wcomms) + 1, dtype=Manager.worker_dtype)
-            self.W["worker_id"] = np.arange(len(self.wcomms) + 1)
-            local_worker_comm = QCommThread(
-                worker_main,
-                len(self.wcomms),
-                sim_specs,
-                gen_specs,
-                libE_specs,
-                0,
-                False,
-                Resources.resources,
-                Executor.executor,
-            )
+        self.W = np.zeros(len(self.wcomms) + additional_worker, dtype=Manager.worker_dtype)
+        if additional_worker:
+            self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
+            local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
-            local_worker_comm.run()
-            local_worker_comm.send(0, dtypes)
+        else:
+            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, self.libE_specs.get("manager_runs_additional_worker", False))
-        self.wcomms = _WorkerIndexer(self.wcomms, self.libE_specs.get("manager_runs_additional_worker", False))
+        self.W = _WorkerIndexer(self.W, additional_worker)
+        self.wcomms = _WorkerIndexer(self.wcomms, additional_worker)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -378,7 +362,7 @@ class Manager:
             )
         else:
             if not force:
-                assert self.W[w]["active"] == 0, (
+                assert not self.W[w]["active"], (
                     "Allocation function requested work be sent to worker %d, an already active worker." % w
                 )
         work_rows = Work["libE_info"]["H_rows"]
@@ -442,11 +426,12 @@ class Manager:
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
 
-        self.W[w]["active"] = Work["tag"]
+        self.W[w]["active"] = True
+        self.W[w]["worker_type"] = Work["tag"]
         if "persistent" in Work["libE_info"]:
-            self.W[w]["persis_state"] = Work["tag"]
+            self.W[w]["persistent"] = True
             if Work["libE_info"].get("active_recv", False):
-                self.W[w]["active_recv"] = Work["tag"]
+                self.W[w]["active_recv"] = True
         else:
             assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
 
@@ -457,20 +442,6 @@ class Manager:
             self.hist.update_history_to_gen(work_rows)
 
     # --- Handle incoming messages from workers
-
-    @staticmethod
-    def _check_received_calc(D_recv: dict) -> None:
-        """Checks the type and status fields on a receive calculation"""
-        calc_type = D_recv["calc_type"]
-        calc_status = D_recv["calc_status"]
-        assert calc_type in [
-            EVAL_SIM_TAG,
-            EVAL_GEN_TAG,
-        ], f"Aborting, Unknown calculation type received. Received type: {calc_type}"
-
-        assert calc_status in list(calc_status_strings.keys()) + [PERSIS_STOP] or isinstance(
-            calc_status, str
-        ), f"Aborting: Unknown calculation status received. Received status: {calc_status}"
 
     def _receive_from_workers(self, persis_info: dict) -> dict:
         """Receives calculation output from workers. Loops over all
@@ -494,11 +465,10 @@ class Manager:
         """Updates history and worker info on worker message"""
         calc_type = D_recv["calc_type"]
         calc_status = D_recv["calc_status"]
-        Manager._check_received_calc(D_recv)
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
         if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
-            self.W[w]["active"] = 0
+            self.W[w]["active"] = False
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
@@ -509,13 +479,13 @@ class Manager:
                     self.hist.update_history_f(D_recv, self.kill_canceled_sims)
                 else:
                     logger.info(_PERSIS_RETURN_WARNING)
-            self.W[w]["persis_state"] = 0
+            self.W[w]["persistent"] = False
             if self.W[w]["active_recv"]:
-                self.W[w]["active"] = 0
-                self.W[w]["active_recv"] = 0
+                self.W[w]["active"] = False
+                self.W[w]["active_recv"] = False
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
-                self.W[w]["active"] = 0
+                self.W[w]["active"] = False
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
@@ -523,11 +493,11 @@ class Manager:
             if calc_type == EVAL_GEN_TAG:
                 self.hist.update_history_x_in(w, D_recv["calc_out"], self.W[w]["gen_started_time"])
                 assert (
-                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persis_state"]
+                    len(D_recv["calc_out"]) or np.any(self.W["active"]) or self.W[w]["persistent"]
                 ), "Gen must return work when is is the only thing active and not persistent."
             if "libE_info" in D_recv and "persistent" in D_recv["libE_info"]:
                 # Now a waiting, persistent worker
-                self.W[w]["persis_state"] = calc_type
+                self.W[w]["persistent"] = True
             else:
                 self._freeup_resources(w)
 
@@ -543,7 +513,7 @@ class Manager:
             logger.debug(f"Finalizing message from Worker {w}")
             return
         if isinstance(D_recv, WorkerErrMsg):
-            self.W[w]["active"] = 0
+            self.W[w]["active"] = False
             logger.debug(f"Manager received exception from worker {w}")
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -591,8 +561,8 @@ class Manager:
         """
 
         # Send a handshake signal to each persistent worker.
-        if any(self.W["persis_state"]):
-            for w in self.W["worker_id"][self.W["persis_state"] > 0]:
+        if any(self.W["persistent"]):
+            for w in self.W["worker_id"][self.W["persistent"]]:
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if self.libE_specs.get("final_gen_send", False):
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
@@ -609,15 +579,15 @@ class Manager:
                     self.wcomms[w].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w]["active"]:
                     # Re-activate if necessary
-                    self.W[w]["active"] = self.W[w]["persis_state"]
+                    self.W[w]["active"] = self.W[w]["persistent"]
                 self.persis_pending.append(w)
 
         exit_flag = 0
-        while (any(self.W["active"]) or any(self.W["persis_state"])) and exit_flag == 0:
+        while (any(self.W["active"]) or any(self.W["persistent"])) and exit_flag == 0:
             persis_info = self._receive_from_workers(persis_info)
             if self.term_test(logged=False) == 2:
                 # Elapsed Wallclock has expired
-                if not any(self.W["persis_state"]):
+                if not any(self.W["persistent"]):
                     if any(self.W["active"]):
                         logger.manager_warning(_WALLCLOCK_MSG_ACTIVE)
                     else:
@@ -640,7 +610,7 @@ class Manager:
         """Selected statistics useful for alloc_f"""
 
         return {
-            "any_idle_workers": any(self.W["active"] == 0),
+            "any_idle_workers": any(~self.W["active"]),
             "exit_criteria": self.exit_criteria,
             "elapsed_time": self.elapsed(),
             "gen_informed_count": self.hist.gen_informed_count,
@@ -653,6 +623,7 @@ class Manager:
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
             "manager_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
+            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -710,7 +681,7 @@ class Manager:
                     self._send_work_order(Work[w], w)
                     self._update_state_on_alloc(Work[w], w)
                 assert self.term_test() or any(
-                    self.W["active"] != 0
+                    self.W["active"]
                 ), "alloc_f did not return any work, although all workers are idle."
         except WorkerException as e:
             report_worker_exc(e)

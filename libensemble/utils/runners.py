@@ -62,8 +62,8 @@ class GlobusComputeRunner(Runner):
         libE_info["comm"] = None  # 'comm' object not pickle-able
         Worker._set_executor(0, None)  # ditto for executor
 
-        fargs = self._truncate_args(calc_in, persis_info, libE_info)
-        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, fargs)
+        args = self._truncate_args(calc_in, persis_info, libE_info)
+        task_fut = self.globus_compute_executor.submit_to_registered_function(self.globus_compute_fid, args)
         return task_fut.result()
 
     def shutdown(self) -> None:
@@ -76,8 +76,8 @@ class ThreadRunner(Runner):
         self.thread_handle = None
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
-        fargs = self._truncate_args(calc_in, persis_info, libE_info)
-        self.thread_handle = QCommThread(self.f, None, *fargs, ufunc=True)
+        args = self._truncate_args(calc_in, persis_info, libE_info)
+        self.thread_handle = QCommThread(self.f, None, *args, user_function=True)
         self.thread_handle.run()
         return self.thread_handle.result()
 

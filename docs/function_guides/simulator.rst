@@ -49,7 +49,7 @@ Most ``sim_f`` function definitions written by users resemble::
 
 where:
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy array.
+    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
     * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
     * :ref:`sim_specs<datastruct-sim-specs>` is a dictionary of simulation parameters.
     *  ``libE_info`` is a dictionary containing libEnsemble-specific entries.

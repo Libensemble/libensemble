@@ -1,6 +1,5 @@
 import numpy as np
 
-from libensemble.message_numbers import EVAL_GEN_TAG
 from libensemble.tools.alloc_support import AllocSupport, InsufficientFreeResources
 
 
@@ -40,7 +39,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
         return Work, persis_info, 1
 
     # If any persistent worker's calculated values have returned, give them back.
-    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
+    for wid in support.avail_gen_worker_ids(persistent=True):
         if persis_info.get("sample_done") or sum(H["sim_ended"]) >= init_sample_size + persis_info["samples_in_H0"]:
             # Don't return if the initial sample is not complete
             persis_info["sample_done"] = True
@@ -54,9 +53,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 returned_but_not_given[point_ids] = False
 
     for wid in support.avail_worker_ids(persistent=False):
-        # Skip any cancelled points
-        while persis_info["next_to_give"] < len(H) and H[persis_info["next_to_give"]]["cancel_requested"]:
-            persis_info["next_to_give"] += 1
+        persis_info = support.skip_canceled_points(H, persis_info)
 
         if persis_info["next_to_give"] < len(H):
             # perform sim evaluations (if they exist in History).
