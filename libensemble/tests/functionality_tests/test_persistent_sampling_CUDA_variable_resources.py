@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # The persistent gen does not need resources
 
-    libE_specs["num_resource_sets"] = nworkers - 1  # Any worker can be the gen
+    libE_specs["num_resource_sets"] = nworkers  # Any worker can be the gen
 
     # libE_specs["zero_resource_workers"] = [1]  # If first worker must be gen, use this instead
 
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     libE_specs["workflow_dir_path"] = "./ensemble_CUDA/workflow_" + libE_specs["comms"] + "_w" + str(nworkers) + "_N"
     libE_specs["sim_dir_copy_files"] = [".gitignore"]
     libE_specs["reuse_output_dir"] = True
+    libE_specs["manager_runs_additional_worker"] = True
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -67,8 +68,8 @@ if __name__ == "__main__":
         "persis_in": ["f", "x", "sim_id"],
         "out": [("resource_sets", int), ("x", float, n)],
         "user": {
-            "initial_batch_size": nworkers - 1,
-            "max_resource_sets": nworkers - 1,  # Any sim created can req. 1 worker up to all.
+            "initial_batch_size": nworkers,
+            "max_resource_sets": nworkers,  # Any sim created can req. 1 worker up to all.
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
@@ -83,7 +84,6 @@ if __name__ == "__main__":
     }
 
     libE_specs["scheduler_opts"] = {"match_slots": True}
-    persis_info = add_unique_random_streams({}, nworkers + 1)
     exit_criteria = {"sim_max": 40, "wallclock_max": 300}
 
     # Perform the run
