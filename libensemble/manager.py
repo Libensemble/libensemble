@@ -301,6 +301,8 @@ class Manager:
         """Kills the workers"""
         for w in self.W["worker_id"]:
             self.wcomms[w].send(STOP_TAG, MAN_SIGNAL_FINISH)
+            if w == 0:
+                self.wcomms[0].result()
 
     # --- Checkpointing logic
 
