@@ -5,7 +5,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
-from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
+from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -47,7 +47,7 @@ class AllocSupport:
         :param user_resources: (Optional) A user supplied ``resources`` object.
         :param user_scheduler: (Optional) A user supplied ``user_scheduler`` object.
         """
-        self.W = _WorkerIndexer(W, libE_info.get("manager_runs_additional_worker", False))
+        self.W = W
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources

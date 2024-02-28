@@ -230,18 +230,19 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        additional_worker = self.libE_specs.get("manager_runs_additional_worker", False)
+        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
 
-        self.W = np.zeros(len(self.wcomms) + additional_worker, dtype=Manager.worker_dtype)
-        if additional_worker:
+        self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
+        if gen_on_manager:
             self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
+            self.W[0]["worker_type"] = EVAL_GEN_TAG
             local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
         else:
             self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, additional_worker)
-        self.wcomms = _WorkerIndexer(self.wcomms, additional_worker)
+        self.W = _WorkerIndexer(self.W, gen_on_manager)
+        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_manager)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -622,7 +623,6 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "manager_runs_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
             "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
         }
 
@@ -636,7 +636,7 @@ class Manager:
 
         alloc_f = self.alloc_specs["alloc_f"]
         output = alloc_f(
-            self.W.iterable,
+            self.W,
             H,
             self.sim_specs,
             self.gen_specs,
