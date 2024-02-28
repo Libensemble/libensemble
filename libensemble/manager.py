@@ -160,7 +160,7 @@ class Manager:
     worker_dtype = [
         ("worker_id", int),
         ("worker_type", int),
-        ("active", bool),
+        ("active", int),
         ("persistent", bool),
         ("active_recv", bool),
         ("gen_started_time", float),
@@ -427,7 +427,7 @@ class Manager:
     def _update_state_on_alloc(self, Work: dict, w: int):
         """Updates a workers' active/idle status following an allocation order"""
 
-        self.W[w]["active"] = True
+        self.W[w]["active"] = Work["tag"]
         self.W[w]["worker_type"] = Work["tag"]
         if "persistent" in Work["libE_info"]:
             self.W[w]["persistent"] = True
@@ -469,7 +469,7 @@ class Manager:
 
         keep_state = D_recv["libE_info"].get("keep_state", False)
         if w not in self.persis_pending and not self.W[w]["active_recv"] and not keep_state:
-            self.W[w]["active"] = False
+            self.W[w]["active"] = 0
 
         if calc_status in [FINISHED_PERSISTENT_SIM_TAG, FINISHED_PERSISTENT_GEN_TAG]:
             final_data = D_recv.get("calc_out", None)
@@ -482,11 +482,11 @@ class Manager:
                     logger.info(_PERSIS_RETURN_WARNING)
             self.W[w]["persistent"] = False
             if self.W[w]["active_recv"]:
-                self.W[w]["active"] = False
+                self.W[w]["active"] = 0
                 self.W[w]["active_recv"] = False
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
-                self.W[w]["active"] = False
+                self.W[w]["active"] = 0
             self._freeup_resources(w)
         else:
             if calc_type == EVAL_SIM_TAG:
@@ -514,7 +514,7 @@ class Manager:
             logger.debug(f"Finalizing message from Worker {w}")
             return
         if isinstance(D_recv, WorkerErrMsg):
-            self.W[w]["active"] = False
+            self.W[w]["active"] = 0
             logger.debug(f"Manager received exception from worker {w}")
             if not self.WorkerExc:
                 self.WorkerExc = True
@@ -580,7 +580,7 @@ class Manager:
                     self.wcomms[w].send(PERSIS_STOP, MAN_SIGNAL_KILL)
                 if not self.W[w]["active"]:
                     # Re-activate if necessary
-                    self.W[w]["active"] = self.W[w]["persistent"]
+                    self.W[w]["active"] = self.W[w]["worker_type"] if self.W[w]["persistent"] else 0
                 self.persis_pending.append(w)
 
         exit_flag = 0
