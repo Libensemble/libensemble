@@ -21,7 +21,7 @@ W = np.array(
     dtype=[
         ("worker_id", "<i8"),
         ("worker_type", "<i8"),
-        ("active", "?"),
+        ("active", "<i8"),
         ("persistent", "?"),
         ("active_recv", "?"),
         ("zero_resource_worker", "?"),
