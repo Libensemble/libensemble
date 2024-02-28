@@ -120,8 +120,10 @@ class AllocSupport:
                 return not wrk["active"]
 
         def fltr_worker_type():
-            if worker_type:
-                return wrk["worker_type"] == worker_type
+            if worker_type == EVAL_SIM_TAG:
+                return wrk["worker_type"] != EVAL_GEN_TAG  # only workers not given gen work *yet*
+            elif worker_type == EVAL_GEN_TAG:
+                return wrk["worker_type"] == EVAL_GEN_TAG  # explicitly want gen_workers
             else:
                 return True
 
@@ -146,7 +148,7 @@ class AllocSupport:
         )
 
     def avail_sim_worker_ids(self, persistent=False, active_recv=False, zero_resource_workers=None):
-        """Returns available generator workers as a list of IDs."""
+        """Returns available non-generator workers as a list of IDs."""
         return self.avail_worker_ids(
             persistent=persistent,
             active_recv=active_recv,

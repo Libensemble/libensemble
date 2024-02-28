@@ -88,7 +88,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     # Now the give_sim_work_first part
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
+    avail_workers = support.avail_sim_worker_ids(persistent=False, zero_resource_workers=False)
     if user.get("alt_type"):
         avail_workers = list(
             set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
