@@ -45,7 +45,7 @@ if __name__ == "__main__":
     libE_specs["workflow_dir_path"] = "./ensemble_CUDA/workflow_" + libE_specs["comms"] + "_w" + str(nworkers) + "_N"
     libE_specs["sim_dir_copy_files"] = [".gitignore"]
     libE_specs["reuse_output_dir"] = True
-    libE_specs["manager_runs_additional_worker"] = True
+    libE_specs["gen_on_manager"] = True
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")

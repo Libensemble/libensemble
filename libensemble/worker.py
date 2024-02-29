@@ -213,9 +213,7 @@ class Worker:
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
         if isinstance(resources, Resources):
-            resources.set_worker_resources(
-                comm.get_num_workers() + libE_specs["manager_runs_additional_worker"], workerID
-            )
+            resources.set_worker_resources(comm.get_num_workers() + libE_specs["gen_on_manager"], workerID)
             return True
         else:
             logger.debug(f"No resources set on worker {workerID}")
