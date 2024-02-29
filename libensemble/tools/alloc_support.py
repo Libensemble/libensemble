@@ -5,7 +5,7 @@ import numpy as np
 from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG
 from libensemble.resources.resources import Resources
 from libensemble.resources.scheduler import InsufficientFreeResources, InsufficientResourcesError, ResourceScheduler
-from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
+from libensemble.utils.misc import extract_H_ranges
 
 logger = logging.getLogger(__name__)
 # For debug messages - uncomment
@@ -47,7 +47,7 @@ class AllocSupport:
         :param user_resources: (Optional) A user supplied ``resources`` object.
         :param user_scheduler: (Optional) A user supplied ``user_scheduler`` object.
         """
-        self.W = _WorkerIndexer(W, libE_info.get("manager_runs_additional_worker", False))
+        self.W = W
         self.persis_info = persis_info
         self.manage_resources = manage_resources
         self.resources = user_resources or Resources.resources
@@ -117,11 +117,13 @@ class AllocSupport:
             if active_recv:
                 return wrk["active_recv"]
             else:
-                return not wrk["active"]
+                return wrk["active"] == 0
 
         def fltr_worker_type():
-            if worker_type:
-                return wrk["worker_type"] == worker_type
+            if worker_type == EVAL_SIM_TAG:
+                return wrk["worker_type"] != EVAL_GEN_TAG  # only workers not given gen work *yet*
+            elif worker_type == EVAL_GEN_TAG:
+                return wrk["worker_type"] == EVAL_GEN_TAG  # explicitly want gen_workers
             else:
                 return True
 
@@ -146,7 +148,7 @@ class AllocSupport:
         )
 
     def avail_sim_worker_ids(self, persistent=False, active_recv=False, zero_resource_workers=None):
-        """Returns available generator workers as a list of IDs."""
+        """Returns available non-generator workers as a list of IDs."""
         return self.avail_worker_ids(
             persistent=persistent,
             active_recv=active_recv,
@@ -156,11 +158,11 @@ class AllocSupport:
 
     def count_gens(self):
         """Returns the number of active generators."""
-        return sum(self.W["active"] & (self.W["worker_type"] == EVAL_GEN_TAG))
+        return sum((self.W["active"] == EVAL_GEN_TAG) & (self.W["worker_type"] == EVAL_GEN_TAG))
 
     def test_any_gen(self):
         """Returns ``True`` if a generator worker is active."""
-        return any(self.W["active"] & (self.W["worker_type"] == EVAL_GEN_TAG))
+        return any((self.W["active"] == EVAL_GEN_TAG) & (self.W["worker_type"] == EVAL_GEN_TAG))
 
     def count_persis_gens(self):
         """Return the number of active persistent generators."""

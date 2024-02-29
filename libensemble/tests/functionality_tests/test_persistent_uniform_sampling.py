@@ -87,7 +87,7 @@ if __name__ == "__main__":
             sim_specs["in"] = ["x", "obj_component"]
             # sim_specs["out"] = [("f", float), ("grad", float, n)]
         elif run == 3:
-            libE_specs["manager_runs_additional_worker"] = True
+            libE_specs["gen_on_manager"] = True
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

@@ -11,6 +11,7 @@ from libensemble.resources.scheduler import InsufficientResourcesError, Resource
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools.alloc_support import AllocException, AllocSupport
 from libensemble.tools.fields_keys import libE_fields
+from libensemble.utils.misc import _WorkerIndexer
 
 al = {"alloc_f": give_sim_work_first}
 libE_specs = {"comms": "local", "nworkers": 4}
@@ -21,7 +22,7 @@ W = np.array(
     dtype=[
         ("worker_id", "<i8"),
         ("worker_type", "<i8"),
-        ("active", "?"),
+        ("active", "<i8"),
         ("persistent", "?"),
         ("active_recv", "?"),
         ("zero_resource_worker", "?"),
@@ -58,7 +59,7 @@ def test_decide_work_and_resources():
     libE_info = {"sim_max_given": False, "any_idle_workers": True, "use_resource_sets": False}
 
     # Don't give out work when all workers are active
-    W["active"] = True
+    W["active"] = 1
     Work, persis_info = al["alloc_f"](W, hist.H, sim_specs, gen_specs, al, {}, libE_info)
     assert len(Work) == 0
 
@@ -131,8 +132,8 @@ def test_als_worker_ids():
 
 def test_als_evaluate_gens():
     W_gens = W.copy()
-    W_gens["active"] = np.array([True, 0, True, 0])
-    W_gens["worker_type"] = np.array([2, 0, 2, 0])
+    W_gens["active"] = np.array([EVAL_GEN_TAG, 0, EVAL_GEN_TAG, 0])
+    W_gens["worker_type"] = np.array([EVAL_GEN_TAG, 0, EVAL_GEN_TAG, 0])
     als = AllocSupport(W_gens, True)
     assert als.count_gens() == 2, "count_gens() didn't return correct number of active generators"
 
@@ -166,7 +167,8 @@ def test_als_sim_work():
 
     W_ps = W.copy()
     W_ps["persistent"] = np.array([True, 0, 0, 0])
-    als = AllocSupport(W_ps, True)
+    W_ps["zero_resource_worker"] = np.array([True, 0, 0, 0])
+    als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
     Work[1] = als.sim_work(1, H, ["x"], np.array([0, 1, 2, 3, 4]), persis_info[1], persistent=True)
 
@@ -203,7 +205,7 @@ def test_als_gen_work():
 
     W_ps = W.copy()
     W_ps["persistent"] = np.array([True, 0, 0, 0])
-    als = AllocSupport(W_ps, True)
+    als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1], persistent=True)
 

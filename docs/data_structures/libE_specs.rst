@@ -30,12 +30,9 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **nworkers** [int]:
                     Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
 
-                **manager_runs_additional_worker** [bool] = False
-                    Manager process launches an additional threaded Worker 0.
-                    This worker can access/modify user objects by reference.
-
                 **gen_on_manager** Optional[bool] = False
-                    Enable ``manager_runs_additional_worker`` and reserve that worker for a single generator.
+                    Instructs Manager process to run generator functions.
+                    This generator function can access/modify user objects by reference.
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
