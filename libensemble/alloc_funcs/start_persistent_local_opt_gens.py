@@ -46,7 +46,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
 
     # If wid is idle, but in persistent mode, and its calculated values have
     # returned, give them back to i. Otherwise, give nothing to wid
-    for wid in support.avail_gen_worker_ids(persistent=True):
+    for wid in support.avail_worker_ids(persistent=EVAL_GEN_TAG):
         gen_inds = H["gen_worker"] == wid
         if support.all_sim_ended(H, gen_inds):
             last_time_pos = np.argmax(H["sim_started_time"][gen_inds])
@@ -90,9 +90,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
                 break
             points_to_evaluate[sim_ids_to_send] = False
 
-        elif gen_count == 0 and not np.any(
-            np.logical_and((W["active"]), (W["persistent"] is False), (W["worker_type"] == EVAL_GEN_TAG))
-        ):
+        elif gen_count == 0 and not np.any(np.logical_and((W["active"] == EVAL_GEN_TAG), (W["persis_state"] == 0))):
             # Finally, generate points since there is nothing else to do (no resource sets req.)
             Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info[wid], rset_team=[])
             gen_count += 1

@@ -18,12 +18,17 @@ libE_specs = {"comms": "local", "nworkers": 4}
 H0 = []
 
 W = np.array(
-    [(1, 0, 0, 0, 0, False), (2, 0, 0, 0, 0, False), (3, 0, 0, 0, 0, False), (4, 0, 0, 0, 0, False)],
+    [
+        (1, False, 0, 0, False, False),
+        (2, False, 0, 0, False, False),
+        (3, False, 0, 0, False, False),
+        (4, False, 0, 0, False, False),
+    ],
     dtype=[
         ("worker_id", "<i8"),
-        ("worker_type", "<i8"),
+        ("gen_worker", "?"),
         ("active", "<i8"),
-        ("persistent", "?"),
+        ("persis_state", "<i8"),
         ("active_recv", "?"),
         ("zero_resource_worker", "?"),
     ],
@@ -101,7 +106,7 @@ def test_als_worker_ids():
     assert als.avail_worker_ids() == [1, 2, 3, 4], "avail_worker_ids() didn't return expected available worker list."
 
     W_ps = W.copy()
-    W_ps["persistent"] = np.array([True, 0, 0, 0])
+    W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     als = AllocSupport(W_ps, True)
     assert als.avail_worker_ids(persistent=True) == [
         1
@@ -109,7 +114,7 @@ def test_als_worker_ids():
 
     W_ar = W.copy()
     W_ar["active_recv"] = np.array([True, 0, 0, 0])
-    W_ar["persistent"] = np.array([True, 0, 0, 0])
+    W_ar["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     als = AllocSupport(W_ar, True)
     assert als.avail_worker_ids(persistent=True, active_recv=True) == [
         1
@@ -139,7 +144,7 @@ def test_als_evaluate_gens():
 
     assert als.test_any_gen(), "test_any_gen() didn't return True on a generator worker being active."
 
-    W_gens["persistent"] = np.array([True, 0, 0, 0])
+    W_gens["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
 
     assert (
         als.count_persis_gens() == 1
@@ -166,7 +171,7 @@ def test_als_sim_work():
     ), "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps["persistent"] = np.array([True, 0, 0, 0])
+    W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     W_ps["zero_resource_worker"] = np.array([True, 0, 0, 0])
     als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
@@ -204,7 +209,7 @@ def test_als_gen_work():
     ), "H_rows weren't assigned to libE_info correctly."
 
     W_ps = W.copy()
-    W_ps["persistent"] = np.array([True, 0, 0, 0])
+    W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     als = AllocSupport(_WorkerIndexer(W_ps, False), True)
     Work = {}
     Work[1] = als.gen_work(1, ["sim_id"], range(0, 5), persis_info[1], persistent=True)
