@@ -277,7 +277,7 @@ class MPIRunner:
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_gpus(
-                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID
             )
 
         hostlist = None

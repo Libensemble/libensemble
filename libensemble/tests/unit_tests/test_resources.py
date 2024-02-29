@@ -801,7 +801,7 @@ def test_machinefile_from_resources():
 
     resources = Resources(libE_specs)
     resources.set_worker_resources(4, 1)
-    resources.worker_resources.set_rset_team([0, 1, 2, 3])
+    resources._worker_resources[1].set_rset_team([0, 1, 2, 3])
 
     built_mfile = create_machinefile(resources, num_nodes=4, procs_per_node=4)
     assert built_mfile, "machinefile doesn't exist or is empty"
