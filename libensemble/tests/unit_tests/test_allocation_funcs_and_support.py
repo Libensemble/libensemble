@@ -108,7 +108,7 @@ def test_als_worker_ids():
     W_ps = W.copy()
     W_ps["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     als = AllocSupport(W_ps, True)
-    assert als.avail_worker_ids(persistent=True) == [
+    assert als.avail_worker_ids(persistent=EVAL_GEN_TAG) == [
         1
     ], "avail_worker_ids() didn't return expected persistent worker list."
 
@@ -116,7 +116,7 @@ def test_als_worker_ids():
     W_ar["active_recv"] = np.array([True, 0, 0, 0])
     W_ar["persis_state"] = np.array([EVAL_GEN_TAG, 0, 0, 0])
     als = AllocSupport(W_ar, True)
-    assert als.avail_worker_ids(persistent=True, active_recv=True) == [
+    assert als.avail_worker_ids(persistent=EVAL_GEN_TAG, active_recv=True) == [
         1
     ], "avail_worker_ids() didn't return expected persistent worker list."
 
@@ -138,7 +138,6 @@ def test_als_worker_ids():
 def test_als_evaluate_gens():
     W_gens = W.copy()
     W_gens["active"] = np.array([EVAL_GEN_TAG, 0, EVAL_GEN_TAG, 0])
-    W_gens["worker_type"] = np.array([EVAL_GEN_TAG, 0, EVAL_GEN_TAG, 0])
     als = AllocSupport(W_gens, True)
     assert als.count_gens() == 2, "count_gens() didn't return correct number of active generators"
 
