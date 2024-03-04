@@ -80,6 +80,7 @@ class PersistentUniform:
 
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
+    libE_specs["gen_on_manager"] = True
 
     sim_specs = {
         "sim_f": sim_f,
