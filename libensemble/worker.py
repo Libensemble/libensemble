@@ -129,7 +129,6 @@ class WorkerErrMsg:
 
 
 class Worker:
-
     """The worker class provides methods for controlling sim and gen funcs
 
     **Object Attributes:**

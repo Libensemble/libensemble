@@ -34,7 +34,7 @@ from libensemble.message_numbers import (
 from libensemble.resources.resources import Resources
 from libensemble.tools.fields_keys import protected_libE_fields
 from libensemble.tools.tools import _PERSIS_RETURN_WARNING, _USER_CALC_DIR_WARNING
-from libensemble.utils.misc import extract_H_ranges
+from libensemble.utils.misc import _WorkerIndexer, extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
 from libensemble.utils.timer import Timer
 from libensemble.worker import WorkerErrMsg, worker_main
@@ -154,38 +154,40 @@ Posting kill messages for all workers.
 """
 
 
-class _WorkerIndexer:
-    def __init__(self, iterable: list, additional_worker=False):
-        self.iterable = iterable
-        self.additional_worker = additional_worker
-
-    def __getitem__(self, key):
-        if self.additional_worker or isinstance(key, str):
-            return self.iterable[key]
-        else:
-            return self.iterable[key - 1]
-
-    def __setitem__(self, key, value):
-        self.iterable[key] = value
-
-    def __len__(self):
-        return len(self.iterable)
-
-    def __iter__(self):
-        return iter(self.iterable)
-
-
 class Manager:
     """Manager class for libensemble."""
 
     worker_dtype = [
         ("worker_id", int),
+        ("gen_worker", bool),
         ("active", int),
         ("persis_state", int),
-        ("active_recv", int),
+        ("active_recv", bool),
         ("gen_started_time", float),
         ("zero_resource_worker", bool),
     ]
+
+    def _run_additional_worker(self, hist, sim_specs, gen_specs, libE_specs):
+        dtypes = {
+            EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
+            EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
+        }
+        local_worker_comm = QCommThread(
+            worker_main,
+            len(self.wcomms),
+            sim_specs,
+            gen_specs,
+            libE_specs,
+            0,
+            False,
+            Resources.resources,
+            Executor.executor,
+        )
+        local_worker_comm.run()
+        local_worker_comm.send(0, dtypes)
+        if libE_specs.get("use_workflow_dir"):
+            local_worker_comm.send(0, libE_specs.get("workflow_dir_path"))
+        return local_worker_comm
 
     def __init__(
         self,
@@ -221,8 +223,6 @@ class Manager:
         self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
         self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
 
-        self.W = np.zeros(len(self.wcomms), dtype=Manager.worker_dtype)
-        self.W["worker_id"] = np.arange(len(self.wcomms)) + 1
         self.term_tests = [
             (2, "wallclock_max", self.term_test_wallclock),
             (1, "sim_max", self.term_test_sim_max),
@@ -230,33 +230,19 @@ class Manager:
             (1, "stop_val", self.term_test_stop_val),
         ]
 
-        if self.libE_specs.get("manager_runs_additional_worker", False):
-            # We start an additional Worker 0 on a thread.
+        gen_on_manager = self.libE_specs.get("gen_on_manager", False)
 
-            dtypes = {
-                EVAL_SIM_TAG: repack_fields(hist.H[sim_specs["in"]]).dtype,
-                EVAL_GEN_TAG: repack_fields(hist.H[gen_specs["in"]]).dtype,
-            }
-
-            self.W = np.zeros(len(self.wcomms) + 1, dtype=Manager.worker_dtype)
-            self.W["worker_id"] = np.arange(len(self.wcomms) + 1)
-            local_worker_comm = QCommThread(
-                worker_main,
-                len(self.wcomms),
-                sim_specs,
-                gen_specs,
-                libE_specs,
-                0,
-                False,
-                Resources.resources,
-                Executor.executor,
-            )
+        self.W = np.zeros(len(self.wcomms) + gen_on_manager, dtype=Manager.worker_dtype)
+        if gen_on_manager:
+            self.W["worker_id"] = np.arange(len(self.wcomms) + 1)  # [0, 1, 2, ...]
+            self.W[0]["gen_worker"] = True
+            local_worker_comm = self._run_additional_worker(hist, sim_specs, gen_specs, libE_specs)
             self.wcomms = [local_worker_comm] + self.wcomms
-            local_worker_comm.run()
-            local_worker_comm.send(0, dtypes)
+        else:
+            self.W["worker_id"] = np.arange(len(self.wcomms)) + 1  # [1, 2, 3, ...]
 
-        self.W = _WorkerIndexer(self.W, self.libE_specs.get("manager_runs_additional_worker", False))
-        self.wcomms = _WorkerIndexer(self.wcomms, self.libE_specs.get("manager_runs_additional_worker", False))
+        self.W = _WorkerIndexer(self.W, gen_on_manager)
+        self.wcomms = _WorkerIndexer(self.wcomms, gen_on_manager)
 
         temp_EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
         self.resources = Resources.resources
@@ -377,7 +363,7 @@ class Manager:
             )
         else:
             if not force:
-                assert self.W[w]["active"] == 0, (
+                assert not self.W[w]["active"], (
                     "Allocation function requested work be sent to worker %d, an already active worker." % w
                 )
         work_rows = Work["libE_info"]["H_rows"]
@@ -445,7 +431,7 @@ class Manager:
         if "persistent" in Work["libE_info"]:
             self.W[w]["persis_state"] = Work["tag"]
             if Work["libE_info"].get("active_recv", False):
-                self.W[w]["active_recv"] = Work["tag"]
+                self.W[w]["active_recv"] = True
         else:
             assert "active_recv" not in Work["libE_info"], "active_recv worker must also be persistent"
 
@@ -496,7 +482,7 @@ class Manager:
             self.W[w]["persis_state"] = 0
             if self.W[w]["active_recv"]:
                 self.W[w]["active"] = 0
-                self.W[w]["active_recv"] = 0
+                self.W[w]["active_recv"] = False
             if w in self.persis_pending:
                 self.persis_pending.remove(w)
                 self.W[w]["active"] = 0
@@ -511,7 +497,7 @@ class Manager:
                 ), "Gen must return work when is is the only thing active and not persistent."
             if "libE_info" in D_recv and "persistent" in D_recv["libE_info"]:
                 # Now a waiting, persistent worker
-                self.W[w]["persis_state"] = calc_type
+                self.W[w]["persis_state"] = D_recv["calc_type"]
             else:
                 self._freeup_resources(w)
 
@@ -636,7 +622,7 @@ class Manager:
             "use_resource_sets": self.use_resource_sets,
             "gen_num_procs": self.gen_num_procs,
             "gen_num_gpus": self.gen_num_gpus,
-            "manager_additional_worker": self.libE_specs.get("manager_runs_additional_worker", False),
+            "gen_on_manager": self.libE_specs.get("gen_on_manager", False),
         }
 
     def _alloc_work(self, H: npt.NDArray, persis_info: dict) -> dict:
@@ -649,7 +635,7 @@ class Manager:
 
         alloc_f = self.alloc_specs["alloc_f"]
         output = alloc_f(
-            self.W.iterable,
+            self.W,
             H,
             self.sim_specs,
             self.gen_specs,

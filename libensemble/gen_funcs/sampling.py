@@ -3,6 +3,7 @@ This module contains multiple generation functions for sampling a domain. All
 use (and return) a random stream in ``persis_info``, given by the allocation
 function.
 """
+
 import numpy as np
 
 from libensemble.specs import output_data

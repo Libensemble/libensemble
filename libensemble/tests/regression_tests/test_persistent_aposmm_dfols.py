@@ -125,3 +125,12 @@ if __name__ == "__main__":
             # else:
             #     d = np.linalg.solve(np.dot(J.T, J), np.dot(J.T, F))
             #     assert np.linalg.norm(d) <= 1e-5
+
+    if libE_specs["comms"] == "mpi":
+        # Quickly try a different DFO-LS exit condition
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        gen_specs["user"]["dfols_kwargs"]["rhoend"] = 1e-16
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+
+        if is_manager:
+            assert flag == 0

@@ -49,7 +49,7 @@ Most ``gen_f`` function definitions written by users resemble::
 
 where:
 
-    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy array.
+    * ``Input`` is a selection of the :ref:`History array<funcguides-history>`, a NumPy structured array.
     * :ref:`persis_info<datastruct-persis-info>` is a dictionary containing state information.
     * :ref:`gen_specs<datastruct-gen-specs>` is a dictionary of generator parameters.
     *  ``libE_info`` is a dictionary containing miscellaneous entries.
@@ -221,7 +221,7 @@ of the capability to cancel pending simulations.
 Modification of existing points
 -------------------------------
 
-To change existing fields of the History array, create a NumPy array where the ``dtype`` contains
+To change existing fields of the History array, create a NumPy structured array where the ``dtype`` contains
 the ``sim_id`` and the fields to be modified. Send this array with ``keep_state=True`` to the manager.
 This will overwrite the manager's History array.
 

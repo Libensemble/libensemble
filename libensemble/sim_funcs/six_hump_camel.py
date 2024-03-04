@@ -5,6 +5,7 @@ Six-hump camel function is documented here:
   https://www.sfu.ca/~ssurjano/camel6.html
 
 """
+
 __all__ = [
     "six_hump_camel",
     "six_hump_camel_simple",

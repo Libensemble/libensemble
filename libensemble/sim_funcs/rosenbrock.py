@@ -2,6 +2,7 @@
     gradient, and not the function evaluation, to scale down the gradient
     so the Lipschitz and smoothness term is reduced.
 """
+
 import numpy as np
 
 

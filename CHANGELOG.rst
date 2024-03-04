@@ -8,6 +8,74 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.2.1
+--------------
+
+:Date: February 23, 2024
+
+* Fix documentation bug where pydantic models do not display correctly.  #1249
+* Improve internal efficiency. #1243 / #1249
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 1.2.0
+--------------
+
+:Date: February 8, 2024
+
+New capabilities:
+
+* Support for both Pydantic 1 and 2. #1135
+* Support ``object`` dtype in history array. #1179 / #1181
+* Users can add additional fields to output arrays in user functions. #1203
+* Decorators to provide user function in/out specs. #1072
+
+Fixes:
+
+* Bug fix - Overwrite history file on completion when even when the pathname is unchanged. #1177
+* Prevent duplicate save when using ``save_every_k_gens``. #1154
+* Add a ``FAILED_TO_START`` task status. #1229
+* Set ``ensemble.nworkers`` when create ensemble object even when ``parse_args`` is *False*. #1162
+
+Platform support:
+
+* Add platform support for **Aurora**. #1183
+  * Support for GPU tiles (new platform spec `tiles_per_gpu`).
+  * Add *libE_specs* option `use_tiles_as_gpus` to treat each tile as a GPU.
+  * Add Aurora platform guide.
+* Add platform guide for **Improv**. #1235
+* Detection of Perlmutter GPU nodes updated. #1211
+* Make ``srun`` GPU setting default to `gpus_per_task` instead of `gpus_per_node`. #1206
+* Remove Theta support and guide. #1200
+
+Example user functions:
+
+* Add **gpCAM** generator. #1189 / #1213 / #1220
+* Support for IBCDFO local optimization methods in APOSMM. #998
+* Add `mock_sim` to enable replay of a previous run using history file. #1207
+* Fix Sine tutorial. #1168
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 1.1.0
+--------------
+
 :Date: November 8, 2023
 
 New capabilities:
@@ -70,7 +138,7 @@ Output changes:
 
 Bug fixes:
 
-* Resolved PETSc/OpenMPI issue (when using the Executor). #1064
+* Resolved PETSc/Open-MPI issue (when using the Executor). #1064
 * Prevent `mpi4py` validation running during local comms (when using OO interface). #1065
 
 Performance changes:
@@ -330,7 +398,7 @@ Documentation:
 
 :Known issues:
 
-* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
+* Open-MPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
   since it does not support nested MPI launches.
   (Either use local mode or the Balsam Executor.)
 * See known issues section in the documentation for more issues.
@@ -394,7 +462,7 @@ Other functionality changes:
 
 :Known issues:
 
-* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
+* Open-MPI does not work with direct MPI job launches in ``mpi4py`` comms mode,
   since it does not support nested MPI launches.
   (Either use local mode or the Balsam Executor.)
 * See known issues section in the documentation for more issues.
@@ -442,7 +510,7 @@ Documentation:
 
 :Known issues:
 
-* OpenMPI does not work with direct MPI job launches in ``mpi4py`` comms mode, since it does not support nested MPI launches
+* Open-MPI does not work with direct MPI job launches in ``mpi4py`` comms mode, since it does not support nested MPI launches
   (Either use local mode or Balsam Executor).
 * See known issues section in the documentation for more issues.
 
@@ -490,7 +558,7 @@ Documentation:
 :Known issues:
 
 * We currently recommend running in Central mode on Bridges, as distributed runs are experiencing hangs.
-* OpenMPI does not work with direct MPI job launches in mpi4py comms mode, since it does not support nested MPI launches
+* Open-MPI does not work with direct MPI job launches in mpi4py comms mode, since it does not support nested MPI launches
   (Either use local mode or Balsam Executor).
 * See known issues section in the documentation for more issues.
 
@@ -646,7 +714,7 @@ Release 0.5.0
 
 :Known issues:
 
-* OpenMPI does not work with direct MPI job launches in mpi4py comms mode, since it does not support nested MPI launches
+* Open-MPI does not work with direct MPI job launches in mpi4py comms mode, since it does not support nested MPI launches
   (Either use local mode or Balsam job controller).
 * Local comms mode (multiprocessing) may fail if MPI is initialized before forking processors. This is thought to be responsible for issues combining with PETSc.
 * Remote detection of logical cores via LSB_HOSTS (e.g., Summit) returns number of physical cores since SMT info not available.
@@ -678,7 +746,7 @@ Release 0.4.0
 
 :Known issues:
 
-* OpenMPI is not supported with direct MPI launches since nested MPI launches are not supported.
+* Open-MPI is not supported with direct MPI launches since nested MPI launches are not supported.
 
 Release 0.3.0
 -------------
@@ -699,7 +767,7 @@ Release 0.3.0
 
 :Known issues:
 
-* OpenMPI is not supported with direct MPI launches since nested MPI launches are not supported.
+* Open-MPI is not supported with direct MPI launches since nested MPI launches are not supported.
 
 Release 0.2.0
 -------------
@@ -715,7 +783,7 @@ Release 0.2.0
 :Known issues:
 
 * Killing MPI jobs does not work correctly on some systems (including Cray XC40 and CS400). In these cases, libEnsemble continues, but processes remain running.
-* OpenMPI does not work correctly with direct launches (and has not been tested with Balsam).
+* Open-MPI does not work correctly with direct launches (and has not been tested with Balsam).
 
 Release 0.1.0
 -------------

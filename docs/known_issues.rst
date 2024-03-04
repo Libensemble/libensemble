@@ -13,8 +13,8 @@ may occur when using libEnsemble.
   ``srun: error: CPU binding outside of job step allocation, allocated`` in
   the application's standard error. This is being investigated. If this happens
   we recommend using ``local`` comms in place of ``mpi4py``.
-* When using the Executor: OpenMPI does not work with direct MPI task
-  submissions in mpi4py comms mode, since OpenMPI does not support nested MPI
+* When using the Executor: Open-MPI does not work with direct MPI task
+  submissions in mpi4py comms mode, since Open-MPI does not support nested MPI
   executions. Use either ``local`` mode or the Balsam Executor instead.
 * Local comms mode (multiprocessing) may fail if MPI is initialized before
   forking processors. This is thought to be responsible for issues combining

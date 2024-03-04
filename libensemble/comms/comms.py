@@ -150,7 +150,6 @@ class QCommLocal(Comm):
         self._result = None
         self._exception = None
         self._done = False
-        self._ufunc = kwargs.get("ufunc", False)
 
     def _is_result_msg(self, msg):
         """Return true if message indicates final result (and set result/except)."""
@@ -209,13 +208,13 @@ class QCommLocal(Comm):
         return self._result
 
     @staticmethod
-    def _qcomm_main(comm, main, *fargs, **kwargs):
+    def _qcomm_main(comm, main, *args, **kwargs):
         """Main routine -- handles return values and exceptions."""
         try:
-            if not kwargs.get("ufunc"):
-                _result = main(comm, *fargs, **kwargs)
+            if not kwargs.get("user_function"):
+                _result = main(comm, *args, **kwargs)
             else:
-                _result = main(*fargs)
+                _result = main(*args)
             comm.send(CommResult(_result))
         except Exception as e:
             comm.send(CommResultErr(str(e), format_exc()))
@@ -237,12 +236,12 @@ class QCommLocal(Comm):
 class QCommThread(QCommLocal):
     """Launch a user function in a thread with an attached QComm."""
 
-    def __init__(self, main, nworkers, *fargs, **kwargs):
+    def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = thread_queue.Queue()
         self.outbox = thread_queue.Queue()
-        super().__init__(self, main, *fargs, **kwargs)
+        super().__init__(self, main, *args, **kwargs)
         comm = QComm(self.inbox, self.outbox, nworkers)
-        self.handle = Thread(target=QCommThread._qcomm_main, args=(comm, main) + fargs, kwargs=kwargs)
+        self.handle = Thread(target=QCommThread._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the thread.

@@ -4,10 +4,10 @@ Aurora
 
 Aurora_ is an Intel/HPE EX supercomputer located in the ALCF_ at Argonne
 National Laboratory. Each compute node contains two Intel (Sapphire Rapids)
-Xeon CPUs and six Intel X\ :sup:`e` GPUs (Ponte Vecchio) each with two tiles.
+Xeon CPUs and six Intel X\ :sup:`e` GPUs (Ponte Vecchio), each with two tiles.
 
-The PBS scheduler is used to submit jobs from login nodes to run on the
-compute nodes.
+The PBS scheduler is used to submit jobs from login nodes to run on compute
+nodes.
 
 Configuring Python and Installation
 -----------------------------------
