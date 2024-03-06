@@ -15,14 +15,13 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 import numpy as np
 
+# Import libEnsemble items for this test
+from libensemble import Generator
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import _get_user_params
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.gen_funcs.sampling import lhs_sample
-
-# Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f2
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -33,49 +32,44 @@ def sim_f(In):
     return Out
 
 
-class LHSGenerator:
-    def __init__(self, persis_info, gen_specs):
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
+class LHS(Generator):
+    def __init__(self, rand_stream, ub, lb, b, dtype):
+        self.rand_stream = rand_stream
+        self.ub = ub
+        self.lb = lb
+        self.batch_size = b
+        self.dtype = dtype
 
-    def ask(self):
-        ub = self.gen_specs["user"]["ub"]
-        lb = self.gen_specs["user"]["lb"]
-
-        n = len(lb)
-        b = self.gen_specs["user"]["gen_batch_size"]
-
-        H_o = np.zeros(b, dtype=self.gen_specs["out"])
-
-        A = lhs_sample(n, b, self.persis_info["rand_stream"])
-
-        H_o["x"] = A * (ub - lb) + lb
-
+    def ask(self, *args):
+        n = len(self.lb)
+        H_o = np.zeros(self.batch_size, dtype=self.dtype)
+        A = lhs_sample(n, self.batch_size, self.rand_stream)
+        H_o["x"] = A * (self.ub - self.lb) + self.lb
         return H_o
 
 
-class PersistentUniform:
+class PersistentUniform(Generator):
     def __init__(self, persis_info, gen_specs):
         self.persis_info = persis_info
         self.gen_specs = gen_specs
-        self.b, self.n, self.lb, self.ub = _get_user_params(gen_specs["user"])
+        _, self.n, self.lb, self.ub = _get_user_params(gen_specs["user"])
 
-    def ask(self):
-        H_o = np.zeros(self.b, dtype=self.gen_specs["out"])
-        H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (self.b, self.n))
-        if "obj_component" in H_o.dtype.fields:
-            H_o["obj_component"] = self.persis_info["rand_stream"].integers(
-                low=0, high=self.gen_specs["user"]["num_components"], size=self.b
-            )
+    def initial_ask(self, num_points, *args):
+        return self.ask(num_points)
+
+    def ask(self, num_points):
+        H_o = np.zeros(num_points, dtype=self.gen_specs["out"])
+        H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (num_points, self.n))
         self.last_H = H_o
         return H_o
 
-    def tell(self, H_in, *args):
+    def tell(self, H_in):
         if hasattr(H_in, "__len__"):
-            self.b = len(H_in)
+            self.batch_size = len(H_in)
 
-    def finalize(self):
-        return self.last_H, self.persis_info, FINISHED_PERSISTENT_GEN_TAG
+    def final_tell(self, H_in):
+        self.tell(H_in)
+        return self.last_H
 
 
 if __name__ == "__main__":
@@ -100,7 +94,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    gen_one = LHSGenerator(persis_info[1], gen_specs_normal)
+    gen_one = LHS(persis_info[1]["rand_stream"], np.array([3]), np.array([-3]), 500, gen_specs_normal["out"])
     gen_specs_normal["gen_f"] = gen_one
 
     exit_criteria = {"gen_max": 201}
