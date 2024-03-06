@@ -93,7 +93,7 @@ class AllocSupport:
         :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
         :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
         :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
-        :param gen_workers: (Optional) Boolean. If True, return gen-only workers and manager's ID.
+        :param gen_workers: (Optional) Boolean. If True, return gen-only workers.
         :returns: List of worker IDs.
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
