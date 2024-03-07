@@ -19,8 +19,8 @@ class Generator(ABC):
                 self.param = param
                 self.model = None
 
-            def initial_ask(self, num_points):
-                return create_initial_points(num_points, self.param)
+            def initial_ask(self, num_points, yesterdays_points):
+                return create_initial_points(num_points, self.param, yesterdays_points)
 
             def ask(self, num_points):
                 return create_points(num_points, self.param)
@@ -37,14 +37,14 @@ class Generator(ABC):
         my_ensemble = Ensemble(generator=my_generator)
 
     Pattern of operations:
-    0. User initialize the generator class in their script, provides object to workflow/libEnsemble
+    0. User initializes the generator class in their script, provides object to workflow/libEnsemble
     1. Initial ask for points from the generator
     2. Send initial points to workflow for evaluation
     while not instructed to cleanup:
         3. Tell results to generator
         4. Ask generator for subsequent points
         5. Send points to workflow for evaluation. Get results and any cleanup instruction.
-    6. Perform final_tell to generator, retrieve final results if any.
+    6. Perform final_tell to generator, retrieve any final results/points if any.
 
     """
 
