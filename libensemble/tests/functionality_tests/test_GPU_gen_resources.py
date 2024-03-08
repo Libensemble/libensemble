@@ -110,6 +110,8 @@ if __name__ == "__main__":
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
             elif run == 1:
+                if gen_on_manager:
+                    print("SECOND LIBE CALL WITH GEN ON MANAGER")
                 libE_specs["gen_num_gpus"] = 1
             elif run == 2:
                 persis_info["gen_num_gpus"] = 1

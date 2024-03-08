@@ -460,6 +460,9 @@ def kill_proc_team(wcomms, timeout):
             wcomm.result(timeout=timeout)
         except Timeout:
             wcomm.terminate()
+        wcomm.handle = None
+        wcomm.inbox = None
+        wcomm.outbox = None
 
 
 def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0):

@@ -255,6 +255,9 @@ class QCommThread(QCommLocal):
         self.handle.join(timeout=timeout)
         if self.running:
             raise Timeout()
+        self.handle = None
+        self.inbox = None
+        self.outbox = None
 
 
 class QCommProcess(QCommLocal):
@@ -274,3 +277,6 @@ class QCommProcess(QCommLocal):
         self.handle.join(timeout=timeout)
         if self.running:
             raise Timeout()
+        self.handle = None
+        self.inbox = None
+        self.outbox = None
