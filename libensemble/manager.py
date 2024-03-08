@@ -304,7 +304,6 @@ class Manager:
             self.wcomms[w].send(STOP_TAG, MAN_SIGNAL_FINISH)
             if w == 0:
                 self.wcomms[0].result()
-                self.wcomms[0] = None
 
     # --- Checkpointing logic
 

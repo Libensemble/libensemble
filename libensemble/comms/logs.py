@@ -204,7 +204,6 @@ def manager_logging_config(specs={}):
         stat_timer.stop()
         stat_logger.info(f"Exiting ensemble at: {stat_timer.date_end} Time Taken: {stat_timer.elapsed}")
         stat_logger.handlers[0].close()
-        print("Manager logger closed")
 
         # If closing logs - each libE() call will log to a new file.
         # fh.close()

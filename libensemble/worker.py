@@ -415,3 +415,4 @@ class Worker:
             self.gen_runner.shutdown()
             self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()
+            Executor.executor.comm = None
