@@ -58,7 +58,6 @@ class Generator(ABC):
 
             my_generator = MyGenerator(my_parameter, batch_size=10)
         """
-        pass
 
     def initial_ask(self, num_points: int, previous_results: Optional[Iterable]) -> Iterable:
         """
@@ -67,20 +66,17 @@ class Generator(ABC):
         specific ask was the first. Previous results can be provided to build a foundation
         for the initial sample. This will be called only once.
         """
-        pass
 
     @abstractmethod
     def ask(self, num_points: int) -> Iterable:
         """
         Request the next set of points to evaluate.
         """
-        pass
 
     def tell(self, results: Iterable) -> None:
         """
         Send the results of evaluations to the generator.
         """
-        pass
 
     def final_tell(self, results: Iterable) -> Optional[Iterable]:
         """
@@ -89,4 +85,3 @@ class Generator(ABC):
         method to simplify the common pattern of noting internally if a
         specific tell is the last. This will be called only once.
         """
-        pass
