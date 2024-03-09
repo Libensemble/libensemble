@@ -23,7 +23,9 @@ import sys
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM_ask_tell, persistent_gpCAM_simple
+
+from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f
+from libensemble.gen_funcs.persistent_gpCAM import GP_CAM_SIMPLE, persistent_gpCAM_ask_tell
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -62,11 +64,13 @@ if __name__ == "__main__":
 
     for inst in range(3):
         if inst == 0:
-            gen_specs["gen_f"] = persistent_gpCAM_simple
+            gen_specs["gen_f"] = persistent_gen_f
+            gen_specs["user"]["generator"] = GP_CAM_SIMPLE
             num_batches = 10
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
             libE_specs["save_every_k_gens"] = 150
             libE_specs["H_file_prefix"] = "gpCAM_nongrid"
+
         if inst == 1:
             gen_specs["user"]["use_grid"] = True
             gen_specs["user"]["test_points_file"] = "gpCAM_nongrid_after_gen_150.npy"
