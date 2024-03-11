@@ -415,4 +415,5 @@ class Worker:
             self.gen_runner.shutdown()
             self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()
-            Executor.executor.comm = None  # so Executor can be pickled upon further libE calls
+            if Executor.executor is not None:
+                Executor.executor.comm = None  # so Executor can be pickled upon further libE calls
