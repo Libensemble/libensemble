@@ -693,6 +693,7 @@ class Manager:
         finally:
             # Return persis_info, exit_flag, elapsed time
             result = self._final_receive_and_kill(persis_info)
+            self.wcomms = None
             sys.stdout.flush()
             sys.stderr.flush()
         return result
