@@ -663,10 +663,6 @@ class Executor:
                 self.last_task += 1
         return timing_msg
 
-    def set_workerID(self, workerid) -> None:
-        """Sets the worker ID for this executor"""
-        self.workerID = workerid
-
     def set_worker_info(self, comm=None, workerid=None) -> None:
         """Sets info for this executor"""
         self.workerID = workerid
