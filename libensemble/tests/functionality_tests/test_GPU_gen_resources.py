@@ -42,12 +42,6 @@ from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources_from_gen as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
-# TODO: multiple libE calls with gen-on-manager currently not supported with spawn on macOS
-if sys.platform == "darwin":
-    from multiprocessing import set_start_method
-
-    set_start_method("fork", force=True)
-
 # from libensemble import logger
 # logger.set_level("DEBUG")  # For testing the test
 
@@ -116,6 +110,8 @@ if __name__ == "__main__":
             if run == 0:
                 libE_specs["gen_num_procs"] = 2
             elif run == 1:
+                if gen_on_manager:
+                    print("SECOND LIBE CALL WITH GEN ON MANAGER")
                 libE_specs["gen_num_gpus"] = 1
             elif run == 2:
                 persis_info["gen_num_gpus"] = 1
