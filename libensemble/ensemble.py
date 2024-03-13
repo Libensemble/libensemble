@@ -327,7 +327,7 @@ class Ensemble:
 
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):
-            new_specs = specs_dump(new_specs, by_alias=True, exclude_none=True, exclude_unset=True)
+            new_specs = specs_dump(new_specs, by_alias=True, exclude_none=True, exclude_defaults=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
