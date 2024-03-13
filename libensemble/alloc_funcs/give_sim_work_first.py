@@ -64,15 +64,19 @@ def give_sim_work_first(
     Work = {}
 
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    for wid in support.avail_worker_ids():
-        if np.any(points_to_evaluate):
+
+    if np.any(points_to_evaluate):
+        for wid in support.avail_worker_ids(gen_workers=False):
             sim_ids_to_send = support.points_by_priority(H, points_avail=points_to_evaluate, batch=batch_give)
             try:
                 Work[wid] = support.sim_work(wid, H, sim_specs["in"], sim_ids_to_send, persis_info.get(wid))
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
-        else:
+            if not np.any(points_to_evaluate):
+                break
+    else:
+        for wid in support.avail_worker_ids(gen_workers=True):
             # Allow at most num_active_gens active generator instances
             if gen_count >= user.get("num_active_gens", gen_count + 1):
                 break
