@@ -341,6 +341,5 @@ def get_platform(libE_specs):
                 platform_info[k] = v
     elif libE_specs.get("platform_specs"):
         platform_info = libE_specs["platform_specs"]
-
-    platform_info = {k: v for k, v in platform_info.items() if v is not None}
+        platform_info = {k: v for k, v in platform_info.items() if v is not None}
     return platform_info
