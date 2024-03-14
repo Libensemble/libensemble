@@ -3,7 +3,6 @@ import sys
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.resources.platforms import PerlmutterGPU
 from libensemble.utils.misc import pydanticV1, specs_dump
 
 
@@ -168,8 +167,9 @@ def test_flakey_workflow():
 
 
 def test_ensemble_specs_update_libE_specs():
-
+    """Test that libE_specs is updated as expected with .attribute setting"""
     from libensemble.ensemble import Ensemble
+    from libensemble.resources.platforms import PerlmutterGPU
     from libensemble.specs import LibeSpecs
 
     platform_specs = PerlmutterGPU()
@@ -184,6 +184,10 @@ def test_ensemble_specs_update_libE_specs():
         use_workflow_dir=True,
         platform_specs=platform_specs,
     )
+
+    assert ensemble.libE_specs.num_resource_sets == ensemble.nworkers - 1
+    assert len(str(ensemble.libE_specs.workflow_dir_path)) > 1
+    assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
 
 
 if __name__ == "__main__":
