@@ -37,7 +37,7 @@ class MPIRunner:
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--LIBE_PPN_ARG_EMPTY",)
         self.default_mpi_options = None
-        self.default_gpu_arg = None
+        self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
 
@@ -126,15 +126,23 @@ class MPIRunner:
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         """Set default GPU setting for MPI runner"""
-        if self.default_gpu_arg is not None:
-            arg_type = self.default_gpu_arg_type
+
+        arg_type = self.default_gpu_arg_type
+        if arg_type is not None:
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
-            gpu_setting_name = self.default_gpu_arg
+            gpu_setting_name = self.default_gpu_args[arg_type]
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
             gpus_env = "CUDA_VISIBLE_DEVICES"
             self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
         return extra_args
+
+    def _get_default_arg(self, gpu_setting_type):
+        """Return default setting for the given gpu_setting_type if it exists, else error"""
+        assert gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]
+        gpu_setting_name = self.default_gpu_args[gpu_setting_type]
+        jassert(gpu_setting_name is not None, f"No default GPU setting for {gpu_setting_type}")
+        return gpu_setting_name
 
     def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
         """Assign GPU resources to slots, limited by ngpus if present.
@@ -199,7 +207,8 @@ class MPIRunner:
 
         elif gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
             gpu_value = gpus_per_node // ppn if gpu_setting_type == "option_gpus_per_task" else gpus_per_node
-            gpu_setting_name = self.platform_info.get("gpu_setting_name", self.default_gpu_arg)
+            print(f"{gpu_setting_type=}")
+            gpu_setting_name = self.platform_info.get("gpu_setting_name", self._get_default_arg(gpu_setting_type))
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
         elif gpu_setting_type == "env":
@@ -319,7 +328,7 @@ class MPICH_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("--ppn", "-ppn")
         self.default_mpi_options = None
-        self.default_gpu_arg = None
+        self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
 
@@ -343,7 +352,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-npernode",)
         self.default_mpi_options = None
-        self.default_gpu_arg = None
+        self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
@@ -388,7 +397,7 @@ class APRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-N",)
         self.default_mpi_options = None
-        self.default_gpu_arg = None
+        self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
@@ -410,7 +419,7 @@ class MSMPI_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-cores",)
         self.default_mpi_options = None
-        self.default_gpu_arg = None
+        self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
         self.mpi_command = [
@@ -431,8 +440,9 @@ class SRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("-N", "--nodes")
         self.arg_ppn = ("--ntasks-per-node",)
         self.default_mpi_options = "--exact"
-        self.default_gpu_arg = "--gpus-per-task"
         self.default_gpu_arg_type = "option_gpus_per_task"
+        self.default_gpu_args = {"option_gpus_per_task": "--gpus-per-task", "option_gpus_per_node": "--gpus-per-node"}
+
         self.platform_info = platform_info
         self.mpi_command = [
             self.run_command,
@@ -453,8 +463,8 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_nnodes = ("--LIBE_NNODES_ARG_EMPTY",)
         self.arg_ppn = ("-r",)
         self.default_mpi_options = None
-        self.default_gpu_arg = "-g"
         self.default_gpu_arg_type = "option_gpus_per_task"
+        self.default_gpu_args = {"option_gpus_per_task": None, "option_gpus_per_node": "-g"}
 
         self.platform_info = platform_info
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
