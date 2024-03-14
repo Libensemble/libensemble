@@ -325,7 +325,7 @@ def get_platform(libE_specs):
     any fields in platform_specs are added to or overwrite fields in the known
     platform.
     """
-
+    platform_info = {}
     name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM") or known_system_detect()
     if name:
         try:
