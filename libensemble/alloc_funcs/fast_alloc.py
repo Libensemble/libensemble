@@ -32,19 +32,20 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     Work = {}
     gen_in = gen_specs.get("in", [])
 
-    for wid in support.avail_worker_ids():
-        persis_info = support.skip_canceled_points(H, persis_info)
+    persis_info = support.skip_canceled_points(H, persis_info)
 
-        # Give sim work if possible
-        if persis_info["next_to_give"] < len(H):
+    # Give sim work if possible
+    if persis_info["next_to_give"] < len(H):
+        for wid in support.avail_worker_ids(gen_workers=False):
             try:
                 Work[wid] = support.sim_work(wid, H, sim_specs["in"], [persis_info["next_to_give"]], [])
             except InsufficientFreeResources:
                 break
             persis_info["next_to_give"] += 1
 
-        elif gen_count < user.get("num_active_gens", gen_count + 1):
-            # Give gen work
+    # Give gen work if possible
+    elif gen_count < user.get("num_active_gens", gen_count + 1):
+        for wid in support.avail_worker_ids(gen_workers=True):
             return_rows = range(len(H)) if gen_in else []
             try:
                 Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
