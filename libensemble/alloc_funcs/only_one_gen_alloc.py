@@ -21,22 +21,26 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     gen_flag = True
     gen_in = gen_specs.get("in", [])
 
-    for wid in support.avail_worker_ids():
-        persis_info = support.skip_canceled_points(H, persis_info)
+    persis_info = support.skip_canceled_points(H, persis_info)
 
-        if persis_info["next_to_give"] < len(H):
+    if persis_info["next_to_give"] < len(H):
+        for wid in support.avail_worker_ids(gen_workers=False):
             try:
                 Work[wid] = support.sim_work(wid, H, sim_specs["in"], [persis_info["next_to_give"]], [])
             except InsufficientFreeResources:
                 break
             persis_info["next_to_give"] += 1
+            if persis_info["next_to_give"] >= len(H):
+                break
 
-        elif not support.test_any_gen() and gen_flag:
+    elif not support.test_any_gen() and gen_flag:
+        # Give gen work
+        return_rows = range(len(H)) if gen_in else []
+        for wid in support.avail_worker_ids(gen_workers=True):
+
             if not support.all_sim_ended(H):
                 break
 
-            # Give gen work
-            return_rows = range(len(H)) if gen_in else []
             try:
                 Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
             except InsufficientFreeResources:
