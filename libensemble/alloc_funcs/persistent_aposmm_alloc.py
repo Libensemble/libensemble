@@ -53,7 +53,7 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
                 )
                 returned_but_not_given[point_ids] = False
 
-    for wid in support.avail_worker_ids(persistent=False):
+    for wid in support.avail_worker_ids(persistent=False, gen_workers=False):
         persis_info = support.skip_canceled_points(H, persis_info)
 
         if persis_info["next_to_give"] < len(H):
@@ -63,8 +63,11 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             except InsufficientFreeResources:
                 break
             persis_info["next_to_give"] += 1
+            if persis_info["next_to_give"] >= len(H):
+                break
 
-        elif persis_info.get("gen_started") is None:
+    if persis_info.get("gen_started") is None:
+        for wid in support.avail_worker_ids(persistent=False, gen_workers=True):
             # Finally, call a persistent generator as there is nothing else to do.
             persis_info.get(wid)["nworkers"] = len(W)
             try:
@@ -74,5 +77,6 @@ def persistent_aposmm_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info
             except InsufficientFreeResources:
                 break
             persis_info["gen_started"] = True  # Must set after - in case break on resources
+            break
 
     return Work, persis_info

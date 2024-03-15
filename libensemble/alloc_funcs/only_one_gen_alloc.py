@@ -21,10 +21,9 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     gen_flag = True
     gen_in = gen_specs.get("in", [])
 
-    persis_info = support.skip_canceled_points(H, persis_info)
-
     if persis_info["next_to_give"] < len(H):
         for wid in support.avail_worker_ids(gen_workers=False):
+            persis_info = support.skip_canceled_points(H, persis_info)
             try:
                 Work[wid] = support.sim_work(wid, H, sim_specs["in"], [persis_info["next_to_give"]], [])
             except InsufficientFreeResources:
