@@ -42,8 +42,9 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             Work[wid] = support.gen_work(wid, ["like"], inds_to_send_back, persis_info.get(wid), persistent=True)
 
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    for wid in support.avail_worker_ids(persistent=False):
-        if np.any(points_to_evaluate):
+    if np.any(points_to_evaluate):
+        for wid in support.avail_worker_ids(persistent=False, gen_workers=False):
+
             # perform sim evaluations (if any point hasn't been given).
             sim_subbatches = H["subbatch"][points_to_evaluate]
             sim_inds = sim_subbatches == np.min(sim_subbatches)
@@ -54,13 +55,11 @@ def only_persistent_gens_for_inverse_bayes(W, H, sim_specs, gen_specs, alloc_spe
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
-
-        elif gen_count == 0:
-            # Finally, generate points since there is nothing else to do.
-            try:
-                Work[wid] = support.gen_work(wid, gen_specs["in"], [], persis_info.get(wid), persistent=True)
-            except InsufficientFreeResources:
+            if not np.any(points_to_evaluate):
                 break
-            gen_count += 1
+
+    elif gen_count == 0:
+        wid = support.avail_worker_ids(persistent=False, gen_workers=True)[0]
+        Work[wid] = support.gen_work(wid, gen_specs["in"], [], persis_info.get(wid), persistent=True)
 
     return Work, persis_info
