@@ -66,5 +66,5 @@ if __name__ == "__main__":
         assert np.array_equal(sampling.H0["x"][:50], sampling.H["x"][:50])
         assert np.all(sampling.H["sim_ended"])
         assert np.all(sampling.H["gen_worker"] == 0)
-        print("\nlibEnsemble correctly didn't add anything to initial sample")
+        print("\nlibEnsemble correctly appended to the initial sample via an additional gen.")
         sampling.save_output(__file__)
