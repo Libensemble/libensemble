@@ -54,7 +54,7 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             Work[wid] = support.gen_work(wid, gen_specs["persis_in"], last_ind, persis_info[wid], persistent=True)
             persis_info[wid]["run_order"].append(last_ind)
 
-    for wid in support.avail_worker_ids(persistent=False):
+    for wid in support.avail_worker_ids(persistent=False, gen_workers=True):
         # Find candidates to start local opt runs if a sample has been evaluated
         if np.any(np.logical_and(~H["local_pt"], H["sim_ended"], ~H["cancel_requested"])):
             n = len(H["x"][0])
@@ -78,7 +78,8 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             persis_info[wid]["run_order"] = [ind]
             gen_count += 1
 
-        elif np.any(points_to_evaluate):
+    if np.any(points_to_evaluate):
+        for wid in support.avail_worker_ids(persistent=False, gen_workers=False):
             # Perform sim evaluations from existing runs
             q_inds_logical = np.logical_and(points_to_evaluate, H["local_pt"])
             if not np.any(q_inds_logical):
@@ -89,10 +90,13 @@ def start_persistent_local_opt_gens(W, H, sim_specs, gen_specs, alloc_specs, per
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
+            if not np.any(points_to_evaluate):
+                break
 
-        elif gen_count == 0 and not np.any(np.logical_and(W["active"] == EVAL_GEN_TAG, W["persis_state"] == 0)):
-            # Finally, generate points since there is nothing else to do (no resource sets req.)
-            Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info[wid], rset_team=[])
-            gen_count += 1
+    if gen_count == 0 and not np.any(np.logical_and(W["active"] == EVAL_GEN_TAG, W["persis_state"] == 0)):
+        # Finally, generate points since there is nothing else to do (no resource sets req.)
+        wid = support.avail_worker_ids(persistent=False, gen_workers=True)[0]
+        Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info[wid], rset_team=[])
+        gen_count += 1
 
     return Work, persis_info
