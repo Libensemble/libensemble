@@ -1,5 +1,5 @@
 """
-Test libEnsemble's capability to evalute existing points and then generate
+Test libEnsemble's capability to evaluate existing points and then generate
 new samples via gen_on_manager.
 
 Execute via one of the following commands (e.g. 3 workers):
