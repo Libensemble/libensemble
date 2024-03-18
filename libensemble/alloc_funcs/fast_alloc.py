@@ -42,6 +42,8 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                 break
             persis_info["next_to_give"] += 1
 
+        return Work, persis_info
+
     # Give gen work if possible
     if persis_info["next_to_give"] >= len(H):
         for wid in support.avail_worker_ids(gen_workers=True):
