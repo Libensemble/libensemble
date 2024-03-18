@@ -35,16 +35,16 @@ def ensure_one_active_gen(W, H, sim_specs, gen_specs, alloc_specs, persis_info, 
     elif not support.test_any_gen() and gen_flag:
         # Give gen work
         return_rows = range(len(H)) if gen_in else []
-        for wid in support.avail_worker_ids(gen_workers=True):
+        wid = support.avail_worker_ids(gen_workers=True)[0]
 
-            if not support.all_sim_ended(H):
-                break
+        if not support.all_sim_ended(H):
+            return Work, persis_info
 
-            try:
-                Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
-            except InsufficientFreeResources:
-                break
-            gen_flag = False
-            persis_info["total_gen_calls"] += 1
+        try:
+            Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
+        except InsufficientFreeResources:
+            return Work, persis_info
+        gen_flag = False
+        persis_info["total_gen_calls"] += 1
 
     return Work, persis_info

@@ -457,6 +457,12 @@ class LibeSpecs(BaseModel):
     For use with supported allocation functions.
     """
 
+    gen_workers: Optional[List[int]] = []
+    """
+    List of workers that should only run generators. All other workers will only
+    run simulator functions.
+    """
+
     resource_info: Optional[dict] = {}
     """
     Resource information to override automatically detected resources.
