@@ -45,7 +45,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
     # Give gen work if possible
     if persis_info["next_to_give"] >= len(H):
         for wid in support.avail_worker_ids(gen_workers=True):
-            if gen_count < user.get("num_active_gens", gen_count + 1):
+            if wid not in Work and gen_count < user.get("num_active_gens", gen_count + 1):
                 return_rows = range(len(H)) if gen_in else []
                 try:
                     Work[wid] = support.gen_work(wid, gen_in, return_rows, persis_info.get(wid))
