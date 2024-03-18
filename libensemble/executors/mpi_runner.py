@@ -131,6 +131,7 @@ class MPIRunner:
         if arg_type is not None:
             gpu_value = gpus_per_node // ppn if arg_type == "option_gpus_per_task" else gpus_per_node
             gpu_setting_name = self.default_gpu_args[arg_type]
+            jassert(gpu_setting_name is not None, f"No default gpu_setting_name for {arg_type}")
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
         else:
             gpus_env = "CUDA_VISIBLE_DEVICES"
@@ -139,7 +140,14 @@ class MPIRunner:
 
     def _get_default_arg(self, gpu_setting_type):
         """Return default setting for the given gpu_setting_type if it exists, else error"""
-        assert gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]
+        jassert(
+            gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"],
+            f"Unrecognized gpu_setting_type {gpu_setting_type}",
+        )
+        jassert(
+            self.default_gpu_args is not None,
+            "The current MPI runner has no default command line option for setting GPUs",
+        )
         gpu_setting_name = self.default_gpu_args[gpu_setting_type]
         jassert(gpu_setting_name is not None, f"No default GPU setting for {gpu_setting_type}")
         return gpu_setting_name
@@ -464,7 +472,7 @@ class JSRUN_MPIRunner(MPIRunner):
         self.arg_ppn = ("-r",)
         self.default_mpi_options = None
         self.default_gpu_arg_type = "option_gpus_per_task"
-        self.default_gpu_args = {"option_gpus_per_task": None, "option_gpus_per_node": "-g"}
+        self.default_gpu_args = {"option_gpus_per_task": "-g", "option_gpus_per_node": None}
 
         self.platform_info = platform_info
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
