@@ -103,7 +103,7 @@ def _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info):
     return np.array(var_vals)
 
 
-def calculate_grid_distances(lb, ub, num_points):
+def _calculate_grid_distances(lb, ub, num_points):
     """Calculate minimum and maximum distances between points in grid"""
     num_points = [num_points] * len(lb)
     spacings = [(ub[i] - lb[i]) / (num_points[i] - 1) for i in range(len(lb))]
@@ -112,7 +112,7 @@ def calculate_grid_distances(lb, ub, num_points):
     return min_distance, max_distance
 
 
-def is_point_far_enough(point, eligible_points, r):
+def _is_point_far_enough(point, eligible_points, r):
     """Check if point is at least r distance away from all points in eligible_points."""
     for ep in eligible_points:
         if np.linalg.norm(point - ep) < r:
@@ -133,7 +133,7 @@ def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     eligible_points = []
     for idx in sorted_indices:
         point = x_for_var[idx]
-        if is_point_far_enough(point, eligible_points, r):
+        if _is_point_far_enough(point, eligible_points, r):
             eligible_points.append(point)
             if len(eligible_points) == batch_size:
                 break
@@ -165,7 +165,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
     if U.get("use_grid"):
         num_points = 10
         x_for_var = _generate_mesh(lb, ub, num_points)
-        r_low_init, r_high_init = calculate_grid_distances(lb, ub, num_points)
+        r_low_init, r_high_init = _calculate_grid_distances(lb, ub, num_points)
     else:
         x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
 
