@@ -215,7 +215,6 @@ class MPIRunner:
 
         elif gpu_setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
             gpu_value = gpus_per_node // ppn if gpu_setting_type == "option_gpus_per_task" else gpus_per_node
-            print(f"{gpu_setting_type=}")
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self._get_default_arg(gpu_setting_type))
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
