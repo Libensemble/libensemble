@@ -128,6 +128,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **sim_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the simulation function.
+                        Forms the base of a simulation directory.
 
                 .. tab-item:: Gens
 
@@ -145,6 +146,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **gen_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the generator function.
+                        Forms the base of a generator directory.
 
         .. tab-item:: Profiling
 
