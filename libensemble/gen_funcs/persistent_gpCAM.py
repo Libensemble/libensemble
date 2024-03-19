@@ -76,7 +76,7 @@ def _generate_mesh(lb, ub, num_points=10):
 
 
 # TODO Make a class method
-def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
+def _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info):
     """
     Evaluate the posterior covariance at points in x_for_var.
     If we have test points, calculate mean square error at those points.
@@ -88,7 +88,7 @@ def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
 
     for start_idx in range(0, n_rows, group_size):
         end_idx = min(start_idx + group_size, n_rows)
-        var_vals_group = my_gp2S.posterior_covariance(x_for_var[start_idx:end_idx], variance_only=True)["v(x)"]
+        var_vals_group = my_gp.posterior_covariance(x_for_var[start_idx:end_idx], variance_only=True)["v(x)"]
         var_vals.extend(var_vals_group)
 
     assert len(var_vals) == n_rows, "Something wrong with the grouping"
@@ -97,14 +97,14 @@ def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
     persis_info.setdefault("mean_variance", []).append(np.mean(var_vals))
 
     if test_points is not None:
-        f_est = my_gp2S.posterior_mean(test_points["x"])["f(x)"]
+        f_est = my_gp.posterior_mean(test_points["x"])["f(x)"]
         mse = np.mean((f_est - test_points["f"]) ** 2)
         persis_info.setdefault("mean_squared_error", []).append(mse)
 
     return np.array(var_vals)
 
 
-def calculate_grid_distances(lb, ub, num_points):
+def _calculate_grid_distances(lb, ub, num_points):
     """Calculate minimum and maximum distances between points in grid"""
     num_points = [num_points] * len(lb)
     spacings = [(ub[i] - lb[i]) / (num_points[i] - 1) for i in range(len(lb))]
@@ -113,7 +113,7 @@ def calculate_grid_distances(lb, ub, num_points):
     return min_distance, max_distance
 
 
-def is_point_far_enough(point, eligible_points, r):
+def _is_point_far_enough(point, eligible_points, r):
     """Check if point is at least r distance away from all points in eligible_points."""
     for ep in eligible_points:
         if np.linalg.norm(point - ep) < r:
@@ -134,7 +134,7 @@ def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     eligible_points = []
     for idx in sorted_indices:
         point = x_for_var[idx]
-        if is_point_far_enough(point, eligible_points, r):
+        if _is_point_far_enough(point, eligible_points, r):
             eligible_points.append(point)
             if len(eligible_points) == batch_size:
                 break
@@ -164,7 +164,7 @@ class GP_CAM_SIMPLE:
         self.U = self.gen_specs["user"]
         self.test_points = _read_testpoints(self.U)
         self._initialize_gpcAM(self.U)
-        self.my_gp2S = None
+        self.my_gp = None
         self.noise = 1e-12
         self.x_for_var = None
         self.var_vals = None
@@ -172,7 +172,7 @@ class GP_CAM_SIMPLE:
         if self.U.get("use_grid"):
             self.num_points = 10
             self.x_for_var = _generate_mesh(self.lb, self.ub, self.num_points)
-            self.r_low_init, self.r_high_init = calculate_grid_distances(self.lb, self.ub, self.num_points)
+            self.r_low_init, self.r_high_init = _calculate_grid_distances(self.lb, self.ub, self.num_points)
 
     def ask(self, n_trials):
         if self.all_x.shape[0] == 0:
@@ -208,18 +208,18 @@ class GP_CAM_SIMPLE:
             self.all_x = np.vstack((self.all_x, x_new))
             self.all_y = np.vstack((self.all_y, y_new))
 
-            if self.my_gp2S is None:
-                self.my_gp2S = GP(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
+            if self.my_gp is None:
+                self.my_gp = GP(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
             else:
-                self.my_gp2S.tell(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
-            self.my_gp2S.train()
+                self.my_gp.tell(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
+            self.my_gp.train()
 
             if not self.U.get("use_grid"):
                 n_trials = len(y_new)
                 self.x_for_var = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (10 * n_trials, self.n))
 
             self.var_vals = _eval_var(
-                self.my_gp2S, self.all_x, self.all_y, self.x_for_var, self.test_points, self.persis_info
+                self.my_gp, self.all_x, self.all_y, self.x_for_var, self.test_points, self.persis_info
             )
 
 
@@ -250,15 +250,15 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
 
         if first_call:
             # Initialize GP
-            my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
             first_call = False
         else:
-            my_gp2S.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
 
-        my_gp2S.train()
+        my_gp.train()
 
         start = time.time()
-        x_new = my_gp2S.ask(
+        x_new = my_gp.ask(
             bounds=np.column_stack((lb, ub)),
             n=batch_size,
             pop_size=batch_size,
