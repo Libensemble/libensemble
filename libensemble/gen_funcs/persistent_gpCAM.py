@@ -75,7 +75,7 @@ def _generate_mesh(lb, ub, num_points=10):
     return points
 
 
-def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
+def _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info):
     """
     Evaluate the posterior covariance at points in x_for_var.
     If we have test points, calculate mean square error at those points.
@@ -87,7 +87,7 @@ def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
 
     for start_idx in range(0, n_rows, group_size):
         end_idx = min(start_idx + group_size, n_rows)
-        var_vals_group = my_gp2S.posterior_covariance(x_for_var[start_idx:end_idx], variance_only=True)["v(x)"]
+        var_vals_group = my_gp.posterior_covariance(x_for_var[start_idx:end_idx], variance_only=True)["v(x)"]
         var_vals.extend(var_vals_group)
 
     assert len(var_vals) == n_rows, "Something wrong with the grouping"
@@ -96,7 +96,7 @@ def _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info):
     persis_info.setdefault("mean_variance", []).append(np.mean(var_vals))
 
     if test_points is not None:
-        f_est = my_gp2S.posterior_mean(test_points["x"])["f(x)"]
+        f_est = my_gp.posterior_mean(test_points["x"])["f(x)"]
         mse = np.mean((f_est - test_points["f"]) ** 2)
         persis_info.setdefault("mean_squared_error", []).append(mse)
 
@@ -151,7 +151,7 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
         `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
     """  # noqa
     U = gen_specs["user"]
-    my_gp2S = None
+    my_gp = None
     noise = 1e-12
 
     test_points = _read_testpoints(U)
@@ -202,15 +202,15 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
             all_x = np.vstack((all_x, x_new))
             all_y = np.vstack((all_y, y_new))
 
-            if my_gp2S is None:
-                my_gp2S = GP(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
+            if my_gp is None:
+                my_gp = GP(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
             else:
-                my_gp2S.tell(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
-            my_gp2S.train()
+                my_gp.tell(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
+            my_gp.train()
 
             if not U.get("use_grid"):
                 x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
-            var_vals = _eval_var(my_gp2S, all_x, all_y, x_for_var, test_points, persis_info)
+            var_vals = _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info)
 
     return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
@@ -242,15 +242,15 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
 
         if first_call:
             # Initialize GP
-            my_gp2S = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
             first_call = False
         else:
-            my_gp2S.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
 
-        my_gp2S.train()
+        my_gp.train()
 
         start = time.time()
-        x_new = my_gp2S.ask(
+        x_new = my_gp.ask(
             bounds=np.column_stack((lb, ub)),
             n=batch_size,
             pop_size=batch_size,
