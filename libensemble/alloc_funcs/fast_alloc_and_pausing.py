@@ -43,9 +43,10 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
         for pt_id in persis_info["pt_ids"]:
             persis_info["inds_of_pt_ids"][pt_id] = H["pt_id"] == pt_id
 
-    idle_workers = support.avail_worker_ids()
+    idle_sim_workers = support.avail_worker_ids(gen_workers=False)
+    idle_gen_workers = support.avail_worker_ids(gen_workers=True)
 
-    while len(idle_workers):
+    while len(idle_sim_workers):
         pt_ids_to_pause = set()
 
         # Find indices of H that are not yet given out to be evaluated
@@ -106,15 +107,19 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
             if len(persis_info["need_to_give"]) != 0:
                 next_row = persis_info["need_to_give"].pop()
-                i = idle_workers[0]
+                i = idle_sim_workers[0]
                 try:
                     Work[i] = support.sim_work(i, H, sim_specs["in"], [next_row], [])
                 except InsufficientFreeResources:
                     persis_info["need_to_give"].add(next_row)
                     break
-                idle_workers = idle_workers[1:]
+                idle_sim_workers = idle_sim_workers[1:]
 
-        elif gen_count < alloc_specs["user"].get("num_active_gens", gen_count + 1):
+        else:
+            break
+
+    while len(idle_gen_workers):
+        if gen_count < alloc_specs["user"].get("num_active_gens", gen_count + 1):
             lw = persis_info["last_worker"]
 
             last_size = persis_info.get("last_size")
@@ -126,18 +131,18 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
                     break
 
             # Give gen work
-            i = idle_workers[0]
+            i = idle_gen_workers[0]
             try:
                 Work[i] = support.gen_work(i, gen_specs["in"], range(len(H)), persis_info[lw])
             except InsufficientFreeResources:
                 break
-            idle_workers = idle_workers[1:]
+            idle_gen_workers = idle_gen_workers[1:]
             gen_count += 1
             persis_info["total_gen_calls"] += 1
             persis_info["last_worker"] = i
             persis_info["last_size"] = len(H)
 
         elif gen_count >= alloc_specs["user"].get("num_active_gens", gen_count + 1):
-            idle_workers = []
+            idle_gen_workers = []
 
     return Work, persis_info
