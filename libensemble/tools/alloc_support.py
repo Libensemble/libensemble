@@ -87,13 +87,13 @@ class AllocSupport:
             rset_team = self.sched.assign_resources(rsets_req, use_gpus, user_params)
         return rset_team
 
-    def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None, gen_workers=False):
+    def avail_worker_ids(self, persistent=None, active_recv=False, zero_resource_workers=None, gen_workers=None):
         """Returns available workers as a list of IDs, filtered by the given options.
 
         :param persistent: (Optional) Int. Only return workers with given ``persis_state`` (1=sim, 2=gen).
         :param active_recv: (Optional) Boolean. Only return workers with given active_recv state.
         :param zero_resource_workers: (Optional) Boolean. Only return workers that require no resources.
-        :param gen_workers: (Optional) Boolean. If True, return gen-only workers.
+        :param gen_workers: (Optional) Boolean. If True, return gen-only workers. If False, return all other workers.
         :returns: List of worker IDs.
 
         If there are no zero resource workers defined, then the ``zero_resource_workers`` argument will
@@ -119,16 +119,17 @@ class AllocSupport:
                 return wrk["active"] == 0
 
         def fltr_gen_workers():
-            if gen_workers:
-                return wrk["gen_worker"]
-            else:
+            if no_gen_workers or gen_workers is None:
                 return True
+            return wrk["gen_worker"] == gen_workers
 
         if active_recv and not persistent:
             raise AllocException("Cannot ask for non-persistent active receive workers")
 
         # If there are no zero resource workers - then ignore zrw (i.e., use only if they exist)
         no_zrw = not any(self.W["zero_resource_worker"])
+        no_gen_workers = not any(self.W["gen_worker"])
+
         wrks = []
         for wrk in self.W:
             if fltr_recving() and fltr_persis() and fltr_zrw() and fltr_gen_workers():

@@ -55,6 +55,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
 
+                **gen_workers** [list of ints]:
+                    List of workers that should only run generators. All other workers will only
+                    run simulator functions.
+
         .. tab-item:: Directories
 
             .. tab-set::
