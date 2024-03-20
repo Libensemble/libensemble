@@ -8,6 +8,29 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.2.2
+--------------
+
+:Date: March 22, 2024
+
+* Bugfix: Some `libE_specs` were not passed through correctly when added after ensemble initialization. #1264
+* `platform_specs` options are merged with detected platforms, rather than replacing. #1265
+* Ensure simulations directories are created when `sim_input_dir` is specified, likewise for gen dirs. #1266
+
+Example user functions:
+
+* Improved structure of gpCAM generator. #1260
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.2.1
 --------------
 
