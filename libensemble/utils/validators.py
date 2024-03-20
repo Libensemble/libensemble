@@ -11,6 +11,7 @@ from libensemble.utils.specs_checkers import (
     _check_H0,
     _check_logical_cores,
     _check_output_fields,
+    _check_set_calc_dirs_on_input_dir,
     _check_set_workflow_dir,
 )
 
@@ -112,6 +113,10 @@ if pydanticV1:
         return _check_set_workflow_dir(values)
 
     @root_validator
+    def set_calc_dirs_on_input_dir(cls, values):
+        return _check_set_calc_dirs_on_input_dir(values)
+
+    @root_validator
     def check_exit_criteria(cls, values):
         return _check_exit_criteria(values)
 
@@ -201,6 +206,10 @@ else:
     @model_validator(mode="after")
     def set_workflow_dir(self):
         return _check_set_workflow_dir(self)
+
+    @model_validator(mode="after")
+    def set_calc_dirs_on_input_dir(self):
+        return _check_set_calc_dirs_on_input_dir(self)
 
     @model_validator(mode="after")
     def check_exit_criteria(self):

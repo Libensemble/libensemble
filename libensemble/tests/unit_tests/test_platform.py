@@ -1,6 +1,8 @@
 import pytest
 
+from libensemble.utils.misc import specs_dump
 from libensemble.resources.platforms import PlatformException, get_platform, known_system_detect
+from libensemble.resources.platforms import Known_platforms
 
 my_spec = {
     "mpi_runner": "srun",
@@ -10,15 +12,12 @@ my_spec = {
 
 summit_spec = {
     "mpi_runner": "jsrun",
-    "runner_name": None,
     "cores_per_node": 42,
     "logical_cores_per_node": 168,
     "gpus_per_node": 6,
-    "tiles_per_gpu": None,
     "gpu_setting_type": "option_gpus_per_task",
     "gpu_setting_name": "-g",
     "scheduler_match_slots": False,
-    "gpu_env_fallback": None,
 }
 
 
@@ -60,7 +59,6 @@ def test_platform_known():
 def test_platform_specs():
     """Test known platform and platform_specs supplied"""
     from libensemble.specs import LibeSpecs
-    from libensemble.utils.misc import specs_dump
 
     exp = my_spec
     libE_specs = {"platform_specs": my_spec}
@@ -85,16 +83,18 @@ def test_platform_specs():
 
 
 def test_known_sys_detect():
+    known_platforms = specs_dump(Known_platforms(), exclude_none=True)
     get_sys_cmd = "echo summit.olcf.ornl.gov"  # Overrides default "hostname -d"
-    platform_info = known_system_detect(cmd=get_sys_cmd)
+    name = known_system_detect(cmd=get_sys_cmd)
+    platform_info = known_platforms[name]
     assert platform_info == summit_spec, f"Summit spec does not match expected ({platform_info})"
 
     # Try unknown system
     get_sys_cmd = "echo madeup.system"  # Overrides default "hostname -d"
-    platform_info = known_system_detect(cmd=get_sys_cmd)
+    name = known_system_detect(cmd=get_sys_cmd)
     assert (
-        platform_info == {}
-    ), f"Expected known_system_detect to return empty dict for unknown system ({platform_info})"
+        name is None
+    ), f"Expected known_system_detect to return None ({name})"
 
 
 if __name__ == "__main__":

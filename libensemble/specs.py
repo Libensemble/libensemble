@@ -272,6 +272,7 @@ class LibeSpecs(BaseModel):
     sim_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory's contents into the working directory upon calling the simulation function.
+    Forms the base of a simulation directory.
     """
 
     gen_dirs_make: Optional[bool] = False
@@ -294,6 +295,7 @@ class LibeSpecs(BaseModel):
     gen_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory's contents into the working directory upon calling the generator function.
+    Forms the base of a generator directory.
     """
 
     calc_dir_id_width: Optional[int] = 4
