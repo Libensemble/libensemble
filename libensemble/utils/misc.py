@@ -33,6 +33,27 @@ def extract_H_ranges(Work: dict) -> str:
         return "_".join(ranges)
 
 
+class _WorkerIndexer:
+    def __init__(self, iterable: list, additional_worker=False):
+        self.iterable = iterable
+        self.additional_worker = additional_worker
+
+    def __getitem__(self, key):
+        if self.additional_worker or isinstance(key, str):
+            return self.iterable[key]
+        else:
+            return self.iterable[key - 1]
+
+    def __setitem__(self, key, value):
+        self.iterable[key] = value
+
+    def __len__(self):
+        return len(self.iterable)
+
+    def __iter__(self):
+        return iter(self.iterable)
+
+
 def specs_dump(specs, **kwargs):
     if pydanticV1:
         return specs.dict(**kwargs)

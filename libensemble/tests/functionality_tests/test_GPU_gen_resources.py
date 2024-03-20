@@ -100,30 +100,34 @@ if __name__ == "__main__":
     libE_specs["resource_info"] = {"cores_on_node": (nworkers * 2, nworkers * 4), "gpus_on_node": nworkers}
 
     base_libE_specs = libE_specs.copy()
-    for run in range(5):
-        # reset
-        libE_specs = base_libE_specs.copy()
-        persis_info = add_unique_random_streams({}, nworkers + 1)
+    for gen_on_manager in [False, True]:
+        for run in range(5):
+            # reset
+            libE_specs = base_libE_specs.copy()
+            libE_specs["gen_on_manager"] = gen_on_manager
+            persis_info = add_unique_random_streams({}, nworkers + 1)
 
-        if run == 0:
-            libE_specs["gen_num_procs"] = 2
-        elif run == 1:
-            libE_specs["gen_num_gpus"] = 1
-        elif run == 2:
-            persis_info["gen_num_gpus"] = 1
-        elif run == 3:
-            # Two GPUs per resource set
-            libE_specs["resource_info"]["gpus_on_node"] = nworkers * 2
-            persis_info["gen_num_gpus"] = 1
-        elif run == 4:
-            # Two GPUs requested for gen
-            persis_info["gen_num_procs"] = 2
-            persis_info["gen_num_gpus"] = 2
-            gen_specs["user"]["max_procs"] = max(nworkers - 2, 1)
+            if run == 0:
+                libE_specs["gen_num_procs"] = 2
+            elif run == 1:
+                if gen_on_manager:
+                    print("SECOND LIBE CALL WITH GEN ON MANAGER")
+                libE_specs["gen_num_gpus"] = 1
+            elif run == 2:
+                persis_info["gen_num_gpus"] = 1
+            elif run == 3:
+                # Two GPUs per resource set
+                libE_specs["resource_info"]["gpus_on_node"] = nworkers * 2
+                persis_info["gen_num_gpus"] = 1
+            elif run == 4:
+                # Two GPUs requested for gen
+                persis_info["gen_num_procs"] = 2
+                persis_info["gen_num_gpus"] = 2
+                gen_specs["user"]["max_procs"] = max(nworkers - 2, 1)
 
-        # Perform the run
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
-        )
+            # Perform the run
+            H, persis_info, flag = libE(
+                sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs, alloc_specs=alloc_specs
+            )
 
 # All asserts are in gen and sim funcs

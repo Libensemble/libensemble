@@ -49,8 +49,8 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
             )
 
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    for wid in support.avail_worker_ids(persistent=False):
-        if np.any(points_to_evaluate):
+    if np.any(points_to_evaluate):
+        for wid in support.avail_worker_ids(persistent=False, gen_workers=False):
             # perform sim evaluations (if they exist in History).
             sim_ids_to_send = np.nonzero(points_to_evaluate)[0][0]  # oldest point
             try:
@@ -58,13 +58,12 @@ def finite_diff_alloc(W, H, sim_specs, gen_specs, alloc_specs, persis_info, libE
             except InsufficientFreeResources:
                 break
             points_to_evaluate[sim_ids_to_send] = False
-
-        elif gen_count == 0:
-            # Finally, call a persistent generator as there is nothing else to do.
-            try:
-                Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info.get(wid), persistent=True)
-            except InsufficientFreeResources:
+            if not np.any(points_to_evaluate):
                 break
-            gen_count += 1
+
+    if gen_count == 0:
+        wid = support.avail_worker_ids(persistent=False, gen_workers=True)[0]
+        Work[wid] = support.gen_work(wid, gen_specs.get("in", []), [], persis_info.get(wid), persistent=True)
+        gen_count += 1
 
     return Work, persis_info, 0

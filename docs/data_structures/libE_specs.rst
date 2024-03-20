@@ -28,7 +28,11 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
 
                 **nworkers** [int]:
-                    Number of worker processes in ``"local"`` or ``"tcp"``.
+                    Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
+
+                **gen_on_manager** Optional[bool] = False
+                    Instructs Manager process to run generator functions.
+                    This generator function can access/modify user objects by reference.
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
@@ -50,6 +54,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
+
+                **gen_workers** [list of ints]:
+                    List of workers that should only run generators. All other workers will only
+                    run simulator functions.
 
         .. tab-item:: Directories
 

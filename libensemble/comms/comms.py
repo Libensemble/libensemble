@@ -146,7 +146,7 @@ class QComm(Comm):
 
 
 class QCommLocal(Comm):
-    def __init__(self, main, nworkers, *args, **kwargs):
+    def __init__(self, main, *args, **kwargs):
         self._result = None
         self._exception = None
         self._done = False
@@ -207,16 +207,6 @@ class QCommLocal(Comm):
             raise RemoteException(self._exception.msg, self._exception.exc)
         return self._result
 
-    @staticmethod
-    def _qcomm_main(comm, main, *args, **kwargs):
-        """Main routine -- handles return values and exceptions."""
-        try:
-            _result = main(comm, *args, **kwargs)
-            comm.send(CommResult(_result))
-        except Exception as e:
-            comm.send(CommResultErr(str(e), format_exc()))
-            raise e
-
     @property
     def running(self):
         """Check if the thread/process is running."""
@@ -230,15 +220,28 @@ class QCommLocal(Comm):
         self.handle.join()
 
 
+def _qcomm_main(comm, main, *args, **kwargs):
+    """Main routine -- handles return values and exceptions."""
+    try:
+        if not kwargs.get("user_function"):
+            _result = main(comm, *args, **kwargs)
+        else:
+            _result = main(*args)
+        comm.send(CommResult(_result))
+    except Exception as e:
+        comm.send(CommResultErr(str(e), format_exc()))
+        raise e
+
+
 class QCommThread(QCommLocal):
     """Launch a user function in a thread with an attached QComm."""
 
     def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = thread_queue.Queue()
         self.outbox = thread_queue.Queue()
-        super().__init__(self, main, nworkers, *args, **kwargs)
+        super().__init__(self, main, *args, **kwargs)
         comm = QComm(self.inbox, self.outbox, nworkers)
-        self.handle = Thread(target=QCommThread._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
+        self.handle = Thread(target=_qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the thread.
@@ -260,9 +263,9 @@ class QCommProcess(QCommLocal):
     def __init__(self, main, nworkers, *args, **kwargs):
         self.inbox = Queue()
         self.outbox = Queue()
-        super().__init__(self, main, nworkers, *args, **kwargs)
+        super().__init__(self, main, *args, **kwargs)
         comm = QComm(self.inbox, self.outbox, nworkers)
-        self.handle = Process(target=QCommProcess._qcomm_main, args=(comm, main) + args, kwargs=kwargs)
+        self.handle = Process(target=_qcomm_main, args=(comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the process."""
