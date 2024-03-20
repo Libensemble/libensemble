@@ -108,6 +108,7 @@ See below for the complete traditional API.
 
 __all__ = ["libE"]
 
+import copy
 import logging
 import os
 import pickle  # Only used when saving output on error
@@ -444,7 +445,9 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
         log_comm = False  # Prevents infinite loop of logging.
 
     wcomms = [
-        QCommLocal(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        QCommLocal(
+            worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, copy.deepcopy(executor)
+        )
         for w in range(1, nworkers + 1)
     ]
 

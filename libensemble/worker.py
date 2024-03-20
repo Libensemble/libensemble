@@ -85,10 +85,10 @@ def worker_main(
         pr.enable()
 
     # If resources / executor passed in, then use those.
-    if resources is not None:
-        Resources.resources = resources
-    if executor is not None:
-        Executor.executor = executor
+    # if resources is not None:
+    #     Resources.resources = resources
+    # if executor is not None:
+    #     self.executor = executor
 
     # Receive dtypes from manager
     _, dtypes = comm.recv()
@@ -107,7 +107,7 @@ def worker_main(
     LS.register_loc("workflow", Path(libE_specs.get("workflow_dir_path")))
 
     # Set up and run worker
-    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs)
+    worker = Worker(comm, dtypes, workerID, sim_specs, gen_specs, libE_specs, executor)
     with LS.loc("workflow"):
         worker.run()
 
@@ -159,6 +159,7 @@ class Worker:
         sim_specs: dict,
         gen_specs: dict,
         libE_specs: dict,
+        executor: Executor = None,
     ) -> None:  # noqa: F821
         """Initializes new worker object"""
         self.comm = comm
@@ -170,7 +171,8 @@ class Worker:
         self.gen_runner = Runner(gen_specs)
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        Worker._set_executor(self.workerID, self.comm)
+        self.executor = executor
+        self._set_executor()
         Worker._set_resources(self.workerID, self.comm, self.libE_specs)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
 
@@ -179,14 +181,13 @@ class Worker:
         if any(k in libE_info for k in ("num_procs", "num_gpus")):
             obj.set_gen_procs_gpus(libE_info)
 
-    @staticmethod
-    def _set_rset_team(libE_info: dict) -> bool:
+    def _set_rset_team(self, libE_info: dict) -> bool:
         """Pass new rset_team to worker resources
 
         Also passes gen assigned cpus/gpus to resources and executor
         """
         resources = Resources.resources
-        exctr = Executor.executor
+        exctr = self.executor
         if isinstance(resources, Resources):
             wresources = resources.get_worker_resources(libE_info["workerID"])
             wresources.set_rset_team(libE_info["rset_team"])
@@ -197,15 +198,13 @@ class Worker:
         else:
             return False
 
-    @staticmethod
-    def _set_executor(workerID: int, comm: "communicator") -> bool:  # noqa: F821
+    def _set_executor(self) -> bool:  # noqa: F821
         """Sets worker ID in the executor, return True if set"""
-        exctr = Executor.executor
-        if isinstance(exctr, Executor):
-            exctr.set_worker_info(comm, workerID)  # When merge update
+        if isinstance(self.executor, Executor):
+            self.executor.set_worker_info(self.comm, self.workerID)  # When merge update
             return True
         else:
-            logger.debug(f"No executor set on worker {workerID}")
+            logger.debug(f"No executor set on worker {self.workerID}")
             return False
 
     @staticmethod
@@ -311,7 +310,7 @@ class Worker:
         calc_msg = f"{enum_desc} {calc_id}: {calc_type} {timer}"
 
         if self.stats_fmt.get("task_timing", False) or self.stats_fmt.get("task_datetime", False):
-            calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
+            calc_msg += self.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
         if self.stats_fmt.get("show_resource_sets", False):
             # Maybe just call option resource_sets if already in sub-dictionary
@@ -346,8 +345,8 @@ class Worker:
         libE_info["comm"] = self.comm
         libE_info["workerID"] = self.workerID
         libE_info["rset_team"] = libE_info.get("rset_team", [])
-        libE_info["executor"] = Executor.executor
-        Worker._set_rset_team(libE_info)
+        libE_info["executor"] = self.executor
+        self._set_rset_team(libE_info)
 
         calc_out, persis_info, calc_status = self._handle_calc(Work, calc_in)
 
@@ -416,5 +415,5 @@ class Worker:
             self.gen_runner.shutdown()
             self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()
-            if Executor.executor is not None:
-                Executor.executor.comm = None  # so Executor can be pickled upon further libE calls
+            if self.executor is not None:
+                self.executor.comm = None  # so Executor can be pickled upon further libE calls

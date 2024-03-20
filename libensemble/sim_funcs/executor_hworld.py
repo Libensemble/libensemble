@@ -14,7 +14,7 @@ from libensemble.specs import input_fields, output_data
 __all__ = ["executor_hworld"]
 
 # Alt send values through X
-sim_ended_count = 0
+sim_ended_count = {}
 
 
 def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
@@ -87,8 +87,10 @@ def executor_hworld(H, _, sim_specs, info):
 
     if "six_hump_camel" not in exctr.default_app("sim").full_path:
         global sim_ended_count
-        sim_ended_count += 1
-        print("sim_ended_count", sim_ended_count, flush=True)
+        if not sim_ended_count.get(exctr.workerID):
+            sim_ended_count[exctr.workerID] = 0
+        sim_ended_count[exctr.workerID] += 1
+        print("sim_ended_count", sim_ended_count[exctr.workerID], flush=True)
 
         if ELAPSED_TIMEOUT:
             args_for_sim = "sleep 60"  # Manager kill - if signal received else completes
@@ -98,18 +100,18 @@ def executor_hworld(H, _, sim_specs, info):
             timeout = 6.0
             launch_shc = False
 
-            if sim_ended_count == 1:
+            if sim_ended_count[exctr.workerID] == 1:
                 args_for_sim = "sleep 1"  # Should finish
-            elif sim_ended_count == 2:
+            elif sim_ended_count[exctr.workerID] == 2:
                 args_for_sim = "sleep 1 Error"  # Worker kill on error
-            elif sim_ended_count == 3:
+            elif sim_ended_count[exctr.workerID] == 3:
                 wait = True
                 args_for_sim = "sleep 1"  # Should finish
                 launch_shc = True
-            elif sim_ended_count == 4:
+            elif sim_ended_count[exctr.workerID] == 4:
                 args_for_sim = "sleep 8"  # Worker kill on timeout
                 timeout = 1.0
-            elif sim_ended_count == 5:
+            elif sim_ended_count[exctr.workerID] == 5:
                 args_for_sim = "sleep 2 Fail"  # Manager kill - if signal received else completes
 
         task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, hyperthreads=True)
@@ -124,9 +126,9 @@ def executor_hworld(H, _, sim_specs, info):
                 calc_status = TASK_FAILED
 
         else:
-            if sim_ended_count >= 2:
+            if sim_ended_count[exctr.workerID] >= 2:
                 calc_status = exctr.polling_loop(task, timeout=timeout, delay=0.3, poll_manager=True)
-                if sim_ended_count == 2 and task.stdout_exists() and "Error" in task.read_stdout():
+                if sim_ended_count[exctr.workerID] == 2 and task.stdout_exists() and "Error" in task.read_stdout():
                     calc_status = WORKER_KILL_ON_ERR
             else:
                 task, calc_status = custom_polling_loop(exctr, task, timeout)
