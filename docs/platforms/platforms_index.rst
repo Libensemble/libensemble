@@ -221,7 +221,6 @@ libEnsemble on specific HPC systems.
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
-.. _Cooley: https://www.alcf.anl.gov/support-center/cooley
 .. _Globus Compute: https://www.globus.org/compute
 .. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/

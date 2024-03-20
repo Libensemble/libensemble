@@ -140,9 +140,9 @@ Additional Information
 See the LCRC Bebop docs here_ for more information about Bebop.
 
 .. _Anaconda: https://www.anaconda.com/
-.. _Bebop: https://www.lcrc.anl.gov/systems/resources/bebop/
+.. _Bebop: https://www.lcrc.anl.gov/systems/bebop
 .. _conda: https://conda.io/en/latest/
-.. _here: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-bebop/
+.. _here: https://docs.lcrc.anl.gov/bebop/running-jobs-bebop/
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _options: https://slurm.schedmd.com/srun.html
 .. _Slurm: https://slurm.schedmd.com/
