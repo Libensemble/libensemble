@@ -104,6 +104,14 @@ def _check_set_workflow_dir(values):
     return values
 
 
+def _check_set_calc_dirs_on_input_dir(values):
+    if scg(values, "sim_input_dir") and not scg(values, "sim_dirs_make"):
+        scs(values, "sim_dirs_make", True)
+    if scg(values, "gen_input_dir") and not scg(values, "gen_dirs_make"):
+        scs(values, "gen_dirs_make", True)
+    return values
+
+
 def _check_logical_cores(values):
     if scg(values, "cores_per_node") and scg(values, "logical_cores_per_node"):
         assert (

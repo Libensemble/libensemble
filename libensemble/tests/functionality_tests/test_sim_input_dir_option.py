@@ -37,7 +37,6 @@ if __name__ == "__main__":
 
     libE_specs["sim_input_dir"] = sim_input_dir
     libE_specs["ensemble_dir_path"] = o_ensemble
-    libE_specs["sim_dirs_make"] = False
     libE_specs["sim_dir_symlink_files"] = ["./test_sim_input_dir_option.py"]  # to cover FileExistsError catch
     libE_specs["ensemble_copy_back"] = True
 
@@ -65,8 +64,6 @@ if __name__ == "__main__":
 
     if is_manager:
         assert os.path.isdir(o_ensemble), f"Ensemble directory {o_ensemble} not created."
-        assert os.path.basename(dir_to_copy) in os.listdir(o_ensemble), "Input file not copied over."
-        with open(os.path.join(o_ensemble, "test_sim_out.txt"), "r") as f:
-            lines = f.readlines()
-
-        assert len(lines) == exit_criteria["sim_max"], "Sim output not written to ensemble dir for each sim call"
+        assert all(
+            [("copy_this" in os.listdir(os.path.join(o_ensemble, i))) for i in os.listdir(o_ensemble)]
+        ), "Sim input dir not copied to each sim dir."
