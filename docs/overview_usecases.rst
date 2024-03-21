@@ -138,7 +138,7 @@ its capabilities.
 
   * **Resource Manager** libEnsemble has a built-in resource manager that can detect
     (or be provided with) a set of resources (e.g., a node-list). Resources are
-    divided up amongst workers (using *resource sets*) and can be dynamically
+    divided up among workers (using *resource sets*) and can be dynamically
     reassigned.
 
   * **Resource Set**: The smallest unit of resources that can be assigned (and
