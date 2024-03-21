@@ -42,7 +42,7 @@ On systems with a job scheduler, libEnsemble is typically run within a single
 :doc:`job submission<example_scripts>`. All user simulations will run on
 the nodes within that allocation.
 
-*How does libensemble know where to run tasks (user applications)?*
+*How does libEnsemble know where to run tasks (user applications)?*
 
 The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
