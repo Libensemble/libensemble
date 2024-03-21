@@ -7,7 +7,7 @@ In order to create an MPI executor, the calling script should contain:
 
     exctr = MPIExecutor()
 
-The MPIExecutor will use system resource information supplied by the libEsnemble
+The MPIExecutor will use system resource information supplied by the libEnsemble
 resource manager when submitting tasks.
 
 """
@@ -266,7 +266,7 @@ class MPIExecutor(Executor):
 
         extra_args: str, Optional
             Additional command line arguments to supply to MPI runner. If
-            arguments are recognised as MPI resource configuration
+            arguments are recognized as MPI resource configuration
             (num_procs, num_nodes, procs_per_node) they will be used in
             resources determination unless also supplied in the direct
             options.

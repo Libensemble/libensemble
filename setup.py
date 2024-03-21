@@ -87,6 +87,7 @@ setup(
             "sphinx_design",
             "sphinx_rtd_theme",
             "sphinxcontrib-bibtex",
+            "sphinxcontrib-spelling",
             "sphinx-copybutton",
         ],
     },

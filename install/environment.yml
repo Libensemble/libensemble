@@ -4,4 +4,5 @@ channels:
 
 dependencies:
  - sphinxcontrib-bibtex
+ - sphinxcontrib-spelling
  - python>=3.9

@@ -179,7 +179,7 @@ Release 0.10.2
   * Ensure relative paths are interpreted from where libEnsemble is run. #1020
   * Create intermediate directories for workflow paths. #1017
 
-* Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
+* Fixes issue where libEnsemble pre-initialized a shared multiprocessing queue. #1026
 
 :Note:
 
@@ -762,7 +762,7 @@ Release 0.3.0
 * History is dumped to file on manager or worker exception and MPI aborted (with exit code 1). (#46)
 * Default logging level changed to DEBUG and redirected to file ensemble.log.
 * Added directory of standalone tests (comms, job kills, and nested MPI launches).
-* Improved and speeded up unit tests. (#68)
+* Improved and sped up unit tests. (#68)
 * Considerable documentation enhancements.
 
 :Known issues:

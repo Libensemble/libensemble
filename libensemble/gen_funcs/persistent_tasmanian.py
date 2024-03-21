@@ -94,7 +94,7 @@ def get_2D_duplicate_indices(x, y, x_ord=np.empty(0, dtype="int"), y_ord=np.empt
 def get_state(queued_pts, queued_ids, id_offset, new_points=np.array([]), completed_points=np.array([]), tol=1e-12):
     """
     Creates the data to be sent and updates the state arrays and scalars if new information
-    (new_points or compeleted_points) arrives. Ensures that the output state arrays remain sorted if
+    (new_points or completed_points) arrives. Ensures that the output state arrays remain sorted if
     the input state arrays are already sorted.
     """
     if new_points.size > 0:
