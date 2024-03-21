@@ -11,7 +11,7 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 Release 1.2.2
 --------------
 
-:Date: March 22, 2024
+:Date: March 21, 2024
 
 * Bugfix: Some `libE_specs` were not passed through correctly when added after ensemble initialization. #1264
 * `platform_specs` options are merged with detected platforms, rather than replacing. #1265
@@ -24,7 +24,8 @@ Example user functions:
 :Note:
 
 * Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
-* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris, and Perlmutter (NERSC).
+  * Note that recent tests have been run on Aurora (ALCF), but the system was unavailable at time of release.
 * Tests were also run on Bebop and Improv LCRC systems.
 
 :Known Issues:
