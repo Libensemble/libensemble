@@ -652,11 +652,13 @@ if [ "$root_found" = true ]; then
           cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
           cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
           cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
+          cp $ROOT_DIR/$UNIT_TEST_MPI_SUBDIR/.cov_unit_out4 .
           cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
           cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
 
           #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
+          #Should create .cov_merge_out - see .coveragerc
+          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_unit_out4 .cov_reg_out .cov_reg_out2
           coverage xml #Should create cov_merge/ dir
           echo -e "..Combined Unit Test/Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
 
