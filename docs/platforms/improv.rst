@@ -68,4 +68,4 @@ You can install mpi4py as usual having installed the Open-MPI module::
 Note if using ``mpi4py`` comms with Open-MPI, you may need to set ``export OMPI_MCA_coll_hcoll_enable=0``
 to prevent HCOLL warnings.
 
-.. _Improv: https://www.lcrc.anl.gov/for-users/using-lcrc/running-jobs/running-jobs-on-improv/
+.. _Improv: https://docs.lcrc.anl.gov/improv/running-jobs-improv/
