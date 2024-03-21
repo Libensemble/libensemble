@@ -42,13 +42,11 @@ if __name__ == "__main__":
     cores_all_tasks = nworkers * cores_per_task
 
     if cores_all_tasks > logical_cores:
-        disable_resource_manager = True
         mess_resources = "Oversubscribing - Resource manager disabled"
     elif libE_specs.get("comms", False) == "tcp":
-        disable_resource_manager = True
         mess_resources = "TCP comms does not support resource management. Resource manager disabled"
     else:
-        disable_resource_manager = False
+        libE_specs["disable_resource_manager"] = False
         mess_resources = "Resource manager enabled"
 
     if is_manager:
