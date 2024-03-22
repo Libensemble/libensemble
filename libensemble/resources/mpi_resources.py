@@ -140,6 +140,9 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
     User-supplied config options are honored, and an exception is
     raised if these are infeasible.
     """
+
+    print("mpires", resources)
+
     wresources = resources.get_worker_resources(workerID)
     gresources = resources.glob_resources
     node_list = wresources.local_nodelist

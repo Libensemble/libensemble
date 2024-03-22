@@ -135,6 +135,7 @@ class MPIExecutor(Executor):
         self.gen_ngpus = libE_info.get("num_gpus")
 
     def set_resources(self, resources: Resources) -> None:
+        print("exctor's resources:", resources)
         self.resources = resources
 
     def _launch_with_retries(
@@ -339,6 +340,8 @@ class MPIExecutor(Executor):
             mpi_runner_obj = self._create_mpi_runner_from_config(mpi_config)
         else:
             mpi_runner_obj = self.mpi_runner_obj or self._create_mpi_runner_from_attr()
+
+        print("exctor's resources:", Resources.resources)
 
         mpi_specs = mpi_runner_obj.get_mpi_specs(
             task,

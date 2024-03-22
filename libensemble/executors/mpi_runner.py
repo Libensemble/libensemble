@@ -301,6 +301,8 @@ class MPIRunner:
             logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
 
+        print("mpirun's resources:", resources)
+
         if machinefile is None and resources is not None:
             nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads, workerID)
             hostlist, machinefile = self.express_spec(

@@ -187,6 +187,7 @@ class Worker:
         Also passes gen assigned cpus/gpus to resources and executor
         """
         resources = Resources.resources
+        print("worker's resources:", resources)
         exctr = self.executor
         if isinstance(resources, Resources):
             wresources = resources.get_worker_resources(self.workerID)
@@ -211,6 +212,7 @@ class Worker:
     def _set_resources(workerID, comm: "communicator", libE_specs) -> bool:  # noqa: F821
         """Sets worker ID in the resources, return True if set"""
         resources = Resources.resources
+        print("worker's resources:", resources)
         if isinstance(resources, Resources):
             resources.set_worker_resources(comm.get_num_workers() + libE_specs["gen_on_manager"], workerID)
             return True
@@ -313,6 +315,7 @@ class Worker:
             calc_msg += self.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
         if self.stats_fmt.get("show_resource_sets", False):
+            print(Resources.resources)
             # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.get_worker_resources(workerid=self.workerID)
             calc_msg += f" rsets: {resources.rset_team}"
