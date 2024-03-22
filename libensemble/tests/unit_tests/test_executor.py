@@ -405,8 +405,8 @@ def test_procs_and_machinefile_logic():
         task = exctr.submit(
             calc_type="sim",
             num_procs=6,
-            num_nodes=1,
-            procs_per_node=6,
+            num_nodes=2,
+            procs_per_node=3,
             app_args=args_for_sim,
             extra_args="--oversubscribe",
         )
@@ -466,7 +466,9 @@ def test_procs_and_machinefile_logic():
 
     # Test with jsrun - does not support machinefiles
     with pytest.raises(MPIResourcesException):
-        task = exctr.submit(calc_type="sim", machinefile=machinefilename, app_args=args_for_sim, mpi_runner_type="jsrun")
+        task = exctr.submit(
+            calc_type="sim", machinefile=machinefilename, app_args=args_for_sim, mpi_runner_type="jsrun"
+        )
 
 
 @pytest.mark.timeout(20)

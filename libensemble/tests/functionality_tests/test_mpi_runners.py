@@ -110,6 +110,7 @@ if __name__ == "__main__":
     eargs_srun = [
         {"testid": "sr1", "nprocs": 16, "e_args": "--xarg 1 --ntasks-per-node 16"},  # nprocs + parse extra_args
         {"testid": "sr2", "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
+        {"testid": "sr3", "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
     ]
 
     # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.
@@ -182,6 +183,7 @@ if __name__ == "__main__":
         "srun -w node-1,node-2 --ntasks 16 --nodes 2 --ntasks-per-node 8 --xarg 1 --exact /path/to/fakeapp.x --testid base6",
         "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid sr1",
         "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr2",
+        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr3",
     ]
 
     exp_jsrun = [
