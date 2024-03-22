@@ -40,6 +40,7 @@ class MPIRunner:
         self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
+        self.rm_rpn = False
 
     def _get_parser(self, p_args, nprocs, nnodes, ppn):
         """Parses MPI arguments from the provided string"""
@@ -296,6 +297,8 @@ class MPIRunner:
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
+        rm_rpn = True if self.rm_rpn and ppn is None and nnodes is None else False
+
         hostlist = None
         if machinefile and not self.mfile_support:
             logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
@@ -312,6 +315,9 @@ class MPIRunner:
         # Remove portable variable if in extra_args
         if extra_args:
             nprocs, nnodes, ppn = self._rm_replicated_args(nprocs, nnodes, ppn, p_args)
+
+        if rm_rpn:
+            ppn = None
 
         if self.default_mpi_options is not None:
             extra_args = self._append_to_extra_args(extra_args, self.default_mpi_options)
@@ -338,6 +344,7 @@ class MPICH_MPIRunner(MPIRunner):
         self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
+        self.rm_rpn = False
 
         self.mpi_command = [
             self.run_command,
@@ -362,6 +369,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
+        self.rm_rpn = False
         self.mpi_command = [
             self.run_command,
             "-x {env}",
@@ -407,6 +415,7 @@ class APRUN_MPIRunner(MPIRunner):
         self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
+        self.rm_rpn = False
         self.mpi_command = [
             self.run_command,
             "-e {env}",
@@ -429,6 +438,7 @@ class MSMPI_MPIRunner(MPIRunner):
         self.default_gpu_args = None
         self.default_gpu_arg_type = None
         self.platform_info = platform_info
+        self.rm_rpn = False
         self.mpi_command = [
             self.run_command,
             "-env {env}",
@@ -449,8 +459,8 @@ class SRUN_MPIRunner(MPIRunner):
         self.default_mpi_options = "--exact"
         self.default_gpu_arg_type = "option_gpus_per_task"
         self.default_gpu_args = {"option_gpus_per_task": "--gpus-per-task", "option_gpus_per_node": "--gpus-per-node"}
-
         self.platform_info = platform_info
+        self.rm_rpn = False
         self.mpi_command = [
             self.run_command,
             "-w {hostlist}",
@@ -475,82 +485,8 @@ class JSRUN_MPIRunner(MPIRunner):
 
         self.platform_info = platform_info
         self.mpi_command = [self.run_command, "-n {num_procs}", "-r {procs_per_node}", "{extra_args}"]
+        self.rm_rpn = True
 
-    def get_mpi_specs(
-        self,
-        task,
-        nprocs,
-        nnodes,
-        ppn,
-        ngpus,
-        machinefile,
-        hyperthreads,
-        extra_args,
-        auto_assign_gpus,
-        match_procs_to_gpus,
-        resources,
-        workerID,
-    ):
-        """Returns a dictionary with the MPI specifications for the runline.
-
-        This function takes user provided inputs and resource information and
-        uses these to determine the final MPI specifications. This may include
-        a host-list or machine file.
-
-        extra_args will be parsed if possible to extract MPI configuration.
-        Default arguments may be added, and GPU settings added to extra_args,
-        or to the task environment.
-        """
-
-        p_args = None
-
-        # Return auto_resource variables inc. extra_args additions
-        if extra_args:
-            nprocs, nnodes, ppn, p_args = self._parse_extra_args(
-                nprocs, nnodes, ppn, hyperthreads, extra_args=extra_args
-            )
-
-        # If no_config_set and auto_assign_gpus - make match_procs_to_gpus default.
-        no_config_set = not (nprocs or ppn)
-
-        if match_procs_to_gpus:
-            jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
-        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
-
-        if auto_assign_gpus or ngpus is not None:
-            # if no_config_set, make match_procs_to_gpus default.
-            if no_config_set:
-                match_procs_to_gpus = True
-            nprocs, nnodes, ppn, extra_args = self._assign_gpus(
-                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
-            )
-
-        rm_rpn = True if ppn is None and nnodes is None else False
-
-        hostlist = None
-        if machinefile and not self.mfile_support:
-            logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
-            machinefile = None
-        if machinefile is None and resources is not None:
-            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads)
-        else:
-            nprocs, nnodes, ppn = mpi_resources.task_partition(nprocs, nnodes, ppn, machinefile)
-
-        # Remove portable variable if in extra_args
-        if extra_args:
-            nprocs, nnodes, ppn = self._rm_replicated_args(nprocs, nnodes, ppn, p_args)
-
-        if rm_rpn:
-            ppn = None
-
-        if self.default_mpi_options is not None:
-            extra_args = self._append_to_extra_args(extra_args, self.default_mpi_options)
-
-        return {
-            "num_procs": nprocs,
-            "num_nodes": nnodes,
-            "procs_per_node": ppn,
-            "extra_args": extra_args,
-            "machinefile": machinefile,
-            "hostlist": hostlist,
-        }
+    def express_spec(self, task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID):
+        """Returns None, None as jsrun uses neither hostlist or machinefile"""
+        return None, None
