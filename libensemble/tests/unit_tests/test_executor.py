@@ -464,6 +464,10 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
+    # Test with jsrun - does not support machinefiles
+    with pytest.raises(MPIResourcesException):
+        task = exctr.submit(calc_type="sim", machinefile=machinefilename, app_args=args_for_sim, mpi_runner_type="jsrun")
+
 
 @pytest.mark.timeout(20)
 def test_doublekill():
