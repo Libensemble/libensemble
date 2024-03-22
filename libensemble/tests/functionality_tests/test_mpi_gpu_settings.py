@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # First set - use executor setting ------------------------------------------------------------
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / remove to detect GPUs
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
         exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
         exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         scheduler_match_slots=False,
     )
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via platform_specs class) for {run_set} ------------------- ")
         libE_specs["platform_specs"].mpi_runner = run_set
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         "scheduler_match_slots": False,
     }
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via platform_specs dict) for {run_set} ------------------- ")
         libE_specs["platform_specs"]["mpi_runner"] = run_set
 
