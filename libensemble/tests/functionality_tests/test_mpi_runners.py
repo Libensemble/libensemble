@@ -56,6 +56,7 @@ if __name__ == "__main__":
     custom_resources = {
         "cores_on_node": (16, 64),  # Tuple (physical cores, logical cores)
         "node_file": node_file,  # Name of file containing a node-list
+        "gpus_on_node": 4,  # For tests with ngpus
     }
     libE_specs["resource_info"] = custom_resources
 
@@ -110,7 +111,9 @@ if __name__ == "__main__":
     eargs_srun = [
         {"testid": "sr1", "nprocs": 16, "e_args": "--xarg 1 --ntasks-per-node 16"},  # nprocs + parse extra_args
         {"testid": "sr2", "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
-        {"testid": "sr3", "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
+        {"testid": "sr3", "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
+        {"testid": "sr4", "ngpus": 8, "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
+        {"testid": "sr5", "ngpus": 8, "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"}
     ]
 
     # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.
@@ -184,6 +187,8 @@ if __name__ == "__main__":
         "srun -w node-1 --ntasks 16 --nodes 1 --xarg 1 --ntasks-per-node 16 --exact /path/to/fakeapp.x --testid sr1",
         "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr2",
         "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --exact /path/to/fakeapp.x --testid sr3",
+        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --gpus-per-task 1 --exact /path/to/fakeapp.x --testid sr4",
+        "srun -w node-1,node-2 --nodes 2 -n 8 --xarg 1 --ntasks-per-node 4 --gpus-per-task 1 --exact /path/to/fakeapp.x --testid sr5",
     ]
 
     exp_jsrun = [
