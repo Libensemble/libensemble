@@ -81,10 +81,6 @@ class Resources:
         """
         return self._worker_resources[workerid]
 
-    @property
-    def worker_resources(self) -> dict:
-        return self.get_worker_resources()
-
     def set_resource_manager(self, num_workers: int) -> None:
         """Initiate the resource manager component of resources"""
         self.resource_manager = ResourceManager(num_workers, self.glob_resources)

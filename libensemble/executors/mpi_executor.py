@@ -351,7 +351,7 @@ class MPIExecutor(Executor):
             extra_args,
             auto_assign_gpus,
             match_procs_to_gpus,
-            self.resources,
+            Resources.resources,  # does this need to be self.resources? or Resources.resources?
             self.workerID,
         )
 

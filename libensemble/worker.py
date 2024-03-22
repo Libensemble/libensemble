@@ -189,7 +189,7 @@ class Worker:
         resources = Resources.resources
         exctr = self.executor
         if isinstance(resources, Resources):
-            wresources = resources.get_worker_resources(libE_info["workerID"])
+            wresources = resources.get_worker_resources(self.workerID)
             wresources.set_rset_team(libE_info["rset_team"])
             Worker._set_gen_procs_gpus(libE_info, wresources)
             if isinstance(exctr, Executor):
