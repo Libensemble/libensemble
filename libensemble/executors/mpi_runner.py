@@ -121,9 +121,8 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        if wresources.doihave_gpus():
-            slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
-            task._add_to_env(gpus_env, slot_list)
+        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
+        task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
         """Set default GPU setting for MPI runner"""
@@ -208,7 +207,7 @@ class MPIRunner:
         if ppn is None:
             ppn = nprocs // nnodes
 
-        if self.platform_info is not None:
+        if self.platform_info:
             gpu_setting_type = self.platform_info.get("gpu_setting_type", gpu_setting_type)
 
         if gpu_setting_type == "runner_default":
@@ -219,7 +218,7 @@ class MPIRunner:
             gpu_setting_name = self.platform_info.get("gpu_setting_name", self._get_default_arg(gpu_setting_type))
             extra_args = self._set_gpu_cli_option(wresources, extra_args, gpu_setting_name, gpu_value)
 
-        elif gpu_setting_type == "env":
+        else:  # gpu_setting_type == "env":
             gpus_env = self.platform_info.get("gpu_setting_name", "CUDA_VISIBLE_DEVICES")
             self._set_gpu_env_var(wresources, task, gpus_per_node, gpus_env)
 
@@ -392,8 +391,7 @@ class OPENMPI_MPIRunner(MPIRunner):
         # as "-host" requires entry for every rank
 
         machinefile = "machinefile_autogen"
-        if workerID is not None:
-            machinefile += f"_for_worker_{workerID}"
+        machinefile += f"_for_worker_{workerID}"
         machinefile += f"_task_{task.id}"
         mfile_created, nprocs, nnodes, ppn = mpi_resources.create_machinefile(
             resources, machinefile, nprocs, nnodes, ppn, hyperthreads
