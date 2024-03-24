@@ -226,25 +226,23 @@ class MPIRunner:
 
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
+
+        def adjust_resource(n_units, units_attr, units_name):
+            if n_units is not None and nnodes:
+                mod_n_units = n_units % nnodes
+                if mod_n_units != 0:
+                    try_n_units = n_units + (nnodes - mod_n_units)
+                    if try_n_units <= wresources.slot_count * getattr(wresources, units_attr) * nnodes:
+                        logger.info(
+                            f"Adjusted {units_name} to split evenly across nodes. From {n_units} to {try_n_units}"
+                        )
+                        return try_n_units
+            return n_units
+
         if resources is not None:
             wresources = resources.worker_resources
-            if ngpus is not None:
-                # When gen gives num_procs or num_gpus will have num_nodes
-                if nnodes:
-                    mod_gpus = ngpus % nnodes
-                    if mod_gpus != 0:
-                        try_gpus = ngpus + mod_gpus
-                        if try_gpus <= wresources.slot_count * wresources.gpus_per_rset * nnodes:
-                            oldng = ngpus
-                            ngpus = try_gpus
-                            logger.info(f"Adjusted ngpus to split evenly across nodes. From {oldng} to {ngpus}")
-            if nprocs is not None:
-                if nnodes:
-                    mod_cpus = nprocs % nnodes
-                    if mod_cpus != 0:
-                        oldnp = nprocs
-                        nprocs = nprocs + mod_cpus
-                        logger.info(f"Adjusted nprocs to split evenly across nodes. From {oldnp} to {nprocs}")
+            ngpus = adjust_resource(ngpus, "gpus_per_rset", "ngpus")
+            nprocs = adjust_resource(nprocs, "procs_per_rset", "nprocs")
         return nprocs, ngpus
 
     def get_mpi_specs(
