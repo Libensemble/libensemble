@@ -405,8 +405,8 @@ def test_procs_and_machinefile_logic():
         task = exctr.submit(
             calc_type="sim",
             num_procs=6,
-            num_nodes=1,
-            procs_per_node=6,
+            num_nodes=2,
+            procs_per_node=3,
             app_args=args_for_sim,
             extra_args="--oversubscribe",
         )
@@ -463,6 +463,12 @@ def test_procs_and_machinefile_logic():
     task = polling_loop(exctr, task, timeout_sec=4, delay=0.05)
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+
+    # Test with jsrun - does not support machinefiles
+    with pytest.raises(MPIResourcesException):
+        task = exctr.submit(
+            calc_type="sim", machinefile=machinefilename, app_args=args_for_sim, mpi_runner_type="jsrun"
+        )
 
 
 @pytest.mark.timeout(20)
