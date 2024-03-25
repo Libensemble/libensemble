@@ -184,7 +184,7 @@ may resemble:
 
 The ``MPIExecutor`` autodetects system criteria such as the appropriate MPI launcher
 and mechanisms to poll and kill tasks. It also has access to the resource manager,
-which partitions resources amongst workers, ensuring that runs utilize different
+which partitions resources among workers, ensuring that runs utilize different
 resources (e.g., nodes). Furthermore, the ``MPIExecutor`` offers resilience via the
 feature of re-launching tasks that fail to start because of system factors.
 
