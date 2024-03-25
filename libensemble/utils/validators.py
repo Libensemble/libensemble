@@ -137,6 +137,7 @@ if pydanticV1:
         if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
             gen_specs = values.get("gen_specs")
             assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
+            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return values
 
@@ -229,6 +230,7 @@ else:
 
         if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
             assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
+            assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return self
 

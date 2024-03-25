@@ -18,7 +18,7 @@ class Runner:
             return super(Runner, GlobusComputeRunner).__new__(GlobusComputeRunner)
         if specs.get("threaded"):  # TODO: undecided interface
             return super(Runner, ThreadRunner).__new__(ThreadRunner)
-        if hasattr(specs.get("gen_f", None), "ask"):
+        if hasattr(specs.get("generator", None), "ask"):
             return super(Runner, AskTellGenRunner).__new__(AskTellGenRunner)
         else:
             return super().__new__(Runner)
