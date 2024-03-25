@@ -272,6 +272,7 @@ class LibeSpecs(BaseModel):
     sim_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory's contents into the working directory upon calling the simulation function.
+    Forms the base of a simulation directory.
     """
 
     gen_dirs_make: Optional[bool] = False
@@ -294,6 +295,7 @@ class LibeSpecs(BaseModel):
     gen_input_dir: Optional[Union[str, Path]] = None
     """
     Copy this directory's contents into the working directory upon calling the generator function.
+    Forms the base of a generator directory.
     """
 
     calc_dir_id_width: Optional[int] = 4
@@ -455,6 +457,12 @@ class LibeSpecs(BaseModel):
     List of workers that require no resources. For when a fixed mapping of workers
     to resources is required. Otherwise, use ``num_resource_sets``.
     For use with supported allocation functions.
+    """
+
+    gen_workers: Optional[List[int]] = []
+    """
+    List of workers that should only run generators. All other workers will only
+    run simulator functions.
     """
 
     resource_info: Optional[dict] = {}

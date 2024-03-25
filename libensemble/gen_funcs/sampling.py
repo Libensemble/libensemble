@@ -49,8 +49,8 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
 
     This generator is used to test/demonstrate setting of resource sets.
 
-    #.. seealso::
-        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+    .. seealso::
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     ub = gen_specs["user"]["ub"]

@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     libE_specs["kill_canceled_sims"] = False
 
-    for run in range(4):
+    for run in range(5):
         persis_info = add_unique_random_streams({}, nworkers + 1)
         for i in persis_info:
             persis_info[i]["get_grad"] = True
@@ -88,6 +88,9 @@ if __name__ == "__main__":
             # sim_specs["out"] = [("f", float), ("grad", float, n)]
         elif run == 3:
             libE_specs["gen_on_manager"] = True
+        elif run == 4:
+            libE_specs["gen_on_manager"] = False
+            libE_specs["gen_workers"] = [2]
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)

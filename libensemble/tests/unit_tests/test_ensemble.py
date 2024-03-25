@@ -166,6 +166,30 @@ def test_flakey_workflow():
     assert not flag, "should've caught input errors"
 
 
+def test_ensemble_specs_update_libE_specs():
+    """Test that libE_specs is updated as expected with .attribute setting"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.resources.platforms import PerlmutterGPU
+    from libensemble.specs import LibeSpecs
+
+    platform_specs = PerlmutterGPU()
+
+    ensemble = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+    )
+
+    ensemble.libE_specs = LibeSpecs(
+        num_resource_sets=ensemble.nworkers - 1,
+        resource_info={"gpus_on_node": 4},
+        use_workflow_dir=True,
+        platform_specs=platform_specs,
+    )
+
+    assert ensemble.libE_specs.num_resource_sets == ensemble.nworkers - 1
+    assert len(str(ensemble.libE_specs.workflow_dir_path)) > 1
+    assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -173,3 +197,4 @@ if __name__ == "__main__":
     test_bad_func_loads()
     test_full_workflow()
     test_flakey_workflow()
+    test_ensemble_specs_update_libE_specs()

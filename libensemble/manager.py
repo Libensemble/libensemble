@@ -254,6 +254,10 @@ class Manager:
                 if wrk["worker_id"] in gresource.zero_resource_workers:
                     wrk["zero_resource_worker"] = True
 
+        for wrk in self.W:
+            if wrk["worker_id"] in self.libE_specs.get("gen_workers", []):
+                wrk["gen_worker"] = True
+
         try:
             temp_EnsembleDirectory.make_copyback()
         except AssertionError as e:  # Ensemble dir exists and isn't empty.

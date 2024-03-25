@@ -55,6 +55,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
 
+                **gen_workers** [list of ints]:
+                    List of workers that should only run generators. All other workers will only
+                    run simulator functions.
+
         .. tab-item:: Directories
 
             .. tab-set::
@@ -132,6 +136,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **sim_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the simulation function.
+                        Forms the base of a simulation directory.
 
                 .. tab-item:: Gens
 
@@ -149,6 +154,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **gen_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the generator function.
+                        Forms the base of a generator directory.
 
         .. tab-item:: Profiling
 

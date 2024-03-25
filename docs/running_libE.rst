@@ -98,7 +98,7 @@ The default is ``mpi``.
         **Reverse-ssh interface**
 
         Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
-        colocates workers, functions, and any applications. User
+        co-locates workers, functions, and any applications. User
         functions can also be persistent, unlike when launching remote functions via
         :ref:`Globus Compute<globus_compute_ref>`.
 
