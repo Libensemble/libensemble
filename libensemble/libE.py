@@ -108,6 +108,7 @@ See below for the complete traditional API.
 
 __all__ = ["libE"]
 
+import copy
 import logging
 import os
 import pickle  # Only used when saving output on error
@@ -368,7 +369,7 @@ def libE_mpi(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE
         # Run manager or worker code, depending
         if is_manager:
             if resources is not None:
-                resources.set_resource_manager(nworkers)
+                resources.set_resource_manager(nworkers + libE_specs["gen_on_manager"])
             return libE_mpi_manager(
                 mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs, H0
             )
@@ -444,7 +445,7 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
         log_comm = False  # Prevents infinite loop of logging.
 
     wcomms = [
-        QCommLocal(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
+        QCommLocal(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, copy.copy(executor))
         for w in range(1, nworkers + 1)
     ]
 
@@ -482,7 +483,7 @@ def libE_local(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, li
 
     # Set manager resources after the forkpoint.
     if resources is not None:
-        resources.set_resource_manager(libE_specs["nworkers"])
+        resources.set_resource_manager(libE_specs["nworkers"] + libE_specs["gen_on_manager"])
 
     if not libE_specs["disable_log_files"]:
         exit_logger = manager_logging_config(specs=libE_specs)

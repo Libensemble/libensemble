@@ -43,13 +43,11 @@ if __name__ == "__main__":
     cores_all_tasks = nworkers * cores_per_task
 
     if cores_all_tasks > logical_cores:
-        disable_resource_manager = True
         mess_resources = "Oversubscribing - Resource manager disabled"
     elif libE_specs.get("comms", False) == "tcp":
-        disable_resource_manager = True
         mess_resources = "TCP comms does not support resource management. Resource manager disabled"
     else:
-        disable_resource_manager = False
+        libE_specs["disable_resource_manager"] = False
         mess_resources = "Resource manager enabled"
 
     if is_manager:
@@ -101,7 +99,7 @@ if __name__ == "__main__":
 
         # For debug
         print(f"Expecting: {calc_status_list}")
-        print("Received:  {H['cstat']}\n")
+        print(f"Received:  {H['cstat']}\n")
 
         assert np.array_equal(H["cstat"], calc_status_list), "Error - unexpected calc status. Received: " + str(
             H["cstat"]

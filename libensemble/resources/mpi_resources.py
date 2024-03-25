@@ -129,7 +129,7 @@ def _max_rsets_per_node(worker_resources):
     return max(rsets_on_node)
 
 
-def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False):
+def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None, hyperthreads=False, workerID=None):
     """Reconciles user-supplied options with available worker
     resources to produce run configuration.
 
@@ -140,10 +140,13 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
     User-supplied config options are honored, and an exception is
     raised if these are infeasible.
     """
-    wresources = resources.worker_resources
+
+    print("mpires", resources)
+
+    wresources = resources.get_worker_resources(workerID)
     gresources = resources.glob_resources
     node_list = wresources.local_nodelist
-    rassert(node_list, "Node list is empty - aborting")
+    rassert(node_list, f"Node list for Worker {workerID} is empty - aborting")
     local_node_count = wresources.local_node_count
 
     cores_avail_per_node = (
@@ -228,6 +231,7 @@ def create_machinefile(
     num_nodes: Optional[int] = None,
     procs_per_node: Optional[int] = None,
     hyperthreads: bool = False,
+    workerID: int = None,
 ) -> Tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
@@ -240,7 +244,7 @@ def create_machinefile(
         except Exception as e:
             logger.warning(f"Could not remove existing machinefile: {e}")
 
-    node_list = resources.worker_resources.local_nodelist
+    node_list = resources.get_worker_resources(workerID).local_nodelist
     logger.debug(f"Creating machinefile with {num_nodes} nodes and {procs_per_node} ranks per node")
 
     with open(machinefile, "w") as f:
@@ -251,11 +255,11 @@ def create_machinefile(
     return built_mfile, num_procs, num_nodes, procs_per_node
 
 
-def get_hostlist(resources, num_nodes=None):
+def get_hostlist(resources, num_nodes, workerID):
     """Creates a hostlist based on user-supplied config options.
 
     completed by detected machine resources
     """
-    node_list = resources.worker_resources.local_nodelist
+    node_list = resources.get_worker_resources(workerID).local_nodelist
     hostlist_str = ",".join([str(x) for x in node_list[:num_nodes]])
     return hostlist_str

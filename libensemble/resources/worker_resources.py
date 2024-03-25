@@ -50,7 +50,7 @@ class ResourceManager(RSetResources):
         )
 
         self.rsets = np.zeros(self.total_num_rsets, dtype=ResourceManager.man_rset_dtype)
-        self.rsets["assigned"] = 0
+        self.rsets["assigned"] = -1
         for field in self.all_rsets.dtype.names:
             self.rsets[field] = self.all_rsets[field]
         self.num_groups = self.rsets["group"][-1]
@@ -70,7 +70,7 @@ class ResourceManager(RSetResources):
         if rset_team:
             rteam = self.rsets["assigned"][rset_team]
             for i, wid in enumerate(rteam):
-                if wid == 0:
+                if wid == -1:
                     self.rsets["assigned"][rset_team[i]] = worker_id
                     self.rsets_free -= 1
                     if self.rsets["gpus"][rset_team[i]]:
@@ -85,13 +85,13 @@ class ResourceManager(RSetResources):
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
-            self.rsets["assigned"] = 0
+            self.rsets["assigned"] = -1
             self.rsets_free = self.total_num_rsets
             self.gpu_rsets_free = self.total_num_gpu_rsets
             self.nongpu_rsets_free = self.total_num_nongpu_rsets
         else:
             rsets_to_free = np.where(self.rsets["assigned"] == worker)[0]
-            self.rsets["assigned"][rsets_to_free] = 0
+            self.rsets["assigned"][rsets_to_free] = -1
             self.rsets_free += len(rsets_to_free)
             self.gpu_rsets_free += np.count_nonzero(self.rsets["gpus"][rsets_to_free])
             self.nongpu_rsets_free += np.count_nonzero(~self.rsets["gpus"][rsets_to_free])
@@ -103,7 +103,7 @@ class ResourceManager(RSetResources):
         """Map WorkerID to index into a nodelist"""
         index = 0
         index_list = []
-        for i in range(1, num_workers + 1):
+        for i in range(num_workers + 1):
             if i in zero_resource_list:
                 index_list.append(None)
             else:
@@ -359,7 +359,7 @@ class WorkerResources(RSetResources):
             team_list += split_list[index]
 
         local_nodelist = list(OrderedDict.fromkeys(team_list))  # Maintain order of nodes
-        logger.debug(f"Worker's local_nodelist is {local_nodelist}")
+        logger.debug(f"Worker {workerID}'s local_nodelist is {local_nodelist}")
 
         slots = {}
         for node in local_nodelist:

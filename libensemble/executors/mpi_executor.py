@@ -135,6 +135,7 @@ class MPIExecutor(Executor):
         self.gen_ngpus = libE_info.get("num_gpus")
 
     def set_resources(self, resources: Resources) -> None:
+        print("exctor's resources:", resources)
         self.resources = resources
 
     def _launch_with_retries(
@@ -329,7 +330,7 @@ class MPIExecutor(Executor):
             num_gpus = self.gen_ngpus
 
         if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
-            num_nodes = self.resources.worker_resources.local_node_count
+            num_nodes = self.resources.get_worker_resources(self.workerID).local_node_count
 
         if mpi_runner_type is not None:
             if isinstance(mpi_runner_type, str):
@@ -339,6 +340,8 @@ class MPIExecutor(Executor):
             mpi_runner_obj = self._create_mpi_runner_from_config(mpi_config)
         else:
             mpi_runner_obj = self.mpi_runner_obj or self._create_mpi_runner_from_attr()
+
+        print("exctor's resources:", Resources.resources)
 
         mpi_specs = mpi_runner_obj.get_mpi_specs(
             task,
@@ -351,7 +354,7 @@ class MPIExecutor(Executor):
             extra_args,
             auto_assign_gpus,
             match_procs_to_gpus,
-            self.resources,
+            Resources.resources,  # does this need to be self.resources? or Resources.resources?
             self.workerID,
         )
 

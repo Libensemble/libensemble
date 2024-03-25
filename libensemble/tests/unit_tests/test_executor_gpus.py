@@ -103,13 +103,14 @@ def setup_exe_from_platform(rset_team, nworkers, workerID, mpi_runner, platform,
     Resources.init_resources(libE_specs, platform_info)
     resources = Resources.resources
     resources.set_worker_resources(nworkers, workerID)
-    resources.worker_resources.set_rset_team(rset_team)
+    resources._worker_resources[workerID].set_rset_team(rset_team)
 
     exctr = MPIExecutor()
     exctr.add_platform_info(platform_info)
     exctr.register_app(full_path=sim_app, calc_type="sim")
     exctr = Executor.executor
     exctr.set_resources(resources)
+    exctr.workerID = workerID
     return exctr
 
 

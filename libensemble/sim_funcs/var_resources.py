@@ -27,8 +27,10 @@ import os
 
 import numpy as np
 
+from libensemble.executors.mpi_executor import MPIExecutor
 from libensemble.message_numbers import TASK_FAILED, UNSET_TAG, WORKER_DONE
 from libensemble.resources.resources import Resources
+from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
 from libensemble.specs import input_fields, output_data
 from libensemble.tools.test_support import check_gpu_setting, check_mpi_runner
@@ -267,7 +269,7 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
     dry_run = sim_specs["user"].get("dry_run", False)  # dry_run only prints run lines in ensemble.log
 
     # Interrogate resources available to this worker
-    resources = Resources.resources.worker_resources
+    resources = Resources.resources.get_worker_resources(libE_info["workerID"])
     slots = resources.slots
 
     assert resources.matching_slots, f"Error: Cannot set CUDA_VISIBLE_DEVICES when unmatching slots on nodes {slots}"
@@ -290,7 +292,12 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
 
     # Create application input file
     inpt = " ".join(map(str, x))
-    exctr = libE_info["executor"]  # Get Executor
+
+    six_hump_camel_app = six_hump_camel.__file__
+    exctr = MPIExecutor()
+    exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
+
+    exctr.set_worker_info(comm=libE_info["comm"], workerid=libE_info["workerID"])
 
     # Launch application via system MPI runner, using assigned resources.
     task = exctr.submit(

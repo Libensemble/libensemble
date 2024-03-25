@@ -99,7 +99,7 @@ class MPIRunner:
         hostlist = None
         machinefile = None
         # Always use host lists (unless uneven mapping)
-        hostlist = mpi_resources.get_hostlist(resources, nnodes)
+        hostlist = mpi_resources.get_hostlist(resources, nnodes, workerID)
         return hostlist, machinefile
 
     def _set_gpu_cli_option(self, wresources, extra_args, gpu_setting_name, gpu_value):
@@ -152,7 +152,7 @@ class MPIRunner:
         jassert(gpu_setting_name is not None, f"No default GPU setting for {gpu_setting_type}")
         return gpu_setting_name
 
-    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus):
+    def _assign_gpus(self, task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID):
         """Assign GPU resources to slots, limited by ngpus if present.
 
         GPUs will be assigned using the slot count and GPUs per slot (from resources).
@@ -167,7 +167,7 @@ class MPIRunner:
 
         """
 
-        wresources = resources.worker_resources
+        wresources = resources.get_worker_resources(workerID)
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
@@ -224,10 +224,10 @@ class MPIRunner:
 
         return nprocs, nnodes, ppn, extra_args
 
-    def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
+    def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources, workerID):
         """Adjust an invalid config"""
         if resources is not None:
-            wresources = resources.worker_resources
+            wresources = resources.get_worker_resources(workerID)
             if ngpus is not None:
                 # When gen gives num_procs or num_gpus will have num_nodes
                 if nnodes:
@@ -286,14 +286,14 @@ class MPIRunner:
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
-        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
+        nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources, workerID)
 
         if auto_assign_gpus or ngpus is not None:
             # if no_config_set, make match_procs_to_gpus default.
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_gpus(
-                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID
             )
 
         hostlist = None
@@ -301,8 +301,10 @@ class MPIRunner:
             logger.warning(f"User machinefile ignored - not supported by {self.run_command}")
             machinefile = None
 
+        print("mpirun's resources:", resources)
+
         if machinefile is None and resources is not None:
-            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads)
+            nprocs, nnodes, ppn = mpi_resources.get_resources(resources, nprocs, nnodes, ppn, hyperthreads, workerID)
             hostlist, machinefile = self.express_spec(
                 task, nprocs, nnodes, ppn, machinefile, hyperthreads, extra_args, resources, workerID
             )
@@ -388,7 +390,7 @@ class OPENMPI_MPIRunner(MPIRunner):
             machinefile += f"_for_worker_{workerID}"
         machinefile += f"_task_{task.id}"
         mfile_created, nprocs, nnodes, ppn = mpi_resources.create_machinefile(
-            resources, machinefile, nprocs, nnodes, ppn, hyperthreads
+            resources, machinefile, nprocs, nnodes, ppn, hyperthreads, workerID
         )
         jassert(mfile_created, "Auto-creation of machinefile failed")
 
@@ -522,7 +524,7 @@ class JSRUN_MPIRunner(MPIRunner):
             if no_config_set:
                 match_procs_to_gpus = True
             nprocs, nnodes, ppn, extra_args = self._assign_gpus(
-                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
+                task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus, workerID
             )
 
         rm_rpn = True if ppn is None and nnodes is None else False
