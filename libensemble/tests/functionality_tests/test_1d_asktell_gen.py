@@ -19,7 +19,6 @@ import numpy as np
 from libensemble import Generator
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import _get_user_params
-from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.gen_funcs.sampling import lhs_sample
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f2
@@ -82,20 +81,16 @@ if __name__ == "__main__":
         "out": [("f", float)],
     }
 
-    gen_specs_normal = {
-        "gen_f": gen_f,
-        "out": [("x", float, (1,))],
-        "user": {
-            "gen_batch_size": 500,
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
-        },
-    }
+    gen_out = [("x", float, (1,))]
 
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    gen_one = LHS(persis_info[1]["rand_stream"], np.array([3]), np.array([-3]), 500, gen_specs_normal["out"])
-    gen_specs_normal["gen_f"] = gen_one
+    GenOne = LHS(persis_info[1]["rand_stream"], np.array([3]), np.array([-3]), 500, gen_out)
+
+    gen_specs_normal = {
+        "generator": GenOne,
+        "out": [("x", float, (1,))],
+    }
 
     exit_criteria = {"gen_max": 201}
 
@@ -104,7 +99,7 @@ if __name__ == "__main__":
     if is_manager:
         assert len(H) >= 201
         print("\nlibEnsemble with NORMAL random sampling has generated enough points")
-        print(H[:20])
+        print(H[:10])
 
     sim_specs = {
         "sim_f": sim_f2,
@@ -125,7 +120,7 @@ if __name__ == "__main__":
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
     gen_two = PersistentUniform(persis_info[1], gen_specs_persistent)
-    gen_specs_persistent["gen_f"] = gen_two
+    gen_specs_persistent["generator"] = gen_two
 
     alloc_specs = {"alloc_f": alloc_f}
 
@@ -136,4 +131,4 @@ if __name__ == "__main__":
     if is_manager:
         assert len(H) >= 201
         print("\nlibEnsemble with PERSISTENT random sampling has generated enough points")
-        print(H[:20])
+        print(H[:10])

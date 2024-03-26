@@ -93,21 +93,22 @@ class ThreadRunner(Runner):
 class AskTellGenRunner(Runner):
     def __init__(self, specs):
         super().__init__(specs)
+        self.gen = specs.get("generator")
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         tag = None
-        initial_batch = getattr(self.f, "initial_batch_size", 0) or libE_info["batch_size"]
-        H_out = self.f.initial_ask(initial_batch, calc_in)
+        initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
+        H_out = self.gen.initial_ask(initial_batch, calc_in)
         tag, Work, H_in = self.ps.send_recv(H_out)
         while tag not in [STOP_TAG, PERSIS_STOP]:
-            batch_size = getattr(self.f, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            self.f.tell(H_in)
-            H_out = self.f.ask(batch_size)
+            batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
+            self.gen.tell(H_in)
+            H_out = self.gen.ask(batch_size)
             tag, Work, H_in = self.ps.send_recv(H_out)
-        return self.f.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
+        return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
-        return self.f.ask(getattr(self.f, "batch_size", 0) or libE_info["batch_size"])
+        return self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"])

@@ -4,7 +4,6 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field
 
-from libensemble import Generator
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
 
@@ -79,7 +78,7 @@ class GenSpecs(BaseModel):
     simulator function, and makes decisions based on simulator function output.
     """
 
-    generator: Optional[Generator] = None
+    generator: Optional[object] = None
     """
     A pre-initialized generator object.
     """
