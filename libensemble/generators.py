@@ -1,5 +1,9 @@
+import queue as thread_queue
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
+
+from libensemble.comms.comms import QComm, QCommThread
+from libensemble.gen_funcs.aposmm_localopt_support import simulate_recv_from_manager
 
 
 class Generator(ABC):
@@ -73,15 +77,57 @@ class Generator(ABC):
         Request the next set of points to evaluate.
         """
 
-    def tell(self, results: Iterable) -> None:
+    def tell(self, results: Iterable, *args, **kwargs) -> None:
         """
         Send the results of evaluations to the generator.
         """
 
-    def final_tell(self, results: Iterable) -> Optional[Iterable]:
+    def final_tell(self, results: Iterable, *args, **kwargs) -> Optional[Iterable]:
         """
         Send the last set of results to the generator, instruct it to cleanup, and
         optionally retrieve an updated final state of evaluations. This is a separate
         method to simplify the common pattern of noting internally if a
         specific tell is the last. This will be called only once.
         """
+
+
+class PersistentGenHandler(Generator):
+    """Implement ask/tell for traditionally written persistent generator functions"""
+
+    def __init__(self, gen_f, H, persis_info, gen_specs, libE_info):
+        self.gen_f = gen_f
+        self.H = H
+        self.persis_info = persis_info
+        self.gen_specs = gen_specs
+        self.libE_info = libE_info
+        self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
+        self.outbox = thread_queue.Queue()
+
+        self.comm = QComm(self.inbox, self.outbox)
+        self.libE_info["comm"] = self.comm  # replacing comm so gen sends HERE instead of manager
+        self.gen = QCommThread(
+            self.gen_f,
+            None,
+            self.H,
+            self.persis_info,  # note that self.gen's inbox/outbox are unused by the underlying gen
+            self.gen_specs,
+            self.libE_info,
+            user_function=True,
+        )
+        self.gen.run()
+
+    def initial_ask(self, num_points: int) -> Iterable:
+        return self.ask(num_points)
+
+    def ask(self, num_points: int) -> Iterable:
+        _, self.last_ask = self.outbox.get()
+        return self.last_ask["calc_out"]
+
+    def tell(self, results: Iterable) -> None:
+        tag, Work, H_in = simulate_recv_from_manager(results, self.gen_specs)
+        self.inbox.put(tag, Work)
+        self.inbox.put(tag, H_in)
+
+    def final_tell(self, results: Iterable) -> Optional[Iterable]:
+        self.tell(results)
+        return self.handle.result()
