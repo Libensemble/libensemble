@@ -12,3 +12,4 @@ __credits__ = "Argonne National Laboratory"
 from libensemble import logger
 
 from .ensemble import Ensemble
+from .generators import Generator

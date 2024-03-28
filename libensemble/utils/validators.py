@@ -131,13 +131,12 @@ if pydanticV1:
     @root_validator
     def check_provided_ufuncs(cls, values):
         sim_specs = values.get("sim_specs")
-        assert hasattr(sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
         assert isinstance(sim_specs.sim_f, Callable), "Simulation function is not callable."
 
         if values.get("alloc_specs").alloc_f.__name__ != "give_pregenerated_sim_work":
             gen_specs = values.get("gen_specs")
-            assert hasattr(gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-            assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
+            if gen_specs.gen_f is not None:
+                assert isinstance(gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return values
 
@@ -225,12 +224,11 @@ else:
 
     @model_validator(mode="after")
     def check_provided_ufuncs(self):
-        assert hasattr(self.sim_specs, "sim_f"), "Simulation function not provided to SimSpecs."
         assert isinstance(self.sim_specs.sim_f, Callable), "Simulation function is not callable."
 
         if self.alloc_specs.alloc_f.__name__ != "give_pregenerated_sim_work":
-            assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
-            assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
+            if self.gen_specs.gen_f is not None:
+                assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
 
         return self
 

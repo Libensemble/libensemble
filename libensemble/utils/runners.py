@@ -6,6 +6,8 @@ from typing import Optional
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
+from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,8 @@ class Runner:
             return super(Runner, GlobusComputeRunner).__new__(GlobusComputeRunner)
         if specs.get("threaded"):  # TODO: undecided interface
             return super(Runner, ThreadRunner).__new__(ThreadRunner)
+        if hasattr(specs.get("generator", None), "ask"):
+            return super(Runner, AskTellGenRunner).__new__(AskTellGenRunner)
         else:
             return super().__new__(Runner)
 
@@ -84,3 +88,31 @@ class ThreadRunner(Runner):
     def shutdown(self) -> None:
         if self.thread_handle is not None:
             self.thread_handle.terminate()
+
+
+class AskTellGenRunner(Runner):
+    def __init__(self, specs):
+        super().__init__(specs)
+        self.gen = specs.get("generator")
+
+    def _persistent_result(self, calc_in, persis_info, libE_info):
+        self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+        tag = None
+        initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
+        if hasattr(self.gen, "init_comms"):
+            self.gen.persis_info = persis_info
+            self.gen.libE_info = persis_info
+            self.gen.init_comms()
+        H_out = self.gen.initial_ask(initial_batch, calc_in)
+        tag, Work, H_in = self.ps.send_recv(H_out)
+        while tag not in [STOP_TAG, PERSIS_STOP]:
+            batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
+            self.gen.tell(H_in)
+            H_out = self.gen.ask(batch_size)
+            tag, Work, H_in = self.ps.send_recv(H_out)
+        return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
+
+    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
+        if libE_info.get("persistent"):
+            return self._persistent_result(calc_in, persis_info, libE_info)
+        return self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"])
