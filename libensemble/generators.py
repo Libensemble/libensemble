@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
 from libensemble.comms.comms import QComm, QCommThread
+from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 
 
@@ -96,35 +97,45 @@ class LibEnsembleGenTranslator(Generator):
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
 
-    def __init__(self, gen_f, History, persis_info, gen_specs, libE_info):
+    def __init__(self, gen_f, gen_specs, History=[], persis_info={}, libE_info={}):
+        self.gen_f = gen_f
         self.gen_specs = gen_specs
+        self.History = History
+        self.persis_info = persis_info
+        self.libE_info = libE_info
+
+    def init_comms(self):
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         self.outbox = thread_queue.Queue()
 
         comm = QComm(self.inbox, self.outbox)
-        libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
-        self.gen = QCommThread(
-            gen_f,
-            None,
-            History,
-            persis_info,  # note that self.gen's inbox/outbox are unused by the underlying gen
-            self.gen_specs,
-            libE_info,
-            user_function=True,
-        )
+        self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
+        self.libE_info["executor"] = Executor.executor
 
-    def initial_ask(self, num_points: int, *args) -> Iterable:
+        self.gen = QCommThread(
+            self.gen_f,
+            None,
+            self.History,
+            self.persis_info,
+            self.gen_specs,
+            self.libE_info,
+            user_function=True,
+        )  # note that self.gen's inbox/outbox are unused by the underlying gen
+
+    def initial_ask(self, num_points: int = 0, *args) -> Iterable:
         if not self.gen.running:
             self.gen.run()
         return self.ask(num_points)
 
-    def ask(self, num_points: int) -> Iterable:
+    def ask(self, num_points: int = 0) -> Iterable:
         _, self.last_ask = self.outbox.get()
-        return self.last_ask["calc_out"][:num_points]
+        if num_points:
+            return self.last_ask["calc_out"][:num_points]
+        return self.last_ask["calc_out"]
 
     def tell(self, results: Iterable, tag=EVAL_GEN_TAG) -> None:
         if results is not None:
-            self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True}}))
+            self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True, "executor": None}}))
         else:
             self.inbox.put((tag, None))
         self.inbox.put((0, results))

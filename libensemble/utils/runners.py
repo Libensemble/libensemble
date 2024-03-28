@@ -99,6 +99,10 @@ class AskTellGenRunner(Runner):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         tag = None
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
+        if hasattr(self.gen, "init_comms"):
+            self.gen.persis_info = persis_info
+            self.gen.libE_info = persis_info
+            self.gen.init_comms()
         H_out = self.gen.initial_ask(initial_batch, calc_in)
         tag, Work, H_in = self.ps.send_recv(H_out)
         while tag not in [STOP_TAG, PERSIS_STOP]:
