@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
 from libensemble.comms.comms import QComm, QCommThread
-from libensemble.gen_funcs.aposmm_localopt_support import simulate_recv_from_manager
+from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 
 
 class Generator(ABC):
@@ -91,43 +91,44 @@ class Generator(ABC):
         """
 
 
-class PersistentGenHandler(Generator):
-    """Implement ask/tell for traditionally written persistent generator functions"""
+class LibEnsembleGenTranslator(Generator):
+    """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
+    Still requires a handful of libEnsemble-specific data-structures on initialization.
+    """
 
-    def __init__(self, gen_f, H, persis_info, gen_specs, libE_info):
-        self.gen_f = gen_f
-        self.H = H
-        self.persis_info = persis_info
+    def __init__(self, gen_f, History, persis_info, gen_specs, libE_info):
         self.gen_specs = gen_specs
-        self.libE_info = libE_info
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         self.outbox = thread_queue.Queue()
 
-        self.comm = QComm(self.inbox, self.outbox)
-        self.libE_info["comm"] = self.comm  # replacing comm so gen sends HERE instead of manager
+        comm = QComm(self.inbox, self.outbox)
+        libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
         self.gen = QCommThread(
-            self.gen_f,
+            gen_f,
             None,
-            self.H,
-            self.persis_info,  # note that self.gen's inbox/outbox are unused by the underlying gen
+            History,
+            persis_info,  # note that self.gen's inbox/outbox are unused by the underlying gen
             self.gen_specs,
-            self.libE_info,
+            libE_info,
             user_function=True,
         )
-        self.gen.run()
 
-    def initial_ask(self, num_points: int) -> Iterable:
+    def initial_ask(self, num_points: int, *args) -> Iterable:
+        if not self.gen.running:
+            self.gen.run()
         return self.ask(num_points)
 
     def ask(self, num_points: int) -> Iterable:
         _, self.last_ask = self.outbox.get()
-        return self.last_ask["calc_out"]
+        return self.last_ask["calc_out"][:num_points]
 
-    def tell(self, results: Iterable) -> None:
-        tag, Work, H_in = simulate_recv_from_manager(results, self.gen_specs)
-        self.inbox.put(tag, Work)
-        self.inbox.put(tag, H_in)
+    def tell(self, results: Iterable, tag=EVAL_GEN_TAG) -> None:
+        if results is not None:
+            self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True}}))
+        else:
+            self.inbox.put((tag, None))
+        self.inbox.put((0, results))
 
     def final_tell(self, results: Iterable) -> Optional[Iterable]:
-        self.tell(results)
-        return self.handle.result()
+        self.tell(results, PERSIS_STOP)
+        return self.gen.result()

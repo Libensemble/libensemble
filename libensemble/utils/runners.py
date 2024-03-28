@@ -6,7 +6,6 @@ from typing import Optional
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import PersistentGenHandler
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -113,22 +112,3 @@ class AskTellGenRunner(Runner):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
         return self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"])
-
-
-class WrappedTraditionalGenRunner(Runner):
-    def __init__(self, specs):
-        super().__init__(specs)
-
-    def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
-        self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-        tag = None
-        initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        wrapper = PersistentGenHandler(self.f, calc_in, persis_info, self.specs, libE_info)
-        out = wrapper.ask(initial_batch)
-        tag, Work, H_in = self.ps.send_recv(out)
-        while tag not in [STOP_TAG, PERSIS_STOP]:
-            batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            wrapper.tell(H_in)
-            out = wrapper.ask(batch_size)
-            tag, Work, H_in = self.ps.send_recv(out)
-        return wrapper.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
