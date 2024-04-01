@@ -168,8 +168,100 @@ def test_standalone_persistent_aposmm_combined_func():
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
 
 
+@pytest.mark.extra
+def test_asktell_with_persistent_aposmm():
+    from math import gamma, pi, sqrt
+
+    import libensemble.gen_funcs
+    from libensemble.generators import LibEnsembleGenTranslator
+    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+    from libensemble.gen_funcs.persistent_aposmm import aposmm
+
+    persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
+
+    n = 2
+    eval_max = 2000
+
+    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
+
+    gen_specs = {
+        "in": ["x", "f", "grad", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            # 'localopt_method': 'LD_MMA', # Needs gradients
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "LN_BOBYQA",
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.5,
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
+
+    APOSMM = LibEnsembleGenTranslator(aposmm, gen_specs, persis_info=persis_info)
+    APOSMM.init_comms()
+    initial_sample = APOSMM.initial_ask()
+    initial_results = np.zeros(
+        len(initial_sample), dtype=gen_out + [("sim_ended", bool), ("f", float), ("grad", float, 2)]
+    )
+
+    total_evals = 0
+    eval_max = 300
+
+    for field in gen_specs["out"]:
+        initial_results[field[0]] = initial_sample[field[0]]
+
+    for i in initial_sample["sim_id"]:
+        initial_results[i]["sim_ended"] = True
+        initial_results[i]["f"] = six_hump_camel_func(initial_sample["x"][i])
+        initial_results[i]["grad"] = six_hump_camel_grad(initial_sample["x"][i])
+        total_evals += 1
+
+    APOSMM.tell(initial_results)
+
+    while total_evals < eval_max:
+        if total_evals >= 105:
+            import ipdb
+
+            ipdb.set_trace()
+        sample = APOSMM.ask()
+        results = np.zeros(len(sample), dtype=gen_out + [("sim_ended", bool), ("f", float), ("grad", float, 2)])
+        for field in gen_specs["out"]:
+            results[field[0]] = sample[field[0]]
+        for i in range(len(sample)):
+            results[i]["sim_ended"] = True
+            results[i]["f"] = six_hump_camel_func(sample["x"][i])
+            results[i]["grad"] = six_hump_camel_grad(sample["x"][i])
+            total_evals += 1
+        APOSMM.tell(results)
+    H, persis_info, exit_code = APOSMM.final_tell(None)
+
+    assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
+    assert np.sum(H["sim_ended"]) >= eval_max, "Standalone persistent_aposmm, didn't evaluate enough points"
+    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
+    tol = 1e-3
+    min_found = 0
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+        if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
+            min_found += 1
+    assert min_found >= 6, f"Found {min_found} minima"
+
+
 if __name__ == "__main__":
-    test_persis_aposmm_localopt_test()
-    test_update_history_optimal()
-    test_standalone_persistent_aposmm()
-    test_standalone_persistent_aposmm_combined_func()
+    # test_persis_aposmm_localopt_test()
+    # test_update_history_optimal()
+    # test_standalone_persistent_aposmm()
+    # test_standalone_persistent_aposmm_combined_func()
+    test_asktell_with_persistent_aposmm()
