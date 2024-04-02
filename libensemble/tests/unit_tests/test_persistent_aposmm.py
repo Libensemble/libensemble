@@ -260,8 +260,8 @@ def test_asktell_with_persistent_aposmm():
 
 
 if __name__ == "__main__":
-    # test_persis_aposmm_localopt_test()
-    # test_update_history_optimal()
-    # test_standalone_persistent_aposmm()
-    # test_standalone_persistent_aposmm_combined_func()
+    test_persis_aposmm_localopt_test()
+    test_update_history_optimal()
+    test_standalone_persistent_aposmm()
+    test_standalone_persistent_aposmm_combined_func()
     test_asktell_with_persistent_aposmm()
