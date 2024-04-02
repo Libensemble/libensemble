@@ -61,7 +61,6 @@ if __name__ == "__main__":
     ]
 
     gen_specs = {
-        "gen_f": gen_f,
         "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,
         "user": {
@@ -86,9 +85,9 @@ if __name__ == "__main__":
 
     exit_criteria = {"sim_max": 2000}
 
-    gen_specs.pop("gen_f")
     gen_specs["generator"] = LibEnsembleGenTranslator(gen_f, gen_specs, persis_info=persis_info[1])
     gen_specs["generator"].initial_batch_size = gen_specs["user"]["initial_sample_size"]
+    gen_specs["generator"].batch_size = gen_specs["user"]["max_active_runs"]
 
     libE_specs["gen_on_manager"] = True
 
@@ -106,4 +105,5 @@ if __name__ == "__main__":
             print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
 
+        persis_info[0]["comm"] = None
         save_libE_output(H, persis_info, __file__, nworkers)
