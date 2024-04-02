@@ -236,7 +236,7 @@ def test_asktell_with_persistent_aposmm():
             results[i]["sim_ended"] = True
             results[i]["f"] = six_hump_camel_func(sample["x"][i])
             total_evals += 1
-        if any(results["local_min"]):  # some points were passsed back to us newly marked as local minima
+        if any(results["local_min"]):  # some points were passed back to us newly marked as local minima
             for m in results["x"][results["local_min"]]:
                 potential_minima.append(m)
             results = results[~results["local_min"]]
