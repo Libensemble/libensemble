@@ -2,38 +2,29 @@
    :align: center
    :alt: libEnsemble
 
-|
+|PyPI| |Conda| |Spack|
 
-.. image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
+|Tests| |Coverage| |Docs| |Style| |JOSS|
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
-
-.. image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
+.. |Conda| image:: https://img.shields.io/conda/v/conda-forge/libensemble?color=blue
    :target: https://anaconda.org/conda-forge/libensemble
-
-.. image:: https://img.shields.io/spack/v/py-libensemble?color=blue
+.. |Spack| image:: https://img.shields.io/spack/v/py-libensemble?color=blue
    :target: https://packages.spack.io/package.html?name=py-libensemble
-
-|
-
-.. image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
+.. |Tests| image:: https://github.com/Libensemble/libensemble/actions/workflows/extra.yml/badge.svg?branch=main
    :target: https://github.com/Libensemble/libensemble/actions
-
-.. image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
+.. |Coverage| image:: https://codecov.io/github/Libensemble/libensemble/graph/badge.svg
    :target: https://codecov.io/github/Libensemble/libensemble
-
-.. image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
+.. |Docs| image:: https://readthedocs.org/projects/libensemble/badge/?maxAge=2592000
    :target: https://libensemble.readthedocs.org/en/latest/
    :alt: Documentation Status
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. |Style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code style: black
-
-.. image:: https://joss.theoj.org/papers/10.21105/joss.06031/status.svg
+.. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.06031/status.svg
    :target: https://doi.org/10.21105/joss.06031
    :alt: JOSS Status
-
-|
 
 .. after_badges_rst_tag
 
