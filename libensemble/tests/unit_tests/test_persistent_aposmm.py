@@ -173,15 +173,12 @@ def test_asktell_with_persistent_aposmm():
     from math import gamma, pi, sqrt
 
     import libensemble.gen_funcs
-    from libensemble.generators import LibEnsembleGenTranslator
+    from libensemble.generators import APOSMM
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 
     libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
-    from libensemble.gen_funcs.persistent_aposmm import aposmm
-
-    persis_info = {"rand_stream": np.random.default_rng(1), "nworkers": 4}
 
     n = 2
     eval_max = 2000
@@ -206,10 +203,10 @@ def test_asktell_with_persistent_aposmm():
         },
     }
 
-    APOSMM = LibEnsembleGenTranslator(aposmm, gen_specs, persis_info=persis_info)
-    APOSMM.setup()
-    initial_sample = APOSMM.initial_ask()
-    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("sim_ended", bool), ("f", float)])
+    my_APOSMM = APOSMM(gen_specs)
+    my_APOSMM.setup()
+    initial_sample = my_APOSMM.initial_ask()
+    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float)])
 
     total_evals = 0
     eval_max = 2000
@@ -218,30 +215,27 @@ def test_asktell_with_persistent_aposmm():
         initial_results[field[0]] = initial_sample[field[0]]
 
     for i in initial_sample["sim_id"]:
-        initial_results[i]["sim_ended"] = True
         initial_results[i]["f"] = six_hump_camel_func(initial_sample["x"][i])
         total_evals += 1
 
-    APOSMM.tell(initial_results)
+    my_APOSMM.tell(initial_results)
 
     potential_minima = []
 
     while total_evals < eval_max:
 
-        sample = APOSMM.ask()
-        results = np.zeros(len(sample), dtype=gen_out + [("sim_ended", bool), ("f", float)])
+        sample, detected_minima = my_APOSMM.ask()
+        if len(detected_minima):
+            for m in detected_minima:
+                potential_minima.append(m)
+        results = np.zeros(len(sample), dtype=gen_out + [("f", float)])
         for field in gen_specs["out"]:
             results[field[0]] = sample[field[0]]
         for i in range(len(sample)):
-            results[i]["sim_ended"] = True
             results[i]["f"] = six_hump_camel_func(sample["x"][i])
             total_evals += 1
-        if any(results["local_min"]):  # some points were passed back to us newly marked as local minima
-            for m in results["x"][results["local_min"]]:
-                potential_minima.append(m)
-            results = results[~results["local_min"]]
-        APOSMM.tell(results)
-    H, persis_info, exit_code = APOSMM.final_tell(None)
+        my_APOSMM.tell(results)
+    H, persis_info, exit_code = my_APOSMM.final_tell(None)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
