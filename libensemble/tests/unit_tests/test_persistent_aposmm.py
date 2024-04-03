@@ -207,7 +207,7 @@ def test_asktell_with_persistent_aposmm():
     }
 
     APOSMM = LibEnsembleGenTranslator(aposmm, gen_specs, persis_info=persis_info)
-    APOSMM.init_comms()
+    APOSMM.setup()
     initial_sample = APOSMM.initial_ask()
     initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("sim_ended", bool), ("f", float)])
 

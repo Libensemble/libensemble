@@ -81,8 +81,6 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    aposmm_persis_info = persis_info[1]
-
     exit_criteria = {"sim_max": 2000}
 
     gen_specs["generator"] = LibEnsembleGenTranslator(gen_f, gen_specs, persis_info=persis_info[1])

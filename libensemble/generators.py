@@ -2,9 +2,13 @@ import queue as thread_queue
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
+import numpy as np
+
 from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
+from libensemble.gen_funcs import persistent_aposmm
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
+from libensemble.tools import add_unique_random_streams
 
 
 class Generator(ABC):
@@ -97,14 +101,14 @@ class LibEnsembleGenTranslator(Generator):
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
 
-    def __init__(self, gen_f, gen_specs, History=[], persis_info={}, libE_info={}):
-        self.gen_f = gen_f
+    def __init__(self, gen_specs, History=[], persis_info={}, libE_info={}):
+        self.gen_f = gen_specs["gen_f"]
         self.gen_specs = gen_specs
         self.History = History
         self.persis_info = persis_info
         self.libE_info = libE_info
 
-    def init_comms(self):
+    def setup(self):
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         self.outbox = thread_queue.Queue()
 
@@ -143,3 +147,41 @@ class LibEnsembleGenTranslator(Generator):
     def final_tell(self, results: Iterable) -> Optional[Iterable]:
         self.tell(results, PERSIS_STOP)
         return self.gen.result()
+
+
+class APOSMM(LibEnsembleGenTranslator):
+    def __init__(self, gen_specs, History=[], persis_info={}, libE_info={}):
+        gen_specs["gen_f"] = persistent_aposmm
+        if not persis_info:
+            persis_info = add_unique_random_streams({}, 1)
+        self.initial_batch_size = gen_specs["user"]["initial_sample_size"]
+        self.batch_size = gen_specs["user"]["max_active_runs"]
+        super().__init__(gen_specs, History, persis_info[1], libE_info)
+
+    def setup(self):
+        super().setup()
+
+    def initial_ask(self) -> Iterable:
+        return super().initial_ask()
+
+    def ask(self) -> (Iterable, Iterable):
+        results = super().ask()
+        if any(results["local_min"]):
+            minima = results["x"][results["local_min"]]
+            results = results[~results["local_min"]]
+            return results, minima
+        return results, []
+
+    def tell(self, results: Iterable) -> None:
+        if "sim_ended" in results.dtype.names:
+            results["sim_ended"] = True
+        else:
+            new_results = np.zeros(len(results), dtype=results.dtype + [("sim_ended", bool)])
+            for field in results.dtype.names:
+                new_results[field] = results[field]
+            new_results["sim_ended"] = True
+            results = new_results
+        super().tell(results)
+
+    def final_tell(self, results: Iterable) -> (Iterable, dict, int):
+        return super().final_tell(results)
