@@ -76,8 +76,8 @@ def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) ->
         if len(set(counter)) != 1:
             logger.warning(f"Detected compute nodes have different core counts: {set(counter)}")
 
-        physical_cores_avail_per_node = counter[0]
-        logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
+        physical_cores_avail_per_node = min(counter)
+        logical_cores_avail_per_node = min(counter)  # How to get SMT threads remotely
         logger.warning("SMT currently not detected, returning physical cores only. Specify procs_per_node to override")
         return (physical_cores_avail_per_node, logical_cores_avail_per_node)
     else:
