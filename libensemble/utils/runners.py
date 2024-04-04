@@ -109,8 +109,11 @@ class AskTellGenRunner(Runner):
         while tag not in [STOP_TAG, PERSIS_STOP]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
             self.gen.tell(H_in)
-            points, updates = self.gen.ask(batch_size)
-            H_out = np.append(points, updates)
+            points = self.gen.ask(batch_size)
+            if len(points) == 2:
+                H_out = np.append(points[0], points[1])
+            else:
+                H_out = points
             tag, Work, H_in = self.ps.send_recv(H_out)
         return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
 
