@@ -1,8 +1,0 @@
-channels:
-  - conda-forge
-  - defaults
-
-dependencies:
- - sphinxcontrib-bibtex
- - sphinxcontrib-spelling
- - python>=3.9
