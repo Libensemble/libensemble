@@ -59,6 +59,14 @@ def test_get_cpu_resources_from_env_lsf():
     assert cores_info == exp_out, "cores_info returned does not match expected"
 
 
+def test_get_cpu_resources_from_env_lsf_diff_cores():
+    exp_out = (41, 41)
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "batch5" + " g06n02" * 42 + " h21n18" * 41
+    env_resources = setup_env_resources("nodelist_env_lsf")
+    cores_info = node_resources._get_cpu_resources_from_env(env_resources=env_resources)
+    assert cores_info == exp_out, "cores_info returned does not match expected"
+
+
 def test_get_cpu_resources_from_env_lsf_shortform():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "batch5 1 g06n02 42"
     exp_out = (42, 42)
@@ -124,6 +132,7 @@ if __name__ == "__main__":
 
     test_get_cpu_resources_from_env_empty()
     test_get_cpu_resources_from_env_lsf()
+    test_get_cpu_resources_from_env_lsf_diff_cores()
     test_get_cpu_resources_from_env_lsf_shortform()
     test_get_cpu_resources_from_env_unknown_env()
     test_complete_set()
