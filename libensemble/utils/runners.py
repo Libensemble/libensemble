@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 from typing import Optional
 
+import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
@@ -101,14 +102,15 @@ class AskTellGenRunner(Runner):
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
         if hasattr(self.gen, "setup"):
             self.gen.persis_info = persis_info
-            self.gen.libE_info = persis_info
+            self.gen.libE_info = libE_info
             self.gen.setup()
         H_out = self.gen.initial_ask(initial_batch, calc_in)
         tag, Work, H_in = self.ps.send_recv(H_out)
         while tag not in [STOP_TAG, PERSIS_STOP]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
             self.gen.tell(H_in)
-            H_out = self.gen.ask(batch_size)
+            points, updates = self.gen.ask(batch_size)
+            H_out = np.append(points, updates)
             tag, Work, H_in = self.ps.send_recv(H_out)
         return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
 

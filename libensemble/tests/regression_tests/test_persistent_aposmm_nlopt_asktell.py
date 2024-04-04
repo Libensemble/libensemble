@@ -30,8 +30,7 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from time import time
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.generators import LibEnsembleGenTranslator
+from libensemble.generators import APOSMM
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
@@ -77,15 +76,12 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
-
     persis_info = add_unique_random_streams({}, nworkers + 1)
+    alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": 2000}
 
-    gen_specs["generator"] = LibEnsembleGenTranslator(gen_f, gen_specs, persis_info=persis_info[1])
-    gen_specs["generator"].initial_batch_size = gen_specs["user"]["initial_sample_size"]
-    gen_specs["generator"].batch_size = gen_specs["user"]["max_active_runs"]
+    gen_specs["generator"] = APOSMM(gen_specs, persis_info=persis_info[1])
 
     libE_specs["gen_on_manager"] = True
 

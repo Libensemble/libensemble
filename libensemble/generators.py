@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Iterable, Optional
 
 import numpy as np
+from numpy import typing as npt
 
 from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
@@ -68,7 +69,7 @@ class Generator(ABC):
             my_generator = MyGenerator(my_parameter, batch_size=10)
         """
 
-    def initial_ask(self, num_points: int, previous_results: Optional[Iterable]) -> Iterable:
+    def initial_ask(self, num_points: int, previous_results: Optional[Iterable], *args, **kwargs) -> Iterable:
         """
         The initial set of generated points is often produced differently than subsequent sets.
         This is a separate method to simplify the common pattern of noting internally if a
@@ -77,9 +78,9 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: int) -> Iterable:
+    def ask(self, num_points: int, *args, **kwargs) -> (Iterable, Optional[Iterable]):
         """
-        Request the next set of points to evaluate.
+        Request the next set of points to evaluate, and optionally any previous points to update.
         """
 
     def tell(self, results: Iterable, *args, **kwargs) -> None:
@@ -101,14 +102,16 @@ class LibEnsembleGenTranslator(Generator):
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
 
-    def __init__(self, gen_specs, History=[], persis_info={}, libE_info={}):
+    def __init__(
+        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+    ) -> None:
         self.gen_f = gen_specs["gen_f"]
         self.gen_specs = gen_specs
         self.History = History
         self.persis_info = persis_info
         self.libE_info = libE_info
 
-    def setup(self):
+    def setup(self) -> None:
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         self.outbox = thread_queue.Queue()
 
@@ -126,33 +129,31 @@ class LibEnsembleGenTranslator(Generator):
             user_function=True,
         )  # note that self.gen's inbox/outbox are unused by the underlying gen
 
-    def initial_ask(self, num_points: int = 0, *args) -> Iterable:
+    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
         if not self.gen.running:
             self.gen.run()
-        if num_points:
-            return self.ask(num_points, *args)
-        return self.ask(*args)
+        return self.ask(num_points)
 
-    def ask(self, num_points: int = 0) -> Iterable:
+    def ask(self, num_points: int = 0) -> (Iterable, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
-        if num_points:
-            return self.last_ask["calc_out"][:num_points]
         return self.last_ask["calc_out"]
 
-    def tell(self, results: Iterable, tag=EVAL_GEN_TAG) -> None:
+    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True, "executor": None}}))
         else:
             self.inbox.put((tag, None))
         self.inbox.put((0, results))
 
-    def final_tell(self, results: Iterable) -> Optional[Iterable]:
+    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         self.tell(results, PERSIS_STOP)
         return self.gen.result()
 
 
 class APOSMM(LibEnsembleGenTranslator):
-    def __init__(self, gen_specs, History=[], persis_info={}, libE_info={}):
+    def __init__(
+        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+    ) -> None:
         gen_specs["gen_f"] = aposmm
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4)[1]
@@ -161,18 +162,18 @@ class APOSMM(LibEnsembleGenTranslator):
         self.batch_size = gen_specs["user"]["max_active_runs"]
         super().__init__(gen_specs, History, persis_info, libE_info)
 
-    def initial_ask(self, *args) -> Iterable:
-        return super().initial_ask(args)[0]
+    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
+        return super().initial_ask(num_points, args)[0]
 
-    def ask(self, *args) -> (Iterable, Iterable):
-        results = super().ask(args)
+    def ask(self, num_points: int = 0) -> (npt.NDArray, npt.NDArray):
+        results = super().ask(num_points)
         if any(results["local_min"]):
             minima = results[results["local_min"]]
             results = results[~results["local_min"]]
             return results, minima
-        return results, []
+        return results, np.empty(0, dtype=self.gen_specs["out"])
 
-    def tell(self, results: Iterable, tag=EVAL_GEN_TAG) -> None:
+    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             if "sim_ended" in results.dtype.names:
                 results["sim_ended"] = True
@@ -184,5 +185,5 @@ class APOSMM(LibEnsembleGenTranslator):
                 results = new_results
         super().tell(results, tag)
 
-    def final_tell(self, results: Iterable) -> (Iterable, dict, int):
+    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         return super().final_tell(results)
