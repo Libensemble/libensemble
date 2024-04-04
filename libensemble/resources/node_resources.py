@@ -87,9 +87,6 @@ def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) ->
 def _cpu_info_complete(cores_info):
     """Returns true if cpu tuple/list entries have an integer value, else False"""
 
-    if cores_info is None:
-        return False
-
     for val in cores_info[:2]:
         if not isinstance(val, int):
             return False
@@ -99,9 +96,6 @@ def _cpu_info_complete(cores_info):
 def _gpu_info_complete(cores_info):
     """Returns true if gpu tuple/list entries have an integer value, else False"""
 
-    if cores_info is None:
-        return False
-
     for val in cores_info[2:]:
         if not isinstance(val, int):
             return False
@@ -110,9 +104,6 @@ def _gpu_info_complete(cores_info):
 
 def _complete_set(cores_info):
     """Returns True if all tuple/list entries have an integer value, else False"""
-
-    if cores_info is None:
-        return False
 
     for val in cores_info:
         if not isinstance(val, int):
@@ -169,10 +160,8 @@ def get_sub_node_resources(
     cores_info = [None, None, None]
 
     # Check environment
-    if not _cpu_info_complete(cores_info):
-        cores_info[:2] = list(_get_cpu_resources_from_env(env_resources=env_resources) or [None, None])
-    if not _gpu_info_complete(cores_info):
-        cores_info[2] = get_gpus_from_env(env_resources=env_resources)
+    cores_info[:2] = list(_get_cpu_resources_from_env(env_resources=env_resources) or [None, None])
+    cores_info[2] = get_gpus_from_env(env_resources=env_resources)
     if _complete_set(cores_info):
         return tuple(cores_info)
 
