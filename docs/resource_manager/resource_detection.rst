@@ -40,4 +40,4 @@ undesirably scheduled to the same nodes.
 System detection for resources can be overridden using the :ref:`resource_info<resource_info>`
 :class:`libE_specs<libensemble.specs.LibeSpecs>` option.
 
-.. _Cooley: https://www.alcf.anl.gov/support-center/cooley
+.. _Cooley: https://www.alcf.anl.gov/alcf-resources/cooley
