@@ -7,6 +7,7 @@ from libensemble.resources.env_resources import EnvResources
 logger = logging.getLogger(__name__)
 logger.propogate = True
 
+
 def setup_standalone_run():
     os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = ""
 
