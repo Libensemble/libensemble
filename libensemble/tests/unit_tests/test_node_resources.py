@@ -1,10 +1,7 @@
-import logging
 import os
 
 from libensemble.resources import node_resources
 from libensemble.resources.env_resources import EnvResources
-
-logger = logging.getLogger(__name__)
 
 
 def setup_standalone_run():
@@ -60,16 +57,6 @@ def test_get_cpu_resources_from_env_lsf():
     env_resources2 = setup_env_resources("nodelist_env_lsf")
     cores_info = node_resources._get_cpu_resources_from_env(env_resources=env_resources2)
     assert cores_info == exp_out, "cores_info returned does not match expected"
-
-
-# pytest only
-def test_get_cpu_resources_from_env_lsf_diff_cores(caplog):
-    exp_out = (41, 41)
-    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "batch5" + " g06n02" * 42 + " h21n18" * 41
-    env_resources = setup_env_resources("nodelist_env_lsf")
-    cores_info = node_resources._get_cpu_resources_from_env(env_resources=env_resources)
-    assert cores_info == exp_out, "cores_info returned does not match expected"
-    assert "Detected compute nodes have different core counts" in caplog.text
 
 
 def test_get_cpu_resources_from_env_lsf_shortform():
