@@ -110,7 +110,7 @@ class AskTellGenRunner(Runner):
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
             self.gen.tell(H_in)
             points = self.gen.ask(batch_size)
-            if len(points) == 2:
+            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points[0], points[1])
             else:
                 H_out = points

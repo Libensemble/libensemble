@@ -8,6 +8,7 @@ from numpy import typing as npt
 from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
 from libensemble.gen_funcs.persistent_aposmm import aposmm
+from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
@@ -129,6 +130,17 @@ class LibEnsembleGenTranslator(Generator):
             user_function=True,
         )  # note that self.gen's inbox/outbox are unused by the underlying gen
 
+    def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
+        if "sim_ended" in results.dtype.names:
+            results["sim_ended"] = True
+        else:
+            new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
+            for field in results.dtype.names:
+                new_results[field] = results[field]
+            new_results["sim_ended"] = True
+            results = new_results
+        return results
+
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
         if not self.gen.running:
             self.gen.run()
@@ -140,6 +152,7 @@ class LibEnsembleGenTranslator(Generator):
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
+            results = self._set_sim_ended(results)
             self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True, "executor": None}}))
         else:
             self.inbox.put((tag, None))
@@ -158,8 +171,6 @@ class APOSMM(LibEnsembleGenTranslator):
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4)[1]
             persis_info["nworkers"] = 4
-        self.initial_batch_size = gen_specs["user"]["initial_sample_size"]
-        self.batch_size = gen_specs["user"]["max_active_runs"]
         super().__init__(gen_specs, History, persis_info, libE_info)
 
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
@@ -174,15 +185,26 @@ class APOSMM(LibEnsembleGenTranslator):
         return results, np.empty(0, dtype=self.gen_specs["out"])
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        if results is not None:
-            if "sim_ended" in results.dtype.names:
-                results["sim_ended"] = True
-            else:
-                new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
-                for field in results.dtype.names:
-                    new_results[field] = results[field]
-                new_results["sim_ended"] = True
-                results = new_results
+        super().tell(results, tag)
+
+    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
+        return super().final_tell(results)
+
+
+class Surmise(LibEnsembleGenTranslator):
+    def __init__(
+        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+    ) -> None:
+        gen_specs["gen_f"] = surmise_calib
+        super().__init__(gen_specs, History, persis_info, libE_info)
+
+    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
+        return super().initial_ask(num_points, args)[0]
+
+    def ask(self, num_points: int = 0) -> (npt.NDArray):
+        return super().ask(num_points)
+
+    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
 
     def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
