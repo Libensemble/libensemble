@@ -150,9 +150,8 @@ def get_sub_node_resources(
 ) -> Tuple[int, int, int]:
     """Returns logical and physical cores and GPUs per node as a tuple
 
-    First checks for known system values, then for environment values, and finally
-    for detected values. If remote_mode is True, then detection launches a job
-    via the MPI launcher.
+    First checks for environment values, and and then for detected values.
+    If remote_mode is True, then detection launches a job via the MPI launcher.
 
     Any value that is already valid, is not overwritten by successive stages.
 
