@@ -11,6 +11,7 @@ import time
 import pytest
 
 from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
+from libensemble.message_numbers import UNSET_TAG, TASK_FAILED
 from libensemble.resources.mpi_resources import MPIResourcesException
 
 NCORES = 1
@@ -139,7 +140,7 @@ def is_ompi():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func.
-def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
+def polling_loop(exctr, task, timeout_sec=2, delay=0.05):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
 
@@ -652,6 +653,32 @@ def test_task_failure():
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
 
 
+def test_task_failure_polling_loop_method():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1.0 Fail"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    calc_status = exctr.polling_loop(task)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
+    assert calc_status == TASK_FAILED, f"calc_status should be {TASK_FAILED}"
+
+
+def test_task_unknown_state():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1.0"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, dry_run=True)
+    task.state = "unknown"
+    calc_status = exctr.polling_loop(task)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert calc_status == UNSET_TAG, f"calc_status should be {UNSET_TAG}. Found {calc_status}"
+
+
 def test_retries_launch_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
@@ -741,6 +768,17 @@ def test_serial_exes():
     exctr = Executor.executor
     args_for_sim = "sleep 0.1"
     task = exctr.submit(calc_type="sim", app_args=args_for_sim, wait_on_start=True)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+
+
+def test_serial_exe_dryrun():
+    setup_serial_executor()
+    exctr = Executor.executor
+    exctr.set_gen_procs_gpus(libE_info={})
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", app_args=args_for_sim, dry_run=True)
     task.wait()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
@@ -867,11 +905,14 @@ if __name__ == "__main__":
     test_kill_task_with_no_submit()
     test_poll_task_with_no_submit()
     test_task_failure()
+    test_task_failure_polling_loop_method()
+    test_task_unknown_state()
     test_retries_launch_fail()
     test_retries_before_polling_loop_method()
     test_retries_run_fail()
     test_register_apps()
     test_serial_exes()
+    test_serial_exe_dryrun()
     test_serial_startup_times()
     test_futures_interface()
     test_futures_interface_cancel()

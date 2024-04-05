@@ -314,7 +314,7 @@ class MPIExecutor(Executor):
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
             self._check_app_exists(task.app.full_path)
@@ -371,9 +371,8 @@ class MPIExecutor(Executor):
             run_cmd = runline
 
         if dry_run:
-            task.dry_run = True
             logger.info(f"Test (No submit) Runline: {' '.join(run_cmd)}")
-            task._set_complete(dry_run=True)
+            task._set_complete()
         else:
             # Set environment variables and launch task
             task._implement_env()
