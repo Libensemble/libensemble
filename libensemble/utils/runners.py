@@ -1,6 +1,7 @@
 import inspect
 import logging
 import logging.handlers
+import time
 from typing import Optional
 
 import numpy as np
@@ -105,16 +106,25 @@ class AskTellGenRunner(Runner):
             self.gen.libE_info = libE_info
             self.gen.setup()
         H_out = self.gen.initial_ask(initial_batch, calc_in)
-        tag, Work, H_in = self.ps.send_recv(H_out)
-        while tag not in [STOP_TAG, PERSIS_STOP]:
-            batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            self.gen.tell(H_in)
-            points = self.gen.ask(batch_size)
-            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
-                H_out = np.append(points[0], points[1])
-            else:
-                H_out = points
-            tag, Work, H_in = self.ps.send_recv(H_out)
+        tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
+        self.gen.tell(H_in)  # tell the gen the initial sample results
+        batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
+        STOP = False
+        while not STOP:
+            time.sleep(0.0025)  # dont need to ping the gen relentlessly. Let it calculate. 400hz
+            for _ in range(self.gen.outbox.qsize()):  # send any outstanding messages
+                points = self.gen.ask(batch_size)
+                if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
+                    H_out = np.append(points[0], points[1])
+                else:
+                    H_out = points
+                self.ps.send(H_out)
+            while self.ps.comm.mail_flag():  # receive any new messages, give all to gen
+                tag, _, H_in = self.ps.recv()
+                if tag in [STOP_TAG, PERSIS_STOP]:
+                    STOP = True
+                    break
+                self.gen.tell(H_in)
         return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
