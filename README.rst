@@ -104,21 +104,8 @@ Resources
     doi     = {10.1109/tpds.2021.3082815}
   }
 
-.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
-.. _conda-forge: https://conda-forge.org/
-.. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
-.. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
-.. _GitHub: https://github.com/Libensemble/libensemble
-.. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
-.. _libEnsemble Slack page: https://libensemble.slack.com
-.. _MPICH: http://www.mpich.org/
-.. _mpmath: http://mpmath.org/
-.. _PyPI: https://pypi.org
-.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
-.. _ReadtheDocs: http://libensemble.readthedocs.org/
-
 .. |libE_logo| image:: https://raw.githubusercontent.com/Libensemble/libensemble/main/docs/images/libE_logo.png
-   :align: center
+   :align: middle
    :alt: libEnsemble
 .. |PyPI| image:: https://img.shields.io/pypi/v/libensemble.svg?color=blue
    :target: https://pypi.org/project/libensemble
@@ -139,3 +126,16 @@ Resources
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.06031/status.svg
    :target: https://doi.org/10.21105/joss.06031
    :alt: JOSS Status
+
+.. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
+.. _conda-forge: https://conda-forge.org/
+.. _Contributions: https://github.com/Libensemble/libensemble/blob/main/CONTRIBUTING.rst
+.. _docs: https://libensemble.readthedocs.io/en/main/advanced_installation.html
+.. _GitHub: https://github.com/Libensemble/libensemble
+.. _libEnsemble mailing list: https://lists.mcs.anl.gov/mailman/listinfo/libensemble
+.. _libEnsemble Slack page: https://libensemble.slack.com
+.. _MPICH: http://www.mpich.org/
+.. _mpmath: http://mpmath.org/
+.. _PyPI: https://pypi.org
+.. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
+.. _ReadtheDocs: http://libensemble.readthedocs.org/
