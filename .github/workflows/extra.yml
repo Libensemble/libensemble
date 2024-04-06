@@ -12,27 +12,27 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.5.2"]
+                pydantic-version: ["2.6.4"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
-                      mpi-version: "mpich=4.0.3"
-                      pydantic-version: "2.5.2"
+                      mpi-version: "mpich=4.2.0"
+                      pydantic-version: "2.6.4"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
-                      mpi-version: "mpich=4.0.3"
-                      pydantic-version: "2.5.2"
+                      mpi-version: "mpich=4.2.0"
+                      pydantic-version: "2.6.4"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: "mpich"
-                      pydantic-version: "2.5.2"
+                      pydantic-version: "2.6.4"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      pydantic-version: "2.5.2"
+                      pydantic-version: "2.6.4"
                       python-version: "3.12"
                       comms-type: l
                     - os: ubuntu-latest
@@ -118,7 +118,7 @@ jobs:
         - name: Install ax-platform
           if: matrix.python-version != '3.12'
           run: |
-            pip install ax-platform==0.2.8
+            pip install ax-platform==0.3.7
             pip install gpcam
 
         - name: Install surmise
@@ -129,8 +129,8 @@ jobs:
         - name: Build ytopt and dependencies
           if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
           run: |
-            pip install scikit-learn==1.1.2
-            pip install pandas==1.5.3
+            pip install scikit-learn==1.4.0
+            pip install pandas==2.2.1
             pip install ConfigSpace
             pip install "ray[default]"
             git clone https://github.com/ytopt-team/scikit-optimize.git
@@ -218,7 +218,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.5.2'
+          if: matrix.pydantic-version == '2.6.4'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
@@ -250,4 +250,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.19.0
+        - uses: crate-ci/typos@v1.20.4
