@@ -773,10 +773,30 @@ def test_serial_exes():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
+def test_serial_exe_exception():
+    setup_serial_executor()
+    exctr = Executor.executor
+    with pytest.raises(ExecutorException):
+        task = exctr.submit()
+        pytest.fail("Expected exception")
+
+
+def test_serial_exe_env_script():
+    env_script_path = os.path.join(os.getcwd(), "./env_script_in.sh")
+    setup_serial_executor()
+    exctr = Executor.executor
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", app_args=args_for_sim, env_script=env_script_path)
+    task.wait()
+    # test env var should not exist here
+    assert "LIBE_TEST_SUB_ENV_VAR" not in os.environ
+
+
 def test_serial_exe_dryrun():
     setup_serial_executor()
     exctr = Executor.executor
     exctr.set_gen_procs_gpus(libE_info={})
+    exctr.set_workerID(1)
     args_for_sim = "sleep 0.1"
     task = exctr.submit(calc_type="sim", app_args=args_for_sim, dry_run=True)
     task.wait()
@@ -912,6 +932,8 @@ if __name__ == "__main__":
     test_retries_run_fail()
     test_register_apps()
     test_serial_exes()
+    test_serial_exe_exception()
+    test_serial_exe_env_script()
     test_serial_exe_dryrun()
     test_serial_startup_times()
     test_futures_interface()
