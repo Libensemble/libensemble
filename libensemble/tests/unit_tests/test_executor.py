@@ -777,7 +777,7 @@ def test_serial_exe_exception():
     setup_serial_executor()
     exctr = Executor.executor
     with pytest.raises(ExecutorException):
-        task = exctr.submit()
+        exctr.submit()
         pytest.fail("Expected exception")
 
 
