@@ -407,7 +407,7 @@ def test_procs_and_machinefile_logic():
             calc_type="sim",
             num_procs=6,
             num_nodes=1,
-            procs_per_node=3,
+            procs_per_node=6,
             app_args=args_for_sim,
             extra_args="--oversubscribe",
         )
