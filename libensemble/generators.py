@@ -202,12 +202,9 @@ class Surmise(LibEnsembleGenInterfacer):
         self.sim_id_index = 0
 
     def _add_sim_ids(self, array: npt.NDArray) -> npt.NDArray:
-        new_array_with_sim_ids = np.zeros(len(array), dtype=array.dtype.descr + [("sim_id", int)])
-        new_array_with_sim_ids["sim_id"] = np.arange(self.sim_id_index, self.sim_id_index + len(array))
-        for field in array.dtype.names:
-            new_array_with_sim_ids[field] = array[field]
+        array["sim_id"] = np.arange(self.sim_id_index, self.sim_id_index + len(array))
         self.sim_id_index += len(array)
-        return new_array_with_sim_ids
+        return array
 
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
         return self._add_sim_ids(super().initial_ask(num_points, args)[0])

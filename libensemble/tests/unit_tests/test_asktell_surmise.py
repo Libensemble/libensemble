@@ -64,10 +64,10 @@ def test_asktell_surmise():
     }
 
     persis_info = add_unique_random_streams({}, 5)
-    surmise = Surmise(gen_specs, persis_info=persis_info)
+    surmise = Surmise(gen_specs, persis_info=persis_info[1])
     surmise.setup()
 
-    initial_sample = surmise.ask()
+    initial_sample = surmise.initial_ask()
 
     initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float), ("sim_id", int)])
 
