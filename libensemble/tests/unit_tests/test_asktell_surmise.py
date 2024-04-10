@@ -64,12 +64,12 @@ def test_asktell_surmise():
     }
 
     persis_info = add_unique_random_streams({}, 5)
-    surmise = Surmise(gen_specs, persis_info=persis_info[1])
+    surmise = Surmise(gen_specs, persis_info=persis_info[1])  # we add sim_id as a field to gen_specs["out"]
     surmise.setup()
 
     initial_sample = surmise.initial_ask()
 
-    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float), ("sim_id", int)])
+    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float)])
 
     for field in gen_specs["out"]:
         initial_results[field[0]] = initial_sample[field[0]]
@@ -78,7 +78,6 @@ def test_asktell_surmise():
 
     for i in len(initial_sample):
         initial_results[i] = borehole(initial_sample[i], {}, sim_specs, {})
-        initial_results[i]["sim_id"] = i
         total_evals += 1
 
     surmise.tell(initial_results)
@@ -91,7 +90,7 @@ def test_asktell_surmise():
         if len(cancels):
             for m in cancels:
                 requested_canceled_sim_ids.append(m)
-        results = np.zeros(len(sample), dtype=gen_out + [("f", float), ("sim_id", int)])
+        results = np.zeros(len(sample), dtype=gen_out + [("f", float)])
         for field in gen_specs["out"]:
             results[field[0]] = sample[field[0]]
         for i in range(len(sample)):

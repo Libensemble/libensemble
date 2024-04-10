@@ -207,7 +207,7 @@ class Surmise(LibEnsembleGenInterfacer):
         return array
 
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
-        return self._add_sim_ids(super().initial_ask(num_points, args)[0])
+        return super().initial_ask(num_points, args)[0]
 
     def ask(self, num_points: int = 0) -> (npt.NDArray, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
