@@ -98,7 +98,7 @@ class Generator(ABC):
         """
 
 
-class LibEnsembleGenTranslator(Generator):
+class LibEnsembleGenInterfacer(Generator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
@@ -141,12 +141,12 @@ class LibEnsembleGenTranslator(Generator):
             results = new_results
         return results
 
-    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
+    def initial_ask(self, num_points: int = 0, *args, **kwargs) -> npt.NDArray:
         if not self.gen.running:
             self.gen.run()
         return self.ask(num_points)
 
-    def ask(self, num_points: int = 0) -> (Iterable, Optional[npt.NDArray]):
+    def ask(self, num_points: int = 0, *args, **kwargs) -> (Iterable, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
         return self.last_ask["calc_out"]
 
@@ -163,7 +163,7 @@ class LibEnsembleGenTranslator(Generator):
         return self.gen.result()
 
 
-class APOSMM(LibEnsembleGenTranslator):
+class APOSMM(LibEnsembleGenInterfacer):
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
@@ -191,18 +191,35 @@ class APOSMM(LibEnsembleGenTranslator):
         return super().final_tell(results)
 
 
-class Surmise(LibEnsembleGenTranslator):
+class Surmise(LibEnsembleGenInterfacer):
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
         gen_specs["gen_f"] = surmise_calib
+        if ("sim_id", int) not in gen_specs["out"]:
+            gen_specs["out"].append(("sim_id", int))
         super().__init__(gen_specs, History, persis_info, libE_info)
+        self.sim_id_index = 0
+
+    def _add_sim_ids(self, array: npt.NDArray) -> npt.NDArray:
+        new_array_with_sim_ids = np.zeros(len(array), dtype=array.dtype.descr + [("sim_id", int)])
+        new_array_with_sim_ids["sim_id"] = np.arange(self.sim_id_index, self.sim_id_index + len(array))
+        for field in array.dtype.names:
+            new_array_with_sim_ids[field] = array[field]
+        self.sim_id_index += len(array)
+        return new_array_with_sim_ids
 
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
-        return super().initial_ask(num_points, args)[0]
+        return self._add_sim_ids(super().initial_ask(num_points, args)[0])
 
-    def ask(self, num_points: int = 0) -> (npt.NDArray):
-        return super().ask(num_points)
+    def ask(self, num_points: int = 0) -> (npt.NDArray, Optional[npt.NDArray]):
+        _, self.last_ask = self.outbox.get()
+        points = self._add_sim_ids(self.last_ask["calc_out"])
+        try:
+            cancels = self.outbox.get(timeout=0.1)
+            return points, cancels
+        except thread_queue.Empty:
+            return points, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)

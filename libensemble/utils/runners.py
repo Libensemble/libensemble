@@ -112,7 +112,7 @@ class AskTellGenRunner(Runner):
         STOP = False
         while not STOP:
             time.sleep(0.0025)  # dont need to ping the gen relentlessly. Let it calculate. 400hz
-            for _ in range(self.gen.outbox.qsize()):  # send any outstanding messages
+            for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
                 points = self.gen.ask(batch_size)
                 if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
                     H_out = np.append(points[0], points[1])
