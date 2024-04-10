@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pytest
 
@@ -7,11 +9,20 @@ from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 @pytest.mark.extra
 def test_asktell_surmise():
 
+    from libensemble.executors import Executor
     from libensemble.generators import Surmise
 
     # Import libEnsemble items for this test
-    from libensemble.sim_funcs.borehole import borehole
+    from libensemble.sim_funcs.borehole_kills import borehole as sim_f
+    from libensemble.tests.regression_tests.common import build_borehole  # current location
     from libensemble.tools import add_unique_random_streams
+
+    sim_app = os.path.join(os.getcwd(), "borehole.x")
+    if not os.path.isfile(sim_app):
+        build_borehole()
+
+    exctr = Executor()  # Run serial sub-process in place
+    exctr.register_app(full_path=sim_app, app_name="borehole")
 
     n_init_thetas = 15  # Initial batch of thetas
     n_x = 5  # No. of x values
@@ -33,6 +44,7 @@ def test_asktell_surmise():
         "in": ["x", "thetas"],
         "out": [
             ("f", float),
+            ("sim_killed", bool),
         ],
         "user": {
             "num_obs": n_x,
@@ -76,8 +88,8 @@ def test_asktell_surmise():
 
     total_evals = 0
 
-    for i in len(initial_sample):
-        initial_results[i] = borehole(initial_sample[i], {}, sim_specs, {})
+    for i in initial_sample["sim_id"]:
+        initial_results[i] = sim_f(initial_sample[i], {}, sim_specs, {})
         total_evals += 1
 
     surmise.tell(initial_results)
@@ -94,7 +106,7 @@ def test_asktell_surmise():
         for field in gen_specs["out"]:
             results[field[0]] = sample[field[0]]
         for i in range(len(sample)):
-            results[i]["f"] = borehole(sample[i], {}, sim_specs, {})
+            results[i]["f"] = sim_f(sample[i], {}, sim_specs, {})
             results[i]["sim_id"] = total_evals
             total_evals += 1
         surmise.tell(results)
