@@ -229,10 +229,10 @@ class Task:
             return False
         return True
 
-    def _set_complete(self, dry_run: bool = False) -> None:
+    def _set_complete(self) -> None:
         """Set task as complete"""
         self.finished = True
-        if dry_run:
+        if self.dry_run:
             self.success = True
             self.state = "FINISHED"
         else:
@@ -245,6 +245,7 @@ class Task:
     def poll(self) -> None:
         """Polls and updates the status attributes of the task"""
         if self.dry_run:
+            self._set_complete()
             return
 
         if not self._check_poll():
@@ -274,6 +275,7 @@ class Task:
         """
 
         if self.dry_run:
+            self._set_complete()
             return
 
         if not self._check_poll():
@@ -631,7 +633,7 @@ class Executor:
             elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
-                logger.warning(f"Warning: Task {self.name} in unknown state {self.state}. Error code {self.errcode}")
+                logger.warning(f"Warning: Task {task.name} in unknown state {task.state}. Error code {task.errcode}")
 
         return calc_status
 
@@ -741,7 +743,7 @@ class Executor:
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
             self._check_app_exists(task.app.full_path)
@@ -788,7 +790,6 @@ class Executor:
     def kill(self, task: Task) -> None:
         """Kills the supplied task"""
         jassert(isinstance(task, Task), "Invalid task has been provided")
-        task.poll()
         task.kill(self.wait_time)
 
     @staticmethod
