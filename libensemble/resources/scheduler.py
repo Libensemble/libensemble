@@ -245,7 +245,7 @@ class ResourceScheduler:
             for g in groups:
                 self.avail_rsets_by_group[g] = []
             for ind, rset in enumerate(rsets):
-                if not rset["assigned"]:
+                if rset["assigned"] == -1:
                     g = rset["group"]
                     self.avail_rsets_by_group[g].append(ind)
         return self.avail_rsets_by_group

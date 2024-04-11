@@ -801,15 +801,15 @@ def test_machinefile_from_resources():
 
     resources = Resources(libE_specs)
     resources.set_worker_resources(4, 1)
-    resources.worker_resources.set_rset_team([0, 1, 2, 3])
+    resources._worker_resources[1].set_rset_team([0, 1, 2, 3])
 
-    built_mfile = create_machinefile(resources, num_nodes=4, procs_per_node=4)
+    built_mfile = create_machinefile(resources, num_nodes=4, procs_per_node=4, workerID=1)
     assert built_mfile, "machinefile doesn't exist or is empty"
 
     _check_mfile("machinefile", exp_list)
 
     # Test replacing older machinefile
-    create_machinefile(resources, machinefile="machinefile", num_nodes=4, procs_per_node=4)
+    create_machinefile(resources, machinefile="machinefile", num_nodes=4, procs_per_node=4, workerID=1)
     _check_mfile("machinefile", exp_list)
     os.remove("machinefile")
 
