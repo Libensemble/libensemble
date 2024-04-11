@@ -11,7 +11,7 @@ import time
 import pytest
 
 from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
-from libensemble.message_numbers import UNSET_TAG, TASK_FAILED
+from libensemble.message_numbers import UNSET_TAG, TASK_FAILED, STOP_TAG
 from libensemble.resources.mpi_resources import MPIResourcesException
 
 NCORES = 1
@@ -22,6 +22,27 @@ serial_app = "simdir/my_serialtask.x"
 c_startup = "simdir/c_startup.x"
 py_startup = "simdir/py_startup.py"
 non_existent_app = "simdir/non_exist.x"
+
+UNKNOWN_SIGNAL = 2000
+
+
+class FakeCommTag():
+    def mail_flag(self):
+        return True
+
+    def recv(self):
+        return STOP_TAG + 10, 101
+
+
+class FakeCommSignal():
+    def mail_flag(self):
+        return True
+
+    def recv(self):
+        return STOP_TAG, UNKNOWN_SIGNAL
+
+    def push_to_buffer(self, mtag, man_signal):
+        pass
 
 
 def setup_module(module):
@@ -100,6 +121,7 @@ def setup_executor_startups():
     exctr.add_platform_info()
     exctr.register_app(full_path=c_startup, app_name="c_startup")
     exctr.register_app(full_path=py_startup, app_name="py_startup")
+    exctr.register_app(full_path=py_startup, app_name="py_startup", precedent="python")
 
 
 def setup_executor_noapp():
@@ -235,6 +257,8 @@ def test_launch_and_wait():
     task.wait()  # Already complete
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+    err_code = task.exception()
+    assert err_code == 0, f"Expected error code 0. Returned {err_code}"
 
 
 def test_launch_and_wait_no_platform():
@@ -869,6 +893,7 @@ def test_dry_run():
 def test_non_existent_app():
     """Tests exception on non-existent app"""
     from libensemble.executors.executor import Executor
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = Executor()
 
@@ -888,6 +913,7 @@ def test_non_existent_app():
 def test_non_existent_app_mpi():
     """Tests exception on non-existent app"""
     from libensemble.executors.mpi_executor import MPIExecutor
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = MPIExecutor()
 
@@ -902,6 +928,23 @@ def test_non_existent_app_mpi():
         assert e.args[0] == "Application does not exist simdir/non_exist.x"
     else:
         assert 0
+
+
+def test_man_signal_unrec_tag():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+
+    setup_serial_executor()
+    exctr = Executor.executor
+
+    fake_comm1 = FakeCommTag()
+    exctr.comm = fake_comm1
+    man_signal = exctr.manager_poll()
+    assert man_signal is None, "manager_poll should have returned None"
+
+    fake_comm2 = FakeCommSignal()
+    exctr.comm = fake_comm2
+    man_signal = exctr.manager_poll()
+    assert man_signal == UNKNOWN_SIGNAL, f"manager_poll should have returned {UNKNOWN_SIGNAL}. Received {man_signal}"
 
 
 if __name__ == "__main__":
@@ -941,4 +984,5 @@ if __name__ == "__main__":
     test_dry_run()
     test_non_existent_app()
     test_non_existent_app_mpi()
+    test_man_signal_unrec_tag()
     teardown_module(__file__)
