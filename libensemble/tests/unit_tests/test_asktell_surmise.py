@@ -49,6 +49,7 @@ def test_asktell_surmise():
         "user": {
             "num_obs": n_x,
             "init_sample_size": init_sample_size,
+            "poll_manager": False,
         },
     }
 
@@ -89,7 +90,7 @@ def test_asktell_surmise():
     total_evals = 0
 
     for i in initial_sample["sim_id"]:
-        initial_results[i] = sim_f(initial_sample[i], {}, sim_specs, {})
+        initial_results[i] = sim_f(initial_sample[i], {}, sim_specs, {"H_rows": initial_sample["sim_id"]})
         total_evals += 1
 
     surmise.tell(initial_results)
