@@ -790,7 +790,6 @@ class Executor:
     def kill(self, task: Task) -> None:
         """Kills the supplied task"""
         jassert(isinstance(task, Task), "Invalid task has been provided")
-        task.poll()
         task.kill(self.wait_time)
 
     @staticmethod
