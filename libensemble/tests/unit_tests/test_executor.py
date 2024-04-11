@@ -788,6 +788,7 @@ def test_register_apps():
 
 
 def test_serial_exes():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_serial_executor()
     exctr = Executor.executor
     args_for_sim = "sleep 0.1"
@@ -798,6 +799,7 @@ def test_serial_exes():
 
 
 def test_serial_exe_exception():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_serial_executor()
     exctr = Executor.executor
     with pytest.raises(ExecutorException):
@@ -817,6 +819,7 @@ def test_serial_exe_env_script():
 
 
 def test_serial_exe_dryrun():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_serial_executor()
     exctr = Executor.executor
     exctr.set_gen_procs_gpus(libE_info={})
@@ -829,6 +832,7 @@ def test_serial_exe_dryrun():
 
 
 def test_serial_startup_times():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_startups()
     exctr = Executor.executor
 
