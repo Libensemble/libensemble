@@ -290,9 +290,9 @@ def test_launch_and_wait_timeout():
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     try:
         task.wait(timeout=0.5)
-    except TimeoutExpired:
+    except TimeoutExpired as e:
         print(task)
-        print(TimeoutExpired)
+        print(e)
         assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
         task.kill()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
