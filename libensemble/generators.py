@@ -7,8 +7,6 @@ from numpy import typing as npt
 
 from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
-from libensemble.gen_funcs.persistent_aposmm import aposmm
-from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
@@ -167,6 +165,8 @@ class APOSMM(LibEnsembleGenInterfacer):
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
+        from libensemble.gen_funcs.persistent_aposmm import aposmm
+
         gen_specs["gen_f"] = aposmm
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4)[1]
@@ -195,6 +195,8 @@ class Surmise(LibEnsembleGenInterfacer):
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
+        from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib
+
         gen_specs["gen_f"] = surmise_calib
         if ("sim_id", int) not in gen_specs["out"]:
             gen_specs["out"].append(("sim_id", int))

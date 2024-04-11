@@ -90,7 +90,8 @@ def test_asktell_surmise():
     total_evals = 0
 
     for i in initial_sample["sim_id"]:
-        initial_results[i], _a, _b = sim_f(initial_sample[i], {}, sim_specs, {"H_rows": initial_sample["sim_id"]})
+        H_out, _a, _b = sim_f(initial_sample[i], {}, sim_specs, {"H_rows": initial_sample["sim_id"]})
+        initial_results[i] = H_out
         total_evals += 1
 
     surmise.tell(initial_results)
@@ -107,7 +108,8 @@ def test_asktell_surmise():
         for field in gen_specs["out"]:
             results[field[0]] = sample[field[0]]
         for i in range(len(sample)):
-            results[i], _a, _b = sim_f(sample[i], {}, sim_specs, {"H_rows": sample["sim_id"]})
+            H_out, _a, _b = sim_f(sample[i], {}, sim_specs, {"H_rows": sample["sim_id"]})
+            results[i] = H_out
             total_evals += 1
         surmise.tell(results)
     H, persis_info, exit_code = surmise.final_tell(None)
