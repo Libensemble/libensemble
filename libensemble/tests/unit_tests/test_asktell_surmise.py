@@ -13,7 +13,7 @@ def test_asktell_surmise():
     from libensemble.generators import Surmise
 
     # Import libEnsemble items for this test
-    from libensemble.sim_funcs.borehole_kills import borehole as sim_f
+    from libensemble.sim_funcs.borehole_kills import borehole
     from libensemble.tests.regression_tests.common import build_borehole  # current location
     from libensemble.tools import add_unique_random_streams
 
@@ -90,8 +90,8 @@ def test_asktell_surmise():
     total_evals = 0
 
     for i in initial_sample["sim_id"]:
-        H_out, _a, _b = sim_f(initial_sample[i], {}, sim_specs, {"H_rows": initial_sample["sim_id"]})
-        initial_results[i] = H_out
+        H_out, _a, _b = borehole(initial_sample[i], {}, sim_specs, {"H_rows": np.array([initial_sample[i]["sim_id"]])})
+        initial_results[i]["f"] = H_out["f"][0]  # some "bugginess" with output shape of array in simf
         total_evals += 1
 
     surmise.tell(initial_results)
@@ -108,8 +108,8 @@ def test_asktell_surmise():
         for field in gen_specs["out"]:
             results[field[0]] = sample[field[0]]
         for i in range(len(sample)):
-            H_out, _a, _b = sim_f(sample[i], {}, sim_specs, {"H_rows": sample["sim_id"]})
-            results[i] = H_out
+            H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([initial_sample[i]["sim_id"]])})
+            results[i]["f"] = H_out["f"][0]
             total_evals += 1
         surmise.tell(results)
     H, persis_info, exit_code = surmise.final_tell(None)
