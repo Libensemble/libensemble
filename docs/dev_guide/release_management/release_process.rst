@@ -29,6 +29,8 @@ Before release
 - ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
   contains correct files and directories for PyPI package.
 
+- Locally check that the example code in the README works with both local comms and mpi4py.
+
 - Tests are run with source to be released (this may iterate):
 
   - On-line CI (GitHub Actions) tests must pass.

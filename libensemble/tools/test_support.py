@@ -27,6 +27,22 @@ def _get_opt_value(option_name, cmd_line):
     return opt_val
 
 
+def _default_option_names(mpirunner, setting_type):
+    """Return MPI runner defaults for GPU setting options or None
+
+    Implement differently to in mpi_runner.py
+    """
+    if mpirunner == "srun":
+        if setting_type == "option_gpus_per_task":
+            return "--gpus-per-task"
+        else:
+            return "--gpus-per-node"
+    if mpirunner == "jsrun":
+        if setting_type == "option_gpus_per_task":
+            return "-g"
+    return None
+
+
 def _get_expected_output(name, value):
     """Return expected gpu runline setting"""
     if name.endswith("="):
@@ -152,7 +168,9 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
         if setting_type is not None:
             assert setting_type in gpu_settings, f"unknown setting type in  platform_info: {setting_type}"
             if setting_type != "runner_default":
-                expected_setting = gresources.platform_info.get("gpu_setting_name")
+                expected_setting = gresources.platform_info.get(
+                    "gpu_setting_name", _default_option_names(mpirunner, setting_type)
+                )
                 assert expected_setting is not None, "gpu_setting_type must have a gpu_setting_name"
                 if setting_type in ["option_gpus_per_node", "option_gpus_per_task"]:
                     assert wresources.even_slots, f"Error: Found uneven slots on nodes {slots}"
@@ -169,12 +187,13 @@ def check_gpu_setting(task, assert_setting=True, print_setting=False, resources=
             assert wresources.even_slots, f"Error: Found uneven slots on nodes {slots}"
             cmd_line = True
             if mpirunner == "srun":
-                expected_setting = "--gpus-per-node"
+                expected_setting = "--gpus-per-task"
+                gpus_per_task = True
                 if _get_value(expected_setting, task.runline) is None:
                     # Try gpus per task
-                    if _get_value("--gpus-per-task", task.runline) is not None:
-                        gpus_per_task = True
-                        expected_setting = "--gpus-per-task"
+                    if _get_value("--gpus-per-node", task.runline) is not None:
+                        gpus_per_task = False
+                        expected_setting = "--gpus-per-node"
             elif mpirunner == "jsrun":
                 gpus_per_task = True
                 expected_setting = "-g"

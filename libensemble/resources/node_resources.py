@@ -76,8 +76,8 @@ def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) ->
         if len(set(counter)) != 1:
             logger.warning(f"Detected compute nodes have different core counts: {set(counter)}")
 
-        physical_cores_avail_per_node = counter[0]
-        logical_cores_avail_per_node = counter[0]  # How to get SMT threads remotely
+        physical_cores_avail_per_node = min(counter)
+        logical_cores_avail_per_node = min(counter)  # How to get SMT threads remotely
         logger.warning("SMT currently not detected, returning physical cores only. Specify procs_per_node to override")
         return (physical_cores_avail_per_node, logical_cores_avail_per_node)
     else:
@@ -86,9 +86,6 @@ def _get_cpu_resources_from_env(env_resources: Optional[EnvResources] = None) ->
 
 def _cpu_info_complete(cores_info):
     """Returns true if cpu tuple/list entries have an integer value, else False"""
-
-    if cores_info is None:
-        return False
 
     for val in cores_info[:2]:
         if not isinstance(val, int):
@@ -99,9 +96,6 @@ def _cpu_info_complete(cores_info):
 def _gpu_info_complete(cores_info):
     """Returns true if gpu tuple/list entries have an integer value, else False"""
 
-    if cores_info is None:
-        return False
-
     for val in cores_info[2:]:
         if not isinstance(val, int):
             return False
@@ -110,9 +104,6 @@ def _gpu_info_complete(cores_info):
 
 def _complete_set(cores_info):
     """Returns True if all tuple/list entries have an integer value, else False"""
-
-    if cores_info is None:
-        return False
 
     for val in cores_info:
         if not isinstance(val, int):
@@ -159,9 +150,8 @@ def get_sub_node_resources(
 ) -> Tuple[int, int, int]:
     """Returns logical and physical cores and GPUs per node as a tuple
 
-    First checks for known system values, then for environment values, and finally
-    for detected values. If remote_mode is True, then detection launches a job
-    via the MPI launcher.
+    First checks for environment values, and and then for detected values.
+    If remote_mode is True, then detection launches a job via the MPI launcher.
 
     Any value that is already valid, is not overwritten by successive stages.
 
@@ -169,10 +159,8 @@ def get_sub_node_resources(
     cores_info = [None, None, None]
 
     # Check environment
-    if not _cpu_info_complete(cores_info):
-        cores_info[:2] = list(_get_cpu_resources_from_env(env_resources=env_resources) or [None, None])
-    if not _gpu_info_complete(cores_info):
-        cores_info[2] = get_gpus_from_env(env_resources=env_resources)
+    cores_info[:2] = list(_get_cpu_resources_from_env(env_resources=env_resources) or [None, None])
+    cores_info[2] = get_gpus_from_env(env_resources=env_resources)
     if _complete_set(cores_info):
         return tuple(cores_info)
 

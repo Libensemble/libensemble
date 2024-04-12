@@ -17,6 +17,7 @@ from libensemble.tools.test_support import check_gpu_setting
 
 __all__ = [
     "uniform_sample",
+    "uniform_sample_with_var_gpus",
     "uniform_sample_with_procs_gpus",
     "uniform_sample_with_var_priorities",
     "uniform_sample_diff_simulations",
