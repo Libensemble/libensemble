@@ -8,6 +8,7 @@ import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
+from libensemble.generators import LibEnsembleGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -97,23 +98,23 @@ class AskTellGenRunner(Runner):
         super().__init__(specs)
         self.gen = specs.get("generator")
 
-    def _persistent_result(self, calc_in, persis_info, libE_info):
-        self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-        tag = None
-        initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        if hasattr(self.gen, "setup"):
-            self.gen.persis_info = persis_info
-            self.gen.libE_info = libE_info
-            self.gen.setup()
-        H_out = self.gen.initial_ask(initial_batch, calc_in)
-        tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        self.gen.tell(H_in)  # tell the gen the initial sample results
-        batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
+    def _loop_over_normal_generator(self, tag, Work):
+        while tag not in [PERSIS_STOP, STOP_TAG]:
+            batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
+            points = self.gen.ask(batch_size)
+            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
+                H_out = np.append(points[0], points[1])
+            else:
+                H_out = points
+            tag, Work, H_in = self.ps.send_recv(H_out)
+        return H_in
+
+    def _loop_over_persistent_interfacer(self):
         STOP = False
         while not STOP:
             time.sleep(0.0025)  # dont need to ping the gen relentlessly. Let it calculate. 400hz
             for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
-                points = self.gen.ask(batch_size)
+                points = self.gen.ask()
                 if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
                     H_out = np.append(points[0], points[1])
                 else:
@@ -125,7 +126,24 @@ class AskTellGenRunner(Runner):
                     STOP = True
                     break
                 self.gen.tell(H_in)
-        return self.gen.final_tell(H_in), FINISHED_PERSISTENT_GEN_TAG
+        return H_in
+
+    def _persistent_result(self, calc_in, persis_info, libE_info):
+        self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
+        tag = None
+        if hasattr(self.gen, "setup"):
+            self.gen.persis_info = persis_info
+            self.gen.libE_info = libE_info
+            self.gen.setup()
+        initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
+        H_out = self.gen.initial_ask(initial_batch, calc_in)
+        tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
+        self.gen.tell(H_in)  # tell the gen the initial sample results
+        if issubclass(type(self.gen), LibEnsembleGenInterfacer):
+            final_H_in = self._loop_over_persistent_interfacer()
+        else:
+            final_H_in = self._loop_over_normal_generator(tag, Work)
+        return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         if libE_info.get("persistent"):
