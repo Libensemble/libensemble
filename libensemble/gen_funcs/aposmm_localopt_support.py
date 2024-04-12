@@ -43,7 +43,7 @@ if optimizers is not None:
     if "dfols" in optimizers:
         import dfols  # noqa: F401
     if "ibcdfo" in optimizers:
-        from ibcdfo.pounders import pounders  # noqa: F401
+        from ibcdfo import pounders  # noqa: F401
     if "scipy" in optimizers:
         from scipy import optimize as sp_opt  # noqa: F401
     if "external_localopt" in optimizers:
