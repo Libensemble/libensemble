@@ -114,7 +114,9 @@ def test_asktell_surmise():
 
     while total_evals < max_evals:
 
-        for i in range(len(sample)):
+        samples_iter = range(len(sample))
+
+        for i in samples_iter:
             result = np.zeros(1, dtype=gen_out + [("f", float)])
             for field in gen_specs["out"]:
                 result[field[0]] = sample[i][field[0]]
@@ -122,13 +124,13 @@ def test_asktell_surmise():
             result["f"] = H_out["f"][0]
             total_evals += 1
             surmise.tell(result)
-            new_sample, cancels = surmise.ask()
-            if len(cancels):
+            if surmise.ready_to_be_asked():
+                new_sample, cancels = surmise.ask()
                 for m in cancels:
                     requested_canceled_sim_ids.append(m)
-            if len(new_sample):
-                sample = new_sample
-                break
+                if len(new_sample):
+                    sample = new_sample
+                    break
 
     H, persis_info, exit_code = surmise.final_tell(None)
 

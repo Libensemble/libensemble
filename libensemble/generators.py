@@ -211,6 +211,9 @@ class Surmise(LibEnsembleGenInterfacer):
     def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
         return super().initial_ask(num_points, args)[0]
 
+    def ready_to_be_asked(self) -> bool:
+        return not self.outbox.empty()
+
     def ask(self, num_points: int = 0) -> (npt.NDArray, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
         output = self.last_ask["calc_out"]
