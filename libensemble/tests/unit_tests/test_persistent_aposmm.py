@@ -234,7 +234,7 @@ def test_asktell_with_persistent_aposmm():
             results[i]["f"] = six_hump_camel_func(sample["x"][i])
             total_evals += 1
         my_APOSMM.tell(results)
-    H, persis_info, exit_code = my_APOSMM.final_tell(None)
+    H, persis_info, exit_code = my_APOSMM.final_tell()
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"

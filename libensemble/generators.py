@@ -191,7 +191,7 @@ class APOSMM(LibEnsembleGenInterfacer):
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
+    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         return super().final_tell(results)
 
 
@@ -240,5 +240,5 @@ class Surmise(LibEnsembleGenInterfacer):
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
+    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         return super().final_tell(results)

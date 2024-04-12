@@ -132,7 +132,7 @@ def test_asktell_surmise():
                     sample = new_sample
                     break
 
-    H, persis_info, exit_code = surmise.final_tell(None)
+    H, persis_info, exit_code = surmise.final_tell()
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert len(requested_canceled_sim_ids), "No cancellations sent by Surmise"
