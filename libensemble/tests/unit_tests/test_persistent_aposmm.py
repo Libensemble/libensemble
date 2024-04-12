@@ -205,13 +205,10 @@ def test_asktell_with_persistent_aposmm():
     my_APOSMM = APOSMM(gen_specs)
     my_APOSMM.setup()
     initial_sample = my_APOSMM.initial_ask()
-    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float)])
+    initial_results = my_APOSMM.create_results_array()
 
     total_evals = 0
     eval_max = 2000
-
-    for field in gen_specs["out"]:
-        initial_results[field[0]] = initial_sample[field[0]]
 
     for i in initial_sample["sim_id"]:
         initial_results[i]["f"] = six_hump_camel_func(initial_sample["x"][i])
@@ -227,9 +224,7 @@ def test_asktell_with_persistent_aposmm():
         if len(detected_minima):
             for m in detected_minima:
                 potential_minima.append(m)
-        results = np.zeros(len(sample), dtype=gen_out + [("f", float)])
-        for field in gen_specs["out"]:
-            results[field[0]] = sample[field[0]]
+        results = my_APOSMM.create_results_array()
         for i in range(len(sample)):
             results[i]["f"] = six_hump_camel_func(sample["x"][i])
             total_evals += 1

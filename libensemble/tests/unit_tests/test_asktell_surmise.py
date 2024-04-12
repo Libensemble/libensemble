@@ -81,11 +81,7 @@ def test_asktell_surmise():
     surmise.setup()
 
     initial_sample = surmise.initial_ask()
-
-    initial_results = np.zeros(len(initial_sample), dtype=gen_out + [("f", float)])
-
-    for field in gen_specs["out"]:
-        initial_results[field[0]] = initial_sample[field[0]]
+    initial_results = surmise.create_results_array()
 
     total_evals = 0
 
@@ -99,10 +95,7 @@ def test_asktell_surmise():
     requested_canceled_sim_ids = []
 
     next_sample, cancels = surmise.ask()
-    next_results = np.zeros(len(next_sample), dtype=gen_out + [("f", float)])
-
-    for field in gen_specs["out"]:
-        next_results[field[0]] = next_sample[field[0]]
+    next_results = surmise.create_results_array()
 
     for i in range(len(next_sample)):
         H_out, _a, _b = borehole(next_sample[i], {}, sim_specs, {"H_rows": np.array([next_sample[i]["sim_id"]])})
@@ -117,9 +110,7 @@ def test_asktell_surmise():
         samples_iter = range(len(sample))
 
         for i in samples_iter:
-            result = np.zeros(1, dtype=gen_out + [("f", float)])
-            for field in gen_specs["out"]:
-                result[field[0]] = sample[i][field[0]]
+            result = surmise.create_results_array()
             H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([sample[i]["sim_id"]])})
             result["f"] = H_out["f"][0]
             total_evals += 1

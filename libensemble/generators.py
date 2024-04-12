@@ -13,6 +13,7 @@ from libensemble.tools import add_unique_random_streams
 
 class Generator(ABC):
     """
+    v 0.4.12.24
 
     Tentative generator interface for use with libEnsemble, and generic enough to be
     broadly compatible with other workflow packages.
@@ -28,8 +29,11 @@ class Generator(ABC):
                 self.param = param
                 self.model = None
 
+            def set_history(self, yesterdays_points):
+                self.history = new_history
+
             def initial_ask(self, num_points, yesterdays_points):
-                return create_initial_points(num_points, self.param, yesterdays_points)
+                return create_initial_points(num_points, self.param, self.history)
 
             def ask(self, num_points):
                 return create_points(num_points, self.param)
@@ -44,17 +48,6 @@ class Generator(ABC):
 
         my_generator = MyGenerator(my_parameter=100)
         my_ensemble = Ensemble(generator=my_generator)
-
-    Pattern of operations:
-    0. User initializes the generator class in their script, provides object to workflow/libEnsemble
-    1. Initial ask for points from the generator
-    2. Send initial points to workflow for evaluation
-    while not instructed to cleanup:
-        3. Tell results to generator
-        4. Ask generator for subsequent points
-        5. Send points to workflow for evaluation. Get results and any cleanup instruction.
-    6. Perform final_tell to generator, retrieve any final results/points if any.
-
     """
 
     @abstractmethod
@@ -164,8 +157,18 @@ class LibEnsembleGenInterfacer(Generator):
         self.tell(results, PERSIS_STOP)
         return self.gen.result()
 
+    def create_results_array(self, addtl_fields: list = [("f", float)]) -> npt.NDArray:
+        new_results = np.zeros(len(self.results), dtype=self.gen_specs["out"] + addtl_fields)
+        for field in self.gen_specs["out"]:
+            new_results[field[0]] = self.results[field[0]]
+        return new_results
+
 
 class APOSMM(LibEnsembleGenInterfacer):
+    """
+    Standalone object-oriented APOSMM generator
+    """
+
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
@@ -181,12 +184,12 @@ class APOSMM(LibEnsembleGenInterfacer):
         return super().initial_ask(num_points, args)[0]
 
     def ask(self, num_points: int = 0) -> (npt.NDArray, npt.NDArray):
-        results = super().ask(num_points)
-        if any(results["local_min"]):
-            minima = results[results["local_min"]]
-            results = results[~results["local_min"]]
-            return results, minima
-        return results, np.empty(0, dtype=self.gen_specs["out"])
+        self.results = super().ask(num_points)
+        if any(self.results["local_min"]):
+            minima = self.results[self.results["local_min"]]
+            self.results = self.results[~self.results["local_min"]]
+            return self.results, minima
+        return self.results, np.empty(0, dtype=self.gen_specs["out"])
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
@@ -225,17 +228,17 @@ class Surmise(LibEnsembleGenInterfacer):
             cancels = output
             got_cancels_first = True
         else:
-            points = self._add_sim_ids(output)
+            self.results = self._add_sim_ids(output)
             got_cancels_first = False
         try:
             additional = self.outbox.get(timeout=0.2)  # either cancels or new points
             if got_cancels_first:
                 return additional, cancels
-            return points, additional
+            return self.results, additional
         except thread_queue.Empty:
             if got_cancels_first:
                 return np.empty(0, dtype=self.gen_specs["out"]), cancels
-            return points, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
+            return self.results, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
