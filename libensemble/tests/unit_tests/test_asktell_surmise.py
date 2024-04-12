@@ -98,20 +98,38 @@ def test_asktell_surmise():
 
     requested_canceled_sim_ids = []
 
+    next_sample, cancels = surmise.ask()
+    next_results = np.zeros(len(next_sample), dtype=gen_out + [("f", float)])
+
+    for field in gen_specs["out"]:
+        next_results[field[0]] = next_sample[field[0]]
+
+    for i in range(len(next_sample)):
+        H_out, _a, _b = borehole(next_sample[i], {}, sim_specs, {"H_rows": np.array([next_sample[i]["sim_id"]])})
+        next_results[i]["f"] = H_out["f"][0]
+        total_evals += 1
+
+    surmise.tell(next_results)
+    sample, cancels = surmise.ask()
+
     while total_evals < max_evals:
 
-        sample, cancels = surmise.ask()
-        if len(cancels):
-            for m in cancels:
-                requested_canceled_sim_ids.append(m)
-        results = np.zeros(len(sample), dtype=gen_out + [("f", float)])
-        for field in gen_specs["out"]:
-            results[field[0]] = sample[field[0]]
         for i in range(len(sample)):
-            H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([initial_sample[i]["sim_id"]])})
-            results[i]["f"] = H_out["f"][0]
+            result = np.zeros(1, dtype=gen_out + [("f", float)])
+            for field in gen_specs["out"]:
+                result[field[0]] = sample[i][field[0]]
+            H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([sample[i]["sim_id"]])})
+            result["f"] = H_out["f"][0]
             total_evals += 1
-        surmise.tell(results)
+            surmise.tell(result)
+            new_sample, cancels = surmise.ask()
+            if len(cancels):
+                for m in cancels:
+                    requested_canceled_sim_ids.append(m)
+            if len(new_sample):
+                sample = new_sample
+                break
+
     H, persis_info, exit_code = surmise.final_tell(None)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"

@@ -15,8 +15,8 @@ def subproc_borehole(H, delay, poll_manager):
 
     """
     with open("input", "w") as f:
-        H["thetas"][0].tofile(f)
-        H["x"][0].tofile(f)
+        H["thetas"].tofile(f)
+        H["x"].tofile(f)
 
     exctr = Executor.executor
     args = "input" + " " + str(delay)

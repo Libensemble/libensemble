@@ -213,12 +213,24 @@ class Surmise(LibEnsembleGenInterfacer):
 
     def ask(self, num_points: int = 0) -> (npt.NDArray, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
-        points = self._add_sim_ids(self.last_ask["calc_out"])
+        output = self.last_ask["calc_out"]
+        if "cancel_requested" in output.dtype.names:
+            cancels = output
+            got_cancels_first = True
+        else:
+            points = self._add_sim_ids(output)
+            got_cancels_first = False
         try:
-            cancels = self.outbox.get(timeout=0.1)
-            return points, cancels
+            additional = self.outbox.get(timeout=0.2)  # either cancels or new points
+            if got_cancels_first:
+                return additional, cancels
+            else:
+                return points, additional
         except thread_queue.Empty:
-            return points, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
+            if got_cancels_first:
+                return np.empty(0, dtype=self.gen_specs["out"]), cancels
+            else:
+                return points, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         super().tell(results, tag)
