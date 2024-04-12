@@ -68,12 +68,16 @@ class Generator(ABC):
             my_generator = MyGenerator(my_parameter, batch_size=10)
         """
 
-    def initial_ask(self, num_points: int, previous_results: Optional[Iterable], *args, **kwargs) -> Iterable:
+    def set_history(self, new_history: Iterable):
+        """
+        Replace/initialize the generator's history.
+        """
+
+    def initial_ask(self, num_points: int, *args, **kwargs) -> Iterable:
         """
         The initial set of generated points is often produced differently than subsequent sets.
         This is a separate method to simplify the common pattern of noting internally if a
-        specific ask was the first. Previous results can be provided to build a foundation
-        for the initial sample. This will be called only once.
+        specific ask was the first.
         """
 
     @abstractmethod
