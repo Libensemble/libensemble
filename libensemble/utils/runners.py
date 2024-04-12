@@ -109,24 +109,24 @@ class AskTellGenRunner(Runner):
             tag, Work, H_in = self.ps.send_recv(H_out)
         return H_in
 
+    def _ask_and_send(self):
+        for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
+            points = self.gen.ask()
+            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
+                H_out = np.append(points[0], points[1])
+            else:
+                H_out = points
+            self.ps.send(H_out)
+
     def _loop_over_persistent_interfacer(self):
-        STOP = False
-        while not STOP:
+        while True:
             time.sleep(0.0025)  # dont need to ping the gen relentlessly. Let it calculate. 400hz
-            for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
-                points = self.gen.ask()
-                if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
-                    H_out = np.append(points[0], points[1])
-                else:
-                    H_out = points
-                self.ps.send(H_out)
+            self._ask_and_send()
             while self.ps.comm.mail_flag():  # receive any new messages, give all to gen
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
-                    STOP = True
-                    break
+                    return H_in
                 self.gen.tell(H_in)
-        return H_in
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
