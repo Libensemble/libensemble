@@ -110,7 +110,7 @@ from the user.
 .. image:: ../images/variable_resources3.png
 
 The particular nodes and slots assigned to each worker will be determined by the
-libEnsenble :doc:`built-in scheduler<scheduler_module>`, although users can provide
+libEnsemble :doc:`built-in scheduler<scheduler_module>`, although users can provide
 an alternative scheduler via the :doc:`allocation function<../function_guides/allocator>`.
 In short, the scheduler will prefer fitting simulations onto a node, and using
 even splits across nodes, if necessary.

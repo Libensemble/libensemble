@@ -8,5 +8,5 @@ if importlib.util.find_spec("balsam"):
         from libensemble.executors.balsam_executor import BalsamExecutor  # noqa: F401
 
         __all__ = ["Executor", "MPIExecutor", "BalsamExecutor"]
-    except (ModuleNotFoundError, ImportError):
+    except (ModuleNotFoundError, ImportError, AttributeError):
         __all__ = ["Executor", "MPIExecutor"]

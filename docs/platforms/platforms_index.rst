@@ -42,7 +42,7 @@ On systems with a job scheduler, libEnsemble is typically run within a single
 :doc:`job submission<example_scripts>`. All user simulations will run on
 the nodes within that allocation.
 
-*How does libensemble know where to run tasks (user applications)?*
+*How does libEnsemble know where to run tasks (user applications)?*
 
 The libEnsemble :doc:`Executor<../executor/ex_index>` can be initialized from the user calling
 script, and then used by workers to run tasks. The Executor will automatically detect the nodes
@@ -62,7 +62,7 @@ or::
     python myscript.py --comms local --nworkers 4
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
-4 nodes will be divided amongst the workers for submitted applications. If the same run was
+4 nodes will be divided among the workers for submitted applications. If the same run was
 performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 
@@ -87,7 +87,7 @@ Some large systems have a 3-tier node setup. That is, they have a separate set o
 (known as MOM nodes on Cray Systems). User batch jobs or interactive sessions run on a launch node.
 Most such systems supply a special MPI runner that has some application-level scheduling
 capability (e.g., ``aprun``, ``jsrun``). MPI applications can only be submitted from these nodes. Examples
-of these systems include: Summit, Sierra, and Theta.
+of these systems include Summit and Sierra.
 
 There are two ways of running libEnsemble on these kinds of systems. The first, and simplest,
 is to run libEnsemble on the launch nodes. This is often sufficient if the worker's simulation
@@ -209,18 +209,18 @@ libEnsemble on specific HPC systems.
     :maxdepth: 2
     :titlesonly:
 
+    aurora
     bebop
     frontier
+    improv
     perlmutter
     polaris
     spock_crusher
     summit
-    theta
     srun
     example_scripts
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
-.. _Cooley: https://www.alcf.anl.gov/support-center/cooley
 .. _Globus Compute: https://www.globus.org/compute
 .. _Globus Compute endpoints: https://globus-compute.readthedocs.io/en/latest/endpoints.html
 .. _Globus: https://www.globus.org/

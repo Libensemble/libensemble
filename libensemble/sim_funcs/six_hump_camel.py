@@ -5,6 +5,7 @@ Six-hump camel function is documented here:
   https://www.sfu.ca/~ssurjano/camel6.html
 
 """
+
 __all__ = [
     "six_hump_camel",
     "six_hump_camel_simple",
@@ -17,9 +18,12 @@ import time
 import numpy as np
 
 from libensemble.message_numbers import EVAL_SIM_TAG, FINISHED_PERSISTENT_SIM_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.specs import input_fields, output_data
 from libensemble.tools.persistent_support import PersistentSupport
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def six_hump_camel(H, persis_info, sim_specs, libE_info):
     """
     Evaluates the six hump camel function for a collection of points given in ``H["x"]``.
@@ -46,6 +50,8 @@ def six_hump_camel(H, persis_info, sim_specs, libE_info):
     return H_o, persis_info
 
 
+@input_fields(["x"])
+@output_data([("f", float)])
 def six_hump_camel_simple(x, _, sim_specs):
     """
     Evaluates the six hump camel function for a single point ``x``.

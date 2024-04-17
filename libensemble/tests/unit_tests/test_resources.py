@@ -827,6 +827,27 @@ def _setup_wresources_gpus(ngpus):
     return wresources
 
 
+def _setup_wresources_gpus_frm_platform_info(ngpus, ntiles):
+    """Set up worker resources with a given number of GPUs"""
+    os.environ["LIBE_RESOURCES_TEST_NODE_LIST"] = "knl-[0020,0036]"
+    resource_info = {"nodelist_env_slurm": "LIBE_RESOURCES_TEST_NODE_LIST"}
+
+    platform_info = {
+        "gpu_setting_type": "env",
+        "gpu_setting_name": "LIBE_TEST_GPUS_1",
+        "scheduler_match_slots": True,
+        "gpus_per_node": ngpus,
+        "tiles_per_gpu": ntiles,
+    }
+
+    libE_specs = {"resource_info": resource_info, "use_tiles_as_gpus": True}
+    gresources = GlobalResources(libE_specs, platform_info)
+    nworkers = 24
+    workerID = 2  # Does not matter as using set_rset_team
+    wresources = WorkerResources(nworkers, gresources, workerID)
+    return wresources
+
+
 def test_wresources_set_gpus():
     wresources = _setup_wresources_gpus(4)
 
@@ -901,6 +922,30 @@ def test_wresources_set_gpus_by_platform():
         # If no platform info.
         wresources.platform_info = None
         _check_set_env_to_gpus(wresources, "CUDA_VISIBLE_DEVICES", exp_out[i])
+    del wresources
+
+
+def test_wresources_set_gpus_by_platform_gpu_tiles():
+    """
+    Resource set IDs
+    Node 1:   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11
+    Node 2:  12,13,14,15,16,17,18,19,20,21,22,23
+
+    # Convert resource sets to slot IDs (0,1,2,3) and then to tiles
+    [0, 1, 2, 3, 12, 13, 14, 15]
+    = "0.0, 0.1, 1.0, 1.1"
+    """
+    wresources = _setup_wresources_gpus_frm_platform_info(6, 2)
+
+    rset_teams = [[0, 1, 2, 3, 12, 13, 14, 15], [3, 6, 8, 15, 18, 20]]
+    exp_out = ["0.0,0.1,1.0,1.1", "1.1,3.0,4.0"]
+
+    # Test routines for querying slots and gpus.
+    for i in range(2):
+        wresources.set_rset_team(rset_teams[i])
+
+        _check_set_env_to_gpus(wresources, "LIBE_TEST_GPUS_1", exp_out[i])
+        os.environ.pop("LIBE_TEST_GPUS_1", None)
     del wresources
 
 
@@ -993,6 +1038,7 @@ if __name__ == "__main__":
     test_machinefile_from_resources()
     test_wresources_set_gpus()
     test_wresources_set_gpus_by_platform()
+    test_wresources_set_gpus_by_platform_gpu_tiles()
     test_wresources_set_gpus_x2()
     test_wresources_set_limit_gpus()
     test_wresources_set_no_gpus()

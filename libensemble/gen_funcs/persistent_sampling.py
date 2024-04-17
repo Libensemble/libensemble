@@ -3,6 +3,7 @@
 import numpy as np
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.specs import output_data, persistent_input_fields
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
@@ -28,6 +29,8 @@ def _get_user_params(user_specs):
     return b, n, lb, ub
 
 
+@persistent_input_fields(["f", "x", "sim_id"])
+@output_data([("x", float, (2,))])
 def persistent_uniform(_, persis_info, gen_specs, libE_info):
     """
     This generation function always enters into persistent mode and returns
@@ -89,7 +92,7 @@ def persistent_uniform_final_update(_, persis_info, gen_specs, libE_info):
 
     corners = generate_corners(lb, ub)
 
-    # Start with equal probabilies
+    # Start with equal probabilities
     p = np.ones(2**n) / 2**n
 
     running_total = np.nan * np.ones(2**n)

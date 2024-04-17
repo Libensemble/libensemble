@@ -2,6 +2,7 @@
 #
 
 # You can set these variables from the command line.
+#SPHINXOPTS    = -b spelling
 SPHINXOPTS    =
 SPHINXBUILD   = python3 -msphinx
 SPHINXPROJ    = libensemble

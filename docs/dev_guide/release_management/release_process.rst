@@ -19,7 +19,7 @@ Before release
 - Version number is updated wherever it appears (and ``+dev`` suffix is removed)
   (in ``libensemble/version.py``).
 
-- Year in ``README.rst`` under *Citing libEnsemble* is checked for correctness.
+- Year in ``LICENSE`` is checked for correctness.
   (Note: The year generated in docs by ``docs/conf.py`` should be automatic).
 
 - ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all information is up to date.
@@ -29,9 +29,13 @@ Before release
 - ``MANIFEST.in`` is checked. Locally, try out ``python setup.py sdist`` and check created tarball.
   contains correct files and directories for PyPI package.
 
+- Locally check that the example code in the README works with both local comms and mpi4py.
+
 - Tests are run with source to be released (this may iterate):
 
   - On-line CI (GitHub Actions) tests must pass.
+
+  - Launch and verify extra tests: ``gh workflow run libEnsemble-complete-CI --ref branch_name``
 
   - Scaling tests must be run on HPC platforms listed as supported in release notes.
     Test variants by platform, launch mechanism, scale, and other factors can

@@ -1,6 +1,7 @@
 """
 This module is a wrapper around an example ytopt objective function
 """
+
 __all__ = ["init_obj"]
 
 import time

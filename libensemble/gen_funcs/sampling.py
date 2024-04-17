@@ -3,7 +3,10 @@ This module contains multiple generation functions for sampling a domain. All
 use (and return) a random stream in ``persis_info``, given by the allocation
 function.
 """
+
 import numpy as np
+
+from libensemble.specs import output_data
 
 __all__ = [
     "uniform_random_sample",
@@ -15,6 +18,7 @@ __all__ = [
 ]
 
 
+@output_data([("x", float, 2)])  # default: can be overwritten in gen_specs
 def uniform_random_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points uniformly over the domain
@@ -45,8 +49,8 @@ def uniform_random_sample_with_variable_resources(_, persis_info, gen_specs):
 
     This generator is used to test/demonstrate setting of resource sets.
 
-    #.. seealso::
-        #`test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
+    .. seealso::
+        `test_uniform_sampling_with_variable_resources.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_uniform_sampling_with_variable_resources.py>`_ # noqa
     """
 
     ub = gen_specs["user"]["ub"]
@@ -153,6 +157,7 @@ def uniform_random_sample_cancel(_, persis_info, gen_specs):
     return H_o, persis_info
 
 
+@output_data([("x", float, (1,))])
 def latin_hypercube_sample(_, persis_info, gen_specs):
     """
     Generates ``gen_specs["user"]["gen_batch_size"]`` points in a Latin

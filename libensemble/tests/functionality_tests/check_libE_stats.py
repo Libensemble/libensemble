@@ -42,7 +42,7 @@ def check_start_end_times(start="Start:", end="End:", everyline=True):
             s_cnt = 0
             e_cnt = 0
             lst = line.split()
-            if lst[0] == "Manager":
+            if line.startswith("Manager     : Starting") or line.startswith("Manager     : Exiting"):
                 check_datetime(lst[5], lst[6])
                 continue
             for i, val in enumerate(lst):
@@ -71,6 +71,5 @@ def check_libE_stats(task_datetime=False):
 
 
 if __name__ == "__main__":
-
     check_libE_stats()
     check_libE_stats(task_datetime=True)

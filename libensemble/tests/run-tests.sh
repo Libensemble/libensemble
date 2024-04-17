@@ -376,7 +376,7 @@ COV_LINE_PARALLEL=''
 if [ $RUN_COV_TESTS = "true" ]; then
    COV_LINE_SERIAL='--cov --cov-report xml:cov_unit'
    #COV_LINE_PARALLEL='-m coverage run --parallel-mode --rcfile=../.coveragerc' #running in sub-dirs
-   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing' #running in regression dir itself
+   COV_LINE_PARALLEL='-m coverage run --parallel-mode --concurrency=multiprocessing,thread' #running in regression dir itself
 
    #include branch coverage? eg. flags if never jumped a statement block... [see .coveragerc file]
    #COV_LINE_PARALLEL='-m coverage run --branch --parallel-mode'
@@ -431,6 +431,12 @@ if [ "$root_found" = true ]; then
   # Run Regression Tests -----------------------------------------------------------------
 
   if [ "$RUN_REG_TESTS" = true ]; then
+    # build forces
+    pushd $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app/
+    mpicc -O3 -o forces.x forces.c -lm
+    popd
+    cp -r $ROOT_DIR/libensemble/tests/scaling_tests/forces/forces_app $ROOT_DIR/libensemble/tests
+
     tput bold; tput setaf 6
     echo -e "\n$RUN_PREFIX --$PYTHON_RUN: Running regression tests"
     tput sgr 0
@@ -451,8 +457,6 @@ if [ "$root_found" = true ]; then
         TIMEOUT=""
     fi
     #Build any sim/gen source code dependencies here .....
-
-    # cd $ROOT_DIR/$REG_TEST_SUBDIR
 
     #Run regression tests using MPI
     #Before first test set error code to zero
@@ -507,7 +511,7 @@ if [ "$root_found" = true ]; then
 
             RUN_TEST=false
             if [ "$RUN_MPI" = true ]   && [ "$LAUNCHER" = mpi ];   then RUN_TEST=true; fi
-            if [ "$RUN_LOCAL" = true ] && [ "$LAUNCHER" = local ]; then RUN_TEST=true; fi
+            if [ "$RUN_LOCAL" = true ] &&  ( [ "$LAUNCHER" = local ] || [ "$LAUNCHER" = threads ] ); then RUN_TEST=true; fi
             if [ "$RUN_TCP" = true ]   && [ "$LAUNCHER" = tcp ];   then RUN_TEST=true; fi
 
             if [[ "$OSTYPE" = *"darwin"* ]] && [[ "$OS_SKIP_LIST" = *"OSX"* ]]; then
@@ -602,9 +606,7 @@ if [ "$root_found" = true ]; then
 
     # ********* End Loop over regression tests *********
 
-    #Create Coverage Reports ----------------------------------------------
-
-    #Only if passed
+    # Only if passed
     if [ "$code" -eq "0" ]; then
 
       echo -e "\n..Moving output files to output dir"
@@ -623,51 +625,8 @@ if [ "$root_found" = true ]; then
         filelist=(*active_runs.txt);         [ -e ${filelist[0]} ] && mv *active_runs.txt output/
 
       done
+
       cd $ROOT_DIR
-
-      if [ "$RUN_COV_TESTS" = true ]; then
-
-        # Merge MPI coverage data for all ranks from regression tests and create xml report in sub-dir
-
-        for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
-        do
-          cd $ROOT_DIR/$DIR
-
-          # Must combine all if in sep sub-dirs will copy to dir above
-          coverage combine .cov_reg_out* #Name of coverage data file must match that in .coveragerc in reg test dir.
-          coverage xml
-          echo -e "..Coverage xml written to dir $DIR/cov_reg/"
-
-        done
-        cd $ROOT_DIR
-
-        if [ "$RUN_UNIT_TESTS" = true ]; then
-
-          #Combine with unit test coverage at top-level
-          cd $ROOT_DIR/$COV_MERGE_DIR
-          cp $ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out .
-          cp $ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2 .
-          cp $ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3 .
-          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
-          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
-
-          #coverage combine --rcfile=.coverage_merge.rc .cov_unit_out .cov_reg_out
-          coverage combine .cov_unit_out .cov_unit_out2 .cov_unit_out3 .cov_reg_out .cov_reg_out2 #Should create .cov_merge_out - see .coveragerc
-          coverage xml #Should create cov_merge/ dir
-          echo -e "..Combined Unit Test/Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
-
-        else
-
-          # Still need to move reg cov results to COV_MERGE_DIR
-          cd $ROOT_DIR/$COV_MERGE_DIR
-          cp $ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out .
-          cp $ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2 .
-
-          coverage combine .cov_reg_out .cov_reg_out2
-          coverage xml
-          echo -e "..Combined Regression Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
-        fi;
-      fi;
     fi;
 
     #All reg tests - summary ----------------------------------------------
@@ -706,6 +665,45 @@ if [ "$root_found" = true ]; then
     fi;
 
   fi; #$RUN_REG_TESTS
+
+
+  #Create Coverage Reports ----------------------------------------------
+  cd $ROOT_DIR
+
+  if [ "$RUN_COV_TESTS" = true ]; then
+
+    # Merge MPI coverage data for all ranks from regression tests and create xml report in sub-dir
+    cd $ROOT_DIR/$COV_MERGE_DIR
+    cov_files=""
+
+    if [ "$RUN_UNIT_TESTS" = true ]; then
+      covfile="$ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+      covfile="$ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+      covfile="$ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+      covfile="$ROOT_DIR/$UNIT_TEST_MPI_SUBDIR/.cov_unit_out4"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+    fi;
+
+    if [ "$RUN_REG_TESTS" = true ]; then
+      for DIR in $REG_TEST_SUBDIR $FUNC_TEST_SUBDIR
+      do
+        cd $ROOT_DIR/$DIR
+        coverage combine .cov_reg_out* # Name of coverage data file must match that in .coveragerc in reg test dir.
+        coverage xml
+        echo -e "..Coverage xml written to dir $DIR/cov_reg/"
+      done
+      cd $ROOT_DIR/$COV_MERGE_DIR
+      covfile="$ROOT_DIR/$REG_TEST_SUBDIR/.cov_reg_out"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+      covfile="$ROOT_DIR/$FUNC_TEST_SUBDIR/.cov_reg_out2"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
+    fi;
+
+    # Should create .cov_merge_out - see .coveragerc
+    if [ ! -z "cov_files" ]; then
+      coverage combine ${cov_files}
+      coverage xml # Should create cov_merge/ dir
+      echo -e "..Combined Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
+    fi;
+  fi;
+
 
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR

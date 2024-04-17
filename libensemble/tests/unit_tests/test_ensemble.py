@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
-from libensemble.utils.misc import pydanticV1, pydanticV2, specs_dump
+from libensemble.utils.misc import pydanticV1, specs_dump
 
 
 def test_ensemble_init():
@@ -100,10 +100,9 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=one_d_example, inputs=["x"], out=[("f", float)]),
+        sim_specs=SimSpecs(sim_f=one_d_example),
         gen_specs=GenSpecs(
             gen_f=latin_hypercube_sample,
-            out=[("x", float, (1,))],
             user={
                 "gen_batch_size": 100,
                 "lb": np.array([-3]),
@@ -133,7 +132,7 @@ def test_flakey_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     if pydanticV1:
         from pydantic.error_wrappers import ValidationError
-    elif pydanticV2:
+    else:
         from pydantic import ValidationError
 
     from libensemble.ensemble import Ensemble
@@ -147,10 +146,9 @@ def test_flakey_workflow():
     try:
         ens = Ensemble(
             libE_specs=LS,
-            sim_specs=SimSpecs(sim_f=one_d_example, inputs=["X"], out=[("f", float)]),
+            sim_specs=SimSpecs(sim_f=one_d_example),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
-                out=[("x", float, (1,))],
                 user={
                     "gen_batch_size": 100,
                     "lb": np.array([-3]),
@@ -168,6 +166,30 @@ def test_flakey_workflow():
     assert not flag, "should've caught input errors"
 
 
+def test_ensemble_specs_update_libE_specs():
+    """Test that libE_specs is updated as expected with .attribute setting"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.resources.platforms import PerlmutterGPU
+    from libensemble.specs import LibeSpecs
+
+    platform_specs = PerlmutterGPU()
+
+    ensemble = Ensemble(
+        libE_specs=LibeSpecs(comms="local", nworkers=4),
+    )
+
+    ensemble.libE_specs = LibeSpecs(
+        num_resource_sets=ensemble.nworkers - 1,
+        resource_info={"gpus_on_node": 4},
+        use_workflow_dir=True,
+        platform_specs=platform_specs,
+    )
+
+    assert ensemble.libE_specs.num_resource_sets == ensemble.nworkers - 1
+    assert len(str(ensemble.libE_specs.workflow_dir_path)) > 1
+    assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -175,3 +197,4 @@ if __name__ == "__main__":
     test_bad_func_loads()
     test_full_workflow()
     test_flakey_workflow()
+    test_ensemble_specs_update_libE_specs()

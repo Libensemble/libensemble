@@ -28,7 +28,11 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
 
                 **nworkers** [int]:
-                    Number of worker processes in ``"local"`` or ``"tcp"``.
+                    Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
+
+                **gen_on_manager** Optional[bool] = False
+                    Instructs Manager process to run generator functions.
+                    This generator function can access/modify user objects by reference.
 
                 **mpi_comm** [MPI communicator] = ``MPI.COMM_WORLD``:
                     libEnsemble MPI communicator.
@@ -50,6 +54,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **disable_log_files** [bool] = ``False``:
                     Disable ``ensemble.log`` and ``libE_stats.txt`` log files.
+
+                **gen_workers** [list of ints]:
+                    List of workers that should only run generators. All other workers will only
+                    run simulator functions.
 
         .. tab-item:: Directories
 
@@ -128,6 +136,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **sim_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the simulation function.
+                        Forms the base of a simulation directory.
 
                 .. tab-item:: Gens
 
@@ -145,6 +154,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                     **gen_input_dir** [str]:
                         Copy this directory's contents into the working directory upon calling the generator function.
+                        Forms the base of a generator directory.
 
         .. tab-item:: Profiling
 
@@ -239,6 +249,10 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     The default number of GPUs required by generators. Unless overridden by
                     the equivalent ``persis_info`` settings, generators will be allocated this
                     many GPUs.
+
+                **use_tiles_as_gpus** [bool] = ``False``:
+                    If ``True`` then treat a GPU tile as one GPU, assuming
+                    ``tiles_per_GPU`` is provided in ``platform_specs`` or detected.
 
                 **enforce_worker_core_bounds** [bool] = ``False``:
                     Permit submission of tasks with a

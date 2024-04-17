@@ -13,6 +13,7 @@ py:class numpy.typing.NDArray
 py:class numpy._typing._generic_alias.ScalarType
 py:class numpy._typing._dtype_like._DTypeDict
 py:class numpy._typing._dtype_like._SupportsDType
+py:class numpy._typing._array_like._ScalarType_co
 
 # Pending on python docs links issue #11975
 py:class list
@@ -34,8 +35,11 @@ py:class int
 py:class <class 'dict'>
 py:class <class 'int'>
 py:class +ScalarType
+py:class +_ScalarType_co
+py:class collections.abc.Sequence
 
 # Internal paths that are verified importable but Sphinx can't find
+py:class libensemble.resources.platforms.Aurora
 py:class libensemble.resources.platforms.GenericROCm
 py:class libensemble.resources.platforms.Crusher
 py:class libensemble.resources.platforms.Frontier

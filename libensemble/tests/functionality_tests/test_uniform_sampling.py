@@ -23,7 +23,9 @@ from libensemble.gen_funcs.sampling import uniform_random_sample
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
+from libensemble.sim_funcs.mock_sim import mock_sim
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+from libensemble.tests.regression_tests.common import read_generated_file
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -57,19 +59,26 @@ if __name__ == "__main__":
 
     exit_criteria = {"gen_max": 501, "wallclock_max": 300}
 
-    # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
+    for run in range(2):
+        if run == 1:
+            # Test running a mock sim using previous history file
+            sim_specs["sim_f"] = mock_sim
+            hfile = read_generated_file("TESTING_*_after_gen_1000.npy")
+            sim_specs["user"] = {"history_file": hfile}
 
-    if is_manager:
-        assert flag == 0
+        # Perform the run
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
 
-        tol = 0.1
-        for m in minima:
-            assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
+        if is_manager:
+            assert flag == 0
 
-        npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
-        date = str(datetime.datetime.today()).split(" ")[0]
-        assert any([i.startswith("TESTING_") for i in npy_files])
-        assert any([date in i for i in npy_files])
+            tol = 0.1
+            for m in minima:
+                assert np.min(np.sum((H["x"] - m) ** 2, 1)) < tol
 
-        print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))
+            npy_files = [i for i in os.listdir(os.path.dirname(__file__)) if i.endswith(".npy")]
+            date = str(datetime.datetime.today()).split(" ")[0]
+            assert any([i.startswith("TESTING_") for i in npy_files])
+            assert any([date in i for i in npy_files])
+
+            print("\nlibEnsemble found the 6 minima within a tolerance " + str(tol))

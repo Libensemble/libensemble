@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class History:
-
     """The History class provides methods for managing the history array.
 
     **Object Attributes:**
@@ -56,26 +55,9 @@ class History:
         specs_dtype_list = list(set(libE_fields + sum([k.get("out", []) for k in specs if k], [])))
 
         if len(H0):
-            # a whole lot of work to parse numpy dtypes to python types and 2- or 3-tuples
-            # - dtypes aren't iterable, but you can index into them
-            # - must split out actual numpy type if subdtype refers to sub-array
-            # - then convert that type into a python type in the best way known so far...
-            # - we need to make sure the size of string types is preserved
-            # - if sub-array shape, save as 3-tuple
-            H0_fields = []
-            for i in range(len(H0.dtype.names)):
-                dtype = H0.dtype[i]
-                subd = dtype.subdtype[0] if dtype.subdtype else dtype
-                pytype = type(subd.type(0).item())  # kinda redundant innit?
-                size = int(dtype.str.split("<U")[-1]) if "<U" in dtype.str else dtype.shape
-                if size:
-                    H0_fields.append((H0.dtype.names[i], pytype, size))
-                else:
-                    H0_fields.append((H0.dtype.names[i], pytype))
-
             # remove duplicate fields from specs dtype list if those already in H0 (H0 takes precedence)
             pruned_specs_dtype_list = [i for i in specs_dtype_list if i[0] not in H0.dtype.names]
-            H_fields = list(set(pruned_specs_dtype_list + H0_fields))
+            H_fields = list(set(pruned_specs_dtype_list + H0.dtype.descr))
 
             H = np.zeros(L + len(H0), dtype=H_fields)
 
@@ -110,6 +92,7 @@ class History:
         self.using_H0 = len(H0) > 0
         self.index = len(H0)
         self.grow_count = 0
+        self.safe_mode = False
 
         self.sim_started_count = np.sum(H["sim_started"])
         self.sim_ended_count = np.sum(H["sim_ended"])
@@ -123,7 +106,15 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
-    def update_history_f(self, D: dict, safe_mode: bool, kill_canceled_sims: bool = False) -> None:
+    def _append_new_fields(self, H_f: npt.NDArray) -> None:
+        dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
+        H_new = np.zeros(len(self.H), dtype=dtype_new)
+        old_fields = self.H.dtype.names
+        for field in old_fields:
+            H_new[field][: len(self.H)] = self.H[field]
+        self.H = H_new
+
+    def update_history_f(self, D: dict, kill_canceled_sims: bool = False) -> None:
         """
         Updates the history after points have been evaluated
         """
@@ -132,9 +123,12 @@ class History:
         returned_H = D["calc_out"]
         fields = returned_H.dtype.names if returned_H is not None else []
 
+        if returned_H is not None and any([field not in self.H.dtype.names for field in returned_H.dtype.names]):
+            self._append_new_fields(returned_H)
+
         for j, ind in enumerate(new_inds):
             for field in fields:
-                if safe_mode:
+                if self.safe_mode:
                     assert field not in protected_libE_fields, "The field '" + field + "' is protected"
                 if np.isscalar(returned_H[field][j]) or returned_H.dtype[field].hasobject:
                     self.H[field][ind] = returned_H[field][j]
@@ -206,7 +200,7 @@ class History:
             self.H["gen_informed_time"][q_inds] = t
             self.gen_informed_count += len(q_inds)
 
-    def update_history_x_in(self, gen_worker: int, D: npt.NDArray, safe_mode: bool, gen_started_time: int) -> None:
+    def update_history_x_in(self, gen_worker: int, D: npt.NDArray, gen_started_time: int) -> None:
         """
         Updates the history (in place) when new points have been returned from a gen
 
@@ -220,6 +214,9 @@ class History:
 
         if len(D) == 0:
             return
+
+        if any([field not in self.H.dtype.names for field in D.dtype.names]):
+            self._append_new_fields(D)
 
         t = time.time()
         rows_remaining = len(self.H) - self.index
@@ -251,7 +248,7 @@ class History:
             update_inds = D["sim_id"]
 
         for field in D.dtype.names:
-            if safe_mode:
+            if self.safe_mode:
                 assert field not in protected_libE_fields, "The field '" + field + "' is protected"
             self.H[field][update_inds] = D[field]
 

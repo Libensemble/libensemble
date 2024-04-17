@@ -8,6 +8,8 @@ from libensemble.message_numbers import (
     WORKER_KILL_ON_ERR,
     WORKER_KILL_ON_TIMEOUT,
 )
+from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+from libensemble.specs import input_fields, output_data
 
 __all__ = ["executor_hworld"]
 
@@ -65,8 +67,13 @@ def custom_polling_loop(exctr, task, timeout_sec=5.0, delay=0.3):
     return task, calc_status
 
 
+@input_fields(["x"])
+@output_data([("f", float), ("cstat", int)])
 def executor_hworld(H, _, sim_specs, info):
-    """Tests launching and polling task and exiting on task finish"""
+    """
+    Tests launching and polling task and exiting on task finish
+    """
+
     exctr = info["executor"]
     cores = sim_specs["user"]["cores"]
     ELAPSED_TIMEOUT = "elapsed_timeout" in sim_specs["user"]
@@ -144,16 +151,3 @@ def executor_hworld(H, _, sim_specs, info):
     H_o["cstat"] = calc_status
 
     return H_o, calc_status
-
-
-def six_hump_camel_func(x):
-    """
-    Definition of the six-hump camel
-    """
-    x1 = x[0]
-    x2 = x[1]
-    term1 = (4 - 2.1 * x1**2 + (x1**4) / 3) * x1**2
-    term2 = x1 * x2
-    term3 = (-4 + 4 * x2**2) * x2**2
-
-    return term1 + term2 + term3

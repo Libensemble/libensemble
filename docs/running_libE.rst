@@ -49,7 +49,7 @@ The default is ``mpi``.
         with MPICH_ and its derivative MPI implementations.
 
         It is also unsuitable to use this mode when running on the **launch** nodes of
-        three-tier systems (e.g., Theta/Summit). In that case ``local`` mode is recommended.
+        three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.
 
     .. tab-item:: Local Comms
 
@@ -74,7 +74,7 @@ The default is ``mpi``.
         set ``libE_specs["dedicated_mode"] = True``.
 
         This mode is often used to run on a **launch** node of a three-tier
-        system (e.g., Theta/Summit), ensuring the whole compute-node allocation is available for
+        system (e.g., Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
         Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
@@ -98,7 +98,7 @@ The default is ``mpi``.
         **Reverse-ssh interface**
 
         Set ``comms`` to ``ssh`` to launch workers on remote ssh-accessible systems. This
-        colocates workers, functions, and any applications. User
+        co-locates workers, functions, and any applications. User
         functions can also be persistent, unlike when launching remote functions via
         :ref:`Globus Compute<globus_compute_ref>`.
 

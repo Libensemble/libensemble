@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def _check_exit_criteria(values):
-    if "stop_val" in scg(values, "exit_criteria"):
+    if scg(values, "exit_criteria").stop_val is not None:
         stop_name = scg(values, "exit_criteria").stop_val[0]
         sim_out_names = [e[0] for e in scg(values, "sim_specs").outputs]
         gen_out_names = [e[0] for e in scg(values, "gen_specs").outputs]
@@ -101,6 +101,14 @@ def _check_set_workflow_dir(values):
         if not scg(values, "use_workflow_dir"):
             scs(values, "use_workflow_dir", True)
         scs(values, "workflow_dir_path", Path(scg(values, "workflow_dir_path")).absolute())
+    return values
+
+
+def _check_set_calc_dirs_on_input_dir(values):
+    if scg(values, "sim_input_dir") and not scg(values, "sim_dirs_make"):
+        scs(values, "sim_dirs_make", True)
+    if scg(values, "gen_input_dir") and not scg(values, "gen_dirs_make"):
+        scs(values, "gen_dirs_make", True)
     return values
 
 

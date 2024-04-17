@@ -101,7 +101,7 @@ This would be equivalent to::
 The libEnsemble resource manager works out the resources available to each worker,
 but unlike some other systems, ``jsrun`` on Summit dynamically schedules runs to
 available slots across and within nodes. It can also queue tasks. This allows variable
-size runs to easily be handled on Summit. If oversubsciption to the `jsrun` system
+size runs to easily be handled on Summit. If oversubscription to the `jsrun` system
 is desired, then libEnsemble's resource manager can be disabled in the
 calling script via::
 
@@ -120,7 +120,6 @@ to execute on the launch nodes.
 
 It is recommended to run libEnsemble on the launch nodes (assuming workers are
 submitting MPI applications) using the ``local`` communications mode (multiprocessing).
-In the future, Balsam may be used to run libEnsemble on compute nodes.
 
 Interactive Runs
 ^^^^^^^^^^^^^^^^
@@ -204,8 +203,8 @@ Additional Information
 See the OLCF guides_ for more information about Summit.
 
 .. _conda: https://conda.io/en/latest/
-.. _guides: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
+.. _guides: https://docs.olcf.ornl.gov/systems/summit_user_guide.html
 .. _LSF: https://www.olcf.ornl.gov/wp-content/uploads/2018/12/summit_workshop_fuson.pdf
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _resource sets: https://docs.olcf.ornl.gov/systems/summit_user_guide.html#job-launcher-jsrun
-.. _Summit: https://www.olcf.ornl.gov/for-users/system-user-guides/summit/
+.. _Summit: https://docs.olcf.ornl.gov/systems/summit_user_guide.html

@@ -36,16 +36,15 @@ Examples:
 
     .. literalinclude:: ../../libensemble/alloc_funcs/fast_alloc.py
        :linenos:
-       :start-at:     for wid in support.avail_worker_ids():
-       :end-before:         # Give sim work if possible
-       :emphasize-lines: 3-4
+       :start-at:     for wid in support.avail_worker_ids(gen_workers=False):
+       :end-before:         # Give gen work if possible
        :caption: libensemble/alloc_funcs/fast_alloc.py
 
   .. tab-item:: Tracking running generators
 
     .. literalinclude:: ../../libensemble/alloc_funcs/start_only_persistent.py
        :linenos:
-       :start-at:        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
+       :start-at:        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True, gen_workers=True)
        :end-before:    return Work, persis_info, 0
        :emphasize-lines: 18
        :caption: libensemble/alloc_funcs/start_only_persistent.py

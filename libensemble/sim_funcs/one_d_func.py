@@ -1,11 +1,16 @@
 """
 This module contains an example 1d function
 """
+
 __all__ = ["one_d_example"]
 
 import numpy as np
 
+from libensemble.specs import input_fields, output_data
 
+
+@input_fields(["x"])
+@output_data([("f", float)])
 def one_d_example(x, persis_info, sim_specs, _):
     """
     Evaluates the six hump camel function for a single point ``x``.

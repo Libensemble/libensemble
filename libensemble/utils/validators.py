@@ -4,13 +4,14 @@ from typing import Callable
 import numpy as np
 
 from libensemble.resources.platforms import Platform
-from libensemble.utils.misc import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1
 from libensemble.utils.specs_checkers import (
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
     _check_logical_cores,
     _check_output_fields,
+    _check_set_calc_dirs_on_input_dir,
     _check_set_workflow_dir,
 )
 
@@ -36,7 +37,7 @@ def check_valid_in(cls, v):
 
 
 def check_valid_comms_type(cls, value):
-    assert value in ["mpi", "local", "local_threading", "tcp"], "Invalid comms type"
+    assert value in ["mpi", "local", "threads", "tcp"], "Invalid comms type"
     return value
 
 
@@ -112,6 +113,10 @@ if pydanticV1:
         return _check_set_workflow_dir(values)
 
     @root_validator
+    def set_calc_dirs_on_input_dir(cls, values):
+        return _check_set_calc_dirs_on_input_dir(values)
+
+    @root_validator
     def check_exit_criteria(cls, values):
         return _check_exit_criteria(values)
 
@@ -136,13 +141,41 @@ if pydanticV1:
 
         return values
 
+    @root_validator
+    def simf_set_in_out_from_attrs(cls, values):
+        if not values.get("sim_f"):
+            from libensemble.sim_funcs.one_d_func import one_d_example
+
+            values["sim_f"] = one_d_example
+        if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
+            values["inputs"] = values.get("sim_f").inputs
+        if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
+            values["outputs"] = values.get("sim_f").outputs
+        if hasattr(values.get("sim_f"), "persis_in") and not values.get("persis_in"):
+            values["persis_in"] = values.get("sim_f").persis_in
+        return values
+
+    @root_validator
+    def genf_set_in_out_from_attrs(cls, values):
+        if not values.get("gen_f"):
+            from libensemble.gen_funcs.sampling import latin_hypercube_sample
+
+            values["gen_f"] = latin_hypercube_sample
+        if hasattr(values.get("gen_f"), "inputs") and not values.get("inputs"):
+            values["inputs"] = values.get("gen_f").inputs
+        if hasattr(values.get("gen_f"), "outputs") and not values.get("outputs"):
+            values["outputs"] = values.get("gen_f").outputs
+        if hasattr(values.get("gen_f"), "persis_in") and not values.get("persis_in"):
+            values["persis_in"] = values.get("gen_f").persis_in
+        return values
+
     # RESOURCES VALIDATORS #####
 
     @root_validator
     def check_logical_cores(cls, values):
         return _check_logical_cores(values)
 
-elif pydanticV2:
+else:
     from pydantic import field_validator, model_validator
 
     # SPECS VALIDATORS #####
@@ -175,6 +208,10 @@ elif pydanticV2:
         return _check_set_workflow_dir(self)
 
     @model_validator(mode="after")
+    def set_calc_dirs_on_input_dir(self):
+        return _check_set_calc_dirs_on_input_dir(self)
+
+    @model_validator(mode="after")
     def check_exit_criteria(self):
         return _check_exit_criteria(self)
 
@@ -195,6 +232,26 @@ elif pydanticV2:
             assert hasattr(self.gen_specs, "gen_f"), "Generator function not provided to GenSpecs."
             assert isinstance(self.gen_specs.gen_f, Callable), "Generator function is not callable."
 
+        return self
+
+    @model_validator(mode="after")
+    def simf_set_in_out_from_attrs(self):
+        if hasattr(self.__dict__.get("sim_f"), "inputs") and not self.__dict__.get("inputs"):
+            self.__dict__["inputs"] = self.__dict__.get("sim_f").inputs
+        if hasattr(self.__dict__.get("sim_f"), "outputs") and not self.__dict__.get("outputs"):
+            self.__dict__["outputs"] = self.__dict__.get("sim_f").outputs
+        if hasattr(self.__dict__.get("sim_f"), "persis_in") and not self.__dict__.get("persis_in"):
+            self.__dict__["persis_in"] = self.__dict__.get("sim_f").persis_in
+        return self
+
+    @model_validator(mode="after")
+    def genf_set_in_out_from_attrs(self):
+        if hasattr(self.__dict__.get("gen_f"), "inputs") and not self.__dict__.get("inputs"):
+            self.__dict__["inputs"] = self.__dict__.get("gen_f").inputs
+        if hasattr(self.__dict__.get("gen_f"), "outputs") and not self.__dict__.get("outputs"):
+            self.__dict__["outputs"] = self.__dict__.get("gen_f").outputs
+        if hasattr(self.__dict__.get("gen_f"), "persis_in") and not self.__dict__.get("persis_in"):
+            self.__dict__["persis_in"] = self.__dict__.get("gen_f").persis_in
         return self
 
     # RESOURCES VALIDATORS #####

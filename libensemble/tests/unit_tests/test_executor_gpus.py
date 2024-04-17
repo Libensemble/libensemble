@@ -181,7 +181,7 @@ def test_dry_run_ngpus_srun():
     # auto_assign_gpus
     exp_env = {}
 
-    exp_cmd = "srun -w node-1 --ntasks 1 --nodes 1 --ntasks-per-node 1 --gpus-per-node 5 --exact"
+    exp_cmd = "srun -w node-1 --ntasks 1 --nodes 1 --ntasks-per-node 1 --gpus-per-task 5 --exact"
     run_check(exp_env, exp_cmd, num_procs=1, auto_assign_gpus=True)
     run_check(exp_env, exp_cmd, procs_per_node=1, auto_assign_gpus=True)
 
@@ -190,7 +190,7 @@ def test_dry_run_ngpus_srun():
     run_check(exp_env, exp_cmd, num_procs=1, num_gpus=10)
 
     # restrict with num_gpus
-    exp_cmd = "srun -w node-1 --ntasks 1 --nodes 1 --ntasks-per-node 1 --gpus-per-node 2 --exact"
+    exp_cmd = "srun -w node-1 --ntasks 1 --nodes 1 --ntasks-per-node 1 --gpus-per-task 2 --exact"
     run_check(exp_env, exp_cmd, num_procs=1, auto_assign_gpus=True, num_gpus=2)
     run_check(exp_env, exp_cmd, num_procs=1, num_gpus=2)
 
@@ -198,10 +198,10 @@ def test_dry_run_ngpus_srun():
     run_check(exp_env, exp_cmd, num_procs=1, num_nodes=1, num_gpus=2)
 
     # match_procs_to_gpus
-    exp_cmd = "srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --gpus-per-node 5 --exact"
+    exp_cmd = "srun -w node-1 --ntasks 5 --nodes 1 --ntasks-per-node 5 --gpus-per-task 1 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, auto_assign_gpus=True)
 
-    exp_cmd = "srun -w node-1 --ntasks 3 --nodes 1 --ntasks-per-node 3 --gpus-per-node 3 --exact"
+    exp_cmd = "srun -w node-1 --ntasks 3 --nodes 1 --ntasks-per-node 3 --gpus-per-task 1 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=3)
 
 

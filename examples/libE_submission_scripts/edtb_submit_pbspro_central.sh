@@ -31,7 +31,7 @@ conda activate $CONDA_ENV_NAME
 
 cd $PBS_O_WORKDIR
 
-# openMPI on edtb
+# openmpi on edtb
 export LD_LIBRARY_PATH=/lus/theta-fs0/software/edtb/openmpi/4.1.1/lib:$LD_LIBRARY_PATH
 export PATH=/lus/theta-fs0/software/edtb/openmpi/4.1.1/bin:$PATH
 

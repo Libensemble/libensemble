@@ -29,6 +29,9 @@ mpicc -O3 -o forces.x forces.c -lm
 # xl
 # xlc_r -O3 -qsmp=omp -o forces.x forces.c
 
+# Aurora: Intel oneAPI (Clang based) Compiler
+# mpicc -O3 -fiopenmp -o forces_cpu.x forces.c
+
 # -------------------------------------------------
 # Building with OpenMP for target device (e.g. GPU)
 # -------------------------------------------------
@@ -47,5 +50,5 @@ mpicc -O3 -o forces.x forces.c -lm
 # Spock/Crusher/Frontier (AMD ROCm compiler)
 # cc -DGPU -I${ROCM_PATH}/include -L${ROCM_PATH}/lib -lamdhip64 -fopenmp -O3 -o forces.x forces.c
 
-# Intel oneAPI (Clang based) Compiler (JIT compiled for device)
+# Aurora: Intel oneAPI (Clang based) Compiler (JIT compiled for device)
 # mpicc -DGPU -O3 -fiopenmp -fopenmp-targets=spir64 -o forces.x forces.c

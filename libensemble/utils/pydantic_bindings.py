@@ -1,8 +1,10 @@
+import sys
+
 from pydantic import Field, create_model
 
 from libensemble import specs
 from libensemble.resources import platforms
-from libensemble.utils.misc import pydanticV1, pydanticV2
+from libensemble.utils.misc import pydanticV1
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
@@ -20,8 +22,11 @@ from libensemble.utils.validators import (
     check_valid_in,
     check_valid_out,
     enable_save_H_when_every_K,
+    genf_set_in_out_from_attrs,
+    set_calc_dirs_on_input_dir,
     set_platform_specs_to_class,
     set_workflow_dir,
+    simf_set_in_out_from_attrs,
 )
 
 if pydanticV1:
@@ -43,7 +48,7 @@ if pydanticV1:
     specs.LibeSpecs.Config = Config
     specs._EnsembleSpecs.Config = Config
 
-elif pydanticV2:
+else:
     from pydantic import ConfigDict
     from pydantic import validate_call as libE_wrapper  # noqa: F401
     from pydantic.fields import FieldInfo
@@ -60,25 +65,16 @@ elif pydanticV2:
     specs._EnsembleSpecs.model_config = model_config
     platforms.Platform.model_config = model_config
 
-    specs.SimSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
-        specs.SimSpecs.model_fields["inputs"], Field(alias="in")
-    )
+    model = specs.SimSpecs.model_fields
+    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    specs.SimSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.SimSpecs.model_fields["outputs"], Field(alias="out")
-    )
+    model = specs.GenSpecs.model_fields
+    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
-    specs.GenSpecs.model_fields["inputs"] = FieldInfo.merge_field_infos(
-        specs.GenSpecs.model_fields["inputs"], Field(alias="in")
-    )
-
-    specs.GenSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.GenSpecs.model_fields["outputs"], Field(alias="out")
-    )
-
-    specs.AllocSpecs.model_fields["outputs"] = FieldInfo.merge_field_infos(
-        specs.AllocSpecs.model_fields["outputs"], Field(alias="out")
-    )
+    model = specs.AllocSpecs.model_fields
+    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
 
     specs.SimSpecs.model_rebuild(force=True)
     specs.GenSpecs.model_rebuild(force=True)
@@ -88,49 +84,61 @@ elif pydanticV2:
     specs._EnsembleSpecs.model_rebuild(force=True)
     platforms.Platform.model_rebuild(force=True)
 
-specs.SimSpecs = create_model(
-    "SimSpecs",
-    __base__=specs.SimSpecs,
-    __validators__={"check_valid_out": check_valid_out, "check_valid_in": check_valid_in},
-)
+# the create_model function removes fields for rendering in docs
+if "sphinx" not in sys.modules:
 
-specs.GenSpecs = create_model(
-    "GenSpecs",
-    __base__=specs.GenSpecs,
-    __validators__={"check_valid_out": check_valid_out, "check_valid_in": check_valid_in},
-)
+    specs.SimSpecs = create_model(
+        "SimSpecs",
+        __base__=specs.SimSpecs,
+        __validators__={
+            "check_valid_out": check_valid_out,
+            "check_valid_in": check_valid_in,
+            "simf_set_in_out_from_attrs": simf_set_in_out_from_attrs,
+        },
+    )
 
-specs.LibeSpecs = create_model(
-    "LibeSpecs",
-    __base__=specs.LibeSpecs,
-    __validators__={
-        "check_valid_comms_type": check_valid_comms_type,
-        "set_platform_specs_to_class": set_platform_specs_to_class,
-        "check_input_dir_exists": check_input_dir_exists,
-        "check_inputs_exist": check_inputs_exist,
-        "check_any_workers_and_disable_rm_if_tcp": check_any_workers_and_disable_rm_if_tcp,
-        "enable_save_H_when_every_K": enable_save_H_when_every_K,
-        "set_workflow_dir": set_workflow_dir,
-    },
-)
+    specs.GenSpecs = create_model(
+        "GenSpecs",
+        __base__=specs.GenSpecs,
+        __validators__={
+            "check_valid_out": check_valid_out,
+            "check_valid_in": check_valid_in,
+            "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
+        },
+    )
 
-specs._EnsembleSpecs = create_model(
-    "_EnsembleSpecs",
-    __base__=specs._EnsembleSpecs,
-    __validators__={
-        "check_exit_criteria": check_exit_criteria,
-        "check_output_fields": check_output_fields,
-        "check_H0": check_H0,
-        "check_provided_ufuncs": check_provided_ufuncs,
-    },
-)
+    specs.LibeSpecs = create_model(
+        "LibeSpecs",
+        __base__=specs.LibeSpecs,
+        __validators__={
+            "check_valid_comms_type": check_valid_comms_type,
+            "set_platform_specs_to_class": set_platform_specs_to_class,
+            "check_input_dir_exists": check_input_dir_exists,
+            "check_inputs_exist": check_inputs_exist,
+            "check_any_workers_and_disable_rm_if_tcp": check_any_workers_and_disable_rm_if_tcp,
+            "enable_save_H_when_every_K": enable_save_H_when_every_K,
+            "set_workflow_dir": set_workflow_dir,
+            "set_calc_dirs_on_input_dir": set_calc_dirs_on_input_dir,
+        },
+    )
 
-platforms.Platform = create_model(
-    "Platform",
-    __base__=platforms.Platform,
-    __validators__={
-        "check_gpu_setting_type": check_gpu_setting_type,
-        "check_mpi_runner_type": check_mpi_runner_type,
-        "check_logical_cores": check_logical_cores,
-    },
-)
+    specs._EnsembleSpecs = create_model(
+        "_EnsembleSpecs",
+        __base__=specs._EnsembleSpecs,
+        __validators__={
+            "check_exit_criteria": check_exit_criteria,
+            "check_output_fields": check_output_fields,
+            "check_H0": check_H0,
+            "check_provided_ufuncs": check_provided_ufuncs,
+        },
+    )
+
+    platforms.Platform = create_model(
+        "Platform",
+        __base__=platforms.Platform,
+        __validators__={
+            "check_gpu_setting_type": check_gpu_setting_type,
+            "check_mpi_runner_type": check_mpi_runner_type,
+            "check_logical_cores": check_logical_cores,
+        },
+    )

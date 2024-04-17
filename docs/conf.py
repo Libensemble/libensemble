@@ -47,8 +47,8 @@ MOCK_MODULES = [
     "scipy.spatial",
     "scipy.spatial.distance",
     "scipy.stats",
-    # "surmise.calibration",
-    # "surmise.emulation",
+    "surmise.calibration",
+    "surmise.emulation",
     "Tasmanian",
 ]
 
@@ -83,6 +83,7 @@ needs_sphinx = "5.3"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinxcontrib.spelling",
     "sphinxcontrib.bibtex",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
@@ -94,6 +95,13 @@ extensions = [
     "sphinx_design",
     "sphinx_copybutton",
 ]
+
+spelling_word_list_filename = "spelling_wordlist.txt"
+spelling_ignore_pypi_package_names = True
+spelling_ignore_acronyms = True
+spelling_ignore_python_builtins = True
+spelling_ignore_importable_modules = True
+
 bibtex_bibfiles = ["references.bib"]
 bibtex_default_style = "unsrt"
 # autosectionlabel_prefix_document = True

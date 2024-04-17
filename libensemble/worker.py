@@ -3,7 +3,6 @@ libEnsemble worker class
 ====================================================
 """
 
-import cProfile
 import logging
 import logging.handlers
 import socket
@@ -33,7 +32,7 @@ from libensemble.resources.resources import Resources
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
-from libensemble.utils.runners import Runners
+from libensemble.utils.runners import Runner
 from libensemble.utils.timer import Timer
 
 logger = logging.getLogger(__name__)
@@ -80,6 +79,8 @@ def worker_main(
     """
 
     if libE_specs.get("profile"):
+        import cProfile
+
         pr = cProfile.Profile()
         pr.enable()
 
@@ -96,7 +97,7 @@ def worker_main(
     if libE_specs.get("use_workflow_dir"):
         _, libE_specs["workflow_dir_path"] = comm.recv()
 
-    workerID = workerID or comm.rank
+    workerID = workerID or getattr(comm, "rank", 0)
 
     # Initialize logging on comms
     if log_comm:
@@ -128,7 +129,6 @@ class WorkerErrMsg:
 
 
 class Worker:
-
     """The worker class provides methods for controlling sim and gen funcs
 
     **Object Attributes:**
@@ -166,10 +166,10 @@ class Worker:
         self.workerID = workerID
         self.libE_specs = libE_specs
         self.stats_fmt = libE_specs.get("stats_fmt", {})
-
+        self.sim_runner = Runner(sim_specs)
+        self.gen_runner = Runner(gen_specs)
+        self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self.runners = Runners(sim_specs, gen_specs)
-        self._run_calc = self.runners.make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
@@ -219,6 +219,18 @@ class Worker:
             logger.debug(f"No resources set on worker {workerID}")
             return False
 
+    def _extract_debug_data(self, calc_type, Work):
+        if calc_type == EVAL_SIM_TAG:
+            enum_desc = "sim_id"
+            calc_id = extract_H_ranges(Work)
+        else:
+            enum_desc = "Gen no"
+            # Use global gen count if available
+            calc_id = str(Work["libE_info"].get("gen_count"))  # if we're doing a gen, we always have a gen count?
+        # Add a right adjust (minimum width).
+        calc_id = calc_id.rjust(5, " ")
+        return enum_desc, calc_id
+
     def _handle_calc(self, Work: dict, calc_in: npt.NDArray) -> (npt.NDArray, dict, int):
         """Runs a calculation on this worker object.
 
@@ -238,27 +250,13 @@ class Worker:
         calc_type = Work["tag"]
         self.calc_iter[calc_type] += 1
 
-        # calc_stats stores timing and summary info for this Calc (sim or gen)
-        # calc_id = next(self._calc_id_counter)
-
-        if calc_type == EVAL_SIM_TAG:
-            enum_desc = "sim_id"
-            calc_id = extract_H_ranges(Work)
-        else:
-            enum_desc = "Gen no"
-            # Use global gen count if available
-            if Work["libE_info"].get("gen_count"):
-                calc_id = str(Work["libE_info"]["gen_count"])
-            else:
-                calc_id = str(self.calc_iter[calc_type])
-        # Add a right adjust (minimum width).
-        calc_id = calc_id.rjust(5, " ")
+        enum_desc, calc_id = self._extract_debug_data(calc_type, Work)
 
         timer = Timer()
 
         try:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
-            calc = self._run_calc[calc_type]
+            calc = self.runners[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
                     loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(
@@ -281,12 +279,12 @@ class Worker:
                 if tag in [STOP_TAG, PERSIS_STOP] and message is MAN_SIGNAL_FINISH:
                     calc_status = MAN_SIGNAL_FINISH
 
-            if out:  # better way of doing this logic?
+            if out:
                 if len(out) >= 3:  # Out, persis_info, calc_status
                     calc_status = out[2]
                     return out
                 elif len(out) == 2:  # Out, persis_info OR Out, calc_status
-                    if isinstance(out[1], int) or isinstance(out[1], str):  # got Out, calc_status
+                    if isinstance(out[1], (int, str)):  # got Out, calc_status
                         calc_status = out[1]
                         return out[0], Work["persis_info"], calc_status
                     return *out, calc_status  # got Out, persis_info
@@ -301,6 +299,8 @@ class Worker:
             raise
         finally:
             ctype_str = calc_type_strings[calc_type]
+            # effectively converts calc_status to the relevant string or returns as-is.
+            # on the manager side, the only ones used for functionality are the FINISHED_PERSISTENT tags
             status = calc_status_strings.get(calc_status, calc_status)
             calc_msg = self._get_calc_msg(enum_desc, calc_id, ctype_str, timer, status)
 
@@ -314,7 +314,6 @@ class Worker:
             calc_msg += Executor.executor.new_tasks_timing(datetime=self.stats_fmt.get("task_datetime", False))
 
         if self.stats_fmt.get("show_resource_sets", False):
-            # Maybe just call option resource_sets if already in sub-dictionary
             resources = Resources.resources.worker_resources
             calc_msg += f" rsets: {resources.rset_team}"
 
@@ -401,7 +400,7 @@ class Worker:
                             continue
                 else:
                     logger.debug(f"mtag: {mtag}; Work: {Work}")
-                    raise
+                    raise ValueError("Received unexpected Work message: ", Work)
 
                 response = self._handle(Work)
                 if response is None:
@@ -413,5 +412,8 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            self.runners.shutdown()
+            self.gen_runner.shutdown()
+            self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()
+            if Executor.executor is not None:
+                Executor.executor.comm = None  # so Executor can be pickled upon further libE calls

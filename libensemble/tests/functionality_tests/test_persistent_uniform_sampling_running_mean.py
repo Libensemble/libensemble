@@ -45,7 +45,11 @@ if __name__ == "__main__":
     gen_specs = {
         "gen_f": gen_f,
         "persis_in": ["f", "x", "corner_id", "sim_id"],
-        "out": [("sim_id", int), ("corner_id", int), ("x", float, (n,)), ("f_est", float)],
+        "out": [
+            ("sim_id", int),
+            ("corner_id", int),
+            ("x", float, (n,)),
+        ],  # expect ("f_est", float) from gen - test ability for gen to send back "unexpected" field.
         "user": {
             "initial_batch_size": 20,
             "lb": np.array([-3, -2, -1]),

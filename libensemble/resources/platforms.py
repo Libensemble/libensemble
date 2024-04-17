@@ -46,7 +46,11 @@ class Platform(BaseModel):
     gpus_per_node: Optional[int] = None
     """Number of GPU devices on a compute node of the platform"""
 
+    tiles_per_gpu: Optional[int] = None
+    """Number of tiles on a GPU"""
+
     gpu_setting_type: Optional[str] = None
+
     """ How GPUs will be assigned.
 
     Must take one of the following string options.
@@ -120,6 +124,18 @@ class Platform(BaseModel):
     application-level scheduler to manage GPUs, then ``match_slots`` can be **False**
     (allowing for more efficient scheduling when MPI runs cross nodes).
     """
+
+
+class Aurora(Platform):
+    mpi_runner: str = "mpich"
+    runner_name: str = "mpiexec"
+    cores_per_node: int = 104
+    logical_cores_per_node: int = 208
+    gpus_per_node: int = 6
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
+    scheduler_match_slots: bool = True
 
 
 # On SLURM systems, let srun assign free GPUs on the node
@@ -205,7 +221,9 @@ class Sunspot(Platform):
     cores_per_node: int = 104
     logical_cores_per_node: int = 208
     gpus_per_node: int = 6
-    gpu_setting_type: str = "runner_default"
+    tiles_per_gpu: int = 2
+    gpu_setting_type: str = "env"
+    gpu_setting_name: str = "ZE_AFFINITY_MASK"
     scheduler_match_slots: bool = True
 
 
@@ -247,6 +265,7 @@ class Known_platforms(BaseModel):
     where auto-detection encounters ambiguity or an unknown feature.
     """
 
+    aurora: Aurora = Aurora()
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
@@ -260,52 +279,54 @@ class Known_platforms(BaseModel):
 
 # Dictionary of known systems (or system partitions) detectable by domain name
 detect_systems = {
-    "crusher.olcf.ornl.gov": Crusher,
-    "frontier.olcf.ornl.gov": Frontier,
-    "hsn.cm.polaris.alcf.anl.gov": Polaris,
-    "spock.olcf.ornl.gov": Spock,
-    "summit.olcf.ornl.gov": Summit,  # Need to detect gpu count
+    "crusher.olcf.ornl.gov": "crusher",
+    "frontier.olcf.ornl.gov": "frontier",
+    "hostmgmt.cm.aurora.alcf.anl.gov": "aurora",
+    "hsn.cm.polaris.alcf.anl.gov": "polaris",
+    "spock.olcf.ornl.gov": "spock",
+    "summit.olcf.ornl.gov": "summit",  # Need to detect gpu count
 }
 
 
 def known_envs():
     """Detect system by environment variables"""
-    platform_info = {}
+    name = None
     if os.environ.get("NERSC_HOST") == "perlmutter":
-        if os.environ.get("SLURM_JOB_PARTITION").startswith("gpu_"):
-            platform_info = specs_dump(PerlmutterGPU(), by_alias=True)
+        if "gpu_" in os.environ.get("SLURM_JOB_PARTITION"):
+            name = "perlmutter_g"
         else:
-            platform_info = specs_dump(PerlmutterCPU(), by_alias=True)
-    return platform_info
+            name = "perlmutter_c"
+    return name
 
 
 def known_system_detect(cmd="hostname -d"):
     """Detect known systems
 
-    This function attempts to detect if on a known system, but users
-    should specify systems to be sure.
+    This function attempts to detect if on a known system, and
+    returns the name of the system as a string.
     """
     run_cmd = cmd.split()
-    platform_info = {}
+    name = None
     try:
         domain_name = subprocess.check_output(run_cmd).decode().rstrip()
-        platform_info = specs_dump(detect_systems[domain_name](), by_alias=True)
+        name = detect_systems[domain_name]
     except Exception:
-        platform_info = known_envs()
-    return platform_info
+        name = known_envs()
+    return name
 
 
 def get_platform(libE_specs):
     """Return platform as a dictionary from relevant libE_specs option.
 
     For internal use, return a platform as a dictionary from either
-    platform name or platform_specs.
+    platform name or platform_specs or auto-detection.
 
-    If both platform and platform_spec fields are present, any fields in
-    platform_specs are added or overwrite fields in the known platform.
+    If a platform is given or detected and platform_spec fields are present,
+    any fields in platform_specs are added to or overwrite fields in the known
+    platform.
     """
-
-    name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM")
+    platform_info = {}
+    name = libE_specs.get("platform") or os.environ.get("LIBE_PLATFORM") or known_system_detect()
     if name:
         try:
             known_platforms = specs_dump(Known_platforms(), exclude_none=True)
@@ -320,9 +341,5 @@ def get_platform(libE_specs):
                 platform_info[k] = v
     elif libE_specs.get("platform_specs"):
         platform_info = libE_specs["platform_specs"]
-    else:
-        # See if in detection list
-        platform_info = known_system_detect()
-
-    platform_info = {k: v for k, v in platform_info.items() if v is not None}
+        platform_info = {k: v for k, v in platform_info.items() if v is not None}
     return platform_info

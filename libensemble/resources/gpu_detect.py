@@ -48,14 +48,14 @@ def rocm_smi():
     return gpu_count
 
 
-def zeinfo():
+def zeinfo(string="Number of devices", except_val=None):
     """Detect GPU from zeinfo or return None"""
     try:
         ps = subprocess.Popen(("zeinfo"), stderr=subprocess.PIPE)
-        output = subprocess.check_output(("grep", "Number of devices"), stdin=ps.stderr)
+        output = subprocess.check_output(("grep", string), stdin=ps.stderr)
         gpu_count = int(output.decode().split()[3])
     except Exception:
-        return None
+        return except_val
     return gpu_count
 
 

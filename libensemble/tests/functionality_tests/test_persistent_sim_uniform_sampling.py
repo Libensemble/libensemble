@@ -21,7 +21,7 @@ import sys
 
 import numpy as np
 
-from libensemble.alloc_funcs.start_only_persistent import only_persistent_workers as alloc_f
+from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_sampling import persistent_uniform as gen_f
 
 # Import libEnsemble items for this test
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         },
     }
 
-    alloc_specs = {"alloc_f": alloc_f}
+    alloc_specs = {"alloc_f": alloc_f, "user": {"alt_type": True}}
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 

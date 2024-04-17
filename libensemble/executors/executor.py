@@ -19,6 +19,7 @@ from libensemble.message_numbers import (
     MAN_KILL_SIGNALS,
     STOP_TAG,
     TASK_FAILED,
+    TASK_FAILED_TO_START,
     UNSET_TAG,
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
@@ -37,7 +38,8 @@ WAITING
 RUNNING
 FINISHED
 USER_KILLED
-FAILED""".split()
+FAILED
+FAILED_TO_START""".split()
 
 NOT_STARTED_STATES = """
 CREATED
@@ -48,6 +50,7 @@ END_STATES = """
 FINISHED
 USER_KILLED
 FAILED
+FAILED_TO_START
 """.split()
 
 
@@ -226,10 +229,10 @@ class Task:
             return False
         return True
 
-    def _set_complete(self, dry_run: bool = False) -> None:
+    def _set_complete(self) -> None:
         """Set task as complete"""
         self.finished = True
-        if dry_run:
+        if self.dry_run:
             self.success = True
             self.state = "FINISHED"
         else:
@@ -242,6 +245,7 @@ class Task:
     def poll(self) -> None:
         """Polls and updates the status attributes of the task"""
         if self.dry_run:
+            self._set_complete()
             return
 
         if not self._check_poll():
@@ -271,6 +275,7 @@ class Task:
         """
 
         if self.dry_run:
+            self._set_complete()
             return
 
         if not self._check_poll():
@@ -569,8 +574,8 @@ class Executor:
         self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
-        finishes, times out, or is Optionally killed via a manager signal. On completion, returns a
-        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Potentially useful
+        finishes, times out, or is optionally killed via a manager signal. On completion, returns a
+        presumptive :ref:`calc_status<funcguides-calcstatus>` integer. Useful
         for running an application via the Executor until it stops without monitoring
         its intermediate output.
 
@@ -600,7 +605,11 @@ class Executor:
         calc_status = UNSET_TAG
 
         while not task.finished:
-            task.poll()
+            try:
+                task.poll()
+            except ExecutorException as e:
+                logger.warning(f"Exception in polling_loop: {e}")
+                break
 
             if poll_manager:
                 man_signal = self.manager_poll()
@@ -619,10 +628,12 @@ class Executor:
         if calc_status == UNSET_TAG:
             if task.state == "FINISHED":
                 calc_status = WORKER_DONE
+            elif task.state == "FAILED_TO_START":
+                calc_status = TASK_FAILED_TO_START
             elif task.state == "FAILED":
                 calc_status = TASK_FAILED
             else:
-                logger.warning(f"Warning: Task {self.name} in unknown state {self.state}. Error code {self.errcode}")
+                logger.warning(f"Warning: Task {task.name} in unknown state {task.state}. Error code {task.errcode}")
 
         return calc_status
 
@@ -658,7 +669,7 @@ class Executor:
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, comm, workerid=None) -> None:
+    def set_worker_info(self, comm=None, workerid=None) -> None:
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
@@ -676,7 +687,7 @@ class Executor:
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[bool] = False,
+        wait_on_start: Optional[Union[bool, int]] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
@@ -707,9 +718,10 @@ class Executor:
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: bool, Optional
+        wait_on_start: bool or int, Optional
             Whether to wait for task to be polled as RUNNING (or other
-            active/end state) before continuing
+            active/end state) before continuing. If an integer N is supplied,
+            wait at most N seconds.
 
         env_script: str, Optional
             The full path of a shell script to set up the environment for the
@@ -731,7 +743,7 @@ class Executor:
             raise ExecutorException("Either app_name or calc_type must be set")
 
         default_workdir = os.getcwd()
-        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID)
+        task = Task(app, app_args, default_workdir, stdout, stderr, self.workerID, dry_run)
 
         if not dry_run:
             self._check_app_exists(task.app.full_path)
@@ -762,7 +774,7 @@ class Executor:
                     start_new_session=False,
                 )
             if wait_on_start:
-                self._wait_on_start(task, 0)  # No fail time as no re-starts in-place
+                self._wait_on_start(task, wait_on_start)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
@@ -778,7 +790,6 @@ class Executor:
     def kill(self, task: Task) -> None:
         """Kills the supplied task"""
         jassert(isinstance(task, Task), "Invalid task has been provided")
-        task.poll()
         task.kill(self.wait_time)
 
     @staticmethod

@@ -6,6 +6,7 @@ Parallel Optimization Solver for finding Multiple Minima (APOSMM) method.
 This implementation of APOSMM was developed by Kaushik Kulkarni and Jeffrey
 Larson in the summer of 2019.
 """
+
 __all__ = ["aposmm", "initialize_APOSMM", "decide_where_to_start_localopt", "update_history_dist"]
 
 from math import log, pi, sqrt
