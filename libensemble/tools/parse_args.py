@@ -13,7 +13,7 @@ parser.add_argument(
     choices=["local", "threads", "tcp", "ssh", "client", "mpi"],
     help="Type of communicator",
 )
-parser.add_argument("--nworkers", type=int, nargs="?", help="Number of local forked processes")
+parser.add_argument("-n", "--nworkers", type=int, nargs="?", help="Number of local forked processes")
 parser.add_argument(
     "--nsim_workers",
     type=int,
