@@ -137,9 +137,9 @@ class AskTellGenRunner(Runner):
             self.gen.libE_info = libE_info
             self.gen.setup()
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        H_out = self.gen.ask(initial_batch, calc_in)
+        H_out, _ = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        self.gen.tell(H_in)  # tell the gen the initial sample results
+        self.gen.tell(H_in)
         if issubclass(type(self.gen), LibEnsembleGenInterfacer):
             final_H_in = self._loop_over_persistent_interfacer()
         else:

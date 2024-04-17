@@ -159,7 +159,7 @@ class APOSMM(LibEnsembleGenInterfacer):
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
 
-    def ask(self) -> (npt.NDArray, npt.NDArray):
+    def ask(self, *args) -> (npt.NDArray, npt.NDArray):
         self.results = super().ask()
         if any(self.results["local_min"]):
             minima = self.results[self.results["local_min"]]
@@ -194,7 +194,7 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def ask(self) -> (npt.NDArray, Optional[npt.NDArray]):
+    def ask(self, *args) -> (npt.NDArray, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
         output = self.last_ask["calc_out"]
         if "cancel_requested" in output.dtype.names:
