@@ -29,12 +29,6 @@ class Generator(ABC):
                 self.param = param
                 self.model = None
 
-            def set_history(self, yesterdays_points):
-                self.history = new_history
-
-            def initial_ask(self, num_points, yesterdays_points):
-                return create_initial_points(num_points, self.param, self.history)
-
             def ask(self, num_points):
                 return create_points(num_points, self.param)
 
@@ -61,20 +55,8 @@ class Generator(ABC):
             my_generator = MyGenerator(my_parameter, batch_size=10)
         """
 
-    def set_history(self, new_history: Iterable):
-        """
-        Replace/initialize the generator's history.
-        """
-
-    def initial_ask(self, num_points: int, *args, **kwargs) -> Iterable:
-        """
-        The initial set of generated points is often produced differently than subsequent sets.
-        This is a separate method to simplify the common pattern of noting internally if a
-        specific ask was the first.
-        """
-
     @abstractmethod
-    def ask(self, num_points: int, *args, **kwargs) -> (Iterable, Optional[Iterable]):
+    def ask(self, num_points: Optional[int], *args, **kwargs) -> (Iterable, Optional[Iterable]):
         """
         Request the next set of points to evaluate, and optionally any previous points to update.
         """
@@ -136,12 +118,9 @@ class LibEnsembleGenInterfacer(Generator):
             results = new_results
         return results
 
-    def initial_ask(self, num_points: int = 0, *args, **kwargs) -> npt.NDArray:
+    def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> (Iterable, Optional[npt.NDArray]):
         if not self.gen.running:
             self.gen.run()
-        return self.ask(num_points)
-
-    def ask(self, num_points: int = 0, *args, **kwargs) -> (Iterable, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
         return self.last_ask["calc_out"]
 
@@ -180,11 +159,8 @@ class APOSMM(LibEnsembleGenInterfacer):
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
 
-    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
-        return super().initial_ask(num_points, args)[0]
-
-    def ask(self, num_points: int = 0) -> (npt.NDArray, npt.NDArray):
-        self.results = super().ask(num_points)
+    def ask(self) -> (npt.NDArray, npt.NDArray):
+        self.results = super().ask()
         if any(self.results["local_min"]):
             minima = self.results[self.results["local_min"]]
             self.results = self.results[~self.results["local_min"]]
@@ -215,13 +191,10 @@ class Surmise(LibEnsembleGenInterfacer):
         self.sim_id_index += len(array)
         return array
 
-    def initial_ask(self, num_points: int = 0, *args) -> npt.NDArray:
-        return super().initial_ask(num_points, args)[0]
-
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def ask(self, num_points: int = 0) -> (npt.NDArray, Optional[npt.NDArray]):
+    def ask(self) -> (npt.NDArray, Optional[npt.NDArray]):
         _, self.last_ask = self.outbox.get()
         output = self.last_ask["calc_out"]
         if "cancel_requested" in output.dtype.names:

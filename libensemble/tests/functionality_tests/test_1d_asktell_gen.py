@@ -53,9 +53,6 @@ class PersistentUniform(Generator):
         self.gen_specs = gen_specs
         _, self.n, self.lb, self.ub = _get_user_params(gen_specs["user"])
 
-    def initial_ask(self, num_points, *args):
-        return self.ask(num_points)
-
     def ask(self, num_points):
         H_o = np.zeros(num_points, dtype=self.gen_specs["out"])
         H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (num_points, self.n))

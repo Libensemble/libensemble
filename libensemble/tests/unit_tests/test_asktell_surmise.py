@@ -80,7 +80,7 @@ def test_asktell_surmise():
     surmise = Surmise(gen_specs, persis_info=persis_info[1])  # we add sim_id as a field to gen_specs["out"]
     surmise.setup()
 
-    initial_sample = surmise.initial_ask()
+    initial_sample = surmise.ask()
     initial_results = surmise.create_results_array()
 
     total_evals = 0
