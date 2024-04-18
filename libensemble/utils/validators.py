@@ -19,6 +19,10 @@ _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
 _OUT_DTYPE_ERR = "unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
 _IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
+_COMMS_NWORK_ERR = (
+    "mpi comms is not compatible with nworkers."
+    + " If you did not set comms, it may have defaulted to 'mpi' when first setting LibeSpecs"
+)
 
 
 def check_valid_out(cls, v):
@@ -102,6 +106,8 @@ if pydanticV1:
 
     @root_validator(pre=True)
     def set_default_comms(cls, values):
+        if values.get("comms") == "mpi" and values.get("nworkers"):
+            raise ValueError(_COMMS_NWORK_ERR)
         if "comms" not in values:
             if values.get("nworkers") is not None:
                 values["comms"] = "local"
@@ -206,6 +212,8 @@ else:
 
     @model_validator(mode='before')
     def set_default_comms(cls, values):
+        if values.get("comms") == "mpi" and values.get("nworkers"):
+            raise ValueError(_COMMS_NWORK_ERR)
         if "comms" not in values:
             if values.get("nworkers") is not None:
                 values["comms"] = "local"
