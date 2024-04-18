@@ -101,6 +101,15 @@ if pydanticV1:
         return _check_any_workers_and_disable_rm_if_tcp(values)
 
     @root_validator(pre=True)
+    def set_default_comms(cls, values):
+        if "comms" not in values:
+            if values.get("nworkers") is not None:
+                values["comms"] = "local"
+            else:
+                values["comms"] = "mpi"
+        return values
+
+    @root_validator(pre=True)
     def enable_save_H_when_every_K(cls, values):
         if "save_H_on_completion" not in values and (
             values.get("save_every_k_sims", 0) > 0 or values.get("save_every_k_gens", 0) > 0
@@ -194,6 +203,15 @@ else:
     @model_validator(mode="after")
     def check_any_workers_and_disable_rm_if_tcp(self):
         return _check_any_workers_and_disable_rm_if_tcp(self)
+
+    @model_validator(mode='before')
+    def set_default_comms(cls, values):
+        if "comms" not in values:
+            if values.get("nworkers") is not None:
+                values["comms"] = "local"
+            else:
+                values["comms"] = "mpi"
+        return values
 
     @model_validator(mode="after")
     def enable_save_H_when_every_K(self):
