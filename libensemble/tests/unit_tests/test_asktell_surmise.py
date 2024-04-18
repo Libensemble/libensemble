@@ -80,7 +80,7 @@ def test_asktell_surmise():
     surmise = Surmise(gen_specs, persis_info=persis_info[1])  # we add sim_id as a field to gen_specs["out"]
     surmise.setup()
 
-    initial_sample, _ = surmise.ask()
+    initial_sample = surmise.ask()
     initial_results = surmise.create_results_array()
 
     total_evals = 0
@@ -94,7 +94,7 @@ def test_asktell_surmise():
 
     requested_canceled_sim_ids = []
 
-    next_sample, cancels = surmise.ask()
+    next_sample, cancels = surmise.ask(), surmise.ask_updates()
     next_results = surmise.create_results_array()
 
     for i in range(len(next_sample)):
@@ -103,7 +103,7 @@ def test_asktell_surmise():
         total_evals += 1
 
     surmise.tell(next_results)
-    sample, cancels = surmise.ask()
+    sample, cancels = surmise.ask(), surmise.ask_updates()
 
     while total_evals < max_evals:
 
@@ -116,14 +116,14 @@ def test_asktell_surmise():
             total_evals += 1
             surmise.tell(result)
             if surmise.ready_to_be_asked():
-                new_sample, cancels = surmise.ask()
+                new_sample, cancels = surmise.ask(), surmise.ask_updates()
                 for m in cancels:
                     requested_canceled_sim_ids.append(m)
                 if len(new_sample):
                     sample = new_sample
                     break
 
-    H, persis_info, exit_code = surmise.final_tell()
+    H, persis_info, exit_code = surmise.final_tell(None)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert len(requested_canceled_sim_ids), "No cancellations sent by Surmise"

@@ -101,9 +101,9 @@ class AskTellGenRunner(Runner):
     def _loop_over_normal_generator(self, tag, Work):
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            points = self.gen.ask(batch_size)
-            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
-                H_out = np.append(points[0], points[1])
+            points, updates = self.gen.ask(batch_size), self.gen.ask_updates()
+            if len(updates):  # returned "samples" and "updates". can combine if same dtype
+                H_out = np.append(points, updates)
             else:
                 H_out = points
             tag, Work, H_in = self.ps.send_recv(H_out)
@@ -112,12 +112,10 @@ class AskTellGenRunner(Runner):
 
     def _ask_and_send(self):
         for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
-            points = self.gen.ask()
-            if len(points) == 2:  # returned "samples" and "updates". can combine if same dtype
-                H_out = np.append(points[0], points[1])
-            else:
-                H_out = points
-            self.ps.send(H_out)
+            points, updates = self.gen.ask(), self.gen.ask_updates()
+            self.ps.send(points)
+            if len(updates):  # returned "samples" and "updates". can combine if same dtype
+                self.ps.send(updates)
 
     def _loop_over_persistent_interfacer(self):
         while True:
@@ -137,7 +135,7 @@ class AskTellGenRunner(Runner):
             self.gen.libE_info = libE_info
             self.gen.setup()
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        H_out, _ = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time
+        H_out = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         self.gen.tell(H_in)
         if issubclass(type(self.gen), LibEnsembleGenInterfacer):

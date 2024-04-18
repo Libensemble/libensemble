@@ -1,3 +1,4 @@
+import copy
 import queue as thread_queue
 from abc import ABC, abstractmethod
 from typing import Iterable, Optional
@@ -56,9 +57,14 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: Optional[int], *args, **kwargs) -> (Iterable, Optional[Iterable]):
+    def ask(self, num_points: Optional[int], *args, **kwargs) -> Iterable:
         """
         Request the next set of points to evaluate, and optionally any previous points to update.
+        """
+
+    def ask_updates(self) -> Iterable:
+        """
+        Request any updates to previous points, e.g. minima discovered, points to cancel.
         """
 
     def tell(self, results: Iterable, *args, **kwargs) -> None:
@@ -118,11 +124,14 @@ class LibEnsembleGenInterfacer(Generator):
             results = new_results
         return results
 
-    def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> (Iterable, Optional[npt.NDArray]):
+    def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
         if not self.gen.running:
             self.gen.run()
         _, self.last_ask = self.outbox.get()
         return self.last_ask["calc_out"]
+
+    def ask_updates(self) -> npt.NDArray:
+        return self.ask()
 
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
@@ -158,14 +167,20 @@ class APOSMM(LibEnsembleGenInterfacer):
             persis_info = add_unique_random_streams({}, 4)[1]
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
+        self.all_local_minima = []
 
-    def ask(self, *args) -> (npt.NDArray, npt.NDArray):
+    def ask(self, *args) -> npt.NDArray:
         self.results = super().ask()
         if any(self.results["local_min"]):
-            minima = self.results[self.results["local_min"]]
-            self.results = self.results[~self.results["local_min"]]
-            return self.results, minima
-        return self.results, np.empty(0, dtype=self.gen_specs["out"])
+            min_idxs = self.results["local_min"]
+            self.all_local_minima.append(self.results[min_idxs])
+            self.results = self.results[~min_idxs]
+        return self.results
+
+    def ask_updates(self) -> npt.NDArray:
+        minima = copy.deepcopy(self.all_local_minima)
+        self.all_local_minima = []
+        return minima
 
 
 class Surmise(LibEnsembleGenInterfacer):
@@ -179,6 +194,7 @@ class Surmise(LibEnsembleGenInterfacer):
             gen_specs["out"].append(("sim_id", int))
         super().__init__(gen_specs, History, persis_info, libE_info)
         self.sim_id_index = 0
+        self.all_cancels = []
 
     def _add_sim_ids(self, array: npt.NDArray) -> npt.NDArray:
         array["sim_id"] = np.arange(self.sim_id_index, self.sim_id_index + len(array))
@@ -194,15 +210,20 @@ class Surmise(LibEnsembleGenInterfacer):
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True
+            self.all_cancels.append(cancels)
         else:
             self.results = self._add_sim_ids(output)
             got_cancels_first = False
         try:
             additional = self.outbox.get(timeout=0.2)  # either cancels or new points
             if got_cancels_first:
-                return additional, cancels
-            return self.results, additional
+                return additional
+            self.all_cancels.append(additional)
+            return self.results
         except thread_queue.Empty:
-            if got_cancels_first:
-                return np.empty(0, dtype=self.gen_specs["out"]), cancels
-            return self.results, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
+            return self.results
+
+    def ask_updates(self) -> npt.NDArray:
+        cancels = copy.deepcopy(self.all_cancels)
+        self.all_cancels = []
+        return cancels
