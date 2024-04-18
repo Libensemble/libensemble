@@ -167,12 +167,6 @@ class APOSMM(LibEnsembleGenInterfacer):
             return self.results, minima
         return self.results, np.empty(0, dtype=self.gen_specs["out"])
 
-    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        super().tell(results, tag)
-
-    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
-        return super().final_tell(results)
-
 
 class Surmise(LibEnsembleGenInterfacer):
     def __init__(
@@ -212,9 +206,3 @@ class Surmise(LibEnsembleGenInterfacer):
             if got_cancels_first:
                 return np.empty(0, dtype=self.gen_specs["out"]), cancels
             return self.results, np.empty(0, dtype=[("sim_id", int), ("cancel_requested", bool)])
-
-    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        super().tell(results, tag)
-
-    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
-        return super().final_tell(results)

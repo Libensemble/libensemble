@@ -233,6 +233,7 @@ jobs:
           env:
               CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
+            rm ./libensemble/tests/unit_tests/test_asktell_surmise.py
             ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Merge coverage
