@@ -102,7 +102,7 @@ class AskTellGenRunner(Runner):
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
             points, updates = self.gen.ask(batch_size), self.gen.ask_updates()
-            if len(updates):  # returned "samples" and "updates". can combine if same dtype
+            if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
             else:
                 H_out = points
@@ -113,7 +113,7 @@ class AskTellGenRunner(Runner):
     def _ask_and_send(self):
         for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
             points, updates = self.gen.ask(), self.gen.ask_updates()
-            if len(updates):
+            if updates is not None and len(updates):
                 try:
                     self.ps.send(np.append(points, updates))
                 except np.exceptions.DTypePromotionError:  # points/updates have different dtypes
