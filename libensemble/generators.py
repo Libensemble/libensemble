@@ -14,7 +14,7 @@ from libensemble.tools import add_unique_random_streams
 
 class Generator(ABC):
     """
-    v 0.4.12.24
+    v 0.4.19.24
 
     Tentative generator interface for use with libEnsemble, and generic enough to be
     broadly compatible with other workflow packages.
@@ -205,8 +205,7 @@ class Surmise(LibEnsembleGenInterfacer):
         return not self.outbox.empty()
 
     def ask(self, *args) -> (npt.NDArray, Optional[npt.NDArray]):
-        _, self.last_ask = self.outbox.get()
-        output = self.last_ask["calc_out"]
+        output = super().ask()
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True
