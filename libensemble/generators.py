@@ -145,8 +145,10 @@ class LibEnsembleGenInterfacer(Generator):
         self.tell(results, PERSIS_STOP)
         return self.gen.result()
 
-    def create_results_array(self, addtl_fields: list = [("f", float)]) -> npt.NDArray:
-        new_results = np.zeros(len(self.results), dtype=self.gen_specs["out"] + addtl_fields)
+    def create_results_array(self, length: int = 0, addtl_fields: list = [("f", float)]) -> npt.NDArray:
+        if not length:
+            in_length = len(self.results)
+        new_results = np.zeros(in_length, dtype=self.gen_specs["out"] + addtl_fields)
         for field in self.gen_specs["out"]:
             new_results[field[0]] = self.results[field[0]]
         return new_results

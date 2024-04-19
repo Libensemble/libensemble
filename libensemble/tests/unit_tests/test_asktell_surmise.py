@@ -110,7 +110,7 @@ def test_asktell_surmise():
         samples_iter = range(len(sample))
 
         for i in samples_iter:
-            result = surmise.create_results_array()
+            result = surmise.create_results_array(1)
             H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([sample[i]["sim_id"]])})
             result["f"] = H_out["f"][0]
             total_evals += 1
