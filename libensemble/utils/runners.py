@@ -113,9 +113,15 @@ class AskTellGenRunner(Runner):
     def _ask_and_send(self):
         for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
             points, updates = self.gen.ask(), self.gen.ask_updates()
-            self.ps.send(points)
-            if len(updates):  # returned "samples" and "updates". can combine if same dtype
-                self.ps.send(updates)
+            if len(updates):
+                try:
+                    self.ps.send(np.append(points, updates))
+                except np.exceptions.DTypePromotionError:  # points/updates have different dtypes
+                    self.ps.send(points)
+                    for i in updates:
+                        self.ps.send(i)
+            else:
+                self.ps.send(points)
 
     def _loop_over_persistent_interfacer(self):
         while True:
