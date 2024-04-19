@@ -8,6 +8,30 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.2.2
+--------------
+
+:Date: March 21, 2024
+
+* Bugfix: Some `libE_specs` were not passed through correctly when added after ensemble initialization. #1264
+* `platform_specs` options are now merged with detected platforms, rather than replacing. #1265
+* Ensure simulation directories are created when `sim_input_dir` is specified, likewise for gen dirs. #1266
+
+Example user functions:
+
+* Improved structure of gpCAM generator. #1260
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.2.1
 --------------
 
@@ -179,7 +203,7 @@ Release 0.10.2
   * Ensure relative paths are interpreted from where libEnsemble is run. #1020
   * Create intermediate directories for workflow paths. #1017
 
-* Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
+* Fixes issue where libEnsemble pre-initialized a shared multiprocessing queue. #1026
 
 :Note:
 
@@ -762,7 +786,7 @@ Release 0.3.0
 * History is dumped to file on manager or worker exception and MPI aborted (with exit code 1). (#46)
 * Default logging level changed to DEBUG and redirected to file ensemble.log.
 * Added directory of standalone tests (comms, job kills, and nested MPI launches).
-* Improved and speeded up unit tests. (#68)
+* Improved and sped up unit tests. (#68)
 * Considerable documentation enhancements.
 
 :Known issues:

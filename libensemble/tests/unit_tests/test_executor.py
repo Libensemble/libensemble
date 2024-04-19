@@ -11,6 +11,7 @@ import time
 import pytest
 
 from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
+from libensemble.message_numbers import UNSET_TAG, TASK_FAILED, STOP_TAG
 from libensemble.resources.mpi_resources import MPIResourcesException
 
 NCORES = 1
@@ -21,6 +22,27 @@ serial_app = "simdir/my_serialtask.x"
 c_startup = "simdir/c_startup.x"
 py_startup = "simdir/py_startup.py"
 non_existent_app = "simdir/non_exist.x"
+
+UNKNOWN_SIGNAL = 2000
+
+
+class FakeCommTag():
+    def mail_flag(self):
+        return True
+
+    def recv(self):
+        return STOP_TAG + 10, 101
+
+
+class FakeCommSignal():
+    def mail_flag(self):
+        return True
+
+    def recv(self):
+        return STOP_TAG, UNKNOWN_SIGNAL
+
+    def push_to_buffer(self, mtag, man_signal):
+        pass
 
 
 def setup_module(module):
@@ -99,6 +121,7 @@ def setup_executor_startups():
     exctr.add_platform_info()
     exctr.register_app(full_path=c_startup, app_name="c_startup")
     exctr.register_app(full_path=py_startup, app_name="py_startup")
+    exctr.register_app(full_path=py_startup, app_name="py_startup", precedent="python")
 
 
 def setup_executor_noapp():
@@ -139,7 +162,7 @@ def is_ompi():
 
 # -----------------------------------------------------------------------------
 # The following would typically be in the user sim_func.
-def polling_loop(exctr, task, timeout_sec=1, delay=0.05):
+def polling_loop(exctr, task, timeout_sec=2, delay=0.05):
     """Iterate over a loop, polling for an exit condition"""
     start = time.time()
 
@@ -234,6 +257,8 @@ def test_launch_and_wait():
     task.wait()  # Already complete
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+    err_code = task.exception()
+    assert err_code == 0, f"Expected error code 0. Returned {err_code}"
 
 
 def test_launch_and_wait_no_platform():
@@ -265,9 +290,9 @@ def test_launch_and_wait_timeout():
     task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
     try:
         task.wait(timeout=0.5)
-    except TimeoutExpired:
+    except TimeoutExpired as e:
         print(task)
-        print(TimeoutExpired)
+        print(e)
         assert not task.finished, "task.finished should be False. Returned " + str(task.finished)
         task.kill()
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
@@ -464,6 +489,12 @@ def test_procs_and_machinefile_logic():
     assert task.finished, "task.finished should be True. Returned " + str(task.finished)
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
+    # Test with jsrun - does not support machinefiles
+    with pytest.raises(MPIResourcesException):
+        task = exctr.submit(
+            calc_type="sim", machinefile=machinefilename, app_args=args_for_sim, mpi_runner_type="jsrun"
+        )
+
 
 @pytest.mark.timeout(20)
 def test_doublekill():
@@ -646,6 +677,32 @@ def test_task_failure():
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
 
 
+def test_task_failure_polling_loop_method():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1.0 Fail"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim)
+    calc_status = exctr.polling_loop(task)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
+    assert calc_status == TASK_FAILED, f"calc_status should be {TASK_FAILED}"
+
+
+def test_task_unknown_state():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_executor()
+    exctr = Executor.executor
+    cores = NCORES
+    args_for_sim = "sleep 1.0"
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, dry_run=True)
+    task.state = "unknown"
+    calc_status = exctr.polling_loop(task)
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert calc_status == UNSET_TAG, f"calc_status should be {UNSET_TAG}. Found {calc_status}"
+
+
 def test_retries_launch_fail():
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_fakerunner()
@@ -731,6 +788,7 @@ def test_register_apps():
 
 
 def test_serial_exes():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_serial_executor()
     exctr = Executor.executor
     args_for_sim = "sleep 0.1"
@@ -740,7 +798,41 @@ def test_serial_exes():
     assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
 
 
+def test_serial_exe_exception():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_serial_executor()
+    exctr = Executor.executor
+    with pytest.raises(ExecutorException):
+        exctr.submit()
+        pytest.fail("Expected exception")
+
+
+def test_serial_exe_env_script():
+    env_script_path = os.path.join(os.getcwd(), "./env_script_in.sh")
+    setup_serial_executor()
+    exctr = Executor.executor
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", app_args=args_for_sim, env_script=env_script_path)
+    task.wait()
+    # test env var should not exist here
+    assert "LIBE_TEST_SUB_ENV_VAR" not in os.environ
+
+
+def test_serial_exe_dryrun():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+    setup_serial_executor()
+    exctr = Executor.executor
+    exctr.set_gen_procs_gpus(libE_info={})
+    exctr.set_workerID(1)
+    args_for_sim = "sleep 0.1"
+    task = exctr.submit(calc_type="sim", app_args=args_for_sim, dry_run=True)
+    task.wait()
+    assert task.finished, "task.finished should be True. Returned " + str(task.finished)
+    assert task.state == "FINISHED", "task.state should be FINISHED. Returned " + str(task.state)
+
+
 def test_serial_startup_times():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     setup_executor_startups()
     exctr = Executor.executor
 
@@ -805,6 +897,7 @@ def test_dry_run():
 def test_non_existent_app():
     """Tests exception on non-existent app"""
     from libensemble.executors.executor import Executor
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = Executor()
 
@@ -824,6 +917,7 @@ def test_non_existent_app():
 def test_non_existent_app_mpi():
     """Tests exception on non-existent app"""
     from libensemble.executors.mpi_executor import MPIExecutor
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = MPIExecutor()
 
@@ -838,6 +932,23 @@ def test_non_existent_app_mpi():
         assert e.args[0] == "Application does not exist simdir/non_exist.x"
     else:
         assert 0
+
+
+def test_man_signal_unrec_tag():
+    print(f"\nTest: {sys._getframe().f_code.co_name}\n")
+
+    setup_serial_executor()
+    exctr = Executor.executor
+
+    fake_comm1 = FakeCommTag()
+    exctr.comm = fake_comm1
+    man_signal = exctr.manager_poll()
+    assert man_signal is None, "manager_poll should have returned None"
+
+    fake_comm2 = FakeCommSignal()
+    exctr.comm = fake_comm2
+    man_signal = exctr.manager_poll()
+    assert man_signal == UNKNOWN_SIGNAL, f"manager_poll should have returned {UNKNOWN_SIGNAL}. Received {man_signal}"
 
 
 if __name__ == "__main__":
@@ -861,15 +972,21 @@ if __name__ == "__main__":
     test_kill_task_with_no_submit()
     test_poll_task_with_no_submit()
     test_task_failure()
+    test_task_failure_polling_loop_method()
+    test_task_unknown_state()
     test_retries_launch_fail()
     test_retries_before_polling_loop_method()
     test_retries_run_fail()
     test_register_apps()
     test_serial_exes()
+    test_serial_exe_exception()
+    test_serial_exe_env_script()
+    test_serial_exe_dryrun()
     test_serial_startup_times()
     test_futures_interface()
     test_futures_interface_cancel()
     test_dry_run()
     test_non_existent_app()
     test_non_existent_app_mpi()
+    test_man_signal_unrec_tag()
     teardown_module(__file__)

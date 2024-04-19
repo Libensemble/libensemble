@@ -48,6 +48,7 @@ def runline_check(H, persis_info, sim_specs, libE_info):
             calc_type="sim",
             num_procs=test.get("nprocs", None),
             num_nodes=test.get("nnodes", None),
+            num_gpus=test.get("ngpus", None),
             procs_per_node=test.get("ppn", None),
             extra_args=test.get("e_args", None),
             app_args="--testid " + test.get("testid", None),

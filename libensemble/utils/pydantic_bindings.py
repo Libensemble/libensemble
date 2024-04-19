@@ -23,6 +23,7 @@ from libensemble.utils.validators import (
     check_valid_out,
     enable_save_H_when_every_K,
     genf_set_in_out_from_attrs,
+    set_calc_dirs_on_input_dir,
     set_platform_specs_to_class,
     set_workflow_dir,
     simf_set_in_out_from_attrs,
@@ -117,6 +118,7 @@ if "sphinx" not in sys.modules:
             "check_any_workers_and_disable_rm_if_tcp": check_any_workers_and_disable_rm_if_tcp,
             "enable_save_H_when_every_K": enable_save_H_when_every_K,
             "set_workflow_dir": set_workflow_dir,
+            "set_calc_dirs_on_input_dir": set_calc_dirs_on_input_dir,
         },
     )
 
