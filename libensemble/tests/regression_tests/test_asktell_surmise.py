@@ -1,13 +1,15 @@
+# TESTSUITE_COMMS: local
+# TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
+# TESTSUITE_OS_SKIP: OSX
+
 import os
 
 import numpy as np
-import pytest
 
 from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 
-
-@pytest.mark.extra
-def test_asktell_surmise():
+if __name__ == "__main__":
 
     from libensemble.executors import Executor
     from libensemble.generators import Surmise
@@ -129,7 +131,3 @@ def test_asktell_surmise():
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert len(requested_canceled_sim_ids), "No cancellations sent by Surmise"
-
-
-if __name__ == "__main__":
-    test_asktell_surmise()
