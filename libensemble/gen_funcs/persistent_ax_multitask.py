@@ -255,6 +255,7 @@ class AxMetric(Metric):
         data = Data(df=pd.DataFrame.from_records(records))
         return Ok(data)
 
+
 def max_utility_from_GP(n, m, gr, hifi_task):
     """
     High fidelity batches are constructed by selecting the maximum utility points
