@@ -28,6 +28,7 @@ from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
 from ax.storage.metric_registry import register_metric
 from ax.storage.runner_registry import register_runner
+from ax.utils.common.result import Ok
 
 try:
     from ax.modelbridge.factory import get_MTGP
@@ -251,8 +252,8 @@ class AxMetric(Metric):
                     "sem": 0.0,
                 }
             )
-        return Data(df=pd.DataFrame.from_records(records))
-
+        data = Data(df=pd.DataFrame.from_records(records))
+        return Ok(data)
 
 def max_utility_from_GP(n, m, gr, hifi_task):
     """
