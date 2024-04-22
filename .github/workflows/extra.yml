@@ -215,6 +215,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
+            rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
           if: matrix.pydantic-version == '2.6.4'
