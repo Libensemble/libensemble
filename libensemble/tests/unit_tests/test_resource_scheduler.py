@@ -27,7 +27,7 @@ class MyResources:
 
         self.even_groups = True
         self.rsets = np.zeros(self.total_num_rsets, dtype=MyResources.rset_dtype)
-        self.rsets["assigned"] = 0
+        self.rsets["assigned"] = -1
         for i in range(self.total_num_rsets):
             self.rsets["group"][i] = i // self.rsets_per_node
             self.rsets["slot"][i] = i % self.rsets_per_node
@@ -42,12 +42,12 @@ class MyResources:
     def free_rsets(self, worker=None):
         """Free up assigned resource sets"""
         if worker is None:
-            self.rsets["assigned"] = 0
+            self.rsets["assigned"] = -1
             self.rsets_free = self.total_num_rsets
         else:
             for rset, wid in enumerate(self.rsets["assigned"]):
                 if wid == worker:
-                    self.rsets["assigned"][rset] = 0
+                    self.rsets["assigned"][rset] = -1
                     self.rsets_free += 1
 
     def assign_rsets(self, rset_team, worker_id):
@@ -60,7 +60,7 @@ class MyResources:
     def fixed_assignment(self, assignment):
         """Set the given assignment along with other coupled information"""
         self.rsets["assigned"] = assignment
-        self.rsets_free = np.count_nonzero(self.rsets["assigned"] == 0)
+        self.rsets_free = np.count_nonzero(self.rsets["assigned"] == -1)
 
 
 def _fail_to_resource(sched, rsets, use_gpus=None):
@@ -144,7 +144,7 @@ def test_cannot_split_quick_return():
     """Tests the quick return when splitting finds no free even gaps"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(6, 3)
-    resources.fixed_assignment(([1, 0, 0, 0, 3, 3]))
+    resources.fixed_assignment(([1, -1, -1, -1, 3, 3]))
     sched = ResourceScheduler(user_resources=resources)
     _fail_to_resource(sched, 3)
 
@@ -177,7 +177,7 @@ def test_schedule_find_gaps_1node():
             assert rset_team == [5, 6]
 
             # Simulate resources freed up on return from worker
-            resources.fixed_assignment(([3, 3, 0, 0, 0, 4, 4, 0]))
+            resources.fixed_assignment(([3, 3, -1, -1, -1, 4, 4, -1]))
 
             # Create new scheduler to simulate new alloc call
             del sched
@@ -219,7 +219,7 @@ def test_split_across_no_matching_slots():
     resources = MyResources(6, 3)  # 3 nodes of 2 slots
 
     for split2fit in [False, True]:
-        resources.fixed_assignment(([0, 1, 1, 0, 0, 1]))
+        resources.fixed_assignment(([-1, 1, 1, -1, -1, 1]))
         sched_options = {"split2fit": split2fit}
         sched = ResourceScheduler(user_resources=resources, sched_opts=sched_options)
         _fail_to_resource(sched, 3)
@@ -329,10 +329,10 @@ def test_try1node_findon_2nodes_matching_slots():
     resources = MyResources(8, 2)
 
     fixed_assignments = [
-        ([1, 1, 0, 0, 3, 3, 0, 0]),
-        ([0, 1, 0, 2, 0, 4, 0, 4]),
-        ([0, 1, 1, 0, 0, 2, 2, 0]),
-        ([1, 0, 1, 0, 3, 0, 3, 0]),
+        ([1, 1, -1, -1, 3, 3, -1, -1]),
+        ([-1, 1, -1, 2, -1, 4, -1, 4]),
+        ([-1, 1, 1, -1, -1, 2, 2, -1]),
+        ([1, -1, 1, -1, 3, -1, 3, -1]),
     ]
     exp_out = [[2, 3, 6, 7], [0, 2, 4, 6], [0, 3, 4, 7], [1, 3, 5, 7]]
 
@@ -358,9 +358,9 @@ def test_try1node_findon_2nodes_different_slots():
     resources = MyResources(8, 2)
 
     fixed_assignments = [
-        ([1, 1, 0, 0, 0, 2, 2, 0]),
-        ([1, 1, 0, 0, 0, 0, 3, 3]),
-        ([1, 0, 0, 1, 0, 3, 0, 3]),
+        ([1, 1, -1, -1, -1, 2, 2, -1]),
+        ([1, 1, -1, -1, -1, -1, 3, 3]),
+        ([1, -1, -1, 1, -1, 3, -1, 3]),
     ]
     exp_out = [[2, 3, 4, 7], [2, 3, 4, 5], [1, 2, 4, 6]]
 
@@ -390,7 +390,7 @@ def test_try1node_findon_3nodes():
     """Tests finding gaps on two nodes as cannot fit on one due to others assigned"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(12, 3)
-    resources.fixed_assignment(([1, 1, 0, 0, 0, 2, 2, 0, 3, 0, 3, 3]))
+    resources.fixed_assignment(([1, 1, -1, -1, -1, 2, 2, -1, 3, -1, 3, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
     # Default - with match_slots - cannot find a split with matching slots
@@ -444,7 +444,7 @@ def test_try2nodes_findon_3nodes():
     """
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(18, 3)
-    resources.fixed_assignment(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3]))
+    resources.fixed_assignment(([-1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 3]))
     sched = ResourceScheduler(user_resources=resources)
 
     # Can't find 2 groups of 6 so find 3 groups of 4 - with matching slots.
@@ -487,7 +487,7 @@ def test_split2fit_even_required_fails():
     """Test tries one node then two, and both fail"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
-    resources.fixed_assignment(([1, 1, 1, 0, 2, 2, 0, 0]))
+    resources.fixed_assignment(([1, 1, 1, -1, 2, 2, -1, -1]))
 
     for match_slots in [False, True]:
         sched_options = {"match_slots": match_slots}
@@ -500,7 +500,7 @@ def test_split2fit_even_required_various():
     """Tests trying to fit to an non-even partition, and setting of local rsets_free"""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(8, 2)
-    resources.fixed_assignment(([1, 1, 1, 0, 0, 0, 0, 0]))
+    resources.fixed_assignment(([1, 1, 1, -1, -1, -1, -1, -1]))
     sched = ResourceScheduler(user_resources=resources)
     assert sched.rsets_free == 5
 
@@ -523,7 +523,7 @@ def test_try1node_findon_2_or_4nodes():
     """Tests splitting to fit. Needs 4 nodes if matching slots, else 2."""
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
     resources = MyResources(16, 4)
-    resources.fixed_assignment(([1, 1, 0, 1, 2, 2, 0, 0, 1, 0, 0, 1, 0, 4, 0, 4]))
+    resources.fixed_assignment(([1, 1, -1, 1, 2, 2, -1, -1, 1, -1, -1, 1, -1, 4, -1, 4]))
 
     sched = ResourceScheduler(user_resources=resources)
     rset_team = sched.assign_resources(rsets_req=4)
@@ -547,7 +547,7 @@ def _construct_large_problem(resources):
 
     # Now free up the one column
     col15 = rsets["slot"] == 15
-    rsets["assigned"][col15] = 0
+    rsets["assigned"][col15] = -1
 
     # Now make sure two rows (groups) with 8, but different slots
     free_row0 = (rsets["group"] == 0) & (rsets["slot"] < 8)
@@ -561,13 +561,13 @@ def _construct_large_problem(resources):
     # Free one slot each as last column already free
     free_strip = (rsets["group"] >= 12) & (rsets["slot"] == 3)
 
-    rsets["assigned"][free_row0] = 0
-    rsets["assigned"][free_row1] = 0
-    rsets["assigned"][free_row2] = 0
-    rsets["assigned"][free_row3] = 0
-    rsets["assigned"][free_strip] = 0
+    rsets["assigned"][free_row0] = -1
+    rsets["assigned"][free_row1] = -1
+    rsets["assigned"][free_row2] = -1
+    rsets["assigned"][free_row3] = -1
+    rsets["assigned"][free_strip] = -1
 
-    resources.free_rsets = np.count_nonzero(rsets["assigned"] == 0)
+    resources.free_rsets = np.count_nonzero(rsets["assigned"] == -1)
     # _print_assigned(resources)
 
 
