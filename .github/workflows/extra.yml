@@ -154,11 +154,11 @@ jobs:
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            pip install scikit-build packaging Tasmanian --user
 
         - name: Install other testing dependencies
           run: |
             conda install octave
-            pip install scikit-build packaging Tasmanian --user
             conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
