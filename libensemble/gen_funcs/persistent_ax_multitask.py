@@ -23,11 +23,17 @@ from ax.core.observation import ObservationFeatures
 from ax.core.optimization_config import OptimizationConfig
 from ax.core.parameter import ParameterType, RangeParameter
 from ax.core.search_space import SearchSpace
-from ax.modelbridge.factory import get_MTGP, get_sobol
+from ax.modelbridge.factory import get_sobol
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
 from ax.storage.metric_registry import register_metric
 from ax.storage.runner_registry import register_runner
+
+try:
+    from ax.modelbridge.factory import get_MTGP
+except ImportError:
+    # For Ax >= 0.3.4
+    from ax.modelbridge.factory import get_MTGP_LEGACY as get_MTGP
 
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
