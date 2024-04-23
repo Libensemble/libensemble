@@ -23,12 +23,12 @@ jobs:
                 include:
                     - os: macos-latest
                       python-version: "3.11"
-                      mpi-version: "mpich=4.2.0"
+                      mpi-version: "mpich=4.2.1"
                       pydantic-version: "2.6.4"
                       comms-type: m
                     - os: macos-latest
                       python-version: "3.11"
-                      mpi-version: "mpich=4.2.0"
+                      mpi-version: "mpich=4.2.1"
                       pydantic-version: "2.6.4"
                       comms-type: l
                     - os: ubuntu-latest
@@ -86,11 +86,9 @@ jobs:
           run: conda install gcc_linux-64
 
         # Roundabout solution on macos for proper linking with mpicc
-        - name: Install macOS compilers and older SDK
+        - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
-            wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.15.sdk.tar.xz
-            mkdir ../sdk; tar xf MacOSX10.15.sdk.tar.xz -C ../sdk
             conda install clang_osx-64
 
         - name: Install basic testing/feature dependencies
@@ -147,8 +145,6 @@ jobs:
 
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
-          env:
-              CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
             ./libensemble/tests/run-tests.sh -A "-W error" -z -${{ matrix.comms-type }}
 
@@ -167,4 +163,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.20.7
+        - uses: crate-ci/typos@v1.20.9
