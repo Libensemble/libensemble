@@ -130,6 +130,8 @@ def test_libe_specs_invalid():
 
 
 def test_ensemble_specs():
+    from libensemble.specs import AllocSpecs
+
     sim_specs, gen_specs, exit_criteria = setup.make_criteria_and_specs_0()
     libE_specs = {"comms": "local", "nworkers": 4}
     ss = SimSpecs(**sim_specs)
@@ -141,7 +143,7 @@ def test_ensemble_specs():
     H0["sim_id"] = [0, 1, 2, -1, -1]
     H0[["sim_started", "sim_ended"]][0:3] = True
 
-    _EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec)
+    _EnsembleSpecs(H0=H0, libE_specs=ls, sim_specs=ss, gen_specs=gs, exit_criteria=ec, alloc_specs=AllocSpecs())
 
 
 if __name__ == "__main__":

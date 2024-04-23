@@ -51,7 +51,7 @@ def _check_output_fields(values):
 
 
 def _check_H0(values):
-    if scg(values, "H0").size > 0:
+    if scg(values, "H0", np.empty([0])).size > 0:
         H0 = scg(values, "H0")
         specs = [scg(values, "sim_specs"), scg(values, "gen_specs")]
         specs_dtype_list = list(set(libE_fields + sum([k.outputs or [] for k in specs if k], [])))
@@ -95,9 +95,9 @@ def _check_any_workers_and_disable_rm_if_tcp(values):
 
 
 def _check_set_workflow_dir(values):
-    if scg(values, "use_workflow_dir") and len(str(scg(values, "workflow_dir_path"))) <= 1:
+    if scg(values, "use_workflow_dir") and len(str(scg(values, "workflow_dir_path", "."))) <= 1:
         scs(values, "workflow_dir_path", Path("./workflow_" + secrets.token_hex(3)).absolute())
-    elif len(str(scg(values, "workflow_dir_path"))) > 1:
+    elif len(str(scg(values, "workflow_dir_path", "."))) > 1:
         if not scg(values, "use_workflow_dir"):
             scs(values, "use_workflow_dir", True)
         scs(values, "workflow_dir_path", Path(scg(values, "workflow_dir_path")).absolute())
