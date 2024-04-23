@@ -118,6 +118,8 @@ jobs:
         - name: Install ax-platform
           run: |
             pip install ax-platform
+
+        - name: Install gpcam
           if: matrix.python-version != '3.12'
             pip install gpcam
 
