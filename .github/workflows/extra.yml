@@ -116,7 +116,6 @@ jobs:
             conda env update --file install/gen_deps_environment.yml
 
         - name: Install ax-platform
-          if: matrix.python-version != '3.12'
           run: |
             pip install ax-platform==0.3.7
             pip install gpcam
@@ -215,7 +214,6 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
-            rm ./libensemble/tests/regression_tests/test_persistent_gp_multitask_ax.py
 
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
           if: matrix.pydantic-version == '2.6.4'
