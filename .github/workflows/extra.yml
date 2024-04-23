@@ -119,7 +119,6 @@ jobs:
           run: |
             pip install ax-platform
           if: matrix.python-version != '3.12'
-          run: |
             pip install gpcam
 
         - name: Install surmise
