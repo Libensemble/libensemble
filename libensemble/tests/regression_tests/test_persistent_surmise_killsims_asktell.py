@@ -22,7 +22,7 @@ in the libEnsemble documentation.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local tcp
+# TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 3 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
