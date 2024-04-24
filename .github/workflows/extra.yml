@@ -91,11 +91,9 @@ jobs:
           run: conda install gcc_linux-64
 
         # Roundabout solution on macos for proper linking with mpicc
-        - name: Install macOS compilers and older SDK
+        - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
-            wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.15.sdk.tar.xz
-            mkdir ../sdk; tar xf MacOSX10.15.sdk.tar.xz -C ../sdk
             conda install clang_osx-64
 
         - name: Install mpi4py and MPI from conda
@@ -156,11 +154,11 @@ jobs:
             # pip install dragonfly-opt
             # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            pip install scikit-build packaging Tasmanian --user
 
         - name: Install other testing dependencies
           run: |
             conda install octave
-            pip install scikit-build packaging Tasmanian --user
             conda install pyzmq
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
@@ -231,8 +229,6 @@ jobs:
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
-          env:
-              CONDA_BUILD_SYSROOT: /Users/runner/work/libensemble/sdk/MacOSX10.15.sdk
           run: |
             ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
