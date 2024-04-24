@@ -119,6 +119,7 @@ jobs:
 
         - name: Install gpcam
           if: matrix.python-version != '3.12'
+          run: |
             pip install gpcam
 
         - name: Install surmise
