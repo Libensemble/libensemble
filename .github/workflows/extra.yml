@@ -148,7 +148,7 @@ jobs:
             cd ..
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             sudo apt-get install bc
 
