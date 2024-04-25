@@ -116,7 +116,7 @@ class AskTellGenRunner(Runner):
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:
-                    self.ps.send(i)
+                    self.ps.send(i, keep_state=True)
             else:
                 self.ps.send(points)
 

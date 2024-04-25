@@ -78,6 +78,7 @@ if __name__ == "__main__":
 
     # Rename ensemble dir for non-interference with other regression tests
     libE_specs["ensemble_dir_path"] = "ensemble_calib_kills_asktell"
+    libE_specs["gen_on_manager"] = True
 
     sim_specs = {
         "sim_f": sim_f,

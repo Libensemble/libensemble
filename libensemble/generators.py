@@ -215,10 +215,10 @@ class Surmise(LibEnsembleGenInterfacer):
             self.results = self._add_sim_ids(output)
             got_cancels_first = False
         try:
-            additional = self.outbox.get(timeout=0.2)  # either cancels or new points
+            _, additional = self.outbox.get(timeout=0.2)  # either cancels or new points
             if got_cancels_first:
-                return additional
-            self.all_cancels.append(additional)
+                return additional["calc_out"]
+            self.all_cancels.append(additional["calc_out"])
             return self.results
         except thread_queue.Empty:
             return self.results
