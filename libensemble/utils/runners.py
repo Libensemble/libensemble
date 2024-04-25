@@ -114,12 +114,9 @@ class AskTellGenRunner(Runner):
         for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
             points, updates = self.gen.ask(), self.gen.ask_updates()
             if updates is not None and len(updates):
-                try:
-                    self.ps.send(np.append(points, updates))
-                except np.exceptions.DTypePromotionError:  # points/updates have different dtypes
-                    self.ps.send(points)
-                    for i in updates:
-                        self.ps.send(i)
+                self.ps.send(points)
+                for i in updates:
+                    self.ps.send(i)
             else:
                 self.ps.send(points)
 
