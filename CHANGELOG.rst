@@ -8,6 +8,28 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.3.0
+--------------
+
+:Date: April 29, 2024
+
+* Support generator running on the manager (on a thread). #1216/#1290
+  * Set `libE_specs["gen_on_manager"] = True`
+  * Then run with `nworkers` equal to the number of simulation workers.
+* Default to local comms when `nworkers` is supplied and no MPI runner detected. #1169
+* Parse args defaults to **local** comms when `--nworkers` (or `-n`) is set on command line. #1169
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Aurora (ALCF), Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+
 Release 1.2.2
 --------------
 
