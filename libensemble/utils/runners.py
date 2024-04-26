@@ -111,7 +111,7 @@ class AskTellGenRunner(Runner):
         return H_in
 
     def _ask_and_send(self):
-        for _ in range(self.gen.outbox.qsize()):  # recv/send any outstanding messages
+        while self.gen.outbox.qsize():  # recv/send any outstanding messages
             points, updates = self.gen.ask(), self.gen.ask_updates()
             if updates is not None and len(updates):
                 self.ps.send(points)
