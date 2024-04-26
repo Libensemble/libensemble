@@ -386,6 +386,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
     else:
         exit_logger = None
 
+    if libE_specs.get("nworkers"):
+        logger.manager_warning("*WARNING* 'mpi' comms is detected with 'nworkers'. nworkers will be ignored.\n")
+
     if isinstance(Executor.executor, MPIExecutor):
         if Executor.executor.mpi_runner_type == "openmpi":
             logger.manager_warning(

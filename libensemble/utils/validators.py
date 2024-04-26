@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Callable
 
 import numpy as np
+import os
 
 from libensemble.resources.platforms import Platform
 from libensemble.utils.misc import pydanticV1
@@ -19,6 +20,28 @@ _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
 _OUT_DTYPE_ERR = "unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
 _IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
+
+
+def detect_comms_env():
+    '''Return local or MPI comms based on env variables'''
+    mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
+    comms_type = "local"
+    for var in mpi_vars:
+        value = os.getenv(var)
+        if value is not None:
+            if int(value) > 1:
+                comms_type = "mpi"
+                break
+    return comms_type
+
+
+def default_comms(values):
+    if "comms" not in values:
+        if values.get("nworkers") is not None:
+            values["comms"] = detect_comms_env()
+        else:
+            values["comms"] = "mpi"
+    return values
 
 
 def check_valid_out(cls, v):
@@ -99,6 +122,10 @@ if pydanticV1:
     @root_validator
     def check_any_workers_and_disable_rm_if_tcp(cls, values):
         return _check_any_workers_and_disable_rm_if_tcp(values)
+
+    @root_validator(pre=True)
+    def set_default_comms(cls, values):
+        return default_comms(values)
 
     @root_validator(pre=True)
     def enable_save_H_when_every_K(cls, values):
@@ -193,6 +220,10 @@ else:
     @model_validator(mode="after")
     def check_any_workers_and_disable_rm_if_tcp(self):
         return _check_any_workers_and_disable_rm_if_tcp(self)
+
+    @model_validator(mode='before')
+    def set_default_comms(cls, values):
+        return default_comms(values)
 
     @model_validator(mode="after")
     def enable_save_H_when_every_K(self):
