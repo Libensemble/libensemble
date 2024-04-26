@@ -13,8 +13,8 @@ Configuring Python and Installation
 Python and libEnsemble are available on Polaris with the `conda` module. Load the
 ``conda`` module and activate the base environment::
 
-    module load conda
-    conda activate base
+    module use /soft/modulefiles
+    module load conda; conda activate
 
 This also gives you access to machine-optimized packages such as mpi4py_.
 
@@ -101,4 +101,4 @@ of this example is also available.
 .. _demonstration: https://youtu.be/Ff0dYYLQzoU
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _Polaris: https://www.alcf.anl.gov/polaris
-.. _Python for Polaris: https://www.alcf.anl.gov/support/user-guides/polaris/data-science-workflows/python/index.html
+.. _Python for Polaris: https://docs.alcf.anl.gov/polaris/data-science-workflows/python/
