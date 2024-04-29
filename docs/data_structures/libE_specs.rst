@@ -32,7 +32,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                 **nworkers** [int]:
                     Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
 
-                **gen_on_manager** Optional[bool] = False
+                **gen_on_manager** [bool] = False
                     Instructs Manager process to run generator functions.
                     This generator function can access/modify user objects by reference.
 
