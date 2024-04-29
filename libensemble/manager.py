@@ -12,6 +12,7 @@ import socket
 import sys
 import time
 import traceback
+import warnings
 from typing import Any, Union
 
 import numpy as np
@@ -204,9 +205,12 @@ class Manager:
         timer.start()
         self.date_start = timer.date_start.replace(" ", "_")
         self.safe_mode = libE_specs.get("safe_mode")
+
         self.kill_canceled_sims = libE_specs.get("kill_canceled_sims")
         self.hist = hist
         self.hist.safe_mode = self.safe_mode
+        if self.safe_mode:
+            warnings.warn("LibeSpecs.safe_mode is deprecated, to be removed in v1.4.0", DeprecationWarning)
         self.libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.sim_specs = sim_specs
