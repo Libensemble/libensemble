@@ -666,7 +666,6 @@ if [ "$root_found" = true ]; then
 
   fi; #$RUN_REG_TESTS
 
-
   #Create Coverage Reports ----------------------------------------------
   cd $ROOT_DIR
 
@@ -703,7 +702,6 @@ if [ "$root_found" = true ]; then
       echo -e "..Combined Test Coverage xml written to dir $COV_MERGE_DIR/cov_merge/"
     fi;
   fi;
-
 
   # Run Code standards Tests -----------------------------------------
   cd $ROOT_DIR
