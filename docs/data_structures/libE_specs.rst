@@ -26,6 +26,8 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
 
                 **comms** [str] = ``"mpi"``:
                     Manager/Worker communications mode: ``'mpi'``, ``'local'``, or ``'tcp'``.
+                    If ``nworkers`` is specified, then ``local`` comms will be used unless a
+                    parallel MPI environment is detected.
 
                 **nworkers** [int]:
                     Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``.
