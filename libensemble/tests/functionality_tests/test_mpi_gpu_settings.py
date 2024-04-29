@@ -53,7 +53,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.resources.platforms import Frontier, PerlmutterGPU, Platform, Polaris, Summit, Aurora
+from libensemble.resources.platforms import Aurora, Frontier, PerlmutterGPU, Platform, Polaris, Summit
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args

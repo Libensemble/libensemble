@@ -29,7 +29,6 @@ Release 1.3.0
 
 * See known issues section in the documentation.
 
-
 Release 1.2.2
 --------------
 
