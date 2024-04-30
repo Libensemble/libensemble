@@ -70,7 +70,7 @@ The default is ``mpi``.
 
             python myscript.py
 
-        Or, if the script uses the :doc:`parse_args()<utilities>` function
+        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
@@ -123,7 +123,7 @@ The default is ``mpi``.
 Further Command Line Options
 ----------------------------
 
-See the :doc:`parse_args()<utilities>` function in :doc:`Convenience Tools<utilities>` for
+See the :meth:`parse_args<tools.parse_args>` function in :doc:`Convenience Tools<utilities>` for
 further command line options.
 
 Persistent Workers
