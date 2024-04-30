@@ -123,7 +123,7 @@ The default is ``mpi``.
 Further Command Line Options
 ----------------------------
 
-See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for
+See the :doc:`parse_args()<utilities>` function in :doc:`Convenience Tools<utilities>` for
 further command line options.
 
 Persistent Workers
