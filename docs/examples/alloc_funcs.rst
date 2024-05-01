@@ -56,6 +56,6 @@ start_only_persistent
 
 start_persistent_local_opt_gens
 -------------------------------
-.. automodule:: libensemble.alloc_funcs.start_persistent_local_opt_gens
+.. automodule:: start_persistent_local_opt_gens
   :members:
   :undoc-members:
