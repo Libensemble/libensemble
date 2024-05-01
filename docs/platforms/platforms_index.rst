@@ -62,7 +62,7 @@ or::
     python myscript.py --comms local --nworkers 4
 
 Either of these will run libEnsemble (inc. manager and 4 workers) on the first node. The remaining
-4 nodes will be divided amongst the workers for submitted applications. If the same run was
+4 nodes will be divided among the workers for submitted applications. If the same run was
 performed without ``libE_specs["dedicated_mode"]=True``, runs could be submitted to all 5 nodes. The number of workers
 can be modified to allow either multiple workers to map to each node or multiple nodes per worker.
 

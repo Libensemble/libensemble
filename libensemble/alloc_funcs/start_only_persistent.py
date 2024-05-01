@@ -89,7 +89,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     # Now the give_sim_work_first part
     points_to_evaluate = ~H["sim_started"] & ~H["cancel_requested"]
-    avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False)
+    avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=False, gen_workers=False)
     if user.get("alt_type"):
         avail_workers = list(
             set(support.avail_worker_ids(persistent=False, zero_resource_workers=False))
@@ -115,7 +115,7 @@ def only_persistent_gens(W, H, sim_specs, gen_specs, alloc_specs, persis_info, l
 
     # Start persistent gens if no worker to give out. Uses zero_resource_workers if defined.
     if not np.any(points_to_evaluate):
-        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True)
+        avail_workers = support.avail_worker_ids(persistent=False, zero_resource_workers=True, gen_workers=True)
 
         for wid in avail_workers:
             if gen_count < user.get("num_active_gens", 1):

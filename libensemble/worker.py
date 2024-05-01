@@ -32,7 +32,7 @@ from libensemble.resources.resources import Resources
 from libensemble.utils.loc_stack import LocationStack
 from libensemble.utils.misc import extract_H_ranges
 from libensemble.utils.output_directory import EnsembleDirectory
-from libensemble.utils.runners import Runners
+from libensemble.utils.runners import Runner
 from libensemble.utils.timer import Timer
 
 logger = logging.getLogger(__name__)
@@ -97,7 +97,7 @@ def worker_main(
     if libE_specs.get("use_workflow_dir"):
         _, libE_specs["workflow_dir_path"] = comm.recv()
 
-    workerID = workerID or comm.rank
+    workerID = workerID or getattr(comm, "rank", 0)
 
     # Initialize logging on comms
     if log_comm:
@@ -166,10 +166,10 @@ class Worker:
         self.workerID = workerID
         self.libE_specs = libE_specs
         self.stats_fmt = libE_specs.get("stats_fmt", {})
-
+        self.sim_runner = Runner(sim_specs)
+        self.gen_runner = Runner(gen_specs)
+        self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
-        self.runners = Runners(sim_specs, gen_specs)
-        self._run_calc = self.runners.make_runners()
         Worker._set_executor(self.workerID, self.comm)
         Worker._set_resources(self.workerID, self.comm)
         self.EnsembleDirectory = EnsembleDirectory(libE_specs=libE_specs)
@@ -256,7 +256,7 @@ class Worker:
 
         try:
             logger.debug(f"Starting {enum_desc}: {calc_id}")
-            calc = self._run_calc[calc_type]
+            calc = self.runners[calc_type]
             with timer:
                 if self.EnsembleDirectory.use_calc_dirs(calc_type):
                     loc_stack, calc_dir = self.EnsembleDirectory.prep_calc_dir(
@@ -412,5 +412,8 @@ class Worker:
         else:
             self.comm.kill_pending()
         finally:
-            self.runners.shutdown()
+            self.gen_runner.shutdown()
+            self.sim_runner.shutdown()
             self.EnsembleDirectory.copy_back()
+            if Executor.executor is not None:
+                Executor.executor.comm = None  # so Executor can be pickled upon further libE calls

@@ -55,6 +55,11 @@ class SimSpecs(BaseModel):
     calling them locally.
     """
 
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
+    """
+
     user: Optional[dict] = {}
     """
     A user-data dictionary to place bounds, constants, settings, or other parameters for customizing
@@ -98,6 +103,11 @@ class GenSpecs(BaseModel):
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
+    """
+
+    threaded: Optional[bool] = False
+    """
+    Instruct Worker process to launch user function to a thread.
     """
 
     user: Optional[dict] = {}
@@ -157,10 +167,19 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
+    """
+    Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``
+    If ``nworkers`` is specified, then ``local`` comms will be used unless a parallel MPI
+    environment is detected.
+    """
 
     nworkers: Optional[int] = 0
-    """ Number of worker processes in ``"local"`` or ``"tcp"``."""
+    """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
+
+    gen_on_manager: Optional[bool] = False
+    """ Instructs Manager process to run generator functions.
+    This generator function can access/modify user objects by reference.
+    """
 
     mpi_comm: Optional[Any] = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
@@ -442,6 +461,12 @@ class LibeSpecs(BaseModel):
     List of workers that require no resources. For when a fixed mapping of workers
     to resources is required. Otherwise, use ``num_resource_sets``.
     For use with supported allocation functions.
+    """
+
+    gen_workers: Optional[List[int]] = []
+    """
+    List of workers that should only run generators. All other workers will only
+    run simulator functions.
     """
 
     resource_info: Optional[dict] = {}

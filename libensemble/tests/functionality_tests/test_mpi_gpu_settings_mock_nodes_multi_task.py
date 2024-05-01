@@ -10,8 +10,8 @@ Test assertions are in the sim function via the check_gpu_setting function.
 The persistent generator creates simulations with variable resource requirements.
 
 Execute via one of the following commands (e.g. 5 workers):
-   mpiexec -np 6 python test_mpi_gpu_settings.py
-   python test_mpi_gpu_settings.py --comms local --nworkers 5
+   mpiexec -np 6 python test_mpi_gpu_settings_mock_nodes_multi_task.py
+   python test_mpi_gpu_settings_mock_nodes_multi_task.py --comms local --nworkers 5
 
 When running with the above command, the number of concurrent evaluations of
 the objective function will be 4, as one of the five workers will be the
@@ -19,8 +19,9 @@ persistent generator.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
+# The 12 process (11 worker) run is necessary to test configurations that must be adjusted.
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 3 6
+# TESTSUITE_NPROCS: 3 6 12
 
 import os
 import sys

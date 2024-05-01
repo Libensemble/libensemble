@@ -1,5 +1,6 @@
 sphinx<8
 sphinxcontrib-bibtex
+sphinxcontrib-spelling
 autodoc_pydantic
 sphinx-design
 numpy

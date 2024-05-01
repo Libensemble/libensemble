@@ -36,7 +36,7 @@ See the `user guide`_ for more information.
   simulations. Select examples include:
 
   - OPAL_ Object Oriented Parallel Accelerator Library. (See this `IPAC manuscript`_.)
-  - WarpX_ Advanced electromagnetic particle-in-cell code. (See example `WarpX + libE scripts`_.)
+  - WarpX_ Advanced electromagnetic particle-in-cell code.
 
 .. _APOSMM: https://link.springer.com/article/10.1007/s12532-017-0131-4
 .. _Community Examples repository: https://github.com/Libensemble/libe-community-examples
@@ -52,5 +52,4 @@ See the `user guide`_ for more information.
 .. _Tasmanian: https://tasmanian.ornl.gov/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
-.. _WarpX + libE scripts: https://warpx.readthedocs.io/en/latest/usage/workflows/libensemble.html
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

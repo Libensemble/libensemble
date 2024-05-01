@@ -8,6 +8,28 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.3.0
+--------------
+
+:Date: May 01, 2024
+
+* Support generator running on the manager (on a thread). #1216/#1290
+  * Set `libE_specs["gen_on_manager"] = True`
+  * Then run with `nworkers` equal to the number of simulation workers.
+* Default to local comms when `nworkers` is supplied and no MPI runner is detected. #1169
+* Parse args defaults to **local** comms when `--nworkers` (or `-n`) is set on the command line. #1169
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.2.2
 --------------
 
@@ -203,7 +225,7 @@ Release 0.10.2
   * Ensure relative paths are interpreted from where libEnsemble is run. #1020
   * Create intermediate directories for workflow paths. #1017
 
-* Fixes issue where libEnsemble pre-initialized a shared multiprocssing queue. #1026
+* Fixes issue where libEnsemble pre-initialized a shared multiprocessing queue. #1026
 
 :Note:
 
@@ -786,7 +808,7 @@ Release 0.3.0
 * History is dumped to file on manager or worker exception and MPI aborted (with exit code 1). (#46)
 * Default logging level changed to DEBUG and redirected to file ensemble.log.
 * Added directory of standalone tests (comms, job kills, and nested MPI launches).
-* Improved and speeded up unit tests. (#68)
+* Improved and sped up unit tests. (#68)
 * Considerable documentation enhancements.
 
 :Known issues:

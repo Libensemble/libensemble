@@ -53,7 +53,7 @@ from libensemble.gen_funcs.persistent_sampling_var_resources import uniform_samp
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.resources.platforms import Frontier, PerlmutterGPU, Platform, Polaris, Summit, Sunspot
+from libensemble.resources.platforms import Aurora, Frontier, PerlmutterGPU, Platform, Polaris, Summit
 from libensemble.sim_funcs import six_hump_camel
 from libensemble.sim_funcs.var_resources import gpu_variable_resources as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # First set - use executor setting ------------------------------------------------------------
     libE_specs["resource_info"] = {"gpus_on_node": 4}  # Mock GPU system / remove to detect GPUs
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via resource_info / custom_info) for {run_set} ------------- ")
         exctr = MPIExecutor(custom_info={"mpi_runner": run_set})
         exctr.register_app(full_path=six_hump_camel_app, app_name="six_hump_camel")
@@ -138,7 +138,7 @@ if __name__ == "__main__":
         scheduler_match_slots=False,
     )
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via platform_specs class) for {run_set} ------------------- ")
         libE_specs["platform_specs"].mpi_runner = run_set
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         "scheduler_match_slots": False,
     }
 
-    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "custom"]:
+    for run_set in ["mpich", "openmpi", "aprun", "srun", "jsrun", "msmpi", "custom"]:
         print(f"\nRunning GPU setting checks (via platform_specs dict) for {run_set} ------------------- ")
         libE_specs["platform_specs"]["mpi_runner"] = run_set
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     del libE_specs["platform_specs"]
 
     # Fourth set - use platform setting ------------------------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "sunspot"]:
+    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform) for {platform} ------------------- ")
         libE_specs["platform"] = platform
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         del libE_specs["platform"]
 
     # Fifth set - use platform environment setting -----------------------------------------------
-    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "sunspot"]:
+    for platform in ["summit", "crusher", "perlmutter_g", "polaris", "aurora"]:
         print(f"\nRunning GPU setting checks (via known platform env. variable) for {platform} ----- ")
         os.environ["LIBE_PLATFORM"] = platform
 
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         del os.environ["LIBE_PLATFORM"]
 
     # Sixth set - use platform_specs with known systems -------------------------------------------
-    for platform in [Summit, Frontier, PerlmutterGPU, Polaris, Sunspot]:
+    for platform in [Summit, Frontier, PerlmutterGPU, Polaris, Aurora]:
         print(f"\nRunning GPU setting checks (via known platform - platform_specs) for {platform} ------------------- ")
         libE_specs["platform_specs"] = platform()
 

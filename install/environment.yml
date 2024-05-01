@@ -1,7 +1,0 @@
-channels:
-  - conda-forge
-  - defaults
-
-dependencies:
- - sphinxcontrib-bibtex
- - python>=3.9

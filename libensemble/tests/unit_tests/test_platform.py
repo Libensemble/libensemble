@@ -1,8 +1,7 @@
 import pytest
 
+from libensemble.resources.platforms import Known_platforms, PlatformException, get_platform, known_system_detect
 from libensemble.utils.misc import specs_dump
-from libensemble.resources.platforms import PlatformException, get_platform, known_system_detect
-from libensemble.resources.platforms import Known_platforms
 
 my_spec = {
     "mpi_runner": "srun",
@@ -92,9 +91,7 @@ def test_known_sys_detect():
     # Try unknown system
     get_sys_cmd = "echo madeup.system"  # Overrides default "hostname -d"
     name = known_system_detect(cmd=get_sys_cmd)
-    assert (
-        name is None
-    ), f"Expected known_system_detect to return None ({name})"
+    assert name is None, f"Expected known_system_detect to return None ({name})"
 
 
 if __name__ == "__main__":

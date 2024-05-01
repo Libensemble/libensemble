@@ -12,7 +12,7 @@ class RSetResources:
 
     **Object Attributes:**
 
-    These are set on initialisation and include inherited.
+    These are set on initialization and include inherited.
     ``rsets`` below is used to abbreviate ``resource sets``.
 
     :ivar int num_workers: Total number of workers
@@ -129,7 +129,7 @@ class RSetResources:
 
     @staticmethod
     def even_assignment(nnodes, nworkers):
-        """Returns True if workers are evenly distributied to nodes, else False"""
+        """Returns True if workers are evenly distributed to nodes, else False"""
         try:
             return nnodes % nworkers == 0 or nworkers % nnodes == 0
         except ZeroDivisionError:
