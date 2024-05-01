@@ -172,7 +172,7 @@ If modifying a workflow to use ``gen_on_manager`` consider the following.
   to seed random streams, the default generator seed will be zero.
 * If you have a line like ``libE_specs["nresource_sets"] = nworkers -1``, this
   line should be removed.
-* If the generator does use resources "nresource_sets" can be increased as needed
+* If the generator does use resources, ``nresource_sets`` can be increased as needed
   so that the generator and all simulations are resourced.
 
 Environment Variables
