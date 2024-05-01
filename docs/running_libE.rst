@@ -13,7 +13,7 @@ manage simulations, which often involve running a user application (see
 :doc:`Executor<executor/ex_index>`).
 
 .. note::
-    As of version 1.3.0, the generator can be run on a thread on the manager,
+    As of version 1.3.0, the generator can be run as a thread on the manager,
     using the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager**.
     When using this option, set the number of workers desired for running
     simulations. See :ref:`Running generator on the manager<gen-on-manager>`
