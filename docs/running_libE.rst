@@ -157,9 +157,9 @@ No simulations will be able to run.
 Running generator on the manager
 --------------------------------
 
-The majority of libEnsemble use-cases run a single generator. The
+The majority of libEnsemble use cases run a single generator. The
 :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** will cause
-the generator function to be run on a thread on the manager. This can run
+the generator function to run on a thread on the manager. This can run
 persistent user functions, sharing data structures with the manager, and avoids
 additional communication to a generator running on a worker. When using this
 option, the number of workers specified should be the (maximum) number of
