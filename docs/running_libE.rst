@@ -3,11 +3,21 @@
 Running libEnsemble
 ===================
 
+Introduction
+------------
+
 libEnsemble runs with one manager and multiple workers. Each worker may run either
 a generator or simulator function (both are Python scripts). Generators
 determine the parameters/inputs for simulations. Simulator functions run and
 manage simulations, which often involve running a user application (see
 :doc:`Executor<executor/ex_index>`).
+
+.. note::
+    As of version 1.3.0, the generator can be run as a thread on the manager,
+    using the :ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager**.
+    When using this option, set the number of workers desired for running
+    simulations. See :ref:`Running generator on the manager<gen-on-manager>`
+    for more details.
 
 To use libEnsemble, you will need a calling script, which in turn will specify
 generator and simulator functions. Many :doc:`examples<examples/examples_index>`
@@ -60,7 +70,7 @@ The default is ``mpi``.
 
             python myscript.py
 
-        Or, if the script uses the :doc:`parse_args()<utilities>` function
+        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
         you can specify these on the command line::
 
@@ -113,8 +123,69 @@ The default is ``mpi``.
 Further Command Line Options
 ----------------------------
 
-See the **parse_args()** function in :doc:`Convenience Tools<utilities>` for
+See the :meth:`parse_args<tools.parse_args>` function in :doc:`Convenience Tools<utilities>` for
 further command line options.
+
+Persistent Workers
+------------------
+.. _persis_worker:
+
+In a regular (non-persistent) worker, the user's generator or simulation function is called
+whenever the worker receives work. A persistent worker is one that continues to run the
+generator or simulation function between work units, maintaining the local data environment.
+
+A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
+that maintains optimization data while generating new simulation inputs. The persistent generator runs
+on a dedicated worker while in persistent mode. This requires an appropriate
+:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
+
+When running with a persistent generator, it is important to remember that a worker will be dedicated
+to the generator and cannot run simulations. For example, the following run::
+
+    mpirun -np 3 python my_script.py
+
+starts one manager, one worker with a persistent generator, and one worker for running simulations.
+
+If this example was run as::
+
+    mpirun -np 2 python my_script.py
+
+No simulations will be able to run.
+
+.. _gen-on-manager:
+
+Running generator on the manager
+--------------------------------
+
+The majority of libEnsemble use cases run a single generator. The
+:ref:`libE_specs<datastruct-libe-specs>` option **gen_on_manager** will cause
+the generator function to run on a thread on the manager. This can run
+persistent user functions, sharing data structures with the manager, and avoids
+additional communication to a generator running on a worker. When using this
+option, the number of workers specified should be the (maximum) number of
+concurrent simulations.
+
+If modifying a workflow to use ``gen_on_manager`` consider the following.
+
+* Set ``nworkers`` to the number of workers desired for running simulations.
+* If using :meth:`add_unique_random_streams()<tools.add_unique_random_streams>`
+  to seed random streams, the default generator seed will be zero.
+* If you have a line like ``libE_specs["nresource_sets"] = nworkers -1``, this
+  line should be removed.
+* If the generator does use resources, ``nresource_sets`` can be increased as needed
+  so that the generator and all simulations are resourced.
+
+Environment Variables
+---------------------
+
+Environment variables required in your run environment can be set in your Python sim or gen function.
+For example::
+
+    os.environ["OMP_NUM_THREADS"] = 4
+
+set in your simulation script before the Executor *submit* command will export the setting
+to your run. For running a bash script in a sub environment when using the Executor, see
+the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 .. _liberegister:
 
@@ -246,44 +317,6 @@ any machine and any scheduler, using a `PSI/J`_ Python implementation.
 
         If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
         specified calling script, it'll help search for matching candidate scripts.
-
-Persistent Workers
-------------------
-.. _persis_worker:
-
-In a regular (non-persistent) worker, the user's generator or simulation function is called
-whenever the worker receives work. A persistent worker is one that continues to run the
-generator or simulation function between work units, maintaining the local data environment.
-
-A common use-case consists of a persistent generator (such as :doc:`persistent_aposmm<examples/gen_funcs>`)
-that maintains optimization data while generating new simulation inputs. The persistent generator runs
-on a dedicated worker while in persistent mode. This requires an appropriate
-:doc:`allocation function<examples/alloc_funcs>` that will run the generator as persistent.
-
-When running with a persistent generator, it is important to remember that a worker will be dedicated
-to the generator and cannot run simulations. For example, the following run::
-
-    mpirun -np 3 python my_script.py
-
-starts one manager, one worker with a persistent generator, and one worker for running simulations.
-
-If this example was run as::
-
-    mpirun -np 2 python my_script.py
-
-No simulations will be able to run.
-
-Environment Variables
----------------------
-
-Environment variables required in your run environment can be set in your Python sim or gen function.
-For example::
-
-    os.environ["OMP_NUM_THREADS"] = 4
-
-set in your simulation script before the Executor *submit* command will export the setting
-to your run. For running a bash script in a sub environment when using the Executor, see
-the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
 Further Run Information
 -----------------------
