@@ -3,18 +3,24 @@ The libE module is the outer libEnsemble routine.
 
 This module sets up the manager and the team of workers, configured according
 to the contents of :ref:`libE_specs<datastruct-libe-specs>`. The manager/worker
-communications scheme used in libEnsemble is parsed from the ``comms`` key
-if present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
-``tcp``. MPI is the default; if a communicator is specified, each call to this
-module will initiate manager/worker communications on a duplicate of that
+communications scheme used in libEnsemble is parsed from the ``comms`` key if
+present, with valid values being ``mpi``, ``local`` (for multiprocessing), or
+``tcp``.
+
+MPI is the default if ``nworkers`` is not given. However, if ``libE_specs["nworkers"]``
+is specified, then ``local`` comms will be used unless a parallel MPI environment
+is detected.
+
+For ``mpi`` comms, if a communicator is specified, each call to this module
+will initiate manager/worker communications on a duplicate of that
 communicator. Otherwise, a duplicate of ``COMM_WORLD`` will be used.
 
 In the vast majority of cases, programming with libEnsemble involves the creation
 of a *calling script*, a Python file where libEnsemble is parameterized via
 the various specification dictionaries (e.g. :ref:`libE_specs<datastruct-libe-specs>`,
-:ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`). The
-outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and called with such
-dictionaries to initiate libEnsemble. A simple calling script
+:ref:`sim_specs<datastruct-sim-specs>`, and :ref:`gen_specs<datastruct-gen-specs>`).
+The outer libEnsemble routine :meth:`libE()<libensemble.libE.libE>` is imported and
+called with such dictionaries to initiate libEnsemble. A simple calling script
 (from :doc:`the first tutorial<tutorials/local_sine_tutorial>`) may resemble:
 
 .. code-block:: python
@@ -385,6 +391,9 @@ def libE_mpi_manager(mpi_comm, sim_specs, gen_specs, exit_criteria, persis_info,
         exit_logger = manager_logging_config(specs=libE_specs)
     else:
         exit_logger = None
+
+    if libE_specs.get("nworkers"):
+        logger.manager_warning("*WARNING* 'mpi' comms is detected with 'nworkers'. nworkers will be ignored.\n")
 
     if isinstance(Executor.executor, MPIExecutor):
         if Executor.executor.mpi_runner_type == "openmpi":
