@@ -11,7 +11,7 @@ import time
 import pytest
 
 from libensemble.executors.executor import NOT_STARTED_STATES, Executor, ExecutorException, TimeoutExpired
-from libensemble.message_numbers import UNSET_TAG, TASK_FAILED, STOP_TAG
+from libensemble.message_numbers import STOP_TAG, TASK_FAILED, UNSET_TAG
 from libensemble.resources.mpi_resources import MPIResourcesException
 
 NCORES = 1
@@ -26,7 +26,7 @@ non_existent_app = "simdir/non_exist.x"
 UNKNOWN_SIGNAL = 2000
 
 
-class FakeCommTag():
+class FakeCommTag:
     def mail_flag(self):
         return True
 
@@ -34,7 +34,7 @@ class FakeCommTag():
         return STOP_TAG + 10, 101
 
 
-class FakeCommSignal():
+class FakeCommSignal:
     def mail_flag(self):
         return True
 
@@ -897,6 +897,7 @@ def test_dry_run():
 def test_non_existent_app():
     """Tests exception on non-existent app"""
     from libensemble.executors.executor import Executor
+
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = Executor()
@@ -917,6 +918,7 @@ def test_non_existent_app():
 def test_non_existent_app_mpi():
     """Tests exception on non-existent app"""
     from libensemble.executors.mpi_executor import MPIExecutor
+
     print(f"\nTest: {sys._getframe().f_code.co_name}\n")
 
     exctr = MPIExecutor()
