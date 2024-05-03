@@ -1,8 +1,8 @@
+import os
 from pathlib import Path
 from typing import Callable
 
 import numpy as np
-import os
 
 from libensemble.resources.platforms import Platform
 from libensemble.utils.misc import pydanticV1
@@ -23,7 +23,7 @@ _IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
 
 
 def detect_comms_env():
-    '''Return local or MPI comms based on env variables'''
+    """Return local or MPI comms based on env variables"""
     mpi_vars = ["OMPI_COMM_WORLD_SIZE", "PMI_SIZE"]
     comms_type = "local"
     for var in mpi_vars:
@@ -221,7 +221,7 @@ else:
     def check_any_workers_and_disable_rm_if_tcp(self):
         return _check_any_workers_and_disable_rm_if_tcp(self)
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     def set_default_comms(cls, values):
         return default_comms(values)
 

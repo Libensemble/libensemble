@@ -184,8 +184,9 @@ def parse_args():
         will be ignored. The number of processes are supplied via the MPI run line. One being
         the manager, and the rest are workers.
 
-        --comms,          Communications medium for manager and workers. Default is 'mpi'.
-        --nworkers,       (For 'local' or 'tcp' comms) Set number of workers.
+        --comms,          Communications medium for manager and workers.
+                          Default is 'local' if --nworkers is provided, otherwise  'mpi'.
+        --nworkers/-n,    (For 'local' or 'tcp' comms) Set number of workers.
         --nresource_sets, Explicitly set the number of resource sets. This sets
                           libE_specs["num_resource_sets"]. By default, resources will be
                           divided by workers (excluding zero_resource_workers).
@@ -199,8 +200,10 @@ def parse_args():
 
         Example command lines:
 
-        Run with 'local' comms and 4 workers
+        Run with 'local' comms and 4 workers (the following are equivalent).
         $ python calling_script --comms local --nworkers 4
+        $ python calling_script --nworkers 4
+        $ python calling_script -n 4
 
         Run with 'local' comms and 5 workers - one gen worker (no resources), and 4 sim workers.
         $ python calling_script --comms local --nsim_workers 4

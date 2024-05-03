@@ -172,7 +172,11 @@ class LibeSpecs(BaseModel):
     """
 
     comms: Optional[str] = "mpi"
-    """ Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'`` """
+    """
+    Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``
+    If ``nworkers`` is specified, then ``local`` comms will be used unless a parallel MPI
+    environment is detected.
+    """
 
     nworkers: Optional[int] = 0
     """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
