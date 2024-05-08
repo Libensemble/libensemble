@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from libensemble import Generator
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.specs import output_data, persistent_input_fields
 from libensemble.tools.persistent_support import PersistentSupport
@@ -29,7 +30,7 @@ def _get_user_params(user_specs):
     return b, n, lb, ub
 
 
-class RandSample():
+class RandSample(Generator):
     def __init__(self, _, persis_info, gen_specs, libE_info=None):
         # self.H = H
         self.persis_info = persis_info
@@ -59,6 +60,9 @@ class RandSample():
         assert isinstance(self.n, int), "Dimension must be an integer"
         assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
+
+    def final_tell(self, results):
+        pass
 
 
 @persistent_input_fields(["f", "x", "sim_id"])

@@ -16,10 +16,8 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 import numpy as np
 
 # Import libEnsemble items for this test
-from libensemble import Generator
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_funcs.persistent_sampling import _get_user_params
-from libensemble.gen_funcs.sampling import lhs_sample
+from libensemble.gen_funcs.persistent_sampling import RandSample
 from libensemble.libE import libE
 from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f2
 from libensemble.tools import add_unique_random_streams, parse_args
@@ -31,72 +29,9 @@ def sim_f(In):
     return Out
 
 
-class LHS(Generator):
-    def __init__(self, rand_stream, ub, lb, b, dtype):
-        self.rand_stream = rand_stream
-        self.ub = ub
-        self.lb = lb
-        self.batch_size = b
-        self.dtype = dtype
-
-    def ask(self, *args):
-        n = len(self.lb)
-        H_o = np.zeros(self.batch_size, dtype=self.dtype)
-        A = lhs_sample(n, self.batch_size, self.rand_stream)
-        H_o["x"] = A * (self.ub - self.lb) + self.lb
-        return H_o
-
-
-class PersistentUniform(Generator):
-    def __init__(self, persis_info, gen_specs):
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
-        _, self.n, self.lb, self.ub = _get_user_params(gen_specs["user"])
-
-    def ask(self, num_points):
-        H_o = np.zeros(num_points, dtype=self.gen_specs["out"])
-        H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (num_points, self.n))
-        self.last_H = H_o
-        return H_o
-
-    def tell(self, H_in):
-        if hasattr(H_in, "__len__"):
-            self.batch_size = len(H_in)
-
-    def final_tell(self, H_in):
-        self.tell(H_in)
-        return self.last_H
-
-
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
     libE_specs["gen_on_manager"] = True
-
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
-
-    gen_out = [("x", float, (1,))]
-
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
-
-    GenOne = LHS(persis_info[1]["rand_stream"], np.array([3]), np.array([-3]), 500, gen_out)
-
-    gen_specs_normal = {
-        "generator": GenOne,
-        "out": [("x", float, (1,))],
-    }
-
-    exit_criteria = {"gen_max": 201}
-
-    H, persis_info, flag = libE(sim_specs, gen_specs_normal, exit_criteria, persis_info, libE_specs=libE_specs)
-
-    if is_manager:
-        assert len(H) >= 201
-        print("\nlibEnsemble with NORMAL random sampling has generated enough points")
-        print(H[:10])
 
     sim_specs = {
         "sim_f": sim_f2,
@@ -114,9 +49,11 @@ if __name__ == "__main__":
         },
     }
 
+    exit_criteria = {"gen_max": 201}
+
     persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-    gen_two = PersistentUniform(persis_info[1], gen_specs_persistent)
+    gen_two = RandSample(None, persis_info[1], gen_specs_persistent, None)
     gen_specs_persistent["generator"] = gen_two
 
     alloc_specs = {"alloc_f": alloc_f}

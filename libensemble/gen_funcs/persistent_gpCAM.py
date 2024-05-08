@@ -6,6 +6,7 @@ import numpy as np
 from gpcam import GPOptimizer as GP
 from numpy.lib.recfunctions import repack_fields
 
+from libensemble import Generator
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -141,7 +142,7 @@ def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     return np.array(eligible_points)
 
 
-class GP_CAM_SIMPLE:
+class GP_CAM_SIMPLE(Generator):
     # Choose whether functions are internal methods or not
     def _initialize_gpcAM(self, user_specs):
         """Extract user params"""
