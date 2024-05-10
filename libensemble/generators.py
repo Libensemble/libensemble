@@ -205,6 +205,7 @@ class APOSMM(LibEnsembleGenInterfacer):
                 self.last_ask = None
             return results
         results = copy.deepcopy(self.last_ask)
+        self.results = results
         self.last_ask = None
         return results
 
