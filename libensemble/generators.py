@@ -87,7 +87,7 @@ class LibEnsembleGenInterfacer(Generator):
     """
 
     def __init__(
-        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
         self.gen_f = gen_specs["gen_f"]
         self.gen_specs = gen_specs
@@ -159,24 +159,54 @@ class APOSMM(LibEnsembleGenInterfacer):
     """
 
     def __init__(
-        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+        self, gen_specs: dict = {}, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
         gen_specs["gen_f"] = aposmm
+        if len(kwargs) > 0:
+            gen_specs["user"] = kwargs
+        if not gen_specs.get("out"):
+            n = len(kwargs["lb"]) or len(kwargs["ub"])
+            gen_specs["out"] = [
+                ("x", float, n),
+                ("x_on_cube", float, n),
+                ("sim_id", int),
+                ("local_min", bool),
+                ("local_pt", bool),
+            ]
+            gen_specs["in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4)[1]
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
         self.all_local_minima = []
+        self.cached_ask = None
+        self.results_idx = 0
+        self.last_ask = None
 
     def ask(self, *args) -> npt.NDArray:
-        self.results = super().ask()
-        if any(self.results["local_min"]):
-            min_idxs = self.results["local_min"]
-            self.all_local_minima.append(self.results[min_idxs])
-            self.results = self.results[~min_idxs]
-        return self.results
+        if not self.last_ask:  # haven't been asked yet, or all previously enqueued points have been "asked"
+            self.last_ask = super().ask()
+            if any(
+                self.last_ask["local_min"]
+            ):  # filter out local minima rows, but they're cached in self.all_local_minima
+                min_idxs = self.last_ask["local_min"]
+                self.all_local_minima.append(self.last_ask[min_idxs])
+                self.last_ask = self.last_ask[~min_idxs]
+        if len(args) and isinstance(args[0], int):  # we've been asked for a selection of the last ask
+            num_asked = args[0]
+            results = self.last_ask[self.results_idx : self.results_idx + num_asked]
+            self.results_idx += num_asked
+            if self.results_idx >= len(
+                self.last_ask
+            ):  # all points have been asked out of the selection. next time around, get new points from aposmm
+                self.results_idx = 0
+                self.last_ask = None
+            return results
+        results = copy.deepcopy(self.last_ask)
+        self.last_ask = None
+        return results
 
     def ask_updates(self) -> npt.NDArray:
         minima = copy.deepcopy(self.all_local_minima)
