@@ -186,7 +186,7 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.last_ask = None
 
     def ask(self, *args) -> npt.NDArray:
-        if not self.last_ask:  # haven't been asked yet, or all previously enqueued points have been "asked"
+        if self.last_ask is None:  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.last_ask = super().ask()
             if any(
                 self.last_ask["local_min"]
