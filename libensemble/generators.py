@@ -127,8 +127,8 @@ class LibEnsembleGenInterfacer(Generator):
     def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
         if not self.gen.running:
             self.gen.run()
-        _, self.last_ask = self.outbox.get()
-        return self.last_ask["calc_out"]
+        _, self.blast_ask = self.outbox.get()
+        return self.blast_ask["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
         return self.ask()
@@ -136,10 +136,12 @@ class LibEnsembleGenInterfacer(Generator):
     def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             results = self._set_sim_ended(results)
-            self.inbox.put((tag, {"libE_info": {"H_rows": results["sim_id"], "persistent": True, "executor": None}}))
+            self.inbox.put(
+                (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
+            )
         else:
             self.inbox.put((tag, None))
-        self.inbox.put((0, results))
+        self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         self.tell(results, PERSIS_STOP)
@@ -189,25 +191,26 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.last_ask = None
 
     def ask(self, *args) -> npt.NDArray:
-        if self.last_ask is None:  # haven't been asked yet, or all previously enqueued points have been "asked"
+        if (self.last_ask is None) or (
+            self.results_idx >= len(self.last_ask)
+        ):  # haven't been asked yet, or all previously enqueued points have been "asked"
+            self.results_idx = 0
             self.last_ask = super().ask()
-            if any(
-                self.last_ask["local_min"]
-            ):  # filter out local minima rows, but they're cached in self.all_local_minima
+            if self.last_ask[
+                "local_min"
+            ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
+                print("FOUND A MINIMA")
                 min_idxs = self.last_ask["local_min"]
                 self.all_local_minima.append(self.last_ask[min_idxs])
                 self.last_ask = self.last_ask[~min_idxs]
         if len(args) and isinstance(args[0], int):  # we've been asked for a selection of the last ask
             num_asked = args[0]
-            results = self.last_ask[self.results_idx : self.results_idx + num_asked]
+            results = np.copy(
+                self.last_ask[self.results_idx : self.results_idx + num_asked]
+            )  # if resetting last_ask later, results may point to "None"
             self.results_idx += num_asked
-            if self.results_idx >= len(
-                self.last_ask
-            ):  # all points have been asked out of the selection. next time around, get new points from aposmm
-                self.results_idx = 0
-                self.last_ask = None
             return results
-        results = copy.deepcopy(self.last_ask)
+        results = np.copy(self.last_ask)
         self.results = results
         self.last_ask = None
         return results
