@@ -72,9 +72,9 @@ The default is ``mpi``.
 
         Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
         or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
-        you can specify these on the command line::
+        this can be specified on the command-line::
 
-            python myscript.py --comms local --nworkers N
+            python myscript.py -n N
 
         This will launch one manager and ``N`` workers.
 
@@ -202,7 +202,7 @@ any machine and any scheduler, using a `PSI/J`_ Python implementation.
         Creates an initial, platform-independent PSI/J serialization of a libEnsemble submission. Run this utility on
         a script::
 
-            liberegister my_calling_script.py --comms local --nworkers 4
+            liberegister my_calling_script.py -n 4
 
         This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
 

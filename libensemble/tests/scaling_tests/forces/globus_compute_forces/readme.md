@@ -23,7 +23,7 @@ match the machine's specifications.
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces_globus_compute.py --comms local --nworkers N
+    python run_libe_forces_globus_compute.py -n N
 
 To run with MPI comms using one manager and `N-1` workers:
 

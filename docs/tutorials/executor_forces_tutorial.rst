@@ -209,7 +209,7 @@ This completes our calling script and simulation function. Run libEnsemble with:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers [nworkers]
+    python run_libe_forces.py -n [nworkers]
 
 where ``nworkers`` is one more than the number of concurrent simulations.
 
@@ -224,7 +224,7 @@ and ``ensemble.log`` as usual.
 
    .. code-block:: bash
 
-       python run_libe_forces.py --comms local --nworkers 3
+       python run_libe_forces.py -n 3
 
    my ``libE_stats.txt`` resembled::
 
@@ -358,13 +358,13 @@ E.g., Instead of:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py -n 5
 
 use:
 
 .. code-block:: bash
 
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py -n 4
 
 Note that as the generator random number seed will be zero instead of one, the checksum will change.
 

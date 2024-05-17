@@ -19,4 +19,4 @@ export NUM_WORKERS=4
 mpirun -np $(($NUM_WORKERS+1)) -ppn $(($NUM_WORKERS+1)) python $EXE
 
 # To use local mode instead of mpi4py (with parse_args())
-# python $EXE --comms local --nworkers $NUM_WORKERS
+# python $EXE -n $NUM_WORKERS

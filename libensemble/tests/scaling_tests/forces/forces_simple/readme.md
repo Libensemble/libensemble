@@ -13,7 +13,7 @@ Build forces application and run the ensemble. Go to `forces_app` directory and 
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py -n 5
 
 This will run with four workers. One worker will run the persistent generator.
 The other four will run the forces simulations.
@@ -43,7 +43,7 @@ and run to build `forces.x`:
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces.py --comms local --nworkers N
+    python run_libe_forces.py -n N
 
 To run with MPI comms using one manager and `N-1` workers:
 

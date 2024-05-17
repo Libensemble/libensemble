@@ -152,7 +152,7 @@ First make sure that all Balsam apps are synced with the Balsam service:
 
 Then run libEnsemble with multiprocessing comms, with one manager and `N` workers:
 
-    python run_libe_forces_balsam.py --comms local --nworkers N
+    python run_libe_forces_balsam.py -n N
 
 Or, run with MPI comms using one manager and `N-1` workers:
 

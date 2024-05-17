@@ -7,4 +7,4 @@
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 cd $PBS_O_WORKDIR
-python run_libe_forces.py --comms local --nworkers 5
+python run_libe_forces.py -n 5

@@ -36,7 +36,7 @@ Basic Usage
 ===========
 
 Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
-and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
+and an exit condition. Run the following via ``python this_file.py -n 4``:
 
 .. code-block:: python
 

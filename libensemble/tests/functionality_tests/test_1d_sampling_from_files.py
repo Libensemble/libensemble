@@ -4,8 +4,8 @@ the libEnsemble yaml interface
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_1d_sampling_from_yaml.py
-   python test_1d_sampling_from_yaml.py --nworkers 3 --comms local
-   python test_1d_sampling_from_yaml.py --nworkers 3 --comms tcp
+   python test_1d_sampling_from_yaml.py -n 3
+   python test_1d_sampling_from_yaml.py --comms tcp --nworkers 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

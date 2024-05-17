@@ -14,7 +14,7 @@ If you wish to clone libEnsemble to try the examples instead of installing from 
 
 Any of the tests can be run similarly to the following::
 
-    python test_uniform_sampling.py --comms local --nworkers 3
+    python test_uniform_sampling.py -n 3
 
 The command line arguments are parsed by a ``parse_args`` module within each of the scripts. If you
 have ``mpi4py`` installed you can alternatively run with::

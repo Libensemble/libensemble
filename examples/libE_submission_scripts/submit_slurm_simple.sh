@@ -12,4 +12,4 @@
 export SLURM_EXACT=1
 export SLURM_MEM_PER_NODE=0
 
-python libe_calling_script.py --comms local --nworkers 8
+python libe_calling_script.py -n 8

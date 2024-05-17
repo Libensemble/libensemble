@@ -64,7 +64,7 @@ Now grab an interactive session on one node::
 
 Then in the session run::
 
-    python run_libe_forces.py --comms local --nworkers 8
+    python run_libe_forces.py -n 8
 
 To see GPU usage, ssh into the node you are on in another window and run::
 

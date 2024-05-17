@@ -3,8 +3,8 @@ Tests libEnsemble capability to abort persistent worker.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_6-hump_camel_active_persistent_worker_abort.py
-   python test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms local
-   python test_6-hump_camel_active_persistent_worker_abort.py --nworkers 3 --comms tcp
+   python test_6-hump_camel_active_persistent_worker_abort.py -n 3
+   python test_6-hump_camel_active_persistent_worker_abort.py --comms tcp --nworkers 3
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the

@@ -167,7 +167,7 @@ def parse_args():
 
     From the shell::
 
-        $ python calling_script --comms local --nworkers 4
+        $ python calling_script -n 4
 
     Usage::
 
@@ -201,7 +201,7 @@ def parse_args():
         Example command lines:
 
         Run with 'local' comms and 4 workers (the following are equivalent).
-        $ python calling_script --comms local --nworkers 4
+        $ python calling_script -n 4
         $ python calling_script --nworkers 4
         $ python calling_script -n 4
 

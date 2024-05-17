@@ -64,7 +64,7 @@ Once in the interactive session, you may need to reload the frameworks module::
 
 Then in the session run::
 
-    python run_libe_forces.py --comms local --nworkers 13
+    python run_libe_forces.py -n 13
 
 This provides twelve workers for running simulations (one for each GPU across
 two nodes). An extra worker is added to run the persistent generator. The
@@ -90,7 +90,7 @@ option ``use_tiles_as_gpus=True``, so the *libE_specs* block of
 Now you can run again but with twice the workers for running simulations (each
 will use one GPU tile)::
 
-    python run_libe_forces.py --comms local --nworkers 25
+    python run_libe_forces.py -n 25
 
 Note that the *forces* example will automatically use the GPUs available to
 each worker (with one MPI rank per GPU), so if fewer workers are provided,

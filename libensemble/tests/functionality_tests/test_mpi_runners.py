@@ -3,8 +3,8 @@ Runs libEnsemble testing the MPI Runners command creation.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_mpi_runners.py
-   python test_mpi_runners.py --nworkers 3 --comms local
-   python test_mpi_runners.py --nworkers 3 --comms tcp
+   python test_mpi_runners.py -n 3
+   python test_mpi_runners.py --comms tcp --nworkers 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         {"testid": "sr2", "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
         {"testid": "sr3", "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
         {"testid": "sr4", "ngpus": 8, "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
-        {"testid": "sr5", "ngpus": 8, "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"}
+        {"testid": "sr5", "ngpus": 8, "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},
     ]
 
     # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.

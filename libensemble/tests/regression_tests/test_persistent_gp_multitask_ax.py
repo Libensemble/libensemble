@@ -4,8 +4,8 @@ Ax).
 
 Execute via one of the following commands (e.g. 5 workers):
    mpiexec -np 5 python test_persistent_gp_multitask_ax.py
-   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms local
-   python test_persistent_gp_multitask_ax.py --nworkers 4 --comms tcp
+   python test_persistent_gp_multitask_ax.py -n 4
+   python test_persistent_gp_multitask_ax.py --comms tcp --nworkers 4
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 3, as one of the three workers will be the

@@ -4,8 +4,8 @@ then starts persistent local optimization runs.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_uniform_sampling_then_persistent_localopt_runs.py
-   python test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms local
-   python test_uniform_sampling_then_persistent_localopt_runs.py --nworkers 3 --comms tcp
+   python test_uniform_sampling_then_persistent_localopt_runs.py -n 3
+   python test_uniform_sampling_then_persistent_localopt_runs.py --comms tcp --nworkers 3
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the

@@ -4,7 +4,7 @@ and the ytopt findRunTime interface in a simulator function.
 
 Execute locally via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python run_ytopt_xsbench.py
-   python run_ytopt_xsbench.py --nworkers 3 --comms local
+   python run_ytopt_xsbench.py -n 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

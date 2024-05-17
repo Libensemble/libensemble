@@ -11,4 +11,4 @@ export MPICH_GPU_SUPPORT_ENABLED=1
 cd $PBS_O_WORKDIR
 
 # 2 nodes - 12 sim workers (6 GPUs per node)
-python libE_calling_script.py --comms local --nworkers 13
+python libE_calling_script.py -n 13

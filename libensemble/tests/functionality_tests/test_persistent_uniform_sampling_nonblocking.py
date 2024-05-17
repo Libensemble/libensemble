@@ -4,8 +4,8 @@ function.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_persistent_uniform_sampling_nonblocking.py
-   python test_persistent_uniform_sampling_nonblocking.py --nworkers 3 --comms local
-   python test_persistent_uniform_sampling_nonblocking.py --nworkers 3 --comms tcp
+   python test_persistent_uniform_sampling_nonblocking.py -n 3
+   python test_persistent_uniform_sampling_nonblocking.py --comms tcp --nworkers 3
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the

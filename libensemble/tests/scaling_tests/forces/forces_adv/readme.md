@@ -7,7 +7,7 @@ Build executable and run example. Go to `forces_app` directory and build `forces
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py -n 4
 
 ## Running test run_libe_forces.py
 
@@ -33,7 +33,7 @@ build forces.x:
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces.py --comms local --nworkers N
+    python run_libe_forces.py -n N
 
 To run with MPI comms using one manager and `N-1` workers:
 

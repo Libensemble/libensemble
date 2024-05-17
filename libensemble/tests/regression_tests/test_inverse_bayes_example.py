@@ -3,8 +3,8 @@ Tests libEnsemble's inverse_bayes generator function
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_inverse_bayes_example.py
-   python test_inverse_bayes_example.py --nworkers 3 --comms local
-   python test_inverse_bayes_example.py --nworkers 3 --comms tcp
+   python test_inverse_bayes_example.py -n 3
+   python test_inverse_bayes_example.py --comms tcp --nworkers 3
 
 Debugging:
    mpiexec -np 4 xterm -e "python inverse_bayes_example.py"

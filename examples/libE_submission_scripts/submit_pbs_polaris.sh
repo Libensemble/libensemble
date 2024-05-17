@@ -7,4 +7,4 @@
 
 export MPICH_GPU_SUPPORT_ENABLED=1
 cd $PBS_O_WORKDIR
-python libE_calling_script.py --comms local --nworkers 4
+python libE_calling_script.py -n 4

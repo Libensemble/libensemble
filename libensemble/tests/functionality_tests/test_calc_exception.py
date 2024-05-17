@@ -3,8 +3,8 @@ A test of libEnsemble exception handling.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_calc_exception.py
-   python test_calc_exception.py --nworkers 3 --comms local
-   python test_calc_exception.py --nworkers 3 --comms tcp
+   python test_calc_exception.py -n 3
+   python test_calc_exception.py --comms tcp --nworkers 3
 """
 
 # Do not change these lines - they are parsed by run-tests.sh

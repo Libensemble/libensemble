@@ -4,8 +4,8 @@ Scale up array_size and number of workers as required
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_comms.py
-   python test_comms.py --nworkers 3 --comms local
-   python test_comms.py --nworkers 3 --comms tcp
+   python test_comms.py -n 3
+   python test_comms.py --comms tcp --nworkers 3
 
 The number of concurrent evaluations of the objective function will be N-1.
 """

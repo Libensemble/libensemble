@@ -19,7 +19,7 @@ for your platform (these will include -DGPU)
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py -n 5
 
 This will run libEnsemble with five workers; one for the persistent generator, and
 four for forces simulations (so four GPUs are required).

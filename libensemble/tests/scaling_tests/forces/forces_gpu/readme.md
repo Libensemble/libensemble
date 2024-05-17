@@ -15,7 +15,7 @@ for your platform (these will include -DGPU)
 
 Then return here and run:
 
-    python run_libe_forces.py --comms local --nworkers 5
+    python run_libe_forces.py -n 5
 
 This will run libEnsemble with five workers; one for the persistent generator, and
 four for forces simulations (so four GPUs are required).
@@ -50,7 +50,7 @@ build forces.x:
 
 Then to run with local comms (multiprocessing) with one manager and `N` workers:
 
-    python run_libe_forces.py --comms local --nworkers N
+    python run_libe_forces.py -n N
 
 To run with MPI comms using one manager and `N-1` workers:
 

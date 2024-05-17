@@ -4,8 +4,8 @@ This tests per-calculation gen_dir capabilities
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_sim_dirs_with_gen_dirs.py
-   python test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms local
-   python test_sim_dirs_with_gen_dirs.py --nworkers 3 --comms tcp
+   python test_sim_dirs_with_gen_dirs.py -n 3
+   python test_sim_dirs_with_gen_dirs.py --comms tcp --nworkers 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

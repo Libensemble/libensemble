@@ -21,4 +21,4 @@ export I_MPI_FABRICS=shm:tmi
 srun --overcommit --ntasks=$(($NUM_WORKERS+1)) --nodes=1 python $EXE
 
 # To use local mode instead of mpi4py (with parse_args())
-# python calling_script.py --comms local --nworkers $NUM_WORKERS
+# python calling_script.py -n $NUM_WORKERS

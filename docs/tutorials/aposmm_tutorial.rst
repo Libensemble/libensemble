@@ -253,7 +253,7 @@ optimization method::
 
 Finally, run this libEnsemble / APOSMM optimization routine with the following::
 
-    python my_first_aposmm.py --comms local --nworkers 4
+    python my_first_aposmm.py -n 4
 
 Please note that one worker will be "persistent" for APOSMM for the duration of
 the routine.

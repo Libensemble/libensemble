@@ -8,4 +8,4 @@
 export MPICH_GPU_SUPPORT_ENABLED=1
 export SLURM_EXACT=1
 
-python run_libe_forces.py --comms local --nworkers 5
+python run_libe_forces.py -n 5

@@ -5,8 +5,8 @@ This test must be run on an even number of workers >= 2 (e.g. odd no. of procs w
 
 Execute via one of the following commands (e.g. 4 workers):
    mpiexec -np 5 python test_mpi_runners_subnode.py
-   python test_mpi_runners_subnode.py --nworkers 4 --comms local
-   python test_mpi_runners_subnode.py --nworkers 4 --comms tcp
+   python test_mpi_runners_subnode.py -n 4
+   python test_mpi_runners_subnode.py --comms tcp --nworkers 4
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """

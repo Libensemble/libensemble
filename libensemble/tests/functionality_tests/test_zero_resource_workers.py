@@ -3,8 +3,8 @@ Runs libEnsemble testing the zero_resource_workers argument.
 
 Execute via one of the following commands (e.g. 3 workers):
    mpiexec -np 4 python test_zero_resource_workers.py
-   python test_zero_resource_workers.py --nworkers 3 --comms local
-   python test_zero_resource_workers.py --nworkers 3 --comms tcp
+   python test_zero_resource_workers.py -n 3
+   python test_zero_resource_workers.py --comms tcp --nworkers 3
 
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
