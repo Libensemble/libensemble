@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 
+import yaml
+
 # ==================== Command-line argument parsing ===========================
 
 parser = argparse.ArgumentParser(prog="test_...")
@@ -29,7 +31,7 @@ parser.add_argument("--worker_pwd", type=str, nargs="?", help="Working directory
 parser.add_argument(
     "--worker_python", type=str, nargs="?", default=sys.executable, help="Python version on remote client"
 )
-parser.add_argument("--tester_args", type=str, nargs="*", help="Additional arguments for use by specific testers")
+parser.add_argument("--worker_file", type=str, nargs=1, help="YAML file for configuring remote-worker hosts.")
 
 
 def _get_zrw(nworkers, nsim_workers):
@@ -59,7 +61,7 @@ def _mpi_parse_args(args):
         # libE_specs["zero_resource_workers"] = _get_zrw(nworkers, nsim_workers)
         libE_specs["num_resource_sets"] = libE_specs.get("num_resource_sets", nsim_workers)
 
-    return nworkers, is_manager, libE_specs, args.tester_args
+    return nworkers, is_manager, libE_specs
 
 
 def _local_parse_args(args):
@@ -80,7 +82,7 @@ def _local_parse_args(args):
     nworkers = nworkers or 4
     libE_specs["nworkers"] = nworkers
 
-    return nworkers, True, libE_specs, args.tester_args
+    return nworkers, True, libE_specs
 
 
 def _tcp_parse_args(args):
@@ -101,11 +103,21 @@ def _tcp_parse_args(args):
         str(nworkers),
     ]
     libE_specs = {"nworkers": nworkers, "worker_cmd": cmd, "comms": "tcp"}
-    return nworkers, True, libE_specs, args.tester_args
+    return nworkers, True, libE_specs
+
+
+def _parse_workerfile(workerfile):
+    """Parses workerfile for worker information."""
+    with open(workerfile, "r") as f:
+        worker_info = yaml.load(f, Loader=yaml.FullLoader)
+    hosts = [i for i in worker_info.keys()]
+    print(hosts)
 
 
 def _ssh_parse_args(args):
     """Parses arguments for SSH with reverse tunnel."""
+    if args.worker_file is not None:
+        args = _parse_workerfile(args.worker_file[0])
     nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
@@ -129,7 +141,7 @@ def _ssh_parse_args(args):
     cmd = f"( cd {worker_pwd} ; {cmd} )"
     ssh.append(cmd)
     libE_specs = {"workers": args.workers, "worker_cmd": ssh, "ip": "localhost", "comms": "tcp"}
-    return nworkers, True, libE_specs, args.tester_args
+    return nworkers, True, libE_specs
 
 
 def _client_parse_args(args):
@@ -144,7 +156,7 @@ def _client_parse_args(args):
         "nworkers": nworkers,
         "comms": "tcp",
     }
-    return nworkers, False, libE_specs, args.tester_args
+    return nworkers, False, libE_specs
 
 
 def parse_args():
@@ -178,7 +190,7 @@ def parse_args():
                         [--workerID [WORKERID]] [--server SERVER SERVER SERVER]
                         [--pwd [PWD]] [--worker_pwd [WORKER_PWD]]
                         [--worker_python [WORKER_PYTHON]]
-                        [--tester_args [TESTER_ARGS [TESTER_ARGS ...]]]
+                        [--worker_file [TESTER_ARGS]]
 
         Note that running via an MPI runner uses the default 'mpi' comms, and '--nworkers'
         will be ignored. The number of processes are supplied via the MPI run line. One being
@@ -235,6 +247,8 @@ def parse_args():
     if args.comms is None:
         if args.nworkers is not None:
             args.comms = "local"
+        if args.worker_file is not None:
+            args.comms = "ssh"
 
     front_ends = {
         "mpi": _mpi_parse_args,
@@ -246,5 +260,5 @@ def parse_args():
     }
     if args.pwd is not None:
         os.chdir(args.pwd)
-    nworkers, is_manager, libE_specs, tester_args = front_ends[args.comms or "mpi"](args)
+    nworkers, is_manager, libE_specs = front_ends[args.comms or "mpi"](args)
     return nworkers, is_manager, libE_specs, misc_args

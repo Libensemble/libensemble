@@ -1,0 +1,9 @@
+bebop.lcrc.anl.gov:
+    worker_ids: 1
+    working_dir: /home/jnavarro/
+    python_exe: /home/jnavarro/.conda/envs/bebop/bin/python
+
+localhost:
+    worker_ids: 2-4
+    working_dir: /Users/jnavarro/
+    python_exe: python
