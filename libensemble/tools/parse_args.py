@@ -31,7 +31,8 @@ parser.add_argument("--worker_pwd", type=str, nargs="?", help="Working directory
 parser.add_argument(
     "--worker_python", type=str, nargs="?", default=sys.executable, help="Python version on remote client"
 )
-parser.add_argument("--worker_file", type=str, nargs=1, help="YAML file for configuring remote-worker hosts.")
+parser.add_argument("--worker_file", type=str, nargs=1, help="YAML file for configuring remote-worker hosts")
+parser.add_argument("--ssh", type=str, nargs=1, help="ssh-accessible remote-host for launching workers")
 
 
 def _get_zrw(nworkers, nsim_workers):
@@ -106,19 +107,31 @@ def _tcp_parse_args(args):
     return nworkers, True, libE_specs
 
 
-def _parse_workerfile(workerfile):
+def _parse_workerfile(args):
     """Parses workerfile for worker information."""
-    with open(workerfile, "r") as f:
+    with open(args.worker_file[0], "r") as f:
         worker_info = yaml.load(f, Loader=yaml.FullLoader)
     hosts = [i for i in worker_info.keys()]
-    print(hosts)
+    args.workers = hosts
+    # TODO: handle more than one remote host
+
+
+def _parse_ssh_args(args):
+    """Parses arguments for SSH with reverse tunnel."""
+    host = args.ssh[0].split(",")
+    nworkers = args.nworkers
+    args.workers = host * nworkers  # TODO: handle more than one remote host
+    return args, nworkers
 
 
 def _ssh_parse_args(args):
     """Parses arguments for SSH with reverse tunnel."""
     if args.worker_file is not None:
-        args = _parse_workerfile(args.worker_file[0])
-    nworkers = len(args.workers)
+        args = _parse_workerfile(args)
+    if args.ssh is not None:
+        args, nworkers = _parse_ssh_args(args)
+    else:
+        nworkers = len(args.workers)
     worker_pwd = args.worker_pwd or os.getcwd()
     script_dir, script_name = os.path.split(sys.argv[0])
     worker_script_name = os.path.join(worker_pwd, script_name)
@@ -247,7 +260,7 @@ def parse_args():
     if args.comms is None:
         if args.nworkers is not None:
             args.comms = "local"
-        if args.worker_file is not None:
+        if args.worker_file is not None or args.ssh is not None:
             args.comms = "ssh"
 
     front_ends = {
