@@ -31,7 +31,7 @@ def _get_user_params(user_specs):
 
 
 class RandSample(Generator):
-    def __init__(self, _, persis_info, gen_specs, libE_info=None):
+    def __init__(self, gen_specs, _, persis_info, libE_info=None):
         # self.H = H
         self.persis_info = persis_info
         self.gen_specs = gen_specs
@@ -60,9 +60,6 @@ class RandSample(Generator):
         assert isinstance(self.n, int), "Dimension must be an integer"
         assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
-
-    def final_tell(self, results):
-        pass
 
 
 @persistent_input_fields(["f", "x", "sim_id"])

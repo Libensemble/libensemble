@@ -1,6 +1,7 @@
 import inspect
-from libensemble.tools.persistent_support import PersistentSupport
+
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
+from libensemble.tools.persistent_support import PersistentSupport
 
 
 def persistent_gen_f(H, persis_info, gen_specs, libE_info):
@@ -12,7 +13,7 @@ def persistent_gen_f(H, persis_info, gen_specs, libE_info):
 
     generator = U["generator"]
     if inspect.isclass(generator):
-        gen = generator(H, persis_info, gen_specs, libE_info)
+        gen = generator(gen_specs, H, persis_info, libE_info)
     else:
         gen = generator
 
