@@ -103,7 +103,7 @@ class LibEnsembleGenInterfacer(Generator):
         self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
         self.libE_info["executor"] = Executor.executor
 
-        self.gen = QCommThread(
+        self.thread = QCommThread(
             self.gen_f,
             None,
             self.History,
@@ -111,7 +111,7 @@ class LibEnsembleGenInterfacer(Generator):
             self.gen_specs,
             self.libE_info,
             user_function=True,
-        )  # note that self.gen's inbox/outbox are unused by the underlying gen
+        )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         if "sim_ended" in results.dtype.names:
@@ -125,8 +125,8 @@ class LibEnsembleGenInterfacer(Generator):
         return results
 
     def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
-        if not self.gen.running:
-            self.gen.run()
+        if not self.thread.running:
+            self.thread.run()
         _, self.blast_ask = self.outbox.get()
         return self.blast_ask["calc_out"]
 
@@ -145,7 +145,7 @@ class LibEnsembleGenInterfacer(Generator):
 
     def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         self.tell(results, PERSIS_STOP)
-        return self.gen.result()
+        return self.thread.result()
 
     def create_results_array(
         self, length: int = 0, addtl_fields: list = [("f", float)], empty: bool = False
@@ -199,7 +199,6 @@ class APOSMM(LibEnsembleGenInterfacer):
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
-                print("FOUND A MINIMA")
                 min_idxs = self.last_ask["local_min"]
                 self.all_local_minima.append(self.last_ask[min_idxs])
                 self.last_ask = self.last_ask[~min_idxs]
