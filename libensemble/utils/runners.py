@@ -136,7 +136,8 @@ class AskTellGenRunner(Runner):
         if hasattr(self.gen, "setup"):
             self.gen.persis_info = persis_info
             self.gen.libE_info = libE_info
-            self.gen.setup()
+            if self.gen.thread is None:
+                self.gen.setup()  # maybe we're reusing a live gen from a previous run
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
         if not issubclass(type(self.gen), LibEnsembleGenInterfacer):
             H_out = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time

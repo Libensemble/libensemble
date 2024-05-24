@@ -94,6 +94,7 @@ class LibEnsembleGenInterfacer(Generator):
         self.History = History
         self.persis_info = persis_info
         self.libE_info = libE_info
+        self.thread = None
 
     def setup(self) -> None:
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
