@@ -6,10 +6,132 @@ import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from IPython.display import display, clear_output
+
 logger = logging.getLogger(__name__)
+
+plt.ion()  # Enable interactive mode
+
 
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
+
+def six_hump_camel_func(x1, x2):
+    term1 = (4-2.1*x1**2+(x1**4)/3) * x1**2
+    term2 = x1*x2
+    term3 = (-4+4*x2**2) * x2**2
+    return term1 + term2 + term3
+
+def init_plot(ax):
+    #ax.cla()  # Clear the previous frame
+    x1 = np.linspace(-2, 2, 50)
+    x2 = np.linspace(-1, 1.1, 50)
+    x1, x2 = np.meshgrid(x1, x2)
+    f = six_hump_camel_func(x1, x2)
+    ax.contourf(x1, x2, f, cmap='winter')  # Change to a contour plot
+
+    #ax.plot_surface(x1, x2, f, rstride=1, cstride=1, cmap='winter', edgecolor='none', alpha=0.6, zorder=1)
+    ax.set_xlabel('x1')
+    ax.set_ylabel('x2')
+    #ax.set_zlabel('f')
+
+    #all_pts = ax.scatter3D([], [], [], s=6, color='black', depthshade=False, label='Point')
+    #local_pts = ax.scatter3D([], [], [], s=40, color='red', marker='^', zorder=2, depthshade=False, label='Local Point')
+    #local_mins = ax.scatter3D([], [], [], s=100, color='yellow', marker='*', zorder=3, depthshade=False, label='Local Min')
+    #ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # when not clearing
+    #all_pts = ax.scatter([], [], s=6, color='black', zorder=2, alpha=0.5, label='Point')
+    #local_pts = ax.scatter([], [], s=40, color='red', marker='^', zorder=3, label='Optimization point')
+    #local_mins = ax.scatter([], [], s=100, color='yellow', marker='D', zorder=4, label='Local minimum')
+
+
+    #ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+
+
+def update_plot(fig, ax, H):
+    ax.cla()  # Clear the previous frame
+    init_plot(ax)
+
+    # with ax.cla() need to replot - othersie dont - but seeing if makes a difference.
+
+
+    #SH this should only need ot be done once.
+    # Create the surface plot
+
+    ## Extract points from H
+    #x1_all = H['x'][:, 0]
+    #x2_all = H['x'][:, 1]
+    #f_all = H['f']
+
+    #x1_local = H[H['local_pt'] & ~H['local_min']]['x'][:, 0]
+    #x2_local = H[H['local_pt'] & ~H['local_min']]['x'][:, 1]
+    #f_local = H[H['local_pt'] & ~H['local_min']]['f']
+
+    #x1_min = H[H['local_min']]['x'][:, 0]
+    #x2_min = H[H['local_min']]['x'][:, 1]
+    #f_min = H[H['local_min']]['f']
+
+    ## Plot the points
+    #ax.scatter3D(x1_all, x2_all, f_all, s=50, color='black')
+    #ax.scatter3D(x1_min, x2_min, f_min, s=150, color='magenta', marker='*', zorder=3)
+    #ax.scatter3D(x1_local, x2_local, f_local, s=15, color='red', marker='^')
+
+    x1 = H['x'][:,0]
+    x2 = H['x'][:,1]
+    f = H['f']
+    #all_pts = ax.scatter3D(x1, x2, f, s=6, color='black', zorder=2, alpha=0.5, label='Point')
+    all_pts = ax.scatter(x1, x2, s=6, color='black', zorder=2, alpha=0.5, label='Point')
+    all_pts.set_offsets(np.c_[x1, x2])
+    #dontwork
+    #non_local_min_H = H[~H['local_min']]
+    #x1 = non_local_min_H[non_local_min_H['local_pt']]['x'][:, 0]
+    #x2 = non_local_min_H[non_local_min_H['local_pt']]['x'][:, 1]
+    #f = non_local_min_H[non_local_min_H['local_pt']]['f']
+    #local_pts = ax.scatter3D(x1, x2, f, s=15, color='red', marker='^', zorder=2, depthshade=False)
+
+    x1 = H[H['local_pt']]['x'][:,0]
+    x2 = H[H['local_pt']]['x'][:,1]
+    f = H[H['local_pt']]['f']
+    #local_pts = ax.scatter3D(x1, x2, f, s=40, color='red', marker='^', zorder=3, label='Optimization point')
+    local_pts = ax.scatter(x1, x2, s=40, color='red', marker='^', zorder=3, label='Optimization point')
+    local_pts.set_offsets(np.c_[x1, x2])
+
+    x1 = H[H['local_min']]['x'][:,0]
+    x2 = H[H['local_min']]['x'][:,1]
+    f = H[H['local_min']]['f']
+    #local_mins = ax.scatter3D(x1, x2, f, s=50, color='red', marker='*')
+    #local_mins = ax.scatter3D(x1, x2, f, s=100, color='magenta', marker='^')
+    #local_mins = ax.scatter3D(x1, x2, f, s=100, color='yellow', marker='D', zorder=4, label='Local minimum')
+    local_mins = ax.scatter(x1, x2, s=100, color='yellow', marker='D', zorder=4, label='Local minimum')
+    local_mins.set_offsets(np.c_[x1, x2])
+
+    #fig.subplots_adjust(top=0.5, bottom=0.1)
+    #plt.title("Points Selected by APOSMM Local Optimization runs", y=1.05)  # Adjust title position
+    #plt.title("Points Selected by APOSMM Local Optimization runs", pad=0.5)  # Adjust title position
+    #plt.tight_layout(pad=1.0)
+    #fig = ax.get_figure()
+    fig.tight_layout()
+    #fig.subplots_adjust(top=0.8)
+    #import pdb;pdb.set_trace()
+    plt.title("Points Selected by APOSMM Local Optimization runs", y=1.0)  # Adjust title position
+    num_local_min = len(H[H['local_min']])
+    #ax.text2D(0.05, 0.8, f'Number of local minima found: {num_local_min}', transform=ax.transAxes, ha='left', va='top', bbox=dict(facecolor='white', alpha=0.8))
+    #ax.text2D(0.6, 0.8, f'Points evaluated: {np.sum(H["sim_ended"])}', transform=ax.transAxes, ha='left', va='top', bbox=dict(facecolor='white', alpha=0.8))
+
+    ax.text(0.05, 0.8, f'Number of local minima found: {num_local_min}', transform=ax.transAxes, ha='left', va='top', bbox=dict(facecolor='white', alpha=0.8))
+    ax.text(0.6, 0.8, f'Points evaluated: {np.sum(H["sim_ended"])}', transform=ax.transAxes, ha='left', va='top', bbox=dict(facecolor='white', alpha=0.8))
+
+    ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+
+
+    display(plt.gcf())
+    #display(fig)
+    #plt.show()
+    #ax.collections.clear()
+    clear_output(wait=True)
 
 
 class History:
@@ -106,6 +228,19 @@ class History:
         self.last_started = -1
         self.last_ended = -1
 
+        self.last_plot_count = 0
+
+        #self.fig = plt.figure(figsize=(24, 16))
+        self.fig = plt.figure(figsize=(7.3, 5.5))
+        #self.fig = plt.figure()
+        #self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax = self.fig.add_subplot(111)
+        init_plot(self.ax)
+
+        #plt.ion()  # Enable interactive mode
+        #fig = plt.figure(figsize=(12, 8))
+        #ax = fig.add_subplot(111, projection='3d')
+
     def _append_new_fields(self, H_f: npt.NDArray) -> None:
         dtype_new = np.dtype(list(set(self.H.dtype.descr + H_f.dtype.descr)))
         H_new = np.zeros(len(self.H), dtype=dtype_new)
@@ -147,6 +282,26 @@ class History:
             self.H["sim_ended"][ind] = True
             self.H["sim_ended_time"][ind] = time.time()
             self.sim_ended_count += 1
+
+
+            update_plot_now = False
+            if np.count_nonzero(self.H[self.last_plot_count:]['local_pt']) > 5:
+                update_plot_now = True
+
+            if np.any(self.H[self.last_plot_count:]['local_min']):
+                update_plot_now = True
+
+            if self.sim_ended_count >= self.last_plot_count + 100:
+                update_plot_now = True
+
+            if update_plot_now:
+                #plt.ion()  # Enable interactive mode
+                #fig = plt.figure(figsize=(24, 16))
+                #ax = fig.add_subplot(111, projection='3d')
+                update_plot(self.fig, self.ax, self.H)
+                self.last_plot_count = self.sim_ended_count
+                #plt.ioff()  # Disable interactive mode
+                #plt.show()
 
         if kill_canceled_sims:
             for j in range(self.last_ended + 1, np.max(new_inds) + 1):
