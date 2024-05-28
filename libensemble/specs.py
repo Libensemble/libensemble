@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
 
+
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
 
@@ -374,6 +375,9 @@ class LibeSpecs(BaseModel):
 
     stats_fmt: Optional[dict] = {}
     """ Options for formatting ``'libE_stats.txt'``. See 'Formatting libE_stats.txt'. """
+
+    live_data: Optional[Any] = None
+    """ Add a live data capture object (e.g., plotting). """
 
     workers: Optional[List[str]] = []
     """ TCP Only: A list of worker hostnames. """
