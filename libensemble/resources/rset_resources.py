@@ -95,6 +95,7 @@ class RSetResources:
             slot_list.append(slot)
             gpu_list.append(slot < gpus_per_node)
             slot += 1
+        print(group_list, slot_list, gpu_list)
         return group_list, slot_list, gpu_list
 
     @staticmethod
