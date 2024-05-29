@@ -86,21 +86,14 @@ class RSetResources:
         group_list = []
         slot_list = []
         gpu_list = []
-        node = split_list[0]
+        gsize = 4
         for i in range(len(split_list)):
-            if split_list[i] == node:
-                group_list.append(group)
-                slot_list.append(slot)
-            else:
-                node = split_list[i]
-                group += 1
-                group_list.append(group)
+            if slot == gsize:
                 slot = 0
-                slot_list.append(slot)
-            if slot < gpus_per_node:
-                gpu_list.append(True)
-            else:
-                gpu_list.append(False)
+                group += 1
+            group_list.append(group)
+            slot_list.append(slot)
+            gpu_list.append(slot < gpus_per_node)
             slot += 1
         return group_list, slot_list, gpu_list
 
