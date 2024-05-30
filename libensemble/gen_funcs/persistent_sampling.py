@@ -31,7 +31,7 @@ def _get_user_params(user_specs):
 
 
 class RandSample(Generator):
-    def __init__(self, gen_specs, _, persis_info, libE_info=None):
+    def __init__(self, _, persis_info, gen_specs, libE_info=None):
         # self.H = H
         self.persis_info = persis_info
         self.gen_specs = gen_specs

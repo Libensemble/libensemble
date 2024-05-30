@@ -13,7 +13,7 @@ def persistent_gen_f(H, persis_info, gen_specs, libE_info):
 
     generator = U["generator"]
     if inspect.isclass(generator):
-        gen = generator(gen_specs, H, persis_info, libE_info)
+        gen = generator(H, persis_info, gen_specs, libE_info)
     else:
         gen = generator
 
