@@ -66,10 +66,10 @@ class GP_CAM(Generator):
 
     def ask(self, n_trials):
         if self.all_x.shape[0] == 0:
-            x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
+            self.x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
         else:
             start = time.time()
-            self.x_new = my_gp.ask(
+            self.x_new = self.my_gp.ask(
                 bounds=np.column_stack((self.lb, self.ub)),
                 n=n_trials,
                 pop_size=n_trials,

@@ -70,7 +70,6 @@ if __name__ == "__main__":
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
             libE_specs["save_every_k_gens"] = 150
             libE_specs["H_file_prefix"] = "gpCAM_nongrid"
-
         if inst == 1:
             gen_specs["user"]["use_grid"] = True
             gen_specs["user"]["test_points_file"] = "gpCAM_nongrid_after_gen_150.npy"
@@ -78,7 +77,7 @@ if __name__ == "__main__":
             del libE_specs["H_file_prefix"]
             del libE_specs["save_every_k_gens"]
         elif inst == 2:
-            gen_specs["generator"] = GP_CAM
+            gen_specs["user"]["generator"] = GP_CAM
             num_batches = 3  # Few because the ask_tell gen can be slow
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
