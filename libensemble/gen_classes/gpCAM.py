@@ -4,11 +4,8 @@ import time
 
 import numpy as np
 from gpcam import GPOptimizer as GP
-from numpy.lib.recfunctions import repack_fields
 
 from libensemble import Generator
-from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
-from libensemble.tools.persistent_support import PersistentSupport
 
 # While there are class / func duplicates - re-use functions.
 from libensemble.gen_funcs.persistent_gpCAM import (
@@ -16,7 +13,6 @@ from libensemble.gen_funcs.persistent_gpCAM import (
     _generate_mesh,
     _eval_var,
     _calculate_grid_distances,
-    _is_point_far_enough,
     _find_eligible_points,
 )
 

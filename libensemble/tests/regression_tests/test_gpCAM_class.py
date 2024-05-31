@@ -2,8 +2,8 @@
 Tests libEnsemble with gpCAM
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_gpCAM.py
-   python test_gpCAM.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_gpCAM_class.py
+   python test_gpCAM_class.py --nworkers 3 --comms local
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
