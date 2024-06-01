@@ -443,9 +443,8 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 def _retrieve_generator(gen_specs):
     import copy
-
-    gen_ref = gen_specs["user"].get("generator", None) or gen_specs.get("generator", None)
-    slot = "user" if gen_specs["user"].get("generator", None) is not None else "base"  # where the key was found
+    gen_ref = gen_specs.get("generator") or gen_specs["user"].get("generator")
+    slot = "base" if gen_specs.get("generator") is not None else "user"  # where the key was found
     gen_specs["user"]["generator"] = None
     gen_specs["generator"] = None
     gen_specs = copy.deepcopy(gen_specs)
