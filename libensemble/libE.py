@@ -440,24 +440,6 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 # ==================== Local version ===============================
 
-
-def _retrieve_generator(gen_specs):
-    import copy
-    gen_ref = gen_specs.get("generator") or gen_specs["user"].get("generator")
-    slot = "base" if gen_specs.get("generator") is not None else "user"  # where the key was found
-    gen_specs["user"]["generator"] = None
-    gen_specs["generator"] = None
-    gen_specs = copy.deepcopy(gen_specs)
-    return gen_ref, slot
-
-
-def _slot_back_generator(gen_specs, gen_ref, slot):  # unfortunately, "generator" can go in two different spots
-    if slot == "user":
-        gen_specs["user"]["generator"] = gen_ref
-    elif slot == "base":
-        gen_specs["generator"] = gen_ref
-
-
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     """Launch a process worker team."""
     resources = Resources.resources
@@ -469,11 +451,6 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
         QCommLocal = QCommThread
         log_comm = False  # Prevents infinite loop of logging.
 
-    if libE_specs.get("gen_on_manager"):  # We dont need to (and can't) send "live" generators to workers
-        gen, slot = _retrieve_generator(gen_specs)
-    else:
-        gen = None
-
     wcomms = [
         QCommLocal(worker_main, nworkers, sim_specs, gen_specs, libE_specs, w, log_comm, resources, executor)
         for w in range(1, nworkers + 1)
@@ -482,8 +459,6 @@ def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     for wcomm in wcomms:
         wcomm.run()
 
-    if gen is not None:  # We still need the gen on the manager, so put it back
-        _slot_back_generator(gen_specs, gen, slot)
     return wcomms
 
 
