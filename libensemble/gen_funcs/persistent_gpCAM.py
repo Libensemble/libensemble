@@ -6,12 +6,11 @@ import numpy as np
 from gpcam import GPOptimizer as GP
 from numpy.lib.recfunctions import repack_fields
 
-from libensemble import Generator
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
-    "GP_CAM_SIMPLE",
+    "persistent_gpCAM_simple",
     "persistent_gpCAM_ask_tell",
 ]
 
@@ -76,7 +75,6 @@ def _generate_mesh(lb, ub, num_points=10):
     return points
 
 
-# TODO Make a class method
 def _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info):
     """
     Evaluate the posterior covariance at points in x_for_var.
@@ -142,86 +140,79 @@ def _find_eligible_points(x_for_var, sorted_indices, r, batch_size):
     return np.array(eligible_points)
 
 
-class GP_CAM_SIMPLE(Generator):
-    # Choose whether functions are internal methods or not
-    def _initialize_gpcAM(self, user_specs):
-        """Extract user params"""
-        self.lb = np.array(user_specs["lb"])
-        self.ub = np.array(user_specs["ub"])
-        self.n = len(self.lb)  # dimension
-        assert isinstance(self.n, int), "Dimension must be an integer"
-        assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
-        assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
-        self.all_x = np.empty((0, self.n))
-        self.all_y = np.empty((0, 1))
-        np.random.seed(0)
+def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
+    """
+    This generation function constructs a global surrogate of `f` values.
+    It is a batched method that produces a first batch uniformly random from
+    (lb, ub) and on following iterations samples the GP posterior covariance
+    function to find sample points.
 
-    def __init__(self, H, persis_info, gen_specs, libE_info=None):
-        self.H = H
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
-        self.libE_info = libE_info
+    .. seealso::
+        `test_gpCAM.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_gpCAM.py>`_
+    """  # noqa
+    U = gen_specs["user"]
+    my_gp = None
+    noise = 1e-12
 
-        self.U = self.gen_specs["user"]
-        self.test_points = _read_testpoints(self.U)
-        self._initialize_gpcAM(self.U)
-        self.my_gp = None
-        self.noise = 1e-12
-        self.x_for_var = None
-        self.var_vals = None
+    test_points = _read_testpoints(U)
 
-        if self.U.get("use_grid"):
-            self.num_points = 10
-            self.x_for_var = _generate_mesh(self.lb, self.ub, self.num_points)
-            self.r_low_init, self.r_high_init = _calculate_grid_distances(self.lb, self.ub, self.num_points)
+    batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(U, libE_info)
 
-    def ask(self, n_trials):
-        if self.all_x.shape[0] == 0:
-            x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
+    # Send batches until manager sends stop tag
+    tag = None
+    var_vals = None
+
+    if U.get("use_grid"):
+        num_points = 10
+        x_for_var = _generate_mesh(lb, ub, num_points)
+        r_low_init, r_high_init = _calculate_grid_distances(lb, ub, num_points)
+    else:
+        x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+
+    while tag not in [STOP_TAG, PERSIS_STOP]:
+        if all_x.shape[0] == 0:
+            x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
         else:
-            if not self.U.get("use_grid"):
-                x_new = self.x_for_var[np.argsort(self.var_vals)[-n_trials:]]
+            if not U.get("use_grid"):
+                x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+                x_new = x_for_var[np.argsort(var_vals)[-batch_size:]]
             else:
-                r_high = self.r_high_init
-                r_low = self.r_low_init
+                r_high = r_high_init
+                r_low = r_low_init
                 x_new = []
                 r_cand = r_high  # Let's start with a large radius and stop when we have batchsize points
 
-                sorted_indices = np.argsort(-self.var_vals)
-                while len(x_new) < n_trials:
-                    x_new = _find_eligible_points(self.x_for_var, sorted_indices, r_cand, n_trials)
-                    if len(x_new) < n_trials:
+                sorted_indices = np.argsort(-var_vals)
+                while len(x_new) < batch_size:
+                    x_new = _find_eligible_points(x_for_var, sorted_indices, r_cand, batch_size)
+                    if len(x_new) < batch_size:
                         r_high = r_cand
                     r_cand = (r_high + r_low) / 2.0
 
-        H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
-        self.x_new = x_new
-        H_o["x"] = self.x_new
-        return H_o
+        H_o = np.zeros(batch_size, dtype=gen_specs["out"])
+        H_o["x"] = x_new
+        tag, Work, calc_in = ps.send_recv(H_o)
 
-    def tell(self, calc_in):
+        # This works with or without final_gen_send
         if calc_in is not None:
             y_new = np.atleast_2d(calc_in["f"]).T
             nan_indices = [i for i, fval in enumerate(y_new) if np.isnan(fval)]
-            x_new = np.delete(self.x_new, nan_indices, axis=0)
+            x_new = np.delete(x_new, nan_indices, axis=0)
             y_new = np.delete(y_new, nan_indices, axis=0)
+            all_x = np.vstack((all_x, x_new))
+            all_y = np.vstack((all_y, y_new))
 
-            self.all_x = np.vstack((self.all_x, x_new))
-            self.all_y = np.vstack((self.all_y, y_new))
-
-            if self.my_gp is None:
-                self.my_gp = GP(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
+            if my_gp is None:
+                my_gp = GP(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
             else:
-                self.my_gp.tell(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
-            self.my_gp.train()
+                my_gp.tell(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
+            my_gp.train()
 
-            if not self.U.get("use_grid"):
-                n_trials = len(y_new)
-                self.x_for_var = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (10 * n_trials, self.n))
+            if not U.get("use_grid"):
+                x_for_var = persis_info["rand_stream"].uniform(lb, ub, (10 * batch_size, n))
+            var_vals = _eval_var(my_gp, all_x, all_y, x_for_var, test_points, persis_info)
 
-            self.var_vals = _eval_var(
-                self.my_gp, self.all_x, self.all_y, self.x_for_var, self.test_points, self.persis_info
-            )
+    return H_o, persis_info, FINISHED_PERSISTENT_GEN_TAG
 
 
 def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
