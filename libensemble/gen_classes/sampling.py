@@ -1,18 +1,14 @@
 """Generator classes providing points using sampling"""
 
 import numpy as np
-
 from libensemble import Generator
-from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
-from libensemble.specs import output_data, persistent_input_fields
-from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = [
-    #"persistent_uniform",
-    "RandSample",  # TODO - naming - should base class be e.g., UniformSample
+    "UniformSample",
 ]
 
-class RandSample(Generator):
+
+class UniformSample(Generator):
     """
     This generator returns ``gen_specs["initial_batch_size"]`` uniformly
     sampled points the first time it is called. Afterwards, it returns the

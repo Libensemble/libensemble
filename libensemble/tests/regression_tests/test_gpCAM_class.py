@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     for inst in range(3):
         if inst == 0:
-            gen_specs["gen_f"] = persistent_gen_f
+            gen_specs["gen_f"] = gen_f
             gen_specs["user"]["generator"] = GP_CAM_Covar
             num_batches = 10
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}

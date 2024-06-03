@@ -18,10 +18,9 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
-from libensemble.gen_classes.sampling import RandSample
+from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
-from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args
 
 
 def sim_f(In):
@@ -58,17 +57,17 @@ if __name__ == "__main__":
 
         if inst == 0:
             # Using wrapper - pass class
-            generator = RandSample
+            generator = UniformSample
             gen_specs["gen_f"] = gen_f
             gen_specs["user"]["generator"] = generator
         if inst == 1:
             # Using wrapper - pass object
             gen_specs["gen_f"] = gen_f
-            generator = RandSample(None, persis_info[1], gen_specs, None)
+            generator = UniformSample(None, persis_info[1], gen_specs, None)
             gen_specs["user"]["generator"] = generator
         elif inst == 2:
             del gen_specs["gen_f"]
-            generator = RandSample(None, persis_info[1], gen_specs, None)
+            generator = UniformSample(None, persis_info[1], gen_specs, None)
             gen_specs["generator"] = generator  # use asktell runner
             print(f'{gen_specs=}, {hasattr(generator, "ask")}')
 
@@ -78,6 +77,6 @@ if __name__ == "__main__":
 
         if is_manager:
             assert len(H) >= 201
-            print("\nlibEnsemble with PERSISTENT random sampling has generated enough points")
+            print("\nlibEnsemble with PERSISTENT random sampling has generated enough points\n")
             print(H[:10])
             assert not np.isclose(H["f"][0], 3.23720733e+02)
