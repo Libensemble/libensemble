@@ -91,10 +91,6 @@ setup(
             "sphinx-copybutton",
         ],
     },
-    scripts=[
-        "scripts/liberegister",
-        "scripts/libesubmit",
-    ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
