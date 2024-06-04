@@ -3,6 +3,7 @@ import numpy.typing as npt
 
 
 class LiveData(ABC):
+    """A base class for capturing and processing data during an ensemble"""
 
     def __init__(self):
         """Initialize live data capture/processing object"""
