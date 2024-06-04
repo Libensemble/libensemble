@@ -390,19 +390,6 @@ class LibeSpecs(BaseModel):
     workerID: Optional[int] = None
     """ TCP Only: Worker ID number assigned to the new process. """
 
-    worker_hostfile: Optional[str] = None
-    """
-    Configures reverse-ssh worker-launches to provided system.
-    Configure similarly to the following example:
-
-    .. code-block:: yaml
-
-        address.remote.machine:
-            worker_ids: 1-16                   # specify worker IDs. example includes worker 16
-            working_dir: /Users/my_username    # working directory
-            python_exe: /home/envs/bin/python  # path to python exe. specifying effectively uses virtual env
-    """
-
     worker_cmd: Optional[List[str]] = []
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
