@@ -34,6 +34,10 @@ class Mock(MagicMock):
 MOCK_MODULES = [
     "argparse",
     "dfols",
+    "IPython",
+    "IPython.display",
+    "IPython.core",
+    "IPython.core.pylabtools",
     "math",
     "mpi4py",
     "mpmath",
