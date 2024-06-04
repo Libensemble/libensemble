@@ -1,4 +1,3 @@
-bebop.lcrc.anl.gov:
+localhost:
     worker_ids: 1-4
-    working_dir: /home/jnavarro/libensemble/libensemble/tests/functionality_tests
-    python_exe: /home/jnavarro/.conda/envs/bebop/bin/python
+    python_exe: python
