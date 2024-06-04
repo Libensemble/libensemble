@@ -2,8 +2,8 @@
 Tests libEnsemble with gpCAM
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_gpCAM.py
-   python test_gpCAM.py --nworkers 3 --comms local
+   mpiexec -np 4 python test_gpCAM_class.py
+   python test_gpCAM_class.py --nworkers 3 --comms local
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -23,7 +23,9 @@ import sys
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_funcs.persistent_gpCAM import persistent_gpCAM_ask_tell, persistent_gpCAM_simple
+
+from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
+from libensemble.gen_classes.gpCAM import GP_CAM_Covar, GP_CAM
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -62,7 +64,8 @@ if __name__ == "__main__":
 
     for inst in range(3):
         if inst == 0:
-            gen_specs["gen_f"] = persistent_gpCAM_simple
+            gen_specs["gen_f"] = gen_f
+            gen_specs["user"]["generator"] = GP_CAM_Covar
             num_batches = 10
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
             libE_specs["save_every_k_gens"] = 150
@@ -74,7 +77,7 @@ if __name__ == "__main__":
             del libE_specs["H_file_prefix"]
             del libE_specs["save_every_k_gens"]
         elif inst == 2:
-            gen_specs["gen_f"] = persistent_gpCAM_ask_tell
+            gen_specs["user"]["generator"] = GP_CAM
             num_batches = 3  # Few because the ask_tell gen can be slow
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
