@@ -30,3 +30,15 @@ Convenience Tools and Functions
       .. automodule:: alloc_support
          :members:
          :no-undoc-members:
+
+   .. tab-item:: Live Data
+
+      These classes provide a means to capture and display data during a workflow run.
+      Users may provide an initialized object via ``libE_specs["live_data"]``.
+
+      .. automodule:: libensemble.tools.live_data.live_data
+         :members:
+
+      .. automodule:: libensemble.tools.live_data.plot2n
+         :members: Plot2N
+         :show-inheritance:

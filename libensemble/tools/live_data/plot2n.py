@@ -13,13 +13,22 @@ def six_hump_camel_func(x1, x2):
 
 
 class Plot2N(LiveData):
+    """
+    Plot2N class for generating plots during a workflow run.
 
-    def __init__(self, plot_type='2d', func=six_hump_camel_func, bounds=((-2, 2), (-1, 1.1))):
+    Attributes:
+        plot_type (str): Type of plot ("2d" or "3d").
+        func (Callable): Function to plot. Default is six hump camel.
+        bounds (tuple): Bounds for the plot.
+    """
+
+    def __init__(self, plot_type="2d", func=six_hump_camel_func, bounds=((-2, 2), (-1, 1.1))):
+        """ Initialize a new Plot2N class. """
         plt.ion()  # Enable interactive mode
         self.fig = plt.figure(figsize=(7.3, 5.5))
         self.plot_type = plot_type
-        if plot_type == '3d':
-            self.ax = self.fig.add_subplot(111, projection='3d')
+        if plot_type == "3d":
+            self.ax = self.fig.add_subplot(111, projection="3d")
         else:
             self.ax = self.fig.add_subplot(111)
         self.func = func
@@ -35,35 +44,34 @@ class Plot2N(LiveData):
         x1, x2 = np.meshgrid(x1, x2)
         f = self.func(x1, x2)
 
-        if self.plot_type == '3d':
-            ax.plot_surface(x1, x2, f, rstride=1, cstride=1, cmap='winter', edgecolor='none', alpha=0.5, zorder=1)
+        if self.plot_type == "3d":
+            ax.plot_surface(x1, x2, f, rstride=1, cstride=1, cmap="winter", edgecolor="none", alpha=0.5, zorder=1)
         else:
-            ax.contourf(x1, x2, f, cmap='winter')
+            ax.contourf(x1, x2, f, cmap="winter")
 
-        ax.set_xlabel('x1')
-        ax.set_ylabel('x2')
-        if self.plot_type == '3d':
-            ax.set_zlabel('f')
+        ax.set_xlabel("x1")
+        ax.set_ylabel("x2")
+        if self.plot_type == "3d":
+            ax.set_zlabel("f")
 
     def _update_plot(self, fig, ax, H):
         ax.cla()  # Clear the previous frame
         self._init_plot(ax)  # need to redo if clearing previous
 
-        # TODO move to _init_plot
         fig.tight_layout()
         plt.title("Points Selected by APOSMM Local Optimization runs", y=1.0)
 
-        x1 = H['x'][:, 0]
-        x2 = H['x'][:, 1]
-        x1_locp = H[H['local_pt']]['x'][:, 0]
-        x2_locp = H[H['local_pt']]['x'][:, 1]
-        x1_min = H[H['local_min']]['x'][:, 0]
-        x2_min = H[H['local_min']]['x'][:, 1]
-        num_local_min = len(H[H['local_min']])
+        x1 = H["x"][:, 0]
+        x2 = H["x"][:, 1]
+        x1_locp = H[H["local_pt"]]["x"][:, 0]
+        x2_locp = H[H["local_pt"]]["x"][:, 1]
+        x1_min = H[H["local_min"]]["x"][:, 0]
+        x2_min = H[H["local_min"]]["x"][:, 1]
+        num_local_min = len(H[H["local_min"]])
 
         s = (6, 40, 80)
-        c = ('black', 'red', 'yellow')
-        m = ("o", '^', 'D')
+        c = ("black", "red", "yellow")
+        m = ("o", "^", "D")
         lab = ("Point", "Optimization point", "Local minimum")
 
         common_text_params = {
@@ -78,10 +86,10 @@ class Plot2N(LiveData):
             {**common_text_params, "x": 0.6, "y": 0.8, "s": f'Points evaluated: {np.sum(H["sim_ended"])}'},
         ]
 
-        if self.plot_type == '3d':
-            f1 = H['f']
-            f2 = H[H['local_pt']]['f']
-            f3 = H[H['local_min']]['f']
+        if self.plot_type == "3d":
+            f1 = H["f"]
+            f2 = H[H["local_pt"]]["f"]
+            f3 = H[H["local_min"]]["f"]
             ax.scatter3D(x1, x2, f1, s=s[0], color=c[0], marker=m[0], zorder=2, alpha=0.5, label=lab[0])
             ax.scatter3D(x1_locp, x2_locp, f2, s=s[1], color=c[1], marker=m[1], zorder=3, label=lab[1])
             ax.scatter3D(x1_min, x2_min, f3, s=s[2], color=c[2], marker=m[2], zorder=4, label=lab[2])
@@ -94,18 +102,19 @@ class Plot2N(LiveData):
             for params in text_params:
                 ax.text(**params)
 
-        ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+        ax.legend(loc="center left", bbox_to_anchor=(1.1, 0.5))
         display(plt.gcf())
         clear_output(wait=True)
 
-    # This is called after every f update in the manager.
-    # TODO - alt name based on where its called (e.g., live_update_f)
     def live_update(self, hist):
+        """Function called after every f update in the manager
+
+        """
         update_plot_now = False
-        if np.count_nonzero(hist.H[self.last_plot_count:]['local_pt']) > 5:
+        if np.count_nonzero(hist.H[self.last_plot_count:]["local_pt"]) > 5:
             update_plot_now = True
 
-        if np.any(hist.H[self.last_plot_count:]['local_min']):
+        if np.any(hist.H[self.last_plot_count:]["local_min"]):
             update_plot_now = True
 
         if hist.sim_ended_count >= self.last_plot_count + 50:
