@@ -112,8 +112,20 @@ def _parse_workerfile(args):
     with open(args.worker_file[0], "r") as f:
         worker_info = yaml.load(f, Loader=yaml.FullLoader)
     hosts = [i for i in worker_info.keys()]
-    args.workers = hosts
-    # TODO: handle more than one remote host
+    host_info = worker_info[hosts[0]]
+    worker_ids = host_info["worker_ids"]
+    if "," not in worker_ids:  # only got a single range
+        id_range = range(int(worker_ids.split("-")[0]), int(worker_ids.split("-")[1]) + 1)
+        args.workers = [hosts[0] for i in id_range]
+    args.worker_pwd = host_info.get("working_dir")
+    if host_info.get("python_exe") not in (
+        "python",
+        "python3",
+        sys.executable,
+        None,
+    ):  # we got a different python than the default:
+        args.worker_python = host_info.get("python_exe")
+    return args, len(args.workers)
 
 
 def _parse_ssh_args(args):
@@ -127,7 +139,7 @@ def _parse_ssh_args(args):
 def _ssh_parse_args(args):
     """Parses arguments for SSH with reverse tunnel."""
     if args.worker_file is not None:
-        args = _parse_workerfile(args)
+        args, nworkers = _parse_workerfile(args)
     if args.ssh is not None:
         args, nworkers = _parse_ssh_args(args)
     else:

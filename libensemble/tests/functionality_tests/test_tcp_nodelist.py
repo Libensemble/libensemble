@@ -9,8 +9,9 @@ Execute via one of the following commands (e.g. 3 workers):
 The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
+# really, this is an ssh test. but --nworkers will be effectively ignored
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: tcp
+# TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 4
 
 import numpy as np
