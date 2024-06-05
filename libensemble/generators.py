@@ -183,7 +183,7 @@ class APOSMM(LibEnsembleGenInterfacer):
             ]
             gen_specs["in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
-            persis_info = add_unique_random_streams({}, 4, seed="aposmm")[1]
+            persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
         self.all_local_minima = []
