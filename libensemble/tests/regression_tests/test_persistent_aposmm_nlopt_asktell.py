@@ -76,7 +76,7 @@ if __name__ == "__main__":
         },
     }
 
-    persis_info = add_unique_random_streams({}, nworkers + 1)
+    persis_info = add_unique_random_streams({}, nworkers + 1, seed="aposmm")
     alloc_specs = {"alloc_f": alloc_f}
 
     exit_criteria = {"sim_max": 2000}

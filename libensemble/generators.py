@@ -128,8 +128,8 @@ class LibEnsembleGenInterfacer(Generator):
     def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
         if not self.thread.running:
             self.thread.run()
-        _, self.blast_ask = self.outbox.get()
-        return self.blast_ask["calc_out"]
+        _, ask_full = self.outbox.get()
+        return ask_full["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
         return self.ask()
@@ -183,11 +183,10 @@ class APOSMM(LibEnsembleGenInterfacer):
             ]
             gen_specs["in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
-            persis_info = add_unique_random_streams({}, 4)[1]
+            persis_info = add_unique_random_streams({}, 4, seed="aposmm")[1]
             persis_info["nworkers"] = 4
         super().__init__(gen_specs, History, persis_info, libE_info)
         self.all_local_minima = []
-        self.cached_ask = None
         self.results_idx = 0
         self.last_ask = None
 
