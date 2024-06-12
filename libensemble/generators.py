@@ -11,12 +11,14 @@ from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
+# TODO: Refactor below-class to wrap StandardGenerator and possibly convert in/out data to list-of-dicts
+
 
 class Generator(ABC):
     """
     v 0.4.19.24
 
-    Tentative generator interface for use with libEnsemble, and generic enough to be
+    Tentative generator interface for use with libEnsemble, and gene∂ric enough to be
     broadly compatible with other workflow packages.
 
     .. code-block:: python

@@ -1,6 +1,7 @@
 """Generator classes providing points using sampling"""
 
 import numpy as np
+
 from libensemble import Generator
 
 __all__ = [
@@ -45,3 +46,16 @@ class UniformSample(Generator):
         assert isinstance(self.n, int), "Dimension must be an integer"
         assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
+
+
+class StandardUniformSample(UniformSample):
+    """
+    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
+    sampled points the first time it is called. Afterwards, it returns the
+    number of points given. This can be used in either a batch or asynchronous
+    mode by adjusting the allocation function.
+    """
+
+    def ask(self, n_trials):
+        out = super().ask(n_trials)
+        return [{"x": x.tolist()} for x in out["x"]]

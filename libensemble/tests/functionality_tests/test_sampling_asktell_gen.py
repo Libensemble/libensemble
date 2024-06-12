@@ -17,8 +17,8 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
+from libensemble.gen_classes.sampling import StandardUniformSample, UniformSample
 from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
-from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
-    for inst in range(3):
+    for inst in range(4):
         persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
         if inst == 0:
@@ -70,6 +70,12 @@ if __name__ == "__main__":
             generator = UniformSample(None, persis_info[1], gen_specs, None)
             gen_specs["generator"] = generator  # use asktell runner
             print(f'{gen_specs=}, {hasattr(generator, "ask")}')
+        elif inst == 3:
+            generator = StandardUniformSample
+            gen_specs["gen_f"] = gen_f
+            gen_specs["user"]["generator"] = generator
+            gen_specs["generator"] = None
+            print(f'{gen_specs=}, {hasattr(generator, "ask")}')
 
         H, persis_info, flag = libE(
             sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
@@ -79,4 +85,4 @@ if __name__ == "__main__":
             assert len(H) >= 201
             print("\nlibEnsemble with PERSISTENT random sampling has generated enough points\n")
             print(H[:10])
-            assert not np.isclose(H["f"][0], 3.23720733e+02)
+            assert not np.isclose(H["f"][0], 3.23720733e02)
