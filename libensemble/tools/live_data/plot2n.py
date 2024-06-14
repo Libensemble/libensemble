@@ -14,14 +14,19 @@ def six_hump_camel_func(x1, x2):
 
 class Plot2N(LiveData):
     """
-    Plot2N class for generating plots during a workflow run.
+    Plot2N class for generating plots of a 2D domain during a workflow run.
 
     Parameters
     ----------
 
-        plot_type (str): Type of plot ("2d" or "3d").
-        func (Callable): Function to plot. Default is six hump camel.
-        bounds (tuple): Bounds for the plot.
+    plot_type: str
+        Type of plot ("2d" or "3d")
+
+    func: Callable
+        Function to plot. Default is six hump camel.
+
+    bounds: tuple
+        Bounds for the plot.
     """
 
     def __init__(self, plot_type="2d", func=six_hump_camel_func, bounds=((-2, 2), (-1, 1.1))):
