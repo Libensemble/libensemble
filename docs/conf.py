@@ -40,6 +40,7 @@ MOCK_MODULES = [
     "IPython.core.pylabtools",
     "math",
     "matplotlib",
+    "matplotlib.pyplot",
     "mpi4py",
     "mpmath",
     "nlopt",
