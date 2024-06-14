@@ -34,7 +34,10 @@ Convenience Tools and Functions
    .. tab-item:: Live Data
 
       These classes provide a means to capture and display data during a workflow run.
-      Users may provide an initialized object via ``libE_specs["live_data"]``.
+      Users may provide an initialized object via ``libE_specs["live_data"]``. For example::
+
+        from libensemble.tools.live_data.plot2n import Plot2N
+        libE_specs["live_data"] = Plot2N(plot_type='2d')
 
       .. automodule:: libensemble.tools.live_data.live_data
          :members:
