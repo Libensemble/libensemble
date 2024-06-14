@@ -36,7 +36,7 @@ Convenience Tools and Functions
       These classes provide a means to capture and display data during a workflow run.
       Users may provide an initialized object via ``libE_specs["live_data"]``.
 
-      .. automodule:: live_data
+      .. automodule:: libensemble.tools.live_data.live_data
          :members:
 
       .. automodule:: plot2n
