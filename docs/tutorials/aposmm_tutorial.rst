@@ -10,6 +10,8 @@ simulation :ref:`sim_f<api_sim_f>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
+|Open in Colab|
+
 Six-Hump Camel Simulation Function
 ----------------------------------
 
@@ -313,3 +315,5 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _SciPy: https://scipy.org/
 .. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
 .. _WarpX Scaling Test: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
