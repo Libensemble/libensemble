@@ -6,7 +6,9 @@ This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`.
 
-This tutorial's calling script registers a compiled executable that simulates
+|Open in Colab|
+
+The calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 the result.
@@ -374,3 +376,5 @@ For more information see :ref:`Running generator on the manager<gen-on-manager>`
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
