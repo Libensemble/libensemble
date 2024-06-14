@@ -39,6 +39,6 @@ Convenience Tools and Functions
       .. automodule:: libensemble.tools.live_data.live_data
          :members:
 
-      .. automodule:: libensemble.tools.live_data.plot2n
+      .. automodule:: plot2n
          :members: Plot2N
          :show-inheritance:
