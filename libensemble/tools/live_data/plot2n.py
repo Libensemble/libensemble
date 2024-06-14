@@ -23,42 +23,45 @@ class Plot2N(LiveData):
     """
 
     def __init__(self, plot_type="2d", func=six_hump_camel_func, bounds=((-2, 2), (-1, 1.1))):
-        """ Initialize a new Plot2N class. """
-        plt.ion()  # Enable interactive mode
-        self.fig = plt.figure(figsize=(7.3, 5.5))
+        """Initialize a new Plot2N class."""
         self.plot_type = plot_type
-        if plot_type == "3d":
-            self.ax = self.fig.add_subplot(111, projection="3d")
-        else:
-            self.ax = self.fig.add_subplot(111)
         self.func = func
         self.grid_x1 = np.linspace(bounds[0][0], bounds[0][1], 50)
         self.grid_x2 = np.linspace(bounds[1][0], bounds[1][1], 50)
         self.last_plot_count = 0
-        self._init_plot(self.ax)
+        self.fig = None
+        self.ax = None
 
-    def _init_plot(self, ax):
+    def _init_plot(self):
+        if self.fig is None:
+            plt.ion()  # Enable interactive mode
+            self.fig = plt.figure(figsize=(7.3, 5.5))
+            if self.plot_type == "3d":
+                self.ax = self.fig.add_subplot(111, projection="3d")
+            else:
+                self.ax = self.fig.add_subplot(111)
+                self.first = False
+        else:
+            self.ax.cla()  # Clear the previous frame
         x1 = self.grid_x1
         x2 = self.grid_x2
-
         x1, x2 = np.meshgrid(x1, x2)
         f = self.func(x1, x2)
 
         if self.plot_type == "3d":
-            ax.plot_surface(x1, x2, f, rstride=1, cstride=1, cmap="winter", edgecolor="none", alpha=0.5, zorder=1)
+            self.ax.plot_surface(x1, x2, f, rstride=1, cstride=1, cmap="winter", edgecolor="none", alpha=0.5, zorder=1)
         else:
-            ax.contourf(x1, x2, f, cmap="winter")
+            self.ax.contourf(x1, x2, f, cmap="winter")
 
-        ax.set_xlabel("x1")
-        ax.set_ylabel("x2")
+        self.ax.set_xlabel("x1")
+        self.ax.set_ylabel("x2")
         if self.plot_type == "3d":
-            ax.set_zlabel("f")
+            self.ax.set_zlabel("f")
 
-    def _update_plot(self, fig, ax, H):
-        ax.cla()  # Clear the previous frame
-        self._init_plot(ax)  # need to redo if clearing previous
+    def _update_plot(self, H):
+        self._init_plot()  # need to redo if clearing previous
 
-        fig.tight_layout()
+        self.fig.tight_layout()
         plt.title("Points Selected by APOSMM Local Optimization runs", y=1.0)
 
         x1 = H["x"][:, 0]
@@ -75,7 +78,7 @@ class Plot2N(LiveData):
         lab = ("Point", "Optimization point", "Local minimum")
 
         common_text_params = {
-            "transform": ax.transAxes,
+            "transform": self.ax.transAxes,
             "ha": "left",
             "va": "top",
             "bbox": {"facecolor": "white", "alpha": 0.8},
@@ -90,38 +93,36 @@ class Plot2N(LiveData):
             f1 = H["f"]
             f2 = H[H["local_pt"]]["f"]
             f3 = H[H["local_min"]]["f"]
-            ax.scatter3D(x1, x2, f1, s=s[0], color=c[0], marker=m[0], zorder=2, alpha=0.5, label=lab[0])
-            ax.scatter3D(x1_locp, x2_locp, f2, s=s[1], color=c[1], marker=m[1], zorder=3, label=lab[1])
-            ax.scatter3D(x1_min, x2_min, f3, s=s[2], color=c[2], marker=m[2], zorder=4, label=lab[2])
+            self.ax.scatter3D(x1, x2, f1, s=s[0], color=c[0], marker=m[0], zorder=2, alpha=0.5, label=lab[0])
+            self.ax.scatter3D(x1_locp, x2_locp, f2, s=s[1], color=c[1], marker=m[1], zorder=3, label=lab[1])
+            self.ax.scatter3D(x1_min, x2_min, f3, s=s[2], color=c[2], marker=m[2], zorder=4, label=lab[2])
             for params in text_params:
-                ax.text2D(**params)
+                self.ax.text2D(**params)
         else:
-            ax.scatter(x1, x2, s=s[0], color=c[0], marker=m[0], zorder=2, alpha=0.5, label=lab[0])
-            ax.scatter(x1_locp, x2_locp, s=s[1], color=c[1], marker=m[1], zorder=3, label=lab[1])
-            ax.scatter(x1_min, x2_min, s=s[2], color=c[2], marker=m[2], zorder=4, label=lab[2])
+            self.ax.scatter(x1, x2, s=s[0], color=c[0], marker=m[0], zorder=2, alpha=0.5, label=lab[0])
+            self.ax.scatter(x1_locp, x2_locp, s=s[1], color=c[1], marker=m[1], zorder=3, label=lab[1])
+            self.ax.scatter(x1_min, x2_min, s=s[2], color=c[2], marker=m[2], zorder=4, label=lab[2])
             for params in text_params:
-                ax.text(**params)
+                self.ax.text(**params)
 
-        ax.legend(loc="center left", bbox_to_anchor=(1.1, 0.5))
+        self.ax.legend(loc="center left", bbox_to_anchor=(1.1, 0.5))
         display(plt.gcf())
         clear_output(wait=True)
 
     def live_update(self, hist):
-        """Function called after every f update in the manager
-
-        """
+        """Function called after every f update in the manager"""
         update_plot_now = False
-        if np.count_nonzero(hist.H[self.last_plot_count:]["local_pt"]) > 5:
+        if np.count_nonzero(hist.H[self.last_plot_count :]["local_pt"]) > 5:
             update_plot_now = True
 
-        if np.any(hist.H[self.last_plot_count:]["local_min"]):
+        if np.any(hist.H[self.last_plot_count :]["local_min"]):
             update_plot_now = True
 
         if hist.sim_ended_count >= self.last_plot_count + 50:
             update_plot_now = True
 
         if update_plot_now:
-            self._update_plot(self.fig, self.ax, hist.H)
+            self._update_plot(hist.H)
             self.last_plot_count = hist.sim_ended_count
 
     def finalize(self, hist):
