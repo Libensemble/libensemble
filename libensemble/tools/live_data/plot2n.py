@@ -16,13 +16,12 @@ class Plot2N(LiveData):
     """
     Plot2N class for generating plots during a workflow run.
 
-    Attributes:
+    Parameters
+    ----------
+
         plot_type (str): Type of plot ("2d" or "3d").
         func (Callable): Function to plot. Default is six hump camel.
         bounds (tuple): Bounds for the plot.
-
-    Inherits from:
-        libensemble.tools.live_data.live_data.LiveData
     """
 
     def __init__(self, plot_type="2d", func=six_hump_camel_func, bounds=((-2, 2), (-1, 1.1))):
