@@ -107,7 +107,7 @@ so that it “persists” and keeps running over the course of the entire
 libEnsemble routine.
 
 APOSMM begins its own parallel optimization runs, which each independently
-produce a linear sequence of points trying to find a local mininum. These
+produce a linear sequence of points trying to find a local minimum. These
 points are given to workers and evaluated by simulation routines.
 
 If there are more workers than optimization runs at any iteration of the
