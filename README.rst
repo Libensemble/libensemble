@@ -73,6 +73,8 @@ and an exit condition. Run the following via ``python this_file.py --comms local
        if sampling.is_manager:
            print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
+|Inline Example|
+
 Try some other examples live in Colab.
 
 +---------------------------------------------------------------+-------------------------------------+
@@ -151,6 +153,9 @@ Resources
 .. _PyPI: https://pypi.org
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
+
+.. |Inline Example| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/readme_notebook.ipynb
 
 .. |Simple Ensemble| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
