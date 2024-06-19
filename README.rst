@@ -165,4 +165,3 @@ Resources
 
 .. |Optimization example| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
-
