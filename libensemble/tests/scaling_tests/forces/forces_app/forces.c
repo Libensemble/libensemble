@@ -365,7 +365,7 @@ int main(int argc, char **argv) {
     struct timeval comms_start, comms_end;
 
     double local_en, total_en;
-    double step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
+    double step_survival_rate;
     int badrun = 0;
 
     // Try to open the file "forces_input" in read mode
@@ -383,9 +383,14 @@ int main(int argc, char **argv) {
             if (sscanf(line, "rand_seed = %d", &rand_seed) == 1) {
                 continue;
             }
+            if (sscanf(line, "kill_rate = %d", &kill_rate) == 1) {
+                continue;
+            }
         }
         fclose(input_file);
     }
+
+    // Overwrite with command line arguments if provided
 
     if (argc >=2) {
         num_particles = atoi(argv[1]); // No. of particles
@@ -397,13 +402,14 @@ int main(int argc, char **argv) {
 
     if (argc >=4) {
         rand_seed = atoi(argv[3]); // RNG seed
-        seed_rand(rand_seed);
     }
 
     if (argc >=5) {
         kill_rate = atof(argv[4]); // Proportion of tasks to kill
-        step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     }
+
+    seed_rand(rand_seed);
+    step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
 
     particle* parr = (particle*)malloc(num_particles * sizeof(particle));
     build_system(num_particles, parr);
