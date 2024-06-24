@@ -39,6 +39,7 @@
 #define PRINT_ALL_PARTICLES 0
 #define CHECK_THREADS 0
 #define CHECK_TARGET_DEVICE 1
+#define MAX_LINE_LENGTH 256
 
 static FILE* stat_fp;
 
@@ -348,6 +349,8 @@ int test_badrun(double rate) {
 
 int main(int argc, char **argv) {
 
+    FILE *input_file;
+    char line[MAX_LINE_LENGTH];
     int num_devices;
     int num_particles = 10; // default no. of particles
     int num_steps = 10; // default no. of timesteps
@@ -364,6 +367,25 @@ int main(int argc, char **argv) {
     double local_en, total_en;
     double step_survival_rate = pow((1-kill_rate),(1.0/num_steps));
     int badrun = 0;
+
+    // Try to open the file "forces_input" in read mode
+    input_file = fopen("forces_input", "r");
+
+    if (input_file) {
+        // If the file exists, read it line by line
+        while (fgets(line, sizeof(line), input_file)) {
+            if (sscanf(line, "num_particles = %d", &num_particles) == 1) {
+                continue;
+            }
+            if (sscanf(line, "num_steps = %d", &num_steps) == 1) {
+                continue;
+            }
+            if (sscanf(line, "rand_seed = %d", &rand_seed) == 1) {
+                continue;
+            }
+        }
+        fclose(input_file);
+    }
 
     if (argc >=2) {
         num_particles = atoi(argv[1]); // No. of particles
