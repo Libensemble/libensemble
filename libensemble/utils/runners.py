@@ -99,7 +99,7 @@ class AskTellGenRunner(Runner):
         self.gen = specs.get("generator")
 
     def _to_array(self, x):
-        if isinstance(x, list):
+        if isinstance(x, list) and len(x) and isinstance(x[0], dict):
             arr = np.zeros(len(x), dtype=self.specs["out"])
             for i in range(len(x)):
                 for key in x[0].keys():
