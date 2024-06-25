@@ -230,6 +230,7 @@ jobs:
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
         - name: Start Redis
+          if: matrix.os == 'macos-latest'
           uses: supercharge/redis-github-action@1.7.0
           with:
             redis-version: 7
