@@ -78,6 +78,11 @@ class GenSpecs(BaseModel):
     simulator function, and makes decisions based on simulator function output.
     """
 
+    generator: Optional[object] = None
+    """
+    A pre-initialized generator object.
+    """
+
     inputs: Optional[List[str]] = Field(default=[], alias="in")
     """
     List of **field names** out of the complete history to pass

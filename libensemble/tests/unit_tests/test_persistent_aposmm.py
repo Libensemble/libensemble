@@ -168,8 +168,88 @@ def test_standalone_persistent_aposmm_combined_func():
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
 
 
+@pytest.mark.extra
+def test_asktell_with_persistent_aposmm():
+    from math import gamma, pi, sqrt
+
+    import libensemble.gen_funcs
+    from libensemble.generators import APOSMM
+    from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
+    from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
+
+    libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
+
+    n = 2
+    eval_max = 2000
+
+    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
+
+    gen_specs = {
+        "in": ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"],
+        "out": gen_out,
+        "user": {
+            "initial_sample_size": 100,
+            "sample_points": np.round(minima, 1),
+            "localopt_method": "LN_BOBYQA",
+            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+            "xtol_abs": 1e-6,
+            "ftol_abs": 1e-6,
+            "dist_to_bound_multiple": 0.5,
+            "max_active_runs": 6,
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
+        },
+    }
+
+    my_APOSMM = APOSMM(gen_specs)
+    my_APOSMM.setup()
+    initial_sample = my_APOSMM.ask()
+    initial_results = my_APOSMM.create_results_array()
+
+    total_evals = 0
+    eval_max = 2000
+
+    for i in initial_sample["sim_id"]:
+        initial_results[i]["f"] = six_hump_camel_func(initial_sample["x"][i])
+        total_evals += 1
+
+    my_APOSMM.tell(initial_results)
+
+    potential_minima = []
+
+    while total_evals < eval_max:
+
+        sample, detected_minima = my_APOSMM.ask(), my_APOSMM.ask_updates()
+        if len(detected_minima):
+            for m in detected_minima:
+                potential_minima.append(m)
+        results = my_APOSMM.create_results_array()
+        for i in range(len(sample)):
+            results[i]["f"] = six_hump_camel_func(sample["x"][i])
+            total_evals += 1
+        my_APOSMM.tell(results)
+    H, persis_info, exit_code = my_APOSMM.final_tell(results)
+
+    assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
+    assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
+
+    assert len(potential_minima) >= 6, f"Found {len(potential_minima)} minima"
+
+    tol = 1e-3
+    min_found = 0
+    for m in minima:
+        # The minima are known on this test problem.
+        # We use their values to test APOSMM has identified all minima
+        print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
+        if np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol:
+            min_found += 1
+    assert min_found >= 6, f"Found {min_found} minima"
+
+
 if __name__ == "__main__":
     test_persis_aposmm_localopt_test()
     test_update_history_optimal()
     test_standalone_persistent_aposmm()
     test_standalone_persistent_aposmm_combined_func()
+    test_asktell_with_persistent_aposmm()

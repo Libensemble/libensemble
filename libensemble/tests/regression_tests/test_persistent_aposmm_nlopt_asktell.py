@@ -30,7 +30,7 @@ libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from time import time
 
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
+from libensemble.generators import APOSMM
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
@@ -60,7 +60,6 @@ if __name__ == "__main__":
     ]
 
     gen_specs = {
-        "gen_f": gen_f,
         "persis_in": ["f"] + [n[0] for n in gen_out],
         "out": gen_out,
         "user": {
@@ -77,11 +76,14 @@ if __name__ == "__main__":
         },
     }
 
+    persis_info = add_unique_random_streams({}, nworkers + 1, seed=4321)
     alloc_specs = {"alloc_f": alloc_f}
 
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=4321)
-
     exit_criteria = {"sim_max": 2000}
+
+    gen_specs["generator"] = APOSMM(gen_specs, persis_info=persis_info[1])
+
+    libE_specs["gen_on_manager"] = True
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
@@ -97,4 +99,5 @@ if __name__ == "__main__":
             print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
 
+        persis_info[0]["comm"] = None
         save_libE_output(H, persis_info, __file__, nworkers)
