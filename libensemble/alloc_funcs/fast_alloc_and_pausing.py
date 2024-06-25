@@ -100,7 +100,7 @@ def give_sim_work_first(W, H, sim_specs, gen_specs, alloc_specs, persis_info, li
 
             if not pt_ids_to_pause.issubset(persis_info["already_paused"]):
                 persis_info["already_paused"].update(pt_ids_to_pause)
-                sim_ids_to_remove = np.in1d(H["pt_id"], list(pt_ids_to_pause))
+                sim_ids_to_remove = np.isin(H["pt_id"], list(pt_ids_to_pause))
                 H["paused"][sim_ids_to_remove] = True
 
                 persis_info["need_to_give"] = persis_info["need_to_give"].difference(np.where(sim_ids_to_remove)[0])

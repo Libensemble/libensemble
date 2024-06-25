@@ -11,6 +11,8 @@ from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
+# TODO: Refactor below-class to wrap StandardGenerator and possibly convert in/out data to list-of-dicts
+
 
 class Generator(ABC):
     """
