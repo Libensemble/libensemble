@@ -52,7 +52,7 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
-    for inst in range(4):
+    for inst in range(5):
         persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
         if inst == 0:
@@ -76,6 +76,11 @@ if __name__ == "__main__":
             gen_specs["user"]["generator"] = generator
             gen_specs["generator"] = None
             print(f'{gen_specs=}, {hasattr(generator, "ask")}')
+        elif inst == 4:
+            del gen_specs["gen_f"]
+            generator = StandardUniformSample(None, persis_info[1], gen_specs, None)
+            gen_specs["generator"] = generator  # use asktell runner
+            print(f'{gen_specs=}, {hasattr(generator, "ask")}')
 
         H, persis_info, flag = libE(
             sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
@@ -83,6 +88,5 @@ if __name__ == "__main__":
 
         if is_manager:
             assert len(H) >= 201
-            print("\nlibEnsemble with PERSISTENT random sampling has generated enough points\n")
             print(H[:10])
             assert not np.isclose(H["f"][0], 3.23720733e02)

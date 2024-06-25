@@ -98,10 +98,19 @@ class AskTellGenRunner(Runner):
         super().__init__(specs)
         self.gen = specs.get("generator")
 
+    def _to_array(self, x):
+        if isinstance(x, list):
+            arr = np.zeros(len(x), dtype=self.specs["out"])
+            for i in range(len(x)):
+                for key in x[0].keys():
+                    arr[i][key] = x[i][key]
+            return arr
+        return x
+
     def _loop_over_normal_generator(self, tag, Work):
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            points, updates = self.gen.ask(batch_size), self.gen.ask_updates()
+            points, updates = self._to_array(self.gen.ask(batch_size)), self._to_array(self.gen.ask_updates())
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
             else:
@@ -112,7 +121,7 @@ class AskTellGenRunner(Runner):
 
     def _ask_and_send(self):
         while self.gen.outbox.qsize():  # recv/send any outstanding messages
-            points, updates = self.gen.ask(), self.gen.ask_updates()
+            points, updates = self._to_array(self.gen.ask()), self._to_array(self.gen.ask_updates())
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:
@@ -134,15 +143,19 @@ class AskTellGenRunner(Runner):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         tag = None
         if hasattr(self.gen, "setup"):
-            self.gen.persis_info = persis_info
+            self.gen.persis_info = persis_info  # passthrough, setup() uses the gen attributes
             self.gen.libE_info = libE_info
             if self.gen.thread is None:
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        if not issubclass(type(self.gen), LibEnsembleGenInterfacer):
-            H_out = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time
+        if not issubclass(
+            type(self.gen), LibEnsembleGenInterfacer
+        ):  # we can't control how many points created by a threaded gen
+            H_out = self._to_array(
+                self.gen.ask(initial_batch)
+            )  # updates can probably be ignored when asking the first time
         else:
-            H_out = self.gen.ask()  # libE really needs to receive the *entire* initial batch
+            H_out = self._to_array(self.gen.ask())  # libE really needs to receive the *entire* initial batch
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         self.gen.tell(H_in)
         if issubclass(type(self.gen), LibEnsembleGenInterfacer):
@@ -154,4 +167,4 @@ class AskTellGenRunner(Runner):
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
-        return self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"])
+        return self._to_array(self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"]))
