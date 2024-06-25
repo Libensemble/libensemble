@@ -229,6 +229,11 @@ jobs:
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
+        - name: Start Redis
+          uses: supercharge/redis-github-action@1.7.0
+          with:
+            redis-version: 7
+
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |

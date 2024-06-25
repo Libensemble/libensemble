@@ -13,6 +13,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: local
 # TESTSUITE_NPROCS: 4
+# TESTSUITE_EXTRA: true
 
 from pathlib import Path
 
