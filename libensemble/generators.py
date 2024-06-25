@@ -18,7 +18,7 @@ class Generator(ABC):
     """
     v 0.4.19.24
 
-    Tentative generator interface for use with libEnsemble, and gene∂ric enough to be
+    Tentative generator interface for use with libEnsemble, and generic enough to be
     broadly compatible with other workflow packages.
 
     .. code-block:: python
