@@ -87,6 +87,8 @@ Try some other examples live in Colab.
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
 
+There are many more examples in the `regression tests`_
+
 Resources
 =========
 
@@ -153,6 +155,7 @@ Resources
 .. _PyPI: https://pypi.org
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _regression tests: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/regression_tests
 
 .. |Inline Example| image:: https://colab.research.google.com/assets/colab-badge.svg
   :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/readme_notebook.ipynb
