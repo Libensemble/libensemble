@@ -24,8 +24,7 @@ def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
-    e = Ensemble()  # parse_args defaults to False
-    e.libE_specs = {"comms": "local", "nworkers": 4}
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})  # parse_args defaults to False
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
@@ -118,8 +117,7 @@ def test_full_workflow():
         assert len(ens.H) >= 101
 
     # test a dry run
-    LS = LibeSpecs(comms="local", nworkers=4, dry_run=True)
-    ens.libE_specs = LS
+    ens.libE_specs.dry_run = True
     flag = 1
     try:
         ens.run()
@@ -190,6 +188,30 @@ def test_ensemble_specs_update_libE_specs():
     assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
 
 
+def test_ensemble_prevent_comms_overwrite():
+    """Test that libE_specs is updated as expected with .attribute setting"""
+    import warnings
+
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    warnings.filterwarnings("error")
+
+    ensemble = Ensemble(
+        libE_specs=LibeSpecs(comms="mpi", nworkers=4),
+    )
+
+    flag = 1
+    try:
+        ensemble.libE_specs = LibeSpecs(comms="local")
+    except UserWarning:
+        flag = 0
+
+    assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
+
+    warnings.resetwarnings()
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -198,3 +220,4 @@ if __name__ == "__main__":
     test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
+    test_ensemble_prevent_comms_overwrite()

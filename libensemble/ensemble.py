@@ -296,10 +296,12 @@ class Ensemble:
         if parse_args:
             self._parse_args()
             self.parsed = True
-            self._known_comms = self.libE_specs.comms
+            self._known_comms = self._libE_specs.comms
 
-        if not self._known_comms and self.libE_specs is not None:
-            self._known_comms = self.libE_specs.comms
+        if not self._known_comms and self._libE_specs is not None:
+            if isinstance(self._libE_specs, dict):
+                self._libE_specs = LibeSpecs(**self._libE_specs)
+            self._known_comms = self._libE_specs.comms
 
         assert (
             self._known_comms is not None
@@ -409,7 +411,7 @@ class Ensemble:
             self.exit_criteria,
             persis_info=self.persis_info,
             alloc_specs=self.alloc_specs,
-            libE_specs=self.libE_specs,
+            libE_specs=self._libE_specs,
             H0=self.H0,
         )
 
@@ -417,13 +419,13 @@ class Ensemble:
 
     @property
     def nworkers(self):
-        return self._nworkers or self.libE_specs.nworkers
+        return self._nworkers or self._libE_specs.nworkers
 
     @nworkers.setter
     def nworkers(self, value):
         self._nworkers = value
-        if self.libE_specs:
-            self.libE_specs.nworkers = value
+        if self._libE_specs:
+            self._libE_specs.nworkers = value
 
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""
