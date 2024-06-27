@@ -212,6 +212,30 @@ def test_ensemble_prevent_comms_overwrite():
     warnings.resetwarnings()
 
 
+def test_empty_ensemble():
+    """Test that an empty ensemble can't be created, plus that nworkers must be specified"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    flag = 1
+    try:
+        Ensemble()
+    except ValueError:
+        flag = 0
+
+    assert not flag, "Empty ensemble, without comms, should not be created"
+
+    flag = 1
+    try:
+        Ensemble(
+            libE_specs=LibeSpecs(comms="local"),
+        )
+    except ValueError:
+        flag = 0
+
+    assert not flag, "'local' ensemble without nworkers should not be created"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -221,3 +245,4 @@ if __name__ == "__main__":
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()
+    test_empty_ensemble()

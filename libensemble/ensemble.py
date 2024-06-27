@@ -303,13 +303,13 @@ class Ensemble:
                 self._libE_specs = LibeSpecs(**self._libE_specs)
             self._known_comms = self._libE_specs.comms
 
-        assert (
-            self._known_comms is not None
-        ), "comms must be specified, either by setting parse_args=True or in libE_specs.comms"
+        if self._known_comms is None:
+            raise ValueError("comms must be specified, either by setting parse_args=True or in libE_specs.comms")
 
         if self._known_comms == "local":
             self.is_manager = True
-            assert self.nworkers, "nworkers must be specified if comms is 'local'"
+            if not self.nworkers:
+                raise ValueError("nworkers must be specified if comms is 'local'")
 
     def _parse_args(self) -> (int, bool, LibeSpecs):
         self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
