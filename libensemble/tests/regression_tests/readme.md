@@ -1,10 +1,10 @@
 ## Running regression tests
 
-To run the test test_1d_sampling.py with 3 workers:
+To run test_1d_sampling.py with 3 workers:
 
     python test_1d_sampling.py -n 3
 
-To run with `mpi4py` comms use:
+This uses `multiprocessing` comms. To run with `mpi4py` comms use:
 
     mpirun -np 4 python test_1d_sampling.py
 

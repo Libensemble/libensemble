@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 import numpy.typing as npt
 
 
@@ -11,7 +12,7 @@ class LiveData(ABC):
 
     @abstractmethod
     def live_update(self, hist: npt.NDArray) -> None:
-        """Process history data after simulations results have been added to history
+        """Process history data after simulation results have been added to history
 
         Parameters
         ----------
