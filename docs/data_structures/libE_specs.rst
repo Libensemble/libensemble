@@ -171,7 +171,7 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     See "Formatting Options for libE_stats.txt".
 
                 **live_data** [LiveData] = None:
-                    Add a live data capture object (e.g., plotting).
+                    Add a live data capture object (e.g., for plotting).
 
         .. tab-item:: TCP
 
