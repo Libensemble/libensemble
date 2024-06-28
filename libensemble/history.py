@@ -6,7 +6,6 @@ import numpy.typing as npt
 
 from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
-
 logger = logging.getLogger(__name__)
 
 

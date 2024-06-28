@@ -78,4 +78,3 @@ if __name__ == "__main__":
 
         # To see the input/output for each evaluation
         # print(ensemble.H[["sim_id", "x", "energy"]])
-

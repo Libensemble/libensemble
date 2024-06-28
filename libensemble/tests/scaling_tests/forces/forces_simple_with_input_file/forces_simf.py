@@ -1,8 +1,8 @@
-import numpy as np
 import jinja2
+import numpy as np
 
 # Optional status codes to display in libE_stats.txt for each gen or sim
-from libensemble.message_numbers import WORKER_DONE, TASK_FAILED
+from libensemble.message_numbers import TASK_FAILED, WORKER_DONE
 
 
 def set_input_file_params(H, sim_specs, ints=False):
@@ -18,7 +18,7 @@ def set_input_file_params(H, sim_specs, ints=False):
     input_file = sim_specs["user"]["input_filename"]
     input_values = {}
     for i, name in enumerate(sim_specs["user"]["input_names"]):
-        value = int(H["x"][0][i]) if ints else  H["x"][0][i]
+        value = int(H["x"][0][i]) if ints else H["x"][0][i]
         input_values[name] = value
     with open(input_file, "r") as f:
         template = jinja2.Template(f.read())
@@ -31,7 +31,6 @@ def run_forces(H, persis_info, sim_specs, libE_info):
 
     calc_status = 0
 
-    input_file = sim_specs["user"]["input_filename"]
     set_input_file_params(H, sim_specs, ints=True)
 
     # Retrieve our MPI Executor
