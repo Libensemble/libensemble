@@ -1,6 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from IPython.display import display, clear_output
+import numpy as np
+from IPython.display import clear_output, display
 
 from libensemble.tools.live_data.live_data import LiveData
 
