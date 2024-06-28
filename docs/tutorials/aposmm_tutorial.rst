@@ -79,11 +79,12 @@ don't have points with smaller function values nearby (within a threshold
 uniformly sampled points, it will begin at most ``max_active_runs``  local
 optimization runs.
 
-As function values are returned to APOSMM, APOSMM gives them to each local
-optimization run in order to generate the next point(s); these are returned to
-the manager to be evaluated by the simulation routine. As runs complete (a
-minimum is found, or some termination criteria for the local optimization run
-is satisfied), additional local optimization runs may be started or additional
+As function values are returned to APOSMM, APOSMM gives them to the
+corresponding local optimization runs so they can generate the next point(s) in
+their runs; such points are then returned by APOSMM to the manager to be
+evaluated by the simulation routine. As runs complete (i.e., a minimum is
+found, or some termination criteria for the local optimization run is
+satisfied), additional local optimization runs may be started or additional
 uniformly sampled points may be evaluated. This continues until a ``STOP_TAG``
 is sent by the manager, for example when the budget of simulation evaluations
 has been exhausted, or when a sufficiently "good" simulation output has been
@@ -102,12 +103,11 @@ and ``"local_min"`` being ``True`` if the point has been ruled a local minimum.
 APOSMM Persistence
 ------------------
 
-APOSMM uses a Persistent generator. A single worker process initiates APOSMM
-so that it “persists” and keeps running over the course of the entire
-libEnsemble routine.
+APOSMM is implemented as a Persistent generator. A single worker process initiates
+APOSMM so that it "persists" the course of a given libEnsemble run.
 
-APOSMM begins its own parallel optimization runs, which each independently
-produce a linear sequence of points trying to find a local minimum. These
+APOSMM begins its own concurrent optimization runs, each of which independently
+produces a linear sequence of points trying to find a local minimum. These
 points are given to workers and evaluated by simulation routines.
 
 If there are more workers than optimization runs at any iteration of the
@@ -121,13 +121,13 @@ should initiate one more worker than the number of parallel simulations::
 
 results in three workers running simulations and one running APSOMM.
 
-If running using the `mpi4py` communications, enough MPI ranks should be
+If running libEnsemble using `mpi4py` communications, enough MPI ranks should be
 given to support libEnsemble's manager, a persistent worker to run APOSMM, and
 simulation routines. The following::
 
     mpiexec -n 3 python my_aposmm_routine.py
 
-results in only one worker process available to perform simulation routines.
+results in only one worker process to perform simulation evaluations.
 
 Calling Script
 --------------
