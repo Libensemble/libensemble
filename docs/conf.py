@@ -34,7 +34,13 @@ class Mock(MagicMock):
 MOCK_MODULES = [
     "argparse",
     "dfols",
+    "IPython",
+    "IPython.display",
+    "IPython.core",
+    "IPython.core.pylabtools",
     "math",
+    "matplotlib",
+    "matplotlib.pyplot",
     "mpi4py",
     "mpmath",
     "nlopt",
@@ -69,6 +75,7 @@ sys.path.append(os.path.abspath("../libensemble/sim_funcs"))
 sys.path.append(os.path.abspath("../libensemble/comms"))
 sys.path.append(os.path.abspath("../libensemble/utils"))
 sys.path.append(os.path.abspath("../libensemble/tools"))
+sys.path.append(os.path.abspath("../libensemble/tools/live_data"))
 sys.path.append(os.path.abspath("../libensemble/executors"))
 sys.path.append(os.path.abspath("../libensemble/resources"))
 # print(sys.path)

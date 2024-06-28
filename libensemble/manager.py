@@ -216,6 +216,7 @@ class Manager:
         self.wcomms = wcomms
         self.WorkerExc = False
         self.persis_pending = []
+        self.live_data = libE_specs.get("live_data")
 
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
         dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
@@ -507,6 +508,9 @@ class Manager:
             else:
                 self._freeup_resources(w)
 
+        if self.live_data is not None:
+            self.live_data.live_update(self.hist)
+
         if D_recv.get("persis_info"):
             persis_info[w].update(D_recv["persis_info"])
 
@@ -604,6 +608,10 @@ class Manager:
 
         self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
         self._kill_workers()
+
+        if self.live_data is not None:
+            self.live_data.finalize(self.hist)
+
         return persis_info, exit_flag, self.elapsed()
 
     def _sim_max_given(self) -> bool:

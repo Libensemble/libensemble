@@ -113,7 +113,7 @@ if __name__ == "__main__":
         {"testid": "sr2", "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},  # parse extra_args
         {"testid": "sr3", "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
         {"testid": "sr4", "ngpus": 8, "e_args": "--nodes 2 -n 8 --xarg 1 --ntasks-per-node 4"},
-        {"testid": "sr5", "ngpus": 8, "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"}
+        {"testid": "sr5", "ngpus": 8, "e_args": "-n 8 --xarg 1 --ntasks-per-node 4"},
     ]
 
     # Note for jsrun: proc = resource set. Awkward naming but this seems like the best solution.
