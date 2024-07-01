@@ -268,7 +268,7 @@ class Ensemble:
         sim_specs: Optional[SimSpecs] = SimSpecs(),
         gen_specs: Optional[GenSpecs] = GenSpecs(),
         exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = None,
+        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
         executor: Optional[Executor] = None,

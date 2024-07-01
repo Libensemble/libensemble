@@ -198,7 +198,7 @@ def test_ensemble_prevent_comms_overwrite():
     warnings.filterwarnings("error")
 
     ensemble = Ensemble(
-        libE_specs=LibeSpecs(comms="mpi", nworkers=4),
+        libE_specs=LibeSpecs(comms="mpi"),
     )
 
     flag = 1
@@ -211,19 +211,22 @@ def test_ensemble_prevent_comms_overwrite():
 
     warnings.resetwarnings()
 
+    # test that dot-notation is also disallowed
+    # TODO: This may not be possible
+    flag = 1
+    ensemble = Ensemble()
+    try:
+        ensemble.libE_specs.comms = "local"
+    except:  # noqa: E722
+        flag = 0
 
-def test_empty_ensemble():
+    assert not flag, "'local' ensemble without nworkers should not be created"
+
+
+def test_local_comms_without_nworkers():
     """Test that an empty ensemble can't be created, plus that nworkers must be specified"""
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
-
-    flag = 1
-    try:
-        Ensemble()
-    except ValueError:
-        flag = 0
-
-    assert not flag, "Empty ensemble, without comms, should not be created"
 
     flag = 1
     try:
@@ -245,4 +248,4 @@ if __name__ == "__main__":
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
     test_ensemble_prevent_comms_overwrite()
-    test_empty_ensemble()
+    test_local_comms_without_nworkers()
