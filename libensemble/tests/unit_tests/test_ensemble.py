@@ -220,7 +220,7 @@ def test_ensemble_prevent_comms_overwrite():
     except:  # noqa: E722
         flag = 0
 
-    assert not flag, "'local' ensemble without nworkers should not be created"
+    assert not flag, "should not be able to overwrite comms with dot-notation"
 
 
 def test_local_comms_without_nworkers():
