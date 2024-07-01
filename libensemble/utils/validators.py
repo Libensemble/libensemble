@@ -18,8 +18,8 @@ from libensemble.utils.specs_checkers import (
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
-_OUT_DTYPE_ERR = "unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
-_IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
+_OUT_DTYPE_ERR = "Unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
+_IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
 
 
 def detect_comms_env():

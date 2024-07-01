@@ -1,6 +1,7 @@
 import importlib
 import json
 import logging
+import warnings
 from typing import Optional
 
 import numpy.typing as npt
@@ -21,6 +22,8 @@ ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
 
 NOTFOUND_ERR_MSG = 'Unable to load "{}". Is the package installed or the relative path correct?'
 NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
+
+OVERWRITE_COMMS_WARN = "Cannot set 'comms' if 'ensemble.libE_specs.comms' is already set. Ignoring new comms."
 
 CORRESPONDING_CLASSES = {
     "sim_specs": SimSpecs,
@@ -265,7 +268,7 @@ class Ensemble:
         sim_specs: Optional[SimSpecs] = SimSpecs(),
         gen_specs: Optional[GenSpecs] = GenSpecs(),
         exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = None,
+        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
         executor: Optional[Executor] = None,
@@ -275,7 +278,7 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.libE_specs = libE_specs
+        self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
@@ -288,12 +291,27 @@ class Ensemble:
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
+        self._known_comms = None
 
         if parse_args:
-            self.parse_args()
+            self._parse_args()
             self.parsed = True
+            self._known_comms = self._libE_specs.comms
 
-    def parse_args(self) -> (int, bool, LibeSpecs):
+        if not self._known_comms and self._libE_specs is not None:
+            if isinstance(self._libE_specs, dict):
+                self._libE_specs = LibeSpecs(**self._libE_specs)
+            self._known_comms = self._libE_specs.comms
+
+        if self._known_comms is None:
+            raise ValueError("comms must be specified, either by setting parse_args=True or in libE_specs.comms")
+
+        if self._known_comms == "local":
+            self.is_manager = True
+            if not self.nworkers:
+                raise ValueError("nworkers must be specified if comms is 'local'")
+
+    def _parse_args(self) -> (int, bool, LibeSpecs):
         self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
         if not self._libE_specs:
@@ -314,8 +332,7 @@ class Ensemble:
     @libE_specs.setter
     def libE_specs(self, new_specs):
         # We need to deal with libE_specs being specified as dict or class, and
-        #   "not" overwrite the internal libE_specs["comms"], but *only* if parse_args
-        #   was called. Otherwise we can respect the complete set of provided options.
+        #   "not" overwrite the internal libE_specs["comms"].
 
         # Respect everything if libE_specs isn't set
         if not hasattr(self, "_libE_specs") or not self._libE_specs:
@@ -327,6 +344,8 @@ class Ensemble:
 
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):  # exclude_defaults should only be enabled with Pydantic v2
+            if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
+                warnings.warn(OVERWRITE_COMMS_WARN, UserWarning)
             platform_specs_set = False
             if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
                 platform_specs_set = True
@@ -336,7 +355,8 @@ class Ensemble:
                 new_specs["platform_specs"] = specs_dump(platform_specs, exclude_none=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
-        if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
+        if new_specs.get("comms") and hasattr(self._libE_specs, "comms"):
+            warnings.warn(OVERWRITE_COMMS_WARN, UserWarning)
             new_specs.pop("comms")
 
         self._libE_specs.__dict__.update(**new_specs)
@@ -391,7 +411,7 @@ class Ensemble:
             self.exit_criteria,
             persis_info=self.persis_info,
             alloc_specs=self.alloc_specs,
-            libE_specs=self.libE_specs,
+            libE_specs=self._libE_specs,
             H0=self.H0,
         )
 
@@ -399,13 +419,13 @@ class Ensemble:
 
     @property
     def nworkers(self):
-        return self._nworkers or self.libE_specs.nworkers
+        return self._nworkers or self._libE_specs.nworkers
 
     @nworkers.setter
     def nworkers(self, value):
         self._nworkers = value
-        if self.libE_specs:
-            self.libE_specs.nworkers = value
+        if self._libE_specs:
+            self._libE_specs.nworkers = value
 
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""
