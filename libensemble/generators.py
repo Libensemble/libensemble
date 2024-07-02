@@ -83,6 +83,33 @@ class Generator(ABC):
         """
 
 
+def list_dicts_to_np(list_dicts: Iterable) -> npt.NDArray:
+    new_dtype = []
+    new_dtype_names = [i for i in list_dicts[0].keys()]
+    for i, entry in enumerate(list_dicts[0].values()):  # must inspect values to get presumptive types
+        if hasattr(entry, "shape") and len(entry.shape):
+            entry_dtype = (new_dtype_names[i], entry.dtype, entry.shape)
+        else:
+            entry_dtype = (new_dtype_names[i], type(entry))
+        new_dtype.append(entry_dtype)
+
+    out = np.zeros(len(list_dicts), dtype=new_dtype)
+    for i, entry in enumerate(list_dicts):
+        for field in entry.keys():
+            out[field][i] = entry[field]
+    return out
+
+
+def np_to_list_dicts(array: npt.NDArray) -> Iterable:
+    out = []
+    for row in array:
+        new_dict = {}
+        for field in row.dtype.names:
+            new_dict[field] = row[field]
+        out.append(new_dict)
+    return out
+
+
 class LibEnsembleGenInterfacer(Generator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
