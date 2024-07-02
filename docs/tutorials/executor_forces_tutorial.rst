@@ -499,7 +499,13 @@ and ``gen_specs`` would contain something similar to:
     :lineno-start: 46
     :emphasize-lines: 5
 
-    ensemble.gen_specs = GenSpecs(gen_f=gen_f, inputs=[], persis_in=["sim_id"], outputs=[("x", float, 3)], ...)
+    ensemble.gen_specs = GenSpecs(
+        gen_f=gen_f,
+        inputs=[],
+        persis_in=["sim_id"],
+        outputs=[("x", float, 3)],
+        ...,
+    )
 
 libEnsemble uses a convention of a multi-dimensional ``x`` in generator functions. However,
 these parameters can also be specified as different variables with corresponding modification
