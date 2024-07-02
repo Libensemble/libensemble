@@ -1,7 +1,7 @@
 import copy
 import queue as thread_queue
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
 import numpy as np
 from numpy import typing as npt
@@ -16,7 +16,7 @@ from libensemble.tools import add_unique_random_streams
 
 class Generator(ABC):
     """
-    v 0.4.19.24
+    v 0.7.2.24
 
     Tentative generator interface for use with libEnsemble, and generic enough to be
     broadly compatible with other workflow packages.
@@ -59,22 +59,22 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: Optional[int], *args, **kwargs) -> Iterable:
+    def ask(self, num_points: Optional[int], *args, **kwargs) -> List[dict]:
         """
         Request the next set of points to evaluate, and optionally any previous points to update.
         """
 
-    def ask_updates(self) -> Iterable:
+    def ask_updates(self) -> npt.NDArray:
         """
         Request any updates to previous points, e.g. minima discovered, points to cancel.
         """
 
-    def tell(self, results: Iterable, *args, **kwargs) -> None:
+    def tell(self, results: List[dict], *args, **kwargs) -> None:
         """
         Send the results of evaluations to the generator.
         """
 
-    def final_tell(self, results: Iterable, *args, **kwargs) -> Optional[Iterable]:
+    def final_tell(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
         """
         Send the last set of results to the generator, instruct it to cleanup, and
         optionally retrieve an updated final state of evaluations. This is a separate
@@ -163,7 +163,8 @@ class LibEnsembleGenInterfacer(Generator):
     def ask_updates(self) -> npt.NDArray:
         return self.ask()
 
-    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+    def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+        results = list_dicts_to_np(results)
         if results is not None:
             results = self._set_sim_ended(results)
             self.inbox.put(
@@ -173,19 +174,9 @@ class LibEnsembleGenInterfacer(Generator):
             self.inbox.put((tag, None))
         self.inbox.put((0, np.copy(results)))
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
-        self.tell(results, PERSIS_STOP)
+    def final_tell(self, results: List[dict]) -> (npt.NDArray, dict, int):
+        self.tell(list_dicts_to_np(results), PERSIS_STOP)
         return self.thread.result()
-
-    def create_results_array(
-        self, length: int = 0, addtl_fields: list = [("f", float)], empty: bool = False
-    ) -> npt.NDArray:
-        in_length = len(self.results) if not length else length
-        new_results = np.zeros(in_length, dtype=self.gen_specs["out"] + addtl_fields)
-        if not empty:
-            for field in self.gen_specs["out"]:
-                new_results[field[0]] = self.results[field[0]]
-        return new_results
 
 
 class APOSMM(LibEnsembleGenInterfacer):
@@ -219,7 +210,7 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    def ask(self, *args) -> npt.NDArray:
+    def ask(self, *args) -> List[dict]:
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
@@ -241,7 +232,7 @@ class APOSMM(LibEnsembleGenInterfacer):
         results = np.copy(self.last_ask)
         self.results = results
         self.last_ask = None
-        return results
+        return np_to_list_dicts(results)
 
     def ask_updates(self) -> npt.NDArray:
         minima = copy.deepcopy(self.all_local_minima)
@@ -270,7 +261,7 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def ask(self, *args) -> (npt.NDArray, Optional[npt.NDArray]):
+    def ask(self, *args) -> npt.NDArray:
         output = super().ask()
         if "cancel_requested" in output.dtype.names:
             cancels = output
@@ -284,9 +275,9 @@ class Surmise(LibEnsembleGenInterfacer):
             if got_cancels_first:
                 return additional["calc_out"]
             self.all_cancels.append(additional["calc_out"])
-            return self.results
+            return np_to_list_dicts(self.results)
         except thread_queue.Empty:
-            return self.results
+            return np_to_list_dicts(self.results)
 
     def ask_updates(self) -> npt.NDArray:
         cancels = copy.deepcopy(self.all_cancels)
