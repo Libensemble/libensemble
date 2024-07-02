@@ -517,4 +517,4 @@ to generator and simulator functions.
 .. _forces_simple_with_input_file: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple_with_input_file
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
 .. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/examples/update_notebooks/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
