@@ -372,7 +372,6 @@ Note that as the generator random number seed will be zero instead of one, the c
 
 For more information see :ref:`Running generator on the manager<gen-on-manager>`.
 
-
 Running forces application with input file
 ------------------------------------------
 
@@ -411,12 +410,12 @@ for the current simulation.
         input_file = sim_specs["user"]["input_filename"]
         input_values = {}
         for i, name in enumerate(sim_specs["user"]["input_names"]):
-            value = int(H["x"][0][i]) if ints else  H["x"][0][i]
+            value = int(H["x"][0][i]) if ints else H["x"][0][i]
             input_values[name] = value
         with open(input_file, "r") as f:
             template = jinja2.Template(f.read())
         with open(input_file, "w") as f:
-        f.write(template.render(input_values))
+            f.write(template.render(input_values))
 
 This is called in the simulation function as follows.
 
@@ -491,7 +490,7 @@ then line 43 would be:
 
 .. code-block:: python
 
-    user={"input_filename": input_file, "input_names": ["particles", "nsteps", "seed"]},
+    user = {"input_filename": input_file, "input_names": ["particles", "nsteps", "seed"]}
 
 and ``gen_specs`` would contain something similar to:
 
@@ -505,7 +504,7 @@ and ``gen_specs`` would contain something similar to:
         inputs=[],
         persis_in=["sim_id"],
         outputs=[("x", float, 3)],
-        ...
+        ...,
     )
 
 libEnsemble uses a convention of a multi-dimensional ``x`` in generator functions. However,
