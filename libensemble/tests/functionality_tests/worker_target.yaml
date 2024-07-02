@@ -1,3 +1,7 @@
 localhost:
     worker_ids: 1-4
     python_exe: python
+
+127.0.0.1:
+    worker_ids: 5-8
+    python_exe: python3
