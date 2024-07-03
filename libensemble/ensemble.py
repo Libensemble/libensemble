@@ -24,6 +24,7 @@ NOTFOUND_ERR_MSG = 'Unable to load "{}". Is the package installed or the relativ
 NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 
 OVERWRITE_COMMS_WARN = "Cannot set 'comms' if 'ensemble.libE_specs.comms' is already set. Ignoring new comms."
+CHANGED_COMMS_WARN = "New 'comms' method detected following complete parameterization of Ensemble. Ignoring new comms."
 
 CORRESPONDING_CLASSES = {
     "sim_specs": SimSpecs,
@@ -404,6 +405,10 @@ class Ensemble:
         """
 
         self._refresh_executor()
+
+        if self._libE_specs.comms != self._known_comms:
+            warnings.warn(CHANGED_COMMS_WARN, UserWarning)
+            self._libE_specs.comms = self._known_comms
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,

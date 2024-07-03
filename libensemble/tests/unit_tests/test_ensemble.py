@@ -211,16 +211,19 @@ def test_ensemble_prevent_comms_overwrite():
 
     warnings.resetwarnings()
 
-    # test that dot-notation is also disallowed
+    # test that dot-notation is also disallowed, upon trying .run()
     # TODO: This may not be possible
     flag = 1
+    warnings.filterwarnings("error")
     ensemble = Ensemble()
     try:
-        ensemble.libE_specs.comms = "local"
-    except:  # noqa: E722
+        ensemble.libE_specs.comms = "mpi"
+        ensemble.run()
+    except UserWarning:
         flag = 0
 
     assert not flag, "should not be able to overwrite comms with dot-notation"
+    warnings.resetwarnings()
 
 
 def test_local_comms_without_nworkers():
