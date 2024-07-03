@@ -175,7 +175,7 @@ class LibEnsembleGenInterfacer(Generator):
         self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: List[dict]) -> (npt.NDArray, dict, int):
-        self.tell(list_dicts_to_np(results), PERSIS_STOP)
+        self.tell(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
 
 
