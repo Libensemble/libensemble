@@ -84,6 +84,8 @@ class Generator(ABC):
 
 
 def list_dicts_to_np(list_dicts: Iterable) -> npt.NDArray:
+    if not list_dicts:
+        return None
     new_dtype = []
     new_dtype_names = [i for i in list_dicts[0].keys()]
     for i, entry in enumerate(list_dicts[0].values()):  # must inspect values to get presumptive types
