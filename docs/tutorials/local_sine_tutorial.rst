@@ -7,6 +7,8 @@ calculations in parallel using :doc:`libEnsemble<../introduction>`.
 
 We recommend reading this brief :doc:`Overview<../overview_usecases>`.
 
+|Open in Colab|
+
 For this tutorial, our generator will produce uniform randomly sampled
 values, and our simulator will calculate the sine of each. By default we don't
 need to write a new allocation function.
@@ -277,3 +279,5 @@ need to write a new allocation function.
 .. _NumPy: https://www.numpy.org/
 .. _here: https://www.mpich.org/downloads/
 .. _examples/tutorials/simple_sine: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/simple_sine
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb

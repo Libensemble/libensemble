@@ -108,7 +108,7 @@ libEnsemble's Executors are commonly used within simulator functions to launch
 and monitor applications. An excellent overview is already available
 :doc:`here<../executor/overview>`.
 
-See the :doc:`Executor with Electrostatic Forces tutorial<../tutorials/executor_forces_tutorial>`
+See the :doc:`Ensemble with an MPI Application tutorial<../tutorials/executor_forces_tutorial>`
 for an additional example to try out.
 
 Persistent Simulators

@@ -380,6 +380,9 @@ class LibeSpecs(BaseModel):
     stats_fmt: Optional[dict] = {}
     """ Options for formatting ``'libE_stats.txt'``. See 'Formatting libE_stats.txt'. """
 
+    live_data: Optional[Any] = None
+    """ Add a live data capture object (e.g., for plotting). """
+
     workers: Optional[List[str]] = []
     """ TCP Only: A list of worker hostnames. """
 
