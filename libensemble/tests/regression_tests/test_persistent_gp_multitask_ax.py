@@ -19,8 +19,6 @@ persistent generator.
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
 
-import warnings
-
 import numpy as np
 
 from libensemble import logger
@@ -28,12 +26,6 @@ from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens
 from libensemble.libE import libE
 from libensemble.message_numbers import WORKER_DONE
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
-
-# Ax uses a deprecated warn command.
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 from libensemble.gen_funcs.persistent_ax_multitask import persistent_gp_mt_ax_gen_f
 
 

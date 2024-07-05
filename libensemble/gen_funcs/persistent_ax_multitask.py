@@ -9,6 +9,8 @@ This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
 """
 
+import warnings
+
 import os
 from copy import deepcopy
 
@@ -39,6 +41,12 @@ except ImportError:
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
+# Ax uses a deprecated warn command.
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 
 def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     """
@@ -46,7 +54,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     and update it as new simulation results are
     available, and generate inputs for the next simulations.
 
-    This is a persistent `genf` i.e. this function is called by a dedicated
+    This is a persistent `gen_f` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
     """
     # Extract bounds of the parameter space, and batch size
