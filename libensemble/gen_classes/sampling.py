@@ -17,7 +17,7 @@ class UniformSample(Generator):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None):
+    def __init__(self, _, persis_info, gen_specs, libE_info=None) -> list:
         # self.H = H
         self.persis_info = persis_info
         self.gen_specs = gen_specs
@@ -32,7 +32,7 @@ class UniformSample(Generator):
             H_o["obj_component"] = self.persis_info["rand_stream"].integers(
                 low=0, high=self.gen_specs["user"]["num_components"], size=n_trials
             )
-        return H_o
+        return [{"x": x.tolist()} for x in H_o["x"]]
 
     def tell(self, calc_in):
         pass  # random sample so nothing to tell
@@ -46,16 +46,3 @@ class UniformSample(Generator):
         assert isinstance(self.n, int), "Dimension must be an integer"
         assert isinstance(self.lb, np.ndarray), "lb must be a numpy array"
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
-
-
-class StandardUniformSample(UniformSample):
-    """
-    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
-    sampled points the first time it is called. Afterwards, it returns the
-    number of points given. This can be used in either a batch or asynchronous
-    mode by adjusting the allocation function.
-    """
-
-    def ask(self, n_trials):
-        out = super().ask(n_trials)
-        return [{"x": x.tolist()} for x in out["x"]]

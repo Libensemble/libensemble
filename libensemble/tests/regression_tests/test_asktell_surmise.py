@@ -12,7 +12,7 @@ from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 if __name__ == "__main__":
 
     from libensemble.executors import Executor
-    from libensemble.generators import Surmise
+    from libensemble.generators import Surmise, list_dicts_to_np
 
     # Import libEnsemble items for this test
     from libensemble.sim_funcs.borehole_kills import borehole
@@ -83,42 +83,35 @@ if __name__ == "__main__":
     surmise.setup()
 
     initial_sample = surmise.ask()
-    initial_results = surmise.create_results_array()
 
     total_evals = 0
 
-    for i in initial_sample["sim_id"]:
-        H_out, _a, _b = borehole(initial_sample[i], {}, sim_specs, {"H_rows": np.array([initial_sample[i]["sim_id"]])})
-        initial_results[i]["f"] = H_out["f"][0]  # some "bugginess" with output shape of array in simf
+    for point in initial_sample:
+        H_out, _a, _b = borehole(list_dicts_to_np(point), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+        point["f"] = H_out["f"][0]  # some "bugginess" with output shape of array in simf
         total_evals += 1
 
-    surmise.tell(initial_results)
+    surmise.tell(initial_sample)
 
     requested_canceled_sim_ids = []
 
     next_sample, cancels = surmise.ask(), surmise.ask_updates()
-    next_results = surmise.create_results_array()
 
-    for i in range(len(next_sample)):
-        H_out, _a, _b = borehole(next_sample[i], {}, sim_specs, {"H_rows": np.array([next_sample[i]["sim_id"]])})
-        next_results[i]["f"] = H_out["f"][0]
+    for point in next_sample:
+        H_out, _a, _b = borehole(list_dicts_to_np(point), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+        point["f"] = H_out["f"][0]
         total_evals += 1
 
-    surmise.tell(next_results)
+    surmise.tell(next_sample)
     sample, cancels = surmise.ask(), surmise.ask_updates()
 
     while total_evals < max_evals:
 
-        samples_iter = range(len(sample))
-
-        for i in samples_iter:
-            result = np.zeros(1, dtype=gen_specs["out"] + [("f", float)])
-            for field in gen_specs["out"]:
-                result[field[0]] = sample[i][field[0]]
-            H_out, _a, _b = borehole(sample[i], {}, sim_specs, {"H_rows": np.array([sample[i]["sim_id"]])})
-            result["f"] = H_out["f"][0]
+        for point in sample:
+            H_out, _a, _b = borehole(list_dicts_to_np(point), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+            point["f"] = H_out["f"][0]
             total_evals += 1
-            surmise.tell(result)
+            surmise.tell(point)
             if surmise.ready_to_be_asked():
                 new_sample, cancels = surmise.ask(), surmise.ask_updates()
                 for m in cancels:

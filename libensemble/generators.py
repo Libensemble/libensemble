@@ -1,7 +1,7 @@
 import copy
 import queue as thread_queue
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 import numpy as np
 from numpy import typing as npt
@@ -83,7 +83,7 @@ class Generator(ABC):
         """
 
 
-def list_dicts_to_np(list_dicts: Iterable) -> npt.NDArray:
+def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     if not list_dicts:
         return None
     new_dtype = []
@@ -102,7 +102,9 @@ def list_dicts_to_np(list_dicts: Iterable) -> npt.NDArray:
     return out
 
 
-def np_to_list_dicts(array: npt.NDArray) -> Iterable:
+def np_to_list_dicts(array: npt.NDArray) -> list:
+    if array is None:
+        return None
     out = []
     for row in array:
         new_dict = {}
@@ -263,7 +265,7 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def ask(self, *args) -> npt.NDArray:
+    def ask(self, *args) -> List[dict]:
         output = super().ask()
         if "cancel_requested" in output.dtype.names:
             cancels = output
