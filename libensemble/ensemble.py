@@ -347,6 +347,7 @@ class Ensemble:
         if not isinstance(new_specs, dict):  # exclude_defaults should only be enabled with Pydantic v2
             if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
                 warnings.warn(OVERWRITE_COMMS_WARN, UserWarning)
+                new_specs.comms = self._libE_specs.comms
             platform_specs_set = False
             if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
                 platform_specs_set = True
