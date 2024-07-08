@@ -27,9 +27,9 @@ parser.add_argument("--workers", type=str, nargs="+", help="List of worker nodes
 parser.add_argument("--workerID", type=int, nargs="?", help="Client worker ID")
 parser.add_argument("--server", type=str, nargs=3, help="Triple of (ip, port, authkey) used to reach manager")
 parser.add_argument("--pwd", type=str, nargs="?", help="Working directory to be used")
-parser.add_argument("--worker_pwd", type=str, nargs="?", help="Working directory on remote client")
+parser.add_argument("--worker_pwd", type=str, nargs="+", help="Working directory on remote client")
 parser.add_argument(
-    "--worker_python", type=str, nargs="?", default=sys.executable, help="Python version on remote client"
+    "--worker_python", type=str, nargs="+", default=[sys.executable], help="Python version on remote client"
 )
 parser.add_argument("--worker_file", type=str, nargs=1, help="YAML file for configuring remote-worker hosts")
 parser.add_argument("--ssh", type=str, nargs=1, help="ssh-accessible remote-host for launching workers")
@@ -112,22 +112,36 @@ def _parse_workerfile(args):
     with open(args.worker_file[0], "r") as f:
         worker_info = yaml.load(f, Loader=yaml.FullLoader)
     hosts = [i for i in worker_info.keys()]
+    import ipdb
+
+    ipdb.set_trace()
     for host in hosts:
         host_info = worker_info[host]
         worker_ids = host_info["worker_ids"]
-        if "," not in worker_ids:  # only got a single range
-            id_range = range(int(worker_ids.split("-")[0]), int(worker_ids.split("-")[1]) + 1)
+        if "," not in str(worker_ids):  # only got a single range
+            worker_ids = str(worker_ids)
+            if len(worker_ids.split("-")[0]) > 1:
+                id_range = range(int(worker_ids.split("-")[0]), int(worker_ids.split("-")[1]) + 1)
+            else:
+                id_range = int(worker_ids)
             if not isinstance(args.workers, list):
                 args.workers = []
-            args.workers += [host for i in id_range]
-        args.worker_pwd = host_info.get("working_dir")
+            try:
+                args.workers += [host for i in id_range]
+            except TypeError:
+                args.workers += [host * id_range]
+        if not isinstance(args.worker_python, list):
+            args.worker_python = []
+        args.worker_pwd += host_info.get("working_dir")
         if host_info.get("python_exe") not in (
             "python",
             "python3",
             sys.executable,
             None,
         ):  # we got a different python than the default:
-            args.worker_python = host_info.get("python_exe")
+            if not isinstance(args.worker_python, list):
+                args.worker_python = []
+            args.worker_python += host_info.get("python_exe")
     return args, len(args.workers)
 
 
@@ -141,9 +155,6 @@ def _parse_ssh_args(args):
 
 def _ssh_parse_args(args):
     """Parses arguments for SSH with reverse tunnel."""
-    import ipdb
-
-    ipdb.set_trace()
     if args.worker_file is not None:
         args, nworkers = _parse_workerfile(args)
     elif args.ssh is not None:
