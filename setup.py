@@ -64,6 +64,7 @@ setup(
         "libensemble.comms",
         "libensemble.utils",
         "libensemble.tools",
+        "libensemble.tools.live_data",
         "libensemble.executors",
         "libensemble.resources",
         "libensemble.tests.unit_tests",
