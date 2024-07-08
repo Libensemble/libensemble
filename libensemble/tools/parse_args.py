@@ -112,9 +112,6 @@ def _parse_workerfile(args):
     with open(args.worker_file[0], "r") as f:
         worker_info = yaml.load(f, Loader=yaml.FullLoader)
     hosts = [i for i in worker_info.keys()]
-    import ipdb
-
-    ipdb.set_trace()
     for host in hosts:
         host_info = worker_info[host]
         worker_ids = host_info["worker_ids"]
