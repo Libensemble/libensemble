@@ -113,11 +113,14 @@ def _parse_workerfile(args):
         worker_info = yaml.load(f, Loader=yaml.FullLoader)
     hosts = [i for i in worker_info.keys()]
     for host in hosts:
+        import ipdb
+
+        ipdb.set_trace()
         host_info = worker_info[host]
         worker_ids = host_info["worker_ids"]
         if "," not in str(worker_ids):  # only got a single range
             worker_ids = str(worker_ids)
-            if len(worker_ids.split("-")[0]) > 1:
+            if len(worker_ids.split("-")) > 1:
                 id_range = range(int(worker_ids.split("-")[0]), int(worker_ids.split("-")[1]) + 1)
             else:
                 id_range = int(worker_ids)
@@ -129,15 +132,15 @@ def _parse_workerfile(args):
                 args.workers += [host * id_range]
         if not isinstance(args.worker_python, list):
             args.worker_python = []
-        args.worker_pwd += host_info.get("working_dir")
+        if not isinstance(args.worker_pwd, list):
+            args.worker_pwd = []
+        args.worker_pwd += [host_info.get("working_dir")]
         if host_info.get("python_exe") not in (
             "python",
             "python3",
             sys.executable,
             None,
         ):  # we got a different python than the default:
-            if not isinstance(args.worker_python, list):
-                args.worker_python = []
             args.worker_python += host_info.get("python_exe")
     return args, len(args.workers)
 

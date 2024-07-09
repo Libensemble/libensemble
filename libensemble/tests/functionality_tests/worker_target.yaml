@@ -1,7 +1,9 @@
 localhost:
     worker_ids: 1
-    python_exe: python
+    python_exe: /Users/jnavarro/miniconda3/envs/libe/bin/python
+    working_dir: /Users/
 
 127.0.0.1:
     worker_ids: 2-8
-    python_exe: python3
+    python_exe: /Users/jnavarro/miniconda3/envs/nrm/bin/python
+    working_dir: /Users/jnavarro
