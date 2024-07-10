@@ -1,9 +1,11 @@
 """Generator class exposing gpCAM functionality"""
 
 import time
+from typing import List, Union
 
 import numpy as np
 from gpcam import GPOptimizer as GP
+from numpy import typing as npt
 
 from libensemble import Generator
 
@@ -15,7 +17,7 @@ from libensemble.gen_funcs.persistent_gpCAM import (
     _generate_mesh,
     _read_testpoints,
 )
-from libensemble.generators import list_dicts_to_np, np_to_list_dicts
+from libensemble.generators import call_then_convert, convert_then_call
 
 __all__ = [
     "GP_CAM",
@@ -62,7 +64,8 @@ class GP_CAM(Generator):
         self.my_gp = None
         self.noise = 1e-8  # 1e-12
 
-    def ask(self, n_trials) -> list:
+    @call_then_convert
+    def ask(self, n_trials: int) -> List[dict]:
         if self.all_x.shape[0] == 0:
             self.x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
         else:
@@ -76,11 +79,11 @@ class GP_CAM(Generator):
             print(f"Ask time:{time.time() - start}")
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.x_new
-        return np_to_list_dicts(H_o)
+        return H_o
 
-    def tell(self, calc_in):
+    @convert_then_call
+    def tell(self, calc_in: Union[List[dict], npt.NDArray]) -> None:
         if calc_in is not None:
-            calc_in = list_dicts_to_np(calc_in)
             self.y_new = np.atleast_2d(calc_in["f"]).T
             nan_indices = [i for i, fval in enumerate(self.y_new) if np.isnan(fval)]
             self.x_new = np.delete(self.x_new, nan_indices, axis=0)
@@ -115,7 +118,8 @@ class GP_CAM_Covar(GP_CAM):
             self.x_for_var = _generate_mesh(self.lb, self.ub, self.num_points)
             self.r_low_init, self.r_high_init = _calculate_grid_distances(self.lb, self.ub, self.num_points)
 
-    def ask(self, n_trials) -> list:
+    @call_then_convert
+    def ask(self, n_trials: int) -> List[dict]:
         if self.all_x.shape[0] == 0:
             x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
         else:
@@ -137,9 +141,9 @@ class GP_CAM_Covar(GP_CAM):
         self.x_new = x_new
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.x_new
-        return np_to_list_dicts(H_o)
+        return H_o
 
-    def tell(self, calc_in):
+    def tell(self, calc_in: Union[List[dict], npt.NDArray]):
         if calc_in is not None:
             super().tell(calc_in)
             if not self.U.get("use_grid"):
