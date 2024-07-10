@@ -79,8 +79,6 @@ libE
 libe
 libensemble
 libEnsemble
-liberegister
-libesubmit
 localopt
 logfiles
 LSF
