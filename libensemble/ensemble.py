@@ -1,7 +1,6 @@
 import importlib
 import json
 import logging
-import warnings
 from typing import Optional
 
 import numpy.typing as npt
@@ -23,8 +22,8 @@ ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
 NOTFOUND_ERR_MSG = 'Unable to load "{}". Is the package installed or the relative path correct?'
 NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
 
-OVERWRITE_COMMS_WARN = "Cannot set 'comms' if 'ensemble.libE_specs.comms' is already set. Ignoring new comms."
-CHANGED_COMMS_WARN = "New 'comms' method detected following complete parameterization of Ensemble. Ignoring new comms."
+OVERWRITE_COMMS_WARN = "Cannot reset 'comms' if 'ensemble.libE_specs.comms' is already set."
+CHANGED_COMMS_WARN = "New 'comms' method detected following complete parameterization of Ensemble. Exiting."
 
 CORRESPONDING_CLASSES = {
     "sim_specs": SimSpecs,
@@ -304,9 +303,6 @@ class Ensemble:
                 self._libE_specs = LibeSpecs(**self._libE_specs)
             self._known_comms = self._libE_specs.comms
 
-        if self._known_comms is None:
-            raise ValueError("comms must be specified, either by setting parse_args=True or in libE_specs.comms")
-
         if self._known_comms == "local":
             self.is_manager = True
             if not self.nworkers:
@@ -346,8 +342,7 @@ class Ensemble:
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):  # exclude_defaults should only be enabled with Pydantic v2
             if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
-                warnings.warn(OVERWRITE_COMMS_WARN, UserWarning)
-                new_specs.comms = self._libE_specs.comms
+                raise ValueError(OVERWRITE_COMMS_WARN)
             platform_specs_set = False
             if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
                 platform_specs_set = True
@@ -358,8 +353,7 @@ class Ensemble:
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
         if new_specs.get("comms") and hasattr(self._libE_specs, "comms"):
-            warnings.warn(OVERWRITE_COMMS_WARN, UserWarning)
-            new_specs.pop("comms")
+            raise ValueError(OVERWRITE_COMMS_WARN)
 
         self._libE_specs.__dict__.update(**new_specs)
 
@@ -408,8 +402,7 @@ class Ensemble:
         self._refresh_executor()
 
         if self._libE_specs.comms != self._known_comms:
-            warnings.warn(CHANGED_COMMS_WARN, UserWarning)
-            self._libE_specs.comms = self._known_comms
+            raise ValueError(CHANGED_COMMS_WARN)
 
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,

@@ -190,12 +190,8 @@ def test_ensemble_specs_update_libE_specs():
 
 def test_ensemble_prevent_comms_overwrite():
     """Test that libE_specs is updated as expected with .attribute setting"""
-    import warnings
-
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
-
-    warnings.filterwarnings("error")
 
     ensemble = Ensemble(
         libE_specs=LibeSpecs(comms="mpi"),
@@ -204,26 +200,22 @@ def test_ensemble_prevent_comms_overwrite():
     flag = 1
     try:
         ensemble.libE_specs = LibeSpecs(comms="local")
-    except UserWarning:
+    except ValueError:
         flag = 0
 
     assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
 
-    warnings.resetwarnings()
-
     # test that dot-notation is also disallowed, upon trying .run()
     # TODO: This may not be possible
     flag = 1
-    warnings.filterwarnings("error")
     ensemble = Ensemble()
     try:
         ensemble.libE_specs.comms = "mpi"
         ensemble.run()
-    except UserWarning:
+    except ValueError:
         flag = 0
 
     assert not flag, "should not be able to overwrite comms with dot-notation"
-    warnings.resetwarnings()
 
 
 def test_local_comms_without_nworkers():
