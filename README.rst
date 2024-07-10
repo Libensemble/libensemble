@@ -73,6 +73,22 @@ and an exit condition. Run the following via ``python this_file.py --comms local
        if sampling.is_manager:
            print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
+|Inline Example|
+
+Try some other examples live in Colab.
+
++---------------------------------------------------------------+-------------------------------------+
+| Description                                                   | Try online                          |
++===============================================================+=====================================+
+| Simple Ensemble that makes a Sine wave.                       | |Simple Ensemble|                   |
++---------------------------------------------------------------+-------------------------------------+
+| Ensemble with an MPI application.                             | |Ensemble with an MPI application|  |
++---------------------------------------------------------------+-------------------------------------+
+| Optimization example that finds multiple minima.              | |Optimization example|              |
++---------------------------------------------------------------+-------------------------------------+
+
+There are many more examples in the `regression tests`_
+
 Resources
 =========
 
@@ -139,3 +155,16 @@ Resources
 .. _PyPI: https://pypi.org
 .. _Quickstart: https://libensemble.readthedocs.io/en/main/introduction.html
 .. _ReadtheDocs: http://libensemble.readthedocs.org/
+.. _regression tests: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/regression_tests
+
+.. |Inline Example| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/readme_notebook.ipynb
+
+.. |Simple Ensemble| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/simple_sine/sine_tutorial_notebook.ipynb
+
+.. |Ensemble with an MPI application| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb
+
+.. |Optimization example| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
