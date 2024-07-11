@@ -25,6 +25,10 @@ class UniformSample(Generator):
         self._get_user_params(self.gen_specs["user"])
 
     def ask(self, n_trials):
+        H_o = self._ask_np(n_trials)
+        return [{"x": x.tolist()} for x in H_o["x"]]
+
+    def _ask_np(self, n_trials):
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
 
@@ -32,10 +36,13 @@ class UniformSample(Generator):
             H_o["obj_component"] = self.persis_info["rand_stream"].integers(
                 low=0, high=self.gen_specs["user"]["num_components"], size=n_trials
             )
-        return [{"x": x.tolist()} for x in H_o["x"]]
+        return H_o
 
     def tell(self, calc_in):
         pass  # random sample so nothing to tell
+
+    def _tell_np(self, calc_in):
+        self.tell(calc_in)
 
     def _get_user_params(self, user_specs):
         """Extract user params"""

@@ -1,8 +1,7 @@
 import copy
 import queue as thread_queue
 from abc import ABC, abstractmethod
-from functools import wraps
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import numpy as np
 from numpy import typing as npt
@@ -115,34 +114,6 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     return out
 
 
-def _libE_convert(input: Union[List[dict], npt.NDArray]) -> Union[List[dict], npt.NDArray]:
-    if isinstance(input, list):
-        return list_dicts_to_np(input)
-    elif isinstance(input, np.ndarray):
-        return np_to_list_dicts(input)
-    else:
-        raise ValueError("input must be a list or numpy array")
-
-
-def convert_then_call(func):
-    @wraps(func)
-    def wrapper(self, data, *args, **kwargs):
-        if isinstance(data, list):
-            data = _libE_convert(data)
-        return func(self, data, *args, **kwargs)
-
-    return wrapper
-
-
-def call_then_convert(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        data = func(self, *args, **kwargs)
-        return _libE_convert(data)
-
-    return wrapper
-
-
 class LibEnsembleGenInterfacer(Generator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
@@ -187,7 +158,13 @@ class LibEnsembleGenInterfacer(Generator):
             results = new_results
         return results
 
-    def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
+    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
+        return np_to_list_dicts(self._ask_np(num_points))
+
+    def tell(self, calc_in: List[dict]) -> None:
+        self._tell_np(list_dicts_to_np(calc_in))
+
+    def _ask_np(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
         if not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
@@ -196,8 +173,7 @@ class LibEnsembleGenInterfacer(Generator):
     def ask_updates(self) -> npt.NDArray:
         return self.ask()
 
-    @convert_then_call
-    def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+    def _tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             results = self._set_sim_ended(results)
             self.inbox.put(
@@ -243,8 +219,7 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    @call_then_convert
-    def ask(self, *args) -> List[dict]:
+    def _ask_np(self, *args) -> List[dict]:
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
@@ -295,8 +270,7 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    @call_then_convert
-    def ask(self, *args) -> List[dict]:
+    def _ask_np(self, *args) -> List[dict]:
         output = super().ask()
         if "cancel_requested" in output.dtype.names:
             cancels = output
