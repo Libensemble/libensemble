@@ -158,20 +158,20 @@ class LibEnsembleGenInterfacer(Generator):
             results = new_results
         return results
 
-    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
-        return np_to_list_dicts(self._ask_np(num_points))
+    def ask(self, n_trials: Optional[int] = 0) -> List[dict]:
+        return np_to_list_dicts(self._ask_np(n_trials))
 
-    def tell(self, calc_in: List[dict]) -> None:
-        self._tell_np(list_dicts_to_np(calc_in))
+    def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+        self._tell_np(list_dicts_to_np(calc_in), tag)
 
-    def _ask_np(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
+    def _ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
-        return self.ask()
+        return self._ask_np()
 
     def _tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
@@ -219,31 +219,30 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    def _ask_np(self, *args) -> List[dict]:
+    def _ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.results_idx = 0
-            self.last_ask = super().ask()
+            self.last_ask = super()._ask_np(n_trials)
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
                 min_idxs = self.last_ask["local_min"]
                 self.all_local_minima.append(self.last_ask[min_idxs])
                 self.last_ask = self.last_ask[~min_idxs]
-        if len(args) and isinstance(args[0], int):  # we've been asked for a selection of the last ask
-            num_asked = args[0]
+        if n_trials > 0:  # we've been asked for a selection of the last ask
             results = np.copy(
-                self.last_ask[self.results_idx : self.results_idx + num_asked]
+                self.last_ask[self.results_idx : self.results_idx + n_trials]
             )  # if resetting last_ask later, results may point to "None"
-            self.results_idx += num_asked
+            self.results_idx += n_trials
             return results
         results = np.copy(self.last_ask)
         self.results = results
         self.last_ask = None
         return results
 
-    def ask_updates(self) -> npt.NDArray:
+    def ask_updates(self) -> List[npt.NDArray]:
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
         return minima
@@ -271,7 +270,7 @@ class Surmise(LibEnsembleGenInterfacer):
         return not self.outbox.empty()
 
     def _ask_np(self, *args) -> List[dict]:
-        output = super().ask()
+        output = super()._ask_np()
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True

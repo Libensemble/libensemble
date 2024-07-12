@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibEnsembleGenInterfacer
+from libensemble.generators import LibEnsembleGenInterfacer, np_to_list_dicts
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -121,7 +121,7 @@ class AskTellGenRunner(Runner):
 
     def _ask_and_send(self):
         while self.gen.outbox.qsize():  # recv/send any outstanding messages
-            points, updates = self._to_array(self.gen.ask()), self._to_array(self.gen.ask_updates())
+            points, updates = self.gen._ask_np(), self.gen.ask_updates()  # PersistentInterfacers each have _ask_np
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:
@@ -137,7 +137,7 @@ class AskTellGenRunner(Runner):
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     return H_in
-                self.gen.tell(H_in)
+                self.gen._tell_np(H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
@@ -155,12 +155,13 @@ class AskTellGenRunner(Runner):
                 self.gen.ask(initial_batch)
             )  # updates can probably be ignored when asking the first time
         else:
-            H_out = self._to_array(self.gen.ask())  # libE really needs to receive the *entire* initial batch
+            H_out = self.gen._ask_np()  # libE really needs to receive the *entire* initial batch
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        self.gen.tell(H_in)
         if issubclass(type(self.gen), LibEnsembleGenInterfacer):
+            self.gen._tell_np(H_in)
             final_H_in = self._loop_over_persistent_interfacer()
         else:
+            self.gen.tell(np_to_list_dicts(H_in))
             final_H_in = self._loop_over_normal_generator(tag, Work)
         return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG
 
