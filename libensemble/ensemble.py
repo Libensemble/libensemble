@@ -13,6 +13,7 @@ from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
+from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
 from libensemble.utils.misc import specs_dump
 
@@ -309,7 +310,7 @@ class Ensemble:
                 raise ValueError("nworkers must be specified if comms is 'local'")
 
         elif self._known_comms == "mpi" and not parse_args:
-            self.nworkers, self.is_manager, _, self.extra_args = parse_args_f()
+            self.nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
 
     def _parse_args(self) -> (int, bool, LibeSpecs):
         self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
