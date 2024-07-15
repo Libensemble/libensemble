@@ -55,7 +55,7 @@ if __name__ == "__main__":
     )
 
     sampling.add_random_streams()
-    H, persis_info, flag =  sampling.run()
+    H, persis_info, flag = sampling.run()
 
     if sampling.is_manager:
         assert len(H) >= 501
