@@ -308,6 +308,9 @@ class Ensemble:
             if not self.nworkers:
                 raise ValueError("nworkers must be specified if comms is 'local'")
 
+        elif self._known_comms == "mpi" and not parse_args:
+            self.nworkers, self.is_manager, _, self.extra_args = parse_args_f()
+
     def _parse_args(self) -> (int, bool, LibeSpecs):
         self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
