@@ -61,7 +61,7 @@ class RSetResources:
 
         self.all_rsets = np.zeros(self.total_num_rsets, dtype=RSetResources.rset_dtype)
         self.all_rsets["group"], self.all_rsets["slot"], self.all_rsets["gpus"] = RSetResources.get_group_list(
-            self.split_list, gpus_avail_per_node
+            self.split_list, gpus_avail_per_node, resources.gpus_per_group
         )
 
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
@@ -79,23 +79,23 @@ class RSetResources:
             self.procs_per_rset = self.cores_per_rset
 
     @staticmethod
-    def get_group_list(split_list, gpus_per_node=0):
+    def get_group_list(split_list, gpus_per_node=0, gpus_per_group=None):
         """Return lists of group ids and slot IDs by resource set"""
         group = 1
         slot = 0
-        group_list = []
-        slot_list = []
-        gpu_list = []
-        gsize = 4
+        group_list, slot_list, gpu_list = [], [], []
+        node = split_list[0]
+
         for i in range(len(split_list)):
-            if slot == gsize:
-                slot = 0
+            # still break on new node if gpus_per_group is set
+            if split_list[i] != node or slot == gpus_per_group:
+                node = split_list[i]
                 group += 1
+                slot = 0
             group_list.append(group)
             slot_list.append(slot)
             gpu_list.append(slot < gpus_per_node)
             slot += 1
-        print(group_list, slot_list, gpu_list)
         return group_list, slot_list, gpu_list
 
     @staticmethod
