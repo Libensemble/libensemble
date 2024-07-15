@@ -176,7 +176,6 @@ The following packages may be installed separately to enable additional features
 * Balsam_ - Manage and submit applications to the Balsam service with our :ref:`BalsamExecutor<balsam-exctr>`
 * pyyaml_ and tomli_ - Parameterize libEnsemble via yaml or toml
 * `Globus Compute`_ - Submit simulation or generator function instances to remote Globus Compute endpoints
-* `psi-j-python`_ and `tqdm`_ - Use `liberegister` and `libesubmit` to submit libEnsemble jobs to any scheduler
 
 .. _Balsam: https://balsam.readthedocs.io/en/latest/
 .. _conda-forge: https://conda-forge.org/
@@ -186,7 +185,6 @@ The following packages may be installed separately to enable additional features
 .. _MPICH: https://www.mpich.org/
 .. _NumPy: http://www.numpy.org
 .. _Open MPI: https://www.open-mpi.org/
-.. _psi-j-python: https://github.com/ExaWorks/psi-j-python
 .. _psutil: https://pypi.org/project/psutil/
 .. _pydantic: https://docs.pydantic.dev/1.10/
 .. _PyPI: https://pypi.org
