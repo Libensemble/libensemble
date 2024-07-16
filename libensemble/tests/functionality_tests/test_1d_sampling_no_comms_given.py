@@ -22,7 +22,7 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
-
+from libensemble.tools import check_npy_file_exists
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -61,3 +61,4 @@ if __name__ == "__main__":
         assert len(H) >= 501
         print("\nlibEnsemble with random sampling has generated enough points")
         sampling.save_output(__file__)
+    assert check_npy_file_exists(__file__, basename=True)

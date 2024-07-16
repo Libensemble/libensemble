@@ -7,6 +7,7 @@ import logging
 import os
 import pickle
 import sys
+import time
 
 import numpy as np
 
@@ -73,6 +74,13 @@ _PERSIS_RETURN_WARNING = (
     "\n" + 79 * "*" + "\n\n"
 )
 
+
+def _get_shortname(calling_file):
+    script_name = os.path.splitext(os.path.basename(calling_file))[0]
+    short_name = script_name.split("test_", 1).pop()
+    return short_name
+
+
 # =================== save libE output to pickle and np ========================
 
 
@@ -113,8 +121,7 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
         A message to print/log when saving the file.
 
     """
-    script_name = os.path.splitext(os.path.basename(calling_file))[0]
-    short_name = script_name.split("test_", 1).pop()
+    short_name = _get_shortname(calling_file)
     prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
 
     h_filename = os.path.join(dest_path, short_name + "_history_" + prob_str)
@@ -184,6 +191,46 @@ def add_unique_random_streams(persis_info, nstreams, seed=""):
                 "worker_num": i,
             }
     return persis_info
+
+
+def check_npy_file_exists(filename: str, basename: bool = False, max_wait: int = 3):
+    """Checks a file is created in a parallel environment
+
+    Parameters
+    ----------
+
+    filename: `str`
+
+        Name of file.
+
+    basename: `bool`
+
+        Whether name provided is a basename for save_libE_output.
+
+    max_wait: `int`
+
+        The maximum number of seconds to wait for the file to exist.
+    """
+
+    def check_exact_file_exists():
+        return os.path.exists(filename)
+
+    def check_basename_file_exists():
+        short_name = _get_shortname(filename)
+        file_list = [f for f in os.listdir(".") if f.startswith(short_name) and f.endswith(".npy")]
+        return bool(file_list)
+
+    check_file_exists = check_basename_file_exists if basename else check_exact_file_exists
+    sleep_interval = 0.1
+    total_wait_time = 0
+    file_exists = False
+    while total_wait_time < max_wait:
+        if check_file_exists():
+            file_exists = True
+            break
+        time.sleep(sleep_interval)
+        total_wait_time += sleep_interval
+    return file_exists
 
 
 # A very specific exception to using the logger.
