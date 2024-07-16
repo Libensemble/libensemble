@@ -7,7 +7,6 @@ import numpy.typing as npt
 import tomli
 import yaml
 
-from libensemble import logger
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
@@ -284,11 +283,7 @@ class Ensemble:
         self.persis_info = persis_info
         self.executor = executor
         self.H0 = H0
-
         self._util_logger = logging.getLogger(__name__)
-        self.logger = logger
-        self.logger.set_level("INFO")
-
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
