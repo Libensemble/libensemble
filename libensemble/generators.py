@@ -114,7 +114,23 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     return out
 
 
-class LibEnsembleGenInterfacer(Generator):
+class LibensembleGenerator(Generator):
+    @abstractmethod
+    def _ask_np(self, num_points: Optional[int]) -> npt.NDArray:
+        pass
+
+    @abstractmethod
+    def _tell_np(self, results: npt.NDArray) -> None:
+        pass
+
+    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
+        return np_to_list_dicts(self._ask_np(num_points))
+
+    def tell(self, calc_in: List[dict]) -> None:
+        self._tell_np(list_dicts_to_np(calc_in))
+
+
+class LibEnsembleGenInterfacer(LibensembleGenerator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
@@ -157,9 +173,6 @@ class LibEnsembleGenInterfacer(Generator):
             new_results["sim_ended"] = True
             results = new_results
         return results
-
-    def ask(self, n_trials: Optional[int] = 0) -> List[dict]:
-        return np_to_list_dicts(self._ask_np(n_trials))
 
     def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         self._tell_np(list_dicts_to_np(calc_in), tag)

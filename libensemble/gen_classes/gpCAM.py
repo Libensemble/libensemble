@@ -1,13 +1,11 @@
 """Generator class exposing gpCAM functionality"""
 
 import time
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from gpcam import GPOptimizer as GP
 from numpy import typing as npt
-
-from libensemble import Generator
 
 # While there are class / func duplicates - re-use functions.
 from libensemble.gen_funcs.persistent_gpCAM import (
@@ -17,7 +15,7 @@ from libensemble.gen_funcs.persistent_gpCAM import (
     _generate_mesh,
     _read_testpoints,
 )
-from libensemble.generators import list_dicts_to_np, np_to_list_dicts
+from libensemble.generators import LibensembleGenerator
 
 __all__ = [
     "GP_CAM",
@@ -30,7 +28,7 @@ __all__ = [
 
 
 # Equivalent to function persistent_gpCAM_ask_tell
-class GP_CAM(Generator):
+class GP_CAM(LibensembleGenerator):
     """
     This generation function constructs a global surrogate of `f` values.
 
@@ -63,12 +61,6 @@ class GP_CAM(Generator):
         self._initialize_gpcAM(self.U)
         self.my_gp = None
         self.noise = 1e-8  # 1e-12
-
-    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
-        return np_to_list_dicts(self._ask_np(num_points))
-
-    def tell(self, calc_in: List[dict]) -> None:
-        self._tell_np(list_dicts_to_np(calc_in))
 
     def _ask_np(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
@@ -121,12 +113,6 @@ class GP_CAM_Covar(GP_CAM):
             self.num_points = 10
             self.x_for_var = _generate_mesh(self.lb, self.ub, self.num_points)
             self.r_low_init, self.r_high_init = _calculate_grid_distances(self.lb, self.ub, self.num_points)
-
-    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
-        return np_to_list_dicts(self._ask_np(num_points))
-
-    def tell(self, calc_in: List[dict]) -> None:
-        self._tell_np(list_dicts_to_np(calc_in))
 
     def _ask_np(self, n_trials: int) -> List[dict]:
         if self.all_x.shape[0] == 0:
