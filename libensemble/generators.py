@@ -84,7 +84,7 @@ class Generator(ABC):
 
 
 def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
-    if not list_dicts:
+    if list_dicts is None:
         return None
     new_dtype = []
     new_dtype_names = [i for i in list_dicts[0].keys()]
@@ -116,7 +116,7 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
 
 class LibensembleGenerator(Generator):
     @abstractmethod
-    def _ask_np(self, num_points: Optional[int]) -> npt.NDArray:
+    def _ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
         pass
 
     @abstractmethod
