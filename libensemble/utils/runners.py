@@ -154,14 +154,14 @@ class AskTellGenRunner(Runner):
             if self.gen.thread is None:
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        if not issubclass(
-            type(self.gen), LibensembleGenerator
+        if issubclass(
+            type(self.gen), LibEnsembleGenInterfacer
         ):  # we can't control how many points created by a threaded gen
-            H_out = self._to_array(
-                self.gen.ask(initial_batch)
-            )  # updates can probably be ignored when asking the first time
-        else:
+            H_out = self.gen.ask_np()  # updates can probably be ignored when asking the first time
+        elif issubclass(type(self.gen), LibensembleGenerator):
             H_out = self.gen.ask_np(initial_batch)  # libE really needs to receive the *entire* initial batch
+        else:
+            H_out = self.gen.ask(initial_batch)
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         if issubclass(type(self.gen), LibEnsembleGenInterfacer):  # libE native-gens can ask/tell numpy arrays
             self.gen.tell_np(H_in)
