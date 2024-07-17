@@ -116,18 +116,18 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
 
 class LibensembleGenerator(Generator):
     @abstractmethod
-    def _ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
+    def ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
         pass
 
     @abstractmethod
-    def _tell_np(self, results: npt.NDArray) -> None:
+    def tell_np(self, results: npt.NDArray) -> None:
         pass
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
-        return np_to_list_dicts(self._ask_np(num_points))
+        return np_to_list_dicts(self.ask_np(num_points))
 
     def tell(self, calc_in: List[dict]) -> None:
-        self._tell_np(list_dicts_to_np(calc_in))
+        self.tell_np(list_dicts_to_np(calc_in))
 
 
 class LibEnsembleGenInterfacer(LibensembleGenerator):
@@ -175,18 +175,18 @@ class LibEnsembleGenInterfacer(LibensembleGenerator):
         return results
 
     def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
-        self._tell_np(list_dicts_to_np(calc_in), tag)
+        self.tell_np(list_dicts_to_np(calc_in), tag)
 
-    def _ask_np(self, n_trials: int = 0) -> npt.NDArray:
+    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
-        return self._ask_np()
+        return self.ask_np()
 
-    def _tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+    def tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             results = self._set_sim_ended(results)
             self.inbox.put(
@@ -232,12 +232,12 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    def _ask_np(self, n_trials: int = 0) -> npt.NDArray:
+    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.results_idx = 0
-            self.last_ask = super()._ask_np(n_trials)
+            self.last_ask = super().ask_np(n_trials)
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
@@ -282,8 +282,8 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def _ask_np(self, *args) -> List[dict]:
-        output = super()._ask_np()
+    def ask_np(self, *args) -> List[dict]:
+        output = super().ask_np()
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True
