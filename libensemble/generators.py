@@ -57,7 +57,7 @@ class Generator(ABC):
     @abstractmethod
     def ask(self, num_points: Optional[int], *args, **kwargs) -> List[dict]:
         """
-        Request the next set of points to evaluate, and optionally any previous points to update.
+        Request the next set of points to evaluate.
         """
 
     def ask_updates(self) -> npt.NDArray:
@@ -94,9 +94,11 @@ class LibensembleGenerator(Generator):
         pass
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
+        """Request the next set of points to evaluate."""
         return np_to_list_dicts(self.ask_np(num_points))
 
     def tell(self, calc_in: List[dict]) -> None:
+        """Send the results of evaluations to the generator."""
         self.tell_np(list_dicts_to_np(calc_in))
 
 
@@ -116,6 +118,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         self.thread = None
 
     def setup(self) -> None:
+        """Must be called once before calling ask/tell. Initializes the background thread."""
         self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         self.outbox = thread_queue.Queue()
 
@@ -145,18 +148,22 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         return results
 
     def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+        """Send the results of evaluations to the generator."""
         self.tell_np(list_dicts_to_np(calc_in), tag)
 
     def ask_np(self, n_trials: int = 0) -> npt.NDArray:
+        """Request the next set of points to evaluate, as a NumPy array."""
         if not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
+        """Request any updates to previous points, e.g. minima discovered, points to cancel."""
         return self.ask_np()
 
     def tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+        """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
             self.inbox.put(
@@ -167,6 +174,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: List[dict]) -> (npt.NDArray, dict, int):
+        """Send any last results to the generator, and it to close down."""
         self.tell(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
 
@@ -203,6 +211,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self.last_ask = None
 
     def ask_np(self, n_trials: int = 0) -> npt.NDArray:
+        """Request the next set of points to evaluate, as a NumPy array."""
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
@@ -226,12 +235,17 @@ class APOSMM(LibensembleGenThreadInterfacer):
         return results
 
     def ask_updates(self) -> List[npt.NDArray]:
+        """Request a list of NumPy arrays containing entries that have been identified as minima."""
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
         return minima
 
 
 class Surmise(LibensembleGenThreadInterfacer):
+    """
+    Standalone object-oriented Surmise generator
+    """
+
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
@@ -250,9 +264,11 @@ class Surmise(LibensembleGenThreadInterfacer):
         return array
 
     def ready_to_be_asked(self) -> bool:
+        """Check if the generator has the next batch of points ready."""
         return not self.outbox.empty()
 
-    def ask_np(self, *args) -> List[dict]:
+    def ask_np(self, *args) -> npt.NDArray:
+        """Request the next set of points to evaluate, as a NumPy array."""
         output = super().ask_np()
         if "cancel_requested" in output.dtype.names:
             cancels = output
@@ -270,7 +286,8 @@ class Surmise(LibensembleGenThreadInterfacer):
         except thread_queue.Empty:
             return self.results
 
-    def ask_updates(self) -> npt.NDArray:
+    def ask_updates(self) -> List[npt.NDArray]:
+        """Request a list of NumPy arrays containing points that should be cancelled by the workflow."""
         cancels = copy.deepcopy(self.all_cancels)
         self.all_cancels = []
         return cancels
