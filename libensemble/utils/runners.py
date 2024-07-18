@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibensembleGenerator, LibEnsembleGenInterfacer, np_to_list_dicts
+from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer, np_to_list_dicts
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -155,7 +155,7 @@ class AskTellGenRunner(Runner):
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
         if issubclass(
-            type(self.gen), LibEnsembleGenInterfacer
+            type(self.gen), LibensembleGenThreadInterfacer
         ):  # we can't control how many points created by a threaded gen
             H_out = self.gen.ask_np()  # updates can probably be ignored when asking the first time
         elif issubclass(type(self.gen), LibensembleGenerator):
@@ -163,7 +163,7 @@ class AskTellGenRunner(Runner):
         else:
             H_out = self.gen.ask(initial_batch)
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        if issubclass(type(self.gen), LibEnsembleGenInterfacer):  # libE native-gens can ask/tell numpy arrays
+        if issubclass(type(self.gen), LibensembleGenThreadInterfacer):  # libE native-gens can ask/tell numpy arrays
             self.gen.tell_np(H_in)
             final_H_in = self._loop_over_persistent_interfacer()
         elif issubclass(type(self.gen), LibensembleGenerator):

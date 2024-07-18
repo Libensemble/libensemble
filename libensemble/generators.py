@@ -130,7 +130,7 @@ class LibensembleGenerator(Generator):
         self.tell_np(list_dicts_to_np(calc_in))
 
 
-class LibEnsembleGenInterfacer(LibensembleGenerator):
+class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
@@ -201,7 +201,7 @@ class LibEnsembleGenInterfacer(LibensembleGenerator):
         return self.thread.result()
 
 
-class APOSMM(LibEnsembleGenInterfacer):
+class APOSMM(LibensembleGenThreadInterfacer):
     """
     Standalone object-oriented APOSMM generator
     """
@@ -261,7 +261,7 @@ class APOSMM(LibEnsembleGenInterfacer):
         return minima
 
 
-class Surmise(LibEnsembleGenInterfacer):
+class Surmise(LibensembleGenThreadInterfacer):
     def __init__(
         self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
     ) -> None:
