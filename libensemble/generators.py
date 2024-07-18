@@ -10,16 +10,12 @@ from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
-
-# TODO: Refactor below-class to wrap StandardGenerator and possibly convert in/out data to list-of-dicts
+from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
 
 class Generator(ABC):
     """
     v 0.7.2.24
-
-    Tentative generator interface for use with libEnsemble, and generic enough to be
-    broadly compatible with other workflow packages.
 
     .. code-block:: python
 
@@ -83,38 +79,12 @@ class Generator(ABC):
         """
 
 
-def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
-    if list_dicts is None:
-        return None
-    new_dtype = []
-    new_dtype_names = [i for i in list_dicts[0].keys()]
-    for i, entry in enumerate(list_dicts[0].values()):  # must inspect values to get presumptive types
-        if hasattr(entry, "shape") and len(entry.shape):
-            entry_dtype = (new_dtype_names[i], entry.dtype, entry.shape)
-        else:
-            entry_dtype = (new_dtype_names[i], type(entry))
-        new_dtype.append(entry_dtype)
-
-    out = np.zeros(len(list_dicts), dtype=new_dtype)
-    for i, entry in enumerate(list_dicts):
-        for field in entry.keys():
-            out[field][i] = entry[field]
-    return out
-
-
-def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
-    if array is None:
-        return None
-    out = []
-    for row in array:
-        new_dict = {}
-        for field in row.dtype.names:
-            new_dict[field] = row[field]
-        out.append(new_dict)
-    return out
-
-
 class LibensembleGenerator(Generator):
+    """Internal implementation of Generator interface for use with libEnsemble, or for those who
+    prefer numpy arrays. ``ask/tell`` methods communicate lists of dictionaries, like the standard.
+    ``ask_np/tell_np`` methods communicate numpy arrays containing the same data.
+    """
+
     @abstractmethod
     def ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
         pass

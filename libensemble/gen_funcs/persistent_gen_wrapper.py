@@ -2,9 +2,9 @@ import inspect
 
 import numpy as np
 
-from libensemble.generators import np_to_list_dicts
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+from libensemble.utils.misc import np_to_list_dicts
 
 
 def persistent_gen_f(H, persis_info, gen_specs, libE_info):
