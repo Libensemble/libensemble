@@ -24,8 +24,7 @@ def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
-    e = Ensemble()  # parse_args defaults to False
-    e.libE_specs = {"comms": "local", "nworkers": 4}
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})  # parse_args defaults to False
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
@@ -118,8 +117,7 @@ def test_full_workflow():
         assert len(ens.H) >= 101
 
     # test a dry run
-    LS = LibeSpecs(comms="local", nworkers=4, dry_run=True)
-    ens.libE_specs = LS
+    ens.libE_specs.dry_run = True
     flag = 1
     try:
         ens.run()
@@ -190,6 +188,52 @@ def test_ensemble_specs_update_libE_specs():
     assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
 
 
+def test_ensemble_prevent_comms_overwrite():
+    """Test that libE_specs is updated as expected with .attribute setting"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(
+        libE_specs=LibeSpecs(comms="mpi"),
+    )
+
+    flag = 1
+    try:
+        ensemble.libE_specs = LibeSpecs(comms="local")
+    except ValueError:
+        flag = 0
+
+    assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
+
+    # test that dot-notation is also disallowed, upon trying .run()
+    # TODO: This may not be possible
+    flag = 1
+    ensemble = Ensemble()
+    try:
+        ensemble.libE_specs.comms = "mpi"
+        ensemble.run()
+    except ValueError:
+        flag = 0
+
+    assert not flag, "should not be able to overwrite comms with dot-notation"
+
+
+def test_local_comms_without_nworkers():
+    """Test that an empty ensemble can't be created, plus that nworkers must be specified"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    flag = 1
+    try:
+        Ensemble(
+            libE_specs=LibeSpecs(comms="local"),
+        )
+    except ValueError:
+        flag = 0
+
+    assert not flag, "'local' ensemble without nworkers should not be created"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -198,3 +242,5 @@ if __name__ == "__main__":
     test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
+    test_ensemble_prevent_comms_overwrite()
+    test_local_comms_without_nworkers()

@@ -307,8 +307,10 @@ class Manager:
         """Kills the workers"""
         for w in self.W["worker_id"]:
             self.wcomms[w].send(STOP_TAG, MAN_SIGNAL_FINISH)
-            if w == 0:
-                self.wcomms[0].result()
+
+    def _clean_up_thread(self) -> None:
+        if 0 in self.W["worker_id"]:
+            self.wcomms[0].result()
 
     # --- Checkpointing logic
 
@@ -608,6 +610,7 @@ class Manager:
 
         self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
         self._kill_workers()
+        self._clean_up_thread()
 
         if self.live_data is not None:
             self.live_data.finalize(self.hist)
