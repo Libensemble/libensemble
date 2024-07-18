@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibEnsembleGenInterfacer
+from libensemble.generators import LibensembleGenerator, LibEnsembleGenInterfacer, np_to_list_dicts
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
@@ -98,21 +98,36 @@ class AskTellGenRunner(Runner):
         super().__init__(specs)
         self.gen = specs.get("generator")
 
+    def _to_array(self, x):
+        if isinstance(x, list) and len(x) and isinstance(x[0], dict):
+            arr = np.zeros(len(x), dtype=self.specs["out"])
+            for i in range(len(x)):
+                for key in x[0].keys():
+                    arr[i][key] = x[i][key]
+            return arr
+        return x
+
     def _loop_over_normal_generator(self, tag, Work):
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = getattr(self.gen, "batch_size", 0) or Work["libE_info"]["batch_size"]
-            points, updates = self.gen.ask(batch_size), self.gen.ask_updates()
+            if issubclass(type(self.gen), LibensembleGenerator):
+                points, updates = self.gen.ask_np(batch_size), self.gen.ask_updates()
+            else:
+                points, updates = self._to_array(self.gen.ask(batch_size)), self._to_array(self.gen.ask_updates())
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
             else:
                 H_out = points
             tag, Work, H_in = self.ps.send_recv(H_out)
-            self.gen.tell(H_in)
+            if issubclass(type(self.gen), LibensembleGenerator):
+                self.gen.tell_np(H_in)
+            else:
+                self.gen.tell(np_to_list_dicts(H_in))
         return H_in
 
     def _ask_and_send(self):
         while self.gen.outbox.qsize():  # recv/send any outstanding messages
-            points, updates = self.gen.ask(), self.gen.ask_updates()
+            points, updates = self.gen.ask_np(), self.gen.ask_updates()  # PersistentInterfacers each have ask_np
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:
@@ -128,30 +143,38 @@ class AskTellGenRunner(Runner):
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     return H_in
-                self.gen.tell(H_in)
+                self.gen.tell_np(H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
         tag = None
         if hasattr(self.gen, "setup"):
-            self.gen.persis_info = persis_info
+            self.gen.persis_info = persis_info  # passthrough, setup() uses the gen attributes
             self.gen.libE_info = libE_info
             if self.gen.thread is None:
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
         initial_batch = getattr(self.gen, "initial_batch_size", 0) or libE_info["batch_size"]
-        if not issubclass(type(self.gen), LibEnsembleGenInterfacer):
-            H_out = self.gen.ask(initial_batch)  # updates can probably be ignored when asking the first time
+        if issubclass(
+            type(self.gen), LibEnsembleGenInterfacer
+        ):  # we can't control how many points created by a threaded gen
+            H_out = self.gen.ask_np()  # updates can probably be ignored when asking the first time
+        elif issubclass(type(self.gen), LibensembleGenerator):
+            H_out = self.gen.ask_np(initial_batch)  # libE really needs to receive the *entire* initial batch
         else:
-            H_out = self.gen.ask()  # libE really needs to receive the *entire* initial batch
+            H_out = self.gen.ask(initial_batch)
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
-        self.gen.tell(H_in)
-        if issubclass(type(self.gen), LibEnsembleGenInterfacer):
+        if issubclass(type(self.gen), LibEnsembleGenInterfacer):  # libE native-gens can ask/tell numpy arrays
+            self.gen.tell_np(H_in)
             final_H_in = self._loop_over_persistent_interfacer()
-        else:
+        elif issubclass(type(self.gen), LibensembleGenerator):
+            self.gen.tell_np(H_in)
+            final_H_in = self._loop_over_normal_generator(tag, Work)
+        else:  # non-native gen, needs list of dicts
+            self.gen.tell(np_to_list_dicts(H_in))
             final_H_in = self._loop_over_normal_generator(tag, Work)
         return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG
 
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
-        return self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"])
+        return self._to_array(self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"]))

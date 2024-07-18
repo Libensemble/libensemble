@@ -1,7 +1,7 @@
 import copy
 import queue as thread_queue
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import List, Optional
 
 import numpy as np
 from numpy import typing as npt
@@ -11,10 +11,12 @@ from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
+# TODO: Refactor below-class to wrap StandardGenerator and possibly convert in/out data to list-of-dicts
+
 
 class Generator(ABC):
     """
-    v 0.4.19.24
+    v 0.7.2.24
 
     Tentative generator interface for use with libEnsemble, and generic enough to be
     broadly compatible with other workflow packages.
@@ -57,22 +59,22 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: Optional[int], *args, **kwargs) -> Iterable:
+    def ask(self, num_points: Optional[int], *args, **kwargs) -> List[dict]:
         """
         Request the next set of points to evaluate, and optionally any previous points to update.
         """
 
-    def ask_updates(self) -> Iterable:
+    def ask_updates(self) -> npt.NDArray:
         """
         Request any updates to previous points, e.g. minima discovered, points to cancel.
         """
 
-    def tell(self, results: Iterable, *args, **kwargs) -> None:
+    def tell(self, results: List[dict], *args, **kwargs) -> None:
         """
         Send the results of evaluations to the generator.
         """
 
-    def final_tell(self, results: Iterable, *args, **kwargs) -> Optional[Iterable]:
+    def final_tell(self, results: List[dict], *args, **kwargs) -> Optional[npt.NDArray]:
         """
         Send the last set of results to the generator, instruct it to cleanup, and
         optionally retrieve an updated final state of evaluations. This is a separate
@@ -81,7 +83,54 @@ class Generator(ABC):
         """
 
 
-class LibEnsembleGenInterfacer(Generator):
+def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
+    if list_dicts is None:
+        return None
+    new_dtype = []
+    new_dtype_names = [i for i in list_dicts[0].keys()]
+    for i, entry in enumerate(list_dicts[0].values()):  # must inspect values to get presumptive types
+        if hasattr(entry, "shape") and len(entry.shape):
+            entry_dtype = (new_dtype_names[i], entry.dtype, entry.shape)
+        else:
+            entry_dtype = (new_dtype_names[i], type(entry))
+        new_dtype.append(entry_dtype)
+
+    out = np.zeros(len(list_dicts), dtype=new_dtype)
+    for i, entry in enumerate(list_dicts):
+        for field in entry.keys():
+            out[field][i] = entry[field]
+    return out
+
+
+def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
+    if array is None:
+        return None
+    out = []
+    for row in array:
+        new_dict = {}
+        for field in row.dtype.names:
+            new_dict[field] = row[field]
+        out.append(new_dict)
+    return out
+
+
+class LibensembleGenerator(Generator):
+    @abstractmethod
+    def ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
+        pass
+
+    @abstractmethod
+    def tell_np(self, results: npt.NDArray) -> None:
+        pass
+
+    def ask(self, num_points: Optional[int] = 0) -> List[dict]:
+        return np_to_list_dicts(self.ask_np(num_points))
+
+    def tell(self, calc_in: List[dict]) -> None:
+        self.tell_np(list_dicts_to_np(calc_in))
+
+
+class LibEnsembleGenInterfacer(LibensembleGenerator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
@@ -125,16 +174,19 @@ class LibEnsembleGenInterfacer(Generator):
             results = new_results
         return results
 
-    def ask(self, num_points: Optional[int] = 0, *args, **kwargs) -> npt.NDArray:
+    def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+        self.tell_np(list_dicts_to_np(calc_in), tag)
+
+    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
 
     def ask_updates(self) -> npt.NDArray:
-        return self.ask()
+        return self.ask_np()
 
-    def tell(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+    def tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         if results is not None:
             results = self._set_sim_ended(results)
             self.inbox.put(
@@ -144,19 +196,9 @@ class LibEnsembleGenInterfacer(Generator):
             self.inbox.put((tag, None))
         self.inbox.put((0, np.copy(results)))
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
-        self.tell(results, PERSIS_STOP)
+    def final_tell(self, results: List[dict]) -> (npt.NDArray, dict, int):
+        self.tell(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
-
-    def create_results_array(
-        self, length: int = 0, addtl_fields: list = [("f", float)], empty: bool = False
-    ) -> npt.NDArray:
-        in_length = len(self.results) if not length else length
-        new_results = np.zeros(in_length, dtype=self.gen_specs["out"] + addtl_fields)
-        if not empty:
-            for field in self.gen_specs["out"]:
-                new_results[field[0]] = self.results[field[0]]
-        return new_results
 
 
 class APOSMM(LibEnsembleGenInterfacer):
@@ -190,31 +232,30 @@ class APOSMM(LibEnsembleGenInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    def ask(self, *args) -> npt.NDArray:
+    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.results_idx = 0
-            self.last_ask = super().ask()
+            self.last_ask = super().ask_np(n_trials)
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
                 min_idxs = self.last_ask["local_min"]
                 self.all_local_minima.append(self.last_ask[min_idxs])
                 self.last_ask = self.last_ask[~min_idxs]
-        if len(args) and isinstance(args[0], int):  # we've been asked for a selection of the last ask
-            num_asked = args[0]
+        if n_trials > 0:  # we've been asked for a selection of the last ask
             results = np.copy(
-                self.last_ask[self.results_idx : self.results_idx + num_asked]
+                self.last_ask[self.results_idx : self.results_idx + n_trials]
             )  # if resetting last_ask later, results may point to "None"
-            self.results_idx += num_asked
+            self.results_idx += n_trials
             return results
         results = np.copy(self.last_ask)
         self.results = results
         self.last_ask = None
         return results
 
-    def ask_updates(self) -> npt.NDArray:
+    def ask_updates(self) -> List[npt.NDArray]:
         minima = copy.deepcopy(self.all_local_minima)
         self.all_local_minima = []
         return minima
@@ -241,8 +282,8 @@ class Surmise(LibEnsembleGenInterfacer):
     def ready_to_be_asked(self) -> bool:
         return not self.outbox.empty()
 
-    def ask(self, *args) -> (npt.NDArray, Optional[npt.NDArray]):
-        output = super().ask()
+    def ask_np(self, *args) -> List[dict]:
+        output = super().ask_np()
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True

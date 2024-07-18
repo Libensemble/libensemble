@@ -1,14 +1,15 @@
 """Generator classes providing points using sampling"""
 
 import numpy as np
-from libensemble import Generator
+
+from libensemble.generators import LibensembleGenerator
 
 __all__ = [
     "UniformSample",
 ]
 
 
-class UniformSample(Generator):
+class UniformSample(LibensembleGenerator):
     """
     This generator returns ``gen_specs["initial_batch_size"]`` uniformly
     sampled points the first time it is called. Afterwards, it returns the
@@ -16,14 +17,14 @@ class UniformSample(Generator):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None):
+    def __init__(self, _, persis_info, gen_specs, libE_info=None) -> list:
         # self.H = H
         self.persis_info = persis_info
         self.gen_specs = gen_specs
         self.libE_info = libE_info
         self._get_user_params(self.gen_specs["user"])
 
-    def ask(self, n_trials):
+    def ask_np(self, n_trials):
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
 
@@ -33,7 +34,7 @@ class UniformSample(Generator):
             )
         return H_o
 
-    def tell(self, calc_in):
+    def tell_np(self, calc_in):
         pass  # random sample so nothing to tell
 
     def _get_user_params(self, user_specs):
