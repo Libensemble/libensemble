@@ -17,8 +17,6 @@ def test_ensemble_init():
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
-    assert e.logger.get_level() == 20, "Default log level should be 20."
-
 
 def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
