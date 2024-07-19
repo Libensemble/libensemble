@@ -1,26 +1,23 @@
 """
-This module contains an example 1d function
+This module contains an example function that evaluates one point of any dimension >=1
 """
 
-__all__ = ["one_d_example"]
+__all__ = ["norm_eval"]
 
 import numpy as np
 
 from libensemble.specs import input_fields, output_data
 
-
 @input_fields(["x"])
 @output_data([("f", float)])
-def one_d_example(x, persis_info, sim_specs, _):
+def norm_eval(H, persis_info, sim_specs, _):
     """
-    Evaluates the six hump camel function for a single point ``x``.
+    Evaluates the vector norm for a single point ``x``.
 
     .. seealso::
-        `test_fast_alloc.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_fast_alloc.py>`_ # noqa
+        `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_1d_sampling.py>`_ # noqa
     """
-
+    x = H["x"]
     H_o = np.zeros(1, dtype=sim_specs["out"])
-
     H_o["f"] = np.linalg.norm(x)
-
     return H_o, persis_info
