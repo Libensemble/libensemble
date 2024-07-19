@@ -62,7 +62,7 @@ class Ensemble:
                 gen_f=latin_hypercube_sample,
                 outputs=[("x", float, (1,))],
                 user={
-                    "gen_batch_size": 500,
+                    "gen_batch_size": 50,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },

@@ -32,17 +32,17 @@ if __name__ == "__main__":
         gen_f=gen_f,
         outputs=[("x", float, (1,))],
         user={
-            "gen_batch_size": 500,
+            "gen_batch_size": 100,
             "lb": np.array([-3]),
             "ub": np.array([3]),
         },
     )
 
     sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
-    sampling.exit_criteria = ExitCriteria(gen_max=501)
+    sampling.exit_criteria = ExitCriteria(sim_max=500)
 
     sampling.run()
     if sampling.is_manager:
-        assert len(sampling.H) >= 501
+        assert len(sampling.H) >= 500
         print("\nlibEnsemble with random sampling has generated enough points")
     sampling.save_output(__file__)
