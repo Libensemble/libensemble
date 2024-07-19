@@ -166,8 +166,8 @@ class Worker:
         self.workerID = workerID
         self.libE_specs = libE_specs
         self.stats_fmt = libE_specs.get("stats_fmt", {})
-        self.sim_runner = Runner(sim_specs)
-        self.gen_runner = Runner(gen_specs)
+        self.sim_runner = Runner.from_specs(sim_specs)
+        self.gen_runner = Runner.from_specs(gen_specs)
         self.runners = {EVAL_SIM_TAG: self.sim_runner.run, EVAL_GEN_TAG: self.gen_runner.run}
         self.calc_iter = {EVAL_SIM_TAG: 0, EVAL_GEN_TAG: 0}
         Worker._set_executor(self.workerID, self.comm)

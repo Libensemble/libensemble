@@ -16,19 +16,21 @@ logger = logging.getLogger(__name__)
 
 
 class Runner:
-    def __new__(cls, specs):
+    @classmethod
+    def from_specs(cls, specs):
         if len(specs.get("globus_compute_endpoint", "")) > 0:
-            return super(Runner, GlobusComputeRunner).__new__(GlobusComputeRunner)
+            return GlobusComputeRunner(specs)
         if specs.get("threaded"):  # TODO: undecided interface
-            return super(Runner, ThreadRunner).__new__(ThreadRunner)
-        if isinstance(specs.get("generator", None), LibensembleGenThreadInterfacer):
-            return super(AskTellGenRunner, LibensembleGenThreadInterfacer).__new__(LibensembleGenThreadInterfacer)
-        if isinstance(specs.get("generator", None), LibensembleGenerator):
-            return super(AskTellGenRunner, LibensembleGenRunner).__new__(LibensembleGenRunner)
-        if hasattr(specs.get("generator", None), "ask"):  # all other ask/tell gens, third party
-            return super(Runner, AskTellGenRunner).__new__(AskTellGenRunner)
+            return ThreadRunner(specs)
+        if specs.get("generator") is not None:
+            if isinstance(specs.get("generator", None), LibensembleGenThreadInterfacer):
+                return LibensembleGenThreadRunner(specs)
+            if isinstance(specs.get("generator", None), LibensembleGenerator):
+                return LibensembleGenRunner(specs)
+            else:
+                return AskTellGenRunner(specs)
         else:
-            return super().__new__(Runner)
+            return Runner(specs)
 
     def __init__(self, specs):
         self.specs = specs
@@ -138,8 +140,7 @@ class AskTellGenRunner(Runner):
     def _start_generator_loop(self, tag, Work, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
         self.gen.tell(np_to_list_dicts(H_in))
-        final_H_in = self._loop_over_gen(tag, Work)
-        return final_H_in
+        return self._loop_over_gen(tag, Work)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
@@ -191,7 +192,7 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
         H_out = self.gen.ask_np()  # libE really needs to receive the *entire* initial batch from a threaded gen
         return H_out
 
-    def _start_generator_loop(self, tag, Work, H_in):
+    def _start_generator_loop(self, _, _2, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
         self.gen.tell_np(H_in)
         return self._loop_over_thread_interfacer()
