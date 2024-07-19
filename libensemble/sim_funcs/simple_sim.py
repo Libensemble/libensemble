@@ -15,7 +15,7 @@ def norm_eval(H, persis_info, sim_specs, _):
     Evaluates the vector norm for a single point ``x``.
 
     .. seealso::
-        `test_1d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_2d_sampling.py>`_ # noqa
+        `test_2d_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_2d_sampling.py>`_ # noqa
     """
     x = H["x"]
     H_o = np.zeros(1, dtype=sim_specs["out"])
