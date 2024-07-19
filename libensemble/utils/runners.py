@@ -105,7 +105,7 @@ class AskTellGenRunner(Runner):
     def __init__(self, specs):
         super().__init__(specs)
         self.gen = specs.get("generator")
-        self.inital_batch = getattr(self.gen, "initial_batch_size", 0)
+        self.initial_batch = getattr(self.gen, "initial_batch_size", 0)
         self.batch = getattr(self.gen, "batch_size", 0)
 
     def _to_array(self, x: list) -> npt.NDArray:
@@ -133,7 +133,7 @@ class AskTellGenRunner(Runner):
 
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        initial_batch = self.inital_batch or libE_info["batch_size"]
+        initial_batch = self.initial_batch or libE_info["batch_size"]
         H_out = self.gen.ask(initial_batch)
         return H_out
 
@@ -164,7 +164,7 @@ class AskTellGenRunner(Runner):
 class LibensembleGenRunner(AskTellGenRunner):
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        H_out = self.gen.ask_np(self.inital_batch or libE_info["batch_size"])
+        H_out = self.gen.ask_np(self.initial_batch or libE_info["batch_size"])
         return H_out
 
     def _start_generator_loop(self, tag, Work, H_in) -> npt.NDArray:
