@@ -528,7 +528,7 @@ def input_fields(fields: List[str]):
 
         @input_fields(["x"])
         @output_data([("f", float)])
-        def one_d_example(x, persis_info, sim_specs):
+        def norm_eval(x, persis_info, sim_specs):
             H_o = np.zeros(1, dtype=sim_specs["out"])
             H_o["f"] = np.linalg.norm(x)
             return H_o, persis_info
@@ -594,7 +594,7 @@ def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, T
 
         @input_fields(["x"])
         @output_data([("f", float)])
-        def one_d_example(x, persis_info, sim_specs):
+        def norm_eval(x, persis_info, sim_specs):
             H_o = np.zeros(1, dtype=sim_specs["out"])
             H_o["f"] = np.linalg.norm(x)
             return H_o, persis_info
