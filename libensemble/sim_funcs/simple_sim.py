@@ -5,8 +5,8 @@ This module contains an example function that evaluates one point of any dimensi
 __all__ = ["norm_eval"]
 
 import numpy as np
-
 from libensemble.specs import input_fields, output_data
+
 
 @input_fields(["x"])
 @output_data([("f", float)])
