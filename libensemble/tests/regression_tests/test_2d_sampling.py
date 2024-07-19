@@ -31,8 +31,8 @@ if __name__ == "__main__":
         outputs=[("x", float, 2)],
         user={
             "gen_batch_size": 100,
-            "lb": np.array([-3]),
-            "ub": np.array([3]),
+            "lb": np.array([-3, -2]),
+            "ub": np.array([3, 2]),
         },
     )
 
