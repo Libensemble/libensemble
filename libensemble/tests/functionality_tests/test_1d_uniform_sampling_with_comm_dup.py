@@ -23,7 +23,7 @@ from libensemble.gen_funcs.sampling import uniform_random_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
-from libensemble.sim_funcs.one_d_func import one_d_example as sim_f
+from libensemble.sim_funcs.simple_sim import one_d_example as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).

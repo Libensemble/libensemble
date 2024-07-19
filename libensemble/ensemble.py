@@ -49,7 +49,7 @@ class Ensemble:
 
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
-            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.sim_funcs.simple_sim import one_d_example
             from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
             sampling = Ensemble(parse_args=True)

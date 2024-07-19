@@ -89,7 +89,7 @@ def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import one_d_example
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -133,7 +133,7 @@ def test_flakey_workflow():
 
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import one_d_example
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)

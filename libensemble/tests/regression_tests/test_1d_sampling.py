@@ -19,7 +19,7 @@ from libensemble import Ensemble
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
-from libensemble.sim_funcs.one_d_func import norm_eval as sim_f
+from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 
