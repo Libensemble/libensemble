@@ -8,6 +8,7 @@ from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
 logger = logging.getLogger(__name__)
 
+
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
@@ -236,7 +237,7 @@ class History:
 
             # Ensure there aren't any gaps in the generated sim_id values:
             assert np.all(
-                np.in1d(np.arange(self.index, np.max(D["sim_id"]) + 1), D["sim_id"])
+                np.isin(np.arange(self.index, np.max(D["sim_id"]) + 1), D["sim_id"])
             ), "The generator function has produced sim_ids that are not in order."
 
             num_new = len(np.setdiff1d(D["sim_id"], self.H["sim_id"]))
