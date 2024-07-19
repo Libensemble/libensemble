@@ -438,6 +438,14 @@ class LibeSpecs(BaseModel):
     many GPUs.
     """
 
+    gpus_per_group: Optional[int] = None
+    """
+    Number of GPUs for each group in the scheduler. This can be used to deal
+    with scenarios where nodes have different numbers of GPUs. In effect a
+    block of this many GPUs will be treated as a virtual node.
+    By default the GPUs on a node are treated as a group.
+    """
+
     use_tiles_as_gpus: Optional[bool] = False
     """
     If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided

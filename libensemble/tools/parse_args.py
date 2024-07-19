@@ -39,8 +39,8 @@ def _get_zrw(nworkers, nsim_workers):
     return [i for i in range(1, ngen_workers + 1)]
 
 
-def _mpi_parse_args(args):
-    """Parses arguments for MPI comms."""
+def mpi_init(mpi_comm):
+    """Initialize MPI"""
     from mpi4py import MPI, rc
 
     if rc.initialize is False and not MPI.Is_initialized():
@@ -48,6 +48,14 @@ def _mpi_parse_args(args):
 
     nworkers = MPI.COMM_WORLD.Get_size() - 1
     is_manager = MPI.COMM_WORLD.Get_rank() == 0
+    return nworkers, is_manager
+
+
+def _mpi_parse_args(args):
+    """Parses arguments for MPI comms."""
+    from mpi4py import MPI
+
+    nworkers, is_manager = mpi_init(MPI.COMM_WORLD)
     libE_specs = {"mpi_comm": MPI.COMM_WORLD, "comms": "mpi"}
 
     if args.nresource_sets is not None:
