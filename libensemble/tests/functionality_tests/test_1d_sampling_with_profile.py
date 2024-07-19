@@ -21,7 +21,7 @@ import numpy as np
 
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.libE import libE
-from libensemble.sim_funcs.simple_sim import one_d_example as sim_f
+from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).

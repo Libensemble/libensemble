@@ -49,12 +49,12 @@ class Ensemble:
 
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
-            from libensemble.sim_funcs.simple_sim import one_d_example
+            from libensemble.sim_funcs.simple_sim import norm_eval
             from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
             sampling = Ensemble(parse_args=True)
             sampling.sim_specs = SimSpecs(
-                sim_f=one_d_example,
+                sim_f=norm_eval,
                 inputs=["x"],
                 outputs=[("f", float)],
             )
