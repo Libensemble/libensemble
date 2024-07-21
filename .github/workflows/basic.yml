@@ -220,9 +220,3 @@ jobs:
           uses: codecov/codecov-action@v4
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-    spellcheck:
-        name: Spellcheck release branch
-        if: contains(github.base_ref, 'develop')
-        runs-on: ubuntu-latest
-        steps:
