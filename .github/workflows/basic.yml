@@ -1,7 +1,12 @@
-name: libEnsemble-complete-CI
+name: libEnsemble-simple-CI
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types:
+      - ready_for_review
+      - opened
+      - reopened
+      - synchronize
 
 jobs:
     test-libE:
@@ -179,7 +184,7 @@ jobs:
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
-            pip install pydantic==${{ matrix.pydantic-version }}
+            #pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
 
