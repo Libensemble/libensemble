@@ -72,6 +72,23 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
+        - name: Install basic testing/feature dependencies
+          run: |
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
+
+        - name: Install generator dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install mpmath
+            conda install numpy nlopt scipy
+
+        - name: Install libEnsemble, flake8, lock environment
+          run: |
+            pip install pydantic==${{ matrix.pydantic-version }}
+            pip install -e .
+            flake8 libensemble
+
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
