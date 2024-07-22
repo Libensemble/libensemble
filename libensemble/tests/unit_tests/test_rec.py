@@ -1,9 +1,11 @@
 import numpy as np
+import sys
 import scipy
 from scipy.spatial.distance import cdist
 
 def test_cdist():
 
+    print(f"Python version: {sys.version}")
     print(f"NumPy version: {np.__version__}")
     print(f"SciPy version: {scipy.__version__}")
 
@@ -12,6 +14,9 @@ def test_cdist():
         [0.0, 0.0],
         [0.0, 0.0],
         [0.0, 0.0]]
+
+    print(f"a: {a}")
+    print(f"b: {b}")
 
     distances = cdist(a, b, "euclidean")
     print(distances)
