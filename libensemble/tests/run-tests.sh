@@ -27,10 +27,7 @@ export CODE_DIR=libensemble
 export LIBE_SRC_DIR=$CODE_DIR
 export TESTING_DIR=$CODE_DIR/tests
 export UNIT_TEST_SUBDIR=$TESTING_DIR/unit_tests
-export UNIT_TEST_MPI_SUBDIR=$TESTING_DIR/unit_tests_mpi_import
-export UNIT_TEST_NOMPI_SUBDIR=$TESTING_DIR/unit_tests_nompi
-export UNIT_TEST_LOGGER_SUBDIR=$TESTING_DIR/unit_tests_logger
-export UNIT_TEST_DIRS="$UNIT_TEST_SUBDIR $UNIT_TEST_MPI_SUBDIR $UNIT_TEST_NOMPI_SUBDIR $UNIT_TEST_LOGGER_SUBDIR"
+export UNIT_TEST_DIRS="$UNIT_TEST_SUBDIR"
 export REG_TEST_SUBDIR=$TESTING_DIR/regression_tests
 export FUNC_TEST_SUBDIR=$TESTING_DIR/functionality_tests
 
@@ -403,11 +400,6 @@ if [ "$root_found" = true ]; then
     for DIR in $UNIT_TEST_DIRS ; do
     cd $ROOT_DIR/$DIR
 
-    # unit test subdirs dont contain pytest's conftest.py that defines extra arg
-    if [ $DIR = $UNIT_TEST_NOMPI_SUBDIR ]; then
-        EXTRA_UNIT_ARG=""
-    fi
-
     if [ "$PYTEST_SHOW_OUT_ERR" = true ]; then
       $PYTHON_RUN -m pytest --capture=no --timeout=120 $COV_LINE_SERIAL $EXTRA_UNIT_ARG #To see std out/err while running
     else
@@ -677,9 +669,6 @@ if [ "$root_found" = true ]; then
 
     if [ "$RUN_UNIT_TESTS" = true ]; then
       covfile="$ROOT_DIR/$UNIT_TEST_SUBDIR/.cov_unit_out"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
-      covfile="$ROOT_DIR/$UNIT_TEST_NOMPI_SUBDIR/.cov_unit_out2"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
-      covfile="$ROOT_DIR/$UNIT_TEST_LOGGER_SUBDIR/.cov_unit_out3"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
-      covfile="$ROOT_DIR/$UNIT_TEST_MPI_SUBDIR/.cov_unit_out4"; [ -f ${covfile}  ] && cp $covfile .; cov_files="${cov_files} $covfile"
     fi;
 
     if [ "$RUN_REG_TESTS" = true ]; then
