@@ -361,10 +361,21 @@ def update_history_dist(H, n):
             H["dist_to_unit_bounds"][new_ind] = min(
                 min(np.ones(n) - H["x_on_cube"][new_ind]), min(H["x_on_cube"][new_ind] - np.zeros(n))
             )
+
+            print(f"{p=}")
+            print(f"{new_ind=}")
+
+            print("H['x_on_cube'][[new_ind]]:", H["x_on_cube"][[new_ind]])
             print("H['x_on_cube'][[new_ind]] shape:", H["x_on_cube"][[new_ind]].shape)
             print("H['x_on_cube'][[new_ind]] dtype:", H["x_on_cube"][[new_ind]].dtype)
             print("H['x_on_cube'][p] shape:", H["x_on_cube"][p].shape)
             print("H['x_on_cube'][p] dtype:", H["x_on_cube"][p].dtype)
+            print("Any NaNs in H['x_on_cube']:", np.isnan(H["x_on_cube"]).any())
+            print("Any Infs in H['x_on_cube']:", np.isinf(H["x_on_cube"]).any())
+            print(f"{cdist(H["x_on_cube"][[new_ind]], H["x_on_cube"][p], "euclidean")=}")
+
+
+
             dist_to_all = cdist(H["x_on_cube"][[new_ind]], H["x_on_cube"][p], "euclidean").flatten()
             new_better_than = H["f"][new_ind] < H["f"][p]
 
