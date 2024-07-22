@@ -20,6 +20,7 @@ from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TA
 from libensemble.tools.persistent_support import PersistentSupport
 
 
+
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
@@ -368,6 +369,8 @@ def update_history_dist(H, n):
             print("H['x_on_cube'][[new_ind]]:", H["x_on_cube"][[new_ind]])
             print("H['x_on_cube'][[new_ind]] shape:", H["x_on_cube"][[new_ind]].shape)
             print("H['x_on_cube'][[new_ind]] dtype:", H["x_on_cube"][[new_ind]].dtype)
+
+            print("H['x_on_cube'][p]:", H["x_on_cube"][p])
             print("H['x_on_cube'][p] shape:", H["x_on_cube"][p].shape)
             print("H['x_on_cube'][p] dtype:", H["x_on_cube"][p].dtype)
             print("Any NaNs in H['x_on_cube']:", np.isnan(H["x_on_cube"]).any())
