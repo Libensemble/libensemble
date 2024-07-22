@@ -374,8 +374,6 @@ def update_history_dist(H, n):
             print("Any Infs in H['x_on_cube']:", np.isinf(H["x_on_cube"]).any())
             print(f"{cdist(H["x_on_cube"][[new_ind]], H["x_on_cube"][p], "euclidean")=}")
 
-
-
             dist_to_all = cdist(H["x_on_cube"][[new_ind]], H["x_on_cube"][p], "euclidean").flatten()
             new_better_than = H["f"][new_ind] < H["f"][p]
 
