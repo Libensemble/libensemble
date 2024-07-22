@@ -87,7 +87,6 @@ jobs:
           run: |
             pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
-            flake8 libensemble
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
