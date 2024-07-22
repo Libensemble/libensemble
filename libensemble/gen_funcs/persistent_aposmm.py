@@ -370,7 +370,10 @@ def update_history_dist(H, n):
             print("H['x_on_cube'][[new_ind]] shape:", H["x_on_cube"][[new_ind]].shape)
             print("H['x_on_cube'][[new_ind]] dtype:", H["x_on_cube"][[new_ind]].dtype)
 
-            print("H['x_on_cube'][p]:", H["x_on_cube"][p])
+            print(f"H['x_on_cube'][p]=")
+            print(f"Test for none {H['x_on_cube'][p] is None}")
+            print("")
+            #import pdb;pdb.set_trace()
             print("H['x_on_cube'][p] shape:", H["x_on_cube"][p].shape)
             print("H['x_on_cube'][p] dtype:", H["x_on_cube"][p].dtype)
             print("Any NaNs in H['x_on_cube']:", np.isnan(H["x_on_cube"]).any())

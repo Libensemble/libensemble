@@ -182,12 +182,6 @@ jobs:
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
 
-        - name: Install libEnsemble, flake8, lock environment
-          run: |
-            pip install pydantic==${{ matrix.pydantic-version }}
-            pip install -e .
-            flake8 libensemble
-
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
