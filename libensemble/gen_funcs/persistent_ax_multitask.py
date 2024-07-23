@@ -7,6 +7,8 @@ of the whole libEnsemble run.
 
 This `gen_f` is meant to be used with the `alloc_f` function
 `only_persistent_gens`
+
+This test currently requires ax-platform<=0.4.0
 """
 
 import os
