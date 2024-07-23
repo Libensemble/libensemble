@@ -117,6 +117,15 @@ jobs:
             pip install .
             cd ..
 
+        - name: Install generator dependencies for Ubuntu tests
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
+          run: |
+            sudo apt-get install bc
+            # pip install dragonfly-opt
+            # pip install git+https://github.com/dragonfly/dragonfly.git
+            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
+            pip install scikit-build packaging Tasmanian --user
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
