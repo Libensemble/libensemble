@@ -201,10 +201,6 @@ jobs:
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
-        - name: Fixup numpy version
-          run: |
-            conda install numpy=1.25
-
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
