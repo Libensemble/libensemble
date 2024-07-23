@@ -126,6 +126,24 @@ jobs:
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
             pip install scikit-build packaging Tasmanian --user
 
+        - name: Install other testing dependencies
+          run: |
+            conda install octave
+            conda install pyzmq
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
+            git clone https://github.com/argonne-lcf/balsam.git
+            sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
+            cd balsam; pip install -e .; cd ..
+            git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
+            pushd IBCDFO/minq/py/minq5/
+            export PYTHONPATH="$PYTHONPATH:$(pwd)"
+            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+            popd
+            pushd IBCDFO/ibcdfo_pypkg/
+            pip install -e .
+            popd
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
