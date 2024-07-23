@@ -144,6 +144,21 @@ jobs:
             pip install -e .
             popd
 
+        - name: Build heffte
+          if: matrix.os != 'macos-latest'
+          run: |
+            # begin heffte build and dependencies
+            sudo apt install libfftw3-dev
+            git clone https://github.com/icl-utk-edu/heffte.git
+            mkdir heffte/build
+            cd heffte/build
+            pwd
+            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
+            make -j 4
+            make install
+            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
+            # end heffte build and dependencies
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
