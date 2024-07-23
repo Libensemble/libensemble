@@ -110,12 +110,13 @@ jobs:
         - name: Install generator dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install mpmath matplotlib ax-platform<=0.4.0
+            pip install mpmath
+            pip install matplotlib
+            pip install "ax-platform<=0.4.0"
             conda env update --file install/gen_deps_environment.yml
 
         - name: Install ax-platform
-          run: pip install ax-platform<=0.4.0
-
+          run: pip install "ax-platform<=0.4.0"
 
         - name: Install gpcam
           if: matrix.python-version != '3.12'
