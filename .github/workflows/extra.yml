@@ -10,7 +10,7 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest]
-                mpi-version: [mpich=4.2.1]
+                mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
                 pydantic-version: ["2.6.4"]
                 comms-type: [m, l]
@@ -254,4 +254,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.2
+        - uses: crate-ci/typos@v1.23.3
