@@ -92,6 +92,11 @@ jobs:
           run: |
             pip install gpcam
 
+        - name: Install surmise
+          if: matrix.os != 'macos-latest'
+          run: |
+            pip install --upgrade git+https://github.com/bandframework/surmise.git
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
