@@ -29,15 +29,9 @@ def cdist(XA, XB, metric="euclidean"):
     if metric != "euclidean":
         raise ValueError("Only 'euclidean' metric is supported in this implementation.")
 
-    mA = XA.shape[0]
-    mB = XB.shape[0]
-
-    distances = np.zeros((mA, mB))
-    for i in range(mA):
-        for j in range(mB):
-            diff = XA[i] - XB[j]
-            distances[i, j] = np.sqrt(np.sum(diff**2))
-
+    # Compute the pairwise Euclidean distances
+    diff = XA[:, np.newaxis, :] - XB[np.newaxis, :, :]
+    distances = np.sqrt(np.sum(diff**2, axis=2))
     return distances
 
 
