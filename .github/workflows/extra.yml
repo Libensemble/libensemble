@@ -80,8 +80,9 @@ jobs:
             pip install -r install/testing_requirements.txt
             conda env update --file install/gen_deps_environment.yml
 
-        - name: Install libEnsemble, flake8, lock environment
+        - name: $$$ ADD DEPS HERE &&& Install libEnsemble, flake8, lock environment
           run: |
+            pip install ax-platform
             pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
             flake8 libensemble
