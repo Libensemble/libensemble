@@ -97,6 +97,26 @@ jobs:
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
+        - name: Build ytopt and dependencies
+          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
+          run: |
+            pip install scikit-learn==1.4.0
+            pip install pandas==2.2.1
+            pip install ConfigSpace
+            pip install "ray[default]"
+            git clone https://github.com/ytopt-team/scikit-optimize.git
+            cd scikit-optimize
+            pip install .
+            cd ..
+            git clone -b version1 https://github.com/ytopt-team/autotune.git
+            cd autotune
+            pip install .
+            cd ..
+            git clone -b main https://github.com/ytopt-team/ytopt.git
+            cd ytopt
+            pip install .
+            cd ..
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
