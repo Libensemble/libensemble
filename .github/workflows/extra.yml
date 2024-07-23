@@ -87,6 +87,11 @@ jobs:
             pip install -e .
             flake8 libensemble
 
+        - name: Install gpcam
+          if: matrix.python-version != '3.12'
+          run: |
+            pip install gpcam
+
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
