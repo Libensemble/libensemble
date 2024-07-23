@@ -49,12 +49,12 @@ class Ensemble:
 
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
-            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.sim_funcs.simple_sim import norm_eval
             from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
             sampling = Ensemble(parse_args=True)
             sampling.sim_specs = SimSpecs(
-                sim_f=one_d_example,
+                sim_f=norm_eval,
                 inputs=["x"],
                 outputs=[("f", float)],
             )
@@ -62,7 +62,7 @@ class Ensemble:
                 gen_f=latin_hypercube_sample,
                 outputs=[("x", float, (1,))],
                 user={
-                    "gen_batch_size": 500,
+                    "gen_batch_size": 50,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
@@ -75,7 +75,7 @@ class Ensemble:
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
+    Run the above example via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
     instructs the Ensemble class to read command-line arguments.
 
     Configure by:

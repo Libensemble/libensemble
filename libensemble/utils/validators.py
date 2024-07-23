@@ -171,9 +171,9 @@ if pydanticV1:
     @root_validator
     def simf_set_in_out_from_attrs(cls, values):
         if not values.get("sim_f"):
-            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.sim_funcs.simple_sim import norm_eval
 
-            values["sim_f"] = one_d_example
+            values["sim_f"] = norm_eval
         if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("sim_f").inputs
         if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
