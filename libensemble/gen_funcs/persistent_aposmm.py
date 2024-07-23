@@ -13,12 +13,26 @@ from math import log, pi, sqrt
 
 import numpy as np
 from mpmath import gamma
-from scipy.spatial.distance import cdist
+# from scipy.spatial.distance import cdist
 
 from libensemble.gen_funcs.aposmm_localopt_support import ConvergedMsg, LocalOptInterfacer, simulate_recv_from_manager
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
+
+# Due to recursion error in scipy cdist function
+def cdist(XA, XB):
+    """Compute the pairwise Euclidean distances"""
+    mA = XA.shape[0]
+    mB = XB.shape[0]
+
+    distances = np.zeros((mA, mB))
+    for i in range(mA):
+        for j in range(mB):
+            diff = XA[i] - XB[j]
+            distances[i, j] = np.sqrt(np.sum(diff ** 2))
+
+    return distances
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):
