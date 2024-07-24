@@ -97,7 +97,7 @@ Try some other examples live in Colab.
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `regression tests`_
+There are many more examples in the `regression tests`_.
 
 Resources
 =========

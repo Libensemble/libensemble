@@ -13,6 +13,15 @@ We recommend using the following options to help debug workflows::
     logger.set_level("DEBUG")
     libE_specs["safe_mode"] = True
 
+To make it easier to debug a generator try setting the **libE_specs** option ``gen_on_manager``.
+E.g.,~ In your calling script add::
+
+    libE_specs["gen_on_manager"] = True
+
+This means ``pdb`` breakpoints can be set as usual in the generator.
+
+For more debugging options see "How can I debug specific libEnsemble processes?" below.
+
 Common Errors
 -------------
 

@@ -62,7 +62,7 @@ An administrator will take the following steps.
 
 - Merge the pull request into main.
 
-- Once CI tests have passed on main:
+- Make the following releases:
 
   - A GitHub release will be taken from the main
     (:ref:`github release<rel-github>`).
