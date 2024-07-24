@@ -43,8 +43,8 @@ if __name__ == "__main__":
     sampling.run()
     if sampling.is_manager:
         assert len(sampling.H) >= 200
-        x = sampling.H['x']
-        f = sampling.H['f']
+        x = sampling.H["x"]
+        f = sampling.H["f"]
         assert np.all(np.isclose(f, np.sqrt(np.sum(x**2, axis=1))))
         print("\nlibEnsemble has calculated the 2D vector norm of all points")
     sampling.save_output(__file__)
