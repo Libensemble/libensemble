@@ -5,7 +5,7 @@ Required: Ax_ version <=0.4.0
 
 To install::
 
-    pip install ax-platform<=0.4.0
+    pip install "ax-platform<=0.4.0"
 
 An example of the Ax multitask GP.
 
