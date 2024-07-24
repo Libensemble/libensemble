@@ -467,8 +467,8 @@ The calling script then specifies the templated input file as follows.
 
 Line 36 tells the templated input file to be copied to each simulation directory.
 
-An alternative is to use ``sim_input_dir`` which gives the name of a directory
-which may contain multiple files and will be used as the bases of each simulation
+An alternative is to use ``sim_input_dir``, which gives the name of a directory
+that may contain multiple files and will be used as the base of each simulation
 directory.
 
 Line 43 gives the input file name and the name of each parameter to the simulation

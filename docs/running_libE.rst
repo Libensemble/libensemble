@@ -187,7 +187,6 @@ set in your simulation script before the Executor *submit* command will export t
 to your run. For running a bash script in a sub environment when using the Executor, see
 the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
 
-
 Further Run Information
 -----------------------
 

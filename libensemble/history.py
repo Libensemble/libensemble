@@ -8,7 +8,6 @@ from libensemble.tools.fields_keys import libE_fields, protected_libE_fields
 
 logger = logging.getLogger(__name__)
 
-
 # For debug messages - uncomment
 # logger.setLevel(logging.DEBUG)
 
