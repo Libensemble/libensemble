@@ -352,7 +352,9 @@ Change the libE_specs as follows.
 
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True, sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial"
+        gen_on_manager=True,
+        sim_dirs_make=True,
+        ensemble_dir_path="./test_executor_forces_tutorial",
     )
 
 When running set ``nworkers`` to the number of workers desired for running simulations.
