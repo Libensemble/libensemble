@@ -8,6 +8,4 @@ dependencies:
   - numpy
   - nlopt
   - scipy
-  - petsc==3.20.4
-  - petsc4py==3.20.4
   - mpmath
