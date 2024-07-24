@@ -183,12 +183,12 @@ jobs:
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run-tests.sh -ue -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Run extensive tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            ./libensemble/tests/run-tests.sh -ue -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
