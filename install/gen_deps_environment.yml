@@ -9,3 +9,4 @@ dependencies:
   - nlopt
   - scipy
   - mpmath
+  - DFO-LS
