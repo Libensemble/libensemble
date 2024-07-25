@@ -112,11 +112,10 @@ jobs:
             python -m pip install --upgrade pip
             pip install mpmath
             pip install matplotlib
-            pip install "ax-platform<=0.4.0"
             conda env update --file install/gen_deps_environment.yml
 
-        - name: Install ax-platform
-          run: pip install "ax-platform<=0.4.0"
+        #- name: Install ax-platform
+        #  run: pip install "ax-platform<=0.4.0"
 
         - name: Install gpcam
           if: matrix.python-version != '3.12'
@@ -215,7 +214,7 @@ jobs:
           if: matrix.python-version >= '3.11'
           run: |
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
-            rm ./libensemble/tests/regression_tests/test_gpCAM.py
+            # rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
 
         - name: Remove test for persistent Tasmanian on Python 3.12
