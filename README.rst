@@ -59,7 +59,7 @@ and an exit condition. Run the following four-worker example via ``python this_f
 
         gen_specs = GenSpecs(
             gen_f=uniform_random_sample,
-            outputs=[("x", float, (2,))],
+            outputs=[("x", float, 2)],
             user={
                 "gen_batch_size": 50,
                 "lb": np.array([-3, -2]),

@@ -24,8 +24,13 @@ generator and simulator functions. Many :doc:`examples<examples/examples_index>`
 are available.
 
 There are currently three communication options for libEnsemble (determining how
-the Manager and Workers communicate). These are ``mpi``, ``local``, ``tcp``.
-The default is ``mpi``.
+the Manager and Workers communicate). These are ``local``, ``mpi``, ``tcp``.
+The default is ``local`` if ``nworkers`` is specified, otherwise ``mpi``.
+
+Note that ``local`` comms can be used on multi-node systems, where
+the :doc:`MPI executor<executor/overview>` is used to distribute MPI applications
+across the nodes. Indeed, this is the most commonly used option, even on large
+supercomputers.
 
 .. note::
     You do not need the ``mpi`` communication mode to use the
@@ -33,6 +38,47 @@ The default is ``mpi``.
     here only refer to how the libEnsemble manager and workers communicate.
 
 .. tab-set::
+
+    .. tab-item:: Local Comms
+
+        Uses Python's built-in multiprocessing_ module.
+        The ``comms`` type ``local`` and number of workers ``nworkers`` may
+        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
+
+        Then run::
+
+            python myscript.py
+
+        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
+        or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
+        you can specify these on the command line::
+
+            python myscript.py --comms local --nworkers N
+
+        This will launch one manager and ``N`` workers.
+
+        The following abbreviated line is equivalent to the above::
+
+            python myscript.py -n N
+
+        libEnsemble will run on **one node** in this scenario. To
+        :doc:`disallow this node<platforms/platforms_index>`
+        from app-launches (if running libEnsemble on a compute node),
+        set ``libE_specs["dedicated_mode"] = True``.
+
+        This mode can also be used to run on a **launch** node of a three-tier
+        system (e.g., Summit), ensuring the whole compute-node allocation is available for
+        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
+
+        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
+        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+        calling script code in an ``if __name__ == "__main__":`` block.
+
+        **Limitations of local mode**
+
+        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
+        - In some scenarios, any import of ``mpi4py`` will cause this to break.
+        - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
     .. tab-item:: MPI Comms
 
@@ -60,42 +106,6 @@ The default is ``mpi``.
 
         It is also unsuitable to use this mode when running on the **launch** nodes of
         three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.
-
-    .. tab-item:: Local Comms
-
-        Uses Python's built-in multiprocessing_ module.
-        The ``comms`` type ``local`` and number of workers ``nworkers`` may
-        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
-        Then run::
-
-            python myscript.py
-
-        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
-        or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
-        you can specify these on the command line::
-
-            python myscript.py --comms local --nworkers N
-
-        This will launch one manager and ``N`` workers.
-
-        libEnsemble will run on **one node** in this scenario. To
-        :doc:`disallow this node<platforms/platforms_index>`
-        from app-launches (if running libEnsemble on a compute node),
-        set ``libE_specs["dedicated_mode"] = True``.
-
-        This mode is often used to run on a **launch** node of a three-tier
-        system (e.g., Summit), ensuring the whole compute-node allocation is available for
-        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
-
-        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
-        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
-        calling script code in an ``if __name__ == "__main__":`` block.
-
-        **Limitations of local mode**
-
-        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
-        - In some scenarios, any import of ``mpi4py`` will cause this to break.
-        - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
     .. tab-item:: TCP Comms
 
