@@ -488,10 +488,11 @@ if [ "$root_found" = true ]; then
       do
         COMMS_LIST=$(sed -n '/# TESTSUITE_COMMS/s/# TESTSUITE_COMMS: //p' $TEST_SCRIPT)
         IS_EXTRA=$(sed -n '/# TESTSUITE_EXTRA/s/# TESTSUITE_EXTRA: //p' $TEST_SCRIPT)
+        EXCLUDE_TEST=$(sed -n '/# TESTSUITE_EXCLUDE/s/# TESTSUITE_EXCLUDE: //p' $TEST_SCRIPT)
 
         if [[ "$COMMS_LIST" = "" ]]; then COMMS_LIST="local"; fi
 
-        if [[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = false ]]; then
+        if [[ "$EXCLUDE_TEST" = "true" ]] || ([[ "$IS_EXTRA" = "true" ]] && [[ "$RUN_EXTRA" = "false" ]]); then
           continue
         fi
 
