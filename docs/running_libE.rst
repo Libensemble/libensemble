@@ -28,7 +28,7 @@ the Manager and Workers communicate). These are ``local``, ``mpi``, ``tcp``.
 The default is ``local`` if ``nworkers`` is specified, otherwise ``mpi``.
 
 Note that ``local`` comms can be used on multi-node systems, where
-the :doc:`executor<executor/overview>` is used to distribute MPI applications
+the :doc:`MPI executor<executor/overview>` is used to distribute MPI applications
 across the nodes. Indeed, this is the most commonly used option, even on large
 supercomputers.
 
