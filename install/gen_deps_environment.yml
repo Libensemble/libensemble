@@ -5,11 +5,13 @@ channels:
 
 dependencies:
   - pip
-  - numpy<2
+  - numpy>=2
   - nlopt
   - scipy
   - superlu_dist
   - hypre
   - mumps-mpi
+  - petsc
+  - petsc4py
   - DFO-LS
   - mpmath
