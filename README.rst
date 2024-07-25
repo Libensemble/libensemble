@@ -61,13 +61,13 @@ and an exit condition. Run the following four-worker example via ``python this_f
             gen_f=uniform_random_sample,
             outputs=[("x", float, (2,))],
             user={
-                "gen_batch_size": 500,
+                "gen_batch_size": 50,
                 "lb": np.array([-3, -2]),
                 "ub": np.array([3, 2]),
             },
         )
 
-        exit_criteria = ExitCriteria(sim_max=101)
+        exit_criteria = ExitCriteria(sim_max=100)
 
         sampling = Ensemble(
             libE_specs=libE_specs,
