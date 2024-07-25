@@ -28,8 +28,9 @@ the Manager and Workers communicate). These are ``local``, ``mpi``, ``tcp``.
 The default is ``local`` if ``nworkers`` is specified, otherwise ``mpi``.
 
 Note that ``local`` comms can be used on multi-node systems, where
-the ``MPI executor`` is used to distribute MPI applications across the nodes.
-Indeed, this is the most commonly used option, even on large supercomputers.
+the :doc:`executor<executor/overview>` is used to distribute MPI applications
+across the nodes. Indeed, this is the most commonly used option, even on large
+supercomputers.
 
 .. note::
     You do not need the ``mpi`` communication mode to use the
@@ -65,7 +66,7 @@ Indeed, this is the most commonly used option, even on large supercomputers.
         from app-launches (if running libEnsemble on a compute node),
         set ``libE_specs["dedicated_mode"] = True``.
 
-        This mode is often used to run on a **launch** node of a three-tier
+        This mode can also be used to run on a **launch** node of a three-tier
         system (e.g., Summit), ensuring the whole compute-node allocation is available for
         launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
 
