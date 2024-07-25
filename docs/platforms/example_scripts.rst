@@ -5,10 +5,6 @@ Below are example submission scripts used to configure and launch libEnsemble
 on a variety of high-powered systems. See :doc:`here<platforms_index>` for more
 information about the respective systems and configuration.
 
-Alternatively to interacting with the scheduler or configuring submission scripts,
-libEnsemble now features a portable set of :ref:`command-line utilities<liberegister>`
-for submitting workflows to almost any system or scheduler.
-
 .. dropdown:: Slurm - Basic
 
     ..  literalinclude:: ../../examples/libE_submission_scripts/submit_slurm_simple.sh

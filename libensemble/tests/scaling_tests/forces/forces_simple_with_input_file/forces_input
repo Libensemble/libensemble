@@ -1,0 +1,4 @@
+# Our input file - remember we are using particles as seed also for simplicity.
+num_particles = {{particles}}
+num_steps = 10
+rand_seed = {{particles}}

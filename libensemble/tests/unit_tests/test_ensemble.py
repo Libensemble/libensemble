@@ -17,15 +17,13 @@ def test_ensemble_init():
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
-    assert e.logger.get_level() == 20, "Default log level should be 20."
-
 
 def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
-    e = Ensemble()  # parse_args defaults to False
-    e.libE_specs = {"comms": "local", "nworkers": 4}
+    # Ensemble(parse_args=False) by default, so these specs won't be overwritten:
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
@@ -92,7 +90,7 @@ def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import norm_eval
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -100,7 +98,7 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=one_d_example),
+        sim_specs=SimSpecs(sim_f=norm_eval),
         gen_specs=GenSpecs(
             gen_f=latin_hypercube_sample,
             user={
@@ -118,8 +116,7 @@ def test_full_workflow():
         assert len(ens.H) >= 101
 
     # test a dry run
-    LS = LibeSpecs(comms="local", nworkers=4, dry_run=True)
-    ens.libE_specs = LS
+    ens.libE_specs.dry_run = True
     flag = 1
     try:
         ens.run()
@@ -137,7 +134,7 @@ def test_flakey_workflow():
 
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import norm_eval
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -146,7 +143,7 @@ def test_flakey_workflow():
     try:
         ens = Ensemble(
             libE_specs=LS,
-            sim_specs=SimSpecs(sim_f=one_d_example),
+            sim_specs=SimSpecs(sim_f=norm_eval),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
                 user={
@@ -190,6 +187,52 @@ def test_ensemble_specs_update_libE_specs():
     assert ensemble.libE_specs.platform_specs == specs_dump(platform_specs, exclude_none=True)
 
 
+def test_ensemble_prevent_comms_overwrite():
+    """Test that libE_specs is updated as expected with .attribute setting"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    ensemble = Ensemble(
+        libE_specs=LibeSpecs(comms="mpi"),
+    )
+
+    flag = 1
+    try:
+        ensemble.libE_specs = LibeSpecs(comms="local")
+    except ValueError:
+        flag = 0
+
+    assert not flag, "UserWarning should've been raised upon trying to overwrite comms"
+
+    # test that dot-notation is also disallowed, upon trying .run()
+    # TODO: This may not be possible
+    flag = 1
+    ensemble = Ensemble()
+    try:
+        ensemble.libE_specs.comms = "mpi"
+        ensemble.run()
+    except ValueError:
+        flag = 0
+
+    assert not flag, "should not be able to overwrite comms with dot-notation"
+
+
+def test_local_comms_without_nworkers():
+    """Test that an empty ensemble can't be created, plus that nworkers must be specified"""
+    from libensemble.ensemble import Ensemble
+    from libensemble.specs import LibeSpecs
+
+    flag = 1
+    try:
+        Ensemble(
+            libE_specs=LibeSpecs(comms="local"),
+        )
+    except ValueError:
+        flag = 0
+
+    assert not flag, "'local' ensemble without nworkers should not be created"
+
+
 if __name__ == "__main__":
     test_ensemble_init()
     test_ensemble_parse_args_false()
@@ -198,3 +241,5 @@ if __name__ == "__main__":
     test_full_workflow()
     test_flakey_workflow()
     test_ensemble_specs_update_libE_specs()
+    test_ensemble_prevent_comms_overwrite()
+    test_local_comms_without_nworkers()

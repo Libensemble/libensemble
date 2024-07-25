@@ -203,9 +203,9 @@ def persistent_gpCAM_simple(H_in, persis_info, gen_specs, libE_info):
             all_y = np.vstack((all_y, y_new))
 
             if my_gp is None:
-                my_gp = GP(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
+                my_gp = GP(all_x, all_y.flatten(), noise_variances=noise * np.ones(len(all_y)))
             else:
-                my_gp.tell(all_x, all_y, noise_variances=noise * np.ones(len(all_y)))
+                my_gp.tell(all_x, all_y.flatten(), noise_variances=noise * np.ones(len(all_y)))
             my_gp.train()
 
             if not U.get("use_grid"):
@@ -228,6 +228,7 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
     """  # noqa
 
     batch_size, n, lb, ub, all_x, all_y, ps = _initialize_gpcAM(gen_specs["user"], libE_info)
+    ask_max_iter = gen_specs["user"].get("ask_max_iter") or 10
 
     H_o = np.zeros(batch_size, dtype=gen_specs["out"])
     x_new = persis_info["rand_stream"].uniform(lb, ub, (batch_size, n))
@@ -242,19 +243,20 @@ def persistent_gpCAM_ask_tell(H_in, persis_info, gen_specs, libE_info):
 
         if first_call:
             # Initialize GP
-            my_gp = GP(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp = GP(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
             first_call = False
         else:
-            my_gp.tell(all_x, all_y, noise_variances=1e-8 * np.ones(len(all_y)))
+            my_gp.tell(all_x, all_y.flatten(), noise_variances=1e-8 * np.ones(len(all_y)))
 
         my_gp.train()
 
         start = time.time()
         x_new = my_gp.ask(
-            bounds=np.column_stack((lb, ub)),
+            input_set=np.column_stack((lb, ub)),
             n=batch_size,
             pop_size=batch_size,
-            max_iter=1,
+            acquisition_function="total correlation",
+            max_iter=ask_max_iter,  # Larger takes longer. gpCAM default is 20.
         )["x"]
         print(f"Ask time:{time.time() - start}")
         H_o = np.zeros(batch_size, dtype=gen_specs["out"])
