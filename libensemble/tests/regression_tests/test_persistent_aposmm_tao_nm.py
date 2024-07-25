@@ -2,9 +2,9 @@
 Runs libEnsemble with APOSMM with a PETSc/TAO local optimizer.
 
 Execute via one of the following commands (e.g. 3 workers):
-   mpiexec -np 4 python test_persistent_aposmm_tao_blmvm.py
-   python test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms local
-   python test_persistent_aposmm_tao_blmvm.py --nworkers 3 --comms tcp
+   mpiexec -np 4 python test_persistent_aposmm_tao_nm.py
+   python test_persistent_aposmm_tao_nm.py --nworkers 3 --comms local
+   python test_persistent_aposmm_tao_nm.py --nworkers 3 --comms tcp
 
 When running with the above commands, the number of concurrent evaluations of
 the objective function will be 2, as one of the three workers will be the
@@ -15,10 +15,10 @@ persistent generator.
 # TESTSUITE_COMMS: local mpi tcp
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 import multiprocessing
 import sys
-from math import gamma, pi, sqrt
 
 import numpy as np
 
@@ -29,21 +29,15 @@ from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "petsc"
-from time import time
-
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.gen_funcs.persistent_aposmm import aposmm as gen_f
-from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import add_unique_random_streams, parse_args
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
     multiprocessing.set_start_method("fork", force=True)
 
     nworkers, is_manager, libE_specs, _ = parse_args()
-
-    if is_manager:
-        start_time = time()
 
     if nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
@@ -69,14 +63,8 @@ if __name__ == "__main__":
         "out": gen_out,
         "user": {
             "initial_sample_size": 100,
-            "sample_points": np.round(minima, 1),
-            "localopt_method": "blmvm",
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "grtol": 1e-4,
-            "gatol": 1e-4,
-            "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
-            "lb": np.array([-3, -2]),
+            "localopt_method": "nm",
+            "lb": np.array([-3, -2]),  # This is only for sampling. TAO_NM doesn't honor constraints.
             "ub": np.array([3, 2]),
         },
     }
@@ -92,13 +80,12 @@ if __name__ == "__main__":
 
     if is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
-        print("[Manager]: Time taken =", time() - start_time, flush=True)
+        assert np.sum(~H["local_pt"]) > 100, "Had to do at least 100 sample points"
+        assert np.sum(H["local_pt"]) > 100, "Why didn't at least 100 local points occur?"
 
-        tol = 1e-5
-        for m in minima:
-            # The minima are known on this test problem.
-            # We use their values to test APOSMM has identified all minima
-            print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
-            assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
-
-        save_libE_output(H, persis_info, __file__, nworkers)
+    if libE_specs["comms"] == "mpi":
+        persis_info = add_unique_random_streams({}, nworkers + 1)
+        gen_specs["user"]["run_max_eval"] = 10 * (n + 1)
+        H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
+        if is_manager:
+            assert flag == 0
