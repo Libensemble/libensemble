@@ -50,9 +50,10 @@ class Ensemble:
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
             from libensemble.sim_funcs.simple_sim import norm_eval
-            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+            from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-            sampling = Ensemble(parse_args=True)
+            libE_specs = LibeSpecs(nworkers=4)
+            sampling = Ensemble(libE_specs=libE_specs)
             sampling.sim_specs = SimSpecs(
                 sim_f=norm_eval,
                 inputs=["x"],
@@ -69,13 +70,17 @@ class Ensemble:
             )
 
             sampling.add_random_streams()
-            sampling.exit_criteria = ExitCriteria(sim_max=101)
+            sampling.exit_criteria = ExitCriteria(sim_max=100)
 
             if __name__ == "__main__":
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
+
+    Run the above example via ``python this_file.py``.
+
+    Instead of using the libE_specs line, you can also use ``sampling = Ensemble(parse_args=True)``
+    and run via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
     instructs the Ensemble class to read command-line arguments.
 
     Configure by:

@@ -11,12 +11,15 @@ persistent generator.
 
 See libensemble.gen_funcs.persistent_gpCAM for more details about the generator
 setup.
+
+Requires numpy<2.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 import sys
 import warnings

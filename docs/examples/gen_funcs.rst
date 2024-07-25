@@ -17,5 +17,6 @@ Generator Functions
    tasmanian
    fd_param_finder
    surmise
+   ax_multitask
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
