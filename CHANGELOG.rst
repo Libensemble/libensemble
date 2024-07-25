@@ -13,14 +13,13 @@ Release 1.4.0
 
 :Date: July 25, 2024
 
-* Add a live_data option for real-time data collection / plotting. #1310
+* Add a ``live_data`` option for real-time data collection / plotting. #1310
 * ``nworkers``/``is_manager`` are set when ``Ensemble`` object is created. #1331/ #1336
   * This update locks the comms method when ``Ensemble`` object is created.
-* Add ``group_size`` option to deal with unevenly resourced nodes. #1349
+* Add a ``group_size`` option to deal with unevenly resourced nodes. #1349
 * Bug fix: Fix shutdown hang on worker error when using ``gen_on_manager``. #1348
 * Bug fix: Log level was locked to ``INFO`` when using class interface.
 * Updated code to support ``numpy`` 2.0.
-
 
 Documentation:
 
