@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from libensemble.gen_funcs.persistent_aposmm import cdist
 
 # @pytest.mark.extra
@@ -39,11 +40,13 @@ from libensemble.gen_funcs.persistent_aposmm import cdist
 def test_cdist_same_size():
     XA = np.array([[1, 2], [3, 4], [5, 6]])
     XB = np.array([[7, 8], [9, 10], [11, 12]])
-    exp = np.array([
-        [8.48528137, 11.3137085, 14.1421356],
-        [5.65685425, 8.48528137, 11.3137085],
-        [2.82842712, 5.65685425, 8.48528137]
-    ])
+    exp = np.array(
+        [
+            [8.48528137, 11.3137085, 14.1421356],
+            [5.65685425, 8.48528137, 11.3137085],
+            [2.82842712, 5.65685425, 8.48528137],
+        ]
+    )
 
     result = cdist(XA, XB)
     assert np.allclose(result, exp), f"Result: {result}, Expected: {exp}"
@@ -52,10 +55,12 @@ def test_cdist_same_size():
 def test_cdist_different_size():
     XA = np.array([[1, 2], [3, 4]])
     XB = np.array([[5, 6], [7, 8], [9, 10]])
-    exp = np.array([
-        [5.65685425, 8.48528137, 11.3137085],
-        [2.82842712, 5.65685425, 8.48528137]
-    ])
+    exp = np.array(
+        [
+            [5.65685425, 8.48528137, 11.3137085],
+            [2.82842712, 5.65685425, 8.48528137],
+        ]
+    )
 
     result = cdist(XA, XB)
     assert np.allclose(result, exp), f"Result: {result}, Expected: {exp}"

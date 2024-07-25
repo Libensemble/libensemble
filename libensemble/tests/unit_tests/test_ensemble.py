@@ -22,7 +22,8 @@ def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})  # parse_args defaults to False
+    # Ensemble(parse_args=False) by default, so these specs wont be overwritten:
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 

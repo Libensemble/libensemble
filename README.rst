@@ -36,7 +36,7 @@ Basic Usage
 ===========
 
 Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
-and an exit condition. Run the following via ``python this_file.py``:
+and an exit condition. Run the following four-worker example via ``python this_file.py``:
 
 .. code-block:: python
 
