@@ -11,7 +11,5 @@ dependencies:
   - superlu_dist
   - hypre
   - mumps-mpi
-  - petsc
-  - petsc4py
   - DFO-LS
   - mpmath
