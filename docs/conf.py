@@ -101,7 +101,11 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "sphinx_copybutton",
+    "sphinx_autodoc_typehints",
+    "sphinx_resolve_py_references",
 ]
+
+autodoc2_packages = ["../libensemble"]
 
 spelling_word_list_filename = "spelling_wordlist.txt"
 spelling_ignore_pypi_package_names = True

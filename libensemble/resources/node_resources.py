@@ -6,13 +6,10 @@ This module for detects and returns intranode resources
 import collections
 import logging
 import os
-from typing import TYPE_CHECKING
 
 import psutil
 
-if TYPE_CHECKING:
-    from libensemble.resources.env_resources import EnvResources
-
+from libensemble.resources.env_resources import EnvResources
 from libensemble.resources.gpu_detect import get_gpus_from_env, get_num_gpus
 
 logger = logging.getLogger(__name__)

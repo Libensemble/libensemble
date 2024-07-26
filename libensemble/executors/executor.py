@@ -12,7 +12,7 @@ import stat
 import sys
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import libensemble.utils.launcher as launcher
 from libensemble.message_numbers import (
@@ -24,10 +24,7 @@ from libensemble.message_numbers import (
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
 )
-
-if TYPE_CHECKING:
-    from libensemble.resources.resources import Resources
-
+from libensemble.resources.resources import Resources
 from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)

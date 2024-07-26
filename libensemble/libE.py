@@ -120,11 +120,7 @@ import pickle  # Only used when saving output on error
 import socket
 import sys
 import traceback
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np

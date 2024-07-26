@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    import numpy.typing as npt
+import numpy.typing as npt
 
 
 class LiveData(ABC):
