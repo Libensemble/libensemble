@@ -121,7 +121,7 @@ class BalsamTask(Task):
         # May want to override workdir with Balsam value when it exists
         Task.__init__(self, app, app_args, workdir, stdout, stderr, workerid)
 
-    def _get_time_since_balsam_submit(self) -> int | float:
+    def _get_time_since_balsam_submit(self) -> float:
         """Return time since balsam task entered ``RUNNING`` state"""
         event_query = EventLog.objects.filter(job_id=self.process.id, to_state="RUNNING")
         if not len(event_query):
@@ -202,7 +202,7 @@ class BalsamTask(Task):
             self.state = "FAILED"
             self._set_complete()
 
-    def wait(self, timeout: int | float = None):
+    def wait(self, timeout: float = None):
         """Waits on completion of the task or raises ``TimeoutExpired``.
 
         Status attributes of task are updated on completion.

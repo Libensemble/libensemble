@@ -15,12 +15,15 @@ resource manager when submitting tasks.
 import logging
 import os
 import time
+from typing import TYPE_CHECKING
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
 from libensemble.executors.mpi_runner import MPIRunner
 from libensemble.resources.mpi_resources import get_MPI_variant
-from libensemble.resources.resources import Resources
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import Resources
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module

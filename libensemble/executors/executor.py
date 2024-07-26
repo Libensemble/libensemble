@@ -12,7 +12,7 @@ import stat
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import libensemble.utils.launcher as launcher
 from libensemble.message_numbers import (
@@ -24,7 +24,10 @@ from libensemble.message_numbers import (
     WORKER_DONE,
     WORKER_KILL_ON_TIMEOUT,
 )
-from libensemble.resources.resources import Resources
+
+if TYPE_CHECKING:
+    from libensemble.resources.resources import Resources
+
 from libensemble.utils.timer import TaskTimer
 
 logger = logging.getLogger(__name__)
@@ -260,7 +263,7 @@ class Task:
 
         self._set_complete()
 
-    def wait(self, timeout: int | float = None):
+    def wait(self, timeout: float = None):
         """Waits on completion of the task or raises TimeoutExpired exception
 
         Status attributes of task are updated on completion.
@@ -288,7 +291,7 @@ class Task:
 
         self._set_complete()
 
-    def result(self, timeout: int | float = None) -> str:
+    def result(self, timeout: float = None) -> str:
         """Wrapper for task.wait() that also returns the task's status on completion.
 
         Parameters
@@ -303,7 +306,7 @@ class Task:
         self.wait(timeout=timeout)
         return self.state
 
-    def exception(self, timeout: int | float = None) -> int:
+    def exception(self, timeout: float = None) -> int:
         """Wrapper for task.wait() that instead returns the task's error code on completion.
 
         Parameters
@@ -386,7 +389,7 @@ class Executor:
 
     executor = None
 
-    def _wait_on_start(self, task: Task, fail_time: int | float = None):
+    def _wait_on_start(self, task: Task, fail_time: float = None):
         """Called by submit when wait_on_start is True.
 
         Blocks until task polls as having started.
