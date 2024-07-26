@@ -15,7 +15,6 @@ resource manager when submitting tasks.
 import logging
 import os
 import time
-from typing import List, Optional, Union
 
 import libensemble.utils.launcher as launcher
 from libensemble.executors.executor import Executor, ExecutorException, Task
@@ -138,7 +137,7 @@ class MPIExecutor(Executor):
         self.resources = resources
 
     def _launch_with_retries(
-        self, task: Task, subgroup_launch: bool, wait_on_start: Union[bool, int], run_cmd: List[str]
+        self, task: Task, subgroup_launch: bool, wait_on_start: bool | int, run_cmd: list[str]
     ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
@@ -199,12 +198,12 @@ class MPIExecutor(Executor):
         stage_inout: str | None = None,
         hyperthreads: bool | None = False,
         dry_run: bool | None = False,
-        wait_on_start: Optional[Union[bool, int]] = False,
+        wait_on_start: bool | int = False,
         extra_args: str | None = None,
         auto_assign_gpus: bool | None = False,
         match_procs_to_gpus: bool | None = False,
         env_script: str | None = None,
-        mpi_runner_type: Optional[Union[str, dict]] = None,
+        mpi_runner_type: str | dict = None,
     ) -> Task:
         """Creates a new task, and either executes or schedules execution.
 
