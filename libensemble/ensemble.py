@@ -1,7 +1,6 @@
 import importlib
 import json
 import logging
-from typing import Optional
 
 import numpy.typing as npt
 import tomli
@@ -12,8 +11,8 @@ from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
-from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
+from libensemble.tools.parse_args import mpi_init
 from libensemble.utils.misc import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
@@ -270,15 +269,15 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: Optional[SimSpecs] = SimSpecs(),
-        gen_specs: Optional[GenSpecs] = GenSpecs(),
-        exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
-        alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
-        persis_info: Optional[dict] = {},
-        executor: Optional[Executor] = None,
-        H0: Optional[npt.NDArray] = None,
-        parse_args: Optional[bool] = False,
+        sim_specs: SimSpecs | None = SimSpecs(),
+        gen_specs: GenSpecs | None = GenSpecs(),
+        exit_criteria: ExitCriteria | None = {},
+        libE_specs: LibeSpecs | None = LibeSpecs(),
+        alloc_specs: AllocSpecs | None = AllocSpecs(),
+        persis_info: dict | None = {},
+        executor: Executor | None = None,
+        H0: npt.NDArray | None = None,
+        parse_args: bool | None = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
@@ -331,7 +330,7 @@ class Ensemble:
         return self._libE_specs
 
     @libE_specs.setter
-    def libE_specs(self, new_specs):
+    def libE_specs(self, new_specs: LibeSpecs | dict):
         # We need to deal with libE_specs being specified as dict or class, and
         #   "not" overwrite the internal libE_specs["comms"].
 
