@@ -22,18 +22,18 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
-from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
+from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
 
 from libensemble import logger
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    log_file="ensemble_check_warning.log"
+    log_file = "ensemble_check_warning.log"
     logger.set_level("MANAGER_WARNING")
     logger.set_filename(log_file)
 
     sampling = Ensemble()
-    sampling.libE_specs.save_every_k_sims=100
+    sampling.libE_specs.save_every_k_sims = 100
     sampling.sim_specs = SimSpecs(sim_f=sim_f)
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     sampling.run()
     if sampling.is_manager:
-        print("len:",len(sampling.H))
+        print("len:", len(sampling.H))
         time.sleep(0.2)
         assert os.path.exists(log_file)
-        assert os.stat(log_file).st_size == 0, f"Unexpected warning"
+        assert os.stat(log_file).st_size == 0, "Unexpected warning"
