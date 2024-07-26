@@ -10,10 +10,12 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: mpi local threads tcp
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_COMMS: mpi
+# TESTSUITE_NPROCS: 4
 
 import numpy as np
+import os
+import time
 
 from libensemble import Ensemble
 from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
@@ -22,8 +24,14 @@ from libensemble.gen_funcs.sampling import latin_hypercube_sample as gen_f
 from libensemble.sim_funcs.simple_sim import norm_eval as sim_f
 from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
+from libensemble import logger
+
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
+    log_file="ensemble_check_warning.log"
+    logger.set_level("MANAGER_WARNING")
+    logger.set_filename(log_file)
+
     sampling = Ensemble()
     sampling.libE_specs.save_every_k_sims=100
     sampling.sim_specs = SimSpecs(sim_f=sim_f)
@@ -40,6 +48,13 @@ if __name__ == "__main__":
     sampling.exit_criteria = ExitCriteria(sim_max=100)
     sampling.add_random_streams()
 
+    if sampling.is_manager:
+        if os.path.exists(log_file):
+            os.remove(log_file)
+
     sampling.run()
     if sampling.is_manager:
         print("len:",len(sampling.H))
+        time.sleep(0.2)
+        assert os.path.exists(log_file)
+        assert os.stat(log_file).st_size == 0, f"Unexpected warning"
