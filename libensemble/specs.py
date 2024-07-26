@@ -1,12 +1,14 @@
 import random
-from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from libensemble.resources.platforms import Platform
 
 from pydantic import BaseModel, Field
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
-from libensemble.resources.platforms import Platform
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
 
