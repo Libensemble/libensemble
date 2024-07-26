@@ -13,7 +13,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local threads tcp
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 import numpy as np
 
 from libensemble import Ensemble
@@ -38,7 +37,7 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=sys.argv[1])
+    sampling.exit_criteria = ExitCriteria(sim_max=100)
     sampling.add_random_streams()
 
     sampling.run()
