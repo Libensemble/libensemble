@@ -6,6 +6,7 @@ import logging
 import os
 import re
 from collections import OrderedDict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class EnvResources:
                 self.scheduler = env
                 break
 
-    def get_nodelist(self) -> list[str | any]:
+    def get_nodelist(self) -> list[str | Any]:
         """Returns nodelist from environment or an empty list"""
         if self.scheduler:
             env = self.scheduler
@@ -147,7 +148,7 @@ class EnvResources:
         return nidlst
 
     @staticmethod
-    def get_slurm_nodelist(node_list_env: str) -> list[str | any]:
+    def get_slurm_nodelist(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist from the Slurm environment"""
         fullstr = os.environ[node_list_env]
         if not fullstr:
@@ -171,7 +172,7 @@ class EnvResources:
         return sorted(nidlst)
 
     @staticmethod
-    def get_cobalt_nodelist(node_list_env: str) -> list[str | any]:
+    def get_cobalt_nodelist(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist from the Cobalt environment"""
         nidlst = []
         nidstr = os.environ[node_list_env]
@@ -184,7 +185,7 @@ class EnvResources:
         return sorted(nidlst, key=int)
 
     @staticmethod
-    def get_pbs_nodelist(node_list_env: str) -> list[str | any]:
+    def get_pbs_nodelist(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist path from PBS environment"""
         nidstr_path = os.environ[node_list_env]
         if not nidstr_path:
@@ -200,7 +201,7 @@ class EnvResources:
         return unique_nodelist_shortnames
 
     @staticmethod
-    def get_lsf_nodelist(node_list_env: str) -> list[str | any]:
+    def get_lsf_nodelist(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist from the LSF environment"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()
@@ -210,7 +211,7 @@ class EnvResources:
         return nodes
 
     @staticmethod
-    def get_lsf_nodelist_frm_shortform(node_list_env: str) -> list[str | any]:
+    def get_lsf_nodelist_frm_shortform(node_list_env: str) -> list[str | Any]:
         """Gets global libEnsemble nodelist from the LSF environment from short-form version"""
         full_list = os.environ[node_list_env]
         entries = full_list.split()

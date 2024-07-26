@@ -8,6 +8,8 @@ from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG, PERSIS_STOP,
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["PersistentSupport"]
+
 
 class PersistentSupport:
     """A helper class to assist with writing persistent user functions."""

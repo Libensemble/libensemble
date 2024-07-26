@@ -143,8 +143,8 @@ Implementing functions from the above class is relatively simple:
 
     .. tab-item:: send
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: send
+        .. autoclass:: libensemble.tools.persistent_support.PersistentSupport
+            :members: send
 
         This function call typically resembles::
 
@@ -154,8 +154,8 @@ Implementing functions from the above class is relatively simple:
 
     .. tab-item:: recv
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: recv
+        .. autoclass:: libensemble.tools.persistent_support.PersistentSupport
+            :members: recv
 
         This function call typically resembles::
 
@@ -170,8 +170,8 @@ Implementing functions from the above class is relatively simple:
 
     .. tab-item:: send_recv
 
-        .. currentmodule:: libensemble.tools.persistent_support.PersistentSupport
-        .. autofunction:: send_recv
+        .. autoclass:: libensemble.tools.persistent_support.PersistentSupport
+            :members: send_recv
 
         This function performs both of the previous functions in a single statement. Its
         usage typically resembles::
