@@ -12,7 +12,7 @@ import stat
 import sys
 import time
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import libensemble.utils.launcher as launcher
 from libensemble.message_numbers import (
@@ -61,7 +61,7 @@ class ExecutorException(Exception):
 class TimeoutExpired(Exception):
     """Timeout exception raised when Timeout expires"""
 
-    def __init__(self, task: str, timeout: float) -> None:
+    def __init__(self, task: str, timeout: float):
         self.task = task
         self.timeout = timeout
 
@@ -78,12 +78,12 @@ class Application:
     def __init__(
         self,
         full_path: str,
-        name: Optional[str] = None,
-        calc_type: Optional[str] = "sim",
-        desc: Optional[str] = None,
-        pyobj: Optional[Any] = None,  # used by balsam_executor to store ApplicationDefinition
+        name: str | None = None,
+        calc_type: str | None = "sim",
+        desc: str | None = None,
+        pyobj: Any | None = None,  # used by balsam_executor to store ApplicationDefinition
         precedent: str = "",
-    ) -> None:
+    ):
         """Instantiates a new Application instance."""
         self.full_path = full_path
         self.calc_type = calc_type
@@ -101,7 +101,7 @@ class Application:
         self.app_cmd = " ".join(filter(None, [self.precedent, self.full_path]))
 
 
-def jassert(test: Optional[Union[Application, bool]], *args) -> None:
+def jassert(test: Application | bool, *args) -> None:
     "Version of assert that raises a ExecutorException"
     if not test:
         raise ExecutorException(*args)
@@ -124,7 +124,7 @@ class Task:
         stderr=None,
         workerid=None,
         dry_run=False,
-    ) -> None:
+    ):
         """Instantiate a new Task instance.
 
         A new task object is created with an id, status and configuration
@@ -170,7 +170,7 @@ class Task:
         """Add to task environment - overwrites if already set"""
         self.env[key] = value
 
-    def workdir_exists(self) -> Optional[bool]:
+    def workdir_exists(self) -> bool:
         """Returns true if the task's workdir exists"""
         return self.workdir and os.path.exists(self.workdir)
 
@@ -229,7 +229,7 @@ class Task:
             return False
         return True
 
-    def _set_complete(self) -> None:
+    def _set_complete(self):
         """Set task as complete"""
         self.finished = True
         if self.dry_run:
@@ -242,7 +242,7 @@ class Task:
             self.state = "FINISHED" if self.success else "FAILED"
             logger.info(f"Task {self.name} finished with errcode {self.errcode} ({self.state})")
 
-    def poll(self) -> None:
+    def poll(self):
         """Polls and updates the status attributes of the task"""
         if self.dry_run:
             self._set_complete()
@@ -260,7 +260,7 @@ class Task:
 
         self._set_complete()
 
-    def wait(self, timeout: Optional[float] = None) -> None:
+    def wait(self, timeout: int | float = None):
         """Waits on completion of the task or raises TimeoutExpired exception
 
         Status attributes of task are updated on completion.
@@ -288,7 +288,7 @@ class Task:
 
         self._set_complete()
 
-    def result(self, timeout: Optional[Union[int, float]] = None) -> str:
+    def result(self, timeout: int | float = None) -> str:
         """Wrapper for task.wait() that also returns the task's status on completion.
 
         Parameters
@@ -303,7 +303,7 @@ class Task:
         self.wait(timeout=timeout)
         return self.state
 
-    def exception(self, timeout: Optional[Union[int, float]] = None):
+    def exception(self, timeout: int | float = None) -> int:
         """Wrapper for task.wait() that instead returns the task's error code on completion.
 
         Parameters
@@ -328,7 +328,7 @@ class Task:
         self.poll()
         return self.finished
 
-    def kill(self, wait_time: int = 60) -> None:
+    def kill(self, wait_time: int = 60):
         """Kills or cancels the supplied task
 
         Parameters
@@ -365,7 +365,7 @@ class Task:
         self.finished = True
         self.calc_task_timing()
 
-    def cancel(self) -> None:
+    def cancel(self):
         """Wrapper for task.kill() without waiting"""
         self.kill(wait_time=None)
 
@@ -386,7 +386,7 @@ class Executor:
 
     executor = None
 
-    def _wait_on_start(self, task: Task, fail_time: Optional[int] = None) -> None:
+    def _wait_on_start(self, task: Task, fail_time: int | float = None):
         """Called by submit when wait_on_start is True.
 
         Blocks until task polls as having started.
@@ -411,7 +411,7 @@ class Executor:
                     remaining = fail_time - task.timer.elapsed
                 logger.debug(f"After {task.timer.elapsed} seconds: task {task.name} polled as {task.state}")
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Instantiate a new Executor instance.
 
         Returns
@@ -493,11 +493,11 @@ class Executor:
     def register_app(
         self,
         full_path: str,
-        app_name: Optional[str] = None,
-        calc_type: Optional[str] = None,
-        desc: Optional[str] = None,
+        app_name: str | None = None,
+        calc_type: str | None = None,
+        desc: str | None = None,
         precedent: str = "",
-    ) -> None:
+    ):
         """Registers a user application to libEnsemble.
 
         The ``full_path`` of the application must be supplied. Either
@@ -571,7 +571,7 @@ class Executor:
         return False
 
     def polling_loop(
-        self, task: Task, timeout: Optional[int] = None, delay: float = 0.1, poll_manager: bool = False
+        self, task: Task, timeout: int | None = None, delay: float = 0.1, poll_manager: bool = False
     ) -> int:
         """Optional, blocking, generic task status polling loop. Operates until the task
         finishes, times out, or is optionally killed via a manager signal. On completion, returns a
@@ -637,7 +637,7 @@ class Executor:
 
         return calc_status
 
-    def get_task(self, taskid: Union[str, int]) -> Optional[Task]:
+    def get_task(self, taskid: str | int) -> Task:
         """Returns the task object for the supplied task ID"""
         task = next((j for j in self.list_of_tasks if j.id == taskid), None)
         if task is None:
@@ -665,30 +665,30 @@ class Executor:
                 self.last_task += 1
         return timing_msg
 
-    def set_workerID(self, workerid) -> None:
+    def set_workerID(self, workerid: int):
         """Sets the worker ID for this executor"""
         self.workerID = workerid
 
-    def set_worker_info(self, comm=None, workerid=None) -> None:
+    def set_worker_info(self, comm=None, workerid: int = None):
         """Sets info for this executor"""
         self.workerID = workerid
         self.comm = comm
 
-    def _check_app_exists(self, full_path: str) -> None:
+    def _check_app_exists(self, full_path: str):
         """Allows submit function to check if app exists and error if not"""
         if not os.path.isfile(full_path):
             raise ExecutorException(f"Application does not exist {full_path}")
 
     def submit(
         self,
-        calc_type: Optional[str] = None,
-        app_name: Optional[str] = None,
-        app_args: Optional[str] = None,
-        stdout: Optional[str] = None,
-        stderr: Optional[str] = None,
-        dry_run: Optional[bool] = False,
-        wait_on_start: Optional[Union[bool, int]] = False,
-        env_script: Optional[str] = None,
+        calc_type: str | None = None,
+        app_name: str | None = None,
+        app_args: str | None = None,
+        stdout: str | None = None,
+        stderr: str | None = None,
+        dry_run: bool | None = False,
+        wait_on_start: bool | int = False,
+        env_script: str | None = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
 

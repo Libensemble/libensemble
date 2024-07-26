@@ -146,7 +146,7 @@ def _update_from_str(cores_info, cores_info_str):
 
 
 def get_sub_node_resources(
-    launcher: Optional[str] = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
+    launcher: str | None = None, remote_mode: bool = False, env_resources: Optional[EnvResources] = None
 ) -> Tuple[int, int, int]:
     """Returns logical and physical cores and GPUs per node as a tuple
 

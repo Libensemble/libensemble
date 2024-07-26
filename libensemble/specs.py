@@ -48,14 +48,14 @@ class SimSpecs(BaseModel):
     Also necessary to construct libEnsemble's history array.
     """
 
-    globus_compute_endpoint: Optional[str] = ""
+    globus_compute_endpoint: str | None = ""
     """
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit simulator function instances to this endpoint instead of
     calling them locally.
     """
 
-    threaded: Optional[bool] = False
+    threaded: bool | None = False
     """
     Instruct Worker process to launch user function to a thread.
     """
@@ -98,14 +98,14 @@ class GenSpecs(BaseModel):
     Also used to construct libEnsemble's history array.
     """
 
-    globus_compute_endpoint: Optional[str] = ""
+    globus_compute_endpoint: str | None = ""
     """
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
     """
 
-    threaded: Optional[bool] = False
+    threaded: bool | None = False
     """
     Instruct Worker process to launch user function to a thread.
     """
@@ -166,7 +166,7 @@ class LibeSpecs(BaseModel):
     Specifications for configuring libEnsemble's runtime behavior.
     """
 
-    comms: Optional[str] = "mpi"
+    comms: str | None = "mpi"
     """
     Manager/Worker communications mode. ``'mpi'``, ``'local'``, ``'threads'``, or ``'tcp'``
     If ``nworkers`` is specified, then ``local`` comms will be used unless a parallel MPI
@@ -176,7 +176,7 @@ class LibeSpecs(BaseModel):
     nworkers: Optional[int] = 0
     """ Number of worker processes in ``"local"``, ``"threads"``, or ``"tcp"``."""
 
-    gen_on_manager: Optional[bool] = False
+    gen_on_manager: bool | None = False
     """ Instructs Manager process to run generator functions.
     This generator function can access/modify user objects by reference.
     """
@@ -184,10 +184,10 @@ class LibeSpecs(BaseModel):
     mpi_comm: Optional[Any] = None
     """ libEnsemble MPI communicator. Default: ``MPI.COMM_WORLD``"""
 
-    dry_run: Optional[bool] = False
+    dry_run: bool | None = False
     """ Whether libEnsemble should immediately exit after validating all inputs. """
 
-    abort_on_exception: Optional[bool] = True
+    abort_on_exception: bool | None = True
     """
     In MPI mode, whether to call ``MPI_ABORT`` on an exception.
     If ``False``, an exception will be raised by the manager.
@@ -199,38 +199,38 @@ class LibeSpecs(BaseModel):
     save_every_k_gens: Optional[int] = 0
     """ Save history array to file after every k generated points. """
 
-    save_H_and_persis_on_abort: Optional[bool] = True
+    save_H_and_persis_on_abort: bool | None = True
     """ Save states of ``H`` and ``persis_info`` to file on aborting after an exception."""
 
-    save_H_on_completion: Optional[bool] = False
+    save_H_on_completion: bool | None = False
     """
     Save state of ``H`` to file upon completing a workflow. Also enabled when either ``save_every_k_sims``
     or ``save_every_k_gens`` is set.
     """
 
-    save_H_with_date: Optional[bool] = False
+    save_H_with_date: bool | None = False
     """ ``H`` filename contains date and timestamp."""
 
-    H_file_prefix: Optional[str] = "libE_history"
+    H_file_prefix: str | None = "libE_history"
     """ Prefix for ``H`` filename."""
 
     worker_timeout: Optional[int] = 1
     """ On libEnsemble shutdown, number of seconds after which workers considered timed out, then terminated. """
 
-    kill_canceled_sims: Optional[bool] = False
+    kill_canceled_sims: bool | None = False
     """
     Try to kill sims with ``"cancel_requested"`` set ``True``.
     If ``False``, the manager avoids this moderate overhead.
     """
 
-    use_workflow_dir: Optional[bool] = False
+    use_workflow_dir: bool | None = False
     """
     Whether to place *all* log files, dumped arrays, and default output directories in a
     separate `workflow` directory. Each run will be suffixed with a hash.
     If copying back an ensemble directory from a scratch space, the copy is placed here.
     """
 
-    reuse_output_dir: Optional[bool] = False
+    reuse_output_dir: bool | None = False
     """
     Whether to allow overwrites and access to previous ensemble and workflow directories in subsequent runs.
     ``False`` by default to protect results.
@@ -247,16 +247,16 @@ class LibeSpecs(BaseModel):
     as a single working directory for workers, or contain calculation directories
     """
 
-    ensemble_copy_back: Optional[bool] = False
+    ensemble_copy_back: bool | None = False
     """
     Whether to copy back contents of ``ensemble_dir_path`` to launch
     location. Useful if ``ensemble_dir_path`` is located on node-local storage.
     """
 
-    use_worker_dirs: Optional[bool] = False
+    use_worker_dirs: bool | None = False
     """ Whether to organize calculation directories under worker-specific directories. """
 
-    sim_dirs_make: Optional[bool] = False
+    sim_dirs_make: bool | None = False
     """
     Whether to make calculation directories for each simulation function call.
     """
@@ -279,7 +279,7 @@ class LibeSpecs(BaseModel):
     Forms the base of a simulation directory.
     """
 
-    gen_dirs_make: Optional[bool] = False
+    gen_dirs_make: bool | None = False
     """
     Whether to make generator-specific calculation directories for each generator function call.
     """
@@ -308,7 +308,7 @@ class LibeSpecs(BaseModel):
     zeros are padded to the sim/gen ID.
     """
 
-    platform: Optional[str] = ""
+    platform: str | None = ""
     """Name of a known platform defined in the platforms module.
 
     See :class:`Known Platforms List<libensemble.resources.platforms.Known_platforms>`.
@@ -363,13 +363,13 @@ class LibeSpecs(BaseModel):
     See also option :attr:`platform`.
     """
 
-    profile: Optional[bool] = False
+    profile: bool | None = False
     """ Profile manager and worker logic using ``cProfile``. """
 
-    disable_log_files: Optional[bool] = False
+    disable_log_files: bool | None = False
     """ Disable ``ensemble.log`` and ``libE_stats.txt`` log files. """
 
-    safe_mode: Optional[bool] = False
+    safe_mode: bool | None = False
     """ Prevents user functions from overwriting protected History fields, but requires moderate overhead. """
 
     stats_fmt: Optional[dict] = {}
@@ -381,13 +381,13 @@ class LibeSpecs(BaseModel):
     workers: Optional[List[str]] = []
     """ TCP Only: A list of worker hostnames. """
 
-    ip: Optional[str] = None
+    ip: str | None = None
     """ TCP Only: IP address for Manager's system. """
 
     port: Optional[int] = 0
     """ TCP Only: Port number for Manager's system. """
 
-    authkey: Optional[str] = f"libE_auth_{random.randrange(99999)}"
+    authkey: str | None = f"libE_auth_{random.randrange(99999)}"
     """ TCP Only: Authkey for Manager's system."""
 
     workerID: Optional[int] = None
@@ -400,19 +400,19 @@ class LibeSpecs(BaseModel):
     ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
     """
 
-    use_persis_return_gen: Optional[bool] = False
+    use_persis_return_gen: bool | None = False
     """ Adds persistent generator output fields to the History array on return. """
 
-    use_persis_return_sim: Optional[bool] = False
+    use_persis_return_sim: bool | None = False
     """ Adds persistent simulator output fields to the History array on return. """
 
-    final_gen_send: Optional[bool] = False
+    final_gen_send: bool | None = False
     """
     Send final simulation results to persistent generators before shutdown.
     The results will be sent along with the ``PERSIS_STOP`` tag.
     """
 
-    disable_resource_manager: Optional[bool] = False
+    disable_resource_manager: bool | None = False
     """
     Disable the built-in resource manager, including automatic resource detection
     and/or assignment of resources to workers. ``"resource_info"`` will be ignored.
@@ -446,13 +446,13 @@ class LibeSpecs(BaseModel):
     By default the GPUs on a node are treated as a group.
     """
 
-    use_tiles_as_gpus: Optional[bool] = False
+    use_tiles_as_gpus: bool | None = False
     """
     If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided
     in platform specs or detected.
     """
 
-    enforce_worker_core_bounds: Optional[bool] = False
+    enforce_worker_core_bounds: bool | None = False
     """
     If ``False``, the Executor will permit the submission of tasks with a
     higher processor count than the CPUs available to the worker as
@@ -461,7 +461,7 @@ class LibeSpecs(BaseModel):
     this argument is ignored
     """
 
-    dedicated_mode: Optional[bool] = False
+    dedicated_mode: bool | None = False
     """
     Instructs libEnsemble to not run applications on resources where libEnsemble
     processes (manager and workers) are running.

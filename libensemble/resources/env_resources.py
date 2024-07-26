@@ -6,7 +6,7 @@ import logging
 import os
 import re
 from collections import OrderedDict
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +38,11 @@ class EnvResources:
 
     def __init__(
         self,
-        nodelist_env_slurm: Optional[str] = None,
-        nodelist_env_cobalt: Optional[str] = None,
-        nodelist_env_pbs: Optional[str] = None,
-        nodelist_env_lsf: Optional[str] = None,
-        nodelist_env_lsf_shortform: Optional[str] = None,
+        nodelist_env_slurm: str | None = None,
+        nodelist_env_cobalt: str | None = None,
+        nodelist_env_pbs: str | None = None,
+        nodelist_env_lsf: str | None = None,
+        nodelist_env_lsf_shortform: str | None = None,
     ) -> None:
         """Initializes a new EnvResources instance
 

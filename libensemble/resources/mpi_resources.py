@@ -89,7 +89,7 @@ def get_MPI_runner(mpi_runner=None) -> str:
 
 
 def task_partition(
-    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: Optional[str] = None
+    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: str | None = None
 ) -> Union[Tuple[None, None, None], Tuple[int, int, int]]:
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
@@ -223,7 +223,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 def create_machinefile(
     resources: "resources.Resources",  # noqa: F821
-    machinefile: Optional[str] = None,
+    machinefile: str | None = None,
     num_procs: int = None,
     num_nodes: Optional[int] = None,
     procs_per_node: Optional[int] = None,
