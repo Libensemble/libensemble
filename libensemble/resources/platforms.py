@@ -10,7 +10,6 @@ option or the environment variable ``LIBE_PLATFORM``.
 
 import os
 import subprocess
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -37,16 +36,16 @@ class Platform(BaseModel):
 
     Note that ``"mpich"`` and ``"openmpi"`` runners have the default command ``"mpirun"``
     """
-    cores_per_node: Optional[int] = None
+    cores_per_node: int | None = None
     """Number of physical CPU cores on a compute node of the platform"""
 
-    logical_cores_per_node: Optional[int] = None
+    logical_cores_per_node: int | None = None
     """Number of logical CPU cores on a compute node of the platform"""
 
-    gpus_per_node: Optional[int] = None
+    gpus_per_node: int | None = None
     """Number of GPU devices on a compute node of the platform"""
 
-    tiles_per_gpu: Optional[int] = None
+    tiles_per_gpu: int | None = None
     """Number of tiles on a GPU"""
 
     gpu_setting_type: str | None = None

@@ -70,7 +70,7 @@ def process_is_stopped(process, timeout):
     return process.poll() is not None
 
 
-def wait(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None) -> Optional[int]:
+def wait(process: subprocess.Popen, timeout: Optional[Union[int, float]] = None) -> int | None:
     "Wait on a process with timeout (wait forever if None)."
     try:
         return process.wait(timeout=timeout)
