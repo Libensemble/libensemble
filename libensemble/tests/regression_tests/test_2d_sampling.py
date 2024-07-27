@@ -13,7 +13,6 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_COMMS: mpi local threads tcp
 # TESTSUITE_NPROCS: 2 4
 
-import sys
 import numpy as np
 
 from libensemble import Ensemble
@@ -25,8 +24,8 @@ from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    sampling = Ensemble()
-    sampling.libE_specs.save_every_k_sims=100
+    sampling = Ensemble(parse_args=True)
+    sampling.libE_specs = LibeSpecs(save_every_k_sims=100)
     sampling.sim_specs = SimSpecs(sim_f=sim_f)
     sampling.gen_specs = GenSpecs(
         gen_f=gen_f,
@@ -38,9 +37,14 @@ if __name__ == "__main__":
         },
     )
 
-    sampling.exit_criteria = ExitCriteria(sim_max=sys.argv[1])
+    sampling.exit_criteria = ExitCriteria(sim_max=200)
     sampling.add_random_streams()
 
     sampling.run()
     if sampling.is_manager:
-        print("len:",len(sampling.H))
+        assert len(sampling.H) >= 200
+        x = sampling.H["x"]
+        f = sampling.H["f"]
+        assert np.all(np.isclose(f, np.sqrt(np.sum(x**2, axis=1))))
+        print("\nlibEnsemble has calculated the 2D vector norm of all points")
+    sampling.save_output(__file__)
