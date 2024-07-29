@@ -51,27 +51,36 @@ class Ensemble:
             from libensemble.sim_funcs.simple_sim import norm_eval
             from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-            libE_specs = LibeSpecs(nworkers=4)
-            sampling = Ensemble(libE_specs=libE_specs)
-            sampling.sim_specs = SimSpecs(
-                sim_f=norm_eval,
-                inputs=["x"],
-                outputs=[("f", float)],
-            )
-            sampling.gen_specs = GenSpecs(
-                gen_f=latin_hypercube_sample,
-                outputs=[("x", float, (1,))],
-                user={
-                    "gen_batch_size": 50,
-                    "lb": np.array([-3]),
-                    "ub": np.array([3]),
-                },
-            )
-
-            sampling.add_random_streams()
-            sampling.exit_criteria = ExitCriteria(sim_max=100)
-
             if __name__ == "__main__":
+
+                libE_specs = LibeSpecs(nworkers=4)
+
+                sim_specs = SimSpecs(
+                    sim_f=norm_eval,
+                    inputs=["x"],
+                    outputs=[("f", float)],
+                )
+
+                gen_specs = GenSpecs(
+                    gen_f=latin_hypercube_sample,
+                    outputs=[("x", float, (1,))],
+                    user={
+                        "gen_batch_size": 50,
+                        "lb": np.array([-3]),
+                        "ub": np.array([3]),
+                    },
+                )
+
+                exit_criteria = ExitCriteria(sim_max=100)
+
+                sampling = Ensemble(
+                    libE_specs=libE_specs,
+                    sim_specs=sim_specs,
+                    gen_specs=gen_specs,
+                    exit_criteria=exit_criteria,
+                )
+
+                sampling.add_random_streams()
                 sampling.run()
                 sampling.save_output(__file__)
 

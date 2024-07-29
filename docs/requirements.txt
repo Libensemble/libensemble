@@ -6,3 +6,4 @@ sphinx-design
 numpy
 sphinx_rtd_theme>1
 sphinx-copybutton
+sphinx_resolve_py_references

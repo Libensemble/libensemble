@@ -101,7 +101,6 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_design",
     "sphinx_copybutton",
-    "sphinx_autodoc_typehints",
     "sphinx_resolve_py_references",
 ]
 
