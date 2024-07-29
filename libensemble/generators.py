@@ -162,7 +162,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         """Request any updates to previous points, e.g. minima discovered, points to cancel."""
         return self.ask_np()
 
-    def tell_np(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
+    def tell_np(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
@@ -173,9 +173,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put((tag, None))
         self.inbox.put((0, np.copy(results)))
 
-    def final_tell(self, results: List[dict]) -> (npt.NDArray, dict, int):
+    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
-        self.tell(results, PERSIS_STOP)  # conversion happens in tell
+        self.tell_np(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
 
 
