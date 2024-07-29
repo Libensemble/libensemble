@@ -40,7 +40,7 @@ class SimSpecs(BaseModel):
     """
 
     # list of tuples for dtype construction
-    outputs: list[tuple[str, Any]] | list[tuple[str, Any, Any]] | None = Field([], alias="out")
+    outputs: list[tuple] | None = Field([], alias="out")
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``.
@@ -91,7 +91,7 @@ class GenSpecs(BaseModel):
     throughout the run, following initialization.
     """
 
-    outputs: list[tuple[str, Any]] | list[tuple[str, Any, Any]] | None = Field([], alias="out")
+    outputs: list[tuple] | None = Field([], alias="out")
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes.
     e.g. ``("dim", int, (3,))``, or ``("path", str)``. Typically used to initialize an
@@ -135,7 +135,7 @@ class AllocSpecs(BaseModel):
     for customizing the allocation function.
     """
 
-    outputs: list[tuple[str, Any]] | list[tuple[str, Any, Any]] | None = Field([], alias="out")
+    outputs: list[tuple] | None = Field([], alias="out")
     """
     List of 2- or 3-tuples corresponding to NumPy dtypes. e.g. ``("dim", int, (3,))``, or ``("path", str)``.
     Allocation functions that modify libEnsemble's History array with additional fields should list those
