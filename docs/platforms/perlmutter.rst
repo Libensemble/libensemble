@@ -21,7 +21,7 @@ Create a conda environment
 You can create a conda_ environment in which to install libEnsemble and
 all dependencies. For example::
 
-    conda create -n libe-pm python=3.9 -y
+    conda create -n libe-pm python=3.10 -y
 
 As Perlmutter has a shared HOME filesystem with other clusters, using
 the ``-pm`` suffix (for Perlmutter) is good practice.
