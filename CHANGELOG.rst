@@ -15,13 +15,11 @@ Release 1.4.1
 
 * Fix erroneous ``nworkers`` warning when using ``mpi4py`` comms. #1383
 
-
 :Note:
 
 * Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
 * Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
 * Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
-* Tests were also run on the Improv LCRC system.
 
 :Known Issues:
 
