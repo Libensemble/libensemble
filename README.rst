@@ -36,7 +36,7 @@ Basic Usage
 ===========
 
 Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
-and an exit condition. Run the following via ``python this_file.py``:
+and an exit condition. Run the following four-worker example via ``python this_file.py``:
 
 .. code-block:: python
 
@@ -59,15 +59,15 @@ and an exit condition. Run the following via ``python this_file.py``:
 
         gen_specs = GenSpecs(
             gen_f=uniform_random_sample,
-            outputs=[("x", float, (2,))],
+            outputs=[("x", float, 2)],
             user={
-                "gen_batch_size": 500,
+                "gen_batch_size": 50,
                 "lb": np.array([-3, -2]),
                 "ub": np.array([3, 2]),
             },
         )
 
-        exit_criteria = ExitCriteria(sim_max=101)
+        exit_criteria = ExitCriteria(sim_max=100)
 
         sampling = Ensemble(
             libE_specs=libE_specs,
@@ -97,7 +97,7 @@ Try some other examples live in Colab.
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `regression tests`_
+There are many more examples in the `regression tests`_.
 
 Resources
 =========

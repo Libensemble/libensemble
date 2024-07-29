@@ -443,6 +443,14 @@ class LibeSpecs(BaseModel):
     many GPUs.
     """
 
+    gpus_per_group: Optional[int] = None
+    """
+    Number of GPUs for each group in the scheduler. This can be used to deal
+    with scenarios where nodes have different numbers of GPUs. In effect a
+    block of this many GPUs will be treated as a virtual node.
+    By default the GPUs on a node are treated as a group.
+    """
+
     use_tiles_as_gpus: Optional[bool] = False
     """
     If ``True`` then treat a GPU tile as one GPU when GPU tiles is provided
@@ -525,7 +533,7 @@ def input_fields(fields: List[str]):
 
         @input_fields(["x"])
         @output_data([("f", float)])
-        def one_d_example(x, persis_info, sim_specs):
+        def norm_eval(x, persis_info, sim_specs):
             H_o = np.zeros(1, dtype=sim_specs["out"])
             H_o["f"] = np.linalg.norm(x)
             return H_o, persis_info
@@ -591,7 +599,7 @@ def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, T
 
         @input_fields(["x"])
         @output_data([("f", float)])
-        def one_d_example(x, persis_info, sim_specs):
+        def norm_eval(x, persis_info, sim_specs):
             H_o = np.zeros(1, dtype=sim_specs["out"])
             H_o["f"] = np.linalg.norm(x)
             return H_o, persis_info

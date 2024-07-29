@@ -147,7 +147,7 @@ def _client_parse_args(args):
     libE_specs = {
         "ip": ip,
         "port": int(port),
-        "authkey": authkey.encode("utf-8"),
+        "authkey": authkey,
         "workerID": args.workerID,
         "nworkers": nworkers,
         "comms": "tcp",

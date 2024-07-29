@@ -7,7 +7,6 @@ import numpy.typing as npt
 import tomli
 import yaml
 
-from libensemble import logger
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
@@ -50,12 +49,13 @@ class Ensemble:
 
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
-            from libensemble.sim_funcs.one_d_func import one_d_example
-            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+            from libensemble.sim_funcs.simple_sim import norm_eval
+            from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-            sampling = Ensemble(parse_args=True)
+            libE_specs = LibeSpecs(nworkers=4)
+            sampling = Ensemble(libE_specs=libE_specs)
             sampling.sim_specs = SimSpecs(
-                sim_f=one_d_example,
+                sim_f=norm_eval,
                 inputs=["x"],
                 outputs=[("f", float)],
             )
@@ -63,20 +63,24 @@ class Ensemble:
                 gen_f=latin_hypercube_sample,
                 outputs=[("x", float, (1,))],
                 user={
-                    "gen_batch_size": 500,
+                    "gen_batch_size": 50,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
             )
 
             sampling.add_random_streams()
-            sampling.exit_criteria = ExitCriteria(sim_max=101)
+            sampling.exit_criteria = ExitCriteria(sim_max=100)
 
             if __name__ == "__main__":
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
+
+    Run the above example via ``python this_file.py``.
+
+    Instead of using the libE_specs line, you can also use ``sampling = Ensemble(parse_args=True)``
+    and run via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
     instructs the Ensemble class to read command-line arguments.
 
     Configure by:
@@ -284,11 +288,7 @@ class Ensemble:
         self.persis_info = persis_info
         self.executor = executor
         self.H0 = H0
-
         self._util_logger = logging.getLogger(__name__)
-        self.logger = logger
-        self.logger.set_level("INFO")
-
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
@@ -310,10 +310,12 @@ class Ensemble:
                 raise ValueError("nworkers must be specified if comms is 'local'")
 
         elif self._known_comms == "mpi" and not parse_args:
-            self.nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+            # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
 
     def _parse_args(self) -> (int, bool, LibeSpecs):
-        self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
+        # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+        self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
         if not self._libE_specs:
             self._libE_specs = LibeSpecs(**libE_specs_parsed)

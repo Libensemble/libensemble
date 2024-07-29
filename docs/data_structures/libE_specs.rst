@@ -255,6 +255,12 @@ libEnsemble is primarily customized by setting options within a ``LibeSpecs`` cl
                     the equivalent ``persis_info`` settings, generators will be allocated this
                     many GPUs.
 
+                **gpus_per_group** [int]:
+                    Number of GPUs for each group in the scheduler. This can be used when
+                    running on nodes with different numbers of GPUs. In effect a
+                    block of this many GPUs will be treated as a virtual node.
+                    By default the GPUs on each node are treated as a group.
+
                 **use_tiles_as_gpus** [bool] = ``False``:
                     If ``True`` then treat a GPU tile as one GPU, assuming
                     ``tiles_per_GPU`` is provided in ``platform_specs`` or detected.

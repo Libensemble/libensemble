@@ -13,7 +13,6 @@ def set_input_file_params(H, sim_specs, ints=False):
     Often sim_specs_in["x"] may be multi-dimensional, where each dimension
     corresponds to a different input name in sim_specs["user"]["input_names"]).
     Effectively an unpacking of "x"
-
     """
     input_file = sim_specs["user"]["input_filename"]
     input_values = {}

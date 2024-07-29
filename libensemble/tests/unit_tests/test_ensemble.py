@@ -17,14 +17,13 @@ def test_ensemble_init():
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert e.is_manager, "parse_args() didn't populate defaults for class's libE_specs"
 
-    assert e.logger.get_level() == 20, "Default log level should be 20."
-
 
 def test_ensemble_parse_args_false():
     from libensemble.ensemble import Ensemble
     from libensemble.specs import LibeSpecs
 
-    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})  # parse_args defaults to False
+    # Ensemble(parse_args=False) by default, so these specs won't be overwritten:
+    e = Ensemble(libE_specs={"comms": "local", "nworkers": 4})
     assert hasattr(e, "nworkers"), "nworkers should've passed from libE_specs to Ensemble class"
     assert isinstance(e.libE_specs, LibeSpecs), "libE_specs should've been cast to class"
 
@@ -91,7 +90,7 @@ def test_full_workflow():
     """Test initializing a workflow via Specs and Ensemble.run()"""
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import norm_eval
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -99,7 +98,7 @@ def test_full_workflow():
     # parameterizes and validates everything!
     ens = Ensemble(
         libE_specs=LS,
-        sim_specs=SimSpecs(sim_f=one_d_example),
+        sim_specs=SimSpecs(sim_f=norm_eval),
         gen_specs=GenSpecs(
             gen_f=latin_hypercube_sample,
             user={
@@ -135,7 +134,7 @@ def test_flakey_workflow():
 
     from libensemble.ensemble import Ensemble
     from libensemble.gen_funcs.sampling import latin_hypercube_sample
-    from libensemble.sim_funcs.one_d_func import one_d_example
+    from libensemble.sim_funcs.simple_sim import norm_eval
     from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
     LS = LibeSpecs(comms="local", nworkers=4)
@@ -144,7 +143,7 @@ def test_flakey_workflow():
     try:
         ens = Ensemble(
             libE_specs=LS,
-            sim_specs=SimSpecs(sim_f=one_d_example),
+            sim_specs=SimSpecs(sim_f=norm_eval),
             gen_specs=GenSpecs(
                 gen_f=latin_hypercube_sample,
                 user={
