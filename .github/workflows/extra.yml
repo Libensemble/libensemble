@@ -224,7 +224,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.6.4'
+          if: matrix.pydantic-version == '2.8.2'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
