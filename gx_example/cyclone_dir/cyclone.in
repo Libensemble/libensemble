@@ -1,0 +1,101 @@
+# This test runs a nonlinear ITG turbulence calculation using a circular Miller geometry with Cyclone-base-case-like parameters.
+# This test uses a Boltzmann adiabatic electron response.
+
+ debug = false
+
+[Dimensions]
+ ntheta = 24            # number of points along field line (theta) per 2pi segment    
+ nperiod = 1            # number of 2pi segments along field line is 2*nperiod-1
+ ny = 64                # number of real-space grid-points in y
+ nx = 192               # number of real-space grid-points in x
+
+ nhermite = 8           # number of hermite moments (v_parallel resolution)
+ nlaguerre = 4          # number of laguerre moments (mu B resolution)
+ nspecies = 1           # number of evolved kinetic species (adiabatic electrons don't count towards nspecies)
+
+[Domain]
+ y0 = 28.2              # controls box length in y (in units of rho_ref) and minimum ky, so that ky_min*rho_ref = 1/y0 
+ boundary = "linked"    # use twist-shift boundary conditions along field line
+
+[Physics]
+ beta = 0.0                      # reference normalized pressure, beta = n_ref T_ref / ( B_ref^2 / (8 pi))
+ nonlinear_mode = true           # this is a nonlinear calculation
+
+[Time]
+ t_max = 400.0         # end time (in units of L_ref/vt_ref)
+ cfl = 0.9             # safety cushion factor on timestep
+ scheme = "rk3"        # use RK3 timestepping scheme
+
+[Initialization]
+ ikpar_init = 0                  # parallel wavenumber of initial perturbation
+ init_field = "density"          # initial condition set in density
+ init_amp = 1.0e-3               # amplitude of initial condition
+
+[Geometry]
+ geo_option = "miller"           # use Miller geometry
+ rhoc = 0.5                      # flux surface label, r/a
+ Rmaj = 2.77778                  # major radius of center of flux surface, normalized to L_ref
+ R_geo = 2.77778                 # major radius of magnetic field reference point, normalized to L_ref (i.e. B_t(R_geo) = B_ref)
+ qinp = 1.4                      # safety factor
+ shat = 0.8                      # magnetic shear
+ shift = 0.0                     # shafranov shift
+ akappa = 1.0                    # elongation of flux surface
+ akappri = 0.0                   # radial gradient of elongation
+ tri = 0.0                       # triangularity of flux surface 
+ tripri = 0.0                    # radial gradient of triangularity
+ betaprim = 0.0                  # radial gradient of beta
+
+# it is okay to have extra species data here; only the first nspecies elements of each item are used
+[species]
+ z     = [ 1.0,      -1.0     ]         # charge (normalized to Z_ref)
+ mass  = [ 1.0,       2.7e-4  ]         # mass (normalized to m_ref)
+ dens  = [ 1.0,       1.0     ]         # density (normalized to dens_ref)
+ temp  = [ 1.0,       1.0     ]         # temperature (normalized to T_ref)
+ tprim = [ {{tprim}},       0.0     ]        # temperature gradient, L_ref/L_T
+ fprim = [ 0.8,       0.0     ]         # density gradient, L_ref/L_n
+ vnewk = [ 0.0,       0.0     ]         # collision frequency
+ type  = [ "ion",  "electron" ]         # species type
+
+[Boltzmann]
+ add_Boltzmann_species = true    # use a Boltzmann species
+ Boltzmann_type = "electrons"    # the Boltzmann species will be electrons
+ tau_fac = 1.0                   # temperature ratio, T_i/T_e
+
+[Dissipation]
+ closure_model = "none"          # no closure assumptions (just truncation)
+ hypercollisions = true          # use hypercollision model (with default parameters)
+ hyper = true                    # use hyperdiffusion
+ D_hyper = 0.05                  # coefficient of hyperdiffusion
+ p_hyper = 2                     # exponent of hyperdiffusion is 2*p_hyper = 4
+
+[Restart]
+ restart = false
+ save_for_restart = true
+
+[Diagnostics]
+ nwrite = 20                     # write diagnostics every nwrite timesteps
+ fluxes = true                   # compute and write heat and particle fluxes
+
+[Wspectra]                       # spectra of W = |G_lm|**2
+species          = false
+hermite          = false
+laguerre         = false
+hermite_laguerre = true          # W(l,m) (summed over kx, ky, z)
+kx               = false
+ky               = true          # W(ky) (summed over kx, z, l, m)
+kxky             = false
+z                = false
+
+[Pspectra]                      # spectra of P = ( 1 - Gamma_0(b_s) ) |Phi|**2
+species          = false
+kx               = false
+ky               = true         # P(ky) (summed over kx, z)
+kxky             = false
+z                = true         # P(z) (summed over kx, ky)
+
+[Qspectra]                      # spectra of Q (heat flux)
+kx               = false
+ky               = true         # Q(ky) (summed over kx, z)
+kxky             = false
+z                = true         # Q(z) (summed over kx, ky)
+
