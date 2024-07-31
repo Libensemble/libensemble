@@ -8,6 +8,24 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.4.1
+--------------
+
+:Date: July 29, 2024
+
+* Fix erroneous ``nworkers`` warning when using ``mpi4py`` comms. #1383
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+
 Release 1.4.0
 --------------
 
