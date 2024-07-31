@@ -8,6 +8,59 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.4.1
+--------------
+
+:Date: July 29, 2024
+
+* Fix erroneous ``nworkers`` warning when using ``mpi4py`` comms. #1383
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+
+Release 1.4.0
+--------------
+
+:Date: July 25, 2024
+
+* Add a ``live_data`` option for real-time data collection / plotting. #1310
+* ``nworkers``/``is_manager`` are set when ``Ensemble`` object is created. #1331/ #1336
+  * This update locks the comms method when ``Ensemble`` object is created.
+* Add a ``group_size`` option to deal with unevenly resourced nodes. #1349
+* Bug fix: Fix shutdown hang on worker error when using ``gen_on_manager``. #1348
+* Bug fix: Log level was locked to ``INFO`` when using class interface.
+* Updated code to support ``numpy`` 2.0.
+
+Documentation:
+
+* Notebook examples with Colab links added to documentation. #1310
+  * E.g., https://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb
+* Example of templating input files added to forces tutorial.  #1310
+
+Example user functions:
+
+* Update ``gpCAM`` generators to work with latest interface.
+* Change ``one_d_func`` to ``norm_eval``. Works with multiple dimensions.  #1352 / #1354
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+* Tests were also run on Bebop and Improv LCRC systems.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.3.0
 --------------
 

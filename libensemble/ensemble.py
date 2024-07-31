@@ -7,12 +7,12 @@ import numpy.typing as npt
 import tomli
 import yaml
 
-from libensemble import logger
 from libensemble.executors import Executor
 from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
+from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
 from libensemble.utils.misc import specs_dump
 
@@ -21,6 +21,9 @@ ATTR_ERR_MSG = "\n" + 10 * "*" + ATTR_ERR_MSG + 10 * "*" + "\n"
 
 NOTFOUND_ERR_MSG = 'Unable to load "{}". Is the package installed or the relative path correct?'
 NOTFOUND_ERR_MSG = "\n" + 10 * "*" + NOTFOUND_ERR_MSG + 10 * "*" + "\n"
+
+OVERWRITE_COMMS_WARN = "Cannot reset 'comms' if 'ensemble.libE_specs.comms' is already set."
+CHANGED_COMMS_WARN = "New 'comms' method detected following initialization of Ensemble. Exiting."
 
 CORRESPONDING_CLASSES = {
     "sim_specs": SimSpecs,
@@ -46,12 +49,13 @@ class Ensemble:
 
             from libensemble import Ensemble
             from libensemble.gen_funcs.sampling import latin_hypercube_sample
-            from libensemble.sim_funcs.one_d_func import one_d_example
-            from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
+            from libensemble.sim_funcs.simple_sim import norm_eval
+            from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-            sampling = Ensemble(parse_args=True)
+            libE_specs = LibeSpecs(nworkers=4)
+            sampling = Ensemble(libE_specs=libE_specs)
             sampling.sim_specs = SimSpecs(
-                sim_f=one_d_example,
+                sim_f=norm_eval,
                 inputs=["x"],
                 outputs=[("f", float)],
             )
@@ -59,20 +63,24 @@ class Ensemble:
                 gen_f=latin_hypercube_sample,
                 outputs=[("x", float, (1,))],
                 user={
-                    "gen_batch_size": 500,
+                    "gen_batch_size": 50,
                     "lb": np.array([-3]),
                     "ub": np.array([3]),
                 },
             )
 
             sampling.add_random_streams()
-            sampling.exit_criteria = ExitCriteria(sim_max=101)
+            sampling.exit_criteria = ExitCriteria(sim_max=100)
 
             if __name__ == "__main__":
                 sampling.run()
                 sampling.save_output(__file__)
 
-    Run the above example via ``python this_file.py --comms local --nworkers 4``. The ``parse_args=True`` parameter
+
+    Run the above example via ``python this_file.py``.
+
+    Instead of using the libE_specs line, you can also use ``sampling = Ensemble(parse_args=True)``
+    and run via ``python this_file.py -n 4`` (4 workers). The ``parse_args=True`` parameter
     instructs the Ensemble class to read command-line arguments.
 
     Configure by:
@@ -265,7 +273,7 @@ class Ensemble:
         sim_specs: Optional[SimSpecs] = SimSpecs(),
         gen_specs: Optional[GenSpecs] = GenSpecs(),
         exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = None,
+        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
         alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
         persis_info: Optional[dict] = {},
         executor: Optional[Executor] = None,
@@ -275,26 +283,39 @@ class Ensemble:
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
         self.exit_criteria = exit_criteria
-        self.libE_specs = libE_specs
+        self._libE_specs = libE_specs
         self.alloc_specs = alloc_specs
         self.persis_info = persis_info
         self.executor = executor
         self.H0 = H0
-
         self._util_logger = logging.getLogger(__name__)
-        self.logger = logger
-        self.logger.set_level("INFO")
-
         self._nworkers = 0
         self.is_manager = False
         self.parsed = False
+        self._known_comms = None
 
         if parse_args:
-            self.parse_args()
+            self._parse_args()
             self.parsed = True
+            self._known_comms = self._libE_specs.comms
 
-    def parse_args(self) -> (int, bool, LibeSpecs):
-        self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
+        if not self._known_comms and self._libE_specs is not None:
+            if isinstance(self._libE_specs, dict):
+                self._libE_specs = LibeSpecs(**self._libE_specs)
+            self._known_comms = self._libE_specs.comms
+
+        if self._known_comms == "local":
+            self.is_manager = True
+            if not self.nworkers:
+                raise ValueError("nworkers must be specified if comms is 'local'")
+
+        elif self._known_comms == "mpi" and not parse_args:
+            # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+
+    def _parse_args(self) -> (int, bool, LibeSpecs):
+        # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+        self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
         if not self._libE_specs:
             self._libE_specs = LibeSpecs(**libE_specs_parsed)
@@ -314,8 +335,7 @@ class Ensemble:
     @libE_specs.setter
     def libE_specs(self, new_specs):
         # We need to deal with libE_specs being specified as dict or class, and
-        #   "not" overwrite the internal libE_specs["comms"], but *only* if parse_args
-        #   was called. Otherwise we can respect the complete set of provided options.
+        #   "not" overwrite the internal libE_specs["comms"].
 
         # Respect everything if libE_specs isn't set
         if not hasattr(self, "_libE_specs") or not self._libE_specs:
@@ -327,6 +347,8 @@ class Ensemble:
 
         # Cast new libE_specs temporarily to dict
         if not isinstance(new_specs, dict):  # exclude_defaults should only be enabled with Pydantic v2
+            if new_specs.comms != "mpi" and new_specs.comms != self._libE_specs.comms:  # passing in a non-default comms
+                raise ValueError(OVERWRITE_COMMS_WARN)
             platform_specs_set = False
             if new_specs.platform_specs != {}:  # bugginess across Pydantic versions for recursively casting to dict
                 platform_specs_set = True
@@ -336,8 +358,8 @@ class Ensemble:
                 new_specs["platform_specs"] = specs_dump(platform_specs, exclude_none=True)
 
         # Unset "comms" if we already have a libE_specs that contains that field, that came from parse_args
-        if new_specs.get("comms") and hasattr(self._libE_specs, "comms") and self.parsed:
-            new_specs.pop("comms")
+        if new_specs.get("comms") and hasattr(self._libE_specs, "comms"):
+            raise ValueError(OVERWRITE_COMMS_WARN)
 
         self._libE_specs.__dict__.update(**new_specs)
 
@@ -385,13 +407,16 @@ class Ensemble:
 
         self._refresh_executor()
 
+        if self._libE_specs.comms != self._known_comms:
+            raise ValueError(CHANGED_COMMS_WARN)
+
         self.H, self.persis_info, self.flag = libE(
             self.sim_specs,
             self.gen_specs,
             self.exit_criteria,
             persis_info=self.persis_info,
             alloc_specs=self.alloc_specs,
-            libE_specs=self.libE_specs,
+            libE_specs=self._libE_specs,
             H0=self.H0,
         )
 
@@ -399,13 +424,13 @@ class Ensemble:
 
     @property
     def nworkers(self):
-        return self._nworkers or self.libE_specs.nworkers
+        return self._nworkers or self._libE_specs.nworkers
 
     @nworkers.setter
     def nworkers(self, value):
         self._nworkers = value
-        if self.libE_specs:
-            self.libE_specs.nworkers = value
+        if self._libE_specs:
+            self._libE_specs.nworkers = value
 
     def _get_func(self, loaded):
         """Extracts user function specified in loaded dict"""

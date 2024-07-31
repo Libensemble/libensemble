@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
             if (sscanf(line, "rand_seed = %d", &rand_seed) == 1) {
                 continue;
             }
-            if (sscanf(line, "kill_rate = %d", &kill_rate) == 1) {
+            if (sscanf(line, "kill_rate = %lf", &kill_rate) == 1) {
                 continue;
             }
         }

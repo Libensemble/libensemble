@@ -11,6 +11,7 @@ When running with the above commands, the number of concurrent evaluations of
 the objective function will be 3, as one of the three workers will be the
 persistent generator.
 
+Requires numpy<2.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
@@ -18,6 +19,7 @@ persistent generator.
 # TESTSUITE_NPROCS: 5
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
+# TESTSUITE_EXCLUDE: true
 
 import warnings
 

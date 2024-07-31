@@ -36,42 +36,52 @@ Basic Usage
 ===========
 
 Create an ``Ensemble``, then customize it with general settings, simulation and generator parameters,
-and an exit condition. Run the following via ``python this_file.py --comms local --nworkers 4``:
+and an exit condition. Run the following four-worker example via ``python this_file.py``:
 
 .. code-block:: python
 
-   import numpy as np
+    import numpy as np
 
-   from libensemble import Ensemble
-   from libensemble.gen_funcs.sampling import uniform_random_sample
-   from libensemble.sim_funcs.six_hump_camel import six_hump_camel
-   from libensemble.specs import ExitCriteria, GenSpecs, SimSpecs
-   from libensemble.tools import add_unique_random_streams
+    from libensemble import Ensemble
+    from libensemble.gen_funcs.sampling import uniform_random_sample
+    from libensemble.sim_funcs.six_hump_camel import six_hump_camel
+    from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-   if __name__ == "__main__":
-       sampling = Ensemble(parse_args=True)
-       sampling.sim_specs = SimSpecs(
-           sim_f=six_hump_camel,
-           inputs=["x"],
-           outputs=[("f", float)],
-       )
-       sampling.gen_specs = GenSpecs(
-           gen_f=uniform_random_sample,
-           outputs=[("x", float, (2,))],
-           user={
-               "gen_batch_size": 500,
-               "lb": np.array([-3, -2]),
-               "ub": np.array([3, 2]),
-           },
-       )
+    if __name__ == "__main__":
 
-       sampling.persis_info = add_unique_random_streams({}, sampling.nworkers + 1)
-       sampling.exit_criteria = ExitCriteria(sim_max=101)
-       sampling.run()
-       sampling.save_output(__file__)
+        libE_specs = LibeSpecs(nworkers=4)
 
-       if sampling.is_manager:
-           print("Some output data:\n", sampling.H[["x", "f"]][:10])
+        sim_specs = SimSpecs(
+            sim_f=six_hump_camel,
+            inputs=["x"],
+            outputs=[("f", float)],
+        )
+
+        gen_specs = GenSpecs(
+            gen_f=uniform_random_sample,
+            outputs=[("x", float, 2)],
+            user={
+                "gen_batch_size": 50,
+                "lb": np.array([-3, -2]),
+                "ub": np.array([3, 2]),
+            },
+        )
+
+        exit_criteria = ExitCriteria(sim_max=100)
+
+        sampling = Ensemble(
+            libE_specs=libE_specs,
+            sim_specs=sim_specs,
+            gen_specs=gen_specs,
+            exit_criteria=exit_criteria,
+        )
+
+        sampling.add_random_streams()
+        sampling.run()
+
+        if sampling.is_manager:
+            sampling.save_output(__file__)
+            print("Some output data:\n", sampling.H[["x", "f"]][:10])
 
 |Inline Example|
 
@@ -87,7 +97,7 @@ Try some other examples live in Colab.
 | Optimization example that finds multiple minima.              | |Optimization example|              |
 +---------------------------------------------------------------+-------------------------------------+
 
-There are many more examples in the `regression tests`_
+There are many more examples in the `regression tests`_.
 
 Resources
 =========

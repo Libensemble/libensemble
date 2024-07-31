@@ -75,8 +75,7 @@ You can optionally create a branch to make changes on. Doing so may be a good
 idea, especially if you have multiple packages, to make separate branches for
 each package.
 
-See the Spack [packaging](https://spack.readthedocs.io/en/latest/packaging_guide.html) and
-[contribution](https://spack.readthedocs.io/en/latest/contribution_guide.html) guides for more info.
+See the Spack packaging_ and contribution_ guides for more info.
 
 Quick example to update libEnsemble
 -----------------------------------
@@ -127,3 +126,6 @@ Quick summary for bringing the develop branch on a forked repo up to speed with 
     git push origin develop --force
 
 Reference: <https://stackoverflow.com/questions/9646167/clean-up-a-fork-and-restart-it-from-the-upstream/39628366>
+
+.. _packaging: https://spack.readthedocs.io/en/latest/packaging_guide.html
+.. _contribution: https://spack.readthedocs.io/en/latest/contribution_guide.html

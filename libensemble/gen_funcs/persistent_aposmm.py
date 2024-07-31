@@ -13,11 +13,26 @@ from math import log, pi, sqrt
 
 import numpy as np
 from mpmath import gamma
-from scipy.spatial.distance import cdist
+
+# from scipy.spatial.distance import cdist
 
 from libensemble.gen_funcs.aposmm_localopt_support import ConvergedMsg, LocalOptInterfacer, simulate_recv_from_manager
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+
+
+# Due to recursion error in scipy cdist function
+def cdist(XA, XB, metric="euclidean"):
+    """Compute the pairwise Euclidean distances"""
+
+    # Just so dont have to change the call
+    if metric != "euclidean":
+        raise ValueError("Only 'euclidean' metric is supported in this implementation.")
+
+    # Compute the pairwise Euclidean distances
+    diff = XA[:, np.newaxis, :] - XB[np.newaxis, :, :]
+    distances = np.sqrt(np.sum(diff**2, axis=2))
+    return distances
 
 
 def aposmm(H, persis_info, gen_specs, libE_info):

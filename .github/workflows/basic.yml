@@ -23,12 +23,12 @@ jobs:
                 include:
                     - os: macos-latest
                       python-version: "3.11"
-                      mpi-version: "mpich=4.2.1"
+                      mpi-version: mpich
                       pydantic-version: "2.6.4"
                       comms-type: m
                     - os: macos-latest
                       python-version: "3.11"
-                      mpi-version: "mpich=4.2.1"
+                      mpi-version: mpich
                       pydantic-version: "2.6.4"
                       comms-type: l
                     - os: ubuntu-latest
@@ -163,4 +163,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.2
+        - uses: crate-ci/typos@v1.23.4

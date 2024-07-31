@@ -18,8 +18,8 @@ from libensemble.utils.specs_checkers import (
 
 _UNRECOGNIZED_ERR = "Unrecognized field. Check closely for typos, or libEnsemble's docs"
 _UFUNC_INVALID_ERR = "Specified sim_f or gen_f is not callable. It should be a user function"
-_OUT_DTYPE_ERR = "unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
-_IN_INVALID_ERR = "value should be a list of field names (a list of strings)"
+_OUT_DTYPE_ERR = "Unable to coerce into a NumPy dtype. It should be a list of 2-tuples or 3-tuples"
+_IN_INVALID_ERR = "Value should be a list of field names (a list of strings)"
 
 
 def detect_comms_env():
@@ -171,9 +171,9 @@ if pydanticV1:
     @root_validator
     def simf_set_in_out_from_attrs(cls, values):
         if not values.get("sim_f"):
-            from libensemble.sim_funcs.one_d_func import one_d_example
+            from libensemble.sim_funcs.simple_sim import norm_eval
 
-            values["sim_f"] = one_d_example
+            values["sim_f"] = norm_eval
         if hasattr(values.get("sim_f"), "inputs") and not values.get("inputs"):
             values["inputs"] = values.get("sim_f").inputs
         if hasattr(values.get("sim_f"), "outputs") and not values.get("outputs"):
