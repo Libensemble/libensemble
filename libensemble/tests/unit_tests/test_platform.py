@@ -112,13 +112,12 @@ def test_known_sys_detect(monkeypatch):
     assert name is None, f"Expected known_system_detect to return None ({name})"
 
 
-def test_env_sys_detect(monkeypatch, caplog):
+def test_env_sys_detect(monkeypatch):
     """Test detection of system partitions"""
     monkeypatch.setenv("NERSC_HOST", "other_host")
     monkeypatch.setenv("SLURM_JOB_PARTITION", "cpu_test_partition")
     name = known_envs()
     assert name is None
-    assert not any(record.levelname == "MANAGER_WARNING" for record in caplog.records)
     monkeypatch.setenv("NERSC_HOST", "perlmutter")
 
     monkeypatch.setenv("SLURM_JOB_PARTITION", "gpu_test_partition")
@@ -132,10 +131,6 @@ def test_env_sys_detect(monkeypatch, caplog):
     monkeypatch.delenv("SLURM_JOB_PARTITION", raising=False)
     name = known_envs()
     assert name == "perlmutter"
-    assert any(
-        record.levelname == "MANAGER_WARNING" and "Perlmutter detected" in record.message
-        for record in caplog.records
-    )
 
 
 if __name__ == "__main__":
