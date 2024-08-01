@@ -164,43 +164,43 @@ class AskTellGenRunner(Runner):
 class LibensembleGenRunner(AskTellGenRunner):
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        H_out = self.gen.ask_np(self.initial_batch or libE_info["batch_size"])
+        H_out = self.gen.ask_numpy(self.initial_batch or libE_info["batch_size"])
         return H_out
 
     def _start_generator_loop(self, tag, Work, H_in) -> npt.NDArray:
         """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.tell_np(H_in)
+        self.gen.tell_numpy(H_in)
         return self._loop_over_libe_asktell_gen(tag, Work)
 
     def _loop_over_libe_asktell_gen(self, tag, Work) -> npt.NDArray:
         """Interact with ask/tell generator that *does not* contain a background thread"""
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = self.batch or Work["libE_info"]["batch_size"]
-            points, updates = self.gen.ask_np(batch_size), self.gen.ask_updates()
+            points, updates = self.gen.ask_numpy(batch_size), self.gen.ask_updates()
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
             else:
                 H_out = points
             tag, Work, H_in = self.ps.send_recv(H_out)
-            self.gen.tell_np(H_in)
+            self.gen.tell_numpy(H_in)
         return H_in
 
 
 class LibensembleGenThreadRunner(AskTellGenRunner):
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        H_out = self.gen.ask_np()  # libE really needs to receive the *entire* initial batch from a threaded gen
+        H_out = self.gen.ask_numpy()  # libE really needs to receive the *entire* initial batch from a threaded gen
         return H_out
 
     def _start_generator_loop(self, _, _2, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
-        self.gen.tell_np(H_in)
+        self.gen.tell_numpy(H_in)
         return self._loop_over_thread_interfacer()
 
     def _ask_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
         while self.gen.outbox.qsize():  # recv/send any outstanding messages
-            points, updates = self.gen.ask_np(), self.gen.ask_updates()
+            points, updates = self.gen.ask_numpy(), self.gen.ask_updates()
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:
@@ -217,4 +217,4 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
                 tag, _, H_in = self.ps.recv()
                 if tag in [STOP_TAG, PERSIS_STOP]:
                     return H_in  # this will get inserted into final_tell. this breaks loop
-                self.gen.tell_np(H_in)
+                self.gen.tell_numpy(H_in)

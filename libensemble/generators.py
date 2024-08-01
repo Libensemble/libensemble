@@ -12,14 +12,20 @@ from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
+"""
+NOTE: These generators, implementations, methods, and subclasses are in BETA, and
+      may change in future releases.
+
+      The Generator interface is expected to roughly correspond with CAMPA's standard:
+      https://github.com/campa-consortium/generator_standard
+"""
+
 
 class Generator(ABC):
     """
-    v 0.7.2.24
 
     .. code-block:: python
 
-        from libensemble import Ensemble
         from libensemble.generators import Generator
 
 
@@ -40,7 +46,6 @@ class Generator(ABC):
 
 
         my_generator = MyGenerator(my_parameter=100)
-        my_ensemble = Ensemble(generator=my_generator)
     """
 
     @abstractmethod
@@ -86,20 +91,20 @@ class LibensembleGenerator(Generator):
     """
 
     @abstractmethod
-    def ask_np(self, num_points: Optional[int] = 0) -> npt.NDArray:
+    def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         pass
 
     @abstractmethod
-    def tell_np(self, results: npt.NDArray) -> None:
+    def tell_numpy(self, results: npt.NDArray) -> None:
         pass
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return np_to_list_dicts(self.ask_np(num_points))
+        return np_to_list_dicts(self.ask_numpy(num_points))
 
     def tell(self, calc_in: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_np(list_dicts_to_np(calc_in))
+        self.tell_numpy(list_dicts_to_np(calc_in))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -149,9 +154,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def tell(self, calc_in: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_np(list_dicts_to_np(calc_in), tag)
+        self.tell_numpy(list_dicts_to_np(calc_in), tag)
 
-    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
+    def ask_numpy(self, n_trials: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
         if not self.thread.running:
             self.thread.run()
@@ -160,9 +165,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def ask_updates(self) -> npt.NDArray:
         """Request any updates to previous points, e.g. minima discovered, points to cancel."""
-        return self.ask_np()
+        return self.ask_numpy()
 
-    def tell_np(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+    def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
@@ -175,7 +180,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
-        self.tell_np(results, PERSIS_STOP)  # conversion happens in tell
+        self.tell_numpy(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
 
 
@@ -210,13 +215,13 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self.results_idx = 0
         self.last_ask = None
 
-    def ask_np(self, n_trials: int = 0) -> npt.NDArray:
+    def ask_numpy(self, n_trials: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
         if (self.last_ask is None) or (
             self.results_idx >= len(self.last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.results_idx = 0
-            self.last_ask = super().ask_np(n_trials)
+            self.last_ask = super().ask_numpy(n_trials)
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
@@ -267,9 +272,9 @@ class Surmise(LibensembleGenThreadInterfacer):
         """Check if the generator has the next batch of points ready."""
         return not self.outbox.empty()
 
-    def ask_np(self, *args) -> npt.NDArray:
+    def ask_numpy(self, *args) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        output = super().ask_np()
+        output = super().ask_numpy()
         if "cancel_requested" in output.dtype.names:
             cancels = output
             got_cancels_first = True

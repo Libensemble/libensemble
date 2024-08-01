@@ -24,7 +24,7 @@ class UniformSample(LibensembleGenerator):
         self.libE_info = libE_info
         self._get_user_params(self.gen_specs["user"])
 
-    def ask_np(self, n_trials):
+    def ask_numpy(self, n_trials):
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
 
@@ -34,7 +34,7 @@ class UniformSample(LibensembleGenerator):
             )
         return H_o
 
-    def tell_np(self, calc_in):
+    def tell_numpy(self, calc_in):
         pass  # random sample so nothing to tell
 
     def _get_user_params(self, user_specs):
