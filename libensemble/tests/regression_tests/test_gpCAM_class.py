@@ -23,9 +23,8 @@ import sys
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-
+from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar
 from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
-from libensemble.gen_classes.gpCAM import GP_CAM_Covar, GP_CAM
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

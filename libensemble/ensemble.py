@@ -12,8 +12,8 @@ from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
-from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
+from libensemble.tools.parse_args import mpi_init
 from libensemble.utils.misc import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
