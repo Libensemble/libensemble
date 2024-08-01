@@ -26,6 +26,7 @@ class Generator(ABC):
 
     .. code-block:: python
 
+        from libensemble.specs import GenSpecs
         from libensemble.generators import Generator
 
 
@@ -46,6 +47,7 @@ class Generator(ABC):
 
 
         my_generator = MyGenerator(my_parameter=100)
+        gen_specs = GenSpecs(generator=my_generator, ...)
     """
 
     @abstractmethod
@@ -60,7 +62,7 @@ class Generator(ABC):
         """
 
     @abstractmethod
-    def ask(self, num_points: Optional[int], *args, **kwargs) -> List[dict]:
+    def ask(self, num_points: Optional[int]) -> List[dict]:
         """
         Request the next set of points to evaluate.
         """
@@ -70,7 +72,7 @@ class Generator(ABC):
         Request any updates to previous points, e.g. minima discovered, points to cancel.
         """
 
-    def tell(self, results: List[dict], *args, **kwargs) -> None:
+    def tell(self, results: List[dict]) -> None:
         """
         Send the results of evaluations to the generator.
         """

@@ -38,7 +38,18 @@ class GP_CAM(LibensembleGenerator):
     (relative to the simulation evaluation time) for some use cases.
     """
 
-    def _initialize_gpcAM(self, user_specs):
+    def __init__(self, H, persis_info, gen_specs, libE_info=None):
+        self.H = H
+        self.persis_info = persis_info
+        self.gen_specs = gen_specs
+        self.libE_info = libE_info
+
+        self.U = self.gen_specs["user"]
+        self._initialize_gpcAM(self.U)
+        self.my_gp = None
+        self.noise = 1e-8  # 1e-12
+
+    def _initialize_gpCAM(self, user_specs):
         """Extract user params"""
         # self.b = user_specs["batch_size"]
         self.lb = np.array(user_specs["lb"])
@@ -50,17 +61,6 @@ class GP_CAM(LibensembleGenerator):
         self.all_x = np.empty((0, self.n))
         self.all_y = np.empty((0, 1))
         np.random.seed(0)
-
-    def __init__(self, H, persis_info, gen_specs, libE_info=None):
-        self.H = H
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
-        self.libE_info = libE_info
-
-        self.U = self.gen_specs["user"]
-        self._initialize_gpcAM(self.U)
-        self.my_gp = None
-        self.noise = 1e-8  # 1e-12
 
     def ask_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:

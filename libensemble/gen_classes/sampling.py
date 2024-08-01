@@ -18,7 +18,6 @@ class UniformSample(LibensembleGenerator):
     """
 
     def __init__(self, _, persis_info, gen_specs, libE_info=None) -> list:
-        # self.H = H
         self.persis_info = persis_info
         self.gen_specs = gen_specs
         self.libE_info = libE_info
