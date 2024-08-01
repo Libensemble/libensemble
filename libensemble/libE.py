@@ -440,6 +440,7 @@ def libE_mpi_worker(libE_comm, sim_specs, gen_specs, libE_specs):
 
 # ==================== Local version ===============================
 
+
 def start_proc_team(nworkers, sim_specs, gen_specs, libE_specs, log_comm=True):
     """Launch a process worker team."""
     resources = Resources.resources
