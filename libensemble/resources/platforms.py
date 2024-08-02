@@ -178,6 +178,8 @@ class PerlmutterCPU(Perlmutter):
 
 
 class PerlmutterGPU(Perlmutter):
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
     gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
