@@ -81,23 +81,33 @@ def specs_checker_setattr(obj, key, value):
         obj.__dict__[key] = value
 
 
+def _copy_data(array, list_dicts):
+    for i, entry in enumerate(list_dicts):
+        for field in entry.keys():
+            array[field][i] = entry[field]
+    return array
+
+
+def _decide_dtype(name, entry):
+    if hasattr(entry, "shape") and len(entry.shape):  # numpy type
+        return (name, entry.dtype, entry.shape)
+    else:
+        return (name, type(entry))
+
+
 def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     if list_dicts is None:
         return None
+
+    first = list_dicts[0]
+    new_dtype_names = [i for i in first.keys()]
     new_dtype = []
-    new_dtype_names = [i for i in list_dicts[0].keys()]
-    for i, entry in enumerate(list_dicts[0].values()):  # must inspect values to get presumptive types
-        if hasattr(entry, "shape") and len(entry.shape):
-            entry_dtype = (new_dtype_names[i], entry.dtype, entry.shape)
-        else:
-            entry_dtype = (new_dtype_names[i], type(entry))
-        new_dtype.append(entry_dtype)
+    for i, entry in enumerate(first.values()):  # must inspect values to get presumptive types
+        name = new_dtype_names[i]
+        new_dtype.append(_decide_dtype(name, entry))
 
     out = np.zeros(len(list_dicts), dtype=new_dtype)
-    for i, entry in enumerate(list_dicts):
-        for field in entry.keys():
-            out[field][i] = entry[field]
-    return out
+    return _copy_data(out, list_dicts)
 
 
 def np_to_list_dicts(array: npt.NDArray) -> List[dict]:

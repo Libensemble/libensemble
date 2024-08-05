@@ -20,12 +20,12 @@ class Runner:
     def from_specs(cls, specs):
         if len(specs.get("globus_compute_endpoint", "")) > 0:
             return GlobusComputeRunner(specs)
-        if specs.get("threaded"):  # TODO: undecided interface
+        if specs.get("threaded"):
             return ThreadRunner(specs)
-        if specs.get("generator") is not None:
-            if isinstance(specs.get("generator", None), LibensembleGenThreadInterfacer):
+        if (generator := specs.get("generator")) is not None:
+            if isinstance(generator, LibensembleGenThreadInterfacer):
                 return LibensembleGenThreadRunner(specs)
-            if isinstance(specs.get("generator", None), LibensembleGenerator):
+            if isinstance(generator, LibensembleGenerator):
                 return LibensembleGenRunner(specs)
             else:
                 return AskTellGenRunner(specs)
