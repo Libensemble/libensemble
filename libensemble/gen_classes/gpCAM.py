@@ -38,17 +38,6 @@ class GP_CAM(LibensembleGenerator):
     (relative to the simulation evaluation time) for some use cases.
     """
 
-    def __init__(self, H, persis_info, gen_specs, libE_info=None):
-        self.H = H
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
-        self.libE_info = libE_info
-
-        self.U = self.gen_specs["user"]
-        self._initialize_gpcAM(self.U)
-        self.my_gp = None
-        self.noise = 1e-8  # 1e-12
-
     def _initialize_gpCAM(self, user_specs):
         """Extract user params"""
         # self.b = user_specs["batch_size"]
@@ -62,16 +51,30 @@ class GP_CAM(LibensembleGenerator):
         self.all_y = np.empty((0, 1))
         np.random.seed(0)
 
+    def __init__(self, H, persis_info, gen_specs, libE_info=None):
+        self.H = H  # Currently not used - could be used for an H0
+        self.persis_info = persis_info
+        self.gen_specs = gen_specs
+        self.libE_info = libE_info
+
+        self.U = self.gen_specs["user"]
+        self._initialize_gpCAM(self.U)
+
+        self.my_gp = None
+        self.noise = 1e-8  # 1e-12
+        self.ask_max_iter = self.gen_specs["user"].get("ask_max_iter") or 10
+
     def ask_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
             self.x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
         else:
             start = time.time()
             self.x_new = self.my_gp.ask(
-                bounds=np.column_stack((self.lb, self.ub)),
+                input_set=np.column_stack((self.lb, self.ub)),
                 n=n_trials,
                 pop_size=n_trials,
-                max_iter=1,
+                acquisition_function="total correlation",
+                max_iter=self.ask_max_iter,  # Larger takes longer. gpCAM default is 20.
             )["x"]
             print(f"Ask time:{time.time() - start}")
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
@@ -88,10 +91,11 @@ class GP_CAM(LibensembleGenerator):
             self.all_x = np.vstack((self.all_x, self.x_new))
             self.all_y = np.vstack((self.all_y, self.y_new))
 
+            noise_var = self.noise * np.ones(len(self.all_y))
             if self.my_gp is None:
-                self.my_gp = GP(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
+                self.my_gp = GP(self.all_x, self.all_y.flatten(), noise_variances=noise_var)
             else:
-                self.my_gp.tell(self.all_x, self.all_y, noise_variances=self.noise * np.ones(len(self.all_y)))
+                self.my_gp.tell(self.all_x, self.all_y.flatten(), noise_variances=noise_var)
             self.my_gp.train()
 
 
@@ -140,7 +144,7 @@ class GP_CAM_Covar(GP_CAM):
 
     def tell_numpy(self, calc_in: npt.NDArray):
         if calc_in is not None:
-            super().tell(calc_in)
+            super().tell_numpy(calc_in)
             if not self.U.get("use_grid"):
                 n_trials = len(self.y_new)
                 self.x_for_var = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (10 * n_trials, self.n))
