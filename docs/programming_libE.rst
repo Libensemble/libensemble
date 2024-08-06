@@ -1,8 +1,6 @@
 Constructing Workflows
 ======================
 
-We now give greater detail in programming with libEnsemble.
-
 .. toctree::
    :maxdepth: 2
    :caption: The Basics

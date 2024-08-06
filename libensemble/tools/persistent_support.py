@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -8,11 +8,13 @@ from libensemble.message_numbers import EVAL_GEN_TAG, EVAL_SIM_TAG, PERSIS_STOP,
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["PersistentSupport"]
+
 
 class PersistentSupport:
     """A helper class to assist with writing persistent user functions."""
 
-    def __init__(self, libE_info: Dict[str, Dict[Any, Any]], calc_type: int) -> None:
+    def __init__(self, libE_info: dict[str, dict[Any, Any]], calc_type: int):
         """
         Instantiate a new PersistentSupport instance
 
@@ -29,7 +31,7 @@ class PersistentSupport:
         ], f"The calc_type: {self.calc_type} specifies neither a simulator nor generator."
         self.calc_str = calc_type_strings[self.calc_type]
 
-    def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False) -> None:
+    def send(self, output: npt.NDArray, calc_status: int = UNSET_TAG, keep_state=False):
         """
         Send message from worker to manager.
 
@@ -115,7 +117,7 @@ class PersistentSupport:
         self.send(output, calc_status)
         return self.recv()
 
-    def request_cancel_sim_ids(self, sim_ids: List[int]):
+    def request_cancel_sim_ids(self, sim_ids: list[int]):
         """Request cancellation of sim_ids.
 
         :param sim_ids: A list of sim_ids to cancel.

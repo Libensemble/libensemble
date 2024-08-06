@@ -1,7 +1,6 @@
 import importlib
 import json
 import logging
-from typing import Optional
 
 import numpy.typing as npt
 import tomli
@@ -12,8 +11,8 @@ from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
-from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
+from libensemble.tools.parse_args import mpi_init
 from libensemble.utils.misc import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
@@ -52,27 +51,36 @@ class Ensemble:
             from libensemble.sim_funcs.simple_sim import norm_eval
             from libensemble.specs import ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 
-            libE_specs = LibeSpecs(nworkers=4)
-            sampling = Ensemble(libE_specs=libE_specs)
-            sampling.sim_specs = SimSpecs(
-                sim_f=norm_eval,
-                inputs=["x"],
-                outputs=[("f", float)],
-            )
-            sampling.gen_specs = GenSpecs(
-                gen_f=latin_hypercube_sample,
-                outputs=[("x", float, (1,))],
-                user={
-                    "gen_batch_size": 50,
-                    "lb": np.array([-3]),
-                    "ub": np.array([3]),
-                },
-            )
-
-            sampling.add_random_streams()
-            sampling.exit_criteria = ExitCriteria(sim_max=100)
-
             if __name__ == "__main__":
+
+                libE_specs = LibeSpecs(nworkers=4)
+
+                sim_specs = SimSpecs(
+                    sim_f=norm_eval,
+                    inputs=["x"],
+                    outputs=[("f", float)],
+                )
+
+                gen_specs = GenSpecs(
+                    gen_f=latin_hypercube_sample,
+                    outputs=[("x", float, (1,))],
+                    user={
+                        "gen_batch_size": 50,
+                        "lb": np.array([-3]),
+                        "ub": np.array([3]),
+                    },
+                )
+
+                exit_criteria = ExitCriteria(sim_max=100)
+
+                sampling = Ensemble(
+                    libE_specs=libE_specs,
+                    sim_specs=sim_specs,
+                    gen_specs=gen_specs,
+                    exit_criteria=exit_criteria,
+                )
+
+                sampling.add_random_streams()
                 sampling.run()
                 sampling.save_output(__file__)
 
@@ -270,15 +278,15 @@ class Ensemble:
 
     def __init__(
         self,
-        sim_specs: Optional[SimSpecs] = SimSpecs(),
-        gen_specs: Optional[GenSpecs] = GenSpecs(),
-        exit_criteria: Optional[ExitCriteria] = {},
-        libE_specs: Optional[LibeSpecs] = LibeSpecs(),
-        alloc_specs: Optional[AllocSpecs] = AllocSpecs(),
-        persis_info: Optional[dict] = {},
-        executor: Optional[Executor] = None,
-        H0: Optional[npt.NDArray] = None,
-        parse_args: Optional[bool] = False,
+        sim_specs: SimSpecs | None = SimSpecs(),
+        gen_specs: GenSpecs | None = GenSpecs(),
+        exit_criteria: ExitCriteria | None = {},
+        libE_specs: LibeSpecs | None = LibeSpecs(),
+        alloc_specs: AllocSpecs | None = AllocSpecs(),
+        persis_info: dict | None = {},
+        executor: Executor | None = None,
+        H0: npt.NDArray | None = None,
+        parse_args: bool | None = False,
     ):
         self.sim_specs = sim_specs
         self.gen_specs = gen_specs
@@ -333,7 +341,7 @@ class Ensemble:
         return self._libE_specs
 
     @libE_specs.setter
-    def libE_specs(self, new_specs):
+    def libE_specs(self, new_specs: LibeSpecs | dict):
         # We need to deal with libE_specs being specified as dict or class, and
         #   "not" overwrite the internal libE_specs["comms"].
 

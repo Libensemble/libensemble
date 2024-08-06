@@ -6,14 +6,13 @@ import logging
 import os
 import platform
 import subprocess
-from typing import Optional, Tuple, Union
 
 
 class MPIResourcesException(Exception):
     """Resources module exception"""
 
 
-def rassert(test: Optional[Union[int, bool]], *args) -> None:
+def rassert(test: int | bool | None, *args) -> None:
     if not test:
         raise MPIResourcesException(*args)
 
@@ -89,8 +88,8 @@ def get_MPI_runner(mpi_runner=None) -> str:
 
 
 def task_partition(
-    num_procs: Optional[int], num_nodes: Optional[int], procs_per_node: Optional[int], machinefile: Optional[str] = None
-) -> Union[Tuple[None, None, None], Tuple[int, int, int]]:
+    num_procs: int | None, num_nodes: int | None, procs_per_node: int | None, machinefile: str | None = None
+) -> tuple[None, None, None] | tuple[int, int, int]:
     """Takes provided nprocs/nodes/ranks and outputs working
     configuration of procs/nodes/ranks or error
     """
@@ -223,12 +222,12 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
 
 def create_machinefile(
     resources: "resources.Resources",  # noqa: F821
-    machinefile: Optional[str] = None,
+    machinefile: str | None = None,
     num_procs: int = None,
-    num_nodes: Optional[int] = None,
-    procs_per_node: Optional[int] = None,
+    num_nodes: int | None = None,
+    procs_per_node: int | None = None,
     hyperthreads: bool = False,
-) -> Tuple[bool, None, int, int]:
+) -> tuple[bool, None, int, int]:
     """Creates a machinefile based on user-supplied config options,
     completed by detected machine resources
     """

@@ -120,8 +120,8 @@ import pickle  # Only used when saving output on error
 import socket
 import sys
 import traceback
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Dict
 
 import numpy as np
 
@@ -154,11 +154,11 @@ def libE(
     sim_specs: SimSpecs,
     gen_specs: GenSpecs,
     exit_criteria: ExitCriteria,
-    persis_info: Dict = {},
+    persis_info: dict = {},
     alloc_specs: AllocSpecs = AllocSpecs(),
     libE_specs: LibeSpecs = {},
     H0=None,
-) -> (np.ndarray, Dict, int):
+) -> (np.ndarray, dict, int):
     """
     Parameters
     ----------
