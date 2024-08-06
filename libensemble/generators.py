@@ -89,7 +89,7 @@ class Generator(ABC):
 class LibensembleGenerator(Generator):
     """Internal implementation of Generator interface for use with libEnsemble, or for those who
     prefer numpy arrays. ``ask/tell`` methods communicate lists of dictionaries, like the standard.
-    ``ask_np/tell_np`` methods communicate numpy arrays containing the same data.
+    ``ask_numpy/tell_numpy`` methods communicate numpy arrays containing the same data.
     """
 
     @abstractmethod
@@ -197,9 +197,9 @@ class APOSMM(LibensembleGenThreadInterfacer):
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
         gen_specs["gen_f"] = aposmm
-        if len(kwargs) > 0:
+        if len(kwargs) > 0:  # so user can specify aposmm-specific parameters as kwargs to constructor
             gen_specs["user"] = kwargs
-        if not gen_specs.get("out"):
+        if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
             n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
                 ("x", float, n),
@@ -208,7 +208,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
                 ("local_min", bool),
                 ("local_pt", bool),
             ]
-            gen_specs["in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
+            gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
             persis_info["nworkers"] = 4

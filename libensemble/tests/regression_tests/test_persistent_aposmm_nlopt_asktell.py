@@ -23,72 +23,68 @@ import numpy as np
 import libensemble.gen_funcs
 
 # Import libEnsemble items for this test
-from libensemble.libE import libE
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel as sim_f
 
 libensemble.gen_funcs.rc.aposmm_optimizers = "nlopt"
 from time import time
 
+from libensemble import Ensemble
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
 from libensemble.generators import APOSMM
+from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
+from libensemble.tools import save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
-    nworkers, is_manager, libE_specs, _ = parse_args()
 
-    if is_manager:
+    workflow = Ensemble(parse_args=True)
+
+    if workflow.is_manager:
         start_time = time()
 
-    if nworkers < 2:
+    if workflow.nworkers < 2:
         sys.exit("Cannot run with a persistent worker if only one worker -- aborting...")
 
     n = 2
-    sim_specs = {
-        "sim_f": sim_f,
-        "in": ["x"],
-        "out": [("f", float)],
-    }
+    workflow.sim_specs = SimSpecs(sim_f=sim_f, inputs=["x"], outputs=[("f", float)])
+    workflow.alloc_specs = AllocSpecs(alloc_f=alloc_f)
+    workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
-    gen_out = [
-        ("x", float, n),
-        ("x_on_cube", float, n),
-        ("sim_id", int),
-        ("local_min", bool),
-        ("local_pt", bool),
-    ]
+    aposmm = APOSMM(
+        initial_sample_size=100,
+        sample_points=minima,
+        localopt_method="LN_BOBYQA",
+        rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
+        xtol_abs=1e-6,
+        ftol_abs=1e-6,
+        max_active_runs=6,
+        lb=np.array([-3, -2]),
+        ub=np.array([3, 2]),
+    )
 
-    gen_specs = {
-        "persis_in": ["f"] + [n[0] for n in gen_out],
-        "out": gen_out,
-        "user": {
-            "initial_sample_size": 100,
-            "sample_points": np.round(minima, 1),
-            "localopt_method": "LN_BOBYQA",
-            "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "xtol_abs": 1e-6,
-            "ftol_abs": 1e-6,
-            "dist_to_bound_multiple": 0.5,
-            "max_active_runs": 6,
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
-    }
+    workflow.gen_specs = GenSpecs(
+        persis_in=["x", "x_on_cube", "sim_id", "local_min", "local_pt", "f"],
+        outputs=[
+            ("x", float, n),
+            ("x_on_cube", float, n),
+            ("sim_id", int),
+            ("local_min", bool),
+            ("local_pt", bool),
+            ("f", float),
+        ],
+        generator=aposmm,
+        user={"initial_sample_size": 100},
+    )
 
-    persis_info = add_unique_random_streams({}, nworkers + 1, seed=4321)
-    alloc_specs = {"alloc_f": alloc_f}
+    workflow.libE_specs.gen_on_manager = True
+    workflow.add_random_streams()
 
-    exit_criteria = {"sim_max": 2000}
-
-    gen_specs["generator"] = APOSMM(gen_specs, persis_info=persis_info[1])
-
-    libE_specs["gen_on_manager"] = True
+    H, persis_info, _ = workflow.run()
 
     # Perform the run
-    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
 
-    if is_manager:
+    if workflow.is_manager:
         print("[Manager]:", H[np.where(H["local_min"])]["x"])
         print("[Manager]: Time taken =", time() - start_time, flush=True)
 
@@ -100,4 +96,4 @@ if __name__ == "__main__":
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
 
         persis_info[0]["comm"] = None
-        save_libE_output(H, persis_info, __file__, nworkers)
+        save_libE_output(H, persis_info, __file__, workflow.nworkers)
