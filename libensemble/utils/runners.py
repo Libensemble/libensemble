@@ -8,9 +8,12 @@ import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer, np_to_list_dicts
+from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+
+from libensemble.utils.misc import np_to_list_dicts
+
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +159,7 @@ class AskTellGenRunner(Runner):
             self.gen.libE_info = libE_info
             if self.gen.thread is None:
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
-        H_out = self._get_initial_ask(libE_info)
+        H_out = self._to_array(self._get_initial_ask(libE_info))
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         final_H_in = self._start_generator_loop(tag, Work, H_in)
         return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG

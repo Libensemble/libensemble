@@ -17,7 +17,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_classes.sampling import UniformSample
+from libensemble.gen_classes.sampling import UniformSample, UniformSampleDicts
 from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
@@ -31,7 +31,7 @@ def sim_f(In):
 
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
-    libE_specs["gen_on_manager"] = True
+    #libE_specs["gen_on_manager"] = True
 
     sim_specs = {
         "sim_f": sim_f,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
-    for inst in range(3):
+    for inst in range(4):
         persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
         if inst == 0:
@@ -60,15 +60,21 @@ if __name__ == "__main__":
             generator = UniformSample
             gen_specs["gen_f"] = gen_f
             gen_specs["user"]["generator"] = generator
+
         if inst == 1:
             # Using wrapper - pass object
             gen_specs["gen_f"] = gen_f
             generator = UniformSample(None, persis_info[1], gen_specs, None)
             gen_specs["user"]["generator"] = generator
         elif inst == 2:
-            # use asktell runner - pass object
-            del gen_specs["gen_f"]
+            # Using asktell runner - pass object
+            gen_specs.pop("gen_f", None)
             generator = UniformSample(None, persis_info[1], gen_specs, None)
+            gen_specs["generator"] = generator
+        elif inst == 3:
+            # Using asktell runner - pass object - with standardized interface.
+            gen_specs.pop("gen_f", None)
+            generator = UniformSampleDicts(None, persis_info[1], gen_specs, None)
             gen_specs["generator"] = generator
 
         H, persis_info, flag = libE(
@@ -76,6 +82,6 @@ if __name__ == "__main__":
         )
 
         if is_manager:
-            assert len(H) >= 201
-            print(H[:10])
-            assert not np.isclose(H["f"][0], 3.23720733e02)
+            print(H[["sim_id", "x", "f"]][:10])
+            assert len(H) >= 201, f"H has length {len(H)}"
+            assert np.isclose(H["f"][9], 1.96760289)
