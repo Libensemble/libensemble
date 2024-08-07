@@ -36,7 +36,7 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.executors.executor import Executor
-from libensemble.generators import Surmise
+from libensemble.gen_classes import Surmise
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE

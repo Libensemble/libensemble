@@ -30,7 +30,7 @@ from time import time
 
 from libensemble import Ensemble
 from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_alloc as alloc_f
-from libensemble.generators import APOSMM
+from libensemble.gen_classes import APOSMM
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
 from libensemble.tools import save_libE_output

@@ -173,7 +173,7 @@ def test_asktell_with_persistent_aposmm():
     from math import gamma, pi, sqrt
 
     import libensemble.gen_funcs
-    from libensemble.generators import APOSMM
+    from libensemble.gen_classes import APOSMM
     from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
     from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func
     from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima

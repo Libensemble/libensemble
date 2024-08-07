@@ -12,7 +12,7 @@ from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 if __name__ == "__main__":
 
     from libensemble.executors import Executor
-    from libensemble.generators import Surmise, list_dicts_to_np
+    from libensemble.gen_classes import Surmise, list_dicts_to_np
 
     # Import libEnsemble items for this test
     from libensemble.sim_funcs.borehole_kills import borehole
