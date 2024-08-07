@@ -59,6 +59,7 @@ class GP_CAM(LibensembleGenerator):
 
         self.U = self.gen_specs["user"]
         self._initialize_gpCAM(self.U)
+        self.rng = self.persis_info["rand_stream"]
 
         self.my_gp = None
         self.noise = 1e-8  # 1e-12
@@ -66,7 +67,7 @@ class GP_CAM(LibensembleGenerator):
 
     def ask_numpy(self, n_trials: int) -> npt.NDArray:
         if self.all_x.shape[0] == 0:
-            self.x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
+            self.x_new = self.rng.uniform(self.lb, self.ub, (n_trials, self.n))
         else:
             start = time.time()
             self.x_new = self.my_gp.ask(
@@ -120,7 +121,7 @@ class GP_CAM_Covar(GP_CAM):
 
     def ask_numpy(self, n_trials: int) -> List[dict]:
         if self.all_x.shape[0] == 0:
-            x_new = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
+            x_new = self.rng.uniform(self.lb, self.ub, (n_trials, self.n))
         else:
             if not self.U.get("use_grid"):
                 x_new = self.x_for_var[np.argsort(self.var_vals)[-n_trials:]]
@@ -147,7 +148,7 @@ class GP_CAM_Covar(GP_CAM):
             super().tell_numpy(calc_in)
             if not self.U.get("use_grid"):
                 n_trials = len(self.y_new)
-                self.x_for_var = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (10 * n_trials, self.n))
+                self.x_for_var = self.rng.uniform(self.lb, self.ub, (10 * n_trials, self.n))
 
             self.var_vals = _eval_var(
                 self.my_gp, self.all_x, self.all_y, self.x_for_var, self.test_points, self.persis_info
