@@ -11,9 +11,7 @@ from libensemble.comms.comms import QCommThread
 from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-
 from libensemble.utils.misc import np_to_list_dicts
-
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +120,10 @@ class AskTellGenRunner(Runner):
         return x
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
-        return self._to_array(self.gen.ask(batch_size)), self._to_array(self.gen.ask_updates())
+        return (
+            self._to_array(self.gen.ask(batch_size)),
+            None,
+        )  # external ask/tell gens likely don't implement ask_updates
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell(np_to_list_dicts(x))
@@ -135,7 +136,7 @@ class AskTellGenRunner(Runner):
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
             else:
-                H_out = points
+                H_out = points  # all external gens likely go here
             tag, Work, H_in = self.ps.send_recv(H_out)
             self._convert_tell(H_in)
         return H_in
@@ -185,7 +186,7 @@ class LibensembleGenRunner(AskTellGenRunner):
     def _start_generator_loop(self, tag, Work, H_in) -> npt.NDArray:
         """Start the generator loop after choosing best way of giving initial results to gen"""
         self.gen.tell_numpy(H_in)
-        return self._loop_over_gen(tag, Work)
+        return self._loop_over_gen(tag, Work)  # see parent class
 
 
 class LibensembleGenThreadRunner(AskTellGenRunner):
