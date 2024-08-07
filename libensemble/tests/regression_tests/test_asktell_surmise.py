@@ -12,12 +12,13 @@ from libensemble.message_numbers import FINISHED_PERSISTENT_GEN_TAG
 if __name__ == "__main__":
 
     from libensemble.executors import Executor
-    from libensemble.gen_classes import Surmise, list_dicts_to_np
+    from libensemble.gen_classes import Surmise
 
     # Import libEnsemble items for this test
     from libensemble.sim_funcs.borehole_kills import borehole
     from libensemble.tests.regression_tests.common import build_borehole  # current location
     from libensemble.tools import add_unique_random_streams
+    from libensemble.utils.misc import list_dicts_to_np
 
     sim_app = os.path.join(os.getcwd(), "borehole.x")
     if not os.path.isfile(sim_app):
