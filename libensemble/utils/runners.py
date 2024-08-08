@@ -129,7 +129,9 @@ class AskTellGenRunner(Runner):
     def _loop_over_gen(self, tag, Work):
         """Interact with ask/tell generator that *does not* contain a background thread"""
         while tag not in [PERSIS_STOP, STOP_TAG]:
-            batch_size = Work["libE_info"]["batch_size"]
+            batch_size = (
+                self.specs.get("batch_size") or self.specs.get("initial_batch_size") or Work["libE_info"]["batch_size"]
+            )  # or len(Work["H_in"])?
             points, updates = self._get_points_updates(batch_size)
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
@@ -141,7 +143,7 @@ class AskTellGenRunner(Runner):
 
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        initial_batch = libE_info["batch_size"]
+        initial_batch = self.specs.get("initial_batch_size") or self.specs.get("batch_size") or libE_info["batch_size"]
         H_out = self.gen.ask(initial_batch)
         return H_out
 
@@ -172,7 +174,7 @@ class AskTellGenRunner(Runner):
 class LibensembleGenRunner(AskTellGenRunner):
     def _get_initial_ask(self, libE_info) -> npt.NDArray:
         """Get initial batch from generator based on generator type"""
-        H_out = self.gen.ask_numpy(libE_info["batch_size"])
+        H_out = self.gen.ask_numpy(libE_info["batch_size"])  # OR GEN SPECS INITIAL BATCH SIZE
         return H_out
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):

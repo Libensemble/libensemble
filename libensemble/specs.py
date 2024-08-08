@@ -110,6 +110,24 @@ class GenSpecs(BaseModel):
     calling them locally.
     """
 
+    initial_batch_size: Optional[int] = 0
+    """
+    Number of initial points to request that the generator create. If zero, falls back to ``batch_size``.
+    If both options are zero, defaults to the number of workers.
+
+    Note: Certain generators included with libEnsemble decide
+    batch sizes via ``gen_specs["user"]`` or other methods.
+    """
+
+    batch_size: Optional[int] = 0
+    """
+    Number of points to generate in each batch. If zero, falls back to ``initial_batch_size``.
+    If both options are zero, defaults to the number of workers.
+
+    Note: Certain generators included with libEnsemble decide
+    batch sizes via ``gen_specs["user"]`` or other methods.
+    """
+
     threaded: Optional[bool] = False
     """
     Instruct Worker process to launch user function to a thread.
