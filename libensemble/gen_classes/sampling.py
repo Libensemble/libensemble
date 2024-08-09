@@ -15,7 +15,6 @@ class SampleBase(LibensembleGenerator):
 
     def _get_user_params(self, user_specs):
         """Extract user params"""
-        # b = user_specs["initial_batch_size"]
         self.ub = user_specs["ub"]
         self.lb = user_specs["lb"]
         self.n = len(self.lb)  # dimension
@@ -32,7 +31,7 @@ class UniformSample(SampleBase):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None) -> list:
+    def __init__(self, _, persis_info, gen_specs, libE_info=None):
         self.persis_info = persis_info
         self.gen_specs = gen_specs
         self.libE_info = libE_info
@@ -63,7 +62,7 @@ class UniformSampleDicts(Generator):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None) -> list:
+    def __init__(self, _, persis_info, gen_specs, libE_info=None):
         self.persis_info = persis_info
         self.gen_specs = gen_specs
         self.libE_info = libE_info

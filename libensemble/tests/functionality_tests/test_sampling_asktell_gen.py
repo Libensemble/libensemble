@@ -42,8 +42,10 @@ if __name__ == "__main__":
     gen_specs = {
         "persis_in": ["x", "f", "grad", "sim_id"],
         "out": [("x", float, (2,))],
+        "initial_batch_size": 20,
+        "batch_size": 10,
         "user": {
-            "initial_batch_size": 20,
+            "initial_batch_size": 20,  # for wrapper
             "lb": np.array([-3, -2]),
             "ub": np.array([3, 2]),
         },
