@@ -11,14 +11,18 @@ persistent generator.
 
 See libensemble.gen_funcs.persistent_gpCAM for more details about the generator
 setup.
+
+Requires numpy<2.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 import sys
+import warnings
 
 import numpy as np
 
@@ -31,6 +35,10 @@ from libensemble.sim_funcs.rosenbrock import rosenbrock_eval as sim_f
 from libensemble.tools import add_unique_random_streams, parse_args, save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
+
+warnings.filterwarnings("ignore", message="Default hyperparameter_bounds")
+
+
 if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
@@ -76,6 +84,7 @@ if __name__ == "__main__":
         elif inst == 2:
             gen_specs["gen_f"] = persistent_gpCAM_ask_tell
             num_batches = 3  # Few because the ask_tell gen can be slow
+            gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
 
         persis_info = add_unique_random_streams({}, nworkers + 1)

@@ -7,7 +7,7 @@ exit_criteria:
     gen_max: 501
 
 sim_specs:
-    sim_f: libensemble.sim_funcs.one_d_func.one_d_example
+    sim_f: libensemble.sim_funcs.simple_sim.norm_eval
     inputs:
         - x
     outputs:

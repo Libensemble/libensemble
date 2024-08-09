@@ -1,12 +1,14 @@
-==================================
-Executor with Electrostatic Forces
-==================================
+================================
+Ensemble with an MPI Application
+================================
 
 This tutorial highlights libEnsemble's capability to portably execute
 and monitor external scripts or user applications within simulation or generator
 functions using the :doc:`executor<../executor/overview>`.
 
-This tutorial's calling script registers a compiled executable that simulates
+|Open in Colab|
+
+The calling script registers a compiled executable that simulates
 electrostatic forces between a collection of particles. The simulator function
 launches instances of this executable and reads output files to determine
 the result.
@@ -350,7 +352,9 @@ Change the libE_specs as follows.
 
     # Persistent gen does not need resources
     ensemble.libE_specs = LibeSpecs(
-        gen_on_manager=True, sim_dirs_make=True, ensemble_dir_path="./test_executor_forces_tutorial"
+        gen_on_manager=True,
+        sim_dirs_make=True,
+        ensemble_dir_path="./test_executor_forces_tutorial",
     )
 
 When running set ``nworkers`` to the number of workers desired for running simulations.
@@ -370,7 +374,149 @@ Note that as the generator random number seed will be zero instead of one, the c
 
 For more information see :ref:`Running generator on the manager<gen-on-manager>`.
 
+Running forces application with input file
+------------------------------------------
+
+Many applications read an input file instead of being given parameters directly on the run line.
+
+forces_simple_with_input_file_ directory contains a variant of this example, where a templated
+input file is parametized for each evaluation.
+
+This requires **jinja2** to be installed::
+
+    pip install jinja2
+
+The file ``forces_input`` contains the following (remember we are using particles
+as seed also for simplicity)::
+
+    num_particles = {{particles}}
+    num_steps = 10
+    rand_seed = {{particles}}
+
+libEnsemble will copy this input file to each simulation directory.
+
+The ``sim_f`` uses the following function to customize the input file with the parameters
+for the current simulation.
+
+.. code-block:: python
+
+    def set_input_file_params(H, sim_specs, ints=False):
+        """
+        This is a general function to parameterize the input file with any inputs
+        from sim_specs["in"]
+
+        Often sim_specs_in["x"] may be multi-dimensional, where each dimension
+        corresponds to a different input name in sim_specs["user"]["input_names"]).
+        Effectively an unpacking of "x"
+        """
+        input_file = sim_specs["user"]["input_filename"]
+        input_values = {}
+        for i, name in enumerate(sim_specs["user"]["input_names"]):
+            value = int(H["x"][0][i]) if ints else H["x"][0][i]
+            input_values[name] = value
+        with open(input_file, "r") as f:
+            template = jinja2.Template(f.read())
+        with open(input_file, "w") as f:
+            f.write(template.render(input_values))
+
+This is called in the simulation function as follows.
+
+.. code-block:: python
+
+    def run_forces(H, persis_info, sim_specs, libE_info):
+        """Runs the forces MPI application reading input from file"""
+
+        calc_status = 0
+
+        input_file = sim_specs["user"]["input_filename"]
+        set_input_file_params(H, sim_specs, ints=True)
+
+        # Retrieve our MPI Executor
+        exctr = libE_info["executor"]
+
+        # Submit our forces app for execution.
+        task = exctr.submit(app_name="forces")  # app_args removed
+
+        # Block until the task finishes
+        task.wait(timeout=60)
+
+Notice that we convert the parameters to integers in this example.
+
+The calling script then specifies the templated input file as follows.
+
+.. code-block:: python
+    :linenos:
+    :lineno-start: 30
+    :emphasize-lines: 1,7,14
+
+    input_file = "forces_input"
+
+    # Persistent gen does not need resources
+    ensemble.libE_specs = LibeSpecs(
+        num_resource_sets=nsim_workers,
+        sim_dirs_make=True,
+        sim_dir_copy_files=[input_file],
+    )
+
+    ensemble.sim_specs = SimSpecs(
+        sim_f=run_forces,
+        inputs=["x"],
+        outputs=[("energy", float)],
+        user={"input_filename": input_file, "input_names": ["particles"]},
+    )
+
+.. Note sphinx does not adjust for lineno-start
+
+Line 36 tells the templated input file to be copied to each simulation directory.
+
+An alternative is to use ``sim_input_dir``, which gives the name of a directory
+that may contain multiple files and will be used as the base of each simulation
+directory.
+
+Line 43 gives the input file name and the name of each parameter to the simulation
+function.
+
+Multiple parameters
+^^^^^^^^^^^^^^^^^^^
+
+In our case, the only parameter name is ``x``. However, in some cases, ``x``
+(as defined by ``sim_specs["in"]``) may be multi-dimensional, where each
+component has a different parameter name (e.g., "x", "y"). For example, if the
+input file were::
+
+    num_particles = {{particles}}
+    num_steps = {{nsteps}}
+    rand_seed = {{seed}}
+
+then line 43 would be:
+
+.. code-block:: python
+
+    user = {"input_filename": input_file, "input_names": ["particles", "nsteps", "seed"]}
+
+and ``gen_specs`` would contain something similar to:
+
+.. code-block:: python
+    :linenos:
+    :lineno-start: 46
+    :emphasize-lines: 5
+
+    ensemble.gen_specs = GenSpecs(
+        gen_f=gen_f,
+        inputs=[],
+        persis_in=["sim_id"],
+        outputs=[("x", float, 3)],
+        ...,
+    )
+
+libEnsemble uses a convention of a multi-dimensional ``x`` in generator functions. However,
+these parameters can also be specified as different variables with corresponding modification
+to generator and simulator functions.
+
 .. _examples/tutorials/forces_with_executor: https://github.com/Libensemble/libensemble/tree/develop/examples/tutorials/forces_with_executor
 .. _forces_app: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_app
 .. _forces_simple: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple
+.. _forces_simple_with_input_file: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/forces/forces_simple_with_input_file
 .. _GitHub: https://github.com/Libensemble/libensemble/issues
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/forces_with_executor/forces_tutorial_notebook.ipynb

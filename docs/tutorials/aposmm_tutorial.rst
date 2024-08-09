@@ -10,6 +10,8 @@ simulation :ref:`sim_f<api_sim_f>` that defines a function with
 multiple minima, then write a libEnsemble calling script that imports APOSMM and
 parameterizes it to check for minima over a domain of outputs from our ``sim_f``.
 
+|Open in Colab|
+
 Six-Hump Camel Simulation Function
 ----------------------------------
 
@@ -39,7 +41,7 @@ Create a new Python file named ``six_hump_camel.py``. This will be our
         H_o = np.zeros(batch, dtype=sim_specs["out"])  # Define output array H
 
         for i, x in enumerate(H["x"]):
-            H_o["f"][i] = three_hump_camel_func(x)  # Function evaluations placed into H
+            H_o["f"][i] = six_hump_camel_func(x)  # Function evaluations placed into H
 
         return H_o
 
@@ -77,15 +79,16 @@ don't have points with smaller function values nearby (within a threshold
 uniformly sampled points, it will begin at most ``max_active_runs``  local
 optimization runs.
 
-As function values are returned to APOSMM, APOSMM gives them to each local
-optimization run in order to generate the next point(s); these are returned to
-the manager to be evaluated by the simulation routine. As runs complete (a
-minimum is found, or some termination criteria for the local optimization run
-is satisfied),
-additional local optimization runs may be started or additional uniformly
-sampled points may be evaluated. This continues until a ``STOP_TAG`` is sent by
-the manager, for example when the budget of simulation evaluations has been
-exhausted, or when a sufficiently "good" simulation output has been observed.
+As function values are returned to APOSMM, APOSMM gives them to the
+corresponding local optimization runs so they can generate the next point(s) in
+their runs; such points are then returned by APOSMM to the manager to be
+evaluated by the simulation routine. As runs complete (i.e., a minimum is
+found, or some termination criteria for the local optimization run is
+satisfied), additional local optimization runs may be started or additional
+uniformly sampled points may be evaluated. This continues until a ``STOP_TAG``
+is sent by the manager, for example when the budget of simulation evaluations
+has been exhausted, or when a sufficiently "good" simulation output has been
+observed.
 
     .. image:: ../images/localopt_6hc.png
         :alt: Six-Hump Camel Local Optimization Points
@@ -100,22 +103,31 @@ and ``"local_min"`` being ``True`` if the point has been ruled a local minimum.
 APOSMM Persistence
 ------------------
 
-The most recent version of APOSMM included with libEnsemble is referred to as
-Persistent APOSMM. Unlike most other user functions that are initiated and
-completed by workers multiple times based on allocation, a single worker process
-initiates APOSMM so that it "persists" and keeps running over the course of the
-entire libEnsemble routine. APOSMM begins its own parallel evaluations and
-communicates points back and forth with the manager, which are then given to
-workers and evaluated by simulation routines.
+APOSMM is implemented as a Persistent generator. A single worker process initiates
+APOSMM so that it "persists" the course of a given libEnsemble run.
 
-In practice, since a single worker becomes "persistent" for APOSMM, users must
-ensure that enough workers or MPI ranks are initiated to
-support libEnsemble's manager, a persistent worker to run APOSMM, and
+APOSMM begins its own concurrent optimization runs, each of which independently
+produces a linear sequence of points trying to find a local minimum. These
+points are given to workers and evaluated by simulation routines.
+
+If there are more workers than optimization runs at any iteration of the
+generator, additional random sample points are generated to keep the workers
+busy.
+
+In practice, since a single worker becomes "persistent" for APOSMM, users
+should initiate one more worker than the number of parallel simulations::
+
+    python my_aposmm_routine.py --comms local --nworkers 4
+
+results in three workers running simulations and one running APSOMM.
+
+If running libEnsemble using `mpi4py` communications, enough MPI ranks should be
+given to support libEnsemble's manager, a persistent worker to run APOSMM, and
 simulation routines. The following::
 
     mpiexec -n 3 python my_aposmm_routine.py
 
-results in only one worker process available to perform simulation routines.
+results in only one worker process to perform simulation evaluations.
 
 Calling Script
 --------------
@@ -303,3 +315,5 @@ can be found in libEnsemble's `WarpX Scaling Test`_.
 .. _SciPy: https://scipy.org/
 .. _Six-Hump Camel function: https://www.sfu.ca/~ssurjano/camel6.html
 .. _WarpX Scaling Test: https://github.com/Libensemble/libensemble/tree/main/libensemble/tests/scaling_tests/warpx
+.. |Open in Colab| image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target:  http://colab.research.google.com/github/Libensemble/libensemble/blob/develop/examples/tutorials/aposmm/aposmm_tutorial_notebook.ipynb

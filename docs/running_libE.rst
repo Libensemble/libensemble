@@ -24,8 +24,13 @@ generator and simulator functions. Many :doc:`examples<examples/examples_index>`
 are available.
 
 There are currently three communication options for libEnsemble (determining how
-the Manager and Workers communicate). These are ``mpi``, ``local``, ``tcp``.
-The default is ``mpi``.
+the Manager and Workers communicate). These are ``local``, ``mpi``, ``tcp``.
+The default is ``local`` if ``nworkers`` is specified, otherwise ``mpi``.
+
+Note that ``local`` comms can be used on multi-node systems, where
+the :doc:`MPI executor<executor/overview>` is used to distribute MPI applications
+across the nodes. Indeed, this is the most commonly used option, even on large
+supercomputers.
 
 .. note::
     You do not need the ``mpi`` communication mode to use the
@@ -33,6 +38,47 @@ The default is ``mpi``.
     here only refer to how the libEnsemble manager and workers communicate.
 
 .. tab-set::
+
+    .. tab-item:: Local Comms
+
+        Uses Python's built-in multiprocessing_ module.
+        The ``comms`` type ``local`` and number of workers ``nworkers`` may
+        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
+
+        Then run::
+
+            python myscript.py
+
+        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
+        or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
+        you can specify these on the command line::
+
+            python myscript.py --comms local --nworkers N
+
+        This will launch one manager and ``N`` workers.
+
+        The following abbreviated line is equivalent to the above::
+
+            python myscript.py -n N
+
+        libEnsemble will run on **one node** in this scenario. To
+        :doc:`disallow this node<platforms/platforms_index>`
+        from app-launches (if running libEnsemble on a compute node),
+        set ``libE_specs["dedicated_mode"] = True``.
+
+        This mode can also be used to run on a **launch** node of a three-tier
+        system (e.g., Summit), ensuring the whole compute-node allocation is available for
+        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
+
+        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
+        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
+        calling script code in an ``if __name__ == "__main__":`` block.
+
+        **Limitations of local mode**
+
+        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
+        - In some scenarios, any import of ``mpi4py`` will cause this to break.
+        - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
     .. tab-item:: MPI Comms
 
@@ -60,42 +106,6 @@ The default is ``mpi``.
 
         It is also unsuitable to use this mode when running on the **launch** nodes of
         three-tier systems (e.g., Summit). In that case ``local`` mode is recommended.
-
-    .. tab-item:: Local Comms
-
-        Uses Python's built-in multiprocessing_ module.
-        The ``comms`` type ``local`` and number of workers ``nworkers`` may
-        be provided in :ref:`libE_specs<datastruct-libe-specs>`.
-        Then run::
-
-            python myscript.py
-
-        Or, if the script uses the :meth:`parse_args<tools.parse_args>` function
-        or an :class:`Ensemble<libensemble.ensemble.Ensemble>` object with ``Ensemble(parse_args=True)``,
-        you can specify these on the command line::
-
-            python myscript.py --comms local --nworkers N
-
-        This will launch one manager and ``N`` workers.
-
-        libEnsemble will run on **one node** in this scenario. To
-        :doc:`disallow this node<platforms/platforms_index>`
-        from app-launches (if running libEnsemble on a compute node),
-        set ``libE_specs["dedicated_mode"] = True``.
-
-        This mode is often used to run on a **launch** node of a three-tier
-        system (e.g., Summit), ensuring the whole compute-node allocation is available for
-        launching apps. Make sure there are no imports of ``mpi4py`` in your Python scripts.
-
-        Note that on macOS (since Python 3.8) and Windows, the default multiprocessing method
-        is ``"spawn"`` instead of ``"fork"``; to resolve many related issues, we recommend placing
-        calling script code in an ``if __name__ == "__main__":`` block.
-
-        **Limitations of local mode**
-
-        - Workers cannot be :doc:`distributed<platforms/platforms_index>` across nodes.
-        - In some scenarios, any import of ``mpi4py`` will cause this to break.
-        - Does not have the potential scaling of MPI mode, but is sufficient for most users.
 
     .. tab-item:: TCP Comms
 
@@ -186,137 +196,6 @@ For example::
 set in your simulation script before the Executor *submit* command will export the setting
 to your run. For running a bash script in a sub environment when using the Executor, see
 the ``env_script`` option to the :doc:`MPI Executor<executor/mpi_executor>`.
-
-.. _liberegister:
-
-liberegister / libesubmit
--------------------------
-
-Command-line utilities for preparing and launching libEnsemble workflows onto almost
-any machine and any scheduler, using a `PSI/J`_ Python implementation.
-
-.. tab-set::
-
-    .. tab-item:: liberegister
-
-        Creates an initial, platform-independent PSI/J serialization of a libEnsemble submission. Run this utility on
-        a script::
-
-            liberegister my_calling_script.py --comms local --nworkers 4
-
-        This produces an initial ``my_calling_script.json`` serialization conforming to PSI/J's specification:
-
-        .. dropdown:: `my_calling_script.json`
-
-            .. code-block:: JSON
-
-                {
-                    "version": 0.1,
-                    "type": "JobSpec",
-                    "data": {
-                        "name": "libe-job",
-                        "executable": "python",
-                        "arguments": [
-                            "my_calling_script.py",
-                            "--comms",
-                            "local",
-                            "--nworkers",
-                            "4"
-                        ],
-                        "directory": null,
-                        "inherit_environment": true,
-                        "environment": {
-                            "PYTHONNOUSERSITE": "1"
-                        },
-                        "stdin_path": null,
-                        "stdout_path": null,
-                        "stderr_path": null,
-                        "resources": {
-                            "node_count": 1,
-                            "process_count": null,
-                            "process_per_node": null,
-                            "cpu_cores_per_process": null,
-                            "gpu_cores_per_process": null,
-                            "exclusive_node_use": true
-                        },
-                        "attributes": {
-                            "duration": "30",
-                            "queue_name": null,
-                            "project_name": null,
-                            "reservation_id": null,
-                            "custom_attributes": {}
-                        },
-                        "launcher": null
-                    }
-                }
-
-    .. tab-item:: libesubmit
-
-        Further parameterizes a serialization, and submits a corresponding Job to the specified scheduler::
-
-            libesubmit my_calling_script.json -q debug -A project -s slurm --nnodes 8
-
-        Results in::
-
-            *** libEnsemble 0.9.3 ***
-            Imported PSI/J serialization: my_calling_script.json. Preparing submission...
-            Calling script: my_calling_script.py
-            ...found! Proceeding.
-            Submitting Job!: Job[id=ce4ead75-a3a4-42a3-94ff-c44b3b2c7e61, native_id=None, executor=None, status=JobStatus[NEW, time=1658167808.5125017]]
-
-            $ squeue --long --users=user
-            Mon Jul 18 13:10:15 2022
-                    JOBID PARTITION     NAME     USER    STATE       TIME TIME_LIMI  NODES NODELIST(REASON)
-                2508936    debug  ce4ead75     user  PENDING       0:00     30:00      8 (Priority)
-
-        This also produces a Job-specific representation, e.g:
-
-        .. dropdown:: 8ba9de56.my_calling_script.json
-
-            .. code-block:: JSON
-
-                {
-                    "version": 0.1,
-                    "type": "JobSpec",
-                    "data": {
-                        "name": "libe-job",
-                        "executable": "/Users/jnavarro/miniconda3/envs/libe/bin/python3.9",
-                        "arguments": [
-                            "my_calling_script.py",
-                            "--comms",
-                            "local",
-                            "--nworkers",
-                            "4"
-                        ],
-                        "directory": "/home/user/libensemble/scratch",
-                        "inherit_environment": true,
-                        "environment": {
-                            "PYTHONNOUSERSITE": "1"
-                        },
-                        "stdin_path": null,
-                        "stdout_path": "8ba9de56.my_calling_script.out",
-                        "stderr_path": "8ba9de56.my_calling_script.err",
-                        "resources": {
-                            "node_count": 8,
-                            "process_count": null,
-                            "process_per_node": null,
-                            "cpu_cores_per_process": null,
-                            "gpu_cores_per_process": null,
-                            "exclusive_node_use": true
-                        },
-                        "attributes": {
-                            "duration": "30",
-                            "queue_name": "debug",
-                            "project_name": "project",
-                            "reservation_id": null,
-                            "custom_attributes": {}
-                        },
-                        "launcher": null
-                    }
-                }
-
-        If libesubmit is run on a ``.json`` serialization from liberegister and can't find the
-        specified calling script, it'll help search for matching candidate scripts.
 
 Further Run Information
 -----------------------

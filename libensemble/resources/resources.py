@@ -176,6 +176,7 @@ class GlobalResources:
             )
         self.num_resource_sets = libE_specs.get("num_resource_sets", None)
         self.enforce_worker_core_bounds = libE_specs.get("enforce_worker_core_bounds", False)
+        self.gpus_per_group = libE_specs.get("gpus_per_group")
         resource_info = libE_specs.get("resource_info", {})
 
         # resource_info overrides platform
