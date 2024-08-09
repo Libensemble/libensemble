@@ -169,7 +169,7 @@ class GlobalResources:
         self.zero_resource_workers = libE_specs.get("zero_resource_workers", [])
         if len(self.zero_resource_workers):
             warnings.warn(
-                "libE_specs.zero_resource_workers is deprecated, to be removed in v1.4.0."
+                "libE_specs.zero_resource_workers is deprecated, to be removed in v2.0."
                 + "Set libE_specs.gen_workers instead for generator-workers that require no resources.",
                 DeprecationWarning,
                 2,

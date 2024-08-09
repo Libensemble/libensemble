@@ -486,14 +486,14 @@ class Manager:
             if isinstance(final_data, np.ndarray):
                 if calc_status is FINISHED_PERSISTENT_GEN_TAG and self.libE_specs.get("use_persis_return_gen", False):
                     warnings.warn(
-                        "LibeSpecs.use_persis_return_gen is deprecated, to be removed in v1.4.0. From v1.4.0 onward, "
+                        "LibeSpecs.use_persis_return_gen is deprecated, to be removed in v2.0. From v2.0 onward, "
                         + "libEnsemble will honor all data returned on completion of a persistent generator.",
                         DeprecationWarning,
                     )
                     self.hist.update_history_x_in(w, final_data, self.W[w]["gen_started_time"])
                 elif calc_status is FINISHED_PERSISTENT_SIM_TAG and self.libE_specs.get("use_persis_return_sim", False):
                     warnings.warn(
-                        "LibeSpecs.use_persis_return_sim is deprecated, to be removed in v1.4.0. From v1.4.0 onward, "
+                        "LibeSpecs.use_persis_return_sim is deprecated, to be removed in v2.0. From v2.0 onward, "
                         + " libEnsemble will honor all data returned on completion of a persistent simulator function.",
                         DeprecationWarning,
                     )
