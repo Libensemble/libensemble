@@ -4,8 +4,11 @@ Misc internal functions
 
 from itertools import groupby
 from operator import itemgetter
+from typing import List
 
+import numpy as np
 import pydantic
+from numpy import typing as npt
 
 pydantic_version = pydantic.__version__[0]
 
@@ -76,3 +79,44 @@ def specs_checker_setattr(obj, key, value):
         obj[key] = value
     else:  # actual obj
         obj.__dict__[key] = value
+
+
+def _copy_data(array, list_dicts):
+    for i, entry in enumerate(list_dicts):
+        for field in entry.keys():
+            array[field][i] = entry[field]
+    return array
+
+
+def _decide_dtype(name, entry):
+    if hasattr(entry, "shape") and len(entry.shape):  # numpy type
+        return (name, entry.dtype, entry.shape)
+    else:
+        return (name, type(entry))
+
+
+def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
+    if list_dicts is None:
+        return None
+
+    first = list_dicts[0]
+    new_dtype_names = [i for i in first.keys()]
+    new_dtype = []
+    for i, entry in enumerate(first.values()):  # must inspect values to get presumptive types
+        name = new_dtype_names[i]
+        new_dtype.append(_decide_dtype(name, entry))
+
+    out = np.zeros(len(list_dicts), dtype=new_dtype)
+    return _copy_data(out, list_dicts)
+
+
+def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
+    if array is None:
+        return None
+    out = []
+    for row in array:
+        new_dict = {}
+        for field in row.dtype.names:
+            new_dict[field] = row[field]
+        out.append(new_dict)
+    return out

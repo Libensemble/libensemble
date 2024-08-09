@@ -215,6 +215,7 @@ jobs:
           run: |
             rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             # rm ./libensemble/tests/regression_tests/test_gpCAM.py
+            # rm ./libensemble/tests/regression_tests/test_gpCAM_class.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
 
         - name: Remove test for persistent Tasmanian on Python 3.12
