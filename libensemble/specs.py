@@ -121,8 +121,8 @@ class GenSpecs(BaseModel):
 
     batch_size: Optional[int] = 0
     """
-    Number of points to generate in each batch. If zero, falls back to ``initial_batch_size``.
-    If both options are zero, defaults to the number of workers.
+    Number of points to generate in each batch. If zero, falls back to the number of
+    completed evaluations most recently told to the generator.
 
     Note: Certain generators included with libEnsemble decide
     batch sizes via ``gen_specs["user"]`` or other methods.

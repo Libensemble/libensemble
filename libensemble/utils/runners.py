@@ -118,20 +118,19 @@ class AskTellGenRunner(Runner):
         return x
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
+        # no ask_updates on external gens
         return (
             self._to_array(self.gen.ask(batch_size)),
             None,
-        )  # external ask/tell gens likely don't implement ask_updates
+        )
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell(np_to_list_dicts(x))
 
-    def _loop_over_gen(self, tag, Work):
+    def _loop_over_gen(self, tag, Work, H_in):
         """Interact with ask/tell generator that *does not* contain a background thread"""
         while tag not in [PERSIS_STOP, STOP_TAG]:
-            batch_size = (
-                self.specs.get("batch_size") or self.specs.get("initial_batch_size") or Work["libE_info"]["batch_size"]
-            )  # or len(Work["H_in"])?
+            batch_size = self.specs.get("batch_size") or len(H_in)
             points, updates = self._get_points_updates(batch_size)
             if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
                 H_out = np.append(points, updates)
@@ -150,7 +149,7 @@ class AskTellGenRunner(Runner):
     def _start_generator_loop(self, tag, Work, H_in):
         """Start the generator loop after choosing best way of giving initial results to gen"""
         self.gen.tell(np_to_list_dicts(H_in))
-        return self._loop_over_gen(tag, Work)
+        return self._loop_over_gen(tag, Work, H_in)
 
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
@@ -186,7 +185,7 @@ class LibensembleGenRunner(AskTellGenRunner):
     def _start_generator_loop(self, tag, Work, H_in) -> npt.NDArray:
         """Start the generator loop after choosing best way of giving initial results to gen"""
         self.gen.tell_numpy(H_in)
-        return self._loop_over_gen(tag, Work)  # see parent class
+        return self._loop_over_gen(tag, Work, H_in)  # see parent class
 
 
 class LibensembleGenThreadRunner(AskTellGenRunner):
@@ -205,7 +204,7 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
             else:
                 self.ps.send(points)
 
-    def _loop_over_gen(self, _, _2):
+    def _loop_over_gen(self, *args):
         """Cycle between moving all outbound / inbound messages between threaded gen and manager"""
         while True:
             time.sleep(0.0025)  # dont need to ping the gen relentlessly. Let it calculate. 400hz
