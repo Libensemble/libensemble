@@ -21,7 +21,7 @@ Begin by loading the Python 3 Anaconda module::
 
 You can now create and activate your own custom conda_ environment::
 
-    conda create --name myenv python=3.9
+    conda create --name myenv python=3.10
     export PYTHONNOUSERSITE=1 # Make sure get python from conda env
     . activate myenv
 

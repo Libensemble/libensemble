@@ -22,7 +22,7 @@ need to write a new allocation function.
 
         .. code-block:: bash
 
-            python --version  # This should be >= 3.9
+            python --version  # This should be >= 3.10
 
         .. _Python: https://www.python.org/
 
