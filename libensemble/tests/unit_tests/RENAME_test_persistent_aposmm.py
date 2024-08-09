@@ -14,6 +14,7 @@ import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
+from libensemble.utils.misc import list_dicts_to_np
 
 libE_info = {"comm": {}}
 
@@ -204,7 +205,7 @@ def test_asktell_with_persistent_aposmm():
 
     my_APOSMM = APOSMM(gen_specs)
     my_APOSMM.setup()
-    initial_sample = my_APOSMM.ask()
+    initial_sample = my_APOSMM.ask(100)
 
     total_evals = 0
     eval_max = 2000
@@ -219,7 +220,7 @@ def test_asktell_with_persistent_aposmm():
 
     while total_evals < eval_max:
 
-        sample, detected_minima = my_APOSMM.ask(), my_APOSMM.ask_updates()
+        sample, detected_minima = my_APOSMM.ask(6), my_APOSMM.ask_updates()
         if len(detected_minima):
             for m in detected_minima:
                 potential_minima.append(m)
@@ -227,7 +228,7 @@ def test_asktell_with_persistent_aposmm():
             point["f"] = six_hump_camel_func(point["x"])
             total_evals += 1
         my_APOSMM.tell(sample)
-    H, persis_info, exit_code = my_APOSMM.final_tell(sample)
+    H, persis_info, exit_code = my_APOSMM.final_tell(list_dicts_to_np(sample))  # final_tell currently requires numpy
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"
