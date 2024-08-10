@@ -273,7 +273,7 @@ class WorkerResources(RSetResources):
         """
         assert self.matching_slots, f"Cannot assign GPUs to non-matching slots per node {self.slots}"
         if self.doihave_gpus():
-            env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset, limit=self.gen_ngpus)
+            env_value = self.get_slots_as_string(multiplier=self.gpus_per_rset_per_node, limit=self.gen_ngpus)
             if env_var is None:
                 if self.platform_info is not None:
                     if self.platform_info.get("gpu_setting_type") == "env":

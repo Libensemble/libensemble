@@ -121,7 +121,7 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
+        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset_per_node, limit=gpus_per_node)
         task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
@@ -171,7 +171,7 @@ class MPIRunner:
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
-            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset
+            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset_per_node
         else:
             gpus_avail_per_node = 0
 
@@ -241,8 +241,8 @@ class MPIRunner:
 
         if resources is not None:
             wresources = resources.worker_resources
-            ngpus = adjust_resource(ngpus, "gpus_per_rset", "ngpus")
-            nprocs = adjust_resource(nprocs, "procs_per_rset", "nprocs")
+            ngpus = adjust_resource(ngpus, "gpus_per_rset_per_node", "ngpus")
+            nprocs = adjust_resource(nprocs, "procs_per_rset_per_node", "nprocs")
         return nprocs, ngpus
 
     def get_mpi_specs(

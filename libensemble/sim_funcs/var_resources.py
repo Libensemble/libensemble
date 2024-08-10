@@ -279,7 +279,7 @@ def CUDA_variable_resources(H, _, sim_specs, libE_info):
     cores_per_node = resources.slot_count
 
     # Set to detected GPUs
-    # gpus_per_slot = resources.gpus_per_rset
+    # gpus_per_slot = resources.gpus_per_rset_per_node
     # resources.set_env_to_slots("CUDA_VISIBLE_DEVICES", multiplier=gpus_per_slot)
     # cores_per_node = resources.slot_count * gpus_per_slot  # One CPU per GPU
 
