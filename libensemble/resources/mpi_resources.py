@@ -213,7 +213,7 @@ def get_resources(resources, num_procs=None, num_nodes=None, procs_per_node=None
         )
 
     if num_nodes < local_node_count:
-        logger.warning(
+        logger.debug(
             "User constraints mean fewer nodes being used "
             f"than available. {num_nodes} nodes used. {local_node_count} nodes available"
         )

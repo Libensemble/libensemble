@@ -224,6 +224,27 @@ class MPIRunner:
 
         return nprocs, nnodes, ppn, extra_args
 
+    def _get_min_nodes(self, nprocs, ppn, nnodes, ngpus, resources):
+        """Get mininum nodes needed from those available"""
+        if nnodes is not None:
+            return nnodes
+        if nprocs is not None and ppn is not None:
+            return nprocs * ppn
+        wresources = resources.worker_resources
+        total_nodes = wresources.local_node_count
+        procs_on_node = wresources.slot_count * wresources.procs_per_rset_per_node
+
+        proc_min_nodes = 1
+        gpu_min_nodes = 1
+        if nprocs:
+            proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
+        if ngpus:
+            gpus_on_node = wresources.slot_count * wresources.gpus_per_rset_per_node
+            gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+        min_nodes = max(proc_min_nodes, gpu_min_nodes)
+        jassert(min_nodes <= total_nodes, f"Not enough nodes {total_nodes} to meet configuration {min_nodes}")
+        return min_nodes
+
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
 
@@ -284,6 +305,8 @@ class MPIRunner:
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
+
+        nnodes = self._get_min_nodes(nprocs, ppn, nnodes, ngpus, resources)
         nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
 
         if auto_assign_gpus or ngpus is not None:

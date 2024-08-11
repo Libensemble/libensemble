@@ -53,6 +53,7 @@ class RSetResources:
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
         self.num_nodes = len(resources.global_nodelist)
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
+        self.nodes_in_rset = len(self.split_list[0])
 
         gpus_avail_per_node = resources.gpus_avail_per_node
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
@@ -78,9 +79,9 @@ class RSetResources:
         else:
             self.procs_per_rset_per_node = self.cores_per_rset_per_node
 
-        self.gpus_per_rset = self.gpus_per_rset_per_node * self.num_nodes
-        self.cores_per_rset = self.cores_per_rset_per_node * self.num_nodes
-        self.procs_per_rset = self.procs_per_rset_per_node * self.num_nodes
+        self.gpus_per_rset = self.gpus_per_rset_per_node * self.nodes_in_rset
+        self.cores_per_rset = self.cores_per_rset_per_node * self.nodes_in_rset
+        self.procs_per_rset = self.procs_per_rset_per_node * self.nodes_in_rset
 
     @staticmethod
     def get_group_list(split_list, gpus_per_node=0, gpus_per_group=None):
