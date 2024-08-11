@@ -329,9 +329,6 @@ class MPIExecutor(Executor):
         if num_gpus is None:
             num_gpus = self.gen_ngpus
 
-        if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
-            num_nodes = self.resources.worker_resources.local_node_count
-
         if mpi_runner_type is not None:
             if isinstance(mpi_runner_type, str):
                 mpi_config = {"mpi_runner": mpi_runner_type}
