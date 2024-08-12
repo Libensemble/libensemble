@@ -225,7 +225,7 @@ class MPIRunner:
         return nprocs, nnodes, ppn, extra_args
 
     def _get_min_nodes(self, nprocs, ppn, nnodes, ngpus, resources):
-        """Get mininum nodes needed from those available"""
+        """Get minimum nodes needed to match configuration"""
         if nnodes is not None:
             return nnodes
         if ppn:
