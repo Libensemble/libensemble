@@ -40,11 +40,6 @@ class UniformSample(SampleBase):
     def ask_numpy(self, n_trials):
         H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
         H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
-
-        if "obj_component" in H_o.dtype.fields:  # needs H_o - needs to be created in here.
-            H_o["obj_component"] = self.persis_info["rand_stream"].integers(
-                low=0, high=self.gen_specs["user"]["num_components"], size=n_trials
-            )
         return H_o
 
     def tell_numpy(self, calc_in):

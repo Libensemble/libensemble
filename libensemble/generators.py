@@ -65,7 +65,7 @@ class Generator(ABC):
         Request the next set of points to evaluate.
         """
 
-    def ask_updates(self) -> npt.NDArray:
+    def ask_updates(self) -> List[npt.NDArray]:
         """
         Request any updates to previous points, e.g. minima discovered, points to cancel.
         """
@@ -92,11 +92,11 @@ class LibensembleGenerator(Generator):
 
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
-        pass
+        """Request the next set of points to evaluate, as a NumPy array."""
 
     @abstractmethod
     def tell_numpy(self, results: npt.NDArray) -> None:
-        pass
+        """Send the results, as a NumPy array, of evaluations to the generator."""
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
@@ -142,15 +142,11 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
-        if "sim_ended" in results.dtype.names:
-            results["sim_ended"] = True
-        else:
-            new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
-            for field in results.dtype.names:
-                new_results[field] = results[field]
-            new_results["sim_ended"] = True
-            results = new_results
-        return results
+        new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
+        for field in results.dtype.names:
+            new_results[field] = results[field]
+        new_results["sim_ended"] = True
+        return new_results
 
     def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
@@ -162,10 +158,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
-
-    def ask_updates(self) -> npt.NDArray:
-        """Request any updates to previous points, e.g. minima discovered, points to cancel."""
-        return self.ask_numpy()
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""

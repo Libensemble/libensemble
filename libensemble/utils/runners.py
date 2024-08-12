@@ -131,11 +131,7 @@ class AskTellGenRunner(Runner):
         """Interact with ask/tell generator that *does not* contain a background thread"""
         while tag not in [PERSIS_STOP, STOP_TAG]:
             batch_size = self.specs.get("batch_size") or len(H_in)
-            points, updates = self._get_points_updates(batch_size)
-            if updates is not None and len(updates):  # returned "samples" and "updates". can combine if same dtype
-                H_out = np.append(points, updates)
-            else:
-                H_out = points  # all external gens likely go here
+            H_out, _ = self._get_points_updates(batch_size)
             tag, Work, H_in = self.ps.send_recv(H_out)
             self._convert_tell(H_in)
         return H_in
@@ -167,7 +163,7 @@ class AskTellGenRunner(Runner):
     def _result(self, calc_in: npt.NDArray, persis_info: dict, libE_info: dict) -> (npt.NDArray, dict, Optional[int]):
         if libE_info.get("persistent"):
             return self._persistent_result(calc_in, persis_info, libE_info)
-        return self._to_array(self.gen.ask(getattr(self.gen, "batch_size", 0) or libE_info["batch_size"]))
+        raise ValueError("ask/tell generators must run in persistent mode. This may be the default in the future.")
 
 
 class LibensembleGenRunner(AskTellGenRunner):
@@ -176,7 +172,7 @@ class LibensembleGenRunner(AskTellGenRunner):
         H_out = self.gen.ask_numpy(libE_info["batch_size"])  # OR GEN SPECS INITIAL BATCH SIZE
         return H_out
 
-    def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
+    def _get_points_updates(self, batch_size: int) -> (npt.NDArray, list):
         return self.gen.ask_numpy(batch_size), self.gen.ask_updates()
 
     def _convert_tell(self, x: npt.NDArray) -> list:
