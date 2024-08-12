@@ -325,7 +325,7 @@ class MPIRunner:
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
-        rm_rpn = True if self.rm_rpn and ppn is None and nnodes is None else False
+        rm_rpn = self.rm_rpn and ppn is None and (nnodes is None or nnodes == 1)
 
         hostlist = None
         if machinefile and not self.mfile_support:
