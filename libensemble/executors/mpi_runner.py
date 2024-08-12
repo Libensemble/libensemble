@@ -314,9 +314,6 @@ class MPIRunner:
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
 
-        # This currently added to ensure jsrun works as before
-        in_nodes = nnodes if self.rm_rpn else None
-
         nnodes = self._get_min_nodes(nprocs, ppn, nnodes, ngpus, resources)
         nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
 
@@ -328,7 +325,7 @@ class MPIRunner:
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
-        rm_rpn = self.rm_rpn and ppn is None and in_nodes is None
+        rm_rpn = self.rm_rpn and ppn is None and nnodes is None
 
         hostlist = None
         if machinefile and not self.mfile_support:
