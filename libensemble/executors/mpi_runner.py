@@ -228,11 +228,16 @@ class MPIRunner:
         """Get mininum nodes needed from those available"""
         if nnodes is not None:
             return nnodes
+        if ppn:
+            return None  # nnodes gets processed later.
         if resources is not None:
             wresources = resources.worker_resources
             total_nodes = wresources.local_node_count
             procs_on_node = wresources.slot_count * wresources.procs_per_rset_per_node
 
+            if not nprocs and ngpus is None:
+                # Delay node evaluation to GPU assignment code
+                return None
             proc_min_nodes = 1
             gpu_min_nodes = 1
             if nprocs:
@@ -240,9 +245,13 @@ class MPIRunner:
             if ngpus:
                 gpus_on_node = wresources.slot_count * wresources.gpus_per_rset_per_node
                 gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+
             min_nodes = max(proc_min_nodes, gpu_min_nodes)
-            jassert(min_nodes <= total_nodes, f"Not enough nodes {total_nodes} to meet configuration {min_nodes}")
-            return min_nodes
+            nnodes = min(min_nodes, total_nodes)
+            # Must have atleast one processor per node to use GPUs
+            if nprocs:
+                nnodes = min(nnodes, nprocs)
+            return nnodes
 
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
