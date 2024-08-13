@@ -1,2 +1,2 @@
-globus-compute-sdk==2.24.0
+globus-compute-sdk==2.25.0
 proxystore==0.7.0
