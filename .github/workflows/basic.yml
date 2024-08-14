@@ -143,7 +143,9 @@ jobs:
           uses: supercharge/redis-github-action@1.7.0
           with:
             redis-version: 7
-          run: pip install redis
+          run: |
+            pip install redis
+            pip install proxystore==0.7.0
 
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
