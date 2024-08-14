@@ -138,6 +138,13 @@ jobs:
           run: |
             rm ./libensemble/tests/functionality_tests/test_local_sine_tutorial*.py # matplotlib errors on 3.12
 
+        - name: Start Redis
+          if: matrix.os == 'ubuntu-latest'
+          uses: supercharge/redis-github-action@1.7.0
+          with:
+            redis-version: 7
+          run: pip install redis
+
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
