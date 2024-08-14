@@ -235,6 +235,12 @@ jobs:
           with:
             redis-version: 7
 
+        - name: Install Redis and Proxystore Python packages
+          if: matrix.os == 'ubuntu-latest'
+          run: |
+            pip install redis
+            pip install proxystore==0.7.0
+
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
