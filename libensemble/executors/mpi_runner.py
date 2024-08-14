@@ -121,7 +121,7 @@ class MPIRunner:
     def _set_gpu_env_var(self, wresources, task, gpus_per_node, gpus_env):
         """Add GPU environment variable setting to the tasks environment"""
         jassert(wresources.matching_slots, f"Cannot assign CPUs/GPUs to non-matching slots per node {wresources.slots}")
-        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset, limit=gpus_per_node)
+        slot_list = wresources.get_slots_as_string(multiplier=wresources.gpus_per_rset_per_node, limit=gpus_per_node)
         task._add_to_env(gpus_env, slot_list)
 
     def _local_runner_set_gpus(self, task, wresources, extra_args, gpus_per_node, ppn):
@@ -171,7 +171,7 @@ class MPIRunner:
 
         # gpus per node for this worker.
         if wresources.doihave_gpus():
-            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset
+            gpus_avail_per_node = wresources.slot_count * wresources.gpus_per_rset_per_node
         else:
             gpus_avail_per_node = 0
 
@@ -224,6 +224,35 @@ class MPIRunner:
 
         return nprocs, nnodes, ppn, extra_args
 
+    def _get_min_nodes(self, nprocs, ppn, nnodes, ngpus, resources):
+        """Get minimum nodes needed to match configuration"""
+        if nnodes is not None:
+            return nnodes
+        if ppn:
+            return None  # nnodes gets processed later.
+        if resources is not None:
+            wresources = resources.worker_resources
+            total_nodes = wresources.local_node_count
+            procs_on_node = wresources.slot_count * wresources.procs_per_rset_per_node
+
+            if not nprocs and ngpus is None:
+                # Delay node evaluation to GPU assignment code
+                return None
+            proc_min_nodes = 1
+            gpu_min_nodes = 1
+            if nprocs:
+                proc_min_nodes = (nprocs + procs_on_node - 1) // procs_on_node
+            if ngpus:
+                gpus_on_node = wresources.slot_count * wresources.gpus_per_rset_per_node
+                gpu_min_nodes = (ngpus + gpus_on_node - 1) // gpus_on_node
+
+            min_nodes = max(proc_min_nodes, gpu_min_nodes)
+            nnodes = min(min_nodes, total_nodes)
+            # Must have atleast one processor per node to use GPUs
+            if nprocs:
+                nnodes = min(nnodes, nprocs)
+            return nnodes
+
     def _adjust_procs(self, nprocs, ppn, nnodes, ngpus, resources):
         """Adjust an invalid config"""
 
@@ -241,8 +270,8 @@ class MPIRunner:
 
         if resources is not None:
             wresources = resources.worker_resources
-            ngpus = adjust_resource(ngpus, "gpus_per_rset", "ngpus")
-            nprocs = adjust_resource(nprocs, "procs_per_rset", "nprocs")
+            ngpus = adjust_resource(ngpus, "gpus_per_rset_per_node", "ngpus")
+            nprocs = adjust_resource(nprocs, "procs_per_rset_per_node", "nprocs")
         return nprocs, ngpus
 
     def get_mpi_specs(
@@ -284,6 +313,8 @@ class MPIRunner:
 
         if match_procs_to_gpus:
             jassert(no_config_set, "match_procs_to_gpus is mutually exclusive with either of nprocs/ppn")
+
+        nnodes = self._get_min_nodes(nprocs, ppn, nnodes, ngpus, resources)
         nprocs, ngpus = self._adjust_procs(nprocs, ppn, nnodes, ngpus, resources)
 
         if auto_assign_gpus or ngpus is not None:
@@ -294,7 +325,7 @@ class MPIRunner:
                 task, resources, nprocs, nnodes, ppn, ngpus, extra_args, match_procs_to_gpus
             )
 
-        rm_rpn = True if self.rm_rpn and ppn is None and nnodes is None else False
+        rm_rpn = self.rm_rpn and ppn is None and nnodes is None
 
         hostlist = None
         if machinefile and not self.mfile_support:
