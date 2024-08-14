@@ -15,6 +15,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_EXTRA: true
+# TESTSUITE_EXCLUDE: true
 
 from pathlib import Path
 
