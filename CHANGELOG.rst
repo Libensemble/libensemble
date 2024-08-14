@@ -8,7 +8,6 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
-
 Release 1.4.2
 --------------
 
@@ -35,7 +34,6 @@ Release 1.4.2
 
 * See known issues section in the documentation.
 
-
 Release 1.4.1
 --------------
 
@@ -52,7 +50,6 @@ Release 1.4.1
 :Known Issues:
 
 * See known issues section in the documentation.
-
 
 Release 1.4.0
 --------------
