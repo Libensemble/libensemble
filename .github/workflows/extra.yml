@@ -234,6 +234,7 @@ jobs:
           uses: supercharge/redis-github-action@1.7.0
           with:
             redis-version: 7
+          run: pip install redis
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
