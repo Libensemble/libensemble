@@ -223,23 +223,24 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
-        - name: Remove Balsam/Globus-compute tests on Pydantic 2
+        - name: Remove Balsam/Globus-compute tests on Pydantic 2, install redis/proxystore
           if: matrix.pydantic-version == '2.6.4'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
+            pip install redis
+            pip install proxystore==0.7.0
+
+        - name: Remove proxystore tests on Pydantic 1
+          if: matrix.pydantic-version != '2.6.4'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
           uses: supercharge/redis-github-action@1.7.0
           with:
             redis-version: 7
-
-        - name: Install Redis and Proxystore Python packages
-          if: matrix.os == 'ubuntu-latest'
-          run: |
-            pip install redis
-            pip install proxystore==0.7.0
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
