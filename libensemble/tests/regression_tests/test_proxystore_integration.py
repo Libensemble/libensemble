@@ -37,7 +37,7 @@ def insert_proxy(H0):
     )
 
     store = get_store("my-store")
-    picture = Path("libE_logo.png").read_bytes()
+    picture = Path("libE_logo.png").absolute().read_bytes()
     proxy = store.proxy(picture)
     for i in range(len(H0)):
         H0[i]["proxy"] = proxy
