@@ -118,8 +118,10 @@ def set_extr_check(exctr):
         args_for_sim = "sleep 0"
         exp_runline = exp_cmd + " simdir/my_simtask.x sleep 0"
         task = exctr.submit(calc_type="sim", app_args=args_for_sim, dry_run=True, **kwargs)
-        assert task.env == exp_env, f"task.env does not match expected: {task.env}"
-        assert task.runline == exp_runline, f"exp_runline does not match expected: {task.runline}"
+        assert task.env == exp_env, f"Task env does not match expected:\n Received: {task.env}\n Expected: {exp_env}"
+        assert (
+            task.runline == exp_runline
+        ), f"Run line  does not match expected.\n Received: {task.runline}\n Expected: {exp_runline}"
 
     return run_check
 
@@ -307,37 +309,46 @@ def test_dry_run_ngpus_srun_plat3_2nodes():
     run_check(exp_env, exp_cmd, num_procs=2, num_nodes=2, auto_assign_gpus=True)
     run_check(exp_env, exp_cmd, procs_per_node=1, auto_assign_gpus=True)
 
+    # restrict with num_gpus - too many, restrict to those available
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3,4"}
+    run_check(exp_env, exp_cmd, procs_per_node=1, auto_assign_gpus=True, num_gpus=10)
+
     # auto_assign_gpus
     exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3,4,5"}
     exp_cmd = "srun -w node-1 --ntasks 1 --nodes 1 --ntasks-per-node 1 --exact"
     run_check(exp_env, exp_cmd, num_procs=1, auto_assign_gpus=True)
 
-    # restrict with num_gpus - too many, restrict to those available
+    # restrict with num_gpus - too many, restrict to those available (now honor num_procs=1)
     run_check(exp_env, exp_cmd, num_procs=1, auto_assign_gpus=True, num_gpus=10)
     run_check(exp_env, exp_cmd, num_procs=1, num_gpus=10)
 
-    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3,4,5"}
-    exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
-    run_check(exp_env, exp_cmd, procs_per_node=1, auto_assign_gpus=True)
-
-    # restrict with num_gpus
-    exp_env = {"TESTING_VISIBLE_DEVICES": "0"}
-    exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1"}
+    exp_cmd = "srun -w node-1 --ntasks 2 --nodes 1 --ntasks-per-node 2 --exact"
     run_check(exp_env, exp_cmd, num_procs=2, auto_assign_gpus=True, num_gpus=2)
     run_check(exp_env, exp_cmd, num_procs=2, num_gpus=2)
+
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0"}
+    exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
+    run_check(exp_env, exp_cmd, num_procs=2, procs_per_node=1, auto_assign_gpus=True, num_gpus=2)
+    run_check(exp_env, exp_cmd, num_procs=2, num_nodes=2, num_gpus=2)
 
     # match_procs_to_gpus
     exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3,4,5"}
     exp_cmd = "srun -w node-1,node-2 --ntasks 12 --nodes 2 --ntasks-per-node 6 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, auto_assign_gpus=True)
 
-    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1"}
-    exp_cmd = "srun -w node-1,node-2 --ntasks 4 --nodes 2 --ntasks-per-node 2 --exact"
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3"}
+    exp_cmd = "srun -w node-1 --ntasks 4 --nodes 1 --ntasks-per-node 4 --exact"
     run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=4)
 
-    exp_env = {"TESTING_VISIBLE_DEVICES": "0"}
-    exp_cmd = "srun -w node-1,node-2 --ntasks 2 --nodes 2 --ntasks-per-node 1 --exact"
-    run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=3)
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1,2,3"}
+    exp_cmd = "srun -w node-1,node-2 --ntasks 8 --nodes 2 --ntasks-per-node 4 --exact"
+    run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=8)
+    run_check(exp_env, exp_cmd, match_procs_to_gpus=True, num_gpus=7)
+
+    exp_env = {"TESTING_VISIBLE_DEVICES": "0,1"}
+    exp_cmd = "srun -w node-1,node-2 --ntasks 4 --nodes 2 --ntasks-per-node 2 --exact"
+    run_check(exp_env, exp_cmd, procs_per_node=2, num_gpus=4)
 
 
 if __name__ == "__main__":
