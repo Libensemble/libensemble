@@ -34,10 +34,7 @@ def _check_output_fields(values):
     if scg(values, "gen_specs"):
         out_names += [e[0] for e in scg(values, "gen_specs").outputs]
     if scg(values, "alloc_specs"):
-        if len(scg(values, "alloc_specs")):
-            warnings.warn(
-                'AllocSpecs.out / alloc_specs["out"] is deprecated, to be removed in v2.0.', DeprecationWarning
-            )
+        warnings.warn('AllocSpecs.out / alloc_specs["out"] is deprecated, to be removed in v2.0.', DeprecationWarning)
         out_names += [e[0] for e in scg(values, "alloc_specs").outputs]
 
     for name in scg(values, "sim_specs").inputs:
