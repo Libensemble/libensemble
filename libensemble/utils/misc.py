@@ -117,6 +117,10 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     for row in array:
         new_dict = {}
         for field in row.dtype.names:
-            new_dict[field] = row[field]
+            if len(row[field]) > 1:
+                for i, x in enumerate(row[field]):
+                    new_dict[field + str(i)] = x
+            else:
+                new_dict[field] = row[field]
         out.append(new_dict)
     return out
