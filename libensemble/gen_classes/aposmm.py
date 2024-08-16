@@ -19,8 +19,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
         gen_specs["gen_f"] = aposmm
-        if len(kwargs) > 0:  # so user can specify aposmm-specific parameters as kwargs to constructor
-            gen_specs["user"] = kwargs
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
             n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
