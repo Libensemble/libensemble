@@ -1,6 +1,7 @@
 import numpy as np
 
 from libensemble.tools.tools import add_unique_random_streams
+from libensemble.utils.misc import list_dicts_to_np
 
 
 def test_asktell_sampling():
@@ -26,6 +27,9 @@ def test_asktell_sampling():
     out = gen.ask_numpy(3)  # should get numpy arrays, non-flattened
     out = gen.ask(3)  # needs to get dicts, 2d+ arrays need to be flattened
     assert all([len(x) == 2 for x in out])  # np_to_list_dicts is now tested
+
+    # now we test list_dicts_to_np directly
+    out = list_dicts_to_np(out)
 
 
 if __name__ == "__main__":
