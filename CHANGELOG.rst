@@ -8,6 +8,49 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.4.2
+--------------
+
+:Date: August 14, 2024
+
+* Fix under-utilized resource usage. #1398
+  * Fixes bug causing executor to wrongly increase processor counts when not all nodes are utilized.
+  * Fixes case where setting `num_gpus` to zero was treated as `None`.
+* Add missing PerlmutterGPU specs (these were detected anyway). #1393
+* Handle case where Perlmutter finds no partition. #1391
+* Launch environment scripts in shell. #1392
+
+:Examples:
+
+* Add proxystore example (uses a proxy in history array). #1326
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
+Release 1.4.1
+--------------
+
+:Date: July 29, 2024
+
+* Fix erroneous ``nworkers`` warning when using ``mpi4py`` comms. #1383
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
+* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Note that tests have been recently run on Aurora (ALCF), but the system was unavailable at time of release.
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.4.0
 --------------
 
