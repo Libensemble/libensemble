@@ -117,10 +117,13 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
 
     out = np.zeros(len(list_dicts), dtype=new_dtype)
 
-    for name in new_dtype_names:
-        for i, input_dict in enumerate(list_dicts):
-            for j, value in enumerate(input_dict.values()):
-                out[name][i][j] = value
+    for i, group in enumerate(combinable_names):
+        new_dtype_name = new_dtype_names[i]
+        for j, input_dict in enumerate(list_dicts):
+            if not len(group):
+                out[new_dtype_name][j] = input_dict[new_dtype_name]
+            else:
+                out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
 
     return out
 
