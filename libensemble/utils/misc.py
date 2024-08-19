@@ -120,9 +120,9 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     for i, group in enumerate(combinable_names):
         new_dtype_name = new_dtype_names[i]
         for j, input_dict in enumerate(list_dicts):
-            if not len(group):
+            if not len(group):  # only a single name, e.g. local_pt
                 out[new_dtype_name][j] = input_dict[new_dtype_name]
-            else:
+            else:  # combinable names detected, e.g. x0, x1
                 out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
 
     return out
