@@ -57,7 +57,8 @@ class UniformSampleDicts(Generator):
     """
 
     def __init__(self, _, persis_info, gen_specs, libE_info=None, **kwargs):
-        super().__init__(_, persis_info, gen_specs, libE_info)
+        self.gen_specs = gen_specs
+        self.persis_info = persis_info
         self._get_user_params(self.gen_specs["user"])
         self.gen_specs["out"] = [("x", float, (self.n,))]
 

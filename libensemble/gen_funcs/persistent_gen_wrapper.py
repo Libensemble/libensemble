@@ -1,10 +1,8 @@
 import inspect
 
-import numpy as np
-
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.utils.misc import np_to_list_dicts
+from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
 
 def persistent_gen_f(H, persis_info, gen_specs, libE_info):
@@ -24,11 +22,7 @@ def persistent_gen_f(H, persis_info, gen_specs, libE_info):
     while tag not in [STOP_TAG, PERSIS_STOP]:
         H_o = gen.ask(b)
         if isinstance(H_o, list):
-            H_o_arr = np.zeros(len(H_o), dtype=gen_specs["out"])
-            for i in range(len(H_o)):
-                for key in H_o[0].keys():
-                    H_o_arr[i][key] = H_o[i][key]
-            H_o = H_o_arr
+            H_o = list_dicts_to_np(H_o)
         tag, Work, calc_in = ps.send_recv(H_o)
         gen.tell(np_to_list_dicts(calc_in))
 
