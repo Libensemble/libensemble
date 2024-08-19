@@ -82,7 +82,7 @@ def specs_checker_setattr(obj, key, value):
 
 
 def _decide_dtype(name: str, entry, size: int) -> tuple:
-    if size == 1:
+    if size == 1 or not size:
         return (name, type(entry))
     else:
         return (name, type(entry), (size,))
@@ -101,16 +101,19 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
 
     first = list_dicts[0]  # for determining dtype of output np array
     new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
-    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2']]
+    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], []]
     for name in new_dtype_names:
-        combinable_names.append([i for i in first.keys() if i.startswith(name)])
+        combinable_names.append([i for i in first.keys() if i[:-1] == name])
 
     new_dtype = []
 
     for i, entry in enumerate(combinable_names):
         name = new_dtype_names[i]
         size = len(combinable_names[i])
-        new_dtype.append(_decide_dtype(name, first[entry[0]], size))
+        if len(entry):  # combinable names detected, e.g. x0, x1
+            new_dtype.append(_decide_dtype(name, first[entry[0]], size))
+        else:  # only a single name, e.g. local_pt
+            new_dtype.append(_decide_dtype(name, first[name], size))
 
     out = np.zeros(len(list_dicts), dtype=new_dtype)
 
@@ -129,7 +132,7 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     for row in array:
         new_dict = {}
         for field in row.dtype.names:
-            if len(row[field]) > 1:
+            if hasattr(row[field], "__len__") and len(row[field]) > 1:
                 for i, x in enumerate(row[field]):
                     new_dict[field + str(i)] = x
             else:

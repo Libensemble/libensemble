@@ -32,7 +32,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
             persis_info["nworkers"] = 4
-        super().__init__(gen_specs, History, persis_info, libE_info)
+        super().__init__(gen_specs, History, persis_info, libE_info, **kwargs)
         self.all_local_minima = []
         self.results_idx = 0
         self.last_ask = None

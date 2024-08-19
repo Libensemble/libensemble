@@ -126,9 +126,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """
 
     def __init__(
-        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
-        super().__init__(gen_specs, History, persis_info, libE_info)
+        super().__init__(gen_specs, History, persis_info, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.persis_info = persis_info
