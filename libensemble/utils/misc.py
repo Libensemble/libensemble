@@ -81,14 +81,17 @@ def specs_checker_setattr(obj, key, value):
         obj.__dict__[key] = value
 
 
-def _decide_dtype(name, entry, size):
+def _decide_dtype(name: str, entry, size: int) -> tuple:
     if size == 1:
         return (name, type(entry))
     else:
         return (name, type(entry), (size,))
 
 
-def _combine_names(names):
+def _combine_names(names: list) -> list:
+    """combine fields with same name *except* for final digit"""
+    # how many final digits could possibly be in each name?
+    #  do we have to iterate through negative-indexes until we reach a non-digit?
     return list(set(i[:-1] if i[-1].isdigit() else i for i in names))
 
 
@@ -96,37 +99,25 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     if list_dicts is None:
         return None
 
-    first = list_dicts[0]
-    new_dtype_names = _combine_names([i for i in first.keys()])
-    new_dtype = []
-    combinable_names = []
+    first = list_dicts[0]  # for determining dtype of output np array
+    new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
+    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2']]
     for name in new_dtype_names:
         combinable_names.append([i for i in first.keys() if i.startswith(name)])
 
-    for i, entry in enumerate(combinable_names):  # must inspect values to get presumptive types
+    new_dtype = []
+
+    for i, entry in enumerate(combinable_names):
         name = new_dtype_names[i]
         size = len(combinable_names[i])
         new_dtype.append(_decide_dtype(name, first[entry[0]], size))
 
     out = np.zeros(len(list_dicts), dtype=new_dtype)
 
-    # good lord, this is ugly
-    # for names_group_idx, entry in enumerate(combinable_names):
-    #     for input_dict in list_dicts:
-    #         for l in range(len(input_dict)):
-    #             for name_idx, src_key in enumerate(entry):
-    #                 out[new_dtype_names[names_group_idx]][name_idx][l] = input_dict[src_key]
-
     for name in new_dtype_names:
         for i, input_dict in enumerate(list_dicts):
             for j, value in enumerate(input_dict.values()):
-                out[name][j][i] = value
-
-    [
-        {"x0": -1.3315287487797274, "x1": -1.1102419596798931},
-        {"x0": 2.2035749254093417, "x1": -0.04551905560134939},
-        {"x0": -1.043550345357007, "x1": -0.853671651707665},
-    ]
+                out[name][i][j] = value
 
     return out
 
