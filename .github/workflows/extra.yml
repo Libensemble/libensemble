@@ -157,15 +157,19 @@ jobs:
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
             pip install scikit-build packaging Tasmanian --user
 
-        - name: Install other testing dependencies
+        - name: Install Balsam on Pydantic 1
+          if: matrix.pydantic-version == '1.10.17'
           run: |
-            conda install octave
             conda install pyzmq
-            pip install -r install/testing_requirements.txt
-            pip install -r install/misc_feature_requirements.txt
             git clone https://github.com/argonne-lcf/balsam.git
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
+
+        - name: Install other testing dependencies
+          run: |
+            conda install octave
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
 
             git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
             pushd IBCDFO/minq/py/minq5/
