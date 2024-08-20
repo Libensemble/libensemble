@@ -11,11 +11,10 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 """
 
 # Do not change these lines - they are parsed by run-tests.sh
-# TESTSUITE_COMMS: local
+# TESTSUITE_COMMS: local mpi
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_OS_SKIP: OSX WIN
 # TESTSUITE_EXTRA: true
-# TESTSUITE_EXCLUDE: true
 
 from pathlib import Path
 
@@ -39,7 +38,7 @@ def insert_proxy(H0):
     )
 
     store = get_store("my-store")
-    picture = Path("libE_logo.png").read_bytes()
+    picture = Path("libE_logo.png").absolute().read_bytes()
     proxy = store.proxy(picture)
     for i in range(len(H0)):
         H0[i]["proxy"] = proxy
