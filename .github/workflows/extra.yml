@@ -223,6 +223,17 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
+        - name: Install redis/proxystore on Pydantic 2
+          if: matrix.pydantic-version == '2.6.4'
+          run: |
+            pip install redis
+            pip install proxystore==0.7.0
+
+        - name: Remove proxystore test on Pydantic 1
+          if: matrix.pydantic-version == '1.10.13'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
+
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
           if: matrix.pydantic-version == '2.6.4'
           run: |

@@ -1,2 +1,1 @@
 globus-compute-sdk==2.26.0
-proxystore==0.7.0
