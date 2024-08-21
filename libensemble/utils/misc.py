@@ -94,9 +94,18 @@ def _decide_dtype(name: str, entry, size: int) -> tuple:
 
 def _combine_names(names: list) -> list:
     """combine fields with same name *except* for final digits"""
-    # how many final digits could possibly be in each name?
-    #  do we have to iterate through negative-indexes until we reach a non-digit?
-    return list(set(i.rstrip("0123456789") for i in names))
+
+    out_names = []
+    stripped = list(i.rstrip("0123456789") for i in names)  # ['x', 'x', y', 'z', 'a']
+    for name in names:
+        stripped_name = name.rstrip("0123456789")
+        if stripped.count(stripped_name) > 1:  # if name appears >= 1, will combine, don't keep int suffix
+            out_names.append(stripped_name)
+        else:
+            out_names.append(name)  # name appears once, keep integer suffix, e.g. "co2"
+
+    # intending [x, y, z, a0] from [x0, x1, y, z0, z1, z2, z3, a0]
+    return list(set(out_names))
 
 
 def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
@@ -105,20 +114,21 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
 
     first = list_dicts[0]  # for determining dtype of output np array
     new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
-    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], []]
-    for name in new_dtype_names:
+    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
+    for name in new_dtype_names:  # is this a necessary search over the keys again? we did it earlier...
         combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
-        combinable_names.append(combinable_group)
+        if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
+            combinable_names.append(combinable_group)
+        else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
+            combinable_names.append([name])
 
     new_dtype = []
 
+    # another loop over names, there's probably a more elegant way, but my brain is fried
     for i, entry in enumerate(combinable_names):
         name = new_dtype_names[i]
         size = len(combinable_names[i])
-        if len(entry):  # combinable names detected, e.g. x0, x1
-            new_dtype.append(_decide_dtype(name, first[entry[0]], size))
-        else:  # only a single name, e.g. local_pt
-            new_dtype.append(_decide_dtype(name, first[name], size))
+        new_dtype.append(_decide_dtype(name, first[entry[0]], size))
 
     out = np.zeros(len(list_dicts), dtype=new_dtype)
 

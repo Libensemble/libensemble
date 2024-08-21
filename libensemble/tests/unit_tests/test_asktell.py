@@ -59,11 +59,12 @@ def test_additional_converts():
                 "z8": 9,
                 "z9": 10,
                 "z10": 11,
+                "a0": "B",
             }
         ]
     )
 
-    assert all([i in ("x", "y", "z") for i in out_np.dtype.names])
+    assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
 
 
 if __name__ == "__main__":
