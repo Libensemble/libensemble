@@ -82,17 +82,21 @@ def specs_checker_setattr(obj, key, value):
 
 
 def _decide_dtype(name: str, entry, size: int) -> tuple:
-    if size == 1 or not size:
-        return (name, type(entry))
+    if isinstance(entry, str):
+        output_type = "U" + str(len(entry) + 1)
     else:
-        return (name, type(entry), (size,))
+        output_type = type(entry)
+    if size == 1 or not size:
+        return (name, output_type)
+    else:
+        return (name, output_type, (size,))
 
 
 def _combine_names(names: list) -> list:
-    """combine fields with same name *except* for final digit"""
+    """combine fields with same name *except* for final digits"""
     # how many final digits could possibly be in each name?
     #  do we have to iterate through negative-indexes until we reach a non-digit?
-    return list(set(i[:-1] if i[-1].isdigit() else i for i in names))
+    return list(set(i.rstrip("0123456789") for i in names))
 
 
 def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
@@ -103,7 +107,8 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
     combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], []]
     for name in new_dtype_names:
-        combinable_names.append([i for i in first.keys() if i[:-1] == name])
+        combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
+        combinable_names.append(combinable_group)
 
     new_dtype = []
 
@@ -120,7 +125,7 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
     for i, group in enumerate(combinable_names):
         new_dtype_name = new_dtype_names[i]
         for j, input_dict in enumerate(list_dicts):
-            if not len(group):  # only a single name, e.g. local_pt
+            if len(group) == 1:  # only a single name, e.g. local_pt
                 out[new_dtype_name][j] = input_dict[new_dtype_name]
             else:  # combinable names detected, e.g. x0, x1
                 out[new_dtype_name][j] = tuple([input_dict[name] for name in group])

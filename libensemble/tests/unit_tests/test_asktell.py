@@ -38,5 +38,34 @@ def test_asktell_sampling_and_utils():
             assert value == out_np["x"][i][j]
 
 
+def test_additional_converts():
+    from libensemble.utils.misc import list_dicts_to_np
+
+    # test list_dicts_to_np on a weirdly formatted dictionary
+    out_np = list_dicts_to_np(
+        [
+            {
+                "x0": "abcd",
+                "x1": "efgh",
+                "y": 56,
+                "z0": 1,
+                "z1": 2,
+                "z2": 3,
+                "z3": 4,
+                "z4": 5,
+                "z5": 6,
+                "z6": 7,
+                "z7": 8,
+                "z8": 9,
+                "z9": 10,
+                "z10": 11,
+            }
+        ]
+    )
+
+    assert all([i in ("x", "y", "z") for i in out_np.dtype.names])
+
+
 if __name__ == "__main__":
     test_asktell_sampling_and_utils()
+    test_additional_converts()
