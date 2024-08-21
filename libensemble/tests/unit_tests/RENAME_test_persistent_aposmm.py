@@ -203,7 +203,7 @@ def test_asktell_with_persistent_aposmm():
         },
     }
 
-    my_APOSMM = APOSMM(gen_specs)
+    my_APOSMM = APOSMM(gen_specs=gen_specs)
     my_APOSMM.setup()
     initial_sample = my_APOSMM.ask(100)
 
@@ -211,7 +211,7 @@ def test_asktell_with_persistent_aposmm():
     eval_max = 2000
 
     for point in initial_sample:
-        point["f"] = six_hump_camel_func(point["x"])
+        point["f"] = six_hump_camel_func(np.array([point["x0"], point["x1"]]))
         total_evals += 1
 
     my_APOSMM.tell(initial_sample)
@@ -225,7 +225,7 @@ def test_asktell_with_persistent_aposmm():
             for m in detected_minima:
                 potential_minima.append(m)
         for point in sample:
-            point["f"] = six_hump_camel_func(point["x"])
+            point["f"] = six_hump_camel_func(np.array([point["x0"], point["x1"]]))
             total_evals += 1
         my_APOSMM.tell(sample)
     H, persis_info, exit_code = my_APOSMM.final_tell(list_dicts_to_np(sample))  # final_tell currently requires numpy

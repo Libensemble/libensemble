@@ -14,7 +14,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, gen_specs: dict = {}, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}, **kwargs
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
@@ -32,7 +32,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         if not persis_info:
             persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
             persis_info["nworkers"] = 4
-        super().__init__(gen_specs, History, persis_info, libE_info, **kwargs)
+        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
         self.all_local_minima = []
         self.results_idx = 0
         self.last_ask = None

@@ -32,7 +32,7 @@ class UniformSample(SampleBase):
     """
 
     def __init__(self, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
-        super().__init__(gen_specs, _, persis_info, libE_info, **kwargs)
+        super().__init__(_, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
         self.gen_specs["out"] = [("x", float, (self.n,))]
 

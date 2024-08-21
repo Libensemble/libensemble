@@ -14,14 +14,14 @@ class Surmise(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}
     ) -> None:
         from libensemble.gen_funcs.persistent_surmise_calib import surmise_calib
 
         gen_specs["gen_f"] = surmise_calib
         if ("sim_id", int) not in gen_specs["out"]:
             gen_specs["out"].append(("sim_id", int))
-        super().__init__(gen_specs, History, persis_info, libE_info)
+        super().__init__(History, persis_info, gen_specs, libE_info)
         self.sim_id_index = 0
         self.all_cancels = []
 
