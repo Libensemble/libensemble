@@ -14,11 +14,11 @@ from math import log, pi, sqrt
 import numpy as np
 from mpmath import gamma
 
-# from scipy.spatial.distance import cdist
-
 from libensemble.gen_funcs.aposmm_localopt_support import ConvergedMsg, LocalOptInterfacer, simulate_recv_from_manager
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
+
+# from scipy.spatial.distance import cdist
 
 
 # Due to recursion error in scipy cdist function

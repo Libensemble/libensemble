@@ -8,6 +8,7 @@ It may also be specified, for known systems, via a string in the ``platform``
 option or the environment variable ``LIBE_PLATFORM``.
 """
 
+import logging
 import os
 import subprocess
 from typing import Optional
@@ -15,6 +16,10 @@ from typing import Optional
 from pydantic import BaseModel
 
 from libensemble.utils.misc import specs_dump
+
+logger = logging.getLogger(__name__)
+# To change logging level for just this module
+# logger.setLevel(logging.DEBUG)
 
 
 class PlatformException(Exception):
@@ -178,6 +183,8 @@ class PerlmutterCPU(Perlmutter):
 
 
 class PerlmutterGPU(Perlmutter):
+    cores_per_node: int = 64
+    logical_cores_per_node: int = 128
     gpus_per_node: int = 4
     gpu_setting_type: str = "runner_default"
     gpu_env_fallback: str = "CUDA_VISIBLE_DEVICES"
@@ -269,6 +276,7 @@ class Known_platforms(BaseModel):
     generic_rocm: GenericROCm = GenericROCm()
     crusher: Crusher = Crusher()
     frontier: Frontier = Frontier()
+    perlmutter: Perlmutter = Perlmutter()
     perlmutter_c: PerlmutterCPU = PerlmutterCPU()
     perlmutter_g: PerlmutterGPU = PerlmutterGPU()
     polaris: Polaris = Polaris()
@@ -292,10 +300,15 @@ def known_envs():
     """Detect system by environment variables"""
     name = None
     if os.environ.get("NERSC_HOST") == "perlmutter":
-        if "gpu_" in os.environ.get("SLURM_JOB_PARTITION"):
-            name = "perlmutter_g"
+        partition = os.environ.get("SLURM_JOB_PARTITION")
+        if partition:
+            if "gpu_" in partition:
+                name = "perlmutter_g"
+            else:
+                name = "perlmutter_c"
         else:
-            name = "perlmutter_c"
+            name = "perlmutter"
+            logger.manager_warning("Perlmutter detected, but no compute partition detected. Are you on login nodes?")
     return name
 
 

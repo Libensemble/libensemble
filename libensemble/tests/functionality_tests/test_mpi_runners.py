@@ -196,12 +196,12 @@ if __name__ == "__main__":
         "jsrun -n 32 /path/to/fakeapp.x --testid base2",
         "jsrun -n 32 --xarg 1 /path/to/fakeapp.x --testid base3",
         "jsrun -n 128 --xarg 1 /path/to/fakeapp.x --testid base4",
-        "jsrun -n 16 --xarg 1 /path/to/fakeapp.x --testid base5",
+        "jsrun -n 16 -r 16 --xarg 1 /path/to/fakeapp.x --testid base5",
         "jsrun -n 16 -r 8 --xarg 1 /path/to/fakeapp.x --testid base6",
         "jsrun -n 16 --xarg 1 -r 16 /path/to/fakeapp.x --testid jsr1",
         "jsrun -n 8 --xarg 1 -r 4 /path/to/fakeapp.x --testid jsr2",
-        'jsrun -n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu" /path/to/fakeapp.x --testid jsr3',
-        'jsrun -n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu" /path/to/fakeapp.x --testid jsr4',
+        'jsrun -n 3 -r 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu" /path/to/fakeapp.x --testid jsr3',
+        'jsrun -r 3 -n 3 -a 1 -c 1 -g 1 --bind=packed:1 --smpiargs="-gpu" /path/to/fakeapp.x --testid jsr4',
     ]
 
     exp_custom = [

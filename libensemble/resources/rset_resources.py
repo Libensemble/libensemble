@@ -51,8 +51,9 @@ class RSetResources:
         self.num_workers = num_workers
         self.num_workers_2assign2 = RSetResources.get_workers2assign2(self.num_workers, resources)
         self.total_num_rsets = resources.num_resource_sets or self.num_workers_2assign2
-
+        self.num_nodes = len(resources.global_nodelist)
         self.split_list, self.local_rsets_list = RSetResources.get_partitioned_nodelist(self.total_num_rsets, resources)
+        self.nodes_in_rset = len(self.split_list[0])
 
         gpus_avail_per_node = resources.gpus_avail_per_node
         self.rsets_per_node = RSetResources.get_rsets_on_a_node(self.total_num_rsets, resources)
@@ -67,16 +68,20 @@ class RSetResources:
         self.total_num_gpu_rsets = np.count_nonzero(self.all_rsets["gpus"])
         self.total_num_nongpu_rsets = np.count_nonzero(~self.all_rsets["gpus"])
 
-        self.gpus_per_rset = gpus_avail_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
-        self.cores_per_rset = resources.physical_cores_avail_per_node // self.rsets_per_node
+        self.gpus_per_rset_per_node = gpus_avail_per_node // self.gpu_rsets_per_node if self.gpu_rsets_per_node else 0
+        self.cores_per_rset_per_node = resources.physical_cores_avail_per_node // self.rsets_per_node
 
         # Oversubsribe
-        if self.cores_per_rset == 0:
+        if self.cores_per_rset_per_node == 0:
             cpn = resources.physical_cores_avail_per_node
             procs_per_core = self.rsets_per_node // cpn + (self.rsets_per_node % cpn > 0)
-            self.procs_per_rset = resources.physical_cores_avail_per_node * procs_per_core
+            self.procs_per_rset_per_node = resources.physical_cores_avail_per_node * procs_per_core
         else:
-            self.procs_per_rset = self.cores_per_rset
+            self.procs_per_rset_per_node = self.cores_per_rset_per_node
+
+        self.gpus_per_rset = self.gpus_per_rset_per_node * self.nodes_in_rset
+        self.cores_per_rset = self.cores_per_rset_per_node * self.nodes_in_rset
+        self.procs_per_rset = self.procs_per_rset_per_node * self.nodes_in_rset
 
     @staticmethod
     def get_group_list(split_list, gpus_per_node=0, gpus_per_group=None):
