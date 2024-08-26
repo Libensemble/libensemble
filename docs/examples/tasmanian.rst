@@ -9,7 +9,7 @@ use either *venv* or *--user* install.
 ``E.g: pip install scikit-build packaging Tasmanian --user``
 
 .. automodule:: persistent_tasmanian
-  :members:
+  :members: sparse_grid_batched, sparse_grid_async
   :undoc-members:
 
 .. role:: underline
