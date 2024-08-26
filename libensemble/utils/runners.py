@@ -108,7 +108,7 @@ class AskTellGenRunner(Runner):
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
         # no ask_updates on external gens
-        return (list_dicts_to_np(self.gen.ask(batch_size), dtype=self.gen_specs["out"]), None)
+        return (list_dicts_to_np(self.gen.ask(batch_size), dtype=self.specs["out"]), None)
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell(np_to_list_dicts(x))
