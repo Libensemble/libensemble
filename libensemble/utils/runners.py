@@ -4,14 +4,13 @@ import logging.handlers
 import time
 from typing import Optional
 
-import numpy as np
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
 from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
-from libensemble.utils.misc import np_to_list_dicts
+from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
 logger = logging.getLogger(__name__)
 
@@ -107,22 +106,9 @@ class AskTellGenRunner(Runner):
         super().__init__(specs)
         self.gen = specs.get("generator")
 
-    def _to_array(self, x: list) -> npt.NDArray:
-        """fast-cast list-of-dicts to NumPy array"""
-        if isinstance(x, list) and len(x) and isinstance(x[0], dict):
-            arr = np.zeros(len(x), dtype=self.specs["out"])
-            for i in range(len(x)):
-                for key in x[0].keys():
-                    arr[i][key] = x[i][key]
-            return arr
-        return x
-
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
         # no ask_updates on external gens
-        return (
-            self._to_array(self.gen.ask(batch_size)),
-            None,
-        )
+        return (list_dicts_to_np(self.gen.ask(batch_size), dtype=self.gen_specs["out"]), None)
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell(np_to_list_dicts(x))
@@ -155,7 +141,8 @@ class AskTellGenRunner(Runner):
             self.gen.libE_info = libE_info
             if self.gen.thread is None:
                 self.gen.setup()  # maybe we're reusing a live gen from a previous run
-        H_out = self._to_array(self._get_initial_ask(libE_info))
+        # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
+        H_out = list_dicts_to_np(self._get_initial_ask(libE_info), dtype=self.specs["out"])
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         final_H_in = self._start_generator_loop(tag, Work, H_in)
         return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG
