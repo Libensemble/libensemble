@@ -62,27 +62,28 @@ def test_awkward_list_dict():
     # test list_dicts_to_np on a weirdly formatted dictionary
     # Unfortunately, we're not really checking against some original
     #  libE-styled source of truth, like H.
-    out_np = list_dicts_to_np(
-        [
-            {
-                "x0": "abcd",
-                "x1": "efgh",
-                "y": 56,
-                "z0": 1,
-                "z1": 2,
-                "z2": 3,
-                "z3": 4,
-                "z4": 5,
-                "z5": 6,
-                "z6": 7,
-                "z7": 8,
-                "z8": 9,
-                "z9": 10,
-                "z10": 11,
-                "a0": "B",
-            }
-        ]
-    )
+
+    weird_list_dict = [
+        {
+            "x0": "abcd",
+            "x1": "efgh",
+            "y": 56,
+            "z0": 1,
+            "z1": 2,
+            "z2": 3,
+            "z3": 4,
+            "z4": 5,
+            "z5": 6,
+            "z6": 7,
+            "z7": 8,
+            "z8": 9,
+            "z9": 10,
+            "z10": 11,
+            "a0": "B",
+        }
+    ]
+
+    out_np = list_dicts_to_np(weird_list_dict)
 
     assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
 
@@ -96,7 +97,7 @@ def test_awkward_H():
     H[1] = (2, [4.4, 5.5, 6.6], [11.1], [51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62], "goodbye", "2.23")
 
     list_dicts = np_to_list_dicts(H)
-    npp = list_dicts_to_np(list_dicts)
+    npp = list_dicts_to_np(list_dicts, dtype=dtype)
     _check_conversion(H, npp)
 
 

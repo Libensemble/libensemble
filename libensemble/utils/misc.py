@@ -108,7 +108,7 @@ def _combine_names(names: list) -> list:
     return list(set(out_names))
 
 
-def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
+def list_dicts_to_np(list_dicts: list, dtype: list = None) -> npt.NDArray:
     if list_dicts is None:
         return None
 
@@ -122,15 +122,17 @@ def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
         else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
             combinable_names.append([name])
 
-    new_dtype = []
+    if dtype is None:
+        dtype = []
 
-    # another loop over names, there's probably a more elegant way, but my brain is fried
-    for i, entry in enumerate(combinable_names):
-        name = new_dtype_names[i]
-        size = len(combinable_names[i])
-        new_dtype.append(_decide_dtype(name, first[entry[0]], size))
+    if not len(dtype):
+        # another loop over names, there's probably a more elegant way, but my brain is fried
+        for i, entry in enumerate(combinable_names):
+            name = new_dtype_names[i]
+            size = len(combinable_names[i])
+            dtype.append(_decide_dtype(name, first[entry[0]], size))
 
-    out = np.zeros(len(list_dicts), dtype=new_dtype)
+    out = np.zeros(len(list_dicts), dtype=dtype)
 
     for i, group in enumerate(combinable_names):
         new_dtype_name = new_dtype_names[i]
