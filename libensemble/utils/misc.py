@@ -150,9 +150,12 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     for row in array:
         new_dict = {}
         for field in row.dtype.names:
-            if hasattr(row[field], "__len__") and len(row[field]) > 1:
+            # non-string arrays, lists, etc.
+            if hasattr(row[field], "__len__") and len(row[field]) > 1 and not isinstance(row[field], str):
                 for i, x in enumerate(row[field]):
                     new_dict[field + str(i)] = x
+            elif hasattr(row[field], "__len__") and len(row[field]) == 1:  # single-entry arrays, lists, etc.
+                new_dict[field] = row[field][0]  # will still work on single-char strings
             else:
                 new_dict[field] = row[field]
         out.append(new_dict)
