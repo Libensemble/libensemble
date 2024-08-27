@@ -23,4 +23,5 @@ use either *venv* or *--user* install.
 
 .. _pypackaging: https://pypi.org/project/pypackaging/
 .. _scikit-build: https://scikit-build.readthedocs.io/en/latest/index.html
-.. _Tasmanian: https://ornl.github.io/TASMANIAN/rolling/
+.. tasmanian reference in introduction - removed here to prevent:
+.. " WARNING: Duplicate explicit target name: "tasmanian"."
