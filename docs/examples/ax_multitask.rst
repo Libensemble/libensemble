@@ -10,7 +10,7 @@ To install::
 An example of the Ax multitask GP.
 
 .. automodule:: persistent_ax_multitask
-  :members:
+  :members: persistent_gp_mt_ax_gen_f
   :no-undoc-members:
 
 .. _Ax: https://github.com/facebook/Ax
