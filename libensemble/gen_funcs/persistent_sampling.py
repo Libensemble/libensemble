@@ -203,19 +203,18 @@ def uniform_nonblocking(_, persis_info, gen_specs, libE_info):
 def batched_history_matching(_, persis_info, gen_specs, libE_info):
     """
     Given
-    - sim_f with an input of x with len(x)=n
-    - b, the batch size of points to generate
-    - q<b, the number of best samples to use in the following iteration
+        - ``sim_f`` with an input of ``x`` with ``len(x)=n``
+        - ``b``, the batch size of points to generate
+        - ``q<b``, the number of best samples to use in the following iteration
 
     Pseudocode:
-    Let (mu, Sigma) denote a mean and covariance matrix initialized to the
+    Let ``(mu, Sigma)`` denote a mean and covariance matrix initialized to the
     origin and the identity, respectively.
 
     While true (batch synchronous for now):
-
-        Draw b samples x_1, ... , x_b from MVN( mu, Sigma)
-        Evaluate f(x_1), ... , f(x_b) and determine the set of q x_i whose f(x_i) values are smallest (breaking ties lexicographically)
-        Update (mu, Sigma) based on the sample mean and sample covariance of these q x values.
+        - Draw ``b`` samples ``x_1, ... , x_b`` from ``MVN( mu, Sigma)``
+        - Evaluate ``f(x_1), ... , f(x_b)`` and determine the set of ``q x_i`` whose ``f(x_i)`` values are smallest (breaking ties lexicographically)
+        - Update ``(mu, Sigma)`` based on the sample mean and sample covariance of these ``q x`` values.
 
     .. seealso::
         `test_persistent_uniform_sampling.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/functionality_tests/test_persistent_uniform_sampling.py>`_

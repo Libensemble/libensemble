@@ -67,8 +67,8 @@ def uniform_sample_with_var_gpus(_, persis_info, gen_specs, libE_info):
     of the generated points. By default, simulations will assign one MPI processor
     per GPU.
 
-    Note that the ``num_gpus`` gen_specs["out"] option (similar to ``num_procs``) does
-    not need to be passed as a sim_specs["in"]. It will automatically be passed to
+    Note that the ``num_gpus`` ``gen_specs["out"]`` option (similar to ``num_procs``) does
+    not need to be passed as a ``sim_specs["in"]``. It will automatically be passed to
     simulation functions and used by any MPI Executor unless overridden in the
     ``executor.submit`` function.
 
