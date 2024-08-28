@@ -37,6 +37,14 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     This generation function loops through a set of suitable finite difference
     parameters for a mapping ``F`` from ``R^n`` to ``R^m``.
 
+    More basically, it searches for suitable finite-difference parameter values for estimating
+    the gradient of a noisy simulation function. This
+    search is centered around the point ``x0`` in ``R^n``.
+
+    Internally this search is guided by `ECNoise <https://www.mcs.anl.gov/~wild/cnoise/>`.
+    `Octave <https://octave.org/> is required for most users. Those with MATLAB may
+    need to modify this function's source to use that executable instead.
+
     .. seealso::
         `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
     """
