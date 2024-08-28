@@ -41,8 +41,8 @@ def fd_param_finder(H, persis_info, gen_specs, libE_info):
     the gradient of a noisy simulation function. This
     search is centered around the point ``x0`` in ``R^n``.
 
-    Internally this search is guided by `ECNoise <https://www.mcs.anl.gov/~wild/cnoise/>`.
-    `Octave <https://octave.org/> is required for most users. Those with MATLAB may
+    Internally this search is guided by `ECNoise` <https://www.mcs.anl.gov/~wild/cnoise/>`.
+    `Octave` <https://octave.org/>` is required for most users. Those with MATLAB may
     need to modify this function's source to use that executable instead.
 
     .. seealso::
