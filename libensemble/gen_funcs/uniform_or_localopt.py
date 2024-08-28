@@ -2,6 +2,9 @@
 This module is a persistent generation function that performs a uniform
 random sample when ``libE_info["persistent"]`` isn't ``True``, or performs a
 single persistent nlopt local optimization run.
+
+In practice, this generator function demonstrate's libEnsemble's capability to switch
+workers between nonpersistent and persistent modes.
 """
 
 __all__ = ["uniform_or_localopt"]

@@ -35,7 +35,7 @@ def build_H0(x_f_pairs, gen_specs, noise_h_mat):
 def fd_param_finder(H, persis_info, gen_specs, libE_info):
     """
     This generation function loops through a set of suitable finite difference
-    parameters for a mapping F from R^n to R^m.
+    parameters for a mapping ``F`` from ``R^n`` to ``R^m``.
 
     .. seealso::
         `test_persistent_fd_param_finder.py` <https://github.com/Libensemble/libensemble/blob/develop/libensemble/tests/regression_tests/test_persistent_fd_param_finder.py>`_ # noqa
