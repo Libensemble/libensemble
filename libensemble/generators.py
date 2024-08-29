@@ -117,7 +117,7 @@ class LibensembleGenerator(Generator):
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results))
+        self.tell_numpy(list_dicts_to_np(results), dtype=self.gen_specs.get("out"))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
