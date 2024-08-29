@@ -18,28 +18,28 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.6.4"]
+                pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: m
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: l
 
         env:
@@ -163,4 +163,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.6
+        - uses: crate-ci/typos@v1.24.1
