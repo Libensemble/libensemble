@@ -125,7 +125,7 @@ jobs:
         - name: Install surmise
           if: matrix.os != 'macos-latest'
           run: |
-            pip install --upgrade git+https://github.com/bandframework/surmise.git
+            pip install git+https://github.com/bandframework/surmise.git
 
         - name: Build ytopt and dependencies
           if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
