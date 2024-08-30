@@ -67,20 +67,6 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v4
-          name: Restore cached dependencies
-          id: cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-extra
-
         - name: Force-update certifi
           run: |
             python --version
@@ -194,19 +180,6 @@ jobs:
             make install
             cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
             # end heffte build and dependencies
-
-        - uses: actions/cache/save@v4
-          name: Save dependencies to cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
