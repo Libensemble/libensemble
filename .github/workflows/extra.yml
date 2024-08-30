@@ -138,8 +138,6 @@ jobs:
           run: |
             sudo apt-get install bc
 
-            # pip install dragonfly-opt
-            # pip install git+https://github.com/dragonfly/dragonfly.git
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
             pip install scikit-build packaging Tasmanian --user
 
@@ -201,13 +199,13 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
         - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.6.4'
+          if: matrix.pydantic-version == '2.8.2'
           run: |
             pip install redis
             pip install proxystore==0.7.0
 
         - name: Remove proxystore test on Pydantic 1
-          if: matrix.pydantic-version == '1.10.13'
+          if: matrix.pydantic-version == '1.10.17'
           run: |
             rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 

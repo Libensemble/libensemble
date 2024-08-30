@@ -1,0 +1,4 @@
+gpcam
+scikit-build
+packaging
+git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
