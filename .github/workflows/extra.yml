@@ -96,25 +96,15 @@ jobs:
         - name: Install generator dependencies
           run: |
             python -m pip install --upgrade pip
-            pip install mpmath
-            pip install matplotlib
             conda env update --file install/gen_deps_environment.yml
 
-        #- name: Install ax-platform
-        #  run: pip install "ax-platform<=0.4.0"
-
-        - name: Install gpcam
-          if: matrix.python-version != '3.12'
+        - name: Install some non-macOS dependencies
+          if: matrix.os == 'ubuntu-latest'
           run: |
-            pip install gpcam
-
-        - name: Install surmise
-          if: matrix.os != 'macos-latest'
-          run: |
-            pip install git+https://github.com/bandframework/surmise.git
+            pip install -r install/ubuntu_pypi.txt
 
         - name: Build ytopt and dependencies
-          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
+          if: matrix.python-version <= '3.10' && matrix.os == 'ubuntu-latest'
           run: |
             pip install scikit-learn==1.4.0
             pip install pandas==2.2.1
@@ -133,13 +123,12 @@ jobs:
             pip install .
             cd ..
 
-        - name: Install generator dependencies for Ubuntu tests
+        - name: Install generator dependencies for Ubuntu tests, not Python 3.12
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
-
-            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
-            pip install scikit-build packaging Tasmanian --user
+            pip install -r install/ubuntu_no312.txt
+            pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.17'
@@ -165,7 +154,7 @@ jobs:
             popd
 
         - name: Build heffte
-          if: matrix.os != 'macos-latest'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             # begin heffte build and dependencies
             sudo apt install libfftw3-dev
