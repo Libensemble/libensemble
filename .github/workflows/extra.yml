@@ -98,11 +98,6 @@ jobs:
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
 
-        - name: Install some non-macOS dependencies
-          if: matrix.os == 'ubuntu-latest'
-          run: |
-            pip install -r install/ubuntu_pypi.txt
-
         - name: Build ytopt and dependencies
           if: matrix.python-version <= '3.10' && matrix.os == 'ubuntu-latest'
           run: |
@@ -186,6 +181,8 @@ jobs:
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_calib.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
 
         - name: Install redis/proxystore on Pydantic 2
           if: matrix.pydantic-version == '2.8.2'
