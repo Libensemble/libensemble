@@ -2,8 +2,7 @@ persistent_surmise
 ------------------
 
 Required: Surmise_
-
-Note that currently the github fork https://github.com/mosesyhc/surmise should be used::
+::
 
     pip install --upgrade git+https://github.com/bandframework/surmise.git@develop
 

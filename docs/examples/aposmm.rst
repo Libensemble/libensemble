@@ -49,8 +49,7 @@ Persistent APOSMM
 ^^^^^^^^^^^^^^^^^
 
 .. automodule:: persistent_aposmm
-  :members:
-  :undoc-members:
+  :members: aposmm
 
 LocalOptInterfacer
 ^^^^^^^^^^^^^^^^^^

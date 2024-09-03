@@ -9,7 +9,7 @@ use either *venv* or *--user* install.
 ``E.g: pip install scikit-build packaging Tasmanian --user``
 
 .. automodule:: persistent_tasmanian
-  :members:
+  :members: sparse_grid_batched, sparse_grid_async
   :undoc-members:
 
 .. role:: underline
@@ -23,4 +23,5 @@ use either *venv* or *--user* install.
 
 .. _pypackaging: https://pypi.org/project/pypackaging/
 .. _scikit-build: https://scikit-build.readthedocs.io/en/latest/index.html
-.. _Tasmanian: https://tasmanian.ornl.gov/
+.. tasmanian reference in introduction - removed here to prevent:
+.. " WARNING: Duplicate explicit target name: "tasmanian"."

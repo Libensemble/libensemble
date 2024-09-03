@@ -49,12 +49,15 @@ MOCK_MODULES = [
     "psutil",
     "scipy",
     "scipy.io",
+    "scipy.special",
     "scipy.sparse",
     "scipy.spatial",
     "scipy.spatial.distance",
     "scipy.stats",
     "surmise.calibration",
     "surmise.emulation",
+    "jaxtyping",
+    "pyro.distributions.torch_patch",
     "Tasmanian",
 ]
 
@@ -131,7 +134,7 @@ intersphinx_mapping = {
 
 autodoc_pydantic_model_show_json = False
 
-autodoc_mock_imports = ["balsam"]
+autodoc_mock_imports = ["balsam", "gpytorch", "torch", "botorch", "sklearn", "ax"]
 extlinks = {
     "duref": ("http://docutils.sourceforge.net/docs/ref/rst/" "restructuredtext.html#%s", ""),
     "durole": ("http://docutils.sourceforge.net/docs/ref/rst/" "roles.html#%s", ""),

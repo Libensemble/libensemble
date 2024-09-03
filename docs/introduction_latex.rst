@@ -51,7 +51,7 @@
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
 .. _SWIG: http://swig.org/
 .. _tarball: https://github.com/Libensemble/libensemble/releases/latest
-.. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Tasmanian: https://ornl.github.io/TASMANIAN/rolling/
 .. _tomli: https://pypi.org/project/tomli/
 .. _tqdm: https://tqdm.github.io/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html

@@ -9,14 +9,24 @@ Generator Functions
 
 .. toctree::
    :maxdepth: 2
-   :caption: Documented Example Generator Functions:
+   :caption: Sampling:
 
    sampling
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Optimization:
+
    aposmm
    uniform_or_localopt
-   tasmanian
    fd_param_finder
-   surmise
    ax_multitask
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Calibration:
+
+   tasmanian
+   surmise
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples

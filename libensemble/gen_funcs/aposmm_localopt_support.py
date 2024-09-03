@@ -75,11 +75,13 @@ class LocalOptInterfacer(object):
 
     Currently supported routines are
 
-    - NLopt routines ['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']
-    - PETSc/TAO routines ['pounders', 'blmvm', 'nm']
-    - SciPy routines ['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']
-    - DFOLS ['dfols']
-    - External local optimizer ['external_localopt'] (which use files to pass/receive x/f values)
+    - NLopt routines ``['LN_SBPLX', 'LN_BOBYQA', 'LN_COBYLA', 'LN_NEWUOA', 'LN_NELDERMEAD', 'LD_MMA']``
+    - PETSc/TAO routines ``['pounders', 'blmvm', 'nm']``
+    - SciPy routines ``['scipy_Nelder-Mead', 'scipy_COBYLA', 'scipy_BFGS']``
+    - DFOLS ``['dfols']``
+    - External local optimizer ``['external_localopt']`` (which use files to pass/receive x/f values)
+
+    Each local optimization run starts at ``x0``, governed by the parameters in ``user_specs``.
     """
 
     def __init__(self, user_specs, x0, f0, grad0=None):
@@ -196,10 +198,6 @@ class LocalOptInterfacer(object):
 
 
 def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
-    """
-    Runs an NLopt local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-    """
 
     import nlopt  # noqa: F811
 
@@ -270,10 +268,6 @@ def run_local_nlopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
 
 def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
-    """
-    Runs a SciPy local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-    """
     from scipy import optimize as sp_opt  # noqa: F811
 
     # Construct the bounds in the form of constraints
@@ -319,10 +313,6 @@ def run_local_scipy_opt(user_specs, comm_queue, x0, f0, child_can_read, parent_c
 
 
 def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
-    """
-    Runs an external local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-    """
 
     import os
     import subprocess
@@ -372,10 +362,6 @@ def run_external_localopt(user_specs, comm_queue, x0, f0, child_can_read, parent
 
 
 def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
-    """
-    Runs a DFOLS local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-    """
     import dfols  # noqa: F811
 
     # Define bound constraints (lower <= x <= upper)
@@ -419,9 +405,6 @@ def run_local_dfols(user_specs, comm_queue, x0, f0, child_can_read, parent_can_r
 
 def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
     """
-    Runs a IBCDFO local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-
     Although IBCDFO methods can receive previous evaluations, few other methods
     support that, so APOSMM assumes the first point will be re-evaluated (but
     not be sent back to the manager).
@@ -479,10 +462,6 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
 
 
 def run_local_tao(user_specs, comm_queue, x0, f0, child_can_read, parent_can_read):
-    """
-    Runs a PETSc/TAO local optimization run starting at ``x0``, governed by the
-    parameters in ``user_specs``.
-    """
 
     from petsc4py import PETSc  # noqa: F811
 

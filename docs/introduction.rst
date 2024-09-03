@@ -49,7 +49,7 @@ See the `user guide`_ for more information.
 .. _PETSc/TAO: http://www.mcs.anl.gov/petsc
 .. _scipy.optimize: https://docs.scipy.org/doc/scipy/reference/optimize.html
 .. _Surmise: https://surmise.readthedocs.io/en/latest/index.html
-.. _Tasmanian: https://tasmanian.ornl.gov/
+.. _Tasmanian: https://ornl.github.io/TASMANIAN/rolling/
 .. _user guide: https://libensemble.readthedocs.io/en/latest/programming_libE.html
 .. _VTMOP: https://github.com/Libensemble/libe-community-examples#vtmop
 .. _WarpX: https://warpx.readthedocs.io/en/latest/

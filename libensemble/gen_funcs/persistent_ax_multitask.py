@@ -1,14 +1,14 @@
 """
-This file defines the `gen_f` for Bayesian optimization with a Gaussian process
+This file defines the ``gen_f`` for Bayesian optimization with a Gaussian process
 and the multi-task algorithm of Ax.
 
-The `gen_f` is called once by a dedicated worker and only returns at the end
+The ``gen_f`` is called once by a dedicated worker and only returns at the end
 of the whole libEnsemble run.
 
-This `gen_f` is meant to be used with the `alloc_f` function
-`only_persistent_gens`
+This ``gen_f`` is meant to be used with the ``alloc_f`` function
+``only_persistent_gens``
 
-This test currently requires ax-platform<=0.4.0
+This test currently requires ``ax-platform<=0.4.0``
 """
 
 import os
@@ -48,7 +48,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     and update it as new simulation results are
     available, and generate inputs for the next simulations.
 
-    This is a persistent `genf` i.e. this function is called by a dedicated
+    This is a persistent ``genf`` i.e. this function is called by a dedicated
     worker and does not return until the end of the whole libEnsemble run.
     """
     # Extract bounds of the parameter space, and batch size
