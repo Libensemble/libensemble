@@ -12,8 +12,8 @@ from libensemble.libE import libE
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, LibeSpecs, SimSpecs
 from libensemble.tools import add_unique_random_streams
 from libensemble.tools import parse_args as parse_args_f
-from libensemble.tools.parse_args import mpi_init
 from libensemble.tools import save_libE_output
+from libensemble.tools.parse_args import mpi_init
 from libensemble.utils.misc import specs_dump
 
 ATTR_ERR_MSG = 'Unable to load "{}". Is the function or submodule correctly named?'
@@ -310,10 +310,12 @@ class Ensemble:
                 raise ValueError("nworkers must be specified if comms is 'local'")
 
         elif self._known_comms == "mpi" and not parse_args:
-            self.nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
+            # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+            self._nworkers, self.is_manager = mpi_init(self._libE_specs.mpi_comm)
 
     def _parse_args(self) -> (int, bool, LibeSpecs):
-        self.nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
+        # Set internal _nworkers - not libE_specs (avoid "nworkers will be ignored" warning)
+        self._nworkers, self.is_manager, libE_specs_parsed, self.extra_args = parse_args_f()
 
         if not self._libE_specs:
             self._libE_specs = LibeSpecs(**libE_specs_parsed)

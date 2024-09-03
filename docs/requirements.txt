@@ -1,4 +1,4 @@
-sphinx<8
+sphinx<9
 sphinxcontrib-bibtex
 sphinxcontrib-spelling
 autodoc_pydantic

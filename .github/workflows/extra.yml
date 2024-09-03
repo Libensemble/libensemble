@@ -12,38 +12,38 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.6.4"]
+                pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       python-version: "3.12"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: l
 
         env:
@@ -157,15 +157,19 @@ jobs:
             pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
             pip install scikit-build packaging Tasmanian --user
 
-        - name: Install other testing dependencies
+        - name: Install Balsam on Pydantic 1
+          if: matrix.pydantic-version == '1.10.17'
           run: |
-            conda install octave
             conda install pyzmq
-            pip install -r install/testing_requirements.txt
-            pip install -r install/misc_feature_requirements.txt
             git clone https://github.com/argonne-lcf/balsam.git
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
+
+        - name: Install other testing dependencies
+          run: |
+            conda install octave
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
 
             git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
             pushd IBCDFO/minq/py/minq5/
@@ -223,11 +227,28 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
-        - name: Remove Balsam/Globus-compute tests on Pydantic 2
+        - name: Install redis/proxystore on Pydantic 2
           if: matrix.pydantic-version == '2.6.4'
+          run: |
+            pip install redis
+            pip install proxystore==0.7.0
+
+        - name: Remove proxystore test on Pydantic 1
+          if: matrix.pydantic-version == '1.10.13'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
+
+        - name: Remove Balsam/Globus-compute tests on Pydantic 2
+          if: matrix.pydantic-version == '2.8.2'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
+
+        - name: Start Redis
+          if: matrix.os == 'ubuntu-latest'
+          uses: supercharge/redis-github-action@1.8.0
+          with:
+            redis-version: 7
 
         - name: Run extensive tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
@@ -254,4 +275,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.3
+        - uses: crate-ci/typos@v1.24.3

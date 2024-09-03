@@ -138,7 +138,7 @@ class MPIExecutor(Executor):
         self.resources = resources
 
     def _launch_with_retries(
-        self, task: Task, subgroup_launch: bool, wait_on_start: Union[bool, int], run_cmd: List[str]
+        self, task: Task, subgroup_launch: bool, wait_on_start: Union[bool, int], run_cmd: List[str], use_shell: bool
     ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
@@ -156,6 +156,7 @@ class MPIExecutor(Executor):
                         stdout=out,
                         stderr=err,
                         start_new_session=subgroup_launch,
+                        shell=use_shell,
                     )
             except Exception as e:
                 logger.warning(f"task {task.name} submit command failed on try {retry_count} with error {e}")
@@ -325,11 +326,8 @@ class MPIExecutor(Executor):
         if not num_procs and not match_procs_to_gpus:
             num_procs = self.gen_nprocs
 
-        if not num_gpus:
+        if num_gpus is None:
             num_gpus = self.gen_ngpus
-
-        if not num_nodes and (self.gen_ngpus or self.gen_nprocs):
-            num_nodes = self.resources.worker_resources.local_node_count
 
         if mpi_runner_type is not None:
             if isinstance(mpi_runner_type, str):
@@ -367,8 +365,10 @@ class MPIExecutor(Executor):
 
         if env_script is not None:
             run_cmd = Executor._process_env_script(task, runline, env_script)
+            use_shell = True
         else:
             run_cmd = runline
+            use_shell = False
 
         if dry_run:
             logger.info(f"Test (No submit) Runline: {' '.join(run_cmd)}")
@@ -378,7 +378,7 @@ class MPIExecutor(Executor):
             task._implement_env()
 
             # Launch Task
-            self._launch_with_retries(task, sglaunch, wait_on_start, run_cmd)
+            self._launch_with_retries(task, sglaunch, wait_on_start, run_cmd, use_shell)
 
             if not task.timer.timing and not task.finished:
                 task.timer.start()
