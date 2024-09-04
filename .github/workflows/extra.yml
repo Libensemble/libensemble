@@ -73,7 +73,6 @@ jobs:
           if: matrix.os == 'ubuntu-latest'
           with:
             path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
               /home/runner/.local
               /usr/share/miniconda3/envs/condaenv
               /usr/share/miniconda3/bin
@@ -127,26 +126,6 @@ jobs:
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
-        - name: Build ytopt and dependencies
-          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
-          run: |
-            pip install scikit-learn==1.4.0
-            pip install pandas==2.2.1
-            pip install ConfigSpace
-            pip install "ray[default]"
-            git clone https://github.com/ytopt-team/scikit-optimize.git
-            cd scikit-optimize
-            pip install .
-            cd ..
-            git clone -b version1 https://github.com/ytopt-team/autotune.git
-            cd autotune
-            pip install .
-            cd ..
-            git clone -b main https://github.com/ytopt-team/ytopt.git
-            cd ytopt
-            pip install .
-            cd ..
-
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
@@ -180,27 +159,11 @@ jobs:
             pip install -e .
             popd
 
-        - name: Build heffte
-          if: matrix.os != 'macos-latest'
-          run: |
-            # begin heffte build and dependencies
-            sudo apt install libfftw3-dev
-            git clone https://github.com/icl-utk-edu/heffte.git
-            mkdir heffte/build
-            cd heffte/build
-            pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make -j 4
-            make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            # end heffte build and dependencies
-
         - uses: actions/cache/save@v4
           name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
           with:
             path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
               /home/runner/.local
               /usr/share/miniconda3/envs/condaenv
               /usr/share/miniconda3/bin
@@ -217,7 +180,6 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
-            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             # rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
 
@@ -228,13 +190,13 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
 
         - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.6.4'
+          if: matrix.pydantic-version == '2.8.2'
           run: |
             pip install redis
             pip install proxystore==0.7.0
 
         - name: Remove proxystore test on Pydantic 1
-          if: matrix.pydantic-version == '1.10.13'
+          if: matrix.pydantic-version == '1.10.17'
           run: |
             rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
