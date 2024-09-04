@@ -67,6 +67,19 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
+        - uses: actions/cache/restore@v4
+          name: Restore cached dependencies
+          id: cache
+          if: matrix.os == 'ubuntu-latest'
+          with:
+            path: |
+              /home/runner/.local
+              /usr/share/miniconda3/envs/condaenv
+              /usr/share/miniconda3/bin
+              /usr/share/miniconda3/lib
+              /usr/share/miniconda3/include
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-extra
+
         - name: Force-update certifi
           run: |
             python --version
@@ -98,27 +111,20 @@ jobs:
             python -m pip install --upgrade pip
             conda env update --file install/gen_deps_environment.yml
 
-        - name: Build ytopt and dependencies
-          if: matrix.python-version <= '3.10' && matrix.os == 'ubuntu-latest'
-          run: |
-            pip install scikit-learn==1.4.0
-            pip install pandas==2.2.1
-            pip install ConfigSpace
-            pip install "ray[default]"
-            git clone https://github.com/ytopt-team/scikit-optimize.git
-            cd scikit-optimize
-            pip install .
-            cd ..
-            git clone -b version1 https://github.com/ytopt-team/autotune.git
-            cd autotune
-            pip install .
-            cd ..
-            git clone -b main https://github.com/ytopt-team/ytopt.git
-            cd ytopt
-            pip install .
-            cd ..
+        #- name: Install ax-platform
+        #  run: pip install "ax-platform<=0.4.0"
 
-        - name: Install generator dependencies for Ubuntu tests, not Python 3.12
+        - name: Install gpcam
+          if: matrix.python-version != '3.12'
+          run: |
+            pip install gpcam
+
+        - name: Install surmise
+          if: matrix.os != 'macos-latest'
+          run: |
+            pip install --upgrade git+https://github.com/bandframework/surmise.git
+
+        - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
@@ -148,20 +154,17 @@ jobs:
             pip install -e .
             popd
 
-        - name: Build heffte
+        - uses: actions/cache/save@v4
+          name: Save dependencies to cache
           if: matrix.os == 'ubuntu-latest'
-          run: |
-            # begin heffte build and dependencies
-            sudo apt install libfftw3-dev
-            git clone https://github.com/icl-utk-edu/heffte.git
-            mkdir heffte/build
-            cd heffte/build
-            pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make -j 4
-            make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            # end heffte build and dependencies
+          with:
+            path: |
+              /home/runner/.local
+              /usr/share/miniconda3/envs/condaenv
+              /usr/share/miniconda3/bin
+              /usr/share/miniconda3/lib
+              /usr/share/miniconda3/include
+            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -172,7 +175,6 @@ jobs:
         - name: Remove various tests on newer pythons
           if: matrix.python-version >= '3.11'
           run: |
-            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
             # rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
 
@@ -232,4 +234,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.24.1
+        - uses: crate-ci/typos@v1.24.3
