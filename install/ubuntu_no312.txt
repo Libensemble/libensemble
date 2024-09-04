@@ -1,5 +1,5 @@
-gpcam
-scikit-build
-packaging
+gpcam==8.1.6
+scikit-build==0.18.1
+packaging==24.1
 git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
 git+https://github.com/bandframework/surmise.git
