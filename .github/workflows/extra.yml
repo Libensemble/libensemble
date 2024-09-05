@@ -67,19 +67,6 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v4
-          name: Restore cached dependencies
-          id: cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-extra
-
         - name: Force-update certifi
           run: |
             python --version
@@ -96,25 +83,12 @@ jobs:
             conda install clang_osx-64
 
         - name: Install mpi4py and MPI from conda
-          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
-        - name: Install mpi4py from pip, MPI from conda
-          if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-          run: |
-            conda install ${{ matrix.mpi-version }}
-            pip install mpi4py
-
         - name: Install generator dependencies
           run: |
-            python -m pip install --upgrade pip
-            pip install mpmath
-            pip install matplotlib
             conda env update --file install/gen_deps_environment.yml
-
-        #- name: Install ax-platform
-        #  run: pip install "ax-platform<=0.4.0"
 
         - name: Install gpcam
           if: matrix.python-version != '3.12'
@@ -122,7 +96,7 @@ jobs:
             pip install gpcam
 
         - name: Install surmise
-          if: matrix.os != 'macos-latest'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
@@ -130,11 +104,8 @@ jobs:
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
-
-            # pip install dragonfly-opt
-            # pip install git+https://github.com/dragonfly/dragonfly.git
-            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
-            pip install scikit-build packaging Tasmanian --user
+            pip install -r install/ubuntu_no312.txt
+            pip install Tasmanian --user
 
         - name: Install Balsam on Pydantic 1
           if: matrix.pydantic-version == '1.10.17'
@@ -149,27 +120,7 @@ jobs:
             conda install octave
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
-
-            git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
-            pushd IBCDFO/minq/py/minq5/
-            export PYTHONPATH="$PYTHONPATH:$(pwd)"
-            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-            popd
-            pushd IBCDFO/ibcdfo_pypkg/
-            pip install -e .
-            popd
-
-        - uses: actions/cache/save@v4
-          name: Save dependencies to cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+            source install/install_ibcdfo.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -183,11 +134,13 @@ jobs:
             # rm ./libensemble/tests/regression_tests/test_gpCAM.py
             rm ./libensemble/tests/regression_tests/test_persistent_gp.py
 
-        - name: Remove test for persistent Tasmanian on Python 3.12
+        - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
           if: matrix.python-version >= '3.12'
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_calib.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
 
         - name: Install redis/proxystore on Pydantic 2
           if: matrix.pydantic-version == '2.8.2'
@@ -212,15 +165,9 @@ jobs:
           with:
             redis-version: 7
 
-        - name: Run extensive tests, Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+        - name: Run extensive tests
           run: |
            ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
-
-        - name: Run extensive tests, macOS
-          if: matrix.os == 'macos-latest'
-          run: |
-            ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
