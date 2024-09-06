@@ -1,10 +1,9 @@
 import sys
 
-from pydantic import Field, create_model
-
 from libensemble import specs
 from libensemble.resources import platforms
-from libensemble.utils.misc import pydanticV1
+from libensemble.utils.pydantic_modules import BaseConfig, create_model
+from libensemble.utils.pydantic_modules import validate_arguments as libE_wrapper  # noqa: F401
 from libensemble.utils.validators import (
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
@@ -30,60 +29,22 @@ from libensemble.utils.validators import (
     simf_set_in_out_from_attrs,
 )
 
-if pydanticV1:
-    from pydantic import BaseConfig
-    from pydantic import validate_arguments as libE_wrapper  # noqa: F401
+BaseConfig.arbitrary_types_allowed = True
+BaseConfig.allow_population_by_field_name = True
+BaseConfig.extra = "allow"
+BaseConfig.error_msg_templates = {
+    "value_error.extra": _UNRECOGNIZED_ERR,
+    "type_error.callable": _UFUNC_INVALID_ERR,
+}
+BaseConfig.validate_assignment = True
 
-    BaseConfig.arbitrary_types_allowed = True
-    BaseConfig.allow_population_by_field_name = True
-    BaseConfig.extra = "allow"
-    BaseConfig.error_msg_templates = {
-        "value_error.extra": _UNRECOGNIZED_ERR,
-        "type_error.callable": _UFUNC_INVALID_ERR,
-    }
-    BaseConfig.validate_assignment = True
 
-    class Config:
-        arbitrary_types_allowed = True
+class Config:
+    arbitrary_types_allowed = True
 
-    specs.LibeSpecs.Config = Config
-    specs._EnsembleSpecs.Config = Config
 
-else:
-    from pydantic import ConfigDict
-    from pydantic import validate_call as libE_wrapper  # noqa: F401
-    from pydantic.fields import FieldInfo
-
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True, populate_by_name=True, extra="forbid", validate_assignment=True
-    )
-
-    specs.SimSpecs.model_config = model_config
-    specs.GenSpecs.model_config = model_config
-    specs.AllocSpecs.model_config = model_config
-    specs.LibeSpecs.model_config = model_config
-    specs.ExitCriteria.model_config = model_config
-    specs._EnsembleSpecs.model_config = model_config
-    platforms.Platform.model_config = model_config
-
-    model = specs.SimSpecs.model_fields
-    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    model = specs.GenSpecs.model_fields
-    model["inputs"] = FieldInfo.merge_field_infos(model["inputs"], Field(alias="in"))
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    model = specs.AllocSpecs.model_fields
-    model["outputs"] = FieldInfo.merge_field_infos(model["outputs"], Field(alias="out"))
-
-    specs.SimSpecs.model_rebuild(force=True)
-    specs.GenSpecs.model_rebuild(force=True)
-    specs.AllocSpecs.model_rebuild(force=True)
-    specs.LibeSpecs.model_rebuild(force=True)
-    specs.ExitCriteria.model_rebuild(force=True)
-    specs._EnsembleSpecs.model_rebuild(force=True)
-    platforms.Platform.model_rebuild(force=True)
+specs.LibeSpecs.Config = Config
+specs._EnsembleSpecs.Config = Config
 
 # the create_model function removes fields for rendering in docs
 if "sphinx" not in sys.modules:

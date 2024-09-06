@@ -12,27 +12,27 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.8.2"]
+                pydantic-version: ["2.9.0"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: "2.9.0"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: "2.9.0"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: mpich
-                      pydantic-version: "2.8.2"
+                      pydantic-version: "2.9.0"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      pydantic-version: "2.8.2"
+                      pydantic-version: "2.9.0"
                       python-version: "3.12"
                       comms-type: l
                     - os: ubuntu-latest
@@ -143,7 +143,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
 
         - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.8.2'
+          if: matrix.pydantic-version == '2.9.0'
           run: |
             pip install redis
             pip install proxystore==0.7.0
@@ -153,8 +153,8 @@ jobs:
           run: |
             rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
-        - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.8.2'
+        - name: Remove Balsam tests on Pydantic 2
+          if: matrix.pydantic-version == '2.9.0'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py

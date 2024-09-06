@@ -10,5 +10,6 @@ __author__ = "Jeffrey Larson, Stephen Hudson, Stefan M. Wild, David Bindel and J
 __credits__ = "Argonne National Laboratory"
 
 from libensemble import logger
+from libensemble.utils import pydantic_bindings
 
 from .ensemble import Ensemble

@@ -13,9 +13,8 @@ import os
 import subprocess
 from typing import Optional
 
-from pydantic import BaseModel
-
 from libensemble.utils.misc import specs_dump
+from libensemble.utils.pydantic_modules import BaseModel
 
 logger = logging.getLogger(__name__)
 # To change logging level for just this module
