@@ -322,7 +322,7 @@ class Ensemble:
         else:
             base = self._libE_specs.__dict__
             base.update(libE_specs_parsed)
-            self._libE_specs = LibeSpecs(**base)  # do an instantation again so we get validation
+            self._libE_specs = LibeSpecs(**base)  # do an instantiation again so we get validation
 
         return self.nworkers, self.is_manager, self._libE_specs
 
