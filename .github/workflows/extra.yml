@@ -12,27 +12,27 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.9.0"]
+                pydantic-version: ["2.9.1"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.9.0"
+                      pydantic-version: "2.9.1"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.9.0"
+                      pydantic-version: "2.9.1"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: mpich
-                      pydantic-version: "2.9.0"
+                      pydantic-version: "2.9.1"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      pydantic-version: "2.9.0"
+                      pydantic-version: "2.9.1"
                       python-version: "3.12"
                       comms-type: l
                     - os: ubuntu-latest
@@ -143,7 +143,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
 
         - name: Install redis/proxystore on Pydantic 2
-          if: matrix.pydantic-version == '2.9.0'
+          if: matrix.pydantic-version == '2.9.1'
           run: |
             pip install redis
             pip install proxystore==0.7.0
@@ -154,7 +154,7 @@ jobs:
             rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
         - name: Remove Balsam tests on Pydantic 2
-          if: matrix.pydantic-version == '2.9.0'
+          if: matrix.pydantic-version == '2.9.1'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
