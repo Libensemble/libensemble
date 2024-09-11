@@ -223,6 +223,12 @@ class Manager:
         dyn_keys = ("resource_sets", "num_procs", "num_gpus")
         dyn_keys_in_H = any(k in self.hist.H.dtype.names for k in dyn_keys)
         self.use_resource_sets = dyn_keys_in_H or self.libE_specs.get("num_resource_sets")
+        if self.libE_specs.get("num_resource_sets", 0):
+            warnings.warn(
+                "Direct-specification of number of resource sets is deprecated, to be removed in v2.0. "
+                + "From v2.0 onward, Generators should specify `num_procs` or `num_gpus` instead.",
+                DeprecationWarning,
+            )
         self.gen_num_procs = libE_specs.get("gen_num_procs", 0)
         self.gen_num_gpus = libE_specs.get("gen_num_gpus", 0)
 
