@@ -18,28 +18,28 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.6.4"]
+                pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: m
                     - os: macos-latest
                       python-version: "3.11"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: l
 
         env:
@@ -63,19 +63,6 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v4
-          name: Restore cached dependencies
-          id: cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-basic
-
         - name: Force-update certifi
           run: |
             python --version
@@ -95,15 +82,7 @@ jobs:
           run: |
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
-
-            git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
-            pushd IBCDFO/minq/py/minq5/
-            export PYTHONPATH="$PYTHONPATH:$(pwd)"
-            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-            popd
-            pushd IBCDFO/ibcdfo_pypkg/
-            pip install -e .
-            popd
+            source install/install_ibcdfo.sh
 
         - name: Install mpi4py and MPI from conda
           run: |
@@ -114,18 +93,6 @@ jobs:
             python -m pip install --upgrade pip
             pip install mpmath matplotlib
             conda install numpy nlopt scipy
-
-        - uses: actions/cache/save@v4
-          name: Save dependencies to cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
 
         - name: Install libEnsemble, flake8
           run: |
@@ -163,4 +130,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.6
+        - uses: crate-ci/typos@v1.24.5
