@@ -595,6 +595,12 @@ class Manager:
             for w in self.W["worker_id"][self.W["persis_state"] > 0]:
                 logger.debug(f"Manager sending PERSIS_STOP to worker {w}")
                 if self.libE_specs.get("final_gen_send", False):
+                    warnings.warn(
+                        "LibeSpecs.final_gen_send is deprecated, to be removed in v2.0. From v2.0 onward, "
+                        + "upon a workflow completing, libEnsemble will automatically send any outstanding "
+                        + "finished simulations to the generator.",
+                        DeprecationWarning,
+                    )
                     rows_to_send = np.where(self.hist.H["sim_ended"] & ~self.hist.H["gen_informed"])[0]
                     work = {
                         "H_fields": self.gen_specs["persis_in"],
