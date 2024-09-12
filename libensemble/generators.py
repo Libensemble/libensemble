@@ -99,7 +99,6 @@ class LibensembleGenerator(Generator):
             self.gen_specs["user"] = kwargs
         if not persis_info:
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
-            self.persis_info["nworkers"] = 4
         else:
             self.persis_info = persis_info
 

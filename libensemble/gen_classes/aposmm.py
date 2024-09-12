@@ -30,8 +30,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
-            persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
-            persis_info["nworkers"] = 4
+            persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
         super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
         self.all_local_minima = []
         self.results_idx = 0
