@@ -31,10 +31,8 @@ class UniformSample(SampleBase):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None):
-        self.persis_info = persis_info
-        self.gen_specs = gen_specs
-        self.libE_info = libE_info
+    def __init__(self, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
+        super().__init__(_, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
 
     def ask_numpy(self, n_trials):
@@ -57,10 +55,9 @@ class UniformSampleDicts(Generator):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _, persis_info, gen_specs, libE_info=None):
-        self.persis_info = persis_info
+    def __init__(self, _, persis_info, gen_specs, libE_info=None, **kwargs):
         self.gen_specs = gen_specs
-        self.libE_info = libE_info
+        self.persis_info = persis_info
         self._get_user_params(self.gen_specs["user"])
 
     def ask(self, n_trials):

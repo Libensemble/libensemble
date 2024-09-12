@@ -80,7 +80,7 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, 5)
-    surmise = Surmise(gen_specs, persis_info=persis_info[1])  # we add sim_id as a field to gen_specs["out"]
+    surmise = Surmise(gen_specs=gen_specs, persis_info=persis_info[1])  # we add sim_id as a field to gen_specs["out"]
     surmise.setup()
 
     initial_sample = surmise.ask()

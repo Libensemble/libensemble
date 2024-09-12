@@ -154,7 +154,7 @@ cleanup() {
     filelist=(nodelist_*);              [ -e ${filelist[0]} ] && rm nodelist_*
     filelist=(x_*.txt y_*.txt);         [ -e ${filelist[0]} ] && rm x_*.txt y_*.txt
     filelist=(opt_*.txt_flag);          [ -e ${filelist[0]} ] && rm opt_*.txt_flag
-    filelist=(*.png);                   [ -e ${filelist[0]} ] && rm *.png
+    filelist=(logo_id*.png);            [ -e ${filelist[0]} ] && rm logo_id*.png
   done
   cd $THISDIR
 }

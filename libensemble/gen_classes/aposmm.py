@@ -14,13 +14,11 @@ class APOSMM(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, gen_specs: dict = {}, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}, **kwargs
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
         gen_specs["gen_f"] = aposmm
-        if len(kwargs) > 0:  # so user can specify aposmm-specific parameters as kwargs to constructor
-            gen_specs["user"] = kwargs
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
             n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
@@ -32,9 +30,8 @@ class APOSMM(LibensembleGenThreadInterfacer):
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
-            persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
-            persis_info["nworkers"] = 4
-        super().__init__(gen_specs, History, persis_info, libE_info)
+            persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
+        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
         self.all_local_minima = []
         self.results_idx = 0
         self.last_ask = None

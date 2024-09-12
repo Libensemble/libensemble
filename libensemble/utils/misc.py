@@ -81,33 +81,71 @@ def specs_checker_setattr(obj, key, value):
         obj.__dict__[key] = value
 
 
-def _copy_data(array, list_dicts):
-    for i, entry in enumerate(list_dicts):
-        for field in entry.keys():
-            array[field][i] = entry[field]
-    return array
-
-
-def _decide_dtype(name, entry):
-    if hasattr(entry, "shape") and len(entry.shape):  # numpy type
-        return (name, entry.dtype, entry.shape)
+def _decide_dtype(name: str, entry, size: int) -> tuple:
+    if isinstance(entry, str):
+        output_type = "U" + str(len(entry) + 1)
     else:
-        return (name, type(entry))
+        output_type = type(entry)
+    if size == 1 or not size:
+        return (name, output_type)
+    else:
+        return (name, output_type, (size,))
 
 
-def list_dicts_to_np(list_dicts: list) -> npt.NDArray:
+def _combine_names(names: list) -> list:
+    """combine fields with same name *except* for final digits"""
+
+    out_names = []
+    stripped = list(i.rstrip("0123456789") for i in names)  # ['x', 'x', y', 'z', 'a']
+    for name in names:
+        stripped_name = name.rstrip("0123456789")
+        if stripped.count(stripped_name) > 1:  # if name appears >= 1, will combine, don't keep int suffix
+            out_names.append(stripped_name)
+        else:
+            out_names.append(name)  # name appears once, keep integer suffix, e.g. "co2"
+
+    # intending [x, y, z, a0] from [x0, x1, y, z0, z1, z2, z3, a0]
+    return list(set(out_names))
+
+
+def list_dicts_to_np(list_dicts: list, dtype: list = None) -> npt.NDArray:
     if list_dicts is None:
         return None
 
-    first = list_dicts[0]
-    new_dtype_names = [i for i in first.keys()]
-    new_dtype = []
-    for i, entry in enumerate(first.values()):  # must inspect values to get presumptive types
-        name = new_dtype_names[i]
-        new_dtype.append(_decide_dtype(name, entry))
+    if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
+        return list_dicts
 
-    out = np.zeros(len(list_dicts), dtype=new_dtype)
-    return _copy_data(out, list_dicts)
+    first = list_dicts[0]  # for determining dtype of output np array
+    new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
+    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
+    for name in new_dtype_names:  # is this a necessary search over the keys again? we did it earlier...
+        combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
+        if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
+            combinable_names.append(combinable_group)
+        else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
+            combinable_names.append([name])
+
+    if dtype is None:
+        dtype = []
+
+    if not len(dtype):
+        # another loop over names, there's probably a more elegant way, but my brain is fried
+        for i, entry in enumerate(combinable_names):
+            name = new_dtype_names[i]
+            size = len(combinable_names[i])
+            dtype.append(_decide_dtype(name, first[entry[0]], size))
+
+    out = np.zeros(len(list_dicts), dtype=dtype)
+
+    for i, group in enumerate(combinable_names):
+        new_dtype_name = new_dtype_names[i]
+        for j, input_dict in enumerate(list_dicts):
+            if len(group) == 1:  # only a single name, e.g. local_pt
+                out[new_dtype_name][j] = input_dict[new_dtype_name]
+            else:  # combinable names detected, e.g. x0, x1
+                out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
+
+    return out
 
 
 def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
@@ -117,6 +155,13 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
     for row in array:
         new_dict = {}
         for field in row.dtype.names:
-            new_dict[field] = row[field]
+            # non-string arrays, lists, etc.
+            if hasattr(row[field], "__len__") and len(row[field]) > 1 and not isinstance(row[field], str):
+                for i, x in enumerate(row[field]):
+                    new_dict[field + str(i)] = x
+            elif hasattr(row[field], "__len__") and len(row[field]) == 1:  # single-entry arrays, lists, etc.
+                new_dict[field] = row[field][0]  # will still work on single-char strings
+            else:
+                new_dict[field] = row[field]
         out.append(new_dict)
     return out

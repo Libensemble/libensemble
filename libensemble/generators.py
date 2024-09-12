@@ -8,6 +8,7 @@ from numpy import typing as npt
 from libensemble.comms.comms import QComm, QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
+from libensemble.tools.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
 
 """
@@ -90,6 +91,17 @@ class LibensembleGenerator(Generator):
     ``ask_numpy/tell_numpy`` methods communicate numpy arrays containing the same data.
     """
 
+    def __init__(
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+    ):
+        self.gen_specs = gen_specs
+        if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
+            self.gen_specs["user"] = kwargs
+        if not persis_info:
+            self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
+        else:
+            self.persis_info = persis_info
+
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -105,6 +117,8 @@ class LibensembleGenerator(Generator):
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
         self.tell_numpy(list_dicts_to_np(results))
+        # Note that although we'd prefer to have a complete dtype available, the gen
+        # doesn't have access to sim_specs["out"] currently.
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -113,10 +127,10 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """
 
     def __init__(
-        self, gen_specs: dict, History: npt.NDArray = [], persis_info: dict = {}, libE_info: dict = {}
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
     ) -> None:
+        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
-        self.gen_specs = gen_specs
         self.History = History
         self.persis_info = persis_info
         self.libE_info = libE_info

@@ -126,7 +126,7 @@ if __name__ == "__main__":
     }
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
-    gen_specs["generator"] = Surmise(gen_specs, persis_info=persis_info)
+    gen_specs["generator"] = Surmise(gen_specs=gen_specs, persis_info=persis_info)
 
     exit_criteria = {"sim_max": max_evals}
 
