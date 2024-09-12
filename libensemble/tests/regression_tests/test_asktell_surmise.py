@@ -88,7 +88,9 @@ if __name__ == "__main__":
     total_evals = 0
 
     for point in initial_sample:
-        H_out, _a, _b = borehole(list_dicts_to_np([point]), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+        H_out, _a, _b = borehole(
+            list_dicts_to_np([point], dtype=gen_specs["out"]), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])}
+        )
         point["f"] = H_out["f"][0]  # some "bugginess" with output shape of array in simf
         total_evals += 1
 
@@ -99,7 +101,9 @@ if __name__ == "__main__":
     next_sample, cancels = surmise.ask(), surmise.ask_updates()
 
     for point in next_sample:
-        H_out, _a, _b = borehole(list_dicts_to_np([point]), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+        H_out, _a, _b = borehole(
+            list_dicts_to_np([point], dtype=gen_specs["out"]), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])}
+        )
         point["f"] = H_out["f"][0]
         total_evals += 1
 
@@ -109,7 +113,12 @@ if __name__ == "__main__":
     while total_evals < max_evals:
 
         for point in sample:
-            H_out, _a, _b = borehole(list_dicts_to_np([point]), {}, sim_specs, {"H_rows": np.array([point["sim_id"]])})
+            H_out, _a, _b = borehole(
+                list_dicts_to_np([point], dtype=gen_specs["out"]),
+                {},
+                sim_specs,
+                {"H_rows": np.array([point["sim_id"]])},
+            )
             point["f"] = H_out["f"][0]
             total_evals += 1
             surmise.tell([point])
