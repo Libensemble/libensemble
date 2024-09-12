@@ -39,7 +39,7 @@ def test_asktell_sampling_and_utils():
     assert len(gen.ask(10)) == 10
 
     # Test initialization gen-specific keyword args
-    gen = UniformSample(lb=np.array([-3, -2]), ub=np.array([3, 2]))
+    gen = UniformSample(gen_specs=gen_specs, lb=np.array([-3, -2]), ub=np.array([3, 2]))
     assert len(gen.ask(10)) == 10
 
     out_np = gen.ask_numpy(3)  # should get numpy arrays, non-flattened
