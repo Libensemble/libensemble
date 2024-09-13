@@ -12,6 +12,7 @@ the `libEnsemble Community Repository`_, with corresponding generator documentat
    :maxdepth: 2
    :caption: libEnsemble Example Functions:
 
+   gen_classes
    gen_funcs
    sim_funcs
    alloc_funcs
