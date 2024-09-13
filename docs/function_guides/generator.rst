@@ -1,7 +1,7 @@
 .. _funcguides-gen:
 
-Generator Functions
-===================
+[Legacy] Generator Functions
+============================
 
 Generator and :ref:`Simulator functions<funcguides-sim>` have relatively similar interfaces.
 

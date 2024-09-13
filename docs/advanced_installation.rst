@@ -1,7 +1,7 @@
 Advanced Installation
 =====================
 
-libEnsemble can be installed from ``pip``, ``Conda``, or ``Spack``.
+libEnsemble can be installed from ``pip``, ``conda``, or ``Spack``.
 
 libEnsemble requires the following dependencies, which are typically
 automatically installed alongside libEnsemble:
@@ -9,7 +9,7 @@ automatically installed alongside libEnsemble:
 * Python_       ``>= 3.9``
 * NumPy_        ``>= 1.21``
 * psutil_       ``>= 5.9.4``
-* `pydantic`_   ``<= 1.10.12``
+* `pydantic`_   ``>= 1.10.17``
 * pyyaml_       ``>= v6.0``
 * tomli_        ``>= 1.2.1``
 
