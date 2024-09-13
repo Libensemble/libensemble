@@ -621,6 +621,9 @@ def output_data(fields: List[Union[Tuple[str, Any], Tuple[str, Any, Union[int, T
             H_o = np.zeros(1, dtype=sim_specs["out"])
             H_o["f"] = np.linalg.norm(x)
             return H_o, persis_info
+
+    Devs: Optionally, specify only a list of field names. This will have no effect on ``.outputs``, but
+    those fields will render in the docs.
     """
 
     def decorator(func):
