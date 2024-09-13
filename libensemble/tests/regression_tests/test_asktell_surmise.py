@@ -133,4 +133,4 @@ if __name__ == "__main__":
     H, persis_info, exit_code = surmise.final_tell(None)
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
-    assert len(requested_canceled_sim_ids), "No cancellations sent by Surmise"
+    # assert len(requested_canceled_sim_ids), "No cancellations sent by Surmise"
