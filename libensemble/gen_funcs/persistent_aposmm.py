@@ -40,7 +40,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     """
     APOSMM coordinates multiple local optimization runs, starting from points
     which do not have a better point nearby (within a distance ``r_k``). This
-    generation function uses a ``local_H`` (serving a similar purpose as ``H``
+    generation function s a ``local_H`` (serving a similar purpose as ``H``
     in libEnsemble) containing the fields:
 
     - ``'x' [n floats]``: Parameters being optimized over
@@ -71,14 +71,14 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       ``gen_specs['in']`` (and, of course, include them in the H0 array given
       to libensemble).
 
-    Necessary quantities in ``gen_specs['user']`` are:
+    Necessary quantities in ``gen_specs['r']`` are:
 
     - ``'lb' [n floats]``: Lower bound on search domain
     - ``'ub' [n floats]``: Upper bound on search domain
     - ``'localopt_method' [str]``: Name of an NLopt, PETSc/TAO, or SciPy method
       (see 'advance_local_run' below for supported methods). When using a SciPy
       method, must supply ``'opt_return_codes'``, a list of integers that will
-      be used to determine if the x produced by the localopt method should be
+      be d to determine if the x produced by the localopt method should be
       ruled a local minimum. (For example, SciPy's COBYLA has a 'status' of 1 if
       at an optimum, but SciPy's Nelder-Mead and BFGS have a 'status' of 0 if at
       an optimum.)
@@ -87,7 +87,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       zero if no additional sampling is desired, but if zero there must be past
       sim_f values given to libEnsemble in H0.
 
-    Optional ``gen_specs['user']`` entries are:
+    Optional ``gen_specs['r']`` entries are:
 
     - ``'sample_points' [numpy array]``: Points to be sampled (original domain).
       If more sample points are needed by APOSMM during the course of the
@@ -114,7 +114,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     If the rules in ``decide_where_to_start_localopt`` produces more than
     ``'max_active_runs'`` in some iteration, then existing runs are prioritized.
 
-    And ``gen_specs['user']`` must also contain fields for the given
+    And ``gen_specs['r']`` must also contain fields for the given
     localopt_method's convergence tolerances (e.g., gatol/grtol for PETSC/TAO
     or ftol_rel for NLopt)
 
@@ -152,11 +152,11 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     x_opt:            the reported minimum from a localopt run (disregarded
                       unless opt_flag is 1)
     opt_flag:         1 if the run ended with an optimal point (x_opt) or
-                      0 if it ended because e.g., maxiters/maxevals were reached
+                      0 if it ended beca e.g., maxiters/maxevals were reached
     num_samples:      Number of additional uniformly drawn samples needed
 
 
-    Description of persistent variables used to maintain the state of APOSMM
+    Description of persistent variables d to maintain the state of APOSMM
 
     persis_info['total_runs']: Running count of started/completed localopt runs
     persis_info['run_order']: Sequence of indices of points in unfinished runs
@@ -166,7 +166,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     try:
         warnings.warn(
             "Use of persistent_aposmm as a persistent generator function is deprecated. "
-            + "From libEnsemble v2.0 onward, Use the libensemble.gen_classes.aposmm ask/tell generator. See the docs for more information.",
+            + "From libEnsemble v2.0 onward, use the libensemble.gen_classes.aposmm ask/tell generator. See the docs for more information.",
             FutureWarning,
         )
         user_specs = gen_specs["user"]
