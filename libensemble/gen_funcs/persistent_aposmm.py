@@ -166,7 +166,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     try:
         warnings.warn(
             "Use of persistent_aposmm as a persistent generator function is deprecated. "
-            + "From libEnsemble v2.0 onward, Use the libensemble.gen_classes.aposmm ask/tell generator. See the docs for more information.",
+            + "From libEnsemble v2.0 onward, use the libensemble.gen_classes.aposmm ask/tell generator. See the docs for more information.",
             FutureWarning,
         )
         user_specs = gen_specs["user"]
