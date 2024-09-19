@@ -49,7 +49,7 @@ class UniformSample(SampleBase):
 # List of dictionaries format for ask (constructor currently using numpy still)
 # Mostly standard generator interface for libE generators will use the ask/tell wrappers
 # to the classes above. This is for testing a function written directly with that interface.
-@output_data(["x0", "x1", "xn", "..."])
+@output_data(["x0", "x1", "...", "xn"])
 class UniformSampleDicts(Generator):
     """
     This generator returns ``gen_specs["initial_batch_size"]`` uniformly
@@ -69,9 +69,6 @@ class UniformSampleDicts(Generator):
         for _ in range(n_trials):
             # using same rand number stream
             trial = {"x": self.persis_info["rand_stream"].uniform(self.lb, self.ub, self.n)}
-            import ipdb
-
-            ipdb.set_trace()
             H_o.append(trial)
         return H_o
 
