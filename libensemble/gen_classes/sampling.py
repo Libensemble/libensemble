@@ -3,6 +3,7 @@
 import numpy as np
 
 from libensemble.generators import Generator, LibensembleGenerator
+from libensemble.specs import output_data
 
 __all__ = [
     "UniformSample",
@@ -23,6 +24,7 @@ class SampleBase(LibensembleGenerator):
         assert isinstance(self.ub, np.ndarray), "ub must be a numpy array"
 
 
+@output_data(["x"])
 class UniformSample(SampleBase):
     """
 
@@ -57,6 +59,7 @@ class UniformSample(SampleBase):
 # List of dictionaries format for ask (constructor currently using numpy still)
 # Mostly standard generator interface for libE generators will use the ask/tell wrappers
 # to the classes above. This is for testing a function written directly with that interface.
+@output_data(["x0", "x1", "...", "xn"])
 class UniformSampleDicts(Generator):
     """
     When used with libEnsemble, returns ``gen_specs["initial_batch_size"]`` uniformly
@@ -70,6 +73,7 @@ class UniformSampleDicts(Generator):
         self.persis_info = persis_info
         self._get_user_params(self.gen_specs["user"])
 
+    # TODO: flatten this
     def ask(self, n_trials):
         H_o = []
         for _ in range(n_trials):

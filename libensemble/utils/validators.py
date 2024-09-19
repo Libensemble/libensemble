@@ -265,9 +265,18 @@ else:
 
     @model_validator(mode="after")
     def simf_set_in_out_from_attrs(self):
+        """
+        Set inputs and outputs, if the user function has those attributes and we haven't set them in specs.
+        For outputs, only if the contents are dtype-like.
+        """
+        # a list-of-fields attribute for outputs is useful for docs, but not for initializing an array
         if hasattr(self.__dict__.get("sim_f"), "inputs") and not self.__dict__.get("inputs"):
             self.__dict__["inputs"] = self.__dict__.get("sim_f").inputs
-        if hasattr(self.__dict__.get("sim_f"), "outputs") and not self.__dict__.get("outputs"):
+        if (
+            hasattr(self.__dict__.get("sim_f"), "outputs")
+            and not self.__dict__.get("outputs")
+            and isinstance(self.__dict__.get("sim_f").outputs[0], tuple)
+        ):
             self.__dict__["outputs"] = self.__dict__.get("sim_f").outputs
         if hasattr(self.__dict__.get("sim_f"), "persis_in") and not self.__dict__.get("persis_in"):
             self.__dict__["persis_in"] = self.__dict__.get("sim_f").persis_in
@@ -275,9 +284,18 @@ else:
 
     @model_validator(mode="after")
     def genf_set_in_out_from_attrs(self):
+        """
+        Set inputs and outputs, if the user function has those attributes and we haven't set them in specs.
+        For outputs, only if the contents are dtype-like.
+        """
+        # a list-of-fields attribute for outputs is useful for docs, but not for initializing an array
         if hasattr(self.__dict__.get("gen_f"), "inputs") and not self.__dict__.get("inputs"):
             self.__dict__["inputs"] = self.__dict__.get("gen_f").inputs
-        if hasattr(self.__dict__.get("gen_f"), "outputs") and not self.__dict__.get("outputs"):
+        if (
+            hasattr(self.__dict__.get("gen_f"), "outputs")
+            and not self.__dict__.get("outputs")
+            and isinstance(self.__dict__.get("gen_f").outputs[0], tuple)
+        ):
             self.__dict__["outputs"] = self.__dict__.get("gen_f").outputs
         if hasattr(self.__dict__.get("gen_f"), "persis_in") and not self.__dict__.get("persis_in"):
             self.__dict__["persis_in"] = self.__dict__.get("gen_f").persis_in
