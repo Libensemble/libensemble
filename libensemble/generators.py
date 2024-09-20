@@ -184,7 +184,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put((tag, None))
         self.inbox.put((0, np.copy(results)))
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
+    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
         self.tell_numpy(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
