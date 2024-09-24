@@ -7,6 +7,7 @@ import cProfile
 import glob
 import logging
 import os
+import pickle
 import platform
 import socket
 import sys
@@ -323,42 +324,52 @@ class Manager:
             date_start = ""
         return date_start
 
-    def _save_every_k(self, fname: str, count: int, k: int, complete: bool) -> None:
-        """Saves history every kth step"""
+    def _save_every_k(self, persis_info: dict, fname: str, count: int, k: int, complete: bool) -> None:
+        """Saves history and persis_info every kth step"""
         if not complete:
             count = k * (count // k)
         date_start = self._get_date_start_str()
 
-        filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count)
+        filename = fname.format(self.libE_specs["H_file_prefix"], date_start, count, "npy")
         if (not os.path.isfile(filename) and count > 0) or complete:
-            for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*")):
+            for old_file in glob.glob(fname.format(self.libE_specs["H_file_prefix"], date_start, "*", "npy")):
                 os.remove(old_file)
             np.save(filename, self.hist.trim_H())
 
-    def _save_every_k_sims(self, complete: bool) -> None:
+            filename = fname.format(self.libE_specs["persis_info_file_prefix"], date_start, count, "pickle")
+            for old_file in glob.glob(
+                fname.format(self.libE_specs["persis_info_file_prefix"], date_start, "*", "pickle")
+            ):
+                os.remove(old_file)
+            with open(filename, "wb") as f:
+                pickle.dump(persis_info, f)
+
+    def _save_every_k_sims(self, persis_info: dict, complete: bool) -> None:
         """Saves history every kth sim step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.npy"),
+            persis_info,
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_sim_{}.{}"),
             self.hist.sim_ended_count,
             self.libE_specs["save_every_k_sims"],
             complete,
         )
 
-    def _save_every_k_gens(self, complete: bool) -> None:
+    def _save_every_k_gens(self, persis_info: dict, complete: bool) -> None:
         """Saves history every kth gen step"""
         self._save_every_k(
-            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.npy"),
+            persis_info,
+            os.path.join(self.libE_specs["workflow_dir_path"], "{}_{}after_gen_{}.{}"),
             self.hist.index,
             self.libE_specs["save_every_k_gens"],
             complete,
         )
 
-    def _init_every_k_save(self, complete=False) -> None:
+    def _init_every_k_save(self, persis_info, complete=False) -> None:
         force_final = complete and not self.libE_specs.get("save_every_k_gens")
         if self.libE_specs.get("save_every_k_sims") or force_final:
-            self._save_every_k_sims(complete)
+            self._save_every_k_sims(persis_info, complete)
         if self.libE_specs.get("save_every_k_gens"):
-            self._save_every_k_gens(complete)
+            self._save_every_k_gens(persis_info, complete)
 
     # --- Handle outgoing messages to workers (work orders from alloc)
 
@@ -467,7 +478,7 @@ class Manager:
                     new_stuff = True
                     self._handle_msg_from_worker(persis_info, w)
 
-        self._init_every_k_save()
+        self._init_every_k_save(persis_info)
         return persis_info
 
     def _update_state_on_worker_msg(self, persis_info: dict, D_recv: dict, w: int) -> None:
@@ -608,7 +619,7 @@ class Manager:
             if self.WorkerExc:
                 exit_flag = 1
 
-        self._init_every_k_save(complete=self.libE_specs["save_H_on_completion"])
+        self._init_every_k_save(persis_info, complete=self.libE_specs["save_H_on_completion"])
         self._kill_workers()
         self._clean_up_thread()
 
