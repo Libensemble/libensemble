@@ -5,7 +5,7 @@ import numpy as np
 from numpy import typing as npt
 
 from libensemble.generators import LibensembleGenThreadInterfacer
-from libensemble.message_numbers import PERSIS_STOP
+from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
 
@@ -36,7 +36,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self.all_local_minima = []
         self.ask_idx = 0
         self.last_ask = None
-        self.last_ask_len = 0
         self.tell_buf = None
         self.num_evals = 0
         self._told_initial_sample = False
@@ -69,7 +68,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
             self.ask_idx = 0
             self.last_ask = super().ask_numpy(num_points)
-            self.last_ask_len = len(self.last_ask)
             if self.last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
@@ -87,12 +85,12 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self.last_ask = None
         return results
 
-    def tell_numpy(self, results: npt.NDArray, tag) -> None:
+    def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if tag == PERSIS_STOP:
-            super().tell_numpy(results, tag)
+            super().tell_numpy(None, tag)
             return
         if self.num_evals == 0:
-            self.tell_buf = np.zeros(self.last_ask_len, dtype=self.gen_specs["out"] + [("f", float)])
+            self.tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
         self._slot_in_data(results)
         self.num_evals += len(results)
         if not self._told_initial_sample and self._enough_initial_sample:
