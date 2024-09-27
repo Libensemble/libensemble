@@ -50,7 +50,7 @@ class Generator(ABC):
     """
 
     @abstractmethod
-    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         Initialize the Generator object on the user-side. Constants, class-attributes,
         and preparation goes here.
