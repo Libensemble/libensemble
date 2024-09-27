@@ -89,7 +89,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if tag == PERSIS_STOP:
-            super().tell_numpy(None, tag)
+            super().tell_numpy(results, tag)
             return
         if self.num_evals == 0:
             self.tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
