@@ -39,13 +39,23 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self.ask_idx = 0
         self.last_ask = None
         self.tell_buf = None
-        self.num_evals = 0
+        self.n_buffd_results = 0
         self._told_initial_sample = False
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields."""
-        for field in ["f", "x", "x_on_cube", "sim_id", "local_pt"]:
-            self.tell_buf[field] = results[field]
+        indexes = results["sim_id"]
+        fields = results.dtype.names
+        for j, ind in enumerate(indexes):
+            for field in fields:
+                if np.isscalar(results[field][j]) or results.dtype[field].hasobject:
+                    self.tell_buf[field][ind] = results[field][j]
+                else:
+                    field_size = len(results[field][j])
+                    if field_size == len(self.tell_buf[field][ind]):
+                        self.tell_buf[field][ind] = results[field][j]
+                    else:
+                        self.tell_buf[field][ind][:field_size] = results[field][j]
 
     @property
     def _array_size(self):
@@ -56,12 +66,12 @@ class APOSMM(LibensembleGenThreadInterfacer):
     @property
     def _enough_initial_sample(self):
         """We're typically happy with at least 90% of the initial sample."""
-        return self.num_evals > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
+        return self.n_buffd_results > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
 
     @property
     def _enough_subsequent_points(self):
         """But we need to evaluate at least N points, for the N local-optimization processes."""
-        return self.num_evals >= self.gen_specs["user"]["max_active_runs"]
+        return self.n_buffd_results >= self.gen_specs["user"]["max_active_runs"]
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -88,20 +98,24 @@ class APOSMM(LibensembleGenThreadInterfacer):
         return results
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        if tag == PERSIS_STOP:
+        if results is None and tag == PERSIS_STOP:
             super().tell_numpy(results, tag)
             return
-        if self.num_evals == 0:
+        if len(results) == self._array_size:  # DONT NEED TO COPY OVER IF THE INPUT ARRAY IS THE CORRECT SIZE
+            self._told_initial_sample = True  # we definitely got an initial sample already if one matches
+            super().tell_numpy(results, tag)
+            return
+        if self.n_buffd_results == 0:
             self.tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
         self._slot_in_data(results)
-        self.num_evals += len(results)
+        self.n_buffd_results += len(results)
         if not self._told_initial_sample and self._enough_initial_sample:
             super().tell_numpy(self.tell_buf, tag)
             self._told_initial_sample = True
-            self.num_evals = 0
+            self.n_buffd_results = 0
         elif self._told_initial_sample and self._enough_subsequent_points:
             super().tell_numpy(self.tell_buf, tag)
-            self.num_evals = 0
+            self.n_buffd_results = 0
 
     def ask_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
