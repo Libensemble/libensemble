@@ -58,7 +58,7 @@ if __name__ == "__main__":
         rk_const=0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
         xtol_abs=1e-6,
         ftol_abs=1e-6,
-        max_active_runs=4,  # should this match nworkers always? practically?
+        max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
         lb=np.array([-3, -2]),
         ub=np.array([3, 2]),
     )
