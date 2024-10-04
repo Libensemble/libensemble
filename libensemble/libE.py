@@ -120,6 +120,7 @@ import pickle  # Only used when saving output on error
 import socket
 import sys
 import traceback
+import warnings
 from pathlib import Path
 from typing import Callable, Dict
 
@@ -590,6 +591,7 @@ def libE_tcp_mgr(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, 
         workers = None
         nworkers = libE_specs["nworkers"]
     elif libE_specs.get("workers"):
+        warnings.warn("LibeSpecs.workers will be renamed to LibeSpecs.worker_hosts in v2.0", FutureWarning)
         workers = libE_specs["workers"]
         nworkers = len(workers)
     ip = libE_specs["ip"] or get_ip()

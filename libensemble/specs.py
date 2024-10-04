@@ -397,7 +397,13 @@ class LibeSpecs(BaseModel):
     """
     TCP Only: Split string corresponding to worker/client Python process invocation. Contains
     a local Python path, calling script, and manager/server format-fields for ``manager_ip``,
-    ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally.
+    ``manager_port``, ``authkey``, and ``workerID``. ``nworkers`` is specified normally. Launched
+    locally for each worker.
+    """
+
+    worker_launcher: Optional[Callable] = None
+    """ TCP Only: Worker launcher function. Accepts ``libE_specs``. An alternative to
+    ``worker_cmd`` for initiating workers via third-party launchers.
     """
 
     use_persis_return_gen: Optional[bool] = False
