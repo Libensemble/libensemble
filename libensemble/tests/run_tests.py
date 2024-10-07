@@ -14,7 +14,8 @@ from pathlib import Path
 from colorama import init, Fore
 
 # Initialize colorama
-init(autoreset=True)
+#init(autoreset=True)
+init(autoreset=True, convert=True, strip=False)
 
 # -----------------------------------------------------------------------------------------
 # Configuration
@@ -250,8 +251,25 @@ def run_unit_tests(root_dir, python_exec, args):
         run_command(cmd, cwd=full_path)
     print(Fore.GREEN + "Unit tests completed.")
 
+def build_forces(root_dir):
+    """Build forces.x using mpicc."""
+    forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
+    build_command = ["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"]
+    try:
+        subprocess.run(build_command, cwd=forces_app_dir, check=True)
+    except subprocess.CalledProcessError as e:
+        print(Fore.RED + f"Error occurred while building forces.x: {e}")
+        sys.exit(1)
+
+    # Copy the forces app directory to the main test directory so test can locate forces.x
+    destination = os.path.join(root_dir, "libensemble/tests")
+    shutil.copytree(forces_app_dir, destination, dirs_exist_ok=True)
+
 def run_regression_tests(root_dir, python_exec, args):
     """Run regression tests."""
+    print(Fore.CYAN + "\nBuilding forces.x before running regression tests...")
+    build_forces(root_dir)  # Build forces.x before running tests
+
     print(Fore.CYAN + "\nRunning regression tests...")
     test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     user_comms_list = []
@@ -336,6 +354,7 @@ def run_regression_tests(root_dir, python_exec, args):
     )
     if reg_fail > 0:
         sys.exit(1)
+
 
 def main():
     args = parse_arguments()
