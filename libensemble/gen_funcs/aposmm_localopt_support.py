@@ -460,11 +460,11 @@ def run_local_ibcdfo_pounders(user_specs, comm_queue, x0, f0, child_can_read, pa
         Options=Options,
     )
 
-    assert flag >= 0, "IBCDFO errored"
+    assert flag >= 0 or flag == -6, "IBCDFO errored"
 
     x_opt = X[xkin]
 
-    if flag == 0:
+    if flag == 0 or flag == -6:
         opt_flag = 1
     else:
         print(
