@@ -241,11 +241,10 @@ def run_unit_tests(root_dir, python_exec, extra_args, args):
     print(Fore.CYAN + "\nRunning unit tests...")
     for dir_path in UNIT_TEST_DIRS:
         full_path = os.path.join(root_dir, dir_path)
-
-        #SH dont think this is right - where did this come from..
-        cmd = python_exec + ["-m", "coverage", "run", "--parallel-mode", "-m", "pytest", "--timeout=120"] + extra_args
-        if not args.s:
-            cmd.append("-q")
+        cov_rep = cov_report_type + ":cov_unit"
+        cmd = python_exec + ["-m", "pytest", "--timeout=120", "--cov", "--cov-report", cov_rep] + extra_args
+        if args.s:
+            cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
     print(Fore.GREEN + "Unit tests completed.")
 
@@ -349,7 +348,7 @@ def main():
     # Set Python executable
     python_exec = ["python"]
     if args.A:
-        python_exec += args.A.strip().split()
+        python_exec += args.A.strip().split()  #SH do i want this for unit tests
 
     extra_args = []
     if args.e:
