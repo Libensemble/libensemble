@@ -12,7 +12,7 @@ from pathlib import Path
 from rich.console import Console
 
 # Initialize rich console
-console = Console()
+console = Console(force_terminal=True)
 
 # -----------------------------------------------------------------------------------------
 # Configuration
