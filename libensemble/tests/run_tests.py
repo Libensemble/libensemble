@@ -342,7 +342,7 @@ def main():
     root_dir = find_project_root()
 
     if args.clean:
-        cleanup(root_dir)
+        cleanup(root_dir)  #SH think should run clean by default - but exit if -c. Check safety of clean.
         sys.exit(0)
 
     # Set Python executable
@@ -351,6 +351,7 @@ def main():
         python_exec += args.A.strip().split()  #SH do i want this for unit tests
 
     # Set options based on arguments
+    global RUN_UNIT_TESTS, RUN_REG_TESTS
     TEST_OPTIONS = [args.u, args.r]
     if any(TEST_OPTIONS):
         RUN_UNIT_TESTS = args.u
