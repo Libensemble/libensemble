@@ -48,14 +48,22 @@ class APOSMM(LibensembleGenThreadInterfacer):
         fields = results.dtype.names
         for j, ind in enumerate(indexes):
             for field in fields:
-                if np.isscalar(results[field][j]) or results.dtype[field].hasobject:
-                    self._tell_buf[field][ind] = results[field][j]
-                else:
-                    field_size = len(results[field][j])
-                    if field_size == len(self._tell_buf[field][ind]):
+                if not ind > len(
+                    self._tell_buf[field]
+                ):  # we got back an index e.g. 715, but our buffer is length e.g. 2
+                    if np.isscalar(results[field][j]) or results.dtype[field].hasobject:
                         self._tell_buf[field][ind] = results[field][j]
                     else:
-                        self._tell_buf[field][ind][:field_size] = results[field][j]
+                        field_size = len(results[field][j])
+                        if not ind > len(
+                            self._tell_buf[field]
+                        ):  # we got back an index e.g. 715, but our buffer is length e.g. 2
+                            if field_size == len(self._tell_buf[field][ind]):
+                                self._tell_buf[field][ind] = results[field][j]
+                            else:
+                                self._tell_buf[field][ind][:field_size] = results[field][j]
+                else:  # we slot it back by enumeration, not sim_id
+                    self._tell_buf[field][j] = results[field][j]
 
     @property
     def _array_size(self):
@@ -65,8 +73,11 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
     @property
     def _enough_initial_sample(self):
-        """We're typically happy with at least 90% of the initial sample."""
-        return self._n_buffd_results > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
+        """We're typically happy with at least 90% of the initial sample, or we've already told the initial sample"""
+        return (
+            self._n_buffd_results > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
+            or self._told_initial_sample
+        )
 
     @property
     def _enough_subsequent_points(self):
@@ -98,24 +109,34 @@ class APOSMM(LibensembleGenThreadInterfacer):
         return results
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        if results is None and tag == PERSIS_STOP:
-            super().tell_numpy(results, tag)
-            return
-        if len(results) == self._array_size:  # DONT NEED TO COPY OVER IF THE INPUT ARRAY IS THE CORRECT SIZE
+        if (results is None and tag == PERSIS_STOP) or len(
+            results
+        ) == self._array_size:  # told to stop, by final_tell or libE
             self._told_initial_sample = True  # we definitely got an initial sample already if one matches
             super().tell_numpy(results, tag)
             return
-        if self._n_buffd_results == 0:
+
+        if (
+            self._n_buffd_results == 0
+        ):  # now in Optimas; which prefers to give back chunks of initial_sample. So we buffer them
             self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
+
         self._slot_in_data(results)
         self._n_buffd_results += len(results)
+
         if not self._told_initial_sample and self._enough_initial_sample:
             super().tell_numpy(self._tell_buf, tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
+            return
+
         elif self._told_initial_sample and self._enough_subsequent_points:
             super().tell_numpy(self._tell_buf, tag)
             self._n_buffd_results = 0
+            return
+
+        else:  # probably libE: given back smaller selection. but from alloc, so its ok?
+            super().tell_numpy(results, tag)
 
     def ask_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
