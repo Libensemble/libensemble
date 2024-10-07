@@ -236,19 +236,21 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
-def run_unit_tests(root_dir, python_exec, extra_args, args):
+def run_unit_tests(root_dir, python_exec, args):
     """Run unit tests."""
     print(Fore.CYAN + "\nRunning unit tests...")
     for dir_path in UNIT_TEST_DIRS:
         full_path = os.path.join(root_dir, dir_path)
         cov_rep = cov_report_type + ":cov_unit"
-        cmd = python_exec + ["-m", "pytest", "--timeout=120", "--cov", "--cov-report", cov_rep] + extra_args
+        cmd = python_exec + ["-m", "pytest", "--timeout=120", "--cov", "--cov-report", cov_rep]
+        if args.e:
+            cmd.append("--runextra")
         if args.s:
             cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
     print(Fore.GREEN + "Unit tests completed.")
 
-def run_regression_tests(root_dir, python_exec, args, extra_args):
+def run_regression_tests(root_dir, python_exec, args):
     """Run regression tests."""
     print(Fore.CYAN + "\nRunning regression tests...")
     test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
@@ -283,9 +285,7 @@ def run_regression_tests(root_dir, python_exec, args, extra_args):
         test_script_name = os.path.basename(test_script)
         directives = parse_test_directives(test_script)
 
-        if directives['exclude']:
-            continue
-        if directives['extra'] and not args.e:
+        if directives['exclude'] or (directives['extra'] and not args.e):
             continue
         if current_os in directives['os_skip']:
             continue  # Skip this test on the current OS
@@ -350,13 +350,6 @@ def main():
     if args.A:
         python_exec += args.A.strip().split()  #SH do i want this for unit tests
 
-    extra_args = []
-    if args.e:
-        extra_args.append("--runextra")
-    # Handle additional arguments for unit tests
-    if args.A:
-        extra_args += args.A.strip().split()
-
     # Set options based on arguments
     TEST_OPTIONS = [args.u, args.r]
     if any(TEST_OPTIONS):
@@ -365,9 +358,9 @@ def main():
 
     print(Fore.CYAN + f"Python executable: {' '.join(python_exec)}")
     if RUN_UNIT_TESTS:
-        run_unit_tests(root_dir, python_exec, extra_args, args)
+        run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
-        run_regression_tests(root_dir, python_exec, args, extra_args)
+        run_regression_tests(root_dir, python_exec, args)
 
     if COV_REPORT:
         merge_coverage_reports(root_dir)
