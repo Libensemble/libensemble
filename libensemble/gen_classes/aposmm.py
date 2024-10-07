@@ -55,13 +55,10 @@ class APOSMM(LibensembleGenThreadInterfacer):
                         self._tell_buf[field][ind] = results[field][j]
                     else:
                         field_size = len(results[field][j])
-                        if not ind > len(
-                            self._tell_buf[field]
-                        ):  # we got back an index e.g. 715, but our buffer is length e.g. 2
-                            if field_size == len(self._tell_buf[field][ind]):
-                                self._tell_buf[field][ind] = results[field][j]
-                            else:
-                                self._tell_buf[field][ind][:field_size] = results[field][j]
+                        if field_size == len(self._tell_buf[field][ind]):
+                            self._tell_buf[field][ind] = results[field][j]
+                        else:
+                            self._tell_buf[field][ind][:field_size] = results[field][j]
                 else:  # we slot it back by enumeration, not sim_id
                     self._tell_buf[field][j] = results[field][j]
 

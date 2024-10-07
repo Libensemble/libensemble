@@ -74,6 +74,8 @@ if __name__ == "__main__":
             ("f", float),
         ],
         generator=aposmm,
+        batch_size=5,
+        initial_batch_size=10,
         user={"initial_sample_size": 100},
     )
 
