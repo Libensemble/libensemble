@@ -13,6 +13,8 @@ from pathlib import Path
 # Import colorama for colored output
 from colorama import init, Fore
 
+sys.stdout.isatty = lambda: True
+
 # Initialize colorama
 init(autoreset=True)
 #init(autoreset=True, convert=True, strip=False)

@@ -46,7 +46,6 @@ jobs:
             HYDRA_LAUNCHER: "fork"
             TERM: xterm-256color
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            FORCE_COLOR: "true"
 
         defaults:
             run:
