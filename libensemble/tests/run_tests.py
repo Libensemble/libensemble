@@ -9,15 +9,10 @@ import glob
 import time
 import platform
 from pathlib import Path
+from rich.console import Console
 
-# Import colorama for colored output
-from colorama import init, Fore
-
-sys.stdout.isatty = lambda: True
-
-# Initialize colorama
-init(autoreset=True)
-#init(autoreset=True, convert=True, strip=False)
+# Initialize rich console
+console = Console()
 
 # -----------------------------------------------------------------------------------------
 # Configuration
@@ -69,7 +64,7 @@ def find_project_root():
 
 def cleanup(root_dir):
     """Cleanup test run directories."""
-    print("Cleaning up test output...")
+    console.print("Cleaning up test output...", style="yellow")
     patterns = [
         ".cov_merge_out*",
         "ensemble_*",
@@ -100,6 +95,9 @@ def cleanup(root_dir):
         "y_*.txt",
         "opt_*.txt_flag",
         "*.png",
+        "test_executor_forces_tutorial",
+        "test_executor_forces_tutorial_2",
+
     ]
     dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     for dir_path in dirs_to_clean:
@@ -112,8 +110,8 @@ def cleanup(root_dir):
                     elif os.path.isdir(file_path):
                         shutil.rmtree(file_path)
                 except Exception as e:
-                    print(f"Error removing {file_path}: {e}")
-    print("Cleanup completed.")
+                    console.print(f"Error removing {file_path}: {e}", style="red")
+    console.print("Cleanup completed.", style="green")
 
 def total_time(start, end):
     """Return a time difference."""
@@ -129,43 +127,36 @@ def run_command(cmd, cwd=None, suppress_output=False):
             if proc.returncode != 0:
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
     else:
-        print(f"\n{cmd=}\n")
+        #console.print(f"\n{cmd=}\n", style="cyan")
         subprocess.run(cmd, cwd=cwd, check=True)
 
-def print_summary_line(phrase):
-    """Print a summary line like pytest."""
+def print_summary_line(phrase, style="cyan"):
+    """Print a summary line with the specified style."""
     term_width = shutil.get_terminal_size().columns
     line = phrase.center(term_width, "=")
-    print(line)
+    console.print(line, style=style)
+
 
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
-    print(
-        Fore.CYAN
-        + f"\n ---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes "
+    console.print(
+        f"\n ---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan"
     )
 
 def print_test_passed(test_num, test_script_name, comm, nprocs, duration):
     """Print the test passed message."""
-    print(
-        f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes"
-        + Fore.GREEN
-        + f"  ...passed after {duration} seconds"
-    )
+    console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
+    console.print(f"  ...passed after {duration} seconds", style="green")
 
 def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
     """Print the test failed message."""
-    print(
-        f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes"
-        + Fore.RED
-        + f"  ...failed after {duration} seconds"
-    )
+    console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
+    console.print(f"  ...failed after {duration} seconds", style="red")
 
 def merge_coverage_reports(root_dir):
     """Merge coverage data from multiple tests and generate a report."""
-    print(Fore.CYAN + "\nGenerating coverage reports...")
+    console.print("\nGenerating coverage reports...", style="cyan")
 
-    # Append libensemble/tests to root_dir in both glob and subprocess
     tests_dir = os.path.join(root_dir, "libensemble", "tests")
     cov_files = glob.glob(os.path.join(tests_dir, "**", ".cov_*"), recursive=True)
 
@@ -173,12 +164,12 @@ def merge_coverage_reports(root_dir):
         try:
             subprocess.run(["coverage", "combine"] + cov_files, cwd=tests_dir, check=True)
             subprocess.run(["coverage", cov_report_type], cwd=tests_dir, check=True)
-            print(Fore.GREEN + "Coverage reports generated.")
+            console.print("Coverage reports generated.", style="green")
         except subprocess.CalledProcessError as e:
-            print(Fore.RED + "Error generating coverage reports.")
+            console.print("Error generating coverage reports.", style="red")
             sys.exit(e.returncode)
     else:
-        print(Fore.YELLOW + "No coverage files found to merge.")
+        console.print("No coverage files found to merge.", style="yellow")
 
 def parse_test_directives(test_script):
     """Parse test suite directives from the test script."""
@@ -241,7 +232,7 @@ def parse_arguments():
 
 def run_unit_tests(root_dir, python_exec, args):
     """Run unit tests."""
-    print(Fore.CYAN + "\nRunning unit tests...")
+    console.print("\nRunning unit tests...", style="cyan")
     for dir_path in UNIT_TEST_DIRS:
         full_path = os.path.join(root_dir, dir_path)
         cov_rep = cov_report_type + ":cov_unit"
@@ -251,7 +242,7 @@ def run_unit_tests(root_dir, python_exec, args):
         if args.s:
             cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
-    print(Fore.GREEN + "Unit tests completed.")
+    console.print("Unit tests completed.", style="green")
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
@@ -263,11 +254,11 @@ def build_forces(root_dir):
 
 def run_regression_tests(root_dir, python_exec, args):
     """Run regression tests."""
-    print(Fore.CYAN + "\nBuilding forces.x before running regression tests...")
-    print(f"{os.getcwd()}")
+    console.print("\nBuilding forces.x before running regression tests...", style="cyan")
+    console.print(f"{os.getcwd()}")
     build_forces(root_dir)  # Build forces.x before running tests
 
-    print(Fore.CYAN + "\nRunning regression tests...")
+    console.print("\nRunning regression tests...", style="cyan")
     test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     user_comms_list = []
     if args.m:
@@ -285,14 +276,13 @@ def run_regression_tests(root_dir, python_exec, args):
         full_path = os.path.join(root_dir, dir_path)
         reg_test_files.extend(glob.glob(os.path.join(full_path, reg_test_list)))
 
-    # Sort the test files alphabetically
     reg_test_files = sorted(reg_test_files)
 
     reg_pass = 0
     reg_fail = 0
     start_time = time.time()
     test_num = 0
-    current_os = platform.system().lower()  # Get current OS
+    current_os = platform.system().lower()
     open_mpi = is_open_mpi()
     mpiexec_flags = args.a if args.a else ''
 
@@ -303,7 +293,7 @@ def run_regression_tests(root_dir, python_exec, args):
         if directives['exclude'] or (directives['extra'] and not args.e):
             continue
         if current_os in directives['os_skip']:
-            continue  # Skip this test on the current OS
+            continue
 
         comms_list = [comm for comm in directives['comms'] if comm in user_comms_list]
 
@@ -312,9 +302,8 @@ def run_regression_tests(root_dir, python_exec, args):
             for nprocs in nprocs_list:
                 test_num += 1
 
-                # Check for Open MPI skip condition
                 if directives['ompi_skip'] and open_mpi and mpiexec_flags == '--oversubscribe' and comm == 'mpi':
-                    print(f"Skipping test number {test_num} for Open MPI: {test_script_name}")
+                    console.print(f"Skipping test number {test_num} for Open MPI: {test_script_name}")
                     continue
 
                 cmd = python_exec + cov_opts + [test_script]
@@ -342,13 +331,9 @@ def run_regression_tests(root_dir, python_exec, args):
                         sys.exit(e.returncode)
     end_time = time.time()
     total = reg_pass + reg_fail
-    if reg_fail == 0:
-        summary_color = Fore.GREEN
-    else:
-        summary_color = Fore.RED
-    print_summary_line(
-        f"{summary_color}{reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds"
-    )
+    summary_style = "green" if reg_fail == 0 else "red"
+    print_summary_line(f"{reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds", style=summary_style)
+
     if reg_fail > 0:
         sys.exit(1)
 
@@ -358,22 +343,20 @@ def main():
     root_dir = find_project_root()
 
     if args.clean:
-        cleanup(root_dir)  #SH think should run clean by default - but exit if -c. Check safety of clean.
+        cleanup(root_dir)
         sys.exit(0)
 
-    # Set Python executable
     python_exec = ["python"]
     if args.A:
-        python_exec += args.A.strip().split()  #SH do i want this for unit tests
+        python_exec += args.A.strip().split()
 
-    # Set options based on arguments
     global RUN_UNIT_TESTS, RUN_REG_TESTS
     TEST_OPTIONS = [args.u, args.r]
     if any(TEST_OPTIONS):
         RUN_UNIT_TESTS = args.u
         RUN_REG_TESTS = args.r
 
-    print(Fore.CYAN + f"Python executable: {' '.join(python_exec)}")
+    console.print(f"Python executable: {' '.join(python_exec)}", style="cyan")
     if RUN_UNIT_TESTS:
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
@@ -382,7 +365,7 @@ def main():
     if COV_REPORT:
         merge_coverage_reports(root_dir)
 
-    print(Fore.GREEN + "\nAll tests passed.")
+    console.print("\nAll tests passed.", style="green")
 
 if __name__ == "__main__":
     main()
