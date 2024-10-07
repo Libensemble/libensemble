@@ -359,13 +359,10 @@ def main():
         extra_args += args.A.strip().split()
 
     # Set options based on arguments
-    global RUN_UNIT_TESTS, RUN_REG_TESTS
-    if args.u:
-        RUN_UNIT_TESTS = True
-        RUN_REG_TESTS = False
-    if args.r:
-        RUN_UNIT_TESTS = False
-        RUN_REG_TESTS = True
+    TEST_OPTIONS = [args.u, args.r]
+    if any(TEST_OPTIONS):
+        RUN_UNIT_TESTS = args.u
+        RUN_REG_TESTS = args.r
 
     print(Fore.CYAN + f"Python executable: {' '.join(python_exec)}")
     if RUN_UNIT_TESTS:
