@@ -167,7 +167,7 @@ jobs:
 
         - name: Run extensive tests
           run: |
-           ./libensemble/tests/run_tests.py -e -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |

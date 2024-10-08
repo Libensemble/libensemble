@@ -127,6 +127,8 @@ def run_command(cmd, cwd=None, suppress_output=False):
         ) as proc:
             stdout, stderr = proc.communicate()
             if proc.returncode != 0:
+                # SH: Print error output if fail (could show stdout also?)
+                print(stderr)
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
     else:
         #console.print(f"\n{cmd=}\n", style="cyan")

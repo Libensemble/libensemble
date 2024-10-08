@@ -108,12 +108,12 @@ jobs:
         - name: Run simple tests, Ubuntu
           if: matrix.os == 'ubuntu-latest'
           run: |
-           ./libensemble/tests/run_tests.py -A "-W error" -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Run simple tests, macOS
           if: matrix.os == 'macos-latest'
           run: |
-            ./libensemble/tests/run_tests.py -A "-W error" -z -${{ matrix.comms-type }}
+            ./libensemble/tests/run_tests.py -A "-W error" -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
