@@ -253,7 +253,7 @@ def run_unit_tests(root_dir, python_exec, args):
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
-    console.print("\n> Building forces.x before running regression tests...", style="yellow")
+    console.print("\Building forces.x before running regression tests...", style="yellow")
     forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
     subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
     destination_dir = os.path.join(root_dir, "libensemble/tests/forces_app")
@@ -275,7 +275,7 @@ def run_regression_tests(root_dir, python_exec, args):
         user_comms_list = ["mpi", "local", "tcp"]
 
     #console.print(f"\nRunning regression tests (comms: {', '.join(user_comms_list)}):", style="bold bright_magenta")
-    print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)}):")
+    print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
 
 
     build_forces(root_dir)  # Build forces.x before running tests
@@ -352,7 +352,7 @@ def run_regression_tests(root_dir, python_exec, args):
 def main():
     args = parse_arguments()
     root_dir = find_project_root()
-    print_heading ("************** Running: libEnsemble Test-Suite **************", style="bold white")
+    print_heading("************** Running: libEnsemble Test-Suite **************", style="bold bright_yellow")
 
     if args.clean:
         cleanup(root_dir)
@@ -368,7 +368,8 @@ def main():
         RUN_UNIT_TESTS = args.u
         RUN_REG_TESTS = args.r
 
-    console.print(f"> Python executable/options: {' '.join(python_exec)}", style="yellow")
+    # Any introductory info here
+    console.print(f"\nPython executable/options: {' '.join(python_exec)}", style="white")
     if RUN_UNIT_TESTS:
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
