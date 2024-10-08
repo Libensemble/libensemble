@@ -46,6 +46,7 @@ FUNC_TEST_SUBDIR = os.path.join(TESTING_DIR, "functionality_tests")
 # Coverage merge and report dir
 COV_MERGE_DIR = TESTING_DIR
 
+platform_mappings = {"Linux":"LIN", "Darwin":"OSX", "Windows":"WIN"}  # Based on TESTSUITE_OS_SKIP
 cov_opts = ["-m", "coverage", "run", "--parallel-mode", "--concurrency=multiprocessing,thread"]
 cov_report_type = "xml"  # e.g., html, xml
 
@@ -131,11 +132,11 @@ def run_command(cmd, cwd=None, suppress_output=False):
                 print(stderr)
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
     else:
-        #console.print(f"\n{cmd=}\n", style="cyan")
         subprocess.run(cmd, cwd=cwd, check=True)
 
 def print_heading(heading, style="bold bright_magenta"):
     """Print a centered panel with the given heading and style."""
+    console.print("")
     panel = Panel(Align.center(heading), style=style, expand=True)
     console.print(panel)
 
@@ -195,7 +196,7 @@ def parse_test_directives(test_script):
         ('# TESTSUITE_NPROCS:', 'nprocs', lambda x: [int(n) for n in x.split()]),
         ('# TESTSUITE_EXTRA:', 'extra', lambda x: x.lower() == 'true'),
         ('# TESTSUITE_EXCLUDE:', 'exclude', lambda x: x.lower() == 'true'),
-        ('# TESTSUITE_OS_SKIP:', 'os_skip', lambda x: x.lower().split()),
+        ('# TESTSUITE_OS_SKIP:', 'os_skip', lambda x: x.split()),
         ('# TESTSUITE_OMPI_SKIP:', 'ompi_skip', lambda x: x.lower() == 'true'),
     ]
 
@@ -261,7 +262,15 @@ def build_forces(root_dir):
     os.makedirs(destination_dir, exist_ok=True)
     shutil.copy(os.path.join(forces_app_dir, "forces.x"), destination_dir)
 
-def run_regression_tests(root_dir, python_exec, args):
+def skip_test(directives, args, current_os):
+    """Skip a test based on directives"""
+    if directives['exclude'] or (directives['extra'] and not args.e):
+        return True
+    if current_os in directives['os_skip']:
+        return True
+    return False
+
+def run_regression_tests(root_dir, python_exec, args, current_os):
     """Run regression tests."""
 
     test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
@@ -290,7 +299,7 @@ def run_regression_tests(root_dir, python_exec, args):
     reg_fail = 0
     start_time = time.time()
     test_num = 0
-    current_os = platform.system().lower()
+
     open_mpi = is_open_mpi()
     mpiexec_flags = args.a if args.a else ''
 
@@ -298,9 +307,7 @@ def run_regression_tests(root_dir, python_exec, args):
         test_script_name = os.path.basename(test_script)
         directives = parse_test_directives(test_script)
 
-        if directives['exclude'] or (directives['extra'] and not args.e):
-            continue
-        if current_os in directives['os_skip']:
+        if skip_test(directives, args, current_os):
             continue
 
         comms_list = [comm for comm in directives['comms'] if comm in user_comms_list]
@@ -346,14 +353,13 @@ def run_regression_tests(root_dir, python_exec, args):
     if reg_fail > 0:
         sys.exit(1)
 
-
 def main():
     args = parse_arguments()
     root_dir = find_project_root()
     print_heading("************** Running: libEnsemble Test-Suite **************", style="bold bright_yellow")
 
     if args.clean:
-        cleanup(root_dir)
+        cleanup(root_dir)  #SH clean up always?
         sys.exit(0)
 
     python_exec = ["python"]
@@ -366,12 +372,17 @@ def main():
         RUN_UNIT_TESTS = args.u
         RUN_REG_TESTS = args.r
 
+    base_os = platform.system()
+    current_os = platform_mappings.get(base_os)
+
     # Any introductory info here
     console.print(f"\nPython executable/options: {' '.join(python_exec)}", style="white")
+    console.print(f"OS: {base_os} ({current_os})", style="white")
+
     if RUN_UNIT_TESTS:
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
-        run_regression_tests(root_dir, python_exec, args)
+        run_regression_tests(root_dir, python_exec, args, current_os)
 
     if COV_REPORT:
         merge_coverage_reports(root_dir)
