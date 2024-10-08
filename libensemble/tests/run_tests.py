@@ -69,14 +69,13 @@ def cleanup(root_dir):
     """Cleanup test run directories."""
     console.print("Cleaning up test output...", style="yellow")
     patterns = [
-        ".cov_merge_out*",
+        ".cov_*",
         "ensemble_*",
         "workflow_*",
         "libE_history_at_abort_*.npy",
         "*.out",
         "*.err",
         "*.pickle",
-        ".cov_unit_out*",
         "simdir/*.x",
         "libe_task_*.out",
         "*libE_stats.txt",
@@ -105,6 +104,7 @@ def cleanup(root_dir):
     dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     for dir_path in dirs_to_clean:
         full_path = os.path.join(root_dir, dir_path)
+        #import pdb;pdb.set_trace()
         for pattern in patterns:
             for file_path in glob.glob(os.path.join(full_path, pattern)):
                 try:
@@ -220,40 +220,6 @@ def is_open_mpi():
         pass
     return False
 
-# -----------------------------------------------------------------------------------------
-# Main Functions
-
-def parse_arguments():
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="LibEnsemble Test Runner")
-    parser.add_argument("-c", "--clean", action="store_true", help="Clean up test directories and exit")
-    parser.add_argument("-s", action="store_true", help="Print stdout and stderr during pytest (unit tests)")
-    parser.add_argument("-z", action="store_true", help="Print stdout and stderr during regression tests")
-    parser.add_argument("-u", action="store_true", help="Run only the unit tests")
-    parser.add_argument("-r", action="store_true", help="Run only the regression tests")
-    parser.add_argument("-m", action="store_true", help="Run the regression tests using MPI comms")
-    parser.add_argument("-l", action="store_true", help="Run the regression tests using Local comms")
-    parser.add_argument("-t", action="store_true", help="Run the regression tests using TCP comms")
-    parser.add_argument("-e", action="store_true", help="Run extra unit and regression tests")
-    parser.add_argument("-A", metavar="<string>", help="Supply arguments to python")
-    parser.add_argument("-a", metavar="<string>", help="Supply a string of args to add to mpiexec line")
-    args = parser.parse_args()
-    return args
-
-def run_unit_tests(root_dir, python_exec, args):
-    """Run unit tests."""
-    print_heading(f"Running unit tests (with pytest)")
-    for dir_path in UNIT_TEST_DIRS:
-        full_path = os.path.join(root_dir, dir_path)
-        cov_rep = cov_report_type + ":cov_unit"
-        cmd = python_exec + ["-m", "pytest", "--timeout=120", "--cov", "--cov-report", cov_rep]
-        if args.e:
-            cmd.append("--runextra")
-        if args.s:
-            cmd.append("--capture=no")
-        run_command(cmd, cwd=full_path)
-    console.print("Unit tests completed.\n", style="green")
-
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
     console.print("\nBuilding forces.x before running regression tests...", style="yellow")
@@ -279,6 +245,42 @@ def skip_config(directives, args, comm):
         # console.print(f"Skipping test for Open MPI: {test_script_name}")
         return True
     return False
+
+# -----------------------------------------------------------------------------------------
+# Main Functions
+
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="LibEnsemble Test Runner")
+    parser.add_argument("-c", "--clean", action="store_true", help="Clean up test directories and exit")
+    parser.add_argument("-s", action="store_true", help="Print stdout and stderr during pytest (unit tests)")
+    parser.add_argument("-z", action="store_true", help="Print stdout and stderr during regression tests")
+    parser.add_argument("-u", action="store_true", help="Run only the unit tests")
+    parser.add_argument("-r", action="store_true", help="Run only the regression tests")
+    parser.add_argument("-m", action="store_true", help="Run the regression tests using MPI comms")
+    parser.add_argument("-l", action="store_true", help="Run the regression tests using Local comms")
+    parser.add_argument("-t", action="store_true", help="Run the regression tests using TCP comms")
+    parser.add_argument("-e", action="store_true", help="Run extra unit and regression tests")
+    parser.add_argument("-A", metavar="<string>", help="Supply arguments to python")
+    parser.add_argument("-a", metavar="<string>", help="Supply a string of args to add to mpiexec line")
+    args = parser.parse_args()
+    return args
+
+
+def run_unit_tests(root_dir, python_exec, args):
+    """Run unit tests."""
+    print_heading(f"Running unit tests (with pytest)")
+    for dir_path in UNIT_TEST_DIRS:
+        full_path = os.path.join(root_dir, dir_path)
+        cov_rep = cov_report_type + ":cov_unit"
+        cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120", "--cov", "--cov-report", cov_rep]
+        if args.e:
+            cmd.append("--runextra")
+        if args.s:
+            cmd.append("--capture=no")
+        run_command(cmd, cwd=full_path)
+    console.print("Unit tests completed.\n", style="green")
+
 
 def run_regression_tests(root_dir, python_exec, args, current_os):
     """Run regression tests."""
@@ -365,7 +367,7 @@ def main():
     print_heading("************** Running: libEnsemble Test-Suite **************", style="bold bright_yellow")
 
     if args.clean:
-        cleanup(root_dir)  #SH clean up always?
+        cleanup(root_dir)
         sys.exit(0)
 
     python_exec = ["python"]
