@@ -129,6 +129,7 @@ def run_command(cmd, cwd=None, suppress_output=False):
             stdout, stderr = proc.communicate()
             if proc.returncode != 0:
                 # SH: Print error output if fail (could show stdout also?)
+                # print(stdout)
                 print(stderr)
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
     else:
@@ -149,14 +150,14 @@ def print_summary_line(phrase, style="cyan"):
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
     console.print(
-        f"\n ---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan"
+        f"\n---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan"
     )
 
 def print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output):
     """Print the test passed message."""
     if not suppress_output:
         console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
-    console.print(f"  ...passed after {duration} seconds", style="green")
+    console.print(f"   ...passed after {duration} seconds", style="green")
 
 def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
     """Print the test failed message."""
@@ -213,7 +214,7 @@ def is_open_mpi():
     """Check if Open MPI is being used."""
     try:
         result = subprocess.run(['mpiexec', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if 'Open MPI' in result.stdout:
+        if 'Open MPI' in result.stdout or 'OpenRTE' in result.stdout:
             return True
     except Exception:
         pass
@@ -270,6 +271,15 @@ def skip_test(directives, args, current_os):
         return True
     return False
 
+def skip_config(directives, args, comm):
+    """Skip a test configuration based on directives"""
+    open_mpi = is_open_mpi()
+    mpiexec_flags = args.a if args.a else ''
+    if directives['ompi_skip'] and open_mpi and mpiexec_flags == '--oversubscribe' and comm == 'mpi':
+        # console.print(f"Skipping test for Open MPI: {test_script_name}")
+        return True
+    return False
+
 def run_regression_tests(root_dir, python_exec, args, current_os):
     """Run regression tests."""
 
@@ -300,9 +310,6 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     start_time = time.time()
     test_num = 0
 
-    open_mpi = is_open_mpi()
-    mpiexec_flags = args.a if args.a else ''
-
     for test_script in reg_test_files:
         test_script_name = os.path.basename(test_script)
         directives = parse_test_directives(test_script)
@@ -315,11 +322,9 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         for comm in comms_list:
             nprocs_list = directives['nprocs']
             for nprocs in nprocs_list:
-                test_num += 1
-
-                if directives['ompi_skip'] and open_mpi and mpiexec_flags == '--oversubscribe' and comm == 'mpi':
-                    console.print(f"Skipping test number {test_num} for Open MPI: {test_script_name}")
+                if skip_config(directives, args, comm):
                     continue
+                test_num += 1
 
                 cmd = python_exec + cov_opts + [test_script]
                 if comm == "mpi":
@@ -332,6 +337,7 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
                 print_test_start(test_num, test_script_name, comm, nprocs)
                 try:
                     suppress_output = not args.z
+                    # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
                     run_command(cmd, cwd=cwd, suppress_output=suppress_output)
                     test_end = time.time()
                     duration = total_time(test_start, test_end)
