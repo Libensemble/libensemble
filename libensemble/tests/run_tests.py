@@ -366,8 +366,8 @@ def main():
     root_dir = find_project_root()
     print_heading("************** Running: libEnsemble Test-Suite **************", style="bold bright_yellow")
 
+    cleanup(root_dir)  # Always clean up
     if args.clean:
-        cleanup(root_dir)
         sys.exit(0)
 
     python_exec = ["python"]
