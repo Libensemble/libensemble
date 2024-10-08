@@ -5,6 +5,7 @@ import numpy as np
 from numpy import typing as npt
 
 from libensemble.generators import LibensembleGenThreadInterfacer
+from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools import add_unique_random_streams
 
 
@@ -32,33 +33,107 @@ class APOSMM(LibensembleGenThreadInterfacer):
         if not persis_info:
             persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
         super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        if not self.persis_info.get("nworkers"):
+            self.persis_info["nworkers"] = gen_specs["user"]["max_active_runs"]  # ??????????
         self.all_local_minima = []
-        self.results_idx = 0
-        self.last_ask = None
+        self._ask_idx = 0
+        self._last_ask = None
+        self._tell_buf = None
+        self._n_buffd_results = 0
+        self._told_initial_sample = False
+
+    def _slot_in_data(self, results):
+        """Slot in libE_calc_in and trial data into corresponding array fields."""
+        indexes = results["sim_id"]
+        fields = results.dtype.names
+        for j, ind in enumerate(indexes):
+            for field in fields:
+                if not ind > len(
+                    self._tell_buf[field]
+                ):  # we got back an index e.g. 715, but our buffer is length e.g. 2
+                    if np.isscalar(results[field][j]) or results.dtype[field].hasobject:
+                        self._tell_buf[field][ind] = results[field][j]
+                    else:
+                        field_size = len(results[field][j])
+                        if field_size == len(self._tell_buf[field][ind]):
+                            self._tell_buf[field][ind] = results[field][j]
+                        else:
+                            self._tell_buf[field][ind][:field_size] = results[field][j]
+                else:  # we slot it back by enumeration, not sim_id
+                    self._tell_buf[field][j] = results[field][j]
+
+    @property
+    def _array_size(self):
+        """Output array size must match either initial sample or N points to evaluate in parallel."""
+        user = self.gen_specs["user"]
+        return user["initial_sample_size"] if not self._told_initial_sample else user["max_active_runs"]
+
+    @property
+    def _enough_initial_sample(self):
+        """We're typically happy with at least 90% of the initial sample, or we've already told the initial sample"""
+        return (
+            self._n_buffd_results > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
+            or self._told_initial_sample
+        )
+
+    @property
+    def _enough_subsequent_points(self):
+        """But we need to evaluate at least N points, for the N local-optimization processes."""
+        return self._n_buffd_results >= self.gen_specs["user"]["max_active_runs"]
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if (self.last_ask is None) or (
-            self.results_idx >= len(self.last_ask)
+        if (self._last_ask is None) or (
+            self._ask_idx >= len(self._last_ask)
         ):  # haven't been asked yet, or all previously enqueued points have been "asked"
-            self.results_idx = 0
-            self.last_ask = super().ask_numpy(num_points)
-            if self.last_ask[
+            self._ask_idx = 0
+            self._last_ask = super().ask_numpy(num_points)
+            if self._last_ask[
                 "local_min"
             ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
-                min_idxs = self.last_ask["local_min"]
-                self.all_local_minima.append(self.last_ask[min_idxs])
-                self.last_ask = self.last_ask[~min_idxs]
+                min_idxs = self._last_ask["local_min"]
+                self.all_local_minima.append(self._last_ask[min_idxs])
+                self._last_ask = self._last_ask[~min_idxs]
         if num_points > 0:  # we've been asked for a selection of the last ask
             results = np.copy(
-                self.last_ask[self.results_idx : self.results_idx + num_points]
-            )  # if resetting last_ask later, results may point to "None"
-            self.results_idx += num_points
+                self._last_ask[self._ask_idx : self._ask_idx + num_points]
+            )  # if resetting _last_ask later, results may point to "None"
+            self._ask_idx += num_points
             return results
-        results = np.copy(self.last_ask)
+        results = np.copy(self._last_ask)
         self.results = results
-        self.last_ask = None
+        self._last_ask = None
         return results
+
+    def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+        if (results is None and tag == PERSIS_STOP) or len(
+            results
+        ) == self._array_size:  # told to stop, by final_tell or libE
+            self._told_initial_sample = True  # we definitely got an initial sample already if one matches
+            super().tell_numpy(results, tag)
+            return
+
+        if (
+            self._n_buffd_results == 0
+        ):  # now in Optimas; which prefers to give back chunks of initial_sample. So we buffer them
+            self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
+
+        self._slot_in_data(results)
+        self._n_buffd_results += len(results)
+
+        if not self._told_initial_sample and self._enough_initial_sample:
+            super().tell_numpy(self._tell_buf, tag)
+            self._told_initial_sample = True
+            self._n_buffd_results = 0
+            return
+
+        elif self._told_initial_sample and self._enough_subsequent_points:
+            super().tell_numpy(self._tell_buf, tag)
+            self._n_buffd_results = 0
+            return
+
+        else:  # probably libE: given back smaller selection. but from alloc, so its ok?
+            super().tell_numpy(results, tag)
 
     def ask_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
