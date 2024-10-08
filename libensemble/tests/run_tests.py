@@ -143,7 +143,7 @@ def print_summary_line(phrase, style="cyan"):
     """Print a summary line with the specified style."""
     term_width = shutil.get_terminal_size().columns
     line = phrase.center(term_width, "=")
-    console.print(line, style=style)
+    console.print(f"\n{line}\n", style=style)
 
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
@@ -151,9 +151,10 @@ def print_test_start(test_num, test_script_name, comm, nprocs):
         f"\n ---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan"
     )
 
-def print_test_passed(test_num, test_script_name, comm, nprocs, duration):
+def print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output):
     """Print the test passed message."""
-    console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
+    if not suppress_output:
+        console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
     console.print(f"  ...passed after {duration} seconds", style="green")
 
 def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
@@ -253,7 +254,7 @@ def run_unit_tests(root_dir, python_exec, args):
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
-    console.print("\Building forces.x before running regression tests...", style="yellow")
+    console.print("\nBuilding forces.x before running regression tests...", style="yellow")
     forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
     subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
     destination_dir = os.path.join(root_dir, "libensemble/tests/forces_app")
@@ -274,10 +275,7 @@ def run_regression_tests(root_dir, python_exec, args):
     if not user_comms_list:
         user_comms_list = ["mpi", "local", "tcp"]
 
-    #console.print(f"\nRunning regression tests (comms: {', '.join(user_comms_list)}):", style="bold bright_magenta")
     print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
-
-
     build_forces(root_dir)  # Build forces.x before running tests
 
     reg_test_list = REG_TEST_LIST
@@ -330,7 +328,7 @@ def run_regression_tests(root_dir, python_exec, args):
                     run_command(cmd, cwd=cwd, suppress_output=suppress_output)
                     test_end = time.time()
                     duration = total_time(test_start, test_end)
-                    print_test_passed(test_num, test_script_name, comm, nprocs, duration)
+                    print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output)
                     reg_pass += 1
                 except subprocess.CalledProcessError as e:
                     test_end = time.time()
