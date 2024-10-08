@@ -10,6 +10,8 @@ import time
 import platform
 from pathlib import Path
 from rich.console import Console
+from rich.panel import Panel
+from rich.align import Align
 
 # Initialize rich console
 console = Console(force_terminal=True)
@@ -111,7 +113,7 @@ def cleanup(root_dir):
                         shutil.rmtree(file_path)
                 except Exception as e:
                     console.print(f"Error removing {file_path}: {e}", style="red")
-    console.print("Cleanup completed.", style="green")
+    console.print("Cleanup completed.\n", style="green")
 
 def total_time(start, end):
     """Return a time difference."""
@@ -130,12 +132,16 @@ def run_command(cmd, cwd=None, suppress_output=False):
         #console.print(f"\n{cmd=}\n", style="cyan")
         subprocess.run(cmd, cwd=cwd, check=True)
 
+def print_heading(heading, style="bold bright_magenta"):
+    """Print a centered panel with the given heading and style."""
+    panel = Panel(Align.center(heading), style=style, expand=True)
+    console.print(panel)
+
 def print_summary_line(phrase, style="cyan"):
     """Print a summary line with the specified style."""
     term_width = shutil.get_terminal_size().columns
     line = phrase.center(term_width, "=")
     console.print(line, style=style)
-
 
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
@@ -155,8 +161,7 @@ def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
 
 def merge_coverage_reports(root_dir):
     """Merge coverage data from multiple tests and generate a report."""
-    console.print("\nGenerating coverage reports...", style="cyan")
-
+    print_heading("Generating coverage reports")
     tests_dir = os.path.join(root_dir, "libensemble", "tests")
     cov_files = glob.glob(os.path.join(tests_dir, "**", ".cov_*"), recursive=True)
 
@@ -232,7 +237,7 @@ def parse_arguments():
 
 def run_unit_tests(root_dir, python_exec, args):
     """Run unit tests."""
-    console.print("\nRunning unit tests...", style="cyan")
+    print_heading(f"Running unit tests (with pytest)")
     for dir_path in UNIT_TEST_DIRS:
         full_path = os.path.join(root_dir, dir_path)
         cov_rep = cov_report_type + ":cov_unit"
@@ -242,10 +247,11 @@ def run_unit_tests(root_dir, python_exec, args):
         if args.s:
             cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
-    console.print("Unit tests completed.", style="green")
+    console.print("Unit tests completed.\n", style="green")
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
+    console.print("\n> Building forces.x before running regression tests...", style="yellow")
     forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
     subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
     destination_dir = os.path.join(root_dir, "libensemble/tests/forces_app")
@@ -254,11 +260,7 @@ def build_forces(root_dir):
 
 def run_regression_tests(root_dir, python_exec, args):
     """Run regression tests."""
-    console.print("\nBuilding forces.x before running regression tests...", style="cyan")
-    console.print(f"{os.getcwd()}")
-    build_forces(root_dir)  # Build forces.x before running tests
 
-    console.print("\nRunning regression tests...", style="cyan")
     test_dirs = [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     user_comms_list = []
     if args.m:
@@ -269,6 +271,12 @@ def run_regression_tests(root_dir, python_exec, args):
         user_comms_list.append("tcp")
     if not user_comms_list:
         user_comms_list = ["mpi", "local", "tcp"]
+
+    #console.print(f"\nRunning regression tests (comms: {', '.join(user_comms_list)}):", style="bold bright_magenta")
+    print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)}):")
+
+
+    build_forces(root_dir)  # Build forces.x before running tests
 
     reg_test_list = REG_TEST_LIST
     reg_test_files = []
@@ -332,7 +340,8 @@ def run_regression_tests(root_dir, python_exec, args):
     end_time = time.time()
     total = reg_pass + reg_fail
     summary_style = "green" if reg_fail == 0 else "red"
-    print_summary_line(f"{reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds", style=summary_style)
+    prefix = "FAIL" if reg_fail > 0 else "PASS"
+    print_summary_line(f" {prefix}: {reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds ", style=summary_style)
 
     if reg_fail > 0:
         sys.exit(1)
@@ -341,6 +350,7 @@ def run_regression_tests(root_dir, python_exec, args):
 def main():
     args = parse_arguments()
     root_dir = find_project_root()
+    print_heading ("************** Running: libEnsemble Test-Suite **************", style="bold white")
 
     if args.clean:
         cleanup(root_dir)
@@ -356,7 +366,7 @@ def main():
         RUN_UNIT_TESTS = args.u
         RUN_REG_TESTS = args.r
 
-    console.print(f"Python executable: {' '.join(python_exec)}", style="cyan")
+    console.print(f"> Python executable/options: {' '.join(python_exec)}", style="yellow")
     if RUN_UNIT_TESTS:
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
