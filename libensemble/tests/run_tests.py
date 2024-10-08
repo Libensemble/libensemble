@@ -67,7 +67,7 @@ def find_project_root():
 
 def cleanup(root_dir):
     """Cleanup test run directories."""
-    console.print("Cleaning up test output...", style="yellow")
+    console.print("Cleaning any previous test output...", style="yellow")
     patterns = [
         ".cov_*",
         "ensemble_*",
@@ -246,6 +246,24 @@ def skip_config(directives, args, comm):
         return True
     return False
 
+def make_run_line(python_exec, test_script, comm, nprocs, args):
+    """Build run line"""
+    cmd = python_exec + cov_opts + [test_script]
+    if comm == "mpi":
+        cmd = ["mpiexec", "-np", str(nprocs)] + (args.a.split() if args.a else []) + cmd
+    else:
+        cmd += ["--comms", comm, "--nworkers", str(nprocs - 1)]
+    return cmd
+
+def process_output(success, test_start, test_num, name, comm, nprocs, suppress):
+    """Process output, timing and print"""
+    test_end = time.time()
+    duration = total_time(test_start, test_end)
+    if success:
+        print_test_passed(test_num, name, comm, nprocs, duration, suppress)
+    else:
+        print_test_failed(test_num, name, comm, nprocs, duration)
+
 # -----------------------------------------------------------------------------------------
 # Main Functions
 
@@ -306,34 +324,25 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         reg_test_files.extend(glob.glob(os.path.join(full_path, reg_test_list)))
 
     reg_test_files = sorted(reg_test_files)
-
     reg_pass = 0
     reg_fail = 0
-    start_time = time.time()
     test_num = 0
+    start_time = time.time()
 
     for test_script in reg_test_files:
         test_script_name = os.path.basename(test_script)
         directives = parse_test_directives(test_script)
-
         if skip_test(directives, args, current_os):
             continue
 
         comms_list = [comm for comm in directives['comms'] if comm in user_comms_list]
-
         for comm in comms_list:
             nprocs_list = directives['nprocs']
             for nprocs in nprocs_list:
                 if skip_config(directives, args, comm):
                     continue
                 test_num += 1
-
-                cmd = python_exec + cov_opts + [test_script]
-                if comm == "mpi":
-                    cmd = ["mpiexec", "-np", str(nprocs)] + (args.a.split() if args.a else []) + cmd
-                else:
-                    cmd += ["--comms", comm, "--nworkers", str(nprocs - 1)]
-
+                cmd = make_run_line(python_exec, test_script, comm, nprocs, args)
                 test_start = time.time()
                 cwd = os.path.dirname(test_script)
                 print_test_start(test_num, test_script_name, comm, nprocs)
@@ -341,14 +350,10 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
                     suppress_output = not args.z
                     # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
                     run_command(cmd, cwd=cwd, suppress_output=suppress_output)
-                    test_end = time.time()
-                    duration = total_time(test_start, test_end)
-                    print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output)
+                    process_output(True, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
                     reg_pass += 1
                 except subprocess.CalledProcessError as e:
-                    test_end = time.time()
-                    duration = total_time(test_start, test_end)
-                    print_test_failed(test_num, test_script_name, comm, nprocs, duration)
+                    process_output(False, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
                     reg_fail += 1
                     if REG_STOP_ON_FAILURE:
                         sys.exit(e.returncode)
@@ -357,7 +362,6 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     summary_style = "green" if reg_fail == 0 else "red"
     prefix = "FAIL" if reg_fail > 0 else "PASS"
     print_summary_line(f" {prefix}: {reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds ", style=summary_style)
-
     if reg_fail > 0:
         sys.exit(1)
 
@@ -384,7 +388,7 @@ def main():
     current_os = platform_mappings.get(base_os)
 
     # Any introductory info here
-    console.print(f"\nPython executable/options: {' '.join(python_exec)}", style="white")
+    console.print(f"Python executable/options: {' '.join(python_exec)}", style="white")
     console.print(f"OS: {base_os} ({current_os})", style="white")
 
     if RUN_UNIT_TESTS:
