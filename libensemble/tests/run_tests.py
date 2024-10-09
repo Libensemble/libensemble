@@ -134,6 +134,9 @@ def cleanup(root_dir):
     dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     for dir_path in dirs_to_clean:
         full_path = os.path.join(root_dir, dir_path)
+        if "libensemble/tests/" not in full_path.replace("\\", "/"):
+            cprint(f"Safety check failed for {full_path}. Check directory", style="red")
+            sys.exit(2)
         for pattern in patterns:
             for file_path in glob.glob(os.path.join(full_path, pattern)):
                 try:
