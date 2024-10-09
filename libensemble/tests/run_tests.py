@@ -79,6 +79,7 @@ def cleanup(root_dir):
     console.print("Cleaning any previous test output...", style="yellow")
     patterns = [
         ".cov_*",
+        "cov_*",
         "ensemble_*",
         "workflow_*",
         "libE_history_at_abort_*.npy",
@@ -130,7 +131,7 @@ def total_time(start, end):
 
 def run_command(cmd, cwd=None, suppress_output=False):
     """Run a shell command and display its output."""
-    print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
+    # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging
     if suppress_output:
         with subprocess.Popen(
             cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
@@ -302,6 +303,7 @@ def run_unit_tests(root_dir, python_exec, args):
     """Run unit tests."""
     print_heading(f"Running unit tests (with pytest)")
     for dir_path in UNIT_TEST_DIRS:
+        console.print(f"\nEntering unit test dir: {dir_path}", style="yellow")
         full_path = os.path.join(root_dir, dir_path)
         cov_rep = cov_report_type + ":cov_unit"
         cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120", "--cov", "--cov-report", cov_rep]
@@ -382,7 +384,7 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
 def main():
     args = parse_arguments()
     root_dir = find_project_root()
-    print_heading("************** Running: libEnsemble Test-Suite **************", style="bold bright_yellow")
+    print_heading("************** libEnsemble Test-Suite **************", style="bold bright_yellow")
 
     cleanup(root_dir)  # Always clean up
     if args.clean:
