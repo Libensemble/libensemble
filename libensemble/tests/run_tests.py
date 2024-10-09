@@ -79,12 +79,21 @@ def cprint(msg, newline=False, style=None, end="\n"):
     """Print line to console"""
     if RICH_OUTPUT:
         if newline:
-            console.print("")  # In console.print "\n" does not work in CI
+            console.print()  # In console.print "\n" does not work in CI
         console.print(msg, style=style, end=end)
     else:
         if newline:
             print()
         print(msg, end=end)
+
+
+def print_heading(heading, style="bold bright_magenta"):
+    """Print a centered panel with the given heading and style."""
+    if RICH_OUTPUT:
+        panel = Panel(Align.center(heading), style=style, expand=True)
+    else:
+        panel = heading
+    cprint(panel, newline=True)
 
 
 def cleanup(root_dir):
@@ -155,15 +164,6 @@ def run_command(cmd, cwd=None, suppress_output=False):
                 raise subprocess.CalledProcessError(proc.returncode, cmd)
     else:
         subprocess.run(cmd, cwd=cwd, check=True)
-
-
-def print_heading(heading, style="bold bright_magenta"):
-    """Print a centered panel with the given heading and style."""
-    if RICH_OUTPUT:
-        panel = Panel(Align.center(heading), style=style, expand=True)
-    else:
-        panel = heading
-    cprint(panel, newline=True)
 
 
 def print_summary_line(phrase, style="cyan"):
