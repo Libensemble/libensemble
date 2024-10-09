@@ -77,7 +77,7 @@ def cprint(msg, newline=False, style=None, end="\n"):
     """Print line to console"""
     if RICH_OUTPUT:
         if newline:
-            console.print()  # In console.print "\n" does not work in CI
+            console.print("")  # In console.print "\n" does not work in CI
         console.print(msg, style=style, end=end)
     else:
         if newline:
