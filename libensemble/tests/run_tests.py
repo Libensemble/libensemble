@@ -13,8 +13,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.align import Align
 
+import shutil
+
+term_width = shutil.get_terminal_size().columns
+print(f"{term_width=}") #tmp
+
+width = max(term_width, 100)  # wide enough for most lines
+
 # Initialize rich console
-console = Console(force_terminal=True)
+console = Console(force_terminal=True, width=width)
 
 # -----------------------------------------------------------------------------------------
 # Configuration
@@ -123,6 +130,7 @@ def total_time(start, end):
 
 def run_command(cmd, cwd=None, suppress_output=False):
     """Run a shell command and display its output."""
+    print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
     if suppress_output:
         with subprocess.Popen(
             cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
@@ -355,7 +363,6 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
                 test_start = time.time()
                 try:
                     suppress_output = not args.z
-                    # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
                     run_command(cmd, cwd=cwd, suppress_output=suppress_output)
                     process_output(True, test_start, test_num, test_script_name, comm, nprocs, suppress_output)
                     reg_pass += 1
@@ -402,7 +409,6 @@ def main():
         run_unit_tests(root_dir, python_exec, args)
     if RUN_REG_TESTS:
         run_regression_tests(root_dir, python_exec, args, current_os)
-
     if COV_REPORT:
         merge_coverage_reports(root_dir)
 
