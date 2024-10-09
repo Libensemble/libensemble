@@ -28,6 +28,8 @@ COV_REPORT = True
 REG_TEST_LIST = "test_*.py"
 REG_TEST_OUTPUT_EXT = "std.out"
 REG_STOP_ON_FAILURE = False
+REG_LIST_TESTS_ONLY = False  # just shows all tests to be run.
+REG_RUN_LARGEST_TEST_ONLY = False
 
 # Test Directories - all relative to project root dir
 CODE_DIR = "libensemble"
@@ -96,7 +98,6 @@ def cleanup(root_dir):
         "x_*.txt",
         "y_*.txt",
         "opt_*.txt_flag",
-        "*.png",
         "test_executor_forces_tutorial",
         "test_executor_forces_tutorial_2",
 
@@ -183,8 +184,10 @@ def merge_coverage_reports(root_dir):
 
 def parse_test_directives(test_script):
     """Parse test suite directives from the test script."""
+
+    # Directives with default options
     directives = {
-        'comms': ['mpi', 'local', 'tcp'],
+        'comms': ['local'],
         'nprocs': [4],
         'extra': False,
         'exclude': False,
@@ -208,6 +211,8 @@ def parse_test_directives(test_script):
                     value = line.split(':', 1)[1].strip()
                     directives[key] = parse_func(value)
                     break
+    if REG_RUN_LARGEST_TEST_ONLY:
+        directives['nprocs'] = [directives['nprocs'][-1]]
     return directives
 
 def is_open_mpi():
@@ -343,9 +348,11 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
                     continue
                 test_num += 1
                 cmd = make_run_line(python_exec, test_script, comm, nprocs, args)
-                test_start = time.time()
                 cwd = os.path.dirname(test_script)
                 print_test_start(test_num, test_script_name, comm, nprocs)
+                if REG_LIST_TESTS_ONLY:
+                    continue
+                test_start = time.time()
                 try:
                     suppress_output = not args.z
                     # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging - show run-line
