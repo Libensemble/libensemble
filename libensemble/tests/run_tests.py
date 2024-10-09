@@ -54,10 +54,10 @@ platform_mappings = {"Linux":"LIN", "Darwin":"OSX", "Windows":"WIN"}  # Based on
 cov_opts = ["-m", "coverage", "run", "--parallel-mode", "--concurrency=multiprocessing,thread"]
 cov_report_type = "xml"  # e.g., html, xml
 
+term_width = shutil.get_terminal_size().columns
 if RICH_OUTPUT:
-    term_width = shutil.get_terminal_size().columns
-    width = max(term_width, 90)  # wide enough for most lines
-    console = Console(force_terminal=True, width=width)
+    term_width = max(term_width, 90)  # wide enough for most lines
+    console = Console(force_terminal=True, width=term_width)
 # -----------------------------------------------------------------------------------------
 # Environment Variables
 
@@ -165,7 +165,6 @@ def print_heading(heading, style="bold bright_magenta"):
 
 def print_summary_line(phrase, style="cyan"):
     """Print a summary line with the specified style."""
-    term_width = shutil.get_terminal_size().columns
     line = phrase.center(term_width, "=")
     cprint(f"{line}", newline=True, style=style)
 
