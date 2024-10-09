@@ -50,7 +50,7 @@ FUNC_TEST_SUBDIR = os.path.join(TESTING_DIR, "functionality_tests")
 # Coverage merge and report dir
 COV_MERGE_DIR = TESTING_DIR
 
-platform_mappings = {"Linux":"LIN", "Darwin":"OSX", "Windows":"WIN"}  # Based on TESTSUITE_OS_SKIP
+platform_mappings = {"Linux": "LIN", "Darwin": "OSX", "Windows": "WIN"}
 cov_opts = ["-m", "coverage", "run", "--parallel-mode", "--concurrency=multiprocessing,thread"]
 cov_report_type = "xml"  # e.g., html, xml
 
@@ -68,10 +68,12 @@ os.environ["OMP_NUM_THREADS"] = "1"
 # -----------------------------------------------------------------------------------------
 # Helper Functions
 
+
 def find_project_root():
     """Find the project root directory."""
     root_dir = Path(__file__).resolve().parents[2]
     return str(root_dir)
+
 
 def cprint(msg, newline=False, style=None, end="\n"):
     """Print line to console"""
@@ -83,6 +85,7 @@ def cprint(msg, newline=False, style=None, end="\n"):
         if newline:
             print()
         print(msg, end=end)
+
 
 def cleanup(root_dir):
     """Cleanup test run directories."""
@@ -118,12 +121,10 @@ def cleanup(root_dir):
         "opt_*.txt_flag",
         "test_executor_forces_tutorial",
         "test_executor_forces_tutorial_2",
-
     ]
     dirs_to_clean = UNIT_TEST_DIRS + [REG_TEST_SUBDIR, FUNC_TEST_SUBDIR]
     for dir_path in dirs_to_clean:
         full_path = os.path.join(root_dir, dir_path)
-        #import pdb;pdb.set_trace()
         for pattern in patterns:
             for file_path in glob.glob(os.path.join(full_path, pattern)):
                 try:
@@ -135,17 +136,17 @@ def cleanup(root_dir):
                     cprint(f"Error removing {file_path}: {e}", style="red")
     cprint("Cleanup completed.", style="green")
 
+
 def total_time(start, end):
     """Return a time difference."""
     return round(end - start, 2)
+
 
 def run_command(cmd, cwd=None, suppress_output=False):
     """Run a shell command and display its output."""
     # print(f"\nCommand: {' '.join(cmd)}\n")  # For debugging
     if suppress_output:
-        with subprocess.Popen(
-            cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        ) as proc:
+        with subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as proc:
             stdout, stderr = proc.communicate()
             if proc.returncode != 0:
                 # SH: Print error output if fail (could show stdout also?)
@@ -155,6 +156,7 @@ def run_command(cmd, cwd=None, suppress_output=False):
     else:
         subprocess.run(cmd, cwd=cwd, check=True)
 
+
 def print_heading(heading, style="bold bright_magenta"):
     """Print a centered panel with the given heading and style."""
     if RICH_OUTPUT:
@@ -163,16 +165,21 @@ def print_heading(heading, style="bold bright_magenta"):
         panel = heading
     cprint(panel, newline=True)
 
+
 def print_summary_line(phrase, style="cyan"):
     """Print a summary line with the specified style."""
     line = phrase.center(term_width, "=")
     cprint(f"{line}", newline=True, style=style)
 
+
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
     cprint(
-        f"---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan", newline=True
+        f"---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ",
+        style="cyan",
+        newline=True,
     )
+
 
 def print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output):
     """Print the test passed message."""
@@ -180,10 +187,12 @@ def print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppre
         cprint(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
     cprint(f"   ...passed after {duration} seconds", style="green")
 
+
 def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
     """Print the test failed message."""
     cprint(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
     cprint(f"   ...failed after {duration} seconds", style="red")
+
 
 def merge_coverage_reports(root_dir):
     """Merge coverage data from multiple tests and generate a report."""
@@ -202,48 +211,51 @@ def merge_coverage_reports(root_dir):
     else:
         cprint("No coverage files found to merge.", style="yellow")
 
+
 def parse_test_directives(test_script):
     """Parse test suite directives from the test script."""
 
     # Directives with default options
     directives = {
-        'comms': ['local'],
-        'nprocs': [4],
-        'extra': False,
-        'exclude': False,
-        'os_skip': [],
-        'ompi_skip': False,
+        "comms": ["local"],
+        "nprocs": [4],
+        "extra": False,
+        "exclude": False,
+        "os_skip": [],
+        "ompi_skip": False,
     }
 
     directive_patterns = [
-        ('# TESTSUITE_COMMS:', 'comms', lambda x: x.split()),
-        ('# TESTSUITE_NPROCS:', 'nprocs', lambda x: [int(n) for n in x.split()]),
-        ('# TESTSUITE_EXTRA:', 'extra', lambda x: x.lower() == 'true'),
-        ('# TESTSUITE_EXCLUDE:', 'exclude', lambda x: x.lower() == 'true'),
-        ('# TESTSUITE_OS_SKIP:', 'os_skip', lambda x: x.split()),
-        ('# TESTSUITE_OMPI_SKIP:', 'ompi_skip', lambda x: x.lower() == 'true'),
+        ("# TESTSUITE_COMMS:", "comms", lambda x: x.split()),
+        ("# TESTSUITE_NPROCS:", "nprocs", lambda x: [int(n) for n in x.split()]),
+        ("# TESTSUITE_EXTRA:", "extra", lambda x: x.lower() == "true"),
+        ("# TESTSUITE_EXCLUDE:", "exclude", lambda x: x.lower() == "true"),
+        ("# TESTSUITE_OS_SKIP:", "os_skip", lambda x: x.split()),
+        ("# TESTSUITE_OMPI_SKIP:", "ompi_skip", lambda x: x.lower() == "true"),
     ]
 
-    with open(test_script, 'r') as f:
+    with open(test_script, "r") as f:
         for line in f:
             for pattern, key, parse_func in directive_patterns:
                 if line.startswith(pattern):
-                    value = line.split(':', 1)[1].strip()
+                    value = line.split(":", 1)[1].strip()
                     directives[key] = parse_func(value)
                     break
     if REG_RUN_LARGEST_TEST_ONLY:
-        directives['nprocs'] = [directives['nprocs'][-1]]
+        directives["nprocs"] = [directives["nprocs"][-1]]
     return directives
+
 
 def is_open_mpi():
     """Check if Open MPI is being used."""
     try:
-        result = subprocess.run(['mpiexec', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if 'Open MPI' in result.stdout or 'OpenRTE' in result.stdout:
+        result = subprocess.run(["mpiexec", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if "Open MPI" in result.stdout or "OpenRTE" in result.stdout:
             return True
     except Exception:
         pass
     return False
+
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
@@ -254,22 +266,25 @@ def build_forces(root_dir):
     os.makedirs(destination_dir, exist_ok=True)
     shutil.copy(os.path.join(forces_app_dir, "forces.x"), destination_dir)
 
+
 def skip_test(directives, args, current_os):
     """Skip a test based on directives"""
-    if directives['exclude'] or (directives['extra'] and not args.e):
+    if directives["exclude"] or (directives["extra"] and not args.e):
         return True
-    if current_os in directives['os_skip']:
+    if current_os in directives["os_skip"]:
         return True
     return False
+
 
 def skip_config(directives, args, comm):
     """Skip a test configuration based on directives"""
     open_mpi = is_open_mpi()
-    mpiexec_flags = args.a if args.a else ''
-    if directives['ompi_skip'] and open_mpi and mpiexec_flags == '--oversubscribe' and comm == 'mpi':
+    mpiexec_flags = args.a if args.a else ""
+    if directives["ompi_skip"] and open_mpi and mpiexec_flags == "--oversubscribe" and comm == "mpi":
         # cprint(f"Skipping test for Open MPI: {test_script_name}")
         return True
     return False
+
 
 def make_run_line(python_exec, test_script, comm, nprocs, args):
     """Build run line"""
@@ -280,6 +295,7 @@ def make_run_line(python_exec, test_script, comm, nprocs, args):
         cmd += ["--comms", comm, "--nworkers", str(nprocs - 1)]
     return cmd
 
+
 def process_output(success, test_start, test_num, name, comm, nprocs, suppress):
     """Process output, timing and print"""
     test_end = time.time()
@@ -289,8 +305,10 @@ def process_output(success, test_start, test_num, name, comm, nprocs, suppress):
     else:
         print_test_failed(test_num, name, comm, nprocs, duration)
 
+
 # -----------------------------------------------------------------------------------------
 # Main Functions
+
 
 def parse_arguments():
     """Parse command-line arguments."""
@@ -323,6 +341,7 @@ def run_unit_tests(root_dir, python_exec, args):
         if args.s:
             cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
+
 
 def run_regression_tests(root_dir, python_exec, args, current_os):
     """Run regression tests."""
@@ -359,9 +378,9 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         if skip_test(directives, args, current_os):
             continue
 
-        comms_list = [comm for comm in directives['comms'] if comm in user_comms_list]
+        comms_list = [comm for comm in directives["comms"] if comm in user_comms_list]
         for comm in comms_list:
-            nprocs_list = directives['nprocs']
+            nprocs_list = directives["nprocs"]
             for nprocs in nprocs_list:
                 if skip_config(directives, args, comm):
                     continue
@@ -386,9 +405,13 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     total = reg_pass + reg_fail
     summary_style = "green" if reg_fail == 0 else "red"
     prefix = "FAIL" if reg_fail > 0 else "PASS"
-    print_summary_line(f" {prefix}: {reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds ", style=summary_style)
+    print_summary_line(
+        f" {prefix}: {reg_pass}/{total} regression tests passed in {total_time(start_time, end_time)} seconds ",
+        style=summary_style,
+    )
     if reg_fail > 0:
         sys.exit(1)
+
 
 def main():
     args = parse_arguments()
@@ -425,6 +448,7 @@ def main():
 
     # If you make this far, all passed.
     print_heading("***** All tests passed *****", style="green")
+
 
 if __name__ == "__main__":
     main()
