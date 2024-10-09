@@ -15,16 +15,11 @@ from rich.align import Align
 
 import shutil
 
-term_width = shutil.get_terminal_size().columns
-print(f"{term_width=}") #tmp
-
-width = max(term_width, 100)  # wide enough for most lines
-
-# Initialize rich console
-console = Console(force_terminal=True, width=width)
-
 # -----------------------------------------------------------------------------------------
 # Configuration
+
+# Using rich text output for formating/color
+RICH_OUTPUT = True
 
 # Default options
 RUN_UNIT_TESTS = True
@@ -59,6 +54,10 @@ platform_mappings = {"Linux":"LIN", "Darwin":"OSX", "Windows":"WIN"}  # Based on
 cov_opts = ["-m", "coverage", "run", "--parallel-mode", "--concurrency=multiprocessing,thread"]
 cov_report_type = "xml"  # e.g., html, xml
 
+if RICH_OUTPUT:
+    term_width = shutil.get_terminal_size().columns
+    width = max(term_width, 90)  # wide enough for most lines
+    console = Console(force_terminal=True, width=width)
 # -----------------------------------------------------------------------------------------
 # Environment Variables
 
@@ -74,9 +73,20 @@ def find_project_root():
     root_dir = Path(__file__).resolve().parents[2]
     return str(root_dir)
 
+def cprint(msg, newline=False, style=None, end="\n"):
+    """Print line to console"""
+    if RICH_OUTPUT:
+        if newline:
+            console.print()  # In console.print "\n" does not work in CI
+        console.print(msg, style=style, end=end)
+    else:
+        if newline:
+            print()
+        print(msg, end=end)
+
 def cleanup(root_dir):
     """Cleanup test run directories."""
-    console.print("Cleaning any previous test output...", style="yellow")
+    cprint("Cleaning any previous test output...", style="yellow")
     patterns = [
         ".cov_*",
         "cov_*",
@@ -122,8 +132,8 @@ def cleanup(root_dir):
                     elif os.path.isdir(file_path):
                         shutil.rmtree(file_path)
                 except Exception as e:
-                    console.print(f"Error removing {file_path}: {e}", style="red")
-    console.print("Cleanup completed.\n", style="green")
+                    cprint(f"Error removing {file_path}: {e}", style="red")
+    cprint("Cleanup completed.", style="green")
 
 def total_time(start, end):
     """Return a time difference."""
@@ -147,32 +157,34 @@ def run_command(cmd, cwd=None, suppress_output=False):
 
 def print_heading(heading, style="bold bright_magenta"):
     """Print a centered panel with the given heading and style."""
-    console.print("")
-    panel = Panel(Align.center(heading), style=style, expand=True)
-    console.print(panel)
+    if RICH_OUTPUT:
+        panel = Panel(Align.center(heading), style=style, expand=True)
+    else:
+        panel = heading
+    cprint(panel, newline=True)
 
 def print_summary_line(phrase, style="cyan"):
     """Print a summary line with the specified style."""
     term_width = shutil.get_terminal_size().columns
     line = phrase.center(term_width, "=")
-    console.print(f"\n{line}\n", style=style)
+    cprint(f"{line}", newline=True, style=style)
 
 def print_test_start(test_num, test_script_name, comm, nprocs):
     """Print the test start message."""
-    console.print(
-        f"\n---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan"
+    cprint(
+        f"---Test {test_num}: {test_script_name} starting with {comm} on {nprocs} processes ", style="cyan", newline=True
     )
 
 def print_test_passed(test_num, test_script_name, comm, nprocs, duration, suppress_output):
     """Print the test passed message."""
     if not suppress_output:
-        console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
-    console.print(f"   ...passed after {duration} seconds", style="green")
+        cprint(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
+    cprint(f"   ...passed after {duration} seconds", style="green")
 
 def print_test_failed(test_num, test_script_name, comm, nprocs, duration):
     """Print the test failed message."""
-    console.print(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
-    console.print(f"  ...failed after {duration} seconds", style="red")
+    cprint(f" ---Test {test_num}: {test_script_name} using {comm} on {nprocs} processes", end="")
+    cprint(f"   ...failed after {duration} seconds", style="red")
 
 def merge_coverage_reports(root_dir):
     """Merge coverage data from multiple tests and generate a report."""
@@ -184,12 +196,12 @@ def merge_coverage_reports(root_dir):
         try:
             subprocess.run(["coverage", "combine"] + cov_files, cwd=tests_dir, check=True)
             subprocess.run(["coverage", cov_report_type], cwd=tests_dir, check=True)
-            console.print("Coverage reports generated.", style="green")
+            cprint("Coverage reports generated.", style="green")
         except subprocess.CalledProcessError as e:
-            console.print("Error generating coverage reports.", style="red")
+            cprint("Error generating coverage reports.", style="red")
             sys.exit(e.returncode)
     else:
-        console.print("No coverage files found to merge.", style="yellow")
+        cprint("No coverage files found to merge.", style="yellow")
 
 def parse_test_directives(test_script):
     """Parse test suite directives from the test script."""
@@ -236,7 +248,7 @@ def is_open_mpi():
 
 def build_forces(root_dir):
     """Build forces.x using mpicc."""
-    console.print("\nBuilding forces.x before running regression tests...", style="yellow")
+    cprint("Building forces.x before running regression tests...", style="yellow", newline=True)
     forces_app_dir = os.path.join(root_dir, "libensemble/tests/scaling_tests/forces/forces_app")
     subprocess.run(["mpicc", "-O3", "-o", "forces.x", "forces.c", "-lm"], cwd=forces_app_dir, check=True)
     destination_dir = os.path.join(root_dir, "libensemble/tests/forces_app")
@@ -256,7 +268,7 @@ def skip_config(directives, args, comm):
     open_mpi = is_open_mpi()
     mpiexec_flags = args.a if args.a else ''
     if directives['ompi_skip'] and open_mpi and mpiexec_flags == '--oversubscribe' and comm == 'mpi':
-        # console.print(f"Skipping test for Open MPI: {test_script_name}")
+        # cprint(f"Skipping test for Open MPI: {test_script_name}")
         return True
     return False
 
@@ -303,7 +315,7 @@ def run_unit_tests(root_dir, python_exec, args):
     """Run unit tests."""
     print_heading(f"Running unit tests (with pytest)")
     for dir_path in UNIT_TEST_DIRS:
-        console.print(f"\nEntering unit test dir: {dir_path}", style="yellow")
+        cprint(f"Entering unit test dir: {dir_path}", style="yellow", newline=True)
         full_path = os.path.join(root_dir, dir_path)
         cov_rep = cov_report_type + ":cov_unit"
         cmd = python_exec + ["-m", "pytest", "--color=yes", "--timeout=120", "--cov", "--cov-report", cov_rep]
@@ -312,8 +324,6 @@ def run_unit_tests(root_dir, python_exec, args):
         if args.s:
             cmd.append("--capture=no")
         run_command(cmd, cwd=full_path)
-    console.print("Unit tests completed.\n", style="green")
-
 
 def run_regression_tests(root_dir, python_exec, args, current_os):
     """Run regression tests."""
@@ -404,8 +414,8 @@ def main():
     current_os = platform_mappings.get(base_os)
 
     # Any introductory info here
-    console.print(f"Python executable/options: {' '.join(python_exec)}", style="white")
-    console.print(f"OS: {base_os} ({current_os})", style="white")
+    cprint(f"Python executable/options: {' '.join(python_exec)}", style="white", newline=True)
+    cprint(f"OS: {base_os} ({current_os})", style="white")
 
     if RUN_UNIT_TESTS:
         run_unit_tests(root_dir, python_exec, args)
@@ -414,7 +424,8 @@ def main():
     if COV_REPORT:
         merge_coverage_reports(root_dir)
 
-    console.print("\nAll tests passed.", style="green")
+    # If you make this far, all passed.
+    print_heading("***** All tests passed *****", style="green")
 
 if __name__ == "__main__":
     main()
