@@ -128,12 +128,6 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove various tests on newer pythons
-          if: matrix.python-version >= '3.11'
-          run: |
-            # rm ./libensemble/tests/regression_tests/test_gpCAM.py
-            rm ./libensemble/tests/regression_tests/test_persistent_gp.py
-
         - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
           if: matrix.python-version >= '3.12'
           run: |
