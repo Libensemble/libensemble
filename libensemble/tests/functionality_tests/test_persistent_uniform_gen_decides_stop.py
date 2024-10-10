@@ -83,7 +83,7 @@ if __name__ == "__main__":
                 sum(counts == init_batch_size) >= ngens
             ), "The initial batch of each gen should be common among initial_batch_size number of points"
             assert (
-                len(np.unique(counts)) > 1
+                len(counts) > 1
             ), "All gen_ended_times are the same; they should be different for the async case"
 
             gen_workers = np.unique(H["gen_worker"])
