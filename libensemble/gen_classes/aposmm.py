@@ -60,7 +60,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
                         else:
                             self._tell_buf[field][ind][:field_size] = results[field][j]
                 else:  # we slot it back by enumeration, not sim_id
-                    self._tell_buf[field][j] = results[field][j]
+                    self._tell_buf[field][self._n_buffd_results] = results[field][j]
 
     @property
     def _array_size(self):
@@ -71,10 +71,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
     @property
     def _enough_initial_sample(self):
         """We're typically happy with at least 90% of the initial sample, or we've already told the initial sample"""
-        return (
-            self._n_buffd_results > int(0.9 * self.gen_specs["user"]["initial_sample_size"])
-            or self._told_initial_sample
-        )
+        return (self._n_buffd_results > self.gen_specs["user"]["initial_sample_size"] - 1) or self._told_initial_sample
 
     @property
     def _enough_subsequent_points(self):
@@ -118,19 +115,21 @@ class APOSMM(LibensembleGenThreadInterfacer):
         ):  # now in Optimas; which prefers to give back chunks of initial_sample. So we buffer them
             self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
 
-        self._slot_in_data(results)
+        self._slot_in_data(np.copy(results))
         self._n_buffd_results += len(results)
 
         if not self._told_initial_sample and self._enough_initial_sample:
-            super().tell_numpy(self._tell_buf, tag)
+            self._tell_buf.sort(order="sim_id")
+            print(self._tell_buf)
+            super().tell_numpy(np.copy(self._tell_buf), tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
-            return
 
         elif self._told_initial_sample and self._enough_subsequent_points:
-            super().tell_numpy(self._tell_buf, tag)
+            self._tell_buf.sort(order="sim_id")
+            print(self._tell_buf)
+            super().tell_numpy(np.copy(self._tell_buf), tag)
             self._n_buffd_results = 0
-            return
 
         else:  # probably libE: given back smaller selection. but from alloc, so its ok?
             super().tell_numpy(results, tag)
