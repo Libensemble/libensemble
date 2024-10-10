@@ -11,7 +11,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
-                python-version: [3.9, "3.10", "3.11", "3.12"]
+                python-version: [3.9, "3.10", "3.11", "3.12", "3.13"]
                 pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
@@ -91,7 +91,7 @@ jobs:
             conda env update --file install/gen_deps_environment.yml
 
         - name: Install gpcam
-          if: matrix.python-version != '3.12'
+          if: matrix.python-version < '3.12'
           run: |
             pip install gpcam
 
@@ -101,7 +101,7 @@ jobs:
             pip install --upgrade git+https://github.com/bandframework/surmise.git
 
         - name: Install generator dependencies for Ubuntu tests
-          if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
+          if: matrix.os == 'ubuntu-latest' && matrix.python-version < '3.12'
           run: |
             sudo apt-get install bc
             pip install -r install/ubuntu_no312.txt
