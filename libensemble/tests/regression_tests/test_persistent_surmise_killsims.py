@@ -77,7 +77,8 @@ if __name__ == "__main__":
     # libE_specs["use_worker_dirs"] = True  # To overwrite - make worker dirs only
 
     # Rename ensemble dir for non-interference with other regression tests
-    libE_specs["ensemble_dir_path"] = "ensemble_calib_kills"
+    en_suffix = str(nworkers) + "_" + libE_specs.get("comms")
+    libE_specs["ensemble_dir_path"] = "ensemble_calib_kills_w" + en_suffix
 
     sim_specs = {
         "sim_f": sim_f,
