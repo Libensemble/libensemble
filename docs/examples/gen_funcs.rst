@@ -1,5 +1,5 @@
-Generator Functions
-===================
+[Legacy] Generator Functions
+============================
 
 .. include:: ../introduction.rst
     :start-after: example_packages
