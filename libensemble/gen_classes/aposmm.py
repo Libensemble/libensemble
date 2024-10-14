@@ -120,19 +120,18 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
         if not self._told_initial_sample and self._enough_initial_sample:
             self._tell_buf.sort(order="sim_id")
-            print(self._tell_buf)
             super().tell_numpy(np.copy(self._tell_buf), tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
 
         elif self._told_initial_sample and self._enough_subsequent_points:
             self._tell_buf.sort(order="sim_id")
-            print(self._tell_buf)
             super().tell_numpy(np.copy(self._tell_buf), tag)
             self._n_buffd_results = 0
 
         else:  # probably libE: given back smaller selection. but from alloc, so its ok?
             super().tell_numpy(results, tag)
+            self._n_buffd_results = 0  # dont want to send the same point more than once. slotted in earlier
 
     def ask_updates(self) -> List[npt.NDArray]:
         """Request a list of NumPy arrays containing entries that have been identified as minima."""
