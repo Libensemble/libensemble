@@ -40,6 +40,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._last_ask = None
         self._tell_buf = None
         self._n_buffd_results = 0
+        self._n_total_results = 0
         self._told_initial_sample = False
 
     def _slot_in_data(self, results):
@@ -117,6 +118,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
         self._slot_in_data(np.copy(results))
         self._n_buffd_results += len(results)
+        self._n_total_results += len(results)
 
         if not self._told_initial_sample and self._enough_initial_sample:
             super().tell_numpy(np.copy(self._tell_buf), tag)
