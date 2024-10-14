@@ -14,7 +14,14 @@ class APOSMM(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict,
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 

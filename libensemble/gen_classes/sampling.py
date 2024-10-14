@@ -31,7 +31,7 @@ class UniformSample(SampleBase):
     mode by adjusting the allocation function.
     """
 
-    def __init__(self, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
+    def __init__(self, variables: dict, objectives: dict, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
         super().__init__(_, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
 
