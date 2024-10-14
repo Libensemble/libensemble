@@ -119,13 +119,11 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._n_buffd_results += len(results)
 
         if not self._told_initial_sample and self._enough_initial_sample:
-            self._tell_buf.sort(order="sim_id")
             super().tell_numpy(np.copy(self._tell_buf), tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
 
         elif self._told_initial_sample and self._enough_subsequent_points:
-            self._tell_buf.sort(order="sim_id")
             super().tell_numpy(np.copy(self._tell_buf), tag)
             self._n_buffd_results = 0
 
