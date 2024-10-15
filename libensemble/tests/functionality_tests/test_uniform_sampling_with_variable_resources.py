@@ -35,7 +35,8 @@ if __name__ == "__main__":
     nworkers, is_manager, libE_specs, _ = parse_args()
 
     libE_specs["sim_dirs_make"] = True
-    libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + str(nworkers) + "_" + libE_specs.get("comms")
+    en_suffix = str(nworkers) + "_" + libE_specs.get("comms")
+    libE_specs["ensemble_dir_path"] = "./ensemble_diff_nodes_w" + en_suffix
 
     if libE_specs["comms"] == "tcp":
         sys.exit("This test only runs with MPI or local -- aborting...")
@@ -100,13 +101,13 @@ if __name__ == "__main__":
         else:
             sim_specs["user"]["app"] = "helloworld"
             if prob_id == 1:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_fork"
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_fork" + en_suffix
                 set_start_method("fork", force=True)
             elif prob_id == 2:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn"
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_spawn" + en_suffix
                 set_start_method("spawn", force=True)
             else:
-                libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver"
+                libE_specs["ensemble_dir_path"] = "ensemble_hw_forkserver" + en_suffix
                 set_start_method("forkserver", force=True)
 
         persis_info = add_unique_random_streams({}, nworkers + 1)

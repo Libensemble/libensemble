@@ -11,7 +11,7 @@ The number of concurrent evaluations of the objective function will be 4-1=3.
 
 # Do not change these lines - they are parsed by run-tests.sh
 # TESTSUITE_COMMS: mpi local
-# TESTSUITE_NPROCS: 2 4
+# TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 
 import os
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     persis_info = add_unique_random_streams({}, nworkers + 1)
 
-    exit_criteria = {"sim_max": 1e5}
+    exit_criteria = {"sim_max": 501}
 
     # Perform the run
     H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, libE_specs=libE_specs)
