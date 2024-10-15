@@ -25,7 +25,17 @@ class SampleBase(LibensembleGenerator):
 
 class UniformSample(SampleBase):
     """
-    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
+
+    .. code-block:: python
+        :linenos:
+
+            import numpy as np
+            from libensemble.gen_classes import UniformSample
+
+            my_sampler = UniformSample(lb=np.array([0.0, 0.0]), ub=np.array([1.0, 1.0]))
+            sample = my_sampler.ask(5)
+
+    When used with libEnsemble, returns ``gen_specs["initial_batch_size"]`` uniformly
     sampled points the first time it is called. Afterwards, it returns the
     number of points given. This can be used in either a batch or asynchronous
     mode by adjusting the allocation function.
@@ -49,7 +59,7 @@ class UniformSample(SampleBase):
 # to the classes above. This is for testing a function written directly with that interface.
 class UniformSampleDicts(Generator):
     """
-    This generator returns ``gen_specs["initial_batch_size"]`` uniformly
+    When used with libEnsemble, returns ``gen_specs["initial_batch_size"]`` uniformly
     sampled points the first time it is called. Afterwards, it returns the
     number of points given. This can be used in either a batch or asynchronous
     mode by adjusting the allocation function.
