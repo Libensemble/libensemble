@@ -25,8 +25,8 @@ if __name__ == "__main__":
         outputs=[("x", float, (2,))],
         user={
             "gen_batch_size": 10,
-            "lb": np.array([0, 10]),
-            "ub": np.array([0, 10]),
+            "lb": np.array([0, 0]),
+            "ub": np.array([10, 10]),
         },
     )
 

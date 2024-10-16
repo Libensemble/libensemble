@@ -17,8 +17,8 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
     datadir = os.path.join(os.path.dirname(t3dir), "tests", "data")
     configname = "test-w7x-relu"
 
-    x0 = H_in["x"][0]
-    x1 = H_in["x"][1]
+    x0 = H_in["x"][0][0]
+    x1 = H_in["x"][0][1]
 
     exctr = libE_info["executor"]
 
