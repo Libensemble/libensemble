@@ -84,6 +84,8 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
         with open(os.path.join(Simulation.Directory, "{0}.in".format(configname)), "w") as outfile:
             outfile.write(config)
 
+    MyWorkflow.PickleWrite()  # The workflow usually only pickles *when the script exits* ???
+
     # END COMPILATION STEP
 
     # START SIM STEP
