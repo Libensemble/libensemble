@@ -64,7 +64,7 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
 
     MyWorkflow.Create()
 
-    for Simulation in enumerate(MyWorkflow.Applications):
+    for Simulation in MyWorkflow.Applications:
 
         if Simulation.Name.find("plot") != -1:
             continue
