@@ -90,8 +90,8 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
 
     # START SIM STEP
     app_args = "output"
-    task = exctr.submit(app_name="effis", app_args=app_args, wait_on_start=3)
-    calc_status = exctr.polling_loop(task, timeout=8, delay=0.3)
+    task = exctr.submit(app_name="effis", app_args=app_args)
+    calc_status = exctr.polling_loop(task, timeout=30, delay=0.3)
 
     output_data = np.load("./output/T3D-1/test-w7x-relu.log.npy", allow_pickle=True).flatten()[0]
 
