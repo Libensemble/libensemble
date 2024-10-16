@@ -17,8 +17,8 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
     datadir = os.path.join(os.path.dirname(t3dir), "tests", "data")
     configname = "test-w7x-relu"
 
-    x0 = H_in["x"][0][0]
-    x1 = H_in["x"][0][1]
+    core_val = H_in["x"][0][0]
+    edge_val = H_in["x"][0][1]
 
     exctr = libE_info["executor"]
 
@@ -74,8 +74,8 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
             config = infile.read()
         config = re.compile(r"geo_file\s*=\s*.*", re.MULTILINE).sub('geo_file = "wout_w7x.nc"', config)
 
-        core = 0.35 + x0 * 0.01
-        edge = 0.29 + x1 * 0.01
+        core = core_val
+        edge = edge_val
         config = re.compile(r"density = {core = 0.35, edge = 0.29, alpha=1, evolve = false}", re.MULTILINE,).sub(
             "density = {{core = {0}, edge = {1}, alpha=1, evolve = false}}".format(core, edge),
             config,

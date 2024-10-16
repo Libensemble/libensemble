@@ -25,7 +25,8 @@ if __name__ == "__main__":
     pairs = np.array(list(zip(X.ravel(), Y.ravel())))
     n_samp = len(pairs)
 
-    H0 = np.zeros(n_samp, dtype=[("x", float, 8), ("sim_id", int), ("sim_started", bool)])
+    H0 = np.zeros(n_samp, dtype=[("x", float, 2), ("sim_id", int), ("sim_started", bool)])
+    H0["x"] = pairs
     H0["sim_id"] = range(n_samp)
     H0["sim_started"] = False
 
