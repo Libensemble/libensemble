@@ -88,7 +88,7 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
 
     # START SIM STEP
     app_args = "output"
-    task = exctr.submit(app_name="effis", num_procs=1, app_args=app_args)
+    task = exctr.submit(app_name="effis", app_args=app_args, wait_on_start=2)
     calc_status = exctr.polling_loop(task, timeout=5, delay=0.3)
 
     # TODO: read output file, load into H_out
@@ -96,5 +96,6 @@ def effis_t3d(H_in, _, sim_specs, libE_info):
     # END SIM STEP
 
     H_out = np.zeros(1, dtype=sim_specs["out"])
+    H_out["Wtot_MJ"] = 1.234
 
     return H_out, _, calc_status
