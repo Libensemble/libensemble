@@ -1,11 +1,14 @@
-import queue as thread_queue
+# import queue as thread_queue
 from abc import ABC, abstractmethod
+from multiprocessing import Manager
+
+# from multiprocessing import Queue as process_queue
 from typing import List, Optional
 
 import numpy as np
 from numpy import typing as npt
 
-from libensemble.comms.comms import QComm, QCommThread
+from libensemble.comms.comms import QComm, QCommProcess  # , QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
@@ -138,14 +141,27 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
-        self.outbox = thread_queue.Queue()
+        # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
+        # self.outbox = thread_queue.Queue()
+        self.m = Manager()
+        self.inbox = self.m.Queue()
+        self.outbox = self.m.Queue()
 
         comm = QComm(self.inbox, self.outbox)
         self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
         self.libE_info["executor"] = Executor.executor
 
-        self.thread = QCommThread(
+        # self.thread = QCommThread(  # TRY A PROCESS
+        #     self.gen_f,
+        #     None,
+        #     self.History,
+        #     self.persis_info,
+        #     self.gen_specs,
+        #     self.libE_info,
+        #     user_function=True,
+        # )  # note that self.thread's inbox/outbox are unused by the underlying gen
+
+        self.thread = QCommProcess(  # TRY A PROCESS
             self.gen_f,
             None,
             self.History,
@@ -184,7 +200,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put((tag, None))
         self.inbox.put((0, np.copy(results)))
 
-    def final_tell(self, results: npt.NDArray) -> (npt.NDArray, dict, int):
+    def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
         self.tell_numpy(results, PERSIS_STOP)  # conversion happens in tell
         return self.thread.result()
