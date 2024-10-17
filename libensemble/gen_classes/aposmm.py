@@ -98,7 +98,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
         if (
             self._n_buffd_results == 0  # ONLY NEED TO BUFFER RESULTS FOR INITIAL SAMPLE????
-        ):  # now in Optimas; which prefers to give back chunks of initial_sample. So we buffer them
+        ):  # Optimas prefers to give back chunks of initial_sample. So we buffer them
             self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
 
         if not self._enough_initial_sample:
@@ -108,11 +108,11 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
         if not self._told_initial_sample and self._enough_initial_sample:
             self._tell_buf = self._tell_buf[self._tell_buf["sim_id"] != 0]
-            super().tell_numpy(np.copy(self._tell_buf), tag)
+            super().tell_numpy(self._tell_buf, tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
 
-        else:  # probably libE: given back smaller selection. but from alloc, so its ok?
+        elif self._told_initial_sample:  # probably libE: given back smaller selection. but from alloc, so its ok?
             super().tell_numpy(results, tag)
             self._n_buffd_results = 0  # dont want to send the same point more than once. slotted in earlier
 
