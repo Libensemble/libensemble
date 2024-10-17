@@ -44,24 +44,12 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._told_initial_sample = False
 
     def _slot_in_data(self, results):
-        """Slot in libE_calc_in and trial data into corresponding array fields."""
-        indexes = results["sim_id"]
-        fields = results.dtype.names
-        for j, ind in enumerate(indexes):
-            for field in fields:
-                if not ind > len(
-                    self._tell_buf[field]
-                ):  # we got back an index e.g. 715, but our buffer is length e.g. 2
-                    if np.isscalar(results[field][j]) or results.dtype[field].hasobject:
-                        self._tell_buf[field][ind] = results[field][j]
-                    else:
-                        field_size = len(results[field][j])
-                        if field_size == len(self._tell_buf[field][ind]):
-                            self._tell_buf[field][ind] = results[field][j]
-                        else:
-                            self._tell_buf[field][ind][:field_size] = results[field][j]
-                else:  # we slot it back by enumeration, not sim_id
-                    self._tell_buf[field][self._n_buffd_results] = results[field][j]
+        """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
+        self._tell_buf["f"][self._n_buffd_results] = results["f"]
+        self._tell_buf["x"][self._n_buffd_results] = results["x"]
+        self._tell_buf["sim_id"][self._n_buffd_results] = results["sim_id"]
+        self._tell_buf["x_on_cube"][self._n_buffd_results] = results["x_on_cube"]
+        self._tell_buf["local_pt"][self._n_buffd_results] = results["local_pt"]
 
     @property
     def _array_size(self):
@@ -72,12 +60,9 @@ class APOSMM(LibensembleGenThreadInterfacer):
     @property
     def _enough_initial_sample(self):
         """We're typically happy with at least 90% of the initial sample, or we've already told the initial sample"""
-        return (self._n_buffd_results > self.gen_specs["user"]["initial_sample_size"] - 1) or self._told_initial_sample
-
-    @property
-    def _enough_subsequent_points(self):
-        """But we need to evaluate at least N points, for the N local-optimization processes."""
-        return self._n_buffd_results >= self.gen_specs["user"]["max_active_runs"]
+        return (
+            self._n_buffd_results >= self.gen_specs["user"]["initial_sample_size"] - 10
+        ) or self._told_initial_sample
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -112,21 +97,19 @@ class APOSMM(LibensembleGenThreadInterfacer):
             return
 
         if (
-            self._n_buffd_results == 0
+            self._n_buffd_results == 0  # ONLY NEED TO BUFFER RESULTS FOR INITIAL SAMPLE????
         ):  # now in Optimas; which prefers to give back chunks of initial_sample. So we buffer them
             self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
 
-        self._slot_in_data(np.copy(results))
-        self._n_buffd_results += len(results)
+        if not self._enough_initial_sample:
+            self._slot_in_data(np.copy(results))
+            self._n_buffd_results += len(results)
         self._n_total_results += len(results)
 
         if not self._told_initial_sample and self._enough_initial_sample:
+            self._tell_buf = self._tell_buf[self._tell_buf["sim_id"] != 0]
             super().tell_numpy(np.copy(self._tell_buf), tag)
             self._told_initial_sample = True
-            self._n_buffd_results = 0
-
-        elif self._told_initial_sample and self._enough_subsequent_points:
-            super().tell_numpy(np.copy(self._tell_buf), tag)
             self._n_buffd_results = 0
 
         else:  # probably libE: given back smaller selection. but from alloc, so its ok?
