@@ -95,14 +95,7 @@ class LibensembleGenerator(Generator):
     """
 
     def __init__(
-        self,
-        variables: dict,
-        objectives: dict,
-        History: npt.NDArray = [],
-        persis_info: dict = {},
-        gen_specs: dict = {},
-        libE_info: dict = {},
-        **kwargs
+        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
     ):
         self.gen_specs = gen_specs
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
