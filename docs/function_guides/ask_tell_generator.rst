@@ -15,7 +15,9 @@ libEnsemble is in the process of supporting generator objects that implement the
 .. automodule:: generators
   :members: Generator LibensembleGenerator
   :undoc-members:
+  :no-index:
 
 .. autoclass:: Generator
   :member-order: bysource
   :members:
+  :no-index:
