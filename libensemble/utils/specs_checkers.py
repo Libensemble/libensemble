@@ -5,6 +5,7 @@ Reference the models in that file.
 
 import logging
 import secrets
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -109,6 +110,18 @@ def _check_set_calc_dirs_on_input_dir(values):
         scs(values, "sim_dirs_make", True)
     if scg(values, "gen_input_dir") and not scg(values, "gen_dirs_make"):
         scs(values, "gen_dirs_make", True)
+    if any(
+        [
+            scg(values, "gen_input_dir"),
+            scg(values, "gen_dirs_make"),
+            scg(values, "gen_dir_copy_files"),
+            scg(values, "gen_dir_symlink_files"),
+        ]
+    ):
+        warnings.warn(
+            "Use of separate generator-instance directories is deprecated, to be removed in" + " libEnsemble v2.0.",
+            DeprecationWarning,
+        )
     return values
 
 
