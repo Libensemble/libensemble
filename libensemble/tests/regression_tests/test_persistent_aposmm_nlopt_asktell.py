@@ -52,6 +52,8 @@ if __name__ == "__main__":
     workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
     aposmm = APOSMM(
+        variables={"a": [-3, 3], "b": [-2, 2]},
+        objectives={"f": "MINIMIZE"},
         initial_sample_size=100,
         sample_points=minima,
         localopt_method="LN_BOBYQA",

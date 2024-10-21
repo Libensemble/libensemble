@@ -26,12 +26,29 @@ class APOSMM(LibensembleGenThreadInterfacer):
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
+        self.variables = variables
+        self.objectives = objectives
+
         gen_specs["gen_f"] = aposmm
-        if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
-            n = len(kwargs["lb"]) or len(kwargs["ub"])
+
+        if self.variables:
+            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
+            if not kwargs:
+                lb = []
+                ub = []
+                for v in self.variables.values():
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        # we got a range, append to lb and ub
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
+
+        elif not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
+            self.n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
-                ("x", float, n),
-                ("x_on_cube", float, n),
+                ("x", float, self.n),
+                ("x_on_cube", float, self.n),
                 ("sim_id", int),
                 ("local_min", bool),
                 ("local_pt", bool),
