@@ -100,8 +100,8 @@ class LibensembleGenerator(Generator):
 
     def __init__(
         self,
-        variables,
-        objectives,
+        variables: dict,
+        objectives: dict = {},
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
@@ -143,7 +143,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     def __init__(
         self,
         variables: dict,
-        objectives: dict,
+        objectives: dict = {},
         History: npt.NDArray = [],
         persis_info: dict = {},
         gen_specs: dict = {},
@@ -159,8 +159,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
-        # self.outbox = thread_queue.Queue()
         self.m = Manager()
         self.inbox = self.m.Queue()
         self.outbox = self.m.Queue()
@@ -168,16 +166,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         comm = QComm(self.inbox, self.outbox)
         self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
         self.libE_info["executor"] = Executor.executor
-
-        # self.thread = QCommThread(  # TRY A PROCESS
-        #     self.gen_f,
-        #     None,
-        #     self.History,
-        #     self.persis_info,
-        #     self.gen_specs,
-        #     self.libE_info,
-        #     user_function=True,
-        # )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
         self.thread = QCommProcess(  # TRY A PROCESS
             self.gen_f,

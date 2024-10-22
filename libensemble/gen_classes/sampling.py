@@ -29,11 +29,9 @@ class UniformSample(SampleBase):
     sampled points the first time it is called. Afterwards, it returns the
     number of points given. This can be used in either a batch or asynchronous
     mode by adjusting the allocation function.
-
-    This *probably* won't implement variables/objectives, for now.
     """
 
-    def __init__(self, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
+    def __init__(self, variables: dict, objectives: dict, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
         super().__init__(_, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
 
