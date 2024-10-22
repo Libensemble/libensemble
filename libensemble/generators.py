@@ -23,6 +23,10 @@ NOTE: These generators, implementations, methods, and subclasses are in BETA, an
 """
 
 
+class GeneratorNotStartedException(Exception):
+    """Exception raised by a threaded/multiprocessed generator upon being asked without having been started"""
+
+
 class Generator(ABC):
     """
 
@@ -95,7 +99,14 @@ class LibensembleGenerator(Generator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables,
+        objectives,
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ):
         self.gen_specs = gen_specs
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
@@ -139,7 +150,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         libE_info: dict = {},
         **kwargs
     ) -> None:
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.persis_info = persis_info
@@ -191,7 +202,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if not self.thread.running:
+        if self.thread is None or not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]

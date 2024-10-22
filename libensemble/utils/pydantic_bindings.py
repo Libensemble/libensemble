@@ -5,7 +5,7 @@ from pydantic import Field, create_model
 from libensemble import specs
 from libensemble.resources import platforms
 from libensemble.utils.misc import pydanticV1
-from libensemble.utils.validators import (
+from libensemble.utils.validators import (  # check_output_fields,
     _UFUNC_INVALID_ERR,
     _UNRECOGNIZED_ERR,
     check_any_workers_and_disable_rm_if_tcp,
@@ -16,8 +16,8 @@ from libensemble.utils.validators import (
     check_inputs_exist,
     check_logical_cores,
     check_mpi_runner_type,
-    check_output_fields,
     check_provided_ufuncs,
+    check_set_gen_specs_from_variables,
     check_valid_comms_type,
     check_valid_in,
     check_valid_out,
@@ -104,6 +104,7 @@ if "sphinx" not in sys.modules:
         __validators__={
             "check_valid_out": check_valid_out,
             "check_valid_in": check_valid_in,
+            "check_set_gen_specs_from_variables": check_set_gen_specs_from_variables,
             "genf_set_in_out_from_attrs": genf_set_in_out_from_attrs,
         },
     )
@@ -129,7 +130,7 @@ if "sphinx" not in sys.modules:
         __base__=specs._EnsembleSpecs,
         __validators__={
             "check_exit_criteria": check_exit_criteria,
-            "check_output_fields": check_output_fields,
+            # "check_output_fields": check_output_fields,
             "check_H0": check_H0,
             "check_provided_ufuncs": check_provided_ufuncs,
         },
