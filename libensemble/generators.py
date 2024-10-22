@@ -110,7 +110,7 @@ class LibensembleGenerator(Generator):
     ):
         self.gen_specs = gen_specs
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
-            self.gen_specs["user"] = kwargs
+            self.gen_specs["user"].update(kwargs)
         if not persis_info:
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
