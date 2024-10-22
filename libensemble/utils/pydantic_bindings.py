@@ -130,7 +130,6 @@ if "sphinx" not in sys.modules:
         __base__=specs._EnsembleSpecs,
         __validators__={
             "check_exit_criteria": check_exit_criteria,
-            # "check_output_fields": check_output_fields,
             "check_H0": check_H0,
             "check_provided_ufuncs": check_provided_ufuncs,
         },

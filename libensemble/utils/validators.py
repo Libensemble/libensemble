@@ -147,10 +147,6 @@ if pydanticV1:
     def check_exit_criteria(cls, values):
         return _check_exit_criteria(values)
 
-    # @root_validator
-    # def check_output_fields(cls, values):
-    #     return _check_output_fields(values)
-
     @root_validator
     def check_set_gen_specs_from_variables(cls, values):
         return _check_set_gen_specs_from_variables(values)
@@ -248,10 +244,6 @@ else:
     @model_validator(mode="after")
     def check_exit_criteria(self):
         return _check_exit_criteria(self)
-
-    # @model_validator(mode="after")
-    # def check_output_fields(self):
-    #     return _check_output_fields(self)
 
     @model_validator(mode="after")
     def check_set_gen_specs_from_variables(self):
