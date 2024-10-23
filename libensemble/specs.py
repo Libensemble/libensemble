@@ -78,6 +78,11 @@ class GenSpecs(BaseModel):
     simulator function, and makes decisions based on simulator function output.
     """
 
+    generator: Optional[object] = None
+    """
+    A pre-initialized generator object.
+    """
+
     inputs: Optional[List[str]] = Field(default=[], alias="in")
     """
     List of **field names** out of the complete history to pass
@@ -103,6 +108,24 @@ class GenSpecs(BaseModel):
     A Globus Compute (https://www.globus.org/compute) ID corresponding to an active endpoint on a remote system.
     libEnsemble's workers will submit generator function instances to this endpoint instead of
     calling them locally.
+    """
+
+    initial_batch_size: Optional[int] = 0
+    """
+    Number of initial points to request that the generator create. If zero, falls back to ``batch_size``.
+    If both options are zero, defaults to the number of workers.
+
+    Note: Certain generators included with libEnsemble decide
+    batch sizes via ``gen_specs["user"]`` or other methods.
+    """
+
+    batch_size: Optional[int] = 0
+    """
+    Number of points to generate in each batch. If zero, falls back to the number of
+    completed evaluations most recently told to the generator.
+
+    Note: Certain generators included with libEnsemble decide
+    batch sizes via ``gen_specs["user"]`` or other methods.
     """
 
     threaded: Optional[bool] = False

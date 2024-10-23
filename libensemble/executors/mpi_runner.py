@@ -21,7 +21,7 @@ class MPIRunner:
             "msmpi": MSMPI_MPIRunner,
             "custom": MPIRunner,
         }
-        mpi_runner = mpi_runners[mpi_runner_type]
+        mpi_runner = mpi_runners.get(mpi_runner_type, MPIRunner)
         if runner_name is not None:
             runner = mpi_runner(run_command=runner_name, platform_info=platform_info)
         else:

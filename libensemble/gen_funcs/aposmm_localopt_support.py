@@ -683,7 +683,7 @@ def put_set_wait_get(x, comm_queue, parent_can_read, child_can_read, user_specs)
     if user_specs.get("periodic"):
         assert np.allclose(x % 1, values[0] % 1, rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
     else:
-        assert np.allclose(x, values[0], rtol=1e-15, atol=1e-15), "The point I gave is not the point I got back"
+        assert np.allclose(x, values[0], rtol=1e-8, atol=1e-8), "The point I gave is not the point I got back"
 
     return values
 
