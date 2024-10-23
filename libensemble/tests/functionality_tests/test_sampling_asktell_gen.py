@@ -51,6 +51,10 @@ if __name__ == "__main__":
         },
     }
 
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+
+    objectives = {"f": "EXPLORE"}
+
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
@@ -66,17 +70,17 @@ if __name__ == "__main__":
         if inst == 1:
             # Using wrapper - pass object
             gen_specs["gen_f"] = gen_f
-            generator = UniformSample(None, persis_info[1], gen_specs, None)
+            generator = UniformSample(variables, objectives, None, persis_info[1], gen_specs, None)
             gen_specs["user"]["generator"] = generator
-        elif inst == 2:
+        if inst == 2:
             # Using asktell runner - pass object
             gen_specs.pop("gen_f", None)
-            generator = UniformSample(None, persis_info[1], gen_specs, None)
+            generator = UniformSample(variables, objectives, None, persis_info[1], gen_specs, None)
             gen_specs["generator"] = generator
-        elif inst == 3:
+        if inst == 3:
             # Using asktell runner - pass object - with standardized interface.
             gen_specs.pop("gen_f", None)
-            generator = UniformSampleDicts(None, persis_info[1], gen_specs, None)
+            generator = UniformSampleDicts(variables, objectives, None, persis_info[1], gen_specs, None)
             gen_specs["generator"] = generator
 
         H, persis_info, flag = libE(

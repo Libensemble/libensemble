@@ -23,6 +23,10 @@ NOTE: These generators, implementations, methods, and subclasses are in BETA, an
 """
 
 
+class GeneratorNotStartedException(Exception):
+    """Exception raised by a threaded/multiprocessed generator upon being asked without having been started"""
+
+
 class Generator(ABC):
     """
 
@@ -53,7 +57,7 @@ class Generator(ABC):
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
         """
         Initialize the Generator object on the user-side. Constants, class-attributes,
         and preparation goes here.
@@ -95,11 +99,18 @@ class LibensembleGenerator(Generator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ):
         self.gen_specs = gen_specs
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
-            self.gen_specs["user"] = kwargs
+            self.gen_specs["user"].update(kwargs)
         if not persis_info:
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
@@ -130,9 +141,16 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ) -> None:
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.persis_info = persis_info
@@ -141,8 +159,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
-        # self.outbox = thread_queue.Queue()
         self.m = Manager()
         self.inbox = self.m.Queue()
         self.outbox = self.m.Queue()
@@ -150,16 +166,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         comm = QComm(self.inbox, self.outbox)
         self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
         self.libE_info["executor"] = Executor.executor
-
-        # self.thread = QCommThread(  # TRY A PROCESS
-        #     self.gen_f,
-        #     None,
-        #     self.History,
-        #     self.persis_info,
-        #     self.gen_specs,
-        #     self.libE_info,
-        #     user_function=True,
-        # )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
         self.thread = QCommProcess(  # TRY A PROCESS
             self.gen_f,
@@ -184,7 +190,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if not self.thread.running:
+        if self.thread is None or not self.thread.running:
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]

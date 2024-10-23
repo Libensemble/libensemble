@@ -25,28 +25,10 @@ def _check_exit_criteria(values):
     return values
 
 
-def _check_output_fields(values):
-    out_names = [e[0] for e in libE_fields]
-    if scg(values, "H0") is not None and scg(values, "H0").dtype.names is not None:
-        out_names += list(scg(values, "H0").dtype.names)
-    out_names += [e[0] for e in scg(values, "sim_specs").outputs]
-    if scg(values, "gen_specs"):
-        out_names += [e[0] for e in scg(values, "gen_specs").outputs]
-    if scg(values, "alloc_specs"):
-        out_names += [e[0] for e in scg(values, "alloc_specs").outputs]
-
-    for name in scg(values, "sim_specs").inputs:
-        assert name in out_names, (
-            name + " in sim_specs['in'] is not in sim_specs['out'], "
-            "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
-        )
-
-    if scg(values, "gen_specs"):
-        for name in scg(values, "gen_specs").inputs:
-            assert name in out_names, (
-                name + " in gen_specs['in'] is not in sim_specs['out'], "
-                "gen_specs['out'], alloc_specs['out'], H0, or libE_fields."
-            )
+def _check_set_gen_specs_from_variables(values):
+    if not len(scg(values, "outputs")):
+        if scg(values, "generator") and len(scg(values, "generator").gen_specs["out"]):
+            scs(values, "outputs", scg(values, "generator").gen_specs["out"])
     return values
 
 

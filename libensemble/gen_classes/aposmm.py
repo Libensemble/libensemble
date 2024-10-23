@@ -15,16 +15,40 @@ class APOSMM(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict,
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
+        self.variables = variables
+        self.objectives = objectives
+
         gen_specs["gen_f"] = aposmm
+
+        if self.variables:
+            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
+            if "lb" not in kwargs and "ub" not in kwargs:
+                lb = []
+                ub = []
+                for v in self.variables.values():
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        # we got a range, append to lb and ub
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
+
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
-            n = len(kwargs["lb"]) or len(kwargs["ub"])
+            self.n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
-                ("x", float, n),
-                ("x_on_cube", float, n),
+                ("x", float, self.n),
+                ("x_on_cube", float, self.n),
                 ("sim_id", int),
                 ("local_min", bool),
                 ("local_pt", bool),
@@ -32,7 +56,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
         if not persis_info:
             persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = gen_specs["user"]["max_active_runs"]  # ??????????
         self.all_local_minima = []
