@@ -26,7 +26,6 @@ import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.gpCAM import GP_CAM, GP_CAM_Covar
-from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
 
 # Import libEnsemble items for this test
 from libensemble.libE import libE
@@ -66,10 +65,13 @@ if __name__ == "__main__":
 
     alloc_specs = {"alloc_f": alloc_f}
 
+    persis_info = add_unique_random_streams({}, nworkers + 1)
+
+    gen = GP_CAM_Covar(None, persis_info[1], gen_specs, None)
+
     for inst in range(3):
         if inst == 0:
-            gen_specs["gen_f"] = gen_f
-            gen_specs["user"]["generator"] = GP_CAM_Covar
+            gen_specs["generator"] = gen
             num_batches = 10
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
             libE_specs["save_every_k_gens"] = 150
@@ -81,12 +83,11 @@ if __name__ == "__main__":
             del libE_specs["H_file_prefix"]
             del libE_specs["save_every_k_gens"]
         elif inst == 2:
-            gen_specs["user"]["generator"] = GP_CAM
+            persis_info = add_unique_random_streams({}, nworkers + 1)
+            gen_specs["generator"] = GP_CAM(None, persis_info[1], gen_specs, None)
             num_batches = 3  # Few because the ask_tell gen can be slow
             gen_specs["user"]["ask_max_iter"] = 1  # For quicker test
             exit_criteria = {"sim_max": num_batches * batch_size, "wallclock_max": 300}
-
-        persis_info = add_unique_random_streams({}, nworkers + 1)
 
         # Perform the run
         H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs)
