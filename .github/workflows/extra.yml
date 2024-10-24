@@ -128,12 +128,6 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove various tests on newer pythons
-          if: matrix.python-version >= '3.11'
-          run: |
-            # rm ./libensemble/tests/regression_tests/test_gpCAM.py
-            rm ./libensemble/tests/regression_tests/test_persistent_gp.py
-
         - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
           if: matrix.python-version >= '3.12'
           run: |
@@ -167,7 +161,7 @@ jobs:
 
         - name: Run extensive tests
           run: |
-           ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
@@ -184,4 +178,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.24.5
+        - uses: crate-ci/typos@v1.26.1
