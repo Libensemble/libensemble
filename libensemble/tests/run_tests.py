@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
-import sys
-import subprocess
-import shutil
 import glob
-import time
+import os
 import platform
+import shutil
+import subprocess
+import sys
+import time
 from pathlib import Path
+
+from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
-from rich.align import Align
-
-import shutil
 
 # -----------------------------------------------------------------------------------------
 # Configuration
 
-# Using rich text output for formating/color
+# Using rich text output for formatting/color
 RICH_OUTPUT = True
 
 # Default options

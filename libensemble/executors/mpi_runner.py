@@ -248,7 +248,7 @@ class MPIRunner:
 
             min_nodes = max(proc_min_nodes, gpu_min_nodes)
             nnodes = min(min_nodes, total_nodes)
-            # Must have atleast one processor per node to use GPUs
+            # Must have at least one processor per node to use GPUs
             if nprocs:
                 nnodes = min(nnodes, nprocs)
             return nnodes
