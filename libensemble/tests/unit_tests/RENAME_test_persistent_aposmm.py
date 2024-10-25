@@ -203,7 +203,10 @@ def test_asktell_with_persistent_aposmm():
         },
     }
 
-    my_APOSMM = APOSMM(variables={"x0": [-3, 3], "x1": [-2, 2]}, objectives={"f": "MINIMIZE"}, gen_specs=gen_specs)
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"f": "MINIMIZE"}
+
+    my_APOSMM = APOSMM(variables=variables, objectives=objectives, gen_specs=gen_specs)
 
     my_APOSMM.setup()
     initial_sample = my_APOSMM.ask(100)

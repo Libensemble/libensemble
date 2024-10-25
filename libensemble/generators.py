@@ -37,9 +37,9 @@ class Generator(ABC):
 
 
         class MyGenerator(Generator):
-            def __init__(self, param):
+            def __init__(self, variables, objectives, param):
                 self.param = param
-                self.model = None
+                self.model = create_model(variables, objectives, self.param)
 
             def ask(self, num_points):
                 return create_points(num_points, self.param)
@@ -52,7 +52,10 @@ class Generator(ABC):
                 return list(self.model)
 
 
-        my_generator = MyGenerator(my_parameter=100)
+        variables = {"a": [-1, 1], "b": [-2, 2]}
+        objectives = {"f": "MINIMIZE"}
+
+        my_generator = MyGenerator(variables, objectives, my_parameter=100)
         gen_specs = GenSpecs(generator=my_generator, ...)
     """
 
@@ -108,8 +111,12 @@ class LibensembleGenerator(Generator):
         libE_info: dict = {},
         **kwargs
     ):
+        self.variables = variables
+        self.objectives = objectives
         self.gen_specs = gen_specs
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
+            if not self.gen_specs.get("user"):
+                self.gen_specs["user"] = {}
             self.gen_specs["user"].update(kwargs)
         if not persis_info:
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
@@ -178,7 +185,12 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
-        new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
+        new_results = np.zeros(
+            len(results),
+            dtype=self.gen_specs["out"]
+            + [("sim_ended", bool), ("f", float)]
+            + [(i, float) for i in self.objectives.keys()],
+        )
         for field in results.dtype.names:
             new_results[field] = results[field]
         new_results["sim_ended"] = True
