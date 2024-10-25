@@ -48,7 +48,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._tell_buf["f"][self._n_buffd_results] = results["f"]
         self._tell_buf["x"][self._n_buffd_results] = results["x"]
         self._tell_buf["sim_id"][self._n_buffd_results] = results["sim_id"]
-        self._tell_buf["x_on_cube"][self._n_buffd_results] = results["x_on_cube"]
+        # self._tell_buf["x_on_cube"][self._n_buffd_results] = results["x_on_cube"]
         self._tell_buf["local_pt"][self._n_buffd_results] = results["local_pt"]
 
     @property

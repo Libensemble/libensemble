@@ -174,7 +174,10 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
         for field in results.dtype.names:
-            new_results[field] = results[field]
+            try:
+                new_results[field] = results[field]
+            except ValueError:  # lets not slot in data that the gen doesnt need?
+                continue
         new_results["sim_ended"] = True
         return new_results
 
