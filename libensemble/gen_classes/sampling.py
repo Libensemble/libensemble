@@ -3,6 +3,7 @@
 import numpy as np
 
 from libensemble.generators import Generator, LibensembleGenerator
+from libensemble.utils.misc import list_dicts_to_np
 
 __all__ = [
     "UniformSample",
@@ -32,13 +33,15 @@ class UniformSample(SampleBase):
     """
 
     def __init__(self, variables: dict, objectives: dict, _=[], persis_info={}, gen_specs={}, libE_info=None, **kwargs):
-        super().__init__(_, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, _, persis_info, gen_specs, libE_info, **kwargs)
         self._get_user_params(self.gen_specs["user"])
 
     def ask_numpy(self, n_trials):
-        H_o = np.zeros(n_trials, dtype=self.gen_specs["out"])
-        H_o["x"] = self.persis_info["rand_stream"].uniform(self.lb, self.ub, (n_trials, self.n))
-        return H_o
+        return list_dicts_to_np(
+            UniformSampleDicts(
+                self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.qlibE_info
+            ).ask(n_trials)
+        )
 
     def tell_numpy(self, calc_in):
         pass  # random sample so nothing to tell

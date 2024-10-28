@@ -114,6 +114,24 @@ class LibensembleGenerator(Generator):
         self.variables = variables
         self.objectives = objectives
         self.gen_specs = gen_specs
+
+        if self.variables:
+            self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
+            self._vars_f_mapping = {i: k for i, k, in enumerate(self.objectives.keys())}
+            self._numeric_vars = []
+            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
+            if "lb" not in kwargs and "ub" not in kwargs:
+                lb = []
+                ub = []
+                for i, v in enumerate(self.variables.values()):
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        # we got a range, append to lb and ub
+                        self._numeric_vars.append(self.variables.keys()[i])
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
+
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
                 self.gen_specs["user"] = {}
@@ -122,20 +140,12 @@ class LibensembleGenerator(Generator):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
-        if self.variables:
-            self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
-            self._vars_f_mapping = {i: k for i, k, in enumerate(self.objectives.keys())}
-            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
-            if "lb" not in kwargs and "ub" not in kwargs:
-                lb = []
-                ub = []
-                for v in self.variables.values():
-                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                        # we got a range, append to lb and ub
-                        lb.append(v[0])
-                        ub.append(v[1])
-                kwargs["lb"] = np.array(lb)
-                kwargs["ub"] = np.array(ub)
+
+    def _gen_out_to_vars(self, results: dict) -> dict:
+        pass
+
+    def _objs_to_gen_in(self, results: dict) -> dict:
+        pass
 
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
@@ -147,13 +157,11 @@ class LibensembleGenerator(Generator):
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return np_to_list_dicts(self.ask_numpy(num_points))
+        return self._gen_out_to_vars(np_to_list_dicts(self.ask_numpy(num_points)))
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results))
-        # Note that although we'd prefer to have a complete dtype available, the gen
-        # doesn't have access to sim_specs["out"] currently.
+        self.tell_numpy(list_dicts_to_np(self._objs_to_gen_in(results)))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
