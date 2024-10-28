@@ -122,6 +122,20 @@ class LibensembleGenerator(Generator):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
+        if self.variables:
+            self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
+            self._vars_f_mapping = {i: k for i, k, in enumerate(self.objectives.keys())}
+            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
+            if "lb" not in kwargs and "ub" not in kwargs:
+                lb = []
+                ub = []
+                for v in self.variables.values():
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        # we got a range, append to lb and ub
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
 
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:

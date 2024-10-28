@@ -6,7 +6,6 @@ from numpy import typing as npt
 
 from libensemble.generators import LibensembleGenThreadInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
-from libensemble.tools import add_unique_random_streams
 
 
 class APOSMM(LibensembleGenThreadInterfacer):
@@ -31,19 +30,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
         gen_specs["gen_f"] = aposmm
 
-        if self.variables:
-            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
-            if "lb" not in kwargs and "ub" not in kwargs:
-                lb = []
-                ub = []
-                for v in self.variables.values():
-                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                        # we got a range, append to lb and ub
-                        lb.append(v[0])
-                        ub.append(v[1])
-                kwargs["lb"] = np.array(lb)
-                kwargs["ub"] = np.array(ub)
-
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
             self.n = len(kwargs["lb"]) or len(kwargs["ub"])
             gen_specs["out"] = [
@@ -54,8 +40,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
                 ("local_pt", bool),
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
-        if not persis_info:
-            persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = gen_specs["user"]["max_active_runs"]  # ??????????
