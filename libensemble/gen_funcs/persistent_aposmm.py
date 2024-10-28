@@ -539,7 +539,6 @@ def decide_where_to_start_localopt(H, n, n_s, rk_const, ld=0, mu=0, nu=0):
     .. seealso::
         `start_persistent_local_opt_gens.py <https://github.com/Libensemble/libensemble/blob/develop/libensemble/alloc_funcs/start_persistent_local_opt_gens.py>`_
     """
-    print(H["x_on_cube"])
 
     r_k = calc_rk(n, n_s, rk_const, ld)
 
