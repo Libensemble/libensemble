@@ -199,9 +199,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put(
                 (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
             )
+            self.inbox.put((0, np.copy(results)))
         else:
             self.inbox.put((tag, None))
-        self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
