@@ -34,7 +34,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
             persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
         super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
-            self.persis_info["nworkers"] = gen_specs["user"]["max_active_runs"]  # ??????????
+            self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
         self.all_local_minima = []
         self._ask_idx = 0
         self._last_ask = None
@@ -48,7 +48,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._tell_buf["f"][self._n_buffd_results] = results["f"]
         self._tell_buf["x"][self._n_buffd_results] = results["x"]
         self._tell_buf["sim_id"][self._n_buffd_results] = results["sim_id"]
-        # self._tell_buf["x_on_cube"][self._n_buffd_results] = results["x_on_cube"]
+        self._tell_buf["x_on_cube"][self._n_buffd_results] = results["x_on_cube"]
         self._tell_buf["local_pt"][self._n_buffd_results] = results["local_pt"]
 
     @property
@@ -60,9 +60,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
     @property
     def _enough_initial_sample(self):
         """We're typically happy with at least 90% of the initial sample, or we've already told the initial sample"""
-        return (
-            self._n_buffd_results >= self.gen_specs["user"]["initial_sample_size"] - 10
-        ) or self._told_initial_sample
+        return (self._n_buffd_results >= self.gen_specs["user"]["initial_sample_size"]) or self._told_initial_sample
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -100,6 +98,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
             self._n_buffd_results == 0  # ONLY NEED TO BUFFER RESULTS FOR INITIAL SAMPLE????
         ):  # Optimas prefers to give back chunks of initial_sample. So we buffer them
             self._tell_buf = np.zeros(self._array_size, dtype=self.gen_specs["out"] + [("f", float)])
+            self._tell_buf["sim_id"] = -1
 
         if not self._enough_initial_sample:
             self._slot_in_data(np.copy(results))
@@ -107,7 +106,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._n_total_results += len(results)
 
         if not self._told_initial_sample and self._enough_initial_sample:
-            self._tell_buf = self._tell_buf[self._tell_buf["sim_id"] != 0]
+            self._tell_buf = self._tell_buf[self._tell_buf["sim_id"] != -1]
             super().tell_numpy(self._tell_buf, tag)
             self._told_initial_sample = True
             self._n_buffd_results = 0
