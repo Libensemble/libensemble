@@ -172,7 +172,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
-        new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
+        new_results = np.zeros(len(results), dtype=results.dtype + [("sim_ended", bool)])
         for field in results.dtype.names:
             try:
                 new_results[field] = results[field]
