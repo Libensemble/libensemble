@@ -60,7 +60,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         """
         return (
             self._last_ask is None
-            or (self._last_ask["sim_id"][-1] in self._tell_buf["sim_id"])
+            or all([i in self._tell_buf["sim_id"] for i in self._last_ask["sim_id"]])
             and (self._ask_idx >= len(self._last_ask))
         )
 
@@ -89,10 +89,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
-            if results["sim_id"] >= 99:
-                import ipdb
-
-                ipdb.set_trace()
             super().tell_numpy(results, tag)
             self._n_buffd_results = 0
             return
