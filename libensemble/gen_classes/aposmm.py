@@ -40,7 +40,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
         self._last_ask = None
         self._tell_buf = None
         self._n_buffd_results = 0
-        self._n_total_results = 0
         self._told_initial_sample = False
 
     def _slot_in_data(self, results):
@@ -90,7 +89,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
             super().tell_numpy(results, tag)
-            self._n_buffd_results = 0
             return
 
         # Initial sample buffering here:
