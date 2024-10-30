@@ -45,8 +45,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
-        for field in results.dtype.names:
-            self._tell_buf[field][self._n_buffd_results] = results[field]
+        self._tell_buf[self._n_buffd_results:self._n_buffd_results + len(results)] = results
 
     # @property
     # def _array_size(self):
@@ -85,6 +84,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
         return results
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
+
         if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:  # told to stop, by final_tell or libE
             super().tell_numpy(results, tag)
             self._n_buffd_results = 0
