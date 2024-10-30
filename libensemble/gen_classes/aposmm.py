@@ -48,44 +48,51 @@ class APOSMM(LibensembleGenThreadInterfacer):
         for field in results.dtype.names:
             self._tell_buf[field][self._n_buffd_results] = results[field]
 
-    # @property
-    # def _array_size(self):
-    #     """Output array size must match either initial sample or N points to evaluate in parallel."""
-    #     user = self.gen_specs["user"]  # SHOULD NOT BE MAX ACTIVE RUNS. NWORKERS OR LEN LAST TELL
-    #     # return user["initial_sample_size"] if not self._told_initial_sample else user["max_active_runs"]
-    #     return user["initial_sample_size"] if not self._told_initial_sample else len(self._last_ask)
-
     def _enough_initial_sample(self):
         return (
             self._n_buffd_results >= int(self.gen_specs["user"]["initial_sample_size"])
         ) or self._told_initial_sample
 
+    def _ready_to_ask_genf(self):
+        """We're presumably ready to be asked IF:
+        - We have no _last_ask cached
+        - the last point given out has returned AND we've been asked *at least* as many points as we cached
+        """
+        return (
+            self._last_ask is None
+            or (self._last_ask["sim_id"][-1] in self._tell_buf["sim_id"])
+            and (self._ask_idx >= len(self._last_ask))
+        )
+
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if (self._last_ask is None) or (
-            self._ask_idx >= len(self._last_ask)
-        ):  # haven't been asked yet, or all previously enqueued points have been "asked"
+        if self._ready_to_ask_genf():
             self._ask_idx = 0
             self._last_ask = super().ask_numpy(num_points)
-            if self._last_ask[
-                "local_min"
-            ].any():  # filter out local minima rows, but they're cached in self.all_local_minima
+
+            if self._last_ask["local_min"].any():  # filter out local minima rows
                 min_idxs = self._last_ask["local_min"]
                 self.all_local_minima.append(self._last_ask[min_idxs])
                 self._last_ask = self._last_ask[~min_idxs]
+
         if num_points > 0:  # we've been asked for a selection of the last ask
-            results = np.copy(
-                self._last_ask[self._ask_idx : self._ask_idx + num_points]
-            )  # if resetting _last_ask later, results may point to "None"
+            results = np.copy(self._last_ask[self._ask_idx : self._ask_idx + num_points])
             self._ask_idx += num_points
-            return results
-        results = np.copy(self._last_ask)
-        self.results = results
-        self._last_ask = None
+            if self._ask_idx >= len(self._last_ask):  # now given out everything; need to reset
+                pass  # DEBUGGING WILL CONTINUE HERE
+
+        else:
+            results = np.copy(self._last_ask)
+            self._last_ask = None
+
         return results
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
-        if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:  # told to stop, by final_tell or libE
+        if (results is None and tag == PERSIS_STOP) or self._told_initial_sample:
+            if results["sim_id"] >= 99:
+                import ipdb
+
+                ipdb.set_trace()
             super().tell_numpy(results, tag)
             self._n_buffd_results = 0
             return
