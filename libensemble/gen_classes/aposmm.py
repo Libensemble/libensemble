@@ -44,8 +44,7 @@ class APOSMM(LibensembleGenThreadInterfacer):
 
     def _slot_in_data(self, results):
         """Slot in libE_calc_in and trial data into corresponding array fields. *Initial sample only!!*"""
-        for field in results.dtype.names:
-            self._tell_buf[field][self._n_buffd_results] = results[field]
+        self._tell_buf[self._n_buffd_results : self._n_buffd_results + len(results)] = results
 
     def _enough_initial_sample(self):
         return (
