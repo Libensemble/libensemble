@@ -52,15 +52,19 @@ class APOSMM(LibensembleGenThreadInterfacer):
         ) or self._told_initial_sample
 
     def _ready_to_ask_genf(self):
-        """We're presumably ready to be asked IF:
-        - We have no _last_ask cached
-        - the last point given out has returned AND we've been asked *at least* as many points as we cached
         """
-        return (
-            self._last_ask is None
-            or all([i in self._tell_buf["sim_id"] for i in self._last_ask["sim_id"]])
-            and (self._ask_idx >= len(self._last_ask))
-        )
+        We're presumably ready to be asked IF:
+        - When we're working on the initial sample:
+            - We have no _last_ask cached
+            - all points given out have returned AND we've been asked *at least* as many points as we cached
+        - When we're done with the initial sample:
+            - we've been asked *at least* as many points as we cached
+        """
+        if not self._told_initial_sample and self._last_ask is not None:
+            cond = all([i in self._tell_buf["sim_id"] for i in self._last_ask["sim_id"]])
+        else:
+            cond = True
+        return self._last_ask is None or (cond and (self._ask_idx >= len(self._last_ask)))
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -76,8 +80,6 @@ class APOSMM(LibensembleGenThreadInterfacer):
         if num_points > 0:  # we've been asked for a selection of the last ask
             results = np.copy(self._last_ask[self._ask_idx : self._ask_idx + num_points])
             self._ask_idx += num_points
-            if self._ask_idx >= len(self._last_ask):  # now given out everything; need to reset
-                pass  # DEBUGGING WILL CONTINUE HERE
 
         else:
             results = np.copy(self._last_ask)
