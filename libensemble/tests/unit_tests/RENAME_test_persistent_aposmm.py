@@ -198,8 +198,6 @@ def test_asktell_with_persistent_aposmm():
             "ftol_abs": 1e-6,
             "dist_to_bound_multiple": 0.5,
             "max_active_runs": 6,
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
         },
     }
 

@@ -115,9 +115,14 @@ class LibensembleGenerator(Generator):
         self.objectives = objectives
         self.gen_specs = gen_specs
 
+        self._var_to_replace = "x"  # need to figure this out dynamically
+
         if self.variables:
             self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
             self._vars_f_mapping = {i: k for i, k, in enumerate(self.objectives.keys())}
+
+            self._determined_x_mapping = {}
+
             self._numeric_vars = []
             self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
             if "lb" not in kwargs and "ub" not in kwargs:
@@ -126,7 +131,7 @@ class LibensembleGenerator(Generator):
                 for i, v in enumerate(self.variables.values()):
                     if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
                         # we got a range, append to lb and ub
-                        self._numeric_vars.append(self.variables.keys()[i])
+                        self._numeric_vars.append(list(self.variables.keys())[i])
                         lb.append(v[0])
                         ub.append(v[1])
                 kwargs["lb"] = np.array(lb)
@@ -136,13 +141,52 @@ class LibensembleGenerator(Generator):
             if not self.gen_specs.get("user"):
                 self.gen_specs["user"] = {}
             self.gen_specs["user"].update(kwargs)
-        if not persis_info:
+        if not persis_info.get("rand_stream"):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
 
-    def _gen_out_to_vars(self, results: dict) -> dict:
-        pass
+    def _gen_out_to_vars(self, gen_out: dict) -> dict:
+
+        """
+        We must replace internal, enumerated "x"s with the variables the user requested to sample over.
+
+        Basically, for the following example, if the user requested the following variables:
+
+        ``{'core': [-3, 3], 'edge': [-2, 2]}``
+
+        Then for the following directly-from-aposmm point:
+
+        ``{'x0': -0.1, 'x1': 0.7, 'x_on_cube0': 0.4833,
+        'x_on_cube1': 0.675, 'sim_id': 0...}``
+
+        We need to replace (for aposmm, for example) "x0" with "core", "x1" with "edge",
+            "x_on_cube0" with "core_on_cube", and "x_on_cube1" with "edge_on_cube".
+
+
+        """
+        new_out = []
+        for entry in gen_out:  # get a dict
+
+            new_entry = {}
+            for map_key in self._vars_x_mapping.keys():  # get 0, 1
+
+                for out_key in entry.keys():  # get x0, x1, x_on_cube0, etc.
+
+                    if out_key.endswith(str(map_key)):  # found key that ends with 0, 1
+                        new_name = str(out_key).replace(
+                            self._var_to_replace, self._vars_x_mapping[map_key]
+                        )  # replace 'x' with 'core'
+                        new_name = new_name.rstrip("0123456789")  # now remove trailing integer
+                        new_entry[new_name] = entry[out_key]
+
+                    elif not out_key[-1].isnumeric():  # found key that is not enumerated
+                        new_entry[out_key] = entry[out_key]
+
+                    # we now naturally continue over cases where e.g. the map_key may be 0 but we're looking at x1
+            new_out.append(new_entry)
+
+        return new_out
 
     def _objs_to_gen_in(self, results: dict) -> dict:
         pass
@@ -182,7 +226,6 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
-        self.persis_info = persis_info
         self.libE_info = libE_info
         self.thread = None
 

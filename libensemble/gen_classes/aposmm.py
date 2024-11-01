@@ -31,7 +31,10 @@ class APOSMM(LibensembleGenThreadInterfacer):
         gen_specs["gen_f"] = aposmm
 
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
-            self.n = len(kwargs["lb"]) or len(kwargs["ub"])
+            if not self.variables:
+                self.n = len(kwargs["lb"]) or len(kwargs["ub"])
+            else:
+                self.n = len(self.variables)
             gen_specs["out"] = [
                 ("x", float, self.n),
                 ("x_on_cube", float, self.n),
