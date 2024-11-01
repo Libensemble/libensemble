@@ -14,7 +14,6 @@ import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
-from libensemble.utils.misc import list_dicts_to_np
 
 libE_info = {"comm": {}}
 
@@ -226,7 +225,7 @@ def test_asktell_with_persistent_aposmm():
             point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
             total_evals += 1
         my_APOSMM.tell(sample)
-    H, persis_info, exit_code = my_APOSMM.final_tell(list_dicts_to_np(sample))  # final_tell currently requires numpy
+    H, persis_info, exit_code = my_APOSMM.final_tell()
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"

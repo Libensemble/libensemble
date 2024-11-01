@@ -120,7 +120,6 @@ class LibensembleGenerator(Generator):
 
         if self.variables:
             self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
-            self._vars_f_mapping = {i: k for i, k, in enumerate(self.objectives.keys())}
 
             self._determined_x_mapping = {}
 
@@ -189,8 +188,42 @@ class LibensembleGenerator(Generator):
 
         return new_out
 
-    def _objs_and_vars_to_gen_in(self, results: npt.NDArray) -> npt.NDArray:
-        pass
+    def _objs_and_vars_to_gen_in(self, results: dict) -> dict:
+        """We now need to do the inverse of _gen_out_to_vars, plus replace
+        the objective name with the internal gen's expected name, .e.g "energy" -> "f".
+
+        So given:
+
+        {'core': -0.1, 'core_on_cube': 0.483, 'sim_id': 0, 'local_min': False,
+        'local_pt': False, 'edge': 0.7, 'edge_on_cube': 0.675, 'energy': -1.02}
+
+        We need the following again:
+
+        {'x0': -0.1, 'x_on_cube0': 0.483, 'sim_id': 0, 'local_min': False,
+        'local_pt': False, 'x1': 0.7, 'x_on_cube1': 0.675, 'f': -1.02}
+
+        """
+        new_results = []
+        for entry in results:  # get a dict
+            new_entry = {}
+            for map_key in self._vars_x_mapping.keys():  # get 0, 1
+                for out_key in entry.keys():  # get core, core_on_cube, energy, sim_id, etc.
+                    if self._vars_x_mapping[map_key] == out_key:  # found core
+                        new_name = self._var_to_replace + str(map_key)  # create x0, x1, etc.
+                    elif out_key.startswith(self._vars_x_mapping[map_key]):  # found core_on_cube
+                        new_name = out_key.replace(self._vars_x_mapping[map_key], self._var_to_replace) + str(
+                            map_key
+                        )  # create x_on_cube0
+                    elif out_key in list(self.objectives.keys()):  # found energy
+                        new_name = self._obj_to_replace  # create f
+                    elif out_key in self.gen_specs["persis_in"]:  # found everything else, sim_id, local_pt, etc.
+                        new_name = out_key
+                    else:  # continue over cases where e.g. the map_key may be 0 but we're looking at x1
+                        continue
+                    new_entry[new_name] = entry[out_key]
+            new_results.append(new_entry)
+
+        return new_results
 
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
@@ -206,7 +239,7 @@ class LibensembleGenerator(Generator):
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(self._objs_and_vars_to_gen_in(list_dicts_to_np(results)))
+        self.tell_numpy(list_dicts_to_np(self._objs_and_vars_to_gen_in(results)))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -251,12 +284,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
-        new_results = np.zeros(
-            len(results),
-            dtype=self.gen_specs["out"]
-            + [("sim_ended", bool), ("f", float)]
-            + [(i, float) for i in self.objectives.keys()],
-        )
+        new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
         for field in results.dtype.names:
             new_results[field] = results[field]
         new_results["sim_ended"] = True
