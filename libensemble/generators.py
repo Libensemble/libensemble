@@ -115,23 +115,19 @@ class LibensembleGenerator(Generator):
         self.objectives = objectives
         self.gen_specs = gen_specs
 
-        self._var_to_replace = "x"  # need to figure these out dynamically
-        self._obj_to_replace = "f"
+        self._internal_variable = "x"  # need to figure these out dynamically
+        self._internal_objective = "f"
 
         if self.variables:
             self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
 
-            self._determined_x_mapping = {}
-
-            self._numeric_vars = []
-            self.n = len(self.variables)  # we'll unpack output x's to correspond with variables
+            self.n = len(self.variables)
+            # build our own lb and ub
             if "lb" not in kwargs and "ub" not in kwargs:
                 lb = []
                 ub = []
                 for i, v in enumerate(self.variables.values()):
                     if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                        # we got a range, append to lb and ub
-                        self._numeric_vars.append(list(self.variables.keys())[i])
                         lb.append(v[0])
                         ub.append(v[1])
                 kwargs["lb"] = np.array(lb)
@@ -175,7 +171,7 @@ class LibensembleGenerator(Generator):
 
                     if out_key.endswith(str(map_key)):  # found key that ends with 0, 1
                         new_name = str(out_key).replace(
-                            self._var_to_replace, self._vars_x_mapping[map_key]
+                            self._internal_variable, self._vars_x_mapping[map_key]
                         )  # replace 'x' with 'core'
                         new_name = new_name.rstrip("0123456789")  # now remove trailing integer
                         new_entry[new_name] = entry[out_key]
@@ -205,21 +201,29 @@ class LibensembleGenerator(Generator):
         """
         new_results = []
         for entry in results:  # get a dict
+
             new_entry = {}
             for map_key in self._vars_x_mapping.keys():  # get 0, 1
+
                 for out_key in entry.keys():  # get core, core_on_cube, energy, sim_id, etc.
+
                     if self._vars_x_mapping[map_key] == out_key:  # found core
-                        new_name = self._var_to_replace + str(map_key)  # create x0, x1, etc.
+                        new_name = self._internal_variable + str(map_key)  # create x0, x1, etc.
+
                     elif out_key.startswith(self._vars_x_mapping[map_key]):  # found core_on_cube
-                        new_name = out_key.replace(self._vars_x_mapping[map_key], self._var_to_replace) + str(
+                        new_name = out_key.replace(self._vars_x_mapping[map_key], self._internal_variable) + str(
                             map_key
                         )  # create x_on_cube0
+
                     elif out_key in list(self.objectives.keys()):  # found energy
-                        new_name = self._obj_to_replace  # create f
+                        new_name = self._internal_objective  # create f
+
                     elif out_key in self.gen_specs["persis_in"]:  # found everything else, sim_id, local_pt, etc.
                         new_name = out_key
+
                     else:  # continue over cases where e.g. the map_key may be 0 but we're looking at x1
                         continue
+
                     new_entry[new_name] = entry[out_key]
             new_results.append(new_entry)
 
