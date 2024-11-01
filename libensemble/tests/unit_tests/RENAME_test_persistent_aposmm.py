@@ -184,11 +184,7 @@ def test_asktell_with_persistent_aposmm():
     n = 2
     eval_max = 2000
 
-    # gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
-
     gen_specs = {
-        # "in": ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"],
-        # "out": gen_out,
         "user": {
             "initial_sample_size": 100,
             "sample_points": np.round(minima, 1),

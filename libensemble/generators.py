@@ -115,7 +115,8 @@ class LibensembleGenerator(Generator):
         self.objectives = objectives
         self.gen_specs = gen_specs
 
-        self._var_to_replace = "x"  # need to figure this out dynamically
+        self._var_to_replace = "x"  # need to figure these out dynamically
+        self._obj_to_replace = "f"
 
         if self.variables:
             self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
@@ -188,7 +189,7 @@ class LibensembleGenerator(Generator):
 
         return new_out
 
-    def _objs_to_gen_in(self, results: dict) -> dict:
+    def _objs_and_vars_to_gen_in(self, results: npt.NDArray) -> npt.NDArray:
         pass
 
     @abstractmethod
@@ -205,7 +206,7 @@ class LibensembleGenerator(Generator):
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(self._objs_to_gen_in(results)))
+        self.tell_numpy(self._objs_and_vars_to_gen_in(list_dicts_to_np(results)))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -263,7 +264,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results), tag)
+        self.tell_numpy(list_dicts_to_np(self._objs_and_vars_to_gen_in(results)), tag)
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
