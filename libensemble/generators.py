@@ -207,22 +207,28 @@ class LibensembleGenerator(Generator):
 
                 for out_key in entry.keys():  # get core, core_on_cube, energy, sim_id, etc.
 
+                    # continue over cases where e.g. the map_key may be 0 but we're looking at x1
+                    if out_key[-1].isnumeric() and not out_key.endswith(str(map_key)):
+                        continue
+
                     if self._vars_x_mapping[map_key] == out_key:  # found core
                         new_name = self._internal_variable + str(map_key)  # create x0, x1, etc.
 
-                    elif out_key.startswith(self._vars_x_mapping[map_key]):  # found core_on_cube
-                        new_name = out_key.replace(self._vars_x_mapping[map_key], self._internal_variable) + str(
-                            map_key
-                        )  # create x_on_cube0
+                    # we need to strip trailing ints for this condition in case vars were formatted: x0, x1
+                    # avoid the "x0_on_cube0" naming scheme
+                    elif out_key.startswith(self._vars_x_mapping[map_key].rstrip("0123456789")):  # found core_on_cube
+                        new_name = out_key.replace(
+                            self._vars_x_mapping[map_key].rstrip("0123456789"), self._internal_variable
+                        )
+                        # presumably multi-dim key; preserve that trailing int on the end of new key
+                        if not new_name[-1].isnumeric():
+                            new_name += str(map_key)  # create x_on_cube0
 
                     elif out_key in list(self.objectives.keys()):  # found energy
                         new_name = self._internal_objective  # create f
 
                     elif out_key in self.gen_specs["persis_in"]:  # found everything else, sim_id, local_pt, etc.
                         new_name = out_key
-
-                    else:  # continue over cases where e.g. the map_key may be 0 but we're looking at x1
-                        continue
 
                     new_entry[new_name] = entry[out_key]
             new_results.append(new_entry)
