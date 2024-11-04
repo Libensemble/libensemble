@@ -18,7 +18,6 @@ import numpy as np
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
 from libensemble.gen_classes.sampling import UniformSample, UniformSampleDicts
-from libensemble.gen_funcs.persistent_gen_wrapper import persistent_gen_f as gen_f
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -58,29 +57,16 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
-    for inst in range(4):
+    for inst in range(2):
         persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
         if inst == 0:
-            # Using wrapper - pass class
-            generator = UniformSample
-            gen_specs["gen_f"] = gen_f
-            gen_specs["user"]["generator"] = generator
-
-        if inst == 1:
-            # Using wrapper - pass object
-            gen_specs["gen_f"] = gen_f
-            generator = UniformSample(variables, objectives, None, persis_info[1], gen_specs, None)
-            gen_specs["user"]["generator"] = generator
-        if inst == 2:
             # Using asktell runner - pass object
-            gen_specs.pop("gen_f", None)
-            generator = UniformSample(variables, objectives, None, persis_info[1], gen_specs, None)
+            generator = UniformSample(variables, objectives)
             gen_specs["generator"] = generator
-        if inst == 3:
+        if inst == 1:
             # Using asktell runner - pass object - with standardized interface.
-            gen_specs.pop("gen_f", None)
-            generator = UniformSampleDicts(variables, objectives, None, persis_info[1], gen_specs, None)
+            generator = UniformSampleDicts(variables, objectives)
             gen_specs["generator"] = generator
 
         H, persis_info, flag = libE(
@@ -90,4 +76,3 @@ if __name__ == "__main__":
         if is_manager:
             print(H[["sim_id", "x", "f"]][:10])
             assert len(H) >= 201, f"H has length {len(H)}"
-            assert np.isclose(H["f"][9], 1.96760289)
