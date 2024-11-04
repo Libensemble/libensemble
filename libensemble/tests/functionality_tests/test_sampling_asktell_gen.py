@@ -17,7 +17,7 @@ import numpy as np
 
 # Import libEnsemble items for this test
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as alloc_f
-from libensemble.gen_classes.sampling import UniformSample, UniformSampleDicts
+from libensemble.gen_classes.sampling import UniformSample
 from libensemble.libE import libE
 from libensemble.tools import add_unique_random_streams, parse_args
 
@@ -57,22 +57,14 @@ if __name__ == "__main__":
     alloc_specs = {"alloc_f": alloc_f}
     exit_criteria = {"gen_max": 201}
 
-    for inst in range(2):
-        persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
+    persis_info = add_unique_random_streams({}, nworkers + 1, seed=1234)
 
-        if inst == 0:
-            # Using asktell runner - pass object
-            generator = UniformSample(variables, objectives)
-            gen_specs["generator"] = generator
-        if inst == 1:
-            # Using asktell runner - pass object - with standardized interface.
-            generator = UniformSampleDicts(variables, objectives)
-            gen_specs["generator"] = generator
+    # Using asktell runner - pass object
+    generator = UniformSample(variables, objectives)
+    gen_specs["generator"] = generator
 
-        H, persis_info, flag = libE(
-            sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs
-        )
+    H, persis_info, flag = libE(sim_specs, gen_specs, exit_criteria, persis_info, alloc_specs, libE_specs=libE_specs)
 
-        if is_manager:
-            print(H[["sim_id", "x", "f"]][:10])
-            assert len(H) >= 201, f"H has length {len(H)}"
+    if is_manager:
+        print(H[["sim_id", "x", "f"]][:10])
+        assert len(H) >= 201, f"H has length {len(H)}"
