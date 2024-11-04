@@ -113,7 +113,9 @@ class LibensembleGenerator(Generator):
     ):
         self.variables = variables
         self.objectives = objectives
+        self.History = History
         self.gen_specs = gen_specs
+        self.libE_info = libE_info
 
         self._internal_variable = "x"  # need to figure these out dynamically
         self._internal_objective = "f"
@@ -159,8 +161,15 @@ class LibensembleGenerator(Generator):
         We need to replace (for aposmm, for example) "x0" with "core", "x1" with "edge",
             "x_on_cube0" with "core_on_cube", and "x_on_cube1" with "edge_on_cube".
 
+        ...
+
+        BUT: if we're given "x0" and "x1" as our variables, we need to honor that
 
         """
+
+        if all([i in list(self.variables.keys()) for i in list(gen_out[0].keys())]):
+            return gen_out
+
         new_out = []
         for entry in gen_out:  # get a dict
 

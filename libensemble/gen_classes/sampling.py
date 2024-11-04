@@ -39,7 +39,7 @@ class UniformSample(SampleBase):
     def ask_numpy(self, n_trials):
         return list_dicts_to_np(
             UniformSampleDicts(
-                self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.qlibE_info
+                self.variables, self.objectives, self.History, self.persis_info, self.gen_specs, self.libE_info
             ).ask(n_trials)
         )
 
