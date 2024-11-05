@@ -113,9 +113,16 @@ class LibensembleGenerator(Generator):
     def tell_numpy(self, results: npt.NDArray) -> None:
         """Send the results, as a NumPy array, of evaluations to the generator."""
 
+    @staticmethod
+    def convert_np_types(dict_list):
+        return [
+            {key: (value.item() if isinstance(value, np.generic) else value) for key, value in item.items()}
+            for item in dict_list
+        ]
+
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return np_to_list_dicts(self.ask_numpy(num_points))
+        return LibensembleGenerator.convert_np_types(np_to_list_dicts(self.ask_numpy(num_points)))
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
