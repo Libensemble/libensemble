@@ -40,10 +40,11 @@ Issues = "https://github.com/Libensemble/libensemble/issues"
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 
 [tool.setuptools.packages.find]
-where = ["libensemble"]
+where = ["."]
+include = ["libensemble*"]
 
 [tool.pixi.project]
 channels = ["conda-forge"]
