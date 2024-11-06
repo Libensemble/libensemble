@@ -97,3 +97,38 @@ clang_osx-arm64 = ">=19.1.2,<20"
 
 [tool.pixi.target.linux-64.dependencies]
 gpcam = ">=8.1.6,<9"
+
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310', 'py311', 'py312']
+force-exclude = '''
+(
+  /(
+    | \.git
+    | \.github
+  )/
+    | libensemble/files/to/avoid
+)
+'''
+
+[tool.typos.default]
+extend-ignore-identifiers-re = [
+    ".*NDArray.*",
+    "8ba9de56.*"
+]
+
+[tool.typos.default.extend-words]
+als = "als"
+datas = "datas"
+numer = "numer"
+inout = "inout"
+arange = "arange"
+wrk = "wrk"
+EOF = "EOF"
+HPE = "HPE"
+RO = "RO"
+lst = "lst"
+noy = "noy"
+
+[tool.typos.files]
+extend-exclude = ["*.bib", "*.xml", "docs/nitpicky"]
