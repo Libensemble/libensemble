@@ -255,9 +255,16 @@ class LibensembleGenerator(Generator):
     def tell_numpy(self, results: npt.NDArray) -> None:
         """Send the results, as a NumPy array, of evaluations to the generator."""
 
+    @staticmethod
+    def convert_np_types(dict_list):
+        return [
+            {key: (value.item() if isinstance(value, np.generic) else value) for key, value in item.items()}
+            for item in dict_list
+        ]
+
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return self._gen_out_to_vars(np_to_list_dicts(self.ask_numpy(num_points)))
+        return LibensembleGenerator.convert_np_types(np_to_list_dicts(self.ask_numpy(num_points)))
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
@@ -308,7 +315,10 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
         for field in results.dtype.names:
-            new_results[field] = results[field]
+            try:
+                new_results[field] = results[field]
+            except ValueError:  # lets not slot in data that the gen doesnt need?
+                continue
         new_results["sim_ended"] = True
         return new_results
 
@@ -330,9 +340,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put(
                 (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
             )
+            self.inbox.put((0, np.copy(results)))
         else:
             self.inbox.put((tag, None))
-        self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
