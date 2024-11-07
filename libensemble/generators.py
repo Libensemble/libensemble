@@ -181,7 +181,10 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
         for field in results.dtype.names:
-            new_results[field] = results[field]
+            try:
+                new_results[field] = results[field]
+            except ValueError:  # lets not slot in data that the gen doesnt need?
+                continue
         new_results["sim_ended"] = True
         return new_results
 
@@ -203,9 +206,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.inbox.put(
                 (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
             )
+            self.inbox.put((0, np.copy(results)))
         else:
             self.inbox.put((tag, None))
-        self.inbox.put((0, np.copy(results)))
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
