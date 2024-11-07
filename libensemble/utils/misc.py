@@ -108,7 +108,7 @@ def _combine_names(names: list) -> list:
     return list(set(out_names))
 
 
-def list_dicts_to_np(list_dicts: list, dtype: list = None) -> npt.NDArray:
+def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -> npt.NDArray:
     if list_dicts is None:
         return None
 
@@ -148,7 +148,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None) -> npt.NDArray:
     return out
 
 
-def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
+def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
     if array is None:
         return None
     out = []
@@ -156,12 +156,17 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
         new_dict = {}
         for field in row.dtype.names:
             # non-string arrays, lists, etc.
-            if hasattr(row[field], "__len__") and len(row[field]) > 1 and not isinstance(row[field], str):
-                for i, x in enumerate(row[field]):
-                    new_dict[field + str(i)] = x
-            elif hasattr(row[field], "__len__") and len(row[field]) == 1:  # single-entry arrays, lists, etc.
-                new_dict[field] = row[field][0]  # will still work on single-char strings
+            if field not in list(mapping.keys()):
+                if hasattr(row[field], "__len__") and len(row[field]) > 1 and not isinstance(row[field], str):
+                    for i, x in enumerate(row[field]):
+                        new_dict[field + str(i)] = x
+                elif hasattr(row[field], "__len__") and len(row[field]) == 1:  # single-entry arrays, lists, etc.
+                    new_dict[field] = row[field][0]  # will still work on single-char strings
+                else:
+                    new_dict[field] = row[field]
             else:
-                new_dict[field] = row[field]
+                assert array.dtype[field].shape[0] == len(mapping[field]), "unable to unpack multidimensional array"
+                for i, name in enumerate(mapping[field]):
+                    new_dict[name] = row[field][i]
         out.append(new_dict)
     return out

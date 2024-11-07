@@ -109,7 +109,7 @@ class LibensembleGenerator(Generator):
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
-        **kwargs
+        **kwargs,
     ):
         self.variables = variables
         self.objectives = objectives
@@ -123,8 +123,6 @@ class LibensembleGenerator(Generator):
         self._internal_objective = "f"
 
         if self.variables:
-            assert len(self.variables_mapping), "Must specify a variable mapping for libEnsemble generators."
-            # self._vars_x_mapping = {i: k for i, k in enumerate(self.variables.keys())}
 
             self.n = len(self.variables)
             # build our own lb and ub
@@ -284,7 +282,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         persis_info: dict = {},
         gen_specs: dict = {},
         libE_info: dict = {},
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
