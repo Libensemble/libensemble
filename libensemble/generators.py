@@ -145,106 +145,6 @@ class LibensembleGenerator(Generator):
         else:
             self.persis_info = persis_info
 
-    # def _gen_out_to_vars(self, gen_out: dict) -> dict:
-
-    #     """
-    #     We must replace internal, enumerated "x"s with the variables the user requested to sample over.
-
-    #     Basically, for the following example, if the user requested the following variables:
-
-    #     ``{'core': [-3, 3], 'edge': [-2, 2]}``
-
-    #     Then for the following directly-from-aposmm point:
-
-    #     ``{'x0': -0.1, 'x1': 0.7, 'x_on_cube0': 0.4833,
-    #     'x_on_cube1': 0.675, 'sim_id': 0...}``
-
-    #     We need to replace (for aposmm, for example) "x0" with "core", "x1" with "edge",
-    #         "x_on_cube0" with "core_on_cube", and "x_on_cube1" with "edge_on_cube".
-
-    #     ...
-
-    #     BUT: if we're given "x0" and "x1" as our variables, we need to honor that
-
-    #     """
-
-    #     if all([i in list(self.variables.keys()) for i in list(gen_out[0].keys())]):
-    #         return gen_out
-
-    #     new_out = []
-    #     for entry in gen_out:  # get a dict
-
-    #         new_entry = {}
-    #         for map_key in self._vars_x_mapping.keys():  # get 0, 1
-
-    #             for out_key in entry.keys():  # get x0, x1, x_on_cube0, etc.
-
-    #                 if out_key.endswith(str(map_key)):  # found key that ends with 0, 1
-    #                     new_name = str(out_key).replace(
-    #                         self._internal_variable, self._vars_x_mapping[map_key]
-    #                     )  # replace 'x' with 'core'
-    #                     new_name = new_name.rstrip("0123456789")  # now remove trailing integer
-    #                     new_entry[new_name] = entry[out_key]
-
-    #                 elif not out_key[-1].isnumeric():  # found key that is not enumerated
-    #                     new_entry[out_key] = entry[out_key]
-
-    #                 # we now naturally continue over cases where e.g. the map_key may be 0 but we're looking at x1
-    #         new_out.append(new_entry)
-
-    #     return new_out
-
-    # def _objs_and_vars_to_gen_in(self, results: dict) -> dict:
-    #     """We now need to do the inverse of _gen_out_to_vars, plus replace
-    #     the objective name with the internal gen's expected name, .e.g "energy" -> "f".
-
-    #     So given:
-
-    #     {'core': -0.1, 'core_on_cube': 0.483, 'sim_id': 0, 'local_min': False,
-    #     'local_pt': False, 'edge': 0.7, 'edge_on_cube': 0.675, 'energy': -1.02}
-
-    #     We need the following again:
-
-    #     {'x0': -0.1, 'x_on_cube0': 0.483, 'sim_id': 0, 'local_min': False,
-    #     'local_pt': False, 'x1': 0.7, 'x_on_cube1': 0.675, 'f': -1.02}
-
-    #     """
-    #     new_results = []
-    #     for entry in results:  # get a dict
-
-    #         new_entry = {}
-    #         for map_key in self._vars_x_mapping.keys():  # get 0, 1
-
-    #             for out_key in entry.keys():  # get core, core_on_cube, energy, sim_id, etc.
-
-    #                 # continue over cases where e.g. the map_key may be 0 but we're looking at x1
-    #                 if out_key[-1].isnumeric() and not out_key.endswith(str(map_key)):
-    #                     continue
-
-    #                 if self._vars_x_mapping[map_key] == out_key:  # found core
-    #                     new_name = self._internal_variable + str(map_key)  # create x0, x1, etc.
-
-    #                 # we need to strip trailing ints for this condition in case vars were formatted: x0, x1
-    #                 # avoid the "x0_on_cube0" naming scheme
-    #                 elif out_key.startswith(self._vars_x_mapping[map_key].rstrip("0123456789")):  # found core_on_cube
-    #                     new_name = out_key.replace(
-    #                         self._vars_x_mapping[map_key].rstrip("0123456789"), self._internal_variable
-    #                     )
-    #                     # presumably multi-dim key; preserve that trailing int on the end of new key
-    #                     if not new_name[-1].isnumeric():
-    #                         new_name += str(map_key)  # create x_on_cube0
-
-    #                 elif out_key in list(self.objectives.keys()):  # found energy
-    #                     new_name = self._internal_objective  # create f
-
-    #                 elif out_key in self.gen_specs["persis_in"]:  # found everything else, sim_id, local_pt, etc.
-    #                     new_name = out_key
-
-    #                 new_entry[new_name] = entry[out_key]
-    #         new_results.append(new_entry)
-
-    #     return new_results
-
     @abstractmethod
     def ask_numpy(self, num_points: Optional[int] = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
@@ -262,11 +162,13 @@ class LibensembleGenerator(Generator):
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return LibensembleGenerator.convert_np_types(np_to_list_dicts(self.ask_numpy(num_points)))
+        return LibensembleGenerator.convert_np_types(
+            np_to_list_dicts(self.ask_numpy(num_points), mapping=self.variables_mapping)
+        )
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(self._objs_and_vars_to_gen_in(results)))
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
