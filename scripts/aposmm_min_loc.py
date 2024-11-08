@@ -15,6 +15,15 @@ x_name = 'x0'
 y_name = 'x1'
 z_name = 'x2'
 
+full_bounds = False  # For entire input space enter bounds below
+
+if full_bounds:
+    # Define parameter bounds
+    mcr = 1e-2
+    x0_min, x0_max = mcr, 1.0 - mcr
+    x1_min, x1_max = -20.0, 20.0
+    x2_min, x2_max = 1.0, 20.0
+
 # Find the most recent .npy and pickle files
 try:
     H_file = max(glob.glob("*.npy"), key=os.path.getmtime)
@@ -33,7 +42,7 @@ min_f_per_set = [(key, indices, H['f'][indices].min()) for key, indices in trimm
 min_f_per_set_sorted = sorted(min_f_per_set, key=lambda x: x[2])[:N]
 
 # Plotting
-fig = plt.figure(figsize=(10, 6))
+fig = plt.figure(figsize=(6, 6))
 ax = fig.add_subplot(111, projection='3d')
 
 for key, indices, _ in min_f_per_set_sorted:
@@ -53,10 +62,15 @@ for key, indices, _ in min_f_per_set_sorted:
     # Draw a line from the point to the XY plane (z=0)
     ax.plot([x, x], [y, y], [0, z], color='grey', linestyle='--')
 
+if full_bounds:
+    ax.set_xlim(x0_min, x0_max)
+    ax.set_ylim(x1_min, x1_max)
+    ax.set_zlim(x2_min, x2_max)
+
 # Label the plot
 ax.set_xlabel(x_name)
 ax.set_ylabel(y_name)
 ax.set_zlabel(z_name)
-ax.set_title('3D Locations of Min f values in Input Space')
-ax.legend()
+ax.set_title('Locations of best values in Input Space')
+ax.legend(bbox_to_anchor=(-0.1, 0.9), loc='upper left', borderaxespad=0)
 plt.savefig(f"location_min_best{N}.png")
