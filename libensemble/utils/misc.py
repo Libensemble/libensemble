@@ -2,7 +2,7 @@
 Misc internal functions
 """
 
-from itertools import groupby
+from itertools import chain, groupby
 from operator import itemgetter
 from typing import List
 
@@ -116,46 +116,48 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
         return list_dicts
 
     # build a presumptive dtype
-    if not len(mapping):
 
-        first = list_dicts[0]  # for determining dtype of output np array
-        new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
-        combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
-        for name in new_dtype_names:  # is this a necessary search over the keys again? we did it earlier...
-            combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
-            if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
-                combinable_names.append(combinable_group)
-            else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
-                combinable_names.append([name])
+    first = list_dicts[0]  # for determining dtype of output np array
+    new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
+    fields_to_convert = list(chain.from_iterable(list(mapping.values())))
+    new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(mapping.keys())
+    combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
+    for name in new_dtype_names:  # is this a necessary search over the keys again? we did it earlier...
+        combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
+        if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
+            combinable_names.append(combinable_group)
+        else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
+            combinable_names.append([name])
 
-        if dtype is None:
-            dtype = []
+    if dtype is None:
+        dtype = []
 
-        if not len(dtype):
-            # another loop over names, there's probably a more elegant way, but my brain is fried
-            for i, entry in enumerate(combinable_names):
-                name = new_dtype_names[i]
-                size = len(combinable_names[i])
-                dtype.append(_decide_dtype(name, first[entry[0]], size))
+    if not len(dtype):
+        # another loop over names, there's probably a more elegant way, but my brain is fried
+        for i, entry in enumerate(combinable_names):
+            name = new_dtype_names[i]
+            size = len(combinable_names[i])
+            dtype.append(_decide_dtype(name, first[entry[0]], size))
 
-        out = np.zeros(len(list_dicts), dtype=dtype)
+    if len(mapping):
+        map_dtype = [(name, float, (len(mapping[name]),)) for name in mapping]
+        dtype.append(map_dtype)
+
+    out = np.zeros(len(list_dicts), dtype=dtype)
 
     # dont need dtype, assume x-mapping for floats
-    if len(mapping):
-        dtype = [(name, float, (len(mapping[name]),)) for name in mapping]
-        out = np.zeros(len(list_dicts), dtype=dtype)
-        for name in mapping:
-            for i, entry in enumerate(list_dicts):
-                for j, value in enumerate(entry.values()):
-                    out[name][i][j] = value
-    else:
-        for i, group in enumerate(combinable_names):
-            new_dtype_name = new_dtype_names[i]
-            for j, input_dict in enumerate(list_dicts):
-                if len(group) == 1:  # only a single name, e.g. local_pt
-                    out[new_dtype_name][j] = input_dict[new_dtype_name]
-                else:  # combinable names detected, e.g. x0, x1
-                    out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
+    for name in mapping:
+        for i, entry in enumerate(list_dicts):
+            for j, value in enumerate(entry.values()):
+                out[name][i][j] = value
+
+    for i, group in enumerate(combinable_names):
+        new_dtype_name = new_dtype_names[i]
+        for j, input_dict in enumerate(list_dicts):
+            if len(group) == 1:  # only a single name, e.g. local_pt
+                out[new_dtype_name][j] = input_dict[new_dtype_name]
+            else:  # combinable names detected, e.g. x0, x1
+                out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
     return out
 
 

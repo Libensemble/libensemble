@@ -56,7 +56,7 @@ def test_asktell_sampling_and_utils():
     assert out[0].get("edge")
 
     out_np = list_dicts_to_np(out, mapping=mapping)
-    assert out_np.dtype.names == ("x")
+    assert out_np.dtype.names[0] == "x"
 
 
 def test_awkward_list_dict():
@@ -89,6 +89,35 @@ def test_awkward_list_dict():
     out_np = list_dicts_to_np(weird_list_dict)
 
     assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
+
+    weird_list_dict = [
+        {
+            "sim_id": 77,
+            "core": 89,
+            "edge": 10.1,
+            "beam": 76.5,
+            "energy": 12.34,
+            "local_pt": True,
+            "local_min": False,
+        },
+        {
+            "sim_id": 10,
+            "core": 32.8,
+            "edge": 16.2,
+            "beam": 33.5,
+            "energy": 99.34,
+            "local_pt": False,
+            "local_min": False,
+        },
+    ]
+
+    # target dtype: [("sim_id", int), ("x, float, (3,)), ("f", float), ("local_pt", bool), ("local_min", bool)]
+
+    mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}
+    out_np = list_dicts_to_np(weird_list_dict, mapping=mapping)
+
+    # we need to map the x-values to a len-3 x field, map energy to a len-1 f field
+    # then preserve the other fields
 
 
 def test_awkward_H():
