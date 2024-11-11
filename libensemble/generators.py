@@ -228,7 +228,8 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if self.thread is None or not self.thread.running:
+        if self.thread is None:
+            self.setup()
             self.thread.run()
         _, ask_full = self.outbox.get()
         return ask_full["calc_out"]
