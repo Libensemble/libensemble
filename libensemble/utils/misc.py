@@ -132,13 +132,16 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if dtype is None:
         dtype = []
 
+    # build dtype of non-mapped fields
     if not len(dtype):
         # another loop over names, there's probably a more elegant way, but my brain is fried
         for i, entry in enumerate(combinable_names):
             name = new_dtype_names[i]
             size = len(combinable_names[i])
-            dtype.append(_decide_dtype(name, first[entry[0]], size))
+            if name not in mapping:
+                dtype.append(_decide_dtype(name, first[entry[0]], size))
 
+    # append dtype of mapped float fields
     if len(mapping):
         map_dtype = [(name, float, (len(mapping[name]),)) for name in mapping]
         dtype.append(map_dtype)
