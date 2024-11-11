@@ -116,8 +116,7 @@ def test_awkward_list_dict():
     mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}
     out_np = list_dicts_to_np(weird_list_dict, mapping=mapping)
 
-    # we need to map the x-values to a len-3 x field, map energy to a len-1 f field
-    # then preserve the other fields
+    assert all([i in ("sim_id", "x", "f", "local_pt", "local_min") for i in out_np.dtype.names])
 
 
 def test_awkward_H():
