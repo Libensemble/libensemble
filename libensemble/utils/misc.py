@@ -115,6 +115,9 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
+    if dtype is None:
+        dtype = []
+
     # build a presumptive dtype
 
     first = list_dicts[0]  # for determining dtype of output np array
@@ -122,19 +125,15 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     fields_to_convert = list(chain.from_iterable(list(mapping.values())))
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(mapping.keys())
     combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
-    for name in new_dtype_names:  # is this a necessary search over the keys again? we did it earlier...
+    for name in new_dtype_names:
         combinable_group = [i for i in first.keys() if i.rstrip("0123456789") == name]
         if len(combinable_group) > 1:  # multiple similar names, e.g. x0, x1
             combinable_names.append(combinable_group)
         else:  # single name, e.g. local_pt, a0 *AS LONG AS THERE ISNT AN A1*
             combinable_names.append([name])
 
-    if dtype is None:
-        dtype = []
-
     # build dtype of non-mapped fields
     if not len(dtype):
-        # another loop over names, there's probably a more elegant way, but my brain is fried
         for i, entry in enumerate(combinable_names):
             name = new_dtype_names[i]
             size = len(combinable_names[i])
@@ -144,28 +143,26 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     # append dtype of mapped float fields
     if len(mapping):
         for name in mapping:
-            if len(mapping[name]) == 1:
-                dtype.append((name, float))
-            else:
-                dtype.append((name, float, (len(mapping[name]),)))
+            size = len(mapping[name])
+            dtype.append(_decide_dtype(name, 0.0, size))  # float
 
     out = np.zeros(len(list_dicts), dtype=dtype)
 
-    for i, group in enumerate(combinable_names):
-        new_dtype_name = new_dtype_names[i]
-        if new_dtype_name not in mapping:
-            for j, input_dict in enumerate(list_dicts):
-                if len(group) == 1:  # only a single name, e.g. local_pt
-                    out[new_dtype_name][j] = input_dict[new_dtype_name]
-                else:  # combinable names detected, e.g. x0, x1
-                    out[new_dtype_name][j] = tuple([input_dict[name] for name in group])
-        else:
-            for j, input_dict in enumerate(list_dicts):
-                combined = tuple([input_dict[name] for name in mapping[new_dtype_name]])
-                if len(combined) == 1:
-                    out[new_dtype_name][j] = combined[0]
-                else:
-                    out[new_dtype_name][j] = combined
+    for j, input_dict in enumerate(list_dicts):
+        for output_name, field_names in zip(new_dtype_names, combinable_names):
+            if output_name not in mapping:
+                out[output_name][j] = (
+                    tuple(input_dict[name] for name in field_names)
+                    if len(field_names) > 1
+                    else input_dict[field_names[0]]
+                )
+            else:
+                out[output_name][j] = (
+                    tuple(input_dict[name] for name in mapping[output_name])
+                    if len(mapping[output_name]) > 1
+                    else input_dict[mapping[output_name][0]]
+                )
+
     return out
 
 
