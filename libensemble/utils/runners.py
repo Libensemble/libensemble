@@ -139,11 +139,6 @@ class AskTellGenRunner(Runner):
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-        if hasattr(self.gen, "setup"):
-            self.gen.persis_info = persis_info  # passthrough, setup() uses the gen attributes
-            self.gen.libE_info = libE_info
-            if self.gen.thread is None:
-                self.gen.setup()  # maybe we're reusing a live gen from a previous run
         # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
         H_out = list_dicts_to_np(
             self._get_initial_ask(libE_info), dtype=self.specs.get("out"), mapping=self.gen.variables_mapping
