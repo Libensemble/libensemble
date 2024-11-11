@@ -60,6 +60,7 @@ if __name__ == "__main__":
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
+        variables_mapping={"x": ["x0", "x1"]},
     )
 
     workflow.gen_specs = GenSpecs(

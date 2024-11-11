@@ -194,6 +194,8 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
+        if self.thread is not None:
+            return
         self.m = Manager()
         self.inbox = self.m.Queue()
         self.outbox = self.m.Queue()
@@ -224,7 +226,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(self._objs_and_vars_to_gen_in(results)), tag)
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""

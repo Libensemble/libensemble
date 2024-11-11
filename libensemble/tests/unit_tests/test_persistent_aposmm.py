@@ -198,13 +198,12 @@ def test_asktell_with_persistent_aposmm():
 
     variables = {"core": [-3, 3], "edge": [-2, 2]}
     objectives = {"energy": "MINIMIZE"}
-    variables_mapping = {"x": ["core", "edge"]}
+    variables_mapping = {"x": ["core", "edge"], "f": ["energy"]}
 
     my_APOSMM = APOSMM(
         variables=variables, objectives=objectives, gen_specs=gen_specs, variables_mapping=variables_mapping
     )
 
-    my_APOSMM.setup()
     initial_sample = my_APOSMM.ask(100)
 
     total_evals = 0
