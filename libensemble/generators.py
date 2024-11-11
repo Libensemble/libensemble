@@ -207,7 +207,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             results = self._set_sim_ended(results)
             Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
             self.thread.send(tag, Work)
-            self.thread.send(20, np.copy(results))  # SH for threads check - might need deepcopy due to dtype=object
+            self.thread.send(tag, np.copy(results))  # SH for threads check - might need deepcopy due to dtype=object
         else:
             self.thread.send(tag, None)
 
