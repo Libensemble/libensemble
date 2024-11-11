@@ -150,6 +150,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
         # self.outbox = thread_queue.Queue()
 
+        # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
+        # SH what if not using executor - should be an IF here
+        del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
         # SH - fix comment (thread and process & name object appropriately - task? qcomm?)
