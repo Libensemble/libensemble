@@ -204,7 +204,6 @@ def test_asktell_with_persistent_aposmm():
     }
 
     my_APOSMM = APOSMM(gen_specs=gen_specs)
-    my_APOSMM.setup()
     initial_sample = my_APOSMM.ask(100)
 
     total_evals = 0
