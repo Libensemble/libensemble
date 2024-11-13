@@ -63,10 +63,11 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Force-update certifi
+        - name: Force-update certifi and pip
           run: |
             python --version
-            pip install -I --upgrade certifi
+            python -m pip install --upgrade pip
+            python -m pip install -I --upgrade certifi
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
@@ -83,17 +84,13 @@ jobs:
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
+            conda install numpy scipy
 
         - name: Install mpi4py and MPI from conda
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
-        - name: Install generator dependencies
-          run: |
-            python -m pip install --upgrade pip
-            conda install numpy scipy
-
-        - name: Install libEnsemble, flake8
+        - name: Install libEnsemble, test flake8
           run: |
             pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
