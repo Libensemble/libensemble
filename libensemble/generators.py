@@ -7,7 +7,7 @@ from typing import List, Optional
 import numpy as np
 from numpy import typing as npt
 
-from libensemble.comms.comms import QComm, QCommProcess  # , QCommThread
+from libensemble.comms.comms import QCommProcess  # , QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
