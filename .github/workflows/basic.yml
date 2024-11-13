@@ -92,7 +92,7 @@ jobs:
           run: |
             python -m pip install --upgrade pip
             pip install mpmath matplotlib
-            conda install numpy nlopt scipy
+            conda install numpy nlopt==2.8.0 scipy
 
         - name: Install libEnsemble, flake8
           run: |
