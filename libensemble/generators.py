@@ -1,6 +1,5 @@
 # import queue as thread_queue
 from abc import ABC, abstractmethod
-from multiprocessing import Manager
 
 # from multiprocessing import Queue as process_queue
 from typing import List, Optional
@@ -8,7 +7,7 @@ from typing import List, Optional
 import numpy as np
 from numpy import typing as npt
 
-from libensemble.comms.comms import QComm, QCommProcess  # , QCommThread
+from libensemble.comms.comms import QCommProcess  # , QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
@@ -196,12 +195,9 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         """Must be called once before calling ask/tell. Initializes the background thread."""
         if self.thread is not None:
             return
-        self.m = Manager()
-        self.inbox = self.m.Queue()
-        self.outbox = self.m.Queue()
-
-        comm = QComm(self.inbox, self.outbox)
-        self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
+        # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
+        if hasattr(Executor.executor, "comm"):
+            del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
         self.thread = QCommProcess(  # TRY A PROCESS
@@ -212,7 +208,10 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.gen_specs,
             self.libE_info,
             user_function=True,
-        )  # note that self.thread's inbox/outbox are unused by the underlying gen
+        )
+
+        # SH this is a bit hacky - maybe it can be done inside comms (in _qcomm_main)?
+        self.libE_info["comm"] = self.thread.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
@@ -233,19 +232,18 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
         if self.thread is None:
             self.setup()
             self.thread.run()
-        _, ask_full = self.outbox.get()
+        _, ask_full = self.thread.recv()
         return ask_full["calc_out"]
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
-            self.inbox.put(
-                (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
-            )
-            self.inbox.put((0, np.copy(results)))
+            Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
+            self.thread.send(tag, Work)
+            self.thread.send(tag, np.copy(results))  # SH for threads check - might need deepcopy due to dtype=object
         else:
-            self.inbox.put((tag, None))
+            self.thread.send(tag, None)
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""

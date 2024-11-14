@@ -226,6 +226,7 @@ def _qcomm_main(comm, main, *args, **kwargs):
         if not kwargs.get("user_function"):
             _result = main(comm, *args, **kwargs)
         else:
+            # SH - could we insert comm into libE_info["comm"] here if it exists
             _result = main(*args)
         comm.send(CommResult(_result))
     except Exception as e:
@@ -264,8 +265,8 @@ class QCommProcess(QCommLocal):
         self.inbox = Queue()
         self.outbox = Queue()
         super().__init__(self, main, *args, **kwargs)
-        comm = QComm(self.inbox, self.outbox, nworkers)
-        self.handle = Process(target=_qcomm_main, args=(comm, main) + args, kwargs=kwargs)
+        self.comm = QComm(self.inbox, self.outbox, nworkers)
+        self.handle = Process(target=_qcomm_main, args=(self.comm, main) + args, kwargs=kwargs)
 
     def terminate(self, timeout=None):
         """Terminate the process."""
