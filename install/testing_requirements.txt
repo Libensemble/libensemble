@@ -9,4 +9,4 @@ anyio==4.6.2.post1
 matplotlib==3.9.2
 mpmath==1.3.0
 rich==13.9.4
-nlopt==2.8.0
+nlopt==2.9.0
