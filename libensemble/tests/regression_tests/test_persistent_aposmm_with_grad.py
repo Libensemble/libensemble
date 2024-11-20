@@ -76,7 +76,7 @@ if __name__ == "__main__":
             "initial_sample_size": 0,  # Don't need to do evaluations because the sampling already done below
             "localopt_method": "LD_MMA",
             "rk_const": 0.5 * ((gamma(1 + (n / 2)) * 5) ** (1 / n)) / sqrt(pi),
-            "stop_after_k_minima": 25,
+            "stop_after_k_minima": 15,
             "xtol_rel": 1e-6,
             "ftol_rel": 1e-6,
             "max_active_runs": 6,
