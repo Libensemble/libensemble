@@ -164,10 +164,11 @@ class MPIExecutor(Executor):
                 task.finished = True
                 retry = True
                 retry_count += 1
-            else:
-                if wait_on_start:
-                    wait_time = wait_on_start if isinstance(wait_on_start, int) else self.fail_time
-                    self._wait_on_start(task, wait_time)
+            else:  # *actually* got True
+                if (wait_on_start == 1) and isinstance(wait_on_start, bool):
+                    self._wait_on_start(task, self.fail_time)
+                elif isinstance(wait_on_start, int):  # got another integer. False is fine: zero wait-time
+                    self._wait_on_start(task, wait_on_start)
                 task.poll()
 
                 if task.state == "FAILED":
