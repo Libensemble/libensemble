@@ -3,8 +3,6 @@ A persistent generator using the uncertainty quantification capabilities in
 `Tasmanian <https://tasmanian.ornl.gov/>`_.
 """
 
-import sys
-
 import numpy as np
 
 from libensemble.alloc_funcs.start_only_persistent import only_persistent_gens as allocf
@@ -207,7 +205,6 @@ def sparse_grid_async(H, persis_info, gen_specs, libE_info):
     `sparse grid dynamic example <https://github.com/ORNL/TASMANIAN/blob/master/Addons/tsgConstructSurrogate.hpp>`_
 
     """
-    sys.error("a")
     U = gen_specs["user"]
     ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
     grid = U["tasmanian_init"]()  # initialize the grid
