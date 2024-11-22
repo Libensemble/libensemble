@@ -306,7 +306,7 @@ def test_launch_wait_on_start():
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = "sleep 0.2"
-    for value in [False, True, 1, 2, 3]:
+    for value in [False, True, 1, 2, 3, "dontfail"]:
         task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=value)
         assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(
             task.state
