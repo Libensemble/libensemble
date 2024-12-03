@@ -687,7 +687,7 @@ class Executor:
         stdout: Optional[str] = None,
         stderr: Optional[str] = None,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[Union[bool, int]] = False,
+        wait_on_start: Optional[bool] = False,
         env_script: Optional[str] = None,
     ) -> Task:
         """Create a new task and run as a local serial subprocess.
@@ -718,7 +718,7 @@ class Executor:
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: bool or int, Optional
+        wait_on_start: bool, Optional
             Whether to wait for task to be polled as RUNNING (or other
             active/end state) before continuing. If an integer N is supplied,
             wait at most N seconds.
