@@ -115,6 +115,10 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None) -> npt.NDArray:
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
+    for entry in list_dicts:
+        if "_id" in entry:
+            entry["sim_id"] = entry.pop("_id")
+
     first = list_dicts[0]  # for determining dtype of output np array
     new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
     combinable_names = []  # [['x0', 'x1'], ['y0', 'y1', 'y2'], ['z']]
@@ -164,4 +168,9 @@ def np_to_list_dicts(array: npt.NDArray) -> List[dict]:
             else:
                 new_dict[field] = row[field]
         out.append(new_dict)
+
+    for entry in out:
+        if "sim_id" in entry:
+            entry["_id"] = entry.pop("sim_id")
+
     return out
