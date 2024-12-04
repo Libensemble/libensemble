@@ -99,12 +99,12 @@ def _combine_names(names: list) -> list:
 def _get_new_dtype_fields(first: dict, mapping: dict = {}) -> list:
     """build list of fields that will be in the output numpy array"""
     new_dtype_names = _combine_names([i for i in first.keys()])  # -> ['x', 'y']
-    fields_to_convert = list(
+    fields_to_convert = list(  # combining all mapping lists
         chain.from_iterable(list(mapping.values()))
     )  # fields like ["beam_length", "beam_width"] that will become "x"
     new_dtype_names = [i for i in new_dtype_names if i not in fields_to_convert] + list(
         mapping.keys()
-    )  # array dtype needs "x"
+    )  # array dtype needs "x". avoid fields from mapping values since we're converting those to "x"
     return new_dtype_names
 
 
@@ -122,14 +122,14 @@ def _get_combinable_multidim_names(first: dict, new_dtype_names: list) -> list:
 
 def _decide_dtype(name: str, entry, size: int) -> tuple:
     """decide dtype of field, and size if needed"""
-    if isinstance(entry, str):
+    if isinstance(entry, str):  # use numpy style for string type
         output_type = "U" + str(len(entry) + 1)
     else:
-        output_type = type(entry)
+        output_type = type(entry)  # use default "python" type
     if size == 1 or not size:
         return (name, output_type)
     else:
-        return (name, output_type, (size,))
+        return (name, output_type, (size,))  # 3-tuple for multi-dimensional
 
 
 def _start_building_dtype(
@@ -138,14 +138,15 @@ def _start_building_dtype(
     """parse out necessary components of dtype for output numpy array"""
     for i, entry in enumerate(combinable_names):
         name = new_dtype_names[i]
-        size = len(combinable_names[i])
-        if name not in mapping:
+        size = len(combinable_names[i])  # e.g. 2 for [x0, x1]
+        if name not in mapping:  # mapping keys are what we're converting *to*
             dtype.append(_decide_dtype(name, first[entry[0]], size))
     return dtype
 
 
 def _pack_field(input_dict: dict, field_names: list) -> tuple:
     """pack dict data into tuple for slotting into numpy array"""
+    # {"x0": 1, "x1": 2} -> (1, 2)
     return tuple(input_dict[name] for name in field_names) if len(field_names) > 1 else input_dict[field_names[0]]
 
 
@@ -161,6 +162,7 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
         if "_id" in entry:
             entry["sim_id"] = entry.pop("_id")
 
+    # first entry is used to determine dtype
     first = list_dicts[0]
 
     # build a presumptive dtype
@@ -194,26 +196,44 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     return out
 
 
+def _is_multidim(selection: npt.NDArray) -> bool:
+    return hasattr(selection, "__len__") and len(selection) > 1 and not isinstance(selection, str)
+
+
+def _is_singledim(selection: npt.NDArray) -> bool:
+    return hasattr(selection, "__len__") and len(selection) == 1
+
+
 def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
     if array is None:
         return None
     out = []
+
     for row in array:
         new_dict = {}
+
         for field in row.dtype.names:
             # non-string arrays, lists, etc.
+
             if field not in list(mapping.keys()):
-                if hasattr(row[field], "__len__") and len(row[field]) > 1 and not isinstance(row[field], str):
+                if _is_multidim(row[field]):
                     for i, x in enumerate(row[field]):
                         new_dict[field + str(i)] = x
-                elif hasattr(row[field], "__len__") and len(row[field]) == 1:  # single-entry arrays, lists, etc.
+
+                elif _is_singledim(row[field]):  # single-entry arrays, lists, etc.
                     new_dict[field] = row[field][0]  # will still work on single-char strings
+
                 else:
                     new_dict[field] = row[field]
-            else:
-                assert array.dtype[field].shape[0] == len(mapping[field]), "unable to unpack multidimensional array"
+
+            else:  # keys from mapping and array unpacked into corresponding fields in dicts
+                assert array.dtype[field].shape[0] == len(mapping[field]), (
+                    "dimension mismatch between mapping and array with field " + field
+                )
+
                 for i, name in enumerate(mapping[field]):
                     new_dict[name] = row[field][i]
+
         out.append(new_dict)
 
     # exiting gen: convert sim_id to _id
