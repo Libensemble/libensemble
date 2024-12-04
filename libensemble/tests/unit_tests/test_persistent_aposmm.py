@@ -14,7 +14,6 @@ import numpy as np
 
 import libensemble.tests.unit_tests.setup as setup
 from libensemble.sim_funcs.six_hump_camel import six_hump_camel_func, six_hump_camel_grad
-from libensemble.utils.misc import list_dicts_to_np
 
 libE_info = {"comm": {}}
 
@@ -184,11 +183,7 @@ def test_asktell_with_persistent_aposmm():
     n = 2
     eval_max = 2000
 
-    gen_out = [("x", float, n), ("x_on_cube", float, n), ("sim_id", int), ("local_min", bool), ("local_pt", bool)]
-
     gen_specs = {
-        "in": ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"],
-        "out": gen_out,
         "user": {
             "initial_sample_size": 100,
             "sample_points": np.round(minima, 1),
@@ -198,19 +193,24 @@ def test_asktell_with_persistent_aposmm():
             "ftol_abs": 1e-6,
             "dist_to_bound_multiple": 0.5,
             "max_active_runs": 6,
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
         },
     }
 
-    my_APOSMM = APOSMM(gen_specs=gen_specs)
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "MINIMIZE"}
+    variables_mapping = {"x": ["core", "edge"], "f": ["energy"]}
+
+    my_APOSMM = APOSMM(
+        variables=variables, objectives=objectives, gen_specs=gen_specs, variables_mapping=variables_mapping
+    )
+
     initial_sample = my_APOSMM.ask(100)
 
     total_evals = 0
     eval_max = 2000
 
     for point in initial_sample:
-        point["f"] = six_hump_camel_func(np.array([point["x0"], point["x1"]]))
+        point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
         total_evals += 1
 
     my_APOSMM.tell(initial_sample)
@@ -224,10 +224,10 @@ def test_asktell_with_persistent_aposmm():
             for m in detected_minima:
                 potential_minima.append(m)
         for point in sample:
-            point["f"] = six_hump_camel_func(np.array([point["x0"], point["x1"]]))
+            point["energy"] = six_hump_camel_func(np.array([point["core"], point["edge"]]))
             total_evals += 1
         my_APOSMM.tell(sample)
-    H, persis_info, exit_code = my_APOSMM.final_tell(list_dicts_to_np(sample))  # final_tell currently requires numpy
+    H, persis_info, exit_code = my_APOSMM.final_tell()
 
     assert exit_code == FINISHED_PERSISTENT_GEN_TAG, "Standalone persistent_aposmm didn't exit correctly"
     assert persis_info.get("run_order"), "Standalone persistent_aposmm didn't do any localopt runs"

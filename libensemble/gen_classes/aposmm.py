@@ -6,7 +6,6 @@ from numpy import typing as npt
 
 from libensemble.generators import LibensembleGenThreadInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
-from libensemble.tools import add_unique_random_streams
 
 
 class APOSMM(LibensembleGenThreadInterfacer):
@@ -15,24 +14,36 @@ class APOSMM(LibensembleGenThreadInterfacer):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict,
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs
     ) -> None:
         from libensemble.gen_funcs.persistent_aposmm import aposmm
 
+        self.variables = variables
+        self.objectives = objectives
+
         gen_specs["gen_f"] = aposmm
+
         if not gen_specs.get("out"):  # gen_specs never especially changes for aposmm even as the problem varies
-            n = len(kwargs["lb"]) or len(kwargs["ub"])
+            if not self.variables:
+                self.n = len(kwargs["lb"]) or len(kwargs["ub"])
+            else:
+                self.n = len(self.variables)
             gen_specs["out"] = [
-                ("x", float, n),
-                ("x_on_cube", float, n),
+                ("x", float, self.n),
+                ("x_on_cube", float, self.n),
                 ("sim_id", int),
                 ("local_min", bool),
                 ("local_pt", bool),
             ]
             gen_specs["persis_in"] = ["x", "f", "local_pt", "sim_id", "sim_ended", "x_on_cube", "local_min"]
-        if not persis_info:
-            persis_info = add_unique_random_streams({}, 2, seed=4321)[1]
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         if not self.persis_info.get("nworkers"):
             self.persis_info["nworkers"] = kwargs.get("nworkers", gen_specs["user"]["max_active_runs"])
         self.all_local_minima = []

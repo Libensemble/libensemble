@@ -1,10 +1,9 @@
 import numpy as np
 
-from libensemble.tools.tools import add_unique_random_streams
 from libensemble.utils.misc import list_dicts_to_np
 
 
-def _check_conversion(H, npp):
+def _check_conversion(H, npp, mapping={}):
 
     for field in H.dtype.names:
         print(f"Comparing {field}: {H[field]} {npp[field]}")
@@ -25,25 +24,16 @@ def _check_conversion(H, npp):
 def test_asktell_sampling_and_utils():
     from libensemble.gen_classes.sampling import UniformSample
 
-    persis_info = add_unique_random_streams({}, 5, seed=1234)
-    gen_specs = {
-        "out": [("x", float, (2,))],
-        "user": {
-            "lb": np.array([-3, -2]),
-            "ub": np.array([3, 2]),
-        },
-    }
+    variables = {"x0": [-3, 3], "x1": [-2, 2]}
+    objectives = {"f": "EXPLORE"}
 
     # Test initialization with libensembley parameters
-    gen = UniformSample(None, persis_info[1], gen_specs, None)
-    assert len(gen.ask(10)) == 10
-
-    # Test initialization gen-specific keyword args
-    gen = UniformSample(gen_specs=gen_specs, lb=np.array([-3, -2]), ub=np.array([3, 2]))
+    gen = UniformSample(variables, objectives)
     assert len(gen.ask(10)) == 10
 
     out_np = gen.ask_numpy(3)  # should get numpy arrays, non-flattened
     out = gen.ask(3)  # needs to get dicts, 2d+ arrays need to be flattened
+
     assert all([len(x) == 2 for x in out])  # np_to_list_dicts is now tested
 
     # now we test list_dicts_to_np directly
@@ -54,6 +44,19 @@ def test_asktell_sampling_and_utils():
     for i, entry in enumerate(out):
         for j, value in enumerate(entry.values()):
             assert value == out_np["x"][i][j]
+
+    variables = {"core": [-3, 3], "edge": [-2, 2]}
+    objectives = {"energy": "EXPLORE"}
+    mapping = {"x": ["core", "edge"]}
+
+    gen = UniformSample(variables, objectives, mapping)
+    out = gen.ask(1)
+    assert len(out) == 1
+    assert out[0].get("core")
+    assert out[0].get("edge")
+
+    out_np = list_dicts_to_np(out, mapping=mapping)
+    assert out_np.dtype.names[0] == "x"
 
 
 def test_awkward_list_dict():
@@ -86,6 +89,34 @@ def test_awkward_list_dict():
     out_np = list_dicts_to_np(weird_list_dict)
 
     assert all([i in ("x", "y", "z", "a0") for i in out_np.dtype.names])
+
+    weird_list_dict = [
+        {
+            "sim_id": 77,
+            "core": 89,
+            "edge": 10.1,
+            "beam": 76.5,
+            "energy": 12.34,
+            "local_pt": True,
+            "local_min": False,
+        },
+        {
+            "sim_id": 10,
+            "core": 32.8,
+            "edge": 16.2,
+            "beam": 33.5,
+            "energy": 99.34,
+            "local_pt": False,
+            "local_min": False,
+        },
+    ]
+
+    # target dtype: [("sim_id", int), ("x, float, (3,)), ("f", float), ("local_pt", bool), ("local_min", bool)]
+
+    mapping = {"x": ["core", "edge", "beam"], "f": ["energy"]}
+    out_np = list_dicts_to_np(weird_list_dict, mapping=mapping)
+
+    assert all([i in ("sim_id", "x", "f", "local_pt", "local_min") for i in out_np.dtype.names])
 
 
 def test_awkward_H():

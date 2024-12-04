@@ -22,6 +22,10 @@ NOTE: These generators, implementations, methods, and subclasses are in BETA, an
 """
 
 
+class GeneratorNotStartedException(Exception):
+    """Exception raised by a threaded/multiprocessed generator upon being asked without having been started"""
+
+
 class Generator(ABC):
     """
 
@@ -32,9 +36,9 @@ class Generator(ABC):
 
 
         class MyGenerator(Generator):
-            def __init__(self, param):
+            def __init__(self, variables, objectives, param):
                 self.param = param
-                self.model = None
+                self.model = create_model(variables, objectives, self.param)
 
             def ask(self, num_points):
                 return create_points(num_points, self.param)
@@ -47,12 +51,15 @@ class Generator(ABC):
                 return list(self.model)
 
 
-        my_generator = MyGenerator(my_parameter=100)
+        variables = {"a": [-1, 1], "b": [-2, 2]}
+        objectives = {"f": "MINIMIZE"}
+
+        my_generator = MyGenerator(variables, objectives, my_parameter=100)
         gen_specs = GenSpecs(generator=my_generator, ...)
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
         """
         Initialize the Generator object on the user-side. Constants, class-attributes,
         and preparation goes here.
@@ -94,12 +101,45 @@ class LibensembleGenerator(Generator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs,
     ):
+        self.variables = variables
+        self.objectives = objectives
+        self.History = History
         self.gen_specs = gen_specs
+        self.libE_info = libE_info
+
+        self.variables_mapping = kwargs.get("variables_mapping", {})
+
+        self._internal_variable = "x"  # need to figure these out dynamically
+        self._internal_objective = "f"
+
+        if self.variables:
+
+            self.n = len(self.variables)
+            # build our own lb and ub
+            if "lb" not in kwargs and "ub" not in kwargs:
+                lb = []
+                ub = []
+                for i, v in enumerate(self.variables.values()):
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
+
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
-            self.gen_specs["user"] = kwargs
-        if not persis_info:
+            if not self.gen_specs.get("user"):
+                self.gen_specs["user"] = {}
+            self.gen_specs["user"].update(kwargs)
+        if not persis_info.get("rand_stream"):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
@@ -121,13 +161,13 @@ class LibensembleGenerator(Generator):
 
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return LibensembleGenerator.convert_np_types(np_to_list_dicts(self.ask_numpy(num_points)))
+        return LibensembleGenerator.convert_np_types(
+            np_to_list_dicts(self.ask_numpy(num_points), mapping=self.variables_mapping)
+        )
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results))
-        # Note that although we'd prefer to have a complete dtype available, the gen
-        # doesn't have access to sim_specs["out"] currently.
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -136,35 +176,29 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs,
     ) -> None:
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
-        self.persis_info = persis_info
         self.libE_info = libE_info
         self.thread = None
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
-        # self.outbox = thread_queue.Queue()
-
+        if self.thread is not None:
+            return
         # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
         if hasattr(Executor.executor, "comm"):
             del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
-
-        # SH - fix comment (thread and process & name object appropriately - task? qcomm?)
-        # self.thread = QCommThread(  # TRY A PROCESS
-        #     self.gen_f,
-        #     None,
-        #     self.History,
-        #     self.persis_info,
-        #     self.gen_specs,
-        #     self.libE_info,
-        #     user_function=True,
-        # )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
         self.thread = QCommProcess(  # TRY A PROCESS
             self.gen_f,
@@ -191,7 +225,7 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
 
     def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results), tag)
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
