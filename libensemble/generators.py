@@ -75,11 +75,6 @@ class Generator(ABC):
         Request the next set of points to evaluate.
         """
 
-    def ask_updates(self) -> List[npt.NDArray]:
-        """
-        Request any updates to previous points, e.g. minima discovered, points to cancel.
-        """
-
     def tell(self, results: List[dict]) -> None:
         """
         Send the results of evaluations to the generator.
