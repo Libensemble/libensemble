@@ -120,15 +120,14 @@ class LibensembleGenerator(Generator):
 
             self.n = len(self.variables)
             # build our own lb and ub
-            if "lb" not in kwargs and "ub" not in kwargs:
-                lb = []
-                ub = []
-                for i, v in enumerate(self.variables.values()):
-                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
-                        lb.append(v[0])
-                        ub.append(v[1])
-                kwargs["lb"] = np.array(lb)
-                kwargs["ub"] = np.array(ub)
+            lb = []
+            ub = []
+            for i, v in enumerate(self.variables.values()):
+                if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                    lb.append(v[0])
+                    ub.append(v[1])
+            kwargs["lb"] = np.array(lb)
+            kwargs["ub"] = np.array(ub)
 
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
             if not self.gen_specs.get("user"):
