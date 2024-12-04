@@ -33,7 +33,6 @@ from libensemble.alloc_funcs.persistent_aposmm_alloc import persistent_aposmm_al
 from libensemble.gen_classes import APOSMM
 from libensemble.specs import AllocSpecs, ExitCriteria, GenSpecs, SimSpecs
 from libensemble.tests.regression_tests.support import six_hump_camel_minima as minima
-from libensemble.tools import save_libE_output
 
 # Main block is necessary only when using local comms with spawn start method (default on macOS and Windows).
 if __name__ == "__main__":
@@ -52,6 +51,8 @@ if __name__ == "__main__":
     workflow.exit_criteria = ExitCriteria(sim_max=2000)
 
     aposmm = APOSMM(
+        variables={"x0": [-3, 3], "x1": [-2, 2]},  # we hope to combine these
+        objectives={"f": "MINIMIZE"},
         initial_sample_size=100,
         sample_points=minima,
         localopt_method="LN_BOBYQA",
@@ -59,20 +60,11 @@ if __name__ == "__main__":
         xtol_abs=1e-6,
         ftol_abs=1e-6,
         max_active_runs=workflow.nworkers,  # should this match nworkers always? practically?
-        lb=np.array([-3, -2]),
-        ub=np.array([3, 2]),
+        variables_mapping={"x": ["x0", "x1"]},
     )
 
     workflow.gen_specs = GenSpecs(
         persis_in=["x", "x_on_cube", "sim_id", "local_min", "local_pt", "f"],
-        outputs=[
-            ("x", float, n),
-            ("x_on_cube", float, n),
-            ("sim_id", int),
-            ("local_min", bool),
-            ("local_pt", bool),
-            ("f", float),
-        ],
         generator=aposmm,
         batch_size=5,
         initial_batch_size=10,
@@ -82,7 +74,7 @@ if __name__ == "__main__":
     workflow.libE_specs.gen_on_manager = True
     workflow.add_random_streams()
 
-    H, persis_info, _ = workflow.run()
+    H, _, _ = workflow.run()
 
     # Perform the run
 
@@ -96,6 +88,3 @@ if __name__ == "__main__":
             # We use their values to test APOSMM has identified all minima
             print(np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)), flush=True)
             assert np.min(np.sum((H[H["local_min"]]["x"] - m) ** 2, 1)) < tol
-
-        persis_info[0]["comm"] = None
-        save_libE_output(H, persis_info, __file__, workflow.nworkers)

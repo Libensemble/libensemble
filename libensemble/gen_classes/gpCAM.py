@@ -84,6 +84,8 @@ class GP_CAM(LibensembleGenerator):
 
     def tell_numpy(self, calc_in: npt.NDArray) -> None:
         if calc_in is not None:
+            if "x" in calc_in.dtype.names:  # SH should we require x in?
+                self.x_new = np.atleast_2d(calc_in["x"])
             self.y_new = np.atleast_2d(calc_in["f"]).T
             nan_indices = [i for i, fval in enumerate(self.y_new) if np.isnan(fval[0])]
             self.x_new = np.delete(self.x_new, nan_indices, axis=0)

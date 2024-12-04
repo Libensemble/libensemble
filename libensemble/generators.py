@@ -1,6 +1,5 @@
 # import queue as thread_queue
 from abc import ABC, abstractmethod
-from multiprocessing import Manager
 
 # from multiprocessing import Queue as process_queue
 from typing import List, Optional
@@ -8,7 +7,7 @@ from typing import List, Optional
 import numpy as np
 from numpy import typing as npt
 
-from libensemble.comms.comms import QComm, QCommProcess  # , QCommThread
+from libensemble.comms.comms import QCommProcess  # , QCommThread
 from libensemble.executors import Executor
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 from libensemble.tools.tools import add_unique_random_streams
@@ -23,6 +22,10 @@ NOTE: These generators, implementations, methods, and subclasses are in BETA, an
 """
 
 
+class GeneratorNotStartedException(Exception):
+    """Exception raised by a threaded/multiprocessed generator upon being asked without having been started"""
+
+
 class Generator(ABC):
     """
 
@@ -33,9 +36,9 @@ class Generator(ABC):
 
 
         class MyGenerator(Generator):
-            def __init__(self, param):
+            def __init__(self, variables, objectives, param):
                 self.param = param
-                self.model = None
+                self.model = create_model(variables, objectives, self.param)
 
             def ask(self, num_points):
                 return create_points(num_points, self.param)
@@ -48,12 +51,15 @@ class Generator(ABC):
                 return list(self.model)
 
 
-        my_generator = MyGenerator(my_parameter=100)
+        variables = {"a": [-1, 1], "b": [-2, 2]}
+        objectives = {"f": "MINIMIZE"}
+
+        my_generator = MyGenerator(variables, objectives, my_parameter=100)
         gen_specs = GenSpecs(generator=my_generator, ...)
     """
 
     @abstractmethod
-    def __init__(self, *args, **kwargs):
+    def __init__(self, variables: dict[str, List[float]], objectives: dict[str, str], *args, **kwargs):
         """
         Initialize the Generator object on the user-side. Constants, class-attributes,
         and preparation goes here.
@@ -95,12 +101,45 @@ class LibensembleGenerator(Generator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs,
     ):
+        self.variables = variables
+        self.objectives = objectives
+        self.History = History
         self.gen_specs = gen_specs
+        self.libE_info = libE_info
+
+        self.variables_mapping = kwargs.get("variables_mapping", {})
+
+        self._internal_variable = "x"  # need to figure these out dynamically
+        self._internal_objective = "f"
+
+        if self.variables:
+
+            self.n = len(self.variables)
+            # build our own lb and ub
+            if "lb" not in kwargs and "ub" not in kwargs:
+                lb = []
+                ub = []
+                for i, v in enumerate(self.variables.values()):
+                    if isinstance(v, list) and (isinstance(v[0], int) or isinstance(v[0], float)):
+                        lb.append(v[0])
+                        ub.append(v[1])
+                kwargs["lb"] = np.array(lb)
+                kwargs["ub"] = np.array(ub)
+
         if len(kwargs) > 0:  # so user can specify gen-specific parameters as kwargs to constructor
-            self.gen_specs["user"] = kwargs
-        if not persis_info:
+            if not self.gen_specs.get("user"):
+                self.gen_specs["user"] = {}
+            self.gen_specs["user"].update(kwargs)
+        if not persis_info.get("rand_stream"):
             self.persis_info = add_unique_random_streams({}, 4, seed=4321)[1]
         else:
             self.persis_info = persis_info
@@ -113,15 +152,22 @@ class LibensembleGenerator(Generator):
     def tell_numpy(self, results: npt.NDArray) -> None:
         """Send the results, as a NumPy array, of evaluations to the generator."""
 
+    @staticmethod
+    def convert_np_types(dict_list):
+        return [
+            {key: (value.item() if isinstance(value, np.generic) else value) for key, value in item.items()}
+            for item in dict_list
+        ]
+
     def ask(self, num_points: Optional[int] = 0) -> List[dict]:
         """Request the next set of points to evaluate."""
-        return np_to_list_dicts(self.ask_numpy(num_points))
+        return LibensembleGenerator.convert_np_types(
+            np_to_list_dicts(self.ask_numpy(num_points), mapping=self.variables_mapping)
+        )
 
     def tell(self, results: List[dict]) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results))
-        # Note that although we'd prefer to have a complete dtype available, the gen
-        # doesn't have access to sim_specs["out"] currently.
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
 
 
 class LibensembleGenThreadInterfacer(LibensembleGenerator):
@@ -130,36 +176,29 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
     """
 
     def __init__(
-        self, History: npt.NDArray = [], persis_info: dict = {}, gen_specs: dict = {}, libE_info: dict = {}, **kwargs
+        self,
+        variables: dict,
+        objectives: dict = {},
+        History: npt.NDArray = [],
+        persis_info: dict = {},
+        gen_specs: dict = {},
+        libE_info: dict = {},
+        **kwargs,
     ) -> None:
-        super().__init__(History, persis_info, gen_specs, libE_info, **kwargs)
+        super().__init__(variables, objectives, History, persis_info, gen_specs, libE_info, **kwargs)
         self.gen_f = gen_specs["gen_f"]
         self.History = History
-        self.persis_info = persis_info
         self.libE_info = libE_info
         self.thread = None
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        # self.inbox = thread_queue.Queue()  # sending betweween HERE and gen
-        # self.outbox = thread_queue.Queue()
-        self.m = Manager()
-        self.inbox = self.m.Queue()
-        self.outbox = self.m.Queue()
-
-        comm = QComm(self.inbox, self.outbox)
-        self.libE_info["comm"] = comm  # replacing comm so gen sends HERE instead of manager
+        if self.thread is not None:
+            return
+        # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
+        if hasattr(Executor.executor, "comm"):
+            del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
-
-        # self.thread = QCommThread(  # TRY A PROCESS
-        #     self.gen_f,
-        #     None,
-        #     self.History,
-        #     self.persis_info,
-        #     self.gen_specs,
-        #     self.libE_info,
-        #     user_function=True,
-        # )  # note that self.thread's inbox/outbox are unused by the underlying gen
 
         self.thread = QCommProcess(  # TRY A PROCESS
             self.gen_f,
@@ -169,36 +208,42 @@ class LibensembleGenThreadInterfacer(LibensembleGenerator):
             self.gen_specs,
             self.libE_info,
             user_function=True,
-        )  # note that self.thread's inbox/outbox are unused by the underlying gen
+        )
+
+        # SH this is a bit hacky - maybe it can be done inside comms (in _qcomm_main)?
+        self.libE_info["comm"] = self.thread.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
         for field in results.dtype.names:
-            new_results[field] = results[field]
+            try:
+                new_results[field] = results[field]
+            except ValueError:  # lets not slot in data that the gen doesnt need?
+                continue
         new_results["sim_ended"] = True
         return new_results
 
     def tell(self, results: List[dict], tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator."""
-        self.tell_numpy(list_dicts_to_np(results), tag)
+        self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping), tag)
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if not self.thread.running:
+        if self.thread is None:
+            self.setup()
             self.thread.run()
-        _, ask_full = self.outbox.get()
+        _, ask_full = self.thread.recv()
         return ask_full["calc_out"]
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
         """Send the results of evaluations to the generator, as a NumPy array."""
         if results is not None:
             results = self._set_sim_ended(results)
-            self.inbox.put(
-                (tag, {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}})
-            )
+            Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
+            self.thread.send(tag, Work)
+            self.thread.send(tag, np.copy(results))  # SH for threads check - might need deepcopy due to dtype=object
         else:
-            self.inbox.put((tag, None))
-        self.inbox.put((0, np.copy(results)))
+            self.thread.send(tag, None)
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""

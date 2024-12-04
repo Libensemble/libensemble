@@ -6,13 +6,13 @@ import numpy as np
 
 from libensemble.resources.platforms import Platform
 from libensemble.utils.misc import pydanticV1
-from libensemble.utils.specs_checkers import (
+from libensemble.utils.specs_checkers import (  # _check_output_fields,
     _check_any_workers_and_disable_rm_if_tcp,
     _check_exit_criteria,
     _check_H0,
     _check_logical_cores,
-    _check_output_fields,
     _check_set_calc_dirs_on_input_dir,
+    _check_set_gen_specs_from_variables,
     _check_set_workflow_dir,
 )
 
@@ -148,8 +148,8 @@ if pydanticV1:
         return _check_exit_criteria(values)
 
     @root_validator
-    def check_output_fields(cls, values):
-        return _check_output_fields(values)
+    def check_set_gen_specs_from_variables(cls, values):
+        return _check_set_gen_specs_from_variables(values)
 
     @root_validator
     def check_H0(cls, values):
@@ -246,8 +246,8 @@ else:
         return _check_exit_criteria(self)
 
     @model_validator(mode="after")
-    def check_output_fields(self):
-        return _check_output_fields(self)
+    def check_set_gen_specs_from_variables(self):
+        return _check_set_gen_specs_from_variables(self)
 
     @model_validator(mode="after")
     def check_H0(self):

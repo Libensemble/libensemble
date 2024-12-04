@@ -63,38 +63,37 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - name: Force-update certifi
+        - name: Force-update certifi and pip
           run: |
             python --version
-            pip install -I --upgrade certifi
+            python -m pip install --upgrade pip
+            python -m pip install -I --upgrade certifi
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
-          run: conda install gcc_linux-64
+          run: |
+              conda install gcc_linux-64
+              pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
             conda install clang_osx-64
+            pip install nlopt==2.8.0
 
         - name: Install basic testing/feature dependencies
           run: |
             pip install -r install/testing_requirements.txt
             pip install -r install/misc_feature_requirements.txt
             source install/install_ibcdfo.sh
+            conda install numpy scipy
 
         - name: Install mpi4py and MPI from conda
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
-        - name: Install generator dependencies
-          run: |
-            python -m pip install --upgrade pip
-            pip install mpmath matplotlib
-            conda install numpy nlopt scipy
-
-        - name: Install libEnsemble, flake8
+        - name: Install libEnsemble, test flake8
           run: |
             pip install pydantic==${{ matrix.pydantic-version }}
             pip install -e .
@@ -120,7 +119,7 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v4
+          uses: codecov/codecov-action@v5
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -130,4 +129,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.26.0
+        - uses: crate-ci/typos@v1.27.3

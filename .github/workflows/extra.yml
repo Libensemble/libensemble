@@ -74,13 +74,16 @@ jobs:
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
-          run: conda install gcc_linux-64
+          run: |
+              conda install gcc_linux-64
+              pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
             conda install clang_osx-64
+            pip install nlopt==2.8.0
 
         - name: Install mpi4py and MPI from conda
           run: |
@@ -168,7 +171,7 @@ jobs:
             mv libensemble/tests/.cov* .
 
         - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v4
+          uses: codecov/codecov-action@v5
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -178,4 +181,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.26.0
+        - uses: crate-ci/typos@v1.27.3

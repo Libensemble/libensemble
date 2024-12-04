@@ -108,7 +108,10 @@ class AskTellGenRunner(Runner):
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, npt.NDArray):
         # no ask_updates on external gens
-        return (list_dicts_to_np(self.gen.ask(batch_size), dtype=self.specs.get("out")), None)
+        return (
+            list_dicts_to_np(self.gen.ask(batch_size), dtype=self.specs.get("out"), mapping=self.gen.variables_mapping),
+            None,
+        )
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell(np_to_list_dicts(x))
@@ -136,13 +139,10 @@ class AskTellGenRunner(Runner):
     def _persistent_result(self, calc_in, persis_info, libE_info):
         """Setup comms with manager, setup gen, loop gen to completion, return gen's results"""
         self.ps = PersistentSupport(libE_info, EVAL_GEN_TAG)
-        if hasattr(self.gen, "setup"):
-            self.gen.persis_info = persis_info  # passthrough, setup() uses the gen attributes
-            self.gen.libE_info = libE_info
-            if self.gen.thread is None:
-                self.gen.setup()  # maybe we're reusing a live gen from a previous run
         # libE gens will hit the following line, but list_dicts_to_np will passthrough if the output is a numpy array
-        H_out = list_dicts_to_np(self._get_initial_ask(libE_info), dtype=self.specs.get("out"))
+        H_out = list_dicts_to_np(
+            self._get_initial_ask(libE_info), dtype=self.specs.get("out"), mapping=self.gen.variables_mapping
+        )
         tag, Work, H_in = self.ps.send_recv(H_out)  # evaluate the initial sample
         final_H_in = self._start_generator_loop(tag, Work, H_in)
         return self.gen.final_tell(final_H_in), FINISHED_PERSISTENT_GEN_TAG
@@ -178,7 +178,7 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
 
     def _ask_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
-        while self.gen.outbox.qsize():  # recv/send any outstanding messages
+        while not self.gen.thread.outbox.empty():  # recv/send any outstanding messages
             points, updates = self.gen.ask_numpy(), self.gen.ask_updates()
             if updates is not None and len(updates):
                 self.ps.send(points)
