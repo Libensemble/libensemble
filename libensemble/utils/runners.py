@@ -7,7 +7,7 @@ from typing import Optional
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer
+from libensemble.generators import LibensembleGenerator, PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
@@ -23,7 +23,7 @@ class Runner:
         if specs.get("threaded"):
             return ThreadRunner(specs)
         if (generator := specs.get("generator")) is not None:
-            if isinstance(generator, LibensembleGenThreadInterfacer):
+            if isinstance(generator, PersistentGenInterfacer):
                 return LibensembleGenThreadRunner(specs)
             if isinstance(generator, LibensembleGenerator):
                 return LibensembleGenRunner(specs)

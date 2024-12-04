@@ -170,7 +170,7 @@ class LibensembleGenerator(Generator):
         self.tell_numpy(list_dicts_to_np(results, mapping=self.variables_mapping))
 
 
-class LibensembleGenThreadInterfacer(LibensembleGenerator):
+class PersistentGenInterfacer(LibensembleGenerator):
     """Implement ask/tell for traditionally written libEnsemble persistent generator functions.
     Still requires a handful of libEnsemble-specific data-structures on initialization.
     """
