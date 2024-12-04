@@ -115,6 +115,10 @@ def list_dicts_to_np(list_dicts: list, dtype: list = None, mapping: dict = {}) -
     if not isinstance(list_dicts, list):  # presumably already a numpy array, conversion not necessary
         return list_dicts
 
+    for entry in list_dicts:
+        if "_id" in entry:
+            entry["sim_id"] = entry.pop("_id")
+
     if dtype is None:
         dtype = []
 
@@ -187,4 +191,9 @@ def np_to_list_dicts(array: npt.NDArray, mapping: dict = {}) -> List[dict]:
                 for i, name in enumerate(mapping[field]):
                     new_dict[name] = row[field][i]
         out.append(new_dict)
+
+    for entry in out:
+        if "sim_id" in entry:
+            entry["_id"] = entry.pop("sim_id")
+
     return out
