@@ -183,18 +183,18 @@ class PersistentGenInterfacer(LibensembleGenerator):
         self.gen_f = gen_specs["gen_f"]
         self.History = History
         self.libE_info = libE_info
-        self.thread = None
+        self.running_gen_f = None
 
     def setup(self) -> None:
         """Must be called once before calling ask/tell. Initializes the background thread."""
-        if self.thread is not None:
+        if self.running_gen_f is not None:
             return
         # SH this contains the thread lock -  removing.... wrong comm to pass on anyway.
         if hasattr(Executor.executor, "comm"):
             del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
-        self.thread = QCommProcess(  # TRY A PROCESS
+        self.running_gen_f = QCommProcess(  # TRY A PROCESS
             self.gen_f,
             None,
             self.History,
@@ -205,7 +205,8 @@ class PersistentGenInterfacer(LibensembleGenerator):
         )
 
         # SH this is a bit hacky - maybe it can be done inside comms (in _qcomm_main)?
-        self.libE_info["comm"] = self.thread.comm
+        # once adjustment made to qcomm_main, can remove this line
+        self.libE_info["comm"] = self.running_gen_f.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
         new_results = np.zeros(len(results), dtype=self.gen_specs["out"] + [("sim_ended", bool), ("f", float)])
@@ -223,10 +224,10 @@ class PersistentGenInterfacer(LibensembleGenerator):
 
     def ask_numpy(self, num_points: int = 0) -> npt.NDArray:
         """Request the next set of points to evaluate, as a NumPy array."""
-        if self.thread is None:
+        if self.running_gen_f is None:
             self.setup()
-            self.thread.run()
-        _, ask_full = self.thread.recv()
+            self.running_gen_f.run()
+        _, ask_full = self.running_gen_f.recv()
         return ask_full["calc_out"]
 
     def tell_numpy(self, results: npt.NDArray, tag: int = EVAL_GEN_TAG) -> None:
@@ -234,12 +235,14 @@ class PersistentGenInterfacer(LibensembleGenerator):
         if results is not None:
             results = self._set_sim_ended(results)
             Work = {"libE_info": {"H_rows": np.copy(results["sim_id"]), "persistent": True, "executor": None}}
-            self.thread.send(tag, Work)
-            self.thread.send(tag, np.copy(results))  # SH for threads check - might need deepcopy due to dtype=object
+            self.running_gen_f.send(tag, Work)
+            self.running_gen_f.send(
+                tag, np.copy(results)
+            )  # SH for threads check - might need deepcopy due to dtype=object
         else:
-            self.thread.send(tag, None)
+            self.running_gen_f.send(tag, None)
 
     def final_tell(self, results: npt.NDArray = None) -> (npt.NDArray, dict, int):
         """Send any last results to the generator, and it to close down."""
         self.tell_numpy(results, PERSIS_STOP)  # conversion happens in tell
-        return self.thread.result()
+        return self.running_gen_f.result()

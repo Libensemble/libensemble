@@ -227,6 +227,8 @@ def _qcomm_main(comm, main, *args, **kwargs):
             _result = main(comm, *args, **kwargs)
         else:
             # SH - could we insert comm into libE_info["comm"] here if it exists
+            # check that we have a libE_info, insert comm into it
+            # args[-1]["comm"] = comm
             _result = main(*args)
         comm.send(CommResult(_result))
     except Exception as e:
