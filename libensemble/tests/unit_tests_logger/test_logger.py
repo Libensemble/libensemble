@@ -19,6 +19,10 @@ def test_set_log_level():
     level = logger.get_level()
     assert level == 10, "Log level should be 10. Found: " + str(level)
 
+    logger.set_level("VDEBUG")
+    level = logger.get_level()
+    assert level == 5, "Log level should be 5. Found: " + str(level)
+
     logger.set_level("WARNING")
     level = logger.get_level()
     assert level == 30, "Log level should be 30. Found: " + str(level)

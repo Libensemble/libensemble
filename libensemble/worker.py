@@ -364,7 +364,7 @@ class Worker:
             return None
 
         # Otherwise, send a calc result back to manager
-        logger.debug(f"Sending to Manager with status {calc_status}")
+        logger.debug(f"Sending data to Manager with status {calc_status}")
         return {
             "calc_out": calc_out,
             "persis_info": persis_info,
