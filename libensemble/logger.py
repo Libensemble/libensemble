@@ -8,9 +8,11 @@ MANAGER_WARNING = 35
 logging.addLevelName(MANAGER_WARNING, "MANAGER_WARNING")
 logging.MANAGER_WARNING = MANAGER_WARNING
 
+
 def manager_warning(self, message: str, *args, **kwargs) -> None:
     if self.isEnabledFor(MANAGER_WARNING):
         self._log(MANAGER_WARNING, message, args, **kwargs)
+
 
 logging.Logger.manager_warning = manager_warning
 
@@ -18,9 +20,11 @@ VDEBUG = 5
 logging.addLevelName(VDEBUG, "VDEBUG")
 logging.VDEBUG = VDEBUG
 
+
 def vdebug(self, message, *args, **kwargs):
     if self.isEnabledFor(VDEBUG):
         self._log(VDEBUG, message, args, **kwargs)
+
 
 logging.Logger.vdebug = vdebug
 
