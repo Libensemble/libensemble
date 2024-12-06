@@ -194,7 +194,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
             del Executor.executor.comm
         self.libE_info["executor"] = Executor.executor
 
-        self.running_gen_f = QCommProcess(  # TRY A PROCESS
+        self.running_gen_f = QCommProcess(
             self.gen_f,
             None,
             self.History,
@@ -204,8 +204,7 @@ class PersistentGenInterfacer(LibensembleGenerator):
             user_function=True,
         )
 
-        # SH this is a bit hacky - maybe it can be done inside comms (in _qcomm_main)?
-        # once adjustment made to qcomm_main, can remove this line
+        # this is okay since the object isnt started until the first ask
         self.libE_info["comm"] = self.running_gen_f.comm
 
     def _set_sim_ended(self, results: npt.NDArray) -> npt.NDArray:
