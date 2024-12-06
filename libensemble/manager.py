@@ -678,7 +678,7 @@ class Manager:
 
     def run(self, persis_info: dict) -> (dict, int, int):
         """Runs the manager"""
-        logger.info(f"Manager initiated on node {socket.gethostname()}")
+        logger.debug(f"Manager initiated on node {socket.gethostname()}")
         logger.info(f"Manager exit_criteria: {self.exit_criteria}")
 
         # Continue receiving and giving until termination test is satisfied

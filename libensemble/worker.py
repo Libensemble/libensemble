@@ -376,7 +376,7 @@ class Worker:
     def run(self) -> None:
         """Runs the main worker loop."""
         try:
-            logger.info(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
+            logger.debug(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
 
             for worker_iter in count(start=1):
                 logger.debug(f"Iteration {worker_iter}")
