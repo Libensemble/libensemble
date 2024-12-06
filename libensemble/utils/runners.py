@@ -183,7 +183,7 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
 
     def _ask_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
-        while not self.gen.thread.outbox.empty():  # recv/send any outstanding messages
+        while not self.gen.running_gen_f.outbox.empty():  # recv/send any outstanding messages
             points = self.gen.ask_numpy()
             if callable(getattr(self.gen, "ask_updates", None)):
                 updates = self.gen.ask_updates()
