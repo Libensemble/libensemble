@@ -37,7 +37,7 @@ Logger Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
 The libEnsemble logger uses the following logging levels
-(``VDEBUG``, ``DEBUG``, ``INFO``, ``WARNING``, ``MANAGER_WARNING`` ``ERROR``, ``CRITICAL``)
+(``VDEBUG``, ``DEBUG``, ``INFO``, ``WARNING``, ``MANAGER_WARNING``, ``ERROR``, ``CRITICAL``)
 
 The default level is ``INFO``, which includes information about how tasks are submitted
 and when tasks are killed. To gain additional diagnostics, including communication
