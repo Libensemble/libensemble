@@ -7,7 +7,7 @@ from typing import Optional
 import numpy.typing as npt
 
 from libensemble.comms.comms import QCommThread
-from libensemble.generators import LibensembleGenerator, LibensembleGenThreadInterfacer
+from libensemble.generators import LibensembleGenerator, PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 from libensemble.utils.misc import list_dicts_to_np, np_to_list_dicts
@@ -23,7 +23,7 @@ class Runner:
         if specs.get("threaded"):
             return ThreadRunner(specs)
         if (generator := specs.get("generator")) is not None:
-            if isinstance(generator, LibensembleGenThreadInterfacer):
+            if isinstance(generator, PersistentGenInterfacer):
                 return LibensembleGenThreadRunner(specs)
             if isinstance(generator, LibensembleGenerator):
                 return LibensembleGenRunner(specs)
@@ -160,7 +160,12 @@ class LibensembleGenRunner(AskTellGenRunner):
         return H_out
 
     def _get_points_updates(self, batch_size: int) -> (npt.NDArray, list):
-        return self.gen.ask_numpy(batch_size), self.gen.ask_updates()
+        numpy_out = self.gen.ask_numpy(batch_size)
+        if callable(getattr(self.gen, "ask_updates", None)):
+            updates = self.gen.ask_updates()
+        else:
+            updates = None
+        return numpy_out, updates
 
     def _convert_tell(self, x: npt.NDArray) -> list:
         self.gen.tell_numpy(x)
@@ -178,8 +183,12 @@ class LibensembleGenThreadRunner(AskTellGenRunner):
 
     def _ask_and_send(self):
         """Loop over generator's outbox contents, send to manager"""
-        while not self.gen.thread.outbox.empty():  # recv/send any outstanding messages
-            points, updates = self.gen.ask_numpy(), self.gen.ask_updates()
+        while not self.gen.running_gen_f.outbox.empty():  # recv/send any outstanding messages
+            points = self.gen.ask_numpy()
+            if callable(getattr(self.gen, "ask_updates", None)):
+                updates = self.gen.ask_updates()
+            else:
+                updates = None
             if updates is not None and len(updates):
                 self.ps.send(points)
                 for i in updates:

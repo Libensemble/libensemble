@@ -4,11 +4,11 @@ from typing import List
 import numpy as np
 from numpy import typing as npt
 
-from libensemble.generators import LibensembleGenThreadInterfacer
+from libensemble.generators import PersistentGenInterfacer
 from libensemble.message_numbers import EVAL_GEN_TAG, PERSIS_STOP
 
 
-class APOSMM(LibensembleGenThreadInterfacer):
+class APOSMM(PersistentGenInterfacer):
     """
     Standalone object-oriented APOSMM generator
     """

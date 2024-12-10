@@ -226,7 +226,6 @@ def _qcomm_main(comm, main, *args, **kwargs):
         if not kwargs.get("user_function"):
             _result = main(comm, *args, **kwargs)
         else:
-            # SH - could we insert comm into libE_info["comm"] here if it exists
             _result = main(*args)
         comm.send(CommResult(_result))
     except Exception as e:
