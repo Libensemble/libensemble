@@ -15,13 +15,13 @@ def test_set_log_level():
     level = logger.get_level()
     assert level == 20, "Log level should be 20. Found: " + str(level)
 
-    logger.set_level("DEBUG")
-    level = logger.get_level()
-    assert level == 10, "Log level should be 10. Found: " + str(level)
-
     logger.set_level("VDEBUG")
     level = logger.get_level()
     assert level == 5, "Log level should be 5. Found: " + str(level)
+
+    logger.set_level("DEBUG")
+    level = logger.get_level()
+    assert level == 10, "Log level should be 10. Found: " + str(level)
 
     logger.set_level("WARNING")
     level = logger.get_level()
@@ -83,6 +83,10 @@ def test_set_directory(tmp_path):
 def test_set_stderr_level():
     stderr_level = logger.get_stderr_level()
     assert stderr_level == 35, "Default stderr copying level is 35, found " + str(stderr_level)
+
+    logger.set_stderr_level("VDEBUG")
+    stderr_level = logger.get_stderr_level()
+    assert stderr_level == 5, "Log level should be 5. Found: " + str(stderr_level)
 
     logger.set_stderr_level("DEBUG")
     stderr_level = logger.get_stderr_level()
