@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
-"""Plots location of minima for each optimization run in 3D input space"""
+"""
+Plots the location of minima for each optimization run in 3D input space for
+the N best runs.
+
+To be run with both the history file (*.npy) and the persis_info file (*.pickle)
+from a libEnsemble/APOSMM run present in the current directory. The most recent
+of each file type present will be used for the plot.
+
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt

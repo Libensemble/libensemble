@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
-"""Plot f by optimization run, for N best runs. Other points are shown in grey"""
+"""
+Plot f by optimization run, for N best runs. Other points are shown in grey
+
+To be run with both the history file (*.npy) and the persis_info file (*.pickle)
+from a libEnsemble/APOSMM run present in the current directory. The most recent
+of each file type present will be used for the plot.
+
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
