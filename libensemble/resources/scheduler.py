@@ -296,15 +296,9 @@ class ResourceScheduler:
         return slots_avail_by_group
 
     def calc_req_split(self, rsets_req, max_grpsize, num_groups, extend):
-        if self.resources.even_groups:  # This is total group sizes even (not available sizes)
-            rsets_req, num_groups_req, rsets_per_group = self.calc_rsets_even_grps(
-                rsets_req, max_grpsize, num_groups, extend
-            )
-        else:
-            logger.warning("Uneven groups - but using even groups function")
-            rsets_req, num_groups_req, rsets_per_group = self.calc_rsets_even_grps(
-                rsets_req, max_grpsize, num_groups, extend
-            )
+        rsets_req, num_groups_req, rsets_per_group = self.calc_rsets_even_grps(
+            rsets_req, max_grpsize, num_groups, extend
+        )
         return rsets_req, num_groups_req, rsets_per_group
 
     def calc_rsets_even_grps(self, rsets_req, max_grpsize, max_groups, extend):
