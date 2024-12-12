@@ -36,13 +36,15 @@ Two other libEnsemble files produced by default:
 Logger Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
-The libEnsemble logger uses the standard Python logging levels (``DEBUG``, ``INFO``, ``WARNING``, ``ERROR``, ``CRITICAL``)
-plus one additional custom level (``MANAGER_WARNING``) between ``WARNING`` and ``ERROR``.
+The libEnsemble logger uses the following logging levels
+(``VDEBUG``, ``DEBUG``, ``INFO``, ``WARNING``, ``MANAGER_WARNING``, ``ERROR``, ``CRITICAL``)
 
 The default level is ``INFO``, which includes information about how tasks are submitted
-and when tasks are killed. To gain additional diagnostics, set the logging level
-to ``DEBUG``. libEnsemble writes to ``ensemble.log`` by default. A log
-file name can also be supplied.
+and when tasks are killed. To gain additional diagnostics, including communication
+tracking, set the logging level to ``DEBUG``. In rare cases, the ``VDEBUG`` level may
+be useful, which also tracks log messages.
+
+libEnsemble writes to ``ensemble.log`` by default. A log file name can also be supplied.
 
 To change the logging level to ``DEBUG``::
 
