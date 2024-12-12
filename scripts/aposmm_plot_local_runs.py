@@ -60,7 +60,7 @@ for key, indices, _ in min_f_per_set_sorted:
 # Add a dummy point to the legend for "minima of opt run"
 plt.scatter([], [], color='red', edgecolor='black', s=50, label='Best value of opt run')
 
-plt.xlabel('Sim ID')
+plt.xlabel('Simulation ID')
 plt.ylabel('Objective value')
 plt.title(f'Objective values by Optimization runs. Best {N} runs from {num_runs}')
 plt.legend()

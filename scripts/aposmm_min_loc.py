@@ -79,6 +79,6 @@ if full_bounds:
 ax.set_xlabel(x_name)
 ax.set_ylabel(y_name)
 ax.set_zlabel(z_name)
-ax.set_title('Locations of best values in Input Space')
+ax.set_title('Locations of best points from each optimization run')
 ax.legend(bbox_to_anchor=(-0.1, 0.9), loc='upper left', borderaxespad=0)
 plt.savefig(f"location_min_best{N}.png")
