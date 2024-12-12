@@ -1,6 +1,7 @@
 """Persistent generator exposing gpCAM functionality"""
 
 import time
+import warnings
 
 import numpy as np
 from gpcam import GPOptimizer as GP
@@ -17,6 +18,12 @@ __all__ = [
 
 def _initialize_gpcAM(user_specs, libE_info):
     """Extract user params"""
+    warnings.warn(
+        "Use of persistent_gpCAM as a persistent generator function is deprecated. "
+        + "From libEnsemble v2.0 onward, Use the libensemble.gen_classes.gpcam ask/tell generator. "
+        + "See the docs for more information.",
+        FutureWarning,
+    )
     b = user_specs["batch_size"]
     lb = np.array(user_specs["lb"])
     ub = np.array(user_specs["ub"])
