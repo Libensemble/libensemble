@@ -32,8 +32,8 @@ Release 1.4.3
 
 :Note:
 
-* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12
-* Heterogeneous workflows tested on Frontier (OLCF), Polaris (ALCF), and Perlmutter (NERSC).
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12, 3.13
+* Heterogeneous workflows tested on Polaris (ALCF) and Perlmutter (NERSC).
 
 :Known Issues:
 
