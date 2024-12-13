@@ -16,8 +16,8 @@ description: |
 language: Python
 
 release:
-  version: 1.4.2
-  date: 2024-08-14
+  version: 1.4.3
+  date: 2024-12-13
 
 documentation:
   general: https://libensemble.readthedocs.io
