@@ -2,12 +2,18 @@ import random
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+import pydantic
 from pydantic import BaseModel, Field
+import warnings
 
 from libensemble.alloc_funcs.give_sim_work_first import give_sim_work_first
 from libensemble.resources.platforms import Platform
 
 __all__ = ["SimSpecs", "GenSpecs", "AllocSpecs", "ExitCriteria", "LibeSpecs", "_EnsembleSpecs"]
+
+# Deal with false warning https://github.com/pydantic/pydantic/issues/8677
+if pydantic.__version__ == "2.6.0":
+    warnings.filterwarnings("ignore", message="Pydantic serializer warnings:")
 
 
 """
