@@ -13,7 +13,7 @@ Release 1.4.3
 
 :Date: Dec 16, 2024
 
-* Fix `wait_on_start` type-instance condition checking #1474
+* Fix `wait_on_start` type-instance condition checking. #1474
 
 * Logging updates:
   * Add `VDEBUG` logging level for the tracking of log message communications. #1486

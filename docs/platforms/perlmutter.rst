@@ -111,7 +111,7 @@ Running generator on the manager
 An alternative is to run the generator on a thread on the manager. The
 number of workers can then be set to the number of simulation workers.
 
-Change the libE_specs in `run_libe_forces.py` as follows.
+Change the ``libE_specs`` in **run_libe_forces.py** as follows.
 
    .. code-block:: python
 
