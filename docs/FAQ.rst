@@ -305,7 +305,7 @@ macOS and Windows Errors
 
 .. _Installing PETSc On Microsoft Windows: https://petsc.org/release/install/windows/#recommended-installation-methods
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
-.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/architecture/
 .. _Python multiprocessing docs: https://docs.python.org/3/library/multiprocessing.html
 .. _SDF: https://sdf.slac.stanford.edu/public/doc/#/?id=what-is-the-sdf
 .. _Support: https://libensemble.readthedocs.io/en/main/introduction.html#resources

@@ -8,6 +8,36 @@ GitHub issues are referenced, and can be viewed with hyperlinks on the `github r
 
 .. _`github releases page`: https://github.com/Libensemble/libensemble/releases
 
+Release 1.4.3
+--------------
+
+:Date: Dec 16, 2024
+
+* Fix `wait_on_start` type-instance condition checking. #1474
+
+* Logging updates:
+  * Add `VDEBUG` logging level for the tracking of log message communications. #1486
+  * Show worker node in the log only when running in distributed mode and with DEBUG logging. #1486
+  * Update uneven distribution messaging. #1486
+
+:Scripts:
+
+* Add scripts for plotting APOSMM optimization runs. #1461
+* Convert test runner to Python. #1437
+
+:Examples:
+
+* Move dragonfly GP, heFFTe, ytopt, and Ax multitask tests to community examples. #1439
+
+:Note:
+
+* Tests were run on Linux and MacOS with Python versions 3.9, 3.10, 3.11, 3.12, 3.13
+* Heterogeneous workflows tested on Polaris (ALCF) and Perlmutter (NERSC).
+
+:Known Issues:
+
+* See known issues section in the documentation.
+
 Release 1.4.2
 --------------
 

@@ -96,11 +96,35 @@ Now grab an interactive session on one node::
 Then in the session run::
 
     export LIBE_PLATFORM="perlmutter_g"
-    python run_libe_forces.py --comms local --nworkers 4
+    python run_libe_forces.py -n 5
+
+This places the generator on the first worker and runs simulations on the
+others (each simulation using one GPU).
 
 To see GPU usage, ssh into the node you are on in another window and run::
 
     watch -n 0.1 nvidia-smi
+
+Running generator on the manager
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An alternative is to run the generator on a thread on the manager. The
+number of workers can then be set to the number of simulation workers.
+
+Change the ``libE_specs`` in **run_libe_forces.py** as follows.
+
+   .. code-block:: python
+
+    nsim_workers = ensemble.nworkers
+
+    # Persistent gen does not need resources
+    ensemble.libE_specs = LibeSpecs(
+        gen_on_manager=True,
+
+and run with::
+
+    python run_libe_forces.py -n 4
+
 
 To watch video
 ^^^^^^^^^^^^^^
@@ -128,10 +152,10 @@ to use ``mpi4py``, you should install and run as follows::
 
 This line will build ``mpi4py`` on top of a CUDA-aware Cray MPICH.
 
-To run using 4 workers (one manager)::
+To run using 5 workers (one manager)::
 
     export SLURM_EXACT=1
-    srun -n 5 python my_script.py
+    srun -n 6 python my_script.py
 
 More information on using Python and ``mpi4py`` on Perlmutter can be found
 in the `Python on Perlmutter`_ documentation.
@@ -190,7 +214,7 @@ See the NERSC Perlmutter_ docs for more information about Perlmutter.
 .. _mpi4py: https://mpi4py.readthedocs.io/en/stable/
 .. _NERSC: https://www.nersc.gov/
 .. _option to srun: https://docs.nersc.gov/systems/perlmutter/running-jobs/#single-gpu-tasks-in-parallel
-.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/architecture/
 .. _Python on Perlmutter: https://docs.nersc.gov/development/languages/python/using-python-perlmutter/
 .. _Slurm: https://slurm.schedmd.com/
 .. _video: https://www.youtube.com/watch?v=Av8ctYph7-Y

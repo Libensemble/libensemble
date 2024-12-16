@@ -12,38 +12,38 @@ jobs:
                 os: [ubuntu-latest]
                 mpi-version: [mpich]
                 python-version: [3.9, "3.10", "3.11", "3.12"]
-                pydantic-version: ["2.6.4"]
+                pydantic-version: ["2.8.2"]
                 comms-type: [m, l]
                 include:
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: m
                     - os: macos-latest
                       python-version: 3.11
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: l
                     - os: ubuntu-latest
                       python-version: "3.10"
                       mpi-version: mpich
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       comms-type: t
                     - os: ubuntu-latest
                       mpi-version: "openmpi"
-                      pydantic-version: "2.6.4"
+                      pydantic-version: "2.8.2"
                       python-version: "3.12"
                       comms-type: l
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: m
                     - os: ubuntu-latest
                       mpi-version: mpich
                       python-version: "3.10"
-                      pydantic-version: "1.10.13"
+                      pydantic-version: "1.10.17"
                       comms-type: l
 
         env:
@@ -67,20 +67,6 @@ jobs:
             channel-priority: flexible
             auto-update-conda: true
 
-        - uses: actions/cache/restore@v4
-          name: Restore cached dependencies
-          id: cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}-${{ matrix.pydantic-version }}-extra
-
         - name: Force-update certifi
           run: |
             python --version
@@ -88,34 +74,24 @@ jobs:
 
         - name: Install Ubuntu compilers
           if: matrix.os == 'ubuntu-latest'
-          run: conda install gcc_linux-64
+          run: |
+              conda install gcc_linux-64
+              pip install nlopt==2.9.0
 
         # Roundabout solution on macos for proper linking with mpicc
         - name: Install macOS compilers
           if: matrix.os == 'macos-latest'
           run: |
             conda install clang_osx-64
+            pip install nlopt==2.8.0
 
         - name: Install mpi4py and MPI from conda
-          if: (matrix.python-version != '3.10' && matrix.os == 'ubuntu-latest') || matrix.os == 'macos-latest'
           run: |
             conda install mpi4py ${{ matrix.mpi-version }}
 
-        - name: Install mpi4py from pip, MPI from conda
-          if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-          run: |
-            conda install ${{ matrix.mpi-version }}
-            pip install mpi4py
-
         - name: Install generator dependencies
           run: |
-            python -m pip install --upgrade pip
-            pip install mpmath
-            pip install matplotlib
             conda env update --file install/gen_deps_environment.yml
-
-        #- name: Install ax-platform
-        #  run: pip install "ax-platform<=0.4.0"
 
         - name: Install gpcam
           if: matrix.python-version != '3.12'
@@ -123,86 +99,31 @@ jobs:
             pip install gpcam
 
         - name: Install surmise
-          if: matrix.os != 'macos-latest'
+          if: matrix.os == 'ubuntu-latest'
           run: |
             pip install --upgrade git+https://github.com/bandframework/surmise.git
-
-        - name: Build ytopt and dependencies
-          if: matrix.python-version <= '3.10' && matrix.os != 'macos-latest'
-          run: |
-            pip install scikit-learn==1.4.0
-            pip install pandas==2.2.1
-            pip install ConfigSpace
-            pip install "ray[default]"
-            git clone https://github.com/ytopt-team/scikit-optimize.git
-            cd scikit-optimize
-            pip install .
-            cd ..
-            git clone -b version1 https://github.com/ytopt-team/autotune.git
-            cd autotune
-            pip install .
-            cd ..
-            git clone -b main https://github.com/ytopt-team/ytopt.git
-            cd ytopt
-            pip install .
-            cd ..
 
         - name: Install generator dependencies for Ubuntu tests
           if: matrix.os == 'ubuntu-latest' && matrix.python-version != '3.12'
           run: |
             sudo apt-get install bc
+            pip install -r install/ubuntu_no312.txt
+            pip install Tasmanian --user
 
-            # pip install dragonfly-opt
-            # pip install git+https://github.com/dragonfly/dragonfly.git
-            pip install git+https://github.com/jlnav/dragonfly.git@fix/remove_npobject
-            pip install scikit-build packaging Tasmanian --user
-
-        - name: Install other testing dependencies
+        - name: Install Balsam on Pydantic 1
+          if: matrix.pydantic-version == '1.10.17'
           run: |
-            conda install octave
             conda install pyzmq
-            pip install -r install/testing_requirements.txt
-            pip install -r install/misc_feature_requirements.txt
             git clone https://github.com/argonne-lcf/balsam.git
             sed -i -e "s/pyzmq>=22.1.0,<23.0.0/pyzmq>=23.0.0,<24.0.0/" ./balsam/setup.cfg
             cd balsam; pip install -e .; cd ..
 
-            git clone --recurse-submodules -b develop https://github.com/POptUS/IBCDFO.git
-            pushd IBCDFO/minq/py/minq5/
-            export PYTHONPATH="$PYTHONPATH:$(pwd)"
-            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-            popd
-            pushd IBCDFO/ibcdfo_pypkg/
-            pip install -e .
-            popd
-
-        - name: Build heffte
-          if: matrix.os != 'macos-latest'
+        - name: Install other testing dependencies
           run: |
-            # begin heffte build and dependencies
-            sudo apt install libfftw3-dev
-            git clone https://github.com/icl-utk-edu/heffte.git
-            mkdir heffte/build
-            cd heffte/build
-            pwd
-            cmake -D CMAKE_BUILD_TYPE=Release -D BUILD_SHARED_LIBS=ON -D CMAKE_INSTALL_PREFIX=./ -D Heffte_ENABLE_AVX=ON -D Heffte_ENABLE_FFTW=ON ../
-            make -j 4
-            make install
-            cp ./benchmarks/speed3d_c2c ../../libensemble/tests/regression_tests/
-            # end heffte build and dependencies
-
-        - uses: actions/cache/save@v4
-          name: Save dependencies to cache
-          if: matrix.os == 'ubuntu-latest'
-          with:
-            path: |
-              /home/runner/work/libensemble/libensemble/heffte/build/
-              /home/runner/.local
-              /usr/share/miniconda3/envs/condaenv
-              /usr/share/miniconda3/bin
-              /usr/share/miniconda3/lib
-              /usr/share/miniconda3/include
-            key: libe-${{ github.ref_name }}-${{ matrix.python-version }}-${{ matrix.comms-type }}
+            conda install octave
+            pip install -r install/testing_requirements.txt
+            pip install -r install/misc_feature_requirements.txt
+            source install/install_ibcdfo.sh
 
         - name: Install libEnsemble, flake8, lock environment
           run: |
@@ -210,47 +131,47 @@ jobs:
             pip install -e .
             flake8 libensemble
 
-        - name: Remove various tests on newer pythons
-          if: matrix.python-version >= '3.11'
-          run: |
-            rm ./libensemble/tests/regression_tests/test_ytopt_heffte.py
-            # rm ./libensemble/tests/regression_tests/test_gpCAM.py
-            rm ./libensemble/tests/regression_tests/test_persistent_gp.py
-
-        - name: Remove test for persistent Tasmanian on Python 3.12
+        - name: Remove test for persistent Tasmanian, Surmise on Python 3.12
           if: matrix.python-version >= '3.12'
           run: |
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian.py
             rm ./libensemble/tests/regression_tests/test_persistent_tasmanian_async.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_calib.py
+            rm ./libensemble/tests/regression_tests/test_persistent_surmise_killsims.py
+
+        - name: Install redis/proxystore on Pydantic 2
+          if: matrix.pydantic-version == '2.8.2'
+          run: |
+            pip install redis
+            pip install proxystore==0.7.0
+
+        - name: Remove proxystore test on Pydantic 1
+          if: matrix.pydantic-version == '1.10.17'
+          run: |
+            rm ./libensemble/tests/regression_tests/test_proxystore_integration.py
 
         - name: Remove Balsam/Globus-compute tests on Pydantic 2
-          if: matrix.pydantic-version == '2.6.4'
+          if: matrix.pydantic-version == '2.8.2'
           run: |
             rm ./libensemble/tests/unit_tests/test_ufunc_runners.py
             rm ./libensemble/tests/unit_tests/test_executor_balsam.py
 
         - name: Start Redis
           if: matrix.os == 'ubuntu-latest'
-          uses: supercharge/redis-github-action@1.7.0
+          uses: supercharge/redis-github-action@1.8.0
           with:
             redis-version: 7
 
-        - name: Run extensive tests, Ubuntu
-          if: matrix.os == 'ubuntu-latest'
+        - name: Run extensive tests
           run: |
-           ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
-
-        - name: Run extensive tests, macOS
-          if: matrix.os == 'macos-latest'
-          run: |
-            ./libensemble/tests/run-tests.sh -e -z -${{ matrix.comms-type }}
+           ./libensemble/tests/run_tests.py -e -${{ matrix.comms-type }}
 
         - name: Merge coverage
           run: |
             mv libensemble/tests/.cov* .
 
         - name: Upload coverage reports to Codecov
-          uses: codecov/codecov-action@v4
+          uses: codecov/codecov-action@v5
           env:
             CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -260,4 +181,4 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v4
-        - uses: crate-ci/typos@v1.23.6
+        - uses: crate-ci/typos@v1.28.2

@@ -138,7 +138,7 @@ class MPIExecutor(Executor):
         self.resources = resources
 
     def _launch_with_retries(
-        self, task: Task, subgroup_launch: bool, wait_on_start: Union[bool, int], run_cmd: List[str], use_shell: bool
+        self, task: Task, subgroup_launch: bool, wait_on_start: bool, run_cmd: List[str], use_shell: bool
     ) -> None:
         """Launch task with retry mechanism"""
         retry_count = 0
@@ -166,8 +166,7 @@ class MPIExecutor(Executor):
                 retry_count += 1
             else:
                 if wait_on_start:
-                    wait_time = wait_on_start if isinstance(wait_on_start, int) else self.fail_time
-                    self._wait_on_start(task, wait_time)
+                    self._wait_on_start(task, self.fail_time)
                 task.poll()
 
                 if task.state == "FAILED":
@@ -200,7 +199,7 @@ class MPIExecutor(Executor):
         stage_inout: Optional[str] = None,
         hyperthreads: Optional[bool] = False,
         dry_run: Optional[bool] = False,
-        wait_on_start: Optional[Union[bool, int]] = False,
+        wait_on_start: Optional[bool] = False,
         extra_args: Optional[str] = None,
         auto_assign_gpus: Optional[bool] = False,
         match_procs_to_gpus: Optional[bool] = False,
@@ -260,10 +259,9 @@ class MPIExecutor(Executor):
             Whether this is a dry_run - no task will be launched; instead
             runline is printed to logger (at INFO level)
 
-        wait_on_start: bool or int, Optional
+        wait_on_start: bool, Optional
             Whether to wait for task to be polled as RUNNING (or other
-            active/end state) before continuing. If an integer N is supplied,
-            wait at most N seconds.
+            active/end state) before continuing.
 
         extra_args: str, Optional
             Additional command line arguments to supply to MPI runner. If
