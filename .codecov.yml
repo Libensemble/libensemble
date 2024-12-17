@@ -5,3 +5,4 @@ ignore:
   - "libensemble/sim_funcs/executor_hworld.py"
   - "libensemble/gen_funcs/persistent_ax_multitask.py"
   - "libensemble/gen_funcs/persistent_gpCAM.py"
+  - "libensemble/gen_classes/gpCAM.py"
