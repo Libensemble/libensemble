@@ -52,6 +52,7 @@ MOCK_MODULES = [
     "scipy.sparse",
     "scipy.spatial",
     "scipy.spatial.distance",
+    # "scipy.special",  # Adding this raises many more errors
     "scipy.stats",
     "surmise.calibration",
     "surmise.emulation",
