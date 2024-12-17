@@ -365,7 +365,7 @@ class Worker:
             return None
 
         # Otherwise, send a calc result back to manager
-        logger.debug(f"Sending to Manager with status {calc_status}")
+        logger.debug(f"Sending data to Manager with status {calc_status}")
         return {
             "calc_out": calc_out,
             "persis_info": persis_info,
@@ -377,7 +377,10 @@ class Worker:
     def run(self) -> None:
         """Runs the main worker loop."""
         try:
-            logger.info(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
+            if self.libE_specs["comms"] in ["local", "threads"]:
+                logger.debug(f"Worker {self.workerID} initiated")
+            else:
+                logger.debug(f"Worker {self.workerID} initiated on node {socket.gethostname()}")
 
             for worker_iter in count(start=1):
                 logger.debug(f"Iteration {worker_iter}")
