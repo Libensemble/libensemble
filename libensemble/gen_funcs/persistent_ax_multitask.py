@@ -43,6 +43,7 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = ["persistent_gp_mt_ax_gen_f"]
 
+
 def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
     """
     Create a Gaussian Process model for multi-task optimization
