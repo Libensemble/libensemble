@@ -18,5 +18,6 @@ Generator Functions
    fd_param_finder
    surmise
    ax_multitask
+   gpcam
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples
