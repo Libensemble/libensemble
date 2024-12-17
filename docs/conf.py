@@ -30,7 +30,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return MagicMock()
 
-autodoc_mock_imports = ["ax", "balsam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
+autodoc_mock_imports = ["ax", "balsam", "gpcam", "IPython", "matplotlib", "pandas", "scipy", "surmise"]
 
 MOCK_MODULES = [
     "argparse",
