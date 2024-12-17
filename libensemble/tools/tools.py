@@ -84,7 +84,9 @@ def _get_shortname(calling_file):
 # =================== save libE output to pickle and np ========================
 
 
-def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd(), mess="Run completed"):
+Here’s the modified function header and logic to set dest_path to os.getcwd() if it is None:
+
+def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=None, mess="Run completed"):
     """
     Writes out history array and persis_info to files.
 
@@ -121,6 +123,9 @@ def save_libE_output(H, persis_info, calling_file, nworkers, dest_path=os.getcwd
         A message to print/log when saving the file.
 
     """
+    if dest_path is None:
+        dest_path = os.getcwd()
+
     short_name = _get_shortname(calling_file)
     prob_str = "length=" + str(len(H)) + "_evals=" + str(sum(H["sim_ended"])) + "_workers=" + str(nworkers)
 
