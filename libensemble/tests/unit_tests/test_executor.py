@@ -51,9 +51,9 @@ def setup_module(module):
 
         mpi4py.rc.initialize = False
     try:
-        print(f"setup_module module:{module.__name__}")
+        print(f"setup_module module: {module.__name__}")
     except AttributeError:
-        print(f"setup_module (direct run) module:{module}")
+        print(f"setup_module (direct run) module: {module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -61,7 +61,7 @@ def setup_module(module):
 
 
 def setup_function(function):
-    print(f"setup_function function:{function.__name__}")
+    print(f"setup_function function: {function.__name__}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -69,9 +69,9 @@ def setup_function(function):
 
 def teardown_module(module):
     try:
-        print(f"teardown_module module:{module.__name__}")
+        print(f"teardown_module module: {module.__name__}")
     except AttributeError:
-        print(f"teardown_module (direct run) module:{module}")
+        print(f"teardown_module (direct run) module: {module}")
     if Executor.executor is not None:
         del Executor.executor
         Executor.executor = None
@@ -306,7 +306,7 @@ def test_launch_wait_on_start():
     exctr = Executor.executor
     cores = NCORES
     args_for_sim = "sleep 0.2"
-    for value in [True, 1]:
+    for value in [False, True]:
         task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=value)
         assert task.state not in NOT_STARTED_STATES, "Task should not be in a NOT_STARTED state. State: " + str(
             task.state
@@ -737,7 +737,7 @@ def test_retries_run_fail():
     exctr.retry_delay_incr = 0.05
     cores = NCORES
     args_for_sim = "sleep 0 Fail"
-    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=3)
+    task = exctr.submit(calc_type="sim", num_procs=cores, app_args=args_for_sim, wait_on_start=True)
     assert task.state == "FAILED", "task.state should be FAILED. Returned " + str(task.state)
     assert task.run_attempts == 5, "task.run_attempts should be 5. Returned " + str(task.run_attempts)
 
