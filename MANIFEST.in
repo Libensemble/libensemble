@@ -1,3 +1,4 @@
+include pyproject.toml
 include setup.py
 include *.cfg
 include *.rst

@@ -21,7 +21,7 @@ Before release
 - Year in ``LICENSE`` is checked for correctness.
   (Note: The year generated in docs by ``docs/conf.py`` should be automatic).
 
-- ``setup.py`` and ``libensemble/__init__.py`` are checked to ensure all
+- ``pyproject.toml`` and ``libensemble/__init__.py`` are checked to ensure all
   information is up to date.
 
 - Update ``.wci.yml`` in root directory (version, date and any other
