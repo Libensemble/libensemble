@@ -37,10 +37,8 @@ def cdist(XA, XB, metric="euclidean"):
 
 def aposmm(H, persis_info, gen_specs, libE_info):
     """
-    APOSMM coordinates multiple local optimization runs, starting from points
-    which do not have a better point nearby (within a distance ``r_k``). This
-    generation function uses a ``local_H`` (serving a similar purpose as ``H``
-    in libEnsemble) containing the fields:
+    APOSMM coordinates multiple local optimization runs, dramatically reducing time-to-solution
+    on parallel systems for discovering multiple minima. APOSMM tracks these fields:
 
     - ``'x' [n floats]``: Parameters being optimized over
     - ``'x_on_cube' [n floats]``: Parameters scaled to the unit cube
@@ -82,7 +80,7 @@ def aposmm(H, persis_info, gen_specs, libE_info):
       at an optimum, but SciPy's Nelder-Mead and BFGS have a 'status' of 0 if at
       an optimum.)
     - ``'initial_sample_size' [int]``: Number of uniformly sampled points
-      must be returned (non-nan value) before a local opt run is started. Can be
+      to be evaluated before starting the localopt runs. Can be
       zero if no additional sampling is desired, but if zero there must be past
       sim_f values given to libEnsemble in H0.
 
@@ -114,8 +112,8 @@ def aposmm(H, persis_info, gen_specs, libE_info):
     ``'max_active_runs'`` in some iteration, then existing runs are prioritized.
 
     And ``gen_specs['user']`` must also contain fields for the given
-    localopt_method's convergence tolerances (e.g., gatol/grtol for PETSC/TAO
-    or ftol_rel for NLopt)
+    localopt_method's convergence tolerances (e.g., ``gatol/grtol`` for PETSC/TAO
+    or ``ftol_rel`` for NLopt)
 
     .. seealso::
 

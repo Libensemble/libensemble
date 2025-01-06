@@ -5,7 +5,7 @@ sampling
     :class: underline
 
 .. automodule:: sampling
-  :members:
+  :members: uniform_random_sample latin_hypercube_sample
   :undoc-members:
 
 .. dropdown:: :underline:`sampling.py`
@@ -15,9 +15,9 @@ sampling
       :linenos:
 
 persistent_sampling
----------------------------
+-------------------
 .. automodule:: persistent_sampling
-  :members:
+  :members: persistent_uniform persistent_uniform_final_update persistent_request_shutdown
   :undoc-members:
 
 .. dropdown:: :underline:`persistent_sampling.py`
@@ -29,5 +29,5 @@ persistent_sampling
 persistent_sampling_var_resources
 ---------------------------------
 .. automodule:: persistent_sampling_var_resources
-  :members:
+  :members: uniform_sample_with_var_gpus
   :undoc-members:

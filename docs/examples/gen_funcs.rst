@@ -1,11 +1,13 @@
 Generator Functions
 ===================
 
+Here we list many generator functions included with libEnsemble.
+
 .. include:: ../introduction.rst
     :start-after: example_packages
 
 .. IMPORTANT::
-  See the API for generation functions :ref:`here<api_gen_f>`.
+  See the API for generator functions :ref:`here<api_gen_f>`.
 
 .. toctree::
    :maxdepth: 2

@@ -49,13 +49,13 @@ Persistent APOSMM
 ^^^^^^^^^^^^^^^^^
 
 .. automodule:: persistent_aposmm
-  :members:
+  :members: aposmm
   :undoc-members:
 
 LocalOptInterfacer
 ^^^^^^^^^^^^^^^^^^
 .. automodule:: aposmm_localopt_support
-  :members:
+  :members: LocalOptInterfacer
   :undoc-members:
 
 .. _DFO-LS: https://github.com/numericalalgorithmsgroup/dfols
