@@ -380,7 +380,7 @@ Running forces application with input file
 Many applications read an input file instead of being given parameters directly on the run line.
 
 forces_simple_with_input_file_ directory contains a variant of this example, where a templated
-input file is parametized for each evaluation.
+input file is parameterized for each evaluation.
 
 This requires **jinja2** to be installed::
 
