@@ -10,15 +10,25 @@ Here we list many generator functions included with libEnsemble.
   See the API for generator functions :ref:`here<api_gen_f>`.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Documented Example Generator Functions:
+  :maxdepth: 2
+  :caption: Sampling
 
-   sampling
-   aposmm
-   uniform_or_localopt
-   tasmanian
-   fd_param_finder
-   surmise
-   ax_multitask
+  sampling
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Optimization
+
+  aposmm
+  uniform_or_localopt
+  ax_multitask
+
+.. toctree::
+  :maxdepth: 2
+  :caption: Modeling and Approximation
+
+  tasmanian
+  fd_param_finder
+  surmise
 
 .. _libEnsemble Community Repository: https://github.com/Libensemble/libe-community-examples

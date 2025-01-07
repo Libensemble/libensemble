@@ -16,7 +16,7 @@ function launching tasks, see the
 six_hump_camel
 --------------
 .. automodule:: six_hump_camel
-  :members:
+  :members: six_hump_camel_simple, persistent_six_hump_camel
   :undoc-members:
 
 .. dropdown:: :underline:`six_hump_camel.py`
@@ -24,12 +24,6 @@ six_hump_camel
    .. literalinclude:: ../../libensemble/sim_funcs/six_hump_camel.py
       :language: python
       :linenos:
-
-chwirut
--------
-.. automodule:: chwirut1
-  :members:
-  :undoc-members:
 
 noisy_vector_mapping
 --------------------
@@ -42,12 +36,6 @@ noisy_vector_mapping
    .. literalinclude:: ../../libensemble/sim_funcs/noisy_vector_mapping.py
       :language: python
       :linenos:
-
-periodic_func
--------------
-.. automodule:: periodic_func
-  :members:
-  :undoc-members:
 
 borehole
 --------

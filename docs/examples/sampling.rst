@@ -5,7 +5,7 @@ sampling
     :class: underline
 
 .. automodule:: sampling
-  :members: uniform_random_sample latin_hypercube_sample
+  :members: uniform_random_sample, latin_hypercube_sample
   :undoc-members:
 
 .. dropdown:: :underline:`sampling.py`
@@ -17,7 +17,7 @@ sampling
 persistent_sampling
 -------------------
 .. automodule:: persistent_sampling
-  :members: persistent_uniform persistent_uniform_final_update persistent_request_shutdown
+  :members: persistent_uniform, persistent_request_shutdown, persistent_uniform_with_cancellations
   :undoc-members:
 
 .. dropdown:: :underline:`persistent_sampling.py`
