@@ -27,6 +27,7 @@ Here we list many generator functions included with libEnsemble.
   :maxdepth: 2
   :caption: Modeling and Approximation
 
+  gpcam
   tasmanian
   fd_param_finder
   surmise
