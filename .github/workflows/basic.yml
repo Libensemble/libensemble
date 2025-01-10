@@ -59,7 +59,7 @@ jobs:
             environments: "test"
             activate-environment: true
 
-        - name: Install IBCDFO
+        - name: Adjust Python, install IBCDFO
           run: |
             source install/install_ibcdfo.sh
 

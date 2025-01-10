@@ -60,10 +60,10 @@ test = ["test"]
 dev = ["dev", "docs", "test"]
 
 [tool.pixi.feature.dev.dependencies]
-flake8 = ">=7.1.1,<8"
 pre-commit = ">=4.0.1,<5"
 
 [tool.pixi.feature.test.dependencies]
+flake8 = ">=7.1.1,<8"
 scipy = ">=1.9.1,<2"
 coverage = ">=7.6.4,<8"
 pytest = ">=8.3.3,<9"
