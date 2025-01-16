@@ -8,6 +8,7 @@ See the `user guide`_ for more information.
 .. example_packages
 
 .. dropdown:: **Example Compatible Packages**
+  :open:
 
   libEnsemble and the `Community Examples repository`_ include example generator
   functions for the following libraries:
