@@ -20,7 +20,6 @@ the objective function will be 3.
 # TESTSUITE_NPROCS: 4
 # TESTSUITE_EXTRA: true
 # TESTSUITE_OS_SKIP: OSX
-# TESTSUITE_EXCLUDE: true
 
 import warnings
 
