@@ -50,6 +50,21 @@ from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = ["persistent_gp_mt_ax_gen_f"]
 
+import warnings
+from ax.exceptions.core import AxParameterWarning
+
+warnings.filterwarnings(
+    "ignore",
+    message="`cache_root` is only supported for GPyTorchModels",
+    category=RuntimeWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="Changing `is_ordered` to `True` for `ChoiceParameter`",
+    category=AxParameterWarning,
+)
+
 
 def get_MTGP(
     experiment: Experiment,
