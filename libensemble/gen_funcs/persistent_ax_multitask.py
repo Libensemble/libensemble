@@ -12,13 +12,15 @@ Ax notes:
 Each arm = a set of simulation inputs (a sim_id)
 Each trial = a batch of simulations.
 The metric = the recorded simulation output (f) that Ax optimizes.
-An Ax runner handles the execution of trials - AxRunner wraps Runner to use libE.
+Ax runner handles the execution of trials - AxRunner wraps Runner to use libE tr.run()
 
 """
 
 import os
 from copy import deepcopy
 from typing import Optional
+from pyre_extensions import assert_is_instance
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -34,24 +36,41 @@ from ax.core.observation import ObservationFeatures
 from ax.core.optimization_config import OptimizationConfig
 from ax.core.parameter import ParameterType, RangeParameter
 from ax.core.search_space import SearchSpace
+from ax.exceptions.core import AxParameterWarning
 from ax.modelbridge.factory import get_sobol
-from ax.modelbridge.registry import Models, MT_MTGP_trans, ST_MTGP_trans
+from ax.modelbridge.registry import Models, ST_MTGP_trans
 from ax.modelbridge.torch import TorchModelBridge
 from ax.modelbridge.transforms.convert_metric_names import tconfig_from_mt_experiment
-from ax.utils.common.typeutils import checked_cast
 from ax.storage.metric_registry import register_metrics
 from ax.runners import SyntheticRunner
 from ax.storage.json_store.save import save_experiment
 from ax.storage.runner_registry import register_runner
 from ax.utils.common.result import Ok
 
+try:
+    # For Ax >= 0.5.0
+    from ax.modelbridge.transforms.derelativize import Derelativize
+    from ax.modelbridge.transforms.convert_metric_names import ConvertMetricNames
+    from ax.modelbridge.transforms.trial_as_task import TrialAsTask
+    from ax.modelbridge.transforms.stratified_standardize_y import StratifiedStandardizeY
+    from ax.modelbridge.transforms.task_encode import TaskChoiceToIntTaskChoice
+    from ax.modelbridge.registry import MBM_X_trans
+    MT_MTGP_trans = MBM_X_trans + [
+        Derelativize,
+        ConvertMetricNames,
+        TrialAsTask,
+        StratifiedStandardizeY,
+        TaskChoiceToIntTaskChoice,
+    ]
+
+except ImportError:
+    # For Ax < 0.5.0
+    from ax.modelbridge.registry import MT_MTGP_trans
+
 from libensemble.message_numbers import EVAL_GEN_TAG, FINISHED_PERSISTENT_GEN_TAG, PERSIS_STOP, STOP_TAG
 from libensemble.tools.persistent_support import PersistentSupport
 
 __all__ = ["persistent_gp_mt_ax_gen_f"]
-
-import warnings
-from ax.exceptions.core import AxParameterWarning
 
 warnings.filterwarnings(
     "ignore",
@@ -66,6 +85,7 @@ warnings.filterwarnings(
 )
 
 
+# get_MTGP based on https://ax.dev/docs/tutorials/multi_task/
 def get_MTGP(
     experiment: Experiment,
     data: Data,
@@ -113,8 +133,7 @@ def get_MTGP(
             trial_index=trial_index,  # pyre-ignore[6]
         )
 
-    return checked_cast(
-        TorchModelBridge,
+    return assert_is_instance(
         Models.ST_MTGP(
             experiment=experiment,
             search_space=search_space or experiment.search_space,
@@ -125,6 +144,7 @@ def get_MTGP(
             torch_device=device,
             status_quo_features=status_quo_features,
         ),
+        TorchModelBridge,
     )
 
 
@@ -228,7 +248,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
 
             # But launch them at low fidelity.
             tr = exp.new_batch_trial(trial_type=lofi_task, generator_run=gr)
-            tr.run()
+            tr.run()  # Runs sims via libE (see AxRunner.run below)
             tr.mark_completed()
             tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
@@ -244,7 +264,7 @@ def persistent_gp_mt_ax_gen_f(H, persis_info, gen_specs, libE_info):
             # Select max-utility points from the low fidelity batch to generate a high fidelity batch.
             gr = max_utility_from_GP(n=n_opt_hifi, m=m, gr=gr, hifi_task=hifi_task)
             tr = exp.new_batch_trial(trial_type=hifi_task, generator_run=gr)
-            tr.run()
+            tr.run()  # Runs sims via libE (see AxRunner.run below)
             tr.mark_completed()
             tag = tr.run_metadata["tag"]
             if tag in [STOP_TAG, PERSIS_STOP]:
@@ -311,9 +331,8 @@ class AxRunner(Runner):
             for j in range(n_param):
                 param_array[j] = params[f"x{j}"]
             H_o["x"][i] = param_array
-            H_o["resource_sets"][i] = 1
+            H_o["resource_sets"][i] = 1  # one is default but could be diff for hi/lo
             H_o["task"][i] = task
-
         tag, Work, calc_in = self.ps.send_recv(H_o)
 
         trial_metadata["tag"] = tag
