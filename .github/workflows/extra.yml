@@ -94,7 +94,7 @@ jobs:
             conda env update --file install/gen_deps_environment.yml
 
         - name: Install gpcam
-          if: matrix.python-version != '3.12'
+          if: matrix.python-version <= '3.13'
           run: |
             pip install gpcam
 
