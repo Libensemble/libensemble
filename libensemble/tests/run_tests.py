@@ -29,7 +29,7 @@ COV_REPORT = True
 REG_TEST_LIST = "test_*.py"
 REG_TEST_OUTPUT_EXT = "std.out"
 REG_STOP_ON_FAILURE = False
-REG_LIST_TESTS_ONLY = True  # just shows all tests to be run.
+REG_LIST_TESTS_ONLY = False  # just shows all tests to be run.
 REG_RUN_LARGEST_TEST_ONLY = False
 
 # Test Directories - all relative to project root dir
@@ -360,7 +360,8 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
         user_comms_list = ["mpi", "local", "tcp"]
 
     print_heading(f"Running regression tests (comms: {', '.join(user_comms_list)})")
-    # build_forces(root_dir)  # Build forces.x before running tests
+    if not REG_LIST_TESTS_ONLY:
+        build_forces(root_dir)  # Build forces.x before running tests
 
     reg_test_list = REG_TEST_LIST
     reg_test_files = []
@@ -375,7 +376,6 @@ def run_regression_tests(root_dir, python_exec, args, current_os):
     start_time = time.time()
 
     for test_script in reg_test_files:
-        print(test_script)
         test_script_name = os.path.basename(test_script)
         directives = parse_test_directives(test_script)
         if skip_test(directives, args, current_os):
