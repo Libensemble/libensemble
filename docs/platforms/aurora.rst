@@ -12,7 +12,9 @@ nodes.
 Configuring Python and Installation
 -----------------------------------
 
-To obtain Python and create a virtual environment::
+To obtain Python and create a virtual environment:
+
+.. code-block:: console
 
     module load frameworks
     python -m venv /path/to-venv --system-site-packages
